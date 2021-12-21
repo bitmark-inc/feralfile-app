@@ -15,10 +15,10 @@ Future<void> setup() async {
 
   injector.registerSingleton<ConfigurationService>(ConfigurationServiceImpl(sharedPreferences));
   injector.registerSingleton(Client());
-  injector.registerLazySingleton(() => NavigationService());
+  injector.registerSingleton(() => NavigationService());
+  injector.registerSingleton(() => WalletConnectService(injector()));
 
   injector.registerLazySingleton(() => Web3Client("https://rinkeby.infura.io/v3/20aba74f4e8642b88808ff4df18c10ff", injector()));
-  injector.registerLazySingleton(() => WalletConnectService(injector()));
   injector.registerLazySingleton<PersonaService>(() => PersonaServiceImpl(injector()));
   injector.registerLazySingleton<EthereumService>(() => EthereumServiceImpl(injector(), injector()));
 }

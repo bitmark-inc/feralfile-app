@@ -73,7 +73,6 @@ class WCConnectPage extends StatelessWidget {
               text: "Authorize".toUpperCase(),
               onPress: () async {
                 final address = await injector<EthereumService>().getETHAddress();
-                print(address);
                 injector<WalletConnectService>().approveSession([address], 4);
                 Navigator.of(context).pop();
               },
