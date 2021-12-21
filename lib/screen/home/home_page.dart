@@ -1,8 +1,5 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
-import 'package:autonomy_flutter/screen/wallet_connect/wc_send_transaction_page.dart';
-import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
-import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/view/filled_button.dart';
 import 'package:flutter/cupertino.dart';
@@ -35,7 +32,6 @@ class HomePage extends StatelessWidget {
             FilledButton(
               text: "Help us find your collection".toUpperCase(),
               onPress: () async {
-                // injector<NavigationService>().navigateTo(WCSendTransactionPage.tag);
                 dynamic uri =
                     await Navigator.of(context).pushNamed(ScanQRPage.tag);
                 if (uri != null && uri is String && uri.startsWith("wc:")) {
@@ -46,14 +42,6 @@ class HomePage extends StatelessWidget {
           ],
         ),
       ),
-      // floatingActionButton: new FloatingActionButton(
-      //   elevation: 0.0,
-      //   child: new Icon(Icons.check),
-      //   backgroundColor: new Color(0xFFE57373),
-      //   onPressed: () {
-      //     context.read<HomeBloc>().add(HomeEvent1());
-      //   },
-      // ),
     );
   }
 }

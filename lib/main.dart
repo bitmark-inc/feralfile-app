@@ -1,8 +1,9 @@
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
+import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
-import 'package:autonomy_flutter/screen/wallet_connect/wc_send_transaction_page.dart';
+import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_bloc.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/persona_service.dart';
@@ -17,7 +18,6 @@ void main() async {
 
   final personaService = injector<PersonaService>();
   if (personaService.getActivePersona() == null) {
-    print("111111");
     personaService.createPersona("Autonomy");
   }
 
@@ -91,8 +91,11 @@ class AutonomyApp extends StatelessWidget {
               );
             case WCSendTransactionPage.tag:
               return MaterialPageRoute(
-                builder: (context) => WCSendTransactionPage(
-                    args: settings.arguments as WCSendTransactionPageArgs),
+                builder: (context) => BlocProvider(
+                  create: (_) => WCSendTransactionBloc(injector(), injector(), injector()),
+                  child: WCSendTransactionPage(
+                      args: settings.arguments as WCSendTransactionPageArgs),
+                ),
               );
           }
         });
