@@ -37,6 +37,8 @@ dependencies:
   qr_code_scanner: ^0.6.1
   uuid: ^3.0.5
   http: ^0.13.2
+  retrofit:
+  dio: ^4.0.4
   libauk_dart:
     git:
       url: https://github.com/autonomy-system/libauk-dart.git
@@ -45,6 +47,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  retrofit_generator:
   build_runner:
   built_value_generator:
   json_serializable:

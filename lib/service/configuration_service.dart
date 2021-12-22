@@ -1,11 +1,12 @@
 import 'dart:convert';
 
+import 'package:autonomy_flutter/model/account.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wallet_connect/wallet_connect.dart';
 
 abstract class ConfigurationService {
-  Future<void> setAccount(String value);
-  String? getAccount();
+  Future<void> setAccount(Account value);
+  Account? getAccount();
   Future<void> setPersonas(List<String> value);
   List<String> getPersonas();
   Future<void> setWCSessions(List<WCSessionStore> value);
@@ -22,12 +23,19 @@ class ConfigurationServiceImpl implements ConfigurationService {
   ConfigurationServiceImpl(this._preferences);
 
   @override
-  Future<void> setAccount(String value) async {
-    await _preferences.setString(KEY_ACCOUNT, value);
+  Future<void> setAccount(Account value) async {
+    final json = jsonEncode(value);
+    await _preferences.setString(KEY_ACCOUNT, json);
   }
 
-  String? getAccount() {
-    return _preferences.getString(KEY_ACCOUNT);
+  Account? getAccount() {
+    final data = _preferences.getString(KEY_ACCOUNT);
+    if (data == null) {
+      return null;
+    } else {
+      final json = jsonDecode(data);
+      return Account.fromJson(json);
+    }
   }
 
   @override
@@ -42,7 +50,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
   Future<void> setWCSessions(List<WCSessionStore> value) async {
     final json = jsonEncode(value);
-    print(json);
     await _preferences.setString(KEY_WC_SESSIONS, json);
   }
 

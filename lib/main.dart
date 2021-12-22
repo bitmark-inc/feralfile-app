@@ -104,7 +104,7 @@ class AutonomyApp extends StatelessWidget {
               return MaterialPageRoute(
                   builder: (context) =>
                       BlocProvider(
-                        create: (_) => HomeBloc(injector()),
+                        create: (_) => HomeBloc(injector(), injector()),
                         child: HomePage(),
                       )
               );
