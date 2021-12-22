@@ -41,7 +41,12 @@ class EthereumServiceImpl extends EthereumService {
 
   @override
   Future<String> getETHAddress() async {
-    return await _personaService.getActivePersona()?.getETHAddress() ?? "";
+    final address = await _personaService.getActivePersona()?.getETHAddress();
+    if (address == null) {
+      return "";
+    } else {
+      return EthereumAddress.fromHex(address).hexEip55;
+    }
   }
 
   @override

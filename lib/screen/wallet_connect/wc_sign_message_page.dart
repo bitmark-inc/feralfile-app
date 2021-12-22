@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
+import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/filled_button.dart';
@@ -74,6 +75,13 @@ class WCSignMessagePage extends StatelessWidget {
               onPress: () async {
                 final signature = await injector<EthereumService>().signPersonalMessage(message);
                 injector<WalletConnectService>().approveRequest(args.peerMeta, args.id, signature);
+
+                if (args.peerMeta.url.contains("feralfile")) {
+                  Future.delayed(const Duration(milliseconds: 3000), () {
+                    injector<FeralFileService>().saveAccount();
+                  });
+                }
+
                 Navigator.of(context).pop();
               },
             ),

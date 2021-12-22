@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
@@ -38,7 +36,8 @@ class WalletConnectService {
   }
 
   disconnect(WCPeerMeta peerMeta) {
-    final wcClient = wcClients.firstWhere((element) => element.remotePeerMeta == peerMeta);
+    final wcClient =
+        wcClients.lastWhere((element) => element.remotePeerMeta == peerMeta);
 
     wcClient.disconnect();
     wcClients.remove(wcClient);
@@ -49,27 +48,31 @@ class WalletConnectService {
   }
 
   approveSession(WCPeerMeta peerMeta, List<String> accounts, int chainId) {
-    final wcClient = wcClients.firstWhere((element) => element.remotePeerMeta == peerMeta);
+    final wcClient =
+        wcClients.lastWhere((element) => element.remotePeerMeta == peerMeta);
 
     wcClient.approveSession(accounts: accounts, chainId: chainId);
     _configurationService.setWCSessions([wcClient.sessionStore]);
   }
 
   rejectSession(WCPeerMeta peerMeta) {
-    final wcClient = wcClients.firstWhere((element) => element.remotePeerMeta == peerMeta);
+    final wcClient =
+        wcClients.lastWhere((element) => element.remotePeerMeta == peerMeta);
 
     wcClient.rejectSession();
     wcClients.remove(wcClient);
   }
 
   approveRequest(WCPeerMeta peerMeta, int id, String result) {
-    final wcClient = wcClients.firstWhere((element) => element.remotePeerMeta == peerMeta);
+    final wcClient =
+        wcClients.lastWhere((element) => element.remotePeerMeta == peerMeta);
 
     wcClient.approveRequest<String>(id: id, result: result);
   }
 
   rejectRequest(WCPeerMeta peerMeta, int id) {
-    final wcClient = wcClients.firstWhere((element) => element.remotePeerMeta == peerMeta);
+    final wcClient =
+        wcClients.lastWhere((element) => element.remotePeerMeta == peerMeta);
 
     wcClient.rejectRequest(id: id);
   }
@@ -88,13 +91,13 @@ class WalletConnectService {
       },
       onSessionRequest: (id, peerMeta) {
         currentPeerMeta = peerMeta;
-        _navigationService.navigateTo(
-            WCConnectPage.tag, arguments: WCConnectPageArgs(id, peerMeta));
+        _navigationService.navigateTo(WCConnectPage.tag,
+            arguments: WCConnectPageArgs(id, peerMeta));
       },
       onEthSign: (id, message) {
         _navigationService.navigateTo(WCSignMessagePage.tag,
-            arguments: WCSignMessagePageArgs(
-                id, currentPeerMeta!, message.data!));
+            arguments:
+                WCSignMessagePageArgs(id, currentPeerMeta!, message.data!));
       },
       onEthSendTransaction: (id, tx) {
         _navigationService.navigateTo(WCSendTransactionPage.tag,
