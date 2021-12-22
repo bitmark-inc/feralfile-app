@@ -20,7 +20,7 @@ class WCConnectPage extends StatelessWidget {
       appBar: getBackAppBar(
         context,
         onBack: () {
-          injector<WalletConnectService>().rejectSession();
+          injector<WalletConnectService>().rejectSession(args.peerMeta);
           Navigator.of(context).pop();
         },
       ),
@@ -73,7 +73,7 @@ class WCConnectPage extends StatelessWidget {
               text: "Authorize".toUpperCase(),
               onPress: () async {
                 final address = await injector<EthereumService>().getETHAddress();
-                injector<WalletConnectService>().approveSession([address], 4);
+                injector<WalletConnectService>().approveSession(args.peerMeta, [address], 4);
                 Navigator.of(context).pop();
               },
             ),

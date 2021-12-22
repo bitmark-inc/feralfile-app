@@ -41,9 +41,9 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
       appBar: getBackAppBar(
         context,
         onBack: () {
-          context
-              .read<WCSendTransactionBloc>()
-              .add(WCSendTransactionRejectEvent(widget.args.id));
+          context.read<WCSendTransactionBloc>().add(
+              WCSendTransactionRejectEvent(
+                  widget.args.peerMeta, widget.args.id));
         },
       ),
       body: Container(
@@ -153,6 +153,7 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
 
                     context.read<WCSendTransactionBloc>().add(
                         WCSendTransactionSendEvent(
+                            widget.args.peerMeta,
                             widget.args.id,
                             to,
                             amount.getInWei,

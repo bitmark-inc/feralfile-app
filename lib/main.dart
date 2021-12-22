@@ -22,7 +22,7 @@ void main() async {
   }
 
   BlocOverrides.runZoned(
-    () => runApp(AutonomyApp()),
+        () => runApp(AutonomyApp()),
     blocObserver: AppBlocObserver(),
   );
 }
@@ -70,32 +70,43 @@ class AutonomyApp extends StatelessWidget {
           ),
         ),
         navigatorKey: injector<NavigationService>().navigatorKey,
-        home: BlocProvider(
-          create: (_) => HomeBloc(),
-          child: HomePage(),
-        ),
-        routes: <String, WidgetBuilder>{
-          ScanQRPage.tag: (BuildContext context) => ScanQRPage(),
-        },
         onGenerateRoute: (settings) {
           switch (settings.name) {
             case WCConnectPage.tag:
               return MaterialPageRoute(
-                builder: (context) => WCConnectPage(
-                    args: settings.arguments as WCConnectPageArgs),
+                builder: (context) =>
+                    WCConnectPage(
+                        args: settings.arguments as WCConnectPageArgs),
               );
             case WCSignMessagePage.tag:
               return MaterialPageRoute(
-                builder: (context) => WCSignMessagePage(
-                    args: settings.arguments as WCSignMessagePageArgs),
+                builder: (context) =>
+                    WCSignMessagePage(
+                        args: settings.arguments as WCSignMessagePageArgs),
               );
             case WCSendTransactionPage.tag:
               return MaterialPageRoute(
-                builder: (context) => BlocProvider(
-                  create: (_) => WCSendTransactionBloc(injector(), injector(), injector()),
-                  child: WCSendTransactionPage(
-                      args: settings.arguments as WCSendTransactionPageArgs),
-                ),
+                builder: (context) =>
+                    BlocProvider(
+                      create: (_) =>
+                          WCSendTransactionBloc(
+                              injector(), injector(), injector()),
+                      child: WCSendTransactionPage(
+                          args: settings
+                              .arguments as WCSendTransactionPageArgs),
+                    ),
+              );
+            case ScanQRPage.tag:
+              return MaterialPageRoute(
+                  builder: (context) => ScanQRPage()
+              );
+            default:
+              return MaterialPageRoute(
+                  builder: (context) =>
+                      BlocProvider(
+                        create: (_) => HomeBloc(injector()),
+                        child: HomePage(),
+                      )
               );
           }
         });
