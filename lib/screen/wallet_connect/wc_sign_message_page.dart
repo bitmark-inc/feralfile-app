@@ -26,7 +26,7 @@ class WCSignMessagePage extends StatelessWidget {
       appBar: getBackAppBar(
         context,
         onBack: () {
-          injector<WalletConnectService>().rejectRequest(args.id);
+          injector<WalletConnectService>().rejectRequest(args.peerMeta, args.id);
           Navigator.of(context).pop();
         },
       ),
@@ -73,7 +73,7 @@ class WCSignMessagePage extends StatelessWidget {
               text: "Sign".toUpperCase(),
               onPress: () async {
                 final signature = await injector<EthereumService>().signPersonalMessage(message);
-                injector<WalletConnectService>().approveRequest(args.id, signature);
+                injector<WalletConnectService>().approveRequest(args.peerMeta, args.id, signature);
                 Navigator.of(context).pop();
               },
             ),
