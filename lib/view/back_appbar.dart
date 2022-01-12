@@ -21,5 +21,6 @@ AppBar getBackAppBar(BuildContext context, {required Function() onBack}) {
     ),
     backgroundColor: Colors.transparent,
     shadowColor: Colors.transparent,
+    elevation: 0,
   );
 }

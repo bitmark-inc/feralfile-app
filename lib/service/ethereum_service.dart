@@ -5,6 +5,7 @@ import 'package:web3dart/web3dart.dart';
 
 abstract class EthereumService {
   Future<String> getETHAddress();
+  Future<EtherAmount> getBalance(String address);
   Future<String> signPersonalMessage(Uint8List message);
   Future<BigInt> estimateFee(EthereumAddress to, EtherAmount amount);
   Future<String> sendTransaction(EthereumAddress to, BigInt value, BigInt? gas, String? data);
@@ -47,6 +48,12 @@ class EthereumServiceImpl extends EthereumService {
     } else {
       return EthereumAddress.fromHex(address).hexEip55;
     }
+  }
+
+  @override
+  Future<EtherAmount> getBalance(String address) async {
+    final ethAddress = EthereumAddress.fromHex(address);
+    return await _web3Client.getBalance(ethAddress);
   }
 
   @override

@@ -1,9 +1,8 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
+import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
-import 'package:autonomy_flutter/view/filled_button.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:wallet_connect/models/wc_peer_meta.dart';
 
@@ -69,14 +68,22 @@ class WCConnectPage extends StatelessWidget {
               style: Theme.of(context).textTheme.bodyText1,
             ),
             Expanded(child: SizedBox()),
-            FilledButton(
-              text: "Authorize".toUpperCase(),
-              onPress: () async {
-                final address = await injector<EthereumService>().getETHAddress();
-                injector<WalletConnectService>().approveSession(args.peerMeta, [address], 4);
-                Navigator.of(context).pop();
-              },
-            ),
+            Row(
+              children: [
+                Expanded(
+                  child: AuFilledButton(
+                    text: "Authorize".toUpperCase(),
+                    onPress: () async {
+                      final address =
+                          await injector<EthereumService>().getETHAddress();
+                      injector<WalletConnectService>()
+                          .approveSession(args.peerMeta, [address], 4);
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                )
+              ],
+            )
           ],
         ),
       ),

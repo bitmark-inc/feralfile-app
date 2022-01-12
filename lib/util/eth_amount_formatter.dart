@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:web3dart/web3dart.dart';
 
 class EthAmountFormatter {
@@ -12,6 +13,9 @@ class EthAmountFormatter {
 
     return EtherAmount.fromUnitAndValue(fromUnit, amount)
         .getValueInUnit(toUnit)
+        .toString()
+        .characters
+        .take(7)
         .toString();
   }
 }
