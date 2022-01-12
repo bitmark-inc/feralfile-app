@@ -1,9 +1,17 @@
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
+import 'package:autonomy_flutter/screen/settings/crypto/receive_page.dart';
+import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_bloc.dart';
+import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_page.dart';
+import 'package:autonomy_flutter/screen/settings/crypto/send_review_page.dart';
+import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_bloc.dart';
+import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
+import 'package:autonomy_flutter/screen/settings/settings_bloc.dart';
+import 'package:autonomy_flutter/screen/settings/settings_page.dart';
+import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_bloc.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
-import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_bloc.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/persona_service.dart';
@@ -22,7 +30,7 @@ void main() async {
   }
 
   BlocOverrides.runZoned(
-        () => runApp(AutonomyApp()),
+    () => runApp(AutonomyApp()),
     blocObserver: AppBlocObserver(),
   );
 }
@@ -34,7 +42,9 @@ class AutonomyApp extends StatelessWidget {
         title: 'Autonomy',
         theme: ThemeData(
           primarySwatch: Colors.blue,
-          buttonColor: Colors.black,
+          // cardColor: Colors.black,
+          secondaryHeaderColor: Color(0xFF6D6B6B),
+          errorColor: Color(0xFFA1200A),
           textTheme: TextTheme(
             headline1: TextStyle(
                 color: Colors.black,
@@ -74,40 +84,61 @@ class AutonomyApp extends StatelessWidget {
           switch (settings.name) {
             case WCConnectPage.tag:
               return MaterialPageRoute(
-                builder: (context) =>
-                    WCConnectPage(
-                        args: settings.arguments as WCConnectPageArgs),
+                builder: (context) => WCConnectPage(
+                    args: settings.arguments as WCConnectPageArgs),
               );
             case WCSignMessagePage.tag:
               return MaterialPageRoute(
-                builder: (context) =>
-                    WCSignMessagePage(
-                        args: settings.arguments as WCSignMessagePageArgs),
+                builder: (context) => WCSignMessagePage(
+                    args: settings.arguments as WCSignMessagePageArgs),
               );
             case WCSendTransactionPage.tag:
               return MaterialPageRoute(
-                builder: (context) =>
-                    BlocProvider(
-                      create: (_) =>
-                          WCSendTransactionBloc(
-                              injector(), injector(), injector()),
-                      child: WCSendTransactionPage(
-                          args: settings
-                              .arguments as WCSendTransactionPageArgs),
-                    ),
+                builder: (context) => BlocProvider(
+                  create: (_) =>
+                      WCSendTransactionBloc(injector(), injector(), injector()),
+                  child: WCSendTransactionPage(
+                      args: settings.arguments as WCSendTransactionPageArgs),
+                ),
               );
             case ScanQRPage.tag:
+              return MaterialPageRoute(builder: (context) => ScanQRPage());
+            case SettingsPage.tag:
+              return MaterialPageRoute(builder: (context) => BlocProvider(
+                create: (_) =>
+                    SettingsBloc(injector(), injector()),
+                child: SettingsPage(),
+              ),);
+            case WalletDetailPage.tag:
               return MaterialPageRoute(
-                  builder: (context) => ScanQRPage()
-              );
+                  builder: (context) => BlocProvider(
+                        create: (_) => WalletDetailBloc(injector(), injector(), injector()),
+                        child: WalletDetailPage(
+                            type: settings.arguments as CryptoType),
+                      ));
+            case ReceivePage.tag:
+              return MaterialPageRoute(
+                  builder: (context) => ReceivePage(
+                      payload: settings.arguments as WalletPayload));
+            case SendCryptoPage.tag:
+              return MaterialPageRoute(
+                  builder: (context) => BlocProvider(
+                        create: (_) => SendCryptoBloc(injector(), injector(), injector(),
+                            settings.arguments as CryptoType),
+                        child: SendCryptoPage(
+                            type: settings.arguments as CryptoType),
+                      ));
+            case SendReviewPage.tag:
+              return MaterialPageRoute(
+                  builder: (context) => SendReviewPage(
+                        payload: settings.arguments as SendCryptoPayload,
+                      ));
             default:
               return MaterialPageRoute(
-                  builder: (context) =>
-                      BlocProvider(
+                  builder: (context) => BlocProvider(
                         create: (_) => HomeBloc(injector(), injector()),
                         child: HomePage(),
-                      )
-              );
+                      ));
           }
         });
   }
@@ -127,3 +158,5 @@ class AppBlocObserver extends BlocObserver {
     print(transition);
   }
 }
+
+final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();

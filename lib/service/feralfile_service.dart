@@ -45,7 +45,7 @@ class FeralFileServiceImpl extends FeralFileService {
 
   @override
   Future<List<Asset>> getFeralFileAssets() async {
-    final accountNumber = await getAccountNumber();
+    final accountNumber = getAccountNumber();
     final response = await _bitmarkApi.getBitmarkIDs(accountNumber, false);
     final List<String> bitmarkIds =
         response["bitmarks"]?.map((e) => e.id).toList() ?? [];

@@ -2,8 +2,7 @@ import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_state.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
-import 'package:autonomy_flutter/view/filled_button.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wallet_connect/models/ethereum/wc_ethereum_transaction.dart';
@@ -107,7 +106,7 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                               style: Theme.of(context).textTheme.headline5,
                             ),
                             Text(
-                              "${EthAmountFormatter(amount.getInWei).format().characters.take(7)} ETH",
+                              "${EthAmountFormatter(amount.getInWei).format()} ETH",
                               style: Theme.of(context).textTheme.bodyText2,
                             ),
                           ],
@@ -121,7 +120,7 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                               style: Theme.of(context).textTheme.headline5,
                             ),
                             Text(
-                              "${state.fee != null ? EthAmountFormatter(state.fee!).format().characters.take(7) : "-"} ETH",
+                              "${state.fee != null ? EthAmountFormatter(state.fee!).format() : "-"} ETH",
                               style: Theme.of(context).textTheme.bodyText2,
                             ),
                           ],
@@ -135,7 +134,7 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                               style: Theme.of(context).textTheme.headline5,
                             ),
                             Text(
-                              "${total != null ? EthAmountFormatter(total).format().characters.take(7) : "-"} ETH",
+                              "${total != null ? EthAmountFormatter(total).format() : "-"} ETH",
                               style: Theme.of(context).textTheme.headline5,
                             ),
                           ],
@@ -144,22 +143,26 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                     ),
                   ),
                 ),
-                FilledButton(
-                  text: "Send".toUpperCase(),
-                  onPress: () async {
-                    if (state.fee == null) return;
-                    final to =
+                Row(
+                  children: [
+                    Expanded(child: AuFilledButton(
+                      text: "Send".toUpperCase(),
+                      onPress: () async {
+                        if (state.fee == null) return;
+                        final to =
                         EthereumAddress.fromHex(widget.args.transaction.to);
 
-                    context.read<WCSendTransactionBloc>().add(
-                        WCSendTransactionSendEvent(
-                            widget.args.peerMeta,
-                            widget.args.id,
-                            to,
-                            amount.getInWei,
-                            state.fee!,
-                            widget.args.transaction.data));
-                  },
+                        context.read<WCSendTransactionBloc>().add(
+                            WCSendTransactionSendEvent(
+                                widget.args.peerMeta,
+                                widget.args.id,
+                                to,
+                                amount.getInWei,
+                                state.fee!,
+                                widget.args.transaction.data));
+                      },
+                    ),)
+                  ],
                 ),
               ],
             );

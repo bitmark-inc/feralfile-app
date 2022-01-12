@@ -4,9 +4,8 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
+import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
-import 'package:autonomy_flutter/view/filled_button.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:wallet_connect/models/wc_peer_meta.dart';
 import 'package:web3dart/crypto.dart';
@@ -27,7 +26,8 @@ class WCSignMessagePage extends StatelessWidget {
       appBar: getBackAppBar(
         context,
         onBack: () {
-          injector<WalletConnectService>().rejectRequest(args.peerMeta, args.id);
+          injector<WalletConnectService>()
+              .rejectRequest(args.peerMeta, args.id);
           Navigator.of(context).pop();
         },
       ),
@@ -70,21 +70,29 @@ class WCSignMessagePage extends StatelessWidget {
                 ),
               ),
             ),
-            FilledButton(
-              text: "Sign".toUpperCase(),
-              onPress: () async {
-                final signature = await injector<EthereumService>().signPersonalMessage(message);
-                injector<WalletConnectService>().approveRequest(args.peerMeta, args.id, signature);
+            Row(
+              children: [
+                Expanded(
+                  child: AuFilledButton(
+                    text: "Sign".toUpperCase(),
+                    onPress: () async {
+                      final signature = await injector<EthereumService>()
+                          .signPersonalMessage(message);
+                      injector<WalletConnectService>()
+                          .approveRequest(args.peerMeta, args.id, signature);
 
-                if (args.peerMeta.url.contains("feralfile")) {
-                  Future.delayed(const Duration(milliseconds: 3000), () {
-                    injector<FeralFileService>().saveAccount();
-                  });
-                }
+                      if (args.peerMeta.url.contains("feralfile")) {
+                        Future.delayed(const Duration(milliseconds: 3000), () {
+                          injector<FeralFileService>().saveAccount();
+                        });
+                      }
 
-                Navigator.of(context).pop();
-              },
-            ),
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                )
+              ],
+            )
           ],
         ),
       ),

@@ -39,10 +39,14 @@ dependencies:
   http: ^0.13.2
   retrofit:
   dio: ^4.0.4
+  qr_flutter: ^4.0.0
+  share: ^2.0.4
+  flutter_svg: ^1.0.0
+  tezart: ^2.0.3
   libauk_dart:
     git:
       url: https://github.com/autonomy-system/libauk-dart.git
-      ref: main
+      ref: c1772969b373bfee81176332c90b9f96dd1a7005
 
 dev_dependencies:
   flutter_test:
@@ -66,6 +70,11 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/images/penrose.png
+    - assets/images/iconQr.svg
+    - assets/images/iconEth.svg
+    - assets/images/iconUsd.svg
+    - assets/images/iconXtz.svg
+    - assets/images/iconClose.svg
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
