@@ -7,6 +7,8 @@ import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_page.da
 import 'package:autonomy_flutter/screen/settings/crypto/send_review_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
+import 'package:autonomy_flutter/screen/settings/networks/select_network_bloc.dart';
+import 'package:autonomy_flutter/screen/settings/networks/select_network_page.dart';
 import 'package:autonomy_flutter/screen/settings/settings_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/settings_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_bloc.dart';
@@ -19,6 +21,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'common/injector.dart';
+import 'common/network_config_injector.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,6 +41,8 @@ void main() async {
 class AutonomyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final networkInjector = injector<NetworkConfigInjector>();
+
     return MaterialApp(
         title: 'Autonomy',
         theme: ThemeData(
@@ -95,8 +100,8 @@ class AutonomyApp extends StatelessWidget {
             case WCSendTransactionPage.tag:
               return MaterialPageRoute(
                 builder: (context) => BlocProvider(
-                  create: (_) =>
-                      WCSendTransactionBloc(injector(), injector(), injector()),
+                  create: (_) => WCSendTransactionBloc(
+                      injector(), networkInjector.I(), injector()),
                   child: WCSendTransactionPage(
                       args: settings.arguments as WCSendTransactionPageArgs),
                 ),
@@ -104,15 +109,18 @@ class AutonomyApp extends StatelessWidget {
             case ScanQRPage.tag:
               return MaterialPageRoute(builder: (context) => ScanQRPage());
             case SettingsPage.tag:
-              return MaterialPageRoute(builder: (context) => BlocProvider(
-                create: (_) =>
-                    SettingsBloc(injector(), injector()),
-                child: SettingsPage(),
-              ),);
+              return MaterialPageRoute(
+                builder: (context) => BlocProvider(
+                  create: (_) =>
+                      SettingsBloc(networkInjector.I(), networkInjector.I()),
+                  child: SettingsPage(),
+                ),
+              );
             case WalletDetailPage.tag:
               return MaterialPageRoute(
                   builder: (context) => BlocProvider(
-                        create: (_) => WalletDetailBloc(injector(), injector(), injector()),
+                        create: (_) => WalletDetailBloc(networkInjector.I(),
+                            networkInjector.I(), injector()),
                         child: WalletDetailPage(
                             type: settings.arguments as CryptoType),
                       ));
@@ -123,7 +131,10 @@ class AutonomyApp extends StatelessWidget {
             case SendCryptoPage.tag:
               return MaterialPageRoute(
                   builder: (context) => BlocProvider(
-                        create: (_) => SendCryptoBloc(injector(), injector(), injector(),
+                        create: (_) => SendCryptoBloc(
+                            networkInjector.I(),
+                            networkInjector.I(),
+                            injector(),
                             settings.arguments as CryptoType),
                         child: SendCryptoPage(
                             type: settings.arguments as CryptoType),
@@ -133,10 +144,17 @@ class AutonomyApp extends StatelessWidget {
                   builder: (context) => SendReviewPage(
                         payload: settings.arguments as SendCryptoPayload,
                       ));
+            case SelectNetworkPage.tag:
+              return MaterialPageRoute(
+                  builder: (context) => BlocProvider(
+                        create: (_) => SelectNetworkBloc(injector()),
+                        child: SelectNetworkPage(),
+                      ));
             default:
               return MaterialPageRoute(
                   builder: (context) => BlocProvider(
-                        create: (_) => HomeBloc(injector(), injector()),
+                        create: (_) =>
+                            HomeBloc(networkInjector.I(), injector()),
                         child: HomePage(),
                       ));
           }
