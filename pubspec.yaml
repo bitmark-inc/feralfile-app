@@ -43,6 +43,8 @@ dependencies:
   share: ^2.0.4
   flutter_svg: ^1.0.0
   tezart: ^2.0.3
+  local_auth: ^1.1.10
+  sentry_flutter: ^6.2.2
   libauk_dart:
     git:
       url: https://github.com/autonomy-system/libauk-dart.git

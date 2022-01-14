@@ -1,7 +1,10 @@
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
 import 'package:autonomy_flutter/screen/settings/networks/select_network_page.dart';
+import 'package:autonomy_flutter/screen/settings/preferences/preferences_bloc.dart';
+import 'package:autonomy_flutter/screen/settings/preferences/preferences_view.dart';
 import 'package:autonomy_flutter/screen/settings/settings_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/settings_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -9,19 +12,56 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-class SettingsPage extends StatelessWidget {
+class SettingsPage extends StatefulWidget {
   static const String tag = 'settings';
 
   @override
-  Widget build(BuildContext context) {
-    context.read<SettingsBloc>().add(SettingsGetBalanceEvent());
-    final network = injector<ConfigurationService>().getNetwork();
+  State<SettingsPage> createState() => _SettingsPageState();
+}
 
+class _SettingsPageState extends State<SettingsPage>
+    with RouteAware, WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance?.addObserver(this);
+
+    context.read<SettingsBloc>().add(SettingsGetBalanceEvent());
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance?.removeObserver(this);
+    routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      context.read<SettingsBloc>().add(SettingsGetBalanceEvent());
+    }
+  }
+
+  @override
+  void didPopNext() {
+    super.didPopNext();
+    context.read<SettingsBloc>().add(SettingsGetBalanceEvent());
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       body: BlocBuilder<SettingsBloc, SettingsState>(builder: (context, state) {
         return Container(
           margin:
-          EdgeInsets.only(top: 64.0, left: 16.0, right: 16.0, bottom: 20.0),
+              EdgeInsets.only(top: 64.0, left: 16.0, right: 16.0, bottom: 20.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -35,30 +75,53 @@ class SettingsPage extends StatelessWidget {
               ),
               SizedBox(height: 24.0),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Cryptos",
-                      style: Theme.of(context).textTheme.headline1,
-                    ),
-                    SizedBox(height: 16.0),
-                    _settingItem(context, "Ethereum", state.ethBalance ?? "-- ETH", () {
-                      Navigator.of(context).pushNamed(WalletDetailPage.tag, arguments: CryptoType.ETH);
-                    }),
-                    _settingItem(context, "Tezos", state.xtzBalance ?? "-- XTZ", () {
-                      Navigator.of(context).pushNamed(WalletDetailPage.tag, arguments: CryptoType.XTZ);
-                    }),
-                    SizedBox(height: 24.0),
-                    Text(
-                      "Networks",
-                      style: Theme.of(context).textTheme.headline1,
-                    ),
-                    SizedBox(height: 16.0),
-                    _settingItem(context, "Select network", network == Network.MAINNET ? "Main network" : "Test network", () {
-                      Navigator.of(context).pushNamed(SelectNetworkPage.tag);
-                    })
-                  ],
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Cryptos",
+                        style: Theme.of(context).textTheme.headline1,
+                      ),
+                      SizedBox(height: 16.0),
+                      _settingItem(
+                          context, "Ethereum", state.ethBalance ?? "-- ETH",
+                          () {
+                        Navigator.of(context).pushNamed(WalletDetailPage.tag,
+                            arguments: CryptoType.ETH);
+                      }),
+                      _settingItem(
+                          context, "Tezos", state.xtzBalance ?? "-- XTZ", () {
+                        Navigator.of(context).pushNamed(WalletDetailPage.tag,
+                            arguments: CryptoType.XTZ);
+                      }),
+                      SizedBox(height: 24.0),
+                      BlocProvider(
+                        create: (_) => PreferencesBloc(injector()),
+                        child: PreferenceView(),
+                      ),
+                      SizedBox(height: 24.0),
+                      Text(
+                        "Networks",
+                        style: Theme.of(context).textTheme.headline1,
+                      ),
+                      SizedBox(height: 16.0),
+                      _settingItem(
+                          context,
+                          "Select network",
+                          state.network == Network.TESTNET
+                              ? "Test network"
+                              : "Main network", () async {
+                        await Navigator.of(context)
+                            .pushNamed(SelectNetworkPage.tag);
+                        if (injector<ConfigurationService>().getNetwork() !=
+                            state.network) {
+                          Navigator.of(context).pop();
+                        }
+                      }),
+                      SizedBox(height: 40),
+                    ],
+                  ),
                 ),
               ),
             ],

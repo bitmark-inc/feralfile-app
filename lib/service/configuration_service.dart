@@ -14,6 +14,12 @@ abstract class ConfigurationService {
   List<WCSessionStore> getWCSessions();
   Future<void> setNetwork(Network value);
   Network getNetwork();
+  Future<void> setDevicePasscodeEnabled(bool value);
+  bool isDevicePasscodeEnabled();
+  Future<void> setNotificationEnabled(bool value);
+  bool isNotificationEnabled();
+  Future<void> setAnalyticEnabled(bool value);
+  bool isAnalyticsEnabled();
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
@@ -21,6 +27,9 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_PERSONA = "key_persona";
   static const String KEY_WC_SESSIONS = "key_wc_sessions";
   static const String KEY_NETWORK = "key_network";
+  static const String KEY_DEVICE_PASSCODE = "device_passcode";
+  static const String KEY_NOTIFICATION = "notifications";
+  static const String KEY_ANALYTICS = "analytics";
 
   SharedPreferences _preferences;
 
@@ -79,5 +88,35 @@ class ConfigurationServiceImpl implements ConfigurationService {
     } catch (e) {
       return Network.MAINNET;
     }
+  }
+
+  @override
+  bool isDevicePasscodeEnabled() {
+    return _preferences.getBool(KEY_DEVICE_PASSCODE) ?? true;
+  }
+
+  @override
+  Future<void> setDevicePasscodeEnabled(bool value) async {
+    await _preferences.setBool(KEY_DEVICE_PASSCODE, value);
+  }
+
+  @override
+  bool isAnalyticsEnabled() {
+    return _preferences.getBool(KEY_ANALYTICS) ?? true;
+  }
+
+  @override
+  bool isNotificationEnabled() {
+    return _preferences.getBool(KEY_NOTIFICATION) ?? true;
+  }
+
+  @override
+  Future<void> setAnalyticEnabled(bool value) async {
+    await _preferences.setBool(KEY_ANALYTICS, value);
+  }
+
+  @override
+  Future<void> setNotificationEnabled(bool value) async {
+    await _preferences.setBool(KEY_NOTIFICATION, value);
   }
 }
