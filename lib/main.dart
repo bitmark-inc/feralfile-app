@@ -19,6 +19,7 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/persona_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'common/injector.dart';
 import 'common/network_config_injector.dart';
@@ -32,9 +33,18 @@ void main() async {
     personaService.createPersona("Autonomy");
   }
 
-  BlocOverrides.runZoned(
-    () => runApp(AutonomyApp()),
-    blocObserver: AppBlocObserver(),
+  await SentryFlutter.init(
+    (options) {
+      options.dsn =
+          'https://3327d497b7324d2e9824c88bec2235e2@o142150.ingest.sentry.io/6088804';
+      // Set tracesSampleRate to 1.0 to capture 100% of transactions for performance monitoring.
+      // We recommend adjusting this value in production.
+      options.tracesSampleRate = 1.0;
+    },
+    appRunner: () => BlocOverrides.runZoned(
+      () => runApp(AutonomyApp()),
+      blocObserver: AppBlocObserver(),
+    ),
   );
 }
 
@@ -46,8 +56,7 @@ class AutonomyApp extends StatelessWidget {
     return MaterialApp(
         title: 'Autonomy',
         theme: ThemeData(
-          primarySwatch: Colors.blue,
-          // cardColor: Colors.black,
+          primarySwatch: Colors.grey,
           secondaryHeaderColor: Color(0xFF6D6B6B),
           errorColor: Color(0xFFA1200A),
           textTheme: TextTheme(
@@ -85,6 +94,7 @@ class AutonomyApp extends StatelessWidget {
           ),
         ),
         navigatorKey: injector<NavigationService>().navigatorKey,
+        navigatorObservers: [routeObserver],
         onGenerateRoute: (settings) {
           switch (settings.name) {
             case WCConnectPage.tag:
@@ -111,8 +121,8 @@ class AutonomyApp extends StatelessWidget {
             case SettingsPage.tag:
               return MaterialPageRoute(
                 builder: (context) => BlocProvider(
-                  create: (_) =>
-                      SettingsBloc(networkInjector.I(), networkInjector.I()),
+                  create: (_) => SettingsBloc(
+                      injector(), networkInjector.I(), networkInjector.I()),
                   child: SettingsPage(),
                 ),
               );
@@ -177,4 +187,5 @@ class AppBlocObserver extends BlocObserver {
   }
 }
 
-final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
+final RouteObserver<ModalRoute<void>> routeObserver =
+    RouteObserver<ModalRoute<void>>();

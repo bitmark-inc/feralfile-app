@@ -14,21 +14,18 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage>
     with RouteAware, WidgetsBindingObserver {
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance?.addObserver(this);
   }
 
   @override
   void dispose() {
-    WidgetsBinding.instance!.removeObserver(this);
+    WidgetsBinding.instance?.removeObserver(this);
     routeObserver.unsubscribe(this);
     super.dispose();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
   }
 
   @override
@@ -38,6 +35,14 @@ class _HomePageState extends State<HomePage>
         context.read<HomeBloc>().add(HomeCheckFeralFileLoginEvent());
       });
     }
+  }
+
+  @override
+  void didPopNext() {
+    super.didPopNext();
+    Future.delayed(const Duration(milliseconds: 3500), () {
+      context.read<HomeBloc>().add(HomeCheckFeralFileLoginEvent());
+    });
   }
 
   @override
