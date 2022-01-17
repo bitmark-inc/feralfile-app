@@ -1,4 +1,5 @@
 import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
@@ -14,7 +15,6 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage>
     with RouteAware, WidgetsBindingObserver {
-
   @override
   void initState() {
     super.initState();
@@ -51,8 +51,7 @@ class _HomePageState extends State<HomePage>
 
     return Scaffold(
       body: Container(
-        margin:
-            EdgeInsets.only(top: 64.0, left: 16.0, right: 16.0, bottom: 20.0),
+        margin: EdgeInsets.only(top: 64.0, bottom: 20.0),
         child: BlocBuilder<HomeBloc, HomeState>(builder: (context, state) {
           return state.isFeralFileLoggedIn != null
               ? Column(
@@ -69,43 +68,59 @@ class _HomePageState extends State<HomePage>
                     SizedBox(height: 24.0),
                     Expanded(
                       child: state.isFeralFileLoggedIn == false
-                          ? Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "Gallery",
-                                  style: Theme.of(context).textTheme.headline1,
-                                ),
-                                SizedBox(height: 24.0),
-                                Text(
-                                  "Your gallery is empty for now.",
-                                  style: Theme.of(context).textTheme.bodyText1,
-                                ),
-                              ],
+                          ? Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 16.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Gallery",
+                                    style:
+                                        Theme.of(context).textTheme.headline1,
+                                  ),
+                                  SizedBox(height: 24.0),
+                                  Text(
+                                    "Your gallery is empty for now.",
+                                    style:
+                                        Theme.of(context).textTheme.bodyText1,
+                                  ),
+                                ],
+                              ),
                             )
                           : Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  "Feral File",
-                                  style: Theme.of(context).textTheme.headline1,
+                                Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 16.0),
+                                  child: Text(
+                                    "Feral File",
+                                    style: Theme.of(context).textTheme.headline1,
+                                  ),
                                 ),
                                 // SizedBox(height: 24.0),
                                 GridView.count(
                                   // physics: const NeverScrollableScrollPhysics(),
                                   shrinkWrap: true,
                                   crossAxisCount: 3,
-                                  crossAxisSpacing: 6.0,
-                                  mainAxisSpacing: 6.0,
+                                  crossAxisSpacing: 3.0,
+                                  mainAxisSpacing: 3.0,
                                   childAspectRatio: 1.0,
                                   children: List.generate(state.assets.length,
                                       (index) {
-                                    return Container(
-                                      child: Image.network(
-                                        state.assets[index].projectMetadata
-                                            .latest.thumbnailUrl,
-                                        fit: BoxFit.cover,
+                                    final asset = state.assets[index];
+                                    return GestureDetector(
+                                      child: Container(
+                                        child: Image.network(
+                                          asset.projectMetadata.latest
+                                              .thumbnailUrl,
+                                          fit: BoxFit.cover,
+                                        ),
                                       ),
+                                      onTap: () {
+                                        Navigator.of(context).pushNamed(
+                                            ArtworkDetailPage.tag,
+                                            arguments: asset);
+                                      },
                                     );
                                   }),
                                 ),

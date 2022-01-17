@@ -1,3 +1,7 @@
+import 'package:autonomy_flutter/model/asset.dart';
+import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
+import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
+import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
@@ -67,7 +71,12 @@ class AutonomyApp extends StatelessWidget {
                 fontFamily: "AtlasGrotesk"),
             headline2: TextStyle(
                 color: Colors.black,
-                fontSize: 28,
+                fontSize: 24,
+                fontWeight: FontWeight.w700,
+                fontFamily: "AtlasGrotesk"),
+            headline3: TextStyle(
+                color: Colors.black,
+                fontSize: 22,
                 fontWeight: FontWeight.w700,
                 fontFamily: "AtlasGrotesk"),
             headline5: TextStyle(
@@ -154,12 +163,24 @@ class AutonomyApp extends StatelessWidget {
                   builder: (context) => SendReviewPage(
                         payload: settings.arguments as SendCryptoPayload,
                       ));
+            case ArtworkPreviewPage.tag:
+              return MaterialPageRoute(
+                  builder: (context) => ArtworkPreviewPage(
+                        asset: settings.arguments as Asset,
+                      ));
             case SelectNetworkPage.tag:
               return MaterialPageRoute(
                   builder: (context) => BlocProvider(
                         create: (_) => SelectNetworkBloc(injector()),
                         child: SelectNetworkPage(),
                       ));
+            case ArtworkDetailPage.tag:
+              return MaterialPageRoute(
+                  builder: (context) => BlocProvider(
+                    create: (_) =>
+                        ArtworkDetailBloc(networkInjector.I()),
+                    child: ArtworkDetailPage(asset: settings.arguments as Asset),
+                  ));
             default:
               return MaterialPageRoute(
                   builder: (context) => BlocProvider(

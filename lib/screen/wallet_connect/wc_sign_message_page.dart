@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
@@ -21,6 +22,8 @@ class WCSignMessagePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final message = hexToBytes(args.message);
     final messageInUtf8 = utf8.decode(message);
+
+    final networkInjector = injector<NetworkConfigInjector>();
 
     return Scaffold(
       appBar: getBackAppBar(
@@ -76,14 +79,14 @@ class WCSignMessagePage extends StatelessWidget {
                   child: AuFilledButton(
                     text: "Sign".toUpperCase(),
                     onPress: () async {
-                      final signature = await injector<EthereumService>()
+                      final signature = await networkInjector.I<EthereumService>()
                           .signPersonalMessage(message);
                       injector<WalletConnectService>()
                           .approveRequest(args.peerMeta, args.id, signature);
 
                       if (args.peerMeta.url.contains("feralfile")) {
                         Future.delayed(const Duration(milliseconds: 3000), () {
-                          injector<FeralFileService>().saveAccount();
+                          networkInjector.I<FeralFileService>().saveAccount();
                         });
                       }
 

@@ -20,6 +20,8 @@ abstract class ConfigurationService {
   bool isNotificationEnabled();
   Future<void> setAnalyticEnabled(bool value);
   bool isAnalyticsEnabled();
+  Future<void> setFullscreenIntroEnable(bool value);
+  bool isFullscreenIntroEnabled();
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
@@ -30,6 +32,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_DEVICE_PASSCODE = "device_passcode";
   static const String KEY_NOTIFICATION = "notifications";
   static const String KEY_ANALYTICS = "analytics";
+  static const String KEY_FULLSCREEN_INTRO = "fullscreen_intro";
 
   SharedPreferences _preferences;
 
@@ -118,5 +121,15 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   Future<void> setNotificationEnabled(bool value) async {
     await _preferences.setBool(KEY_NOTIFICATION, value);
+  }
+
+  @override
+  bool isFullscreenIntroEnabled() {
+    return _preferences.getBool(KEY_FULLSCREEN_INTRO) ?? true;
+  }
+
+  @override
+  Future<void> setFullscreenIntroEnable(bool value) async {
+    await _preferences.setBool(KEY_FULLSCREEN_INTRO, value);
   }
 }

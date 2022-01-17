@@ -5,13 +5,13 @@ class AppConfig {
       "https://hangzhounet.smartpy.io",
       "https://api.test.bitmark.com",
       "https://nft-indexer.test.bitmark.com",
-      "https://feralfile1.dev.bitmark.com");
+      "https://feralfileqa.dev.bitmark.com");
   static const AppConfigNetwork mainNetworkConfig = AppConfigNetwork(
       "https://mainnet.infura.io/v3/ab0e0fe9710b412ca73bb044713a3523",
       "https://mainnet.smartpy.io/",
       "https://api.bitmark.com",
       "https://nft-indexer.bitmark.com",
-      "https://feralfile.co");
+      "https://feralfile.com");
 }
 
 class AppConfigNetwork {

@@ -5,6 +5,8 @@ import 'package:autonomy_flutter/gateway/bitmark_api.dart';
 import 'package:autonomy_flutter/gateway/feralfile_api.dart';
 import 'package:autonomy_flutter/gateway/indexer_api.dart';
 import 'package:autonomy_flutter/model/asset.dart';
+import 'package:autonomy_flutter/model/asset_price.dart';
+import 'package:autonomy_flutter/model/bitmark.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 
@@ -14,6 +16,10 @@ abstract class FeralFileService {
   String getAccountNumber();
 
   Future<List<Asset>> getFeralFileAssets();
+
+  Future<List<Provenance>> getAssetProvenance(String id);
+
+  Future<List<AssetPrice>> getAssetPrices(List<String> ids);
 }
 
 class FeralFileServiceImpl extends FeralFileService {
@@ -51,6 +57,20 @@ class FeralFileServiceImpl extends FeralFileService {
         response["bitmarks"]?.map((e) => e.id).toList() ?? [];
 
     return await _indexerApi.getNftTokens({"ids": bitmarkIds});
+  }
+
+  @override
+  Future<List<Provenance>> getAssetProvenance(String id) async {
+    final response = await _bitmarkApi.getBitmarkAssetInfo(id, true, true);
+    return response["bitmark"]?.provenance ?? [];
+  }
+
+  @override
+  Future<List<AssetPrice>> getAssetPrices(List<String> ids) async {
+    final token = await _getToken();
+    final response = await _feralFileApi.getAssetPrice("Bearer $token", { "editionIDs" : ids });
+
+    return response["result"] ?? [];
   }
 
   Future<String> _getToken() async {
