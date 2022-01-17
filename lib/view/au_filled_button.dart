@@ -4,8 +4,15 @@ import 'package:flutter/material.dart';
 class AuFilledButton extends StatelessWidget {
   final String text;
   final Function()? onPress;
+  final Color color;
+  final TextStyle? textStyle;
 
-  const AuFilledButton({Key? key, required this.text, required this.onPress})
+  const AuFilledButton(
+      {Key? key,
+      required this.text,
+      required this.onPress,
+      this.color = Colors.black,
+      this.textStyle})
       : super(key: key);
 
   @override
@@ -14,14 +21,14 @@ class AuFilledButton extends StatelessWidget {
       clipper: AutonomyButtonClipper(),
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-            primary: Colors.black,
+            primary: color,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.zero,
             ),
             padding: const EdgeInsets.symmetric(vertical: 14)),
         child: Text(
           text.toUpperCase(),
-          style: Theme.of(context).textTheme.button,
+          style: textStyle ?? Theme.of(context).textTheme.button,
         ),
         onPressed: onPress,
       ),

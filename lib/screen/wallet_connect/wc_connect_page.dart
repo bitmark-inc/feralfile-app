@@ -1,4 +1,7 @@
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/common/network_config_injector.dart';
+import 'package:autonomy_flutter/model/network.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
@@ -15,6 +18,7 @@ class WCConnectPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final networkInjector = injector<NetworkConfigInjector>();
     return Scaffold(
       appBar: getBackAppBar(
         context,
@@ -75,9 +79,10 @@ class WCConnectPage extends StatelessWidget {
                     text: "Authorize".toUpperCase(),
                     onPress: () async {
                       final address =
-                          await injector<EthereumService>().getETHAddress();
+                          await networkInjector.I<EthereumService>().getETHAddress();
+                      final chainId = injector<ConfigurationService>().getNetwork() == Network.MAINNET ? 1 : 4;
                       injector<WalletConnectService>()
-                          .approveSession(args.peerMeta, [address], 4);
+                          .approveSession(args.peerMeta, [address], chainId);
                       Navigator.of(context).pop();
                     },
                   ),

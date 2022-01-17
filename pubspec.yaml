@@ -45,6 +45,9 @@ dependencies:
   tezart: ^2.0.3
   local_auth: ^1.1.10
   sentry_flutter: ^6.2.2
+  video_player: ^2.2.0
+  webview_flutter: ^3.0.0
+  shake: ^2.0.0
   libauk_dart:
     git:
       url: https://github.com/autonomy-system/libauk-dart.git
