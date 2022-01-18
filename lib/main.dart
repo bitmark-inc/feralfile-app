@@ -1,4 +1,5 @@
 import 'package:autonomy_flutter/model/asset.dart';
+import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_page.dart';
@@ -19,6 +20,7 @@ import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/persona_service.dart';
 import 'package:flutter/material.dart';
@@ -126,7 +128,7 @@ class AutonomyApp extends StatelessWidget {
                 ),
               );
             case ScanQRPage.tag:
-              return MaterialPageRoute(builder: (context) => ScanQRPage());
+              return MaterialPageRoute(builder: (context) => ScanQRPage(scannerItem: settings.arguments as ScannerItem,));
             case SettingsPage.tag:
               return MaterialPageRoute(
                 builder: (context) => BlocProvider(
@@ -154,9 +156,9 @@ class AutonomyApp extends StatelessWidget {
                             networkInjector.I(),
                             networkInjector.I(),
                             injector(),
-                            settings.arguments as CryptoType),
+                            (settings.arguments as SendData).type),
                         child: SendCryptoPage(
-                            type: settings.arguments as CryptoType),
+                            data: settings.arguments as SendData),
                       ));
             case SendReviewPage.tag:
               return MaterialPageRoute(
