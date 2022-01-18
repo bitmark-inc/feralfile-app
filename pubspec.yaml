@@ -48,6 +48,7 @@ dependencies:
   video_player: ^2.2.0
   webview_flutter: ^3.0.0
   shake: ^2.0.0
+  uni_links: ^0.5.1
   libauk_dart:
     git:
       url: https://github.com/autonomy-system/libauk-dart.git

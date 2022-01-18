@@ -91,10 +91,12 @@ class _HomePageState extends State<HomePage>
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: 16.0),
+                                  padding:
+                                      EdgeInsets.symmetric(horizontal: 16.0),
                                   child: Text(
                                     "Feral File",
-                                    style: Theme.of(context).textTheme.headline1,
+                                    style:
+                                        Theme.of(context).textTheme.headline1,
                                   ),
                                 ),
                                 // SizedBox(height: 24.0),
@@ -128,26 +130,30 @@ class _HomePageState extends State<HomePage>
                             ),
                     ),
                     state.isFeralFileLoggedIn == false
-                        ? Row(
-                            children: [
-                              Expanded(
-                                child: AuFilledButton(
-                                  text: "Help us find your collection"
-                                      .toUpperCase(),
-                                  onPress: () async {
-                                    dynamic uri = await Navigator.of(context)
-                                        .pushNamed(ScanQRPage.tag);
-                                    if (uri != null &&
-                                        uri is String &&
-                                        uri.startsWith("wc:")) {
-                                      context
-                                          .read<HomeBloc>()
-                                          .add(HomeConnectWCEvent(uri));
-                                    }
-                                  },
-                                ),
-                              )
-                            ],
+                        ? Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 16.0),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: AuFilledButton(
+                                    text: "Help us find your collection"
+                                        .toUpperCase(),
+                                    onPress: () {
+                                      Navigator.of(context).pushNamed(
+                                          ScanQRPage.tag,
+                                          arguments: ScannerItem.GLOBAL);
+                                      // if (uri != null &&
+                                      //     uri is String &&
+                                      //     uri.startsWith("wc:")) {
+                                      //   context
+                                      //       .read<HomeBloc>()
+                                      //       .add(HomeConnectWCEvent(uri));
+                                      // }
+                                    },
+                                  ),
+                                )
+                              ],
+                            ),
                           )
                         : SizedBox(),
                   ],

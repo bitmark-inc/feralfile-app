@@ -18,9 +18,9 @@ import 'package:flutter_svg/flutter_svg.dart';
 class SendCryptoPage extends StatefulWidget {
   static const String tag = 'send_crypto';
 
-  final CryptoType type;
+  final SendData data;
 
-  const SendCryptoPage({Key? key, required this.type}) : super(key: key);
+  const SendCryptoPage({Key? key, required this.data}) : super(key: key);
 
   @override
   State<SendCryptoPage> createState() => _SendCryptoPageState();
@@ -34,11 +34,17 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
   void initState() {
     super.initState();
 
+    if (widget.data.address != null) {
+      _addressController.text = widget.data.address!;
+    }
+
     context.read<SendCryptoBloc>().add(GetBalanceEvent());
   }
 
   @override
   Widget build(BuildContext context) {
+    final type = widget.data.type;
+
     return Scaffold(
       appBar: getBackAppBar(
         context,
@@ -54,7 +60,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "Send ${widget.type == CryptoType.ETH ? "ETH" : "XTZ"}",
+                "Send ${type == CryptoType.ETH ? "ETH" : "XTZ"}",
                 style: Theme.of(context).textTheme.headline1,
               ),
               SizedBox(height: 40.0),
@@ -74,8 +80,12 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                           .read<SendCryptoBloc>()
                           .add(AddressChangedEvent(""));
                     } else {
-                      dynamic address =
-                          await Navigator.of(context).pushNamed(ScanQRPage.tag);
+                      dynamic address = await Navigator.of(context).pushNamed(
+                          ScanQRPage.tag,
+                          arguments: type == CryptoType.ETH
+                              ? ScannerItem.ETH_ADDRESS
+                              : ScannerItem.XTZ_ADDRESS);
+                      print(address);
                       if (address != null && address is String) {
                         _addressController.text = address;
                         context
@@ -123,18 +133,25 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                       ? "assets/images/iconEth.svg"
                       : "assets/images/iconUsd.svg"),
                   onPressed: () {
-                    double amount = double.tryParse(_amountController.text) ?? 0;
+                    double amount =
+                        double.tryParse(_amountController.text) ?? 0;
                     if (state.isCrypto) {
-                      if (widget.type == CryptoType.ETH) {
-                        _amountController.text = state.exchangeRate.ethToUsd(BigInt.from(amount * pow(10, 18)));
+                      if (type == CryptoType.ETH) {
+                        _amountController.text = state.exchangeRate
+                            .ethToUsd(BigInt.from(amount * pow(10, 18)));
                       } else {
-                        _amountController.text = state.exchangeRate.xtzToUsd((amount * pow(10, 6)).toInt());
+                        _amountController.text = state.exchangeRate
+                            .xtzToUsd((amount * pow(10, 6)).toInt());
                       }
                     } else {
-                      if (widget.type == CryptoType.ETH) {
-                        _amountController.text = (double.parse(state.exchangeRate.eth) * amount).toStringAsFixed(5);
+                      if (type == CryptoType.ETH) {
+                        _amountController.text =
+                            (double.parse(state.exchangeRate.eth) * amount)
+                                .toStringAsFixed(5);
                       } else {
-                        _amountController.text = (double.parse(state.exchangeRate.xtz) * amount).toStringAsFixed(6);
+                        _amountController.text =
+                            (double.parse(state.exchangeRate.xtz) * amount)
+                                .toStringAsFixed(6);
                       }
                     }
 
@@ -165,7 +182,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                       onPress: state.isValid
                           ? () async {
                               final payload = SendCryptoPayload(
-                                  widget.type,
+                                  type,
                                   state.address!,
                                   state.amount!,
                                   state.fee!,
@@ -195,7 +212,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
 
     String text = "Max: ";
 
-    switch (widget.type) {
+    switch (widget.data.type) {
       case CryptoType.ETH:
         text += state.isCrypto
             ? "${EthAmountFormatter(max).format()} ETH"
@@ -214,7 +231,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
     if (state.maxAllow == null) return "";
     final max = state.maxAllow!;
 
-    switch (widget.type) {
+    switch (widget.data.type) {
       case CryptoType.ETH:
         return state.isCrypto
             ? EthAmountFormatter(max).format()
@@ -232,7 +249,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
 
     String text = "Gas fee: ";
 
-    switch (widget.type) {
+    switch (widget.data.type) {
       case CryptoType.ETH:
         text += state.isCrypto
             ? "${EthAmountFormatter(fee).format()} ETH"
@@ -246,6 +263,13 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
     }
     return text;
   }
+}
+
+class SendData {
+  final CryptoType type;
+  final String? address;
+
+  SendData(this.type, this.address);
 }
 
 class SendCryptoPayload {

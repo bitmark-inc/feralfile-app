@@ -1,3 +1,4 @@
+import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/receive_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_bloc.dart';
@@ -64,7 +65,7 @@ class WalletDetailPage extends StatelessWidget {
                     child: AuOutlinedButton(
                       text: "Send",
                       onPress: () {
-                        Navigator.of(context).pushNamed(SendCryptoPage.tag, arguments: type);
+                        Navigator.of(context).pushNamed(SendCryptoPage.tag, arguments: SendData(type, null));
                       },
                     ),
                   ),
