@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
@@ -6,7 +8,9 @@ import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/screen/settings/settings_page.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:uni_links/uni_links.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -15,9 +19,13 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage>
     with RouteAware, WidgetsBindingObserver {
+
+  StreamSubscription? _deeplinkSubscription;
+
   @override
   void initState() {
     super.initState();
+    _initUniLinks();
     WidgetsBinding.instance?.addObserver(this);
   }
 
@@ -25,6 +33,7 @@ class _HomePageState extends State<HomePage>
   void dispose() {
     WidgetsBinding.instance?.removeObserver(this);
     routeObserver.unsubscribe(this);
+    _deeplinkSubscription?.cancel();
     super.dispose();
   }
 
@@ -142,13 +151,6 @@ class _HomePageState extends State<HomePage>
                                       Navigator.of(context).pushNamed(
                                           ScanQRPage.tag,
                                           arguments: ScannerItem.GLOBAL);
-                                      // if (uri != null &&
-                                      //     uri is String &&
-                                      //     uri.startsWith("wc:")) {
-                                      //   context
-                                      //       .read<HomeBloc>()
-                                      //       .add(HomeConnectWCEvent(uri));
-                                      // }
                                     },
                                   ),
                                 )
@@ -162,5 +164,24 @@ class _HomePageState extends State<HomePage>
         }),
       ),
     );
+  }
+
+  Future<void> _initUniLinks() async {
+    try {
+      final initialLink = await getInitialLink();
+      _handleDeeplink(initialLink);
+
+      _deeplinkSubscription = linkStream.listen((String? link) {
+        _handleDeeplink(link);
+      }, onError: (err) {});
+    } on PlatformException {}
+  }
+
+  void _handleDeeplink(String? link) {
+    final prefix = "https://au.bitmark.com/apps/wc?uri=";
+    if (link != null && link.startsWith(prefix)) {
+      final wcUri = link.substring(prefix.length);
+      context.read<HomeBloc>().add(HomeConnectWCEvent(wcUri));
+    }
   }
 }
