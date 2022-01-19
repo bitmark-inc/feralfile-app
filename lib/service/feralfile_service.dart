@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:autonomy_flutter/common/app_config.dart';
 import 'package:autonomy_flutter/gateway/bitmark_api.dart';
 import 'package:autonomy_flutter/gateway/feralfile_api.dart';
 import 'package:autonomy_flutter/gateway/indexer_api.dart';
@@ -75,10 +76,11 @@ class FeralFileServiceImpl extends FeralFileService {
 
   Future<String> _getToken() async {
     final address = await _ethereumService.getETHAddress();
-    final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+    final timestamp = (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
+    final message = AppConfig.ffAuthorizationPrefix + timestamp;
     final signature = await _ethereumService
-        .signPersonalMessage(Uint8List.fromList(utf8.encode(timestamp)));
-    final rawToken = "$address||$timestamp|$signature";
+        .signPersonalMessage(Uint8List.fromList(utf8.encode(message)));
+    final rawToken = "$address|$message|$signature";
     final bytes = utf8.encode(rawToken);
     return base64.encode(bytes);
   }
