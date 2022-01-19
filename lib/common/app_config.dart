@@ -1,4 +1,5 @@
 class AppConfig {
+  static const String ffAuthorizationPrefix = "FERAL FILE AUTHORIZATION\n\nTimestamp: ";
   static const String openSeaApiKey = "";
   static const AppConfigNetwork testNetworkConfig = AppConfigNetwork(
       "https://rinkeby.infura.io/v3/20aba74f4e8642b88808ff4df18c10ff",
