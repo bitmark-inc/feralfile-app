@@ -15,6 +15,9 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
   SettingsBloc(this._configurationService, this._ethereumService, this._tezosService)
       : super(SettingsState()) {
     on<SettingsGetBalanceEvent>((event, emit) async {
+      final network = _configurationService.getNetwork();
+      emit(SettingsState(network: network));
+
       final ethAddress = await _ethereumService.getETHAddress();
       final ethBalance = await _ethereumService.getBalance(ethAddress);
 
@@ -25,8 +28,6 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
       final xtzBalance = await _tezosService.getBalance(xtzAddress);
 
       final xtzBalanceStr = "${XtzAmountFormatter(xtzBalance).format()} XTZ";
-
-      final network = _configurationService.getNetwork();
 
       emit(SettingsState(ethBalance: ethBalanceStr, xtzBalance: xtzBalanceStr, network: network));
     });
