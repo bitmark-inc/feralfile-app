@@ -47,7 +47,6 @@ class _FeralFileApi implements FeralFileApi {
             .compose(_dio.options, '/api/asset-prices',
                 queryParameters: queryParameters, data: _data)
             .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
-    print(_result);
     var value = _result.data!.map((k, dynamic v) => MapEntry(
         k,
         (v as List)

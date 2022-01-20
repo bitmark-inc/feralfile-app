@@ -6,8 +6,9 @@ abstract class WCSendTransactionEvent {}
 class WCSendTransactionEstimateEvent extends WCSendTransactionEvent {
   final EthereumAddress address;
   final EtherAmount amount;
+  final String data;
 
-  WCSendTransactionEstimateEvent(this.address, this.amount);
+  WCSendTransactionEstimateEvent(this.address, this.amount, this.data);
 }
 
 class WCSendTransactionSendEvent extends WCSendTransactionEvent {

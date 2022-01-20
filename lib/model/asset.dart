@@ -82,25 +82,25 @@ class ProjectMetadataData {
     required this.firstMintedAt,
   });
 
-  String artistName;
-  String artistUrl;
-  String assetId;
+  String? artistName;
+  String? artistUrl;
+  String? assetId;
   String title;
-  String description;
-  String medium;
-  int maxEdition;
-  String baseCurrency;
-  int basePrice;
-  String source;
-  String sourceUrl;
+  String? description;
+  String? medium;
+  int? maxEdition;
+  String? baseCurrency;
+  double? basePrice;
+  String? source;
+  String? sourceUrl;
   String previewUrl;
   String thumbnailUrl;
-  String galleryThumbnailUrl;
-  String assetData;
-  String assetUrl;
-  String artistId;
-  String originalFileUrl;
-  DateTime firstMintedAt;
+  String? galleryThumbnailUrl;
+  String? assetData;
+  String? assetUrl;
+  String? artistId;
+  String? originalFileUrl;
+  DateTime? firstMintedAt;
 
   factory ProjectMetadataData.fromJson(Map<String, dynamic> json) =>
       ProjectMetadataData(
@@ -112,7 +112,7 @@ class ProjectMetadataData {
         medium: json["medium"],
         maxEdition: json["maxEdition"],
         baseCurrency: json["baseCurrency"],
-        basePrice: json["basePrice"],
+        basePrice: json["basePrice"]?.toDouble(),
         source: json["source"],
         sourceUrl: json["sourceURL"],
         previewUrl: json["previewURL"],
@@ -144,6 +144,6 @@ class ProjectMetadataData {
         "assetURL": assetUrl,
         "artistID": artistId,
         "originalFileURL": originalFileUrl,
-        "firstMintedAt": firstMintedAt.toIso8601String(),
+        "firstMintedAt": firstMintedAt?.toIso8601String(),
       };
 }

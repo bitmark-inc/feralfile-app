@@ -1,3 +1,4 @@
+import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/gateway/currency_exchange_api.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/currency_service.dart';
@@ -15,6 +16,14 @@ final injector = GetIt.instance;
 
 Future<void> setup() async {
   final sharedPreferences = await SharedPreferences.getInstance();
+
+  final testnetDB = await $FloorAppDatabase
+      .databaseBuilder('app_database_testnet.db')
+      .build();
+  final mainnetDB = await $FloorAppDatabase
+      .databaseBuilder('app_database_testnet.db')
+      .build();
+
   final dio = Dio(); // Provide a dio instance
 
   injector.registerSingleton<ConfigurationService>(
@@ -32,5 +41,5 @@ Future<void> setup() async {
   injector.registerLazySingleton<CurrencyService>(
       () => CurrencyServiceImpl(injector()));
 
-  injector.registerLazySingleton(() => NetworkConfigInjector(injector(), dio));
+  injector.registerLazySingleton(() => NetworkConfigInjector(injector(), dio, testnetDB, mainnetDB));
 }

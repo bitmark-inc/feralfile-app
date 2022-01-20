@@ -1,7 +1,7 @@
-import 'package:autonomy_flutter/model/asset.dart';
-import 'package:autonomy_flutter/model/pair.dart';
+import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
+import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_page.dart';
@@ -20,7 +20,6 @@ import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/persona_service.dart';
 import 'package:flutter/material.dart';
@@ -128,7 +127,10 @@ class AutonomyApp extends StatelessWidget {
                 ),
               );
             case ScanQRPage.tag:
-              return MaterialPageRoute(builder: (context) => ScanQRPage(scannerItem: settings.arguments as ScannerItem,));
+              return MaterialPageRoute(
+                  builder: (context) => ScanQRPage(
+                        scannerItem: settings.arguments as ScannerItem,
+                      ));
             case SettingsPage.tag:
               return MaterialPageRoute(
                 builder: (context) => BlocProvider(
@@ -167,9 +169,13 @@ class AutonomyApp extends StatelessWidget {
                       ));
             case ArtworkPreviewPage.tag:
               return MaterialPageRoute(
-                  builder: (context) => ArtworkPreviewPage(
-                        asset: settings.arguments as Asset,
-                      ));
+                  builder: (context) => BlocProvider(
+                    create: (_) =>
+                        ArtworkPreviewBloc(networkInjector.I<AppDatabase>().assetDao),
+                    child: ArtworkPreviewPage(
+                      payload: settings.arguments as ArtworkDetailPayload,
+                    ),
+                  ));
             case SelectNetworkPage.tag:
               return MaterialPageRoute(
                   builder: (context) => BlocProvider(
@@ -179,10 +185,12 @@ class AutonomyApp extends StatelessWidget {
             case ArtworkDetailPage.tag:
               return MaterialPageRoute(
                   builder: (context) => BlocProvider(
-                    create: (_) =>
-                        ArtworkDetailBloc(networkInjector.I()),
-                    child: ArtworkDetailPage(asset: settings.arguments as Asset),
-                  ));
+                        create: (_) => ArtworkDetailBloc(networkInjector.I(),
+                            networkInjector.I<AppDatabase>().assetDao),
+                        child: ArtworkDetailPage(
+                            payload:
+                                settings.arguments as ArtworkDetailPayload),
+                      ));
             default:
               return MaterialPageRoute(
                   builder: (context) => BlocProvider(

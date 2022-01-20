@@ -31,7 +31,7 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
 
     context
         .read<WCSendTransactionBloc>()
-        .add(WCSendTransactionEstimateEvent(to, amount));
+        .add(WCSendTransactionEstimateEvent(to, amount, widget.args.transaction.data));
   }
 
   @override

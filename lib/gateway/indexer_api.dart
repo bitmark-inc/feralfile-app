@@ -10,4 +10,10 @@ abstract class IndexerApi {
 
   @POST("/nft/query")
   Future<List<Asset>> getNftTokens(@Body() Map<String, List<String>> ids);
+
+  @GET("/nft")
+  Future<List<Asset>> getNftTokensByOwner(@Query("owner") String owner);
+
+  @POST("/nft/index")
+  Future requestIndex(@Body() Map<String, String> payload);
 }

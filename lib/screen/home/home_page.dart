@@ -30,6 +30,12 @@ class _HomePageState extends State<HomePage>
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+  }
+
+  @override
   void dispose() {
     WidgetsBinding.instance?.removeObserver(this);
     routeObserver.unsubscribe(this);
@@ -76,7 +82,7 @@ class _HomePageState extends State<HomePage>
                     ),
                     SizedBox(height: 24.0),
                     Expanded(
-                      child: state.isFeralFileLoggedIn == false
+                      child: state.isFeralFileLoggedIn == false || _isAssetsEmpty(state)
                           ? Padding(
                               padding: EdgeInsets.symmetric(horizontal: 16.0),
                               child: Column(
@@ -99,42 +105,127 @@ class _HomePageState extends State<HomePage>
                           : Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Padding(
-                                  padding:
+                                state.ffAssets.isNotEmpty ? Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Padding(
+                                      padding:
                                       EdgeInsets.symmetric(horizontal: 16.0),
-                                  child: Text(
-                                    "Feral File",
-                                    style:
+                                      child: Text(
+                                        "Feral File",
+                                        style:
                                         Theme.of(context).textTheme.headline1,
-                                  ),
-                                ),
-                                // SizedBox(height: 24.0),
-                                GridView.count(
-                                  // physics: const NeverScrollableScrollPhysics(),
-                                  shrinkWrap: true,
-                                  crossAxisCount: 3,
-                                  crossAxisSpacing: 3.0,
-                                  mainAxisSpacing: 3.0,
-                                  childAspectRatio: 1.0,
-                                  children: List.generate(state.assets.length,
-                                      (index) {
-                                    final asset = state.assets[index];
-                                    return GestureDetector(
-                                      child: Container(
-                                        child: Image.network(
-                                          asset.projectMetadata.latest
-                                              .thumbnailUrl,
-                                          fit: BoxFit.cover,
-                                        ),
                                       ),
-                                      onTap: () {
-                                        Navigator.of(context).pushNamed(
-                                            ArtworkDetailPage.tag,
-                                            arguments: asset);
-                                      },
-                                    );
-                                  }),
-                                ),
+                                    ),
+                                    GridView.count(
+                                      physics: const NeverScrollableScrollPhysics(),
+                                      shrinkWrap: true,
+                                      crossAxisCount: 3,
+                                      crossAxisSpacing: 3.0,
+                                      mainAxisSpacing: 3.0,
+                                      childAspectRatio: 1.0,
+                                      children: List.generate(state.ffAssets.length,
+                                              (index) {
+                                            final asset = state.ffAssets[index];
+                                            return GestureDetector(
+                                              child: Container(
+                                                child: Image.network(
+                                                  asset.thumbnailURL!,
+                                                  fit: BoxFit.cover,
+                                                ),
+                                              ),
+                                              onTap: () {
+                                                Navigator.of(context).pushNamed(
+                                                    ArtworkDetailPage.tag,
+                                                    arguments: ArtworkDetailPayload(state.ffAssets.map((e) => e.id).toList(), index));
+                                              },
+                                            );
+                                          }),
+                                    ),
+                                    SizedBox(height: 16.0),
+                                  ],
+                                ) : SizedBox(),
+                                state.ethAssets.isNotEmpty ? Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Padding(
+                                      padding:
+                                      EdgeInsets.only(left: 16.0, right: 16.0, top: 16.0),
+                                      child: Text(
+                                        "Opensea",
+                                        style:
+                                        Theme.of(context).textTheme.headline1,
+                                      ),
+                                    ),
+                                    GridView.count(
+                                      physics: const NeverScrollableScrollPhysics(),
+                                      shrinkWrap: true,
+                                      crossAxisCount: 3,
+                                      crossAxisSpacing: 3.0,
+                                      mainAxisSpacing: 3.0,
+                                      childAspectRatio: 1.0,
+                                      children: List.generate(state.ethAssets.length,
+                                              (index) {
+                                            final asset = state.ethAssets[index];
+                                            return GestureDetector(
+                                              child: Container(
+                                                child: Image.network(
+                                                  asset.thumbnailURL!,
+                                                  fit: BoxFit.cover,
+                                                ),
+                                              ),
+                                              onTap: () {
+                                                Navigator.of(context).pushNamed(
+                                                    ArtworkDetailPage.tag,
+                                                    arguments: ArtworkDetailPayload(state.ethAssets.map((e) => e.id).toList(), index));
+                                              },
+                                            );
+                                          }),
+                                    ),
+                                    SizedBox(height: 16.0),
+                                  ],
+                                ) : SizedBox(),
+                                state.xtzAssets.isNotEmpty ? Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Padding(
+                                      padding:
+                                      EdgeInsets.only(left: 16.0, right: 16.0, top: 16.0),
+                                      child: Text(
+                                        "Tezos",
+                                        style:
+                                        Theme.of(context).textTheme.headline1,
+                                      ),
+                                    ),
+                                    GridView.count(
+                                      physics: const NeverScrollableScrollPhysics(),
+                                      shrinkWrap: true,
+                                      crossAxisCount: 3,
+                                      crossAxisSpacing: 3.0,
+                                      mainAxisSpacing: 3.0,
+                                      childAspectRatio: 1.0,
+                                      children: List.generate(state.xtzAssets.length,
+                                              (index) {
+                                            final asset = state.xtzAssets[index];
+
+                                            return GestureDetector(
+                                              child: Container(
+                                                child: Image.network(
+                                                  asset.thumbnailURL!,
+                                                  fit: BoxFit.cover,
+                                                ),
+                                              ),
+                                              onTap: () {
+                                                Navigator.of(context).pushNamed(
+                                                    ArtworkDetailPage.tag,
+                                                    arguments: ArtworkDetailPayload(state.xtzAssets.map((e) => e.id).toList(), index));
+                                              },
+                                            );
+                                          }),
+                                    ),
+                                    SizedBox(height: 16.0),
+                                  ],
+                                ) : SizedBox(),
                               ],
                             ),
                     ),
@@ -164,6 +255,10 @@ class _HomePageState extends State<HomePage>
         }),
       ),
     );
+  }
+
+  bool _isAssetsEmpty(HomeState state) {
+    return state.xtzAssets.isEmpty && state.ffAssets.isEmpty && state.ethAssets.isEmpty;
   }
 
   Future<void> _initUniLinks() async {

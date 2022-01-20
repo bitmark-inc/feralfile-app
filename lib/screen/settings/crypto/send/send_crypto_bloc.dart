@@ -141,7 +141,7 @@ class SendCryptoBloc extends Bloc<SendCryptoEvent, SendCryptoState> {
         case CryptoType.ETH:
           final address = EthereumAddress.fromHex(event.address);
           fee = await _ethereumService.estimateFee(
-              address, EtherAmount.inWei(event.amount));
+              address, EtherAmount.inWei(event.amount), null);
           break;
         case CryptoType.XTZ:
           final tezosFee = await _tezosService.estimateFee(event.address, event.amount.toInt());

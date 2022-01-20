@@ -1,6 +1,7 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/network.dart';
+import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
 import 'package:autonomy_flutter/screen/settings/networks/select_network_page.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_bloc.dart';
@@ -59,73 +60,98 @@ class _SettingsPageState extends State<SettingsPage>
   Widget build(BuildContext context) {
     return Scaffold(
       body: BlocBuilder<SettingsBloc, SettingsState>(builder: (context, state) {
-        return Container(
-          margin:
-              EdgeInsets.only(top: 64.0, left: 16.0, right: 16.0, bottom: 20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              GestureDetector(
-                child: Center(
-                  child: Image.asset("assets/images/penrose.png"),
+        return Stack(
+          children: [
+            Padding(
+              padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
+              child: GestureDetector(
+                child: IconButton(
+                  icon: Icon(Icons.qr_code),
+                  onPressed: () {
+                    Navigator.of(context).pushNamed(ScanQRPage.tag,
+                        arguments: ScannerItem.GLOBAL);
+                  },
                 ),
                 onTap: () {
                   Navigator.of(context).pop();
                 },
               ),
-              SizedBox(height: 24.0),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Cryptos",
-                        style: Theme.of(context).textTheme.headline1,
-                      ),
-                      SizedBox(height: 16.0),
-                      _settingItem(
-                          context, "Ethereum", state.ethBalance ?? "-- ETH",
-                          () {
-                        Navigator.of(context).pushNamed(WalletDetailPage.tag,
-                            arguments: CryptoType.ETH);
-                      }),
-                      _settingItem(
-                          context, "Tezos", state.xtzBalance ?? "-- XTZ", () {
-                        Navigator.of(context).pushNamed(WalletDetailPage.tag,
-                            arguments: CryptoType.XTZ);
-                      }),
-                      SizedBox(height: 24.0),
-                      BlocProvider(
-                        create: (_) => PreferencesBloc(injector()),
-                        child: PreferenceView(),
-                      ),
-                      SizedBox(height: 24.0),
-                      Text(
-                        "Networks",
-                        style: Theme.of(context).textTheme.headline1,
-                      ),
-                      SizedBox(height: 16.0),
-                      _settingItem(
-                          context,
-                          "Select network",
-                          state.network == Network.TESTNET
-                              ? "Test network"
-                              : "Main network", () async {
-                        await Navigator.of(context)
-                            .pushNamed(SelectNetworkPage.tag);
-                        if (injector<ConfigurationService>().getNetwork() !=
-                            state.network) {
-                          Navigator.of(context).pop();
-                        }
-                      }),
-                      SizedBox(height: 40),
-                    ],
+            ),
+            Container(
+              margin: EdgeInsets.only(
+                  top: MediaQuery.of(context).padding.top + 32,
+                  left: 16.0,
+                  right: 16.0,
+                  bottom: 20.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  GestureDetector(
+                    child: Center(
+                      child: Image.asset("assets/images/penrose.png"),
+                    ),
+                    onTap: () {
+                      Navigator.of(context).pop();
+                    },
                   ),
-                ),
+                  SizedBox(height: 24.0),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Cryptos",
+                            style: Theme.of(context).textTheme.headline1,
+                          ),
+                          SizedBox(height: 16.0),
+                          _settingItem(
+                              context, "Ethereum", state.ethBalance ?? "-- ETH",
+                              () {
+                            Navigator.of(context).pushNamed(
+                                WalletDetailPage.tag,
+                                arguments: CryptoType.ETH);
+                          }),
+                          _settingItem(
+                              context, "Tezos", state.xtzBalance ?? "-- XTZ",
+                              () {
+                            Navigator.of(context).pushNamed(
+                                WalletDetailPage.tag,
+                                arguments: CryptoType.XTZ);
+                          }),
+                          SizedBox(height: 24.0),
+                          BlocProvider(
+                            create: (_) => PreferencesBloc(injector()),
+                            child: PreferenceView(),
+                          ),
+                          SizedBox(height: 24.0),
+                          Text(
+                            "Networks",
+                            style: Theme.of(context).textTheme.headline1,
+                          ),
+                          SizedBox(height: 16.0),
+                          _settingItem(
+                              context,
+                              "Select network",
+                              state.network == Network.TESTNET
+                                  ? "Test network"
+                                  : "Main network", () async {
+                            await Navigator.of(context)
+                                .pushNamed(SelectNetworkPage.tag);
+                            if (injector<ConfigurationService>().getNetwork() !=
+                                state.network) {
+                              Navigator.of(context).pop();
+                            }
+                          }),
+                          SizedBox(height: 40),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            )
+          ],
         );
       }),
     );

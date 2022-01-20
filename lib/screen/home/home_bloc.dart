@@ -1,3 +1,4 @@
+import 'package:autonomy_flutter/model/blockchain.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
@@ -15,13 +16,21 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<HomeCheckFeralFileLoginEvent>((event, emit) async {
       final accountNumber = _feralFileService.getAccountNumber();
 
-      state.isFeralFileLoggedIn = accountNumber.isNotEmpty;
-
       if (accountNumber.isEmpty) {
-        emit(state);
+        HomeState newState = HomeState();
+        newState.isFeralFileLoggedIn = false;
+        emit(newState);
       } else {
-        state.assets = await _feralFileService.getFeralFileAssets();
-        emit(state);
+        await _feralFileService.requestIndex();
+
+        HomeState newState = HomeState();
+        newState.isFeralFileLoggedIn = true;
+
+        final assets = await _feralFileService.getNftAssets();
+        newState.ffAssets = assets[Blockchain.BITMARK] ?? [];
+        newState.ethAssets = assets[Blockchain.ETHEREUM] ?? [];
+        newState.xtzAssets = assets[Blockchain.TEZOS] ?? [];
+        emit(newState);
       }
     });
   }

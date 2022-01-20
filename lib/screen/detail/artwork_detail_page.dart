@@ -1,4 +1,4 @@
-import 'package:autonomy_flutter/model/asset.dart';
+import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/model/asset_price.dart';
 import 'package:autonomy_flutter/model/bitmark.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
@@ -14,15 +14,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 class ArtworkDetailPage extends StatelessWidget {
   static const tag = "artwork_detail";
 
-  final Asset asset;
+  final ArtworkDetailPayload payload;
 
-  const ArtworkDetailPage({Key? key, required this.asset}) : super(key: key);
+  const ArtworkDetailPage({Key? key, required this.payload}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    context
-        .read<ArtworkDetailBloc>()
-        .add(ArtworkDetailGetInfoEvent(asset.id));
+    context.read<ArtworkDetailBloc>().add(ArtworkDetailGetInfoEvent(payload.ids[payload.currentIndex]));
 
     return Scaffold(
       appBar: getBackAppBar(
@@ -31,33 +29,36 @@ class ArtworkDetailPage extends StatelessWidget {
           Navigator.of(context).pop();
         },
       ),
-      body: Container(
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(height: 16.0),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.0),
-                child: Text(
-                  asset.projectMetadata.latest.title,
-                  style: Theme.of(context).textTheme.headline1,
-                ),
-              ),
-              SizedBox(height: 8.0),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.0),
-                child: Text(
-                  "by ${asset.projectMetadata.latest.artistName} (${asset.edition}/${asset.projectMetadata.latest.maxEdition})",
-                  style: Theme.of(context).textTheme.headline3,
-                ),
-              ),
-              SizedBox(height: 16.0),
-              Image.network(asset.projectMetadata.latest.thumbnailUrl),
-              SizedBox(height: 16.0),
-              BlocBuilder<ArtworkDetailBloc, ArtworkDetailState>(
-                builder: (context, state) {
-                  return Padding(
+      body: BlocBuilder<ArtworkDetailBloc, ArtworkDetailState>(
+          builder: (context, state) {
+        if (state.asset != null) {
+          final asset = state.asset!;
+          return Container(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(height: 16.0),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Text(
+                      asset.title,
+                      style: Theme.of(context).textTheme.headline1,
+                    ),
+                  ),
+                  SizedBox(height: 8.0),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Text(
+                      "by ${asset.artistName} (${asset.edition}/${asset.maxEdition})",
+                      style: Theme.of(context).textTheme.headline3,
+                    ),
+                  ),
+                  SizedBox(height: 16.0),
+                  Image.network(asset.thumbnailURL!,
+                      width: double.infinity, fit: BoxFit.cover),
+                  SizedBox(height: 16.0),
+                  Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -65,32 +66,38 @@ class ArtworkDetailPage extends StatelessWidget {
                         Container(
                           width: 165,
                           child: AuOutlinedButton(
-                              text: "VIEW ARTWORK \u25b6", onPress: () {
-                            Navigator.of(context).pushNamed(ArtworkPreviewPage.tag, arguments: asset);
-                          }),
+                              text: "VIEW ARTWORK \u25b6",
+                              onPress: () {
+                                Navigator.of(context).pushNamed(
+                                    ArtworkPreviewPage.tag,
+                                    arguments: payload);
+                              }),
                         ),
                         SizedBox(height: 40.0),
                         Text(
-                          asset.projectMetadata.latest.description,
+                          asset.desc ?? "",
                           style: Theme.of(context).textTheme.bodyText1,
                         ),
                         SizedBox(height: 40.0),
                         _artworkRightView(context),
                         SizedBox(height: 40.0),
-                        _valueView(context, state.assetPrice),
+                        _valueView(context, asset, state.assetPrice),
                         SizedBox(height: 40.0),
-                        _metadataView(context),
+                        _metadataView(context, asset),
                         SizedBox(height: 40.0),
                         _provenanceView(context, state.provenances),
                         SizedBox(height: 40.0),
                       ],
                     ),
-                  );
-                }),
-            ],
-          ),
-        ),
-      ),
+                  )
+                ],
+              ),
+            ),
+          );
+        } else {
+          return SizedBox();
+        }
+      }),
     );
   }
 
@@ -154,9 +161,10 @@ class ArtworkDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _valueView(BuildContext context, AssetPrice? assetPrice) {
-
-    final changedPrice = (assetPrice?.minPrice ?? 0) - (assetPrice?.purchasedPrice ?? 0);
+  Widget _valueView(
+      BuildContext context, AssetToken asset, AssetPrice? assetPrice) {
+    final changedPrice =
+        (assetPrice?.minPrice ?? 0) - (assetPrice?.purchasedPrice ?? 0);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -167,22 +175,39 @@ class ArtworkDetailPage extends StatelessWidget {
         ),
         SizedBox(height: 16.0),
         _rowItem(context, "Initial price",
-            "${asset.projectMetadata.latest.basePrice} ${asset.projectMetadata.latest.baseCurrency.toUpperCase()}"),
+            "${asset.basePrice} ${asset.baseCurrency?.toUpperCase()}"),
         Divider(height: 32.0),
-        _rowItem(context, "Purchase price", assetPrice != null ? "${assetPrice.purchasedPrice} ${assetPrice.currency.toUpperCase()}" : ""),
+        _rowItem(
+            context,
+            "Purchase price",
+            assetPrice != null
+                ? "${assetPrice.purchasedPrice} ${assetPrice.currency.toUpperCase()}"
+                : ""),
         Divider(height: 32.0),
-        _rowItem(context, "Listed for resale", assetPrice != null && assetPrice.onSale == true ? "${assetPrice.listingPrice} ${assetPrice.currency.toUpperCase()}" : "N/A"),
+        _rowItem(
+            context,
+            "Listed for resale",
+            assetPrice != null && assetPrice.onSale == true
+                ? "${assetPrice.listingPrice} ${assetPrice.currency.toUpperCase()}"
+                : "N/A"),
         Divider(height: 32.0),
-        _rowItem(context, "Estimated value\n(floor price)", assetPrice != null ? "${assetPrice.minPrice} ${assetPrice.currency.toUpperCase()}" : ""),
+        _rowItem(
+            context,
+            "Estimated value\n(floor price)",
+            assetPrice != null
+                ? "${assetPrice.minPrice} ${assetPrice.currency.toUpperCase()}"
+                : ""),
         Divider(height: 32.0),
-        _rowItem(context, "Change (\$)", "${changedPrice >= 0 ? "+" : ""}$changedPrice ${assetPrice?.currency.toUpperCase()}"),
+        _rowItem(context, "Change (\$)",
+            "${changedPrice >= 0 ? "+" : ""}$changedPrice ${assetPrice?.currency.toUpperCase()}"),
         Divider(height: 32.0),
-        _rowItem(context, "Change (%)", "${changedPrice >= 0 ? "+" : ""}${changedPrice * 100 / (assetPrice?.purchasedPrice ?? 1)}%"),
+        _rowItem(context, "Change (%)",
+            "${changedPrice >= 0 ? "+" : ""}${changedPrice * 100 / (assetPrice?.purchasedPrice ?? 1)}%"),
       ],
     );
   }
 
-  Widget _metadataView(BuildContext context) {
+  Widget _metadataView(BuildContext context, AssetToken asset) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -191,29 +216,25 @@ class ArtworkDetailPage extends StatelessWidget {
           style: Theme.of(context).textTheme.headline2,
         ),
         SizedBox(height: 16.0),
-        _rowItem(context, "Title", asset.projectMetadata.latest.title),
+        _rowItem(context, "Title", asset.title),
         Divider(height: 32.0),
-        _rowItem(context, "Artist", asset.projectMetadata.latest.artistName),
+        _rowItem(context, "Artist", asset.artistName),
         Divider(height: 32.0),
         _rowItem(context, "Edition number", asset.edition.toString()),
         Divider(height: 32.0),
-        _rowItem(context, "Edition size",
-            asset.projectMetadata.latest.maxEdition.toString()),
+        _rowItem(context, "Edition size", asset.maxEdition.toString()),
         Divider(height: 32.0),
-        _rowItem(context, "Source",
-            asset.projectMetadata.latest.source.capitalize()),
+        _rowItem(context, "Source", asset.source?.capitalize()),
         Divider(height: 32.0),
         _rowItem(context, "Blockchain", asset.blockchain.capitalize()),
         Divider(height: 32.0),
-        _rowItem(context, "Medium",
-            asset.projectMetadata.latest.medium.capitalize()),
+        _rowItem(context, "Medium", asset.medium?.capitalize()),
         Divider(height: 32.0),
         _rowItem(context, "Date minted", asset.mintedAt.toString()),
         Divider(height: 32.0),
         _rowItem(context, "Date collected", ""),
         Divider(height: 32.0),
-        _rowItem(
-            context, "Artwork data", asset.projectMetadata.latest.assetData),
+        _rowItem(context, "Artwork data", asset.assetData),
       ],
     );
   }
@@ -229,18 +250,18 @@ class ArtworkDetailPage extends StatelessWidget {
         SizedBox(height: 16.0),
         ...provenances
             .map((el) => Column(
-          children: [
-            _rowItem(
-                context, el.owner.mask(4), el.createdAt.toString()),
-            Divider(height: 32.0),
-          ],
-        ))
+                  children: [
+                    _rowItem(
+                        context, el.owner.mask(4), el.createdAt.toString()),
+                    Divider(height: 32.0),
+                  ],
+                ))
             .toList()
       ],
     );
   }
 
-  Widget _rowItem(BuildContext context, String name, String value) {
+  Widget _rowItem(BuildContext context, String name, String? value) {
     return Row(
       children: [
         Expanded(
@@ -252,7 +273,7 @@ class ArtworkDetailPage extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  value,
+                  value ?? "",
                   textAlign: TextAlign.end,
                   style: TextStyle(
                       color: Color(0xFF828080),
@@ -269,4 +290,11 @@ class ArtworkDetailPage extends StatelessWidget {
       ],
     );
   }
+}
+
+class ArtworkDetailPayload {
+  final List<String> ids;
+  final int currentIndex;
+
+  ArtworkDetailPayload(this.ids, this.currentIndex);
 }
