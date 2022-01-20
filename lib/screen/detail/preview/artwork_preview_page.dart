@@ -1,9 +1,13 @@
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/model/asset.dart';
+import 'package:autonomy_flutter/database/entity/asset_token.dart';
+import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
+import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_bloc.dart';
+import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shake/shake.dart';
 import 'package:video_player/video_player.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -11,9 +15,9 @@ import 'package:webview_flutter/webview_flutter.dart';
 class ArtworkPreviewPage extends StatefulWidget {
   static const tag = "artwork_preview";
 
-  final Asset asset;
+  final ArtworkDetailPayload payload;
 
-  const ArtworkPreviewPage({Key? key, required this.asset}) : super(key: key);
+  const ArtworkPreviewPage({Key? key, required this.payload}) : super(key: key);
 
   @override
   State<ArtworkPreviewPage> createState() => _ArtworkPreviewPageState();
@@ -22,20 +26,26 @@ class ArtworkPreviewPage extends StatefulWidget {
 class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
   VideoPlayerController? _controller;
   bool isFullscreen = false;
+  late int currentIndex;
 
   @override
   void initState() {
     super.initState();
 
-    final artwork = widget.asset.projectMetadata.latest;
-    if (artwork.medium == "video") {
-      _controller = VideoPlayerController.network(artwork.previewUrl)
-        ..initialize().then((_) {
-          _controller?.play();
-          _controller?.setLooping(true);
-          setState(() {});
-        });
-    }
+    currentIndex = widget.payload.currentIndex;
+    final id = widget.payload.ids[currentIndex];
+
+    context.read<ArtworkPreviewBloc>().add(ArtworkPreviewGetAssetTokenEvent(id));
+    //
+    // // _controller.
+    // if (artwork.medium == "video") {
+    //   _controller = VideoPlayerController.network(artwork.previewURL!)
+    //     ..initialize().then((_) {
+    //       _controller?.play();
+    //       _controller?.setLooping(true);
+    //       setState(() {});
+    //     });
+    // }
 
     ShakeDetector detector = ShakeDetector.autoStart(onPhoneShake: () {
       setState(() {
@@ -48,7 +58,10 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
 
   @override
   void dispose() {
-    _controller?.dispose();
+    _initializeVideoPlayerFuture = null;
+    _controller?.pause().then((_) {
+      _controller?.dispose();
+    });
     _controller = null;
     super.dispose();
   }
@@ -57,110 +70,139 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: Container(
-          padding: MediaQuery.of(context).padding,
-          child: Column(
-            children: [
-              !isFullscreen ? Container(
-                color: Colors.black,
-                child: Row(
-                  children: [
-                    IconButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                      icon: Icon(
-                        Icons.close,
-                        color: Colors.white,
-                      ),
-                    ),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            widget.asset.projectMetadata.latest.title,
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w700,
-                                fontSize: 12,
-                                fontFamily: "AtlasGrotesk"),
-                          ),
-                          SizedBox(height: 4.0),
-                          Text(
-                            "by ${widget.asset.projectMetadata.latest.artistName}",
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w300,
-                                fontSize: 12,
-                                fontFamily: "AtlasGrotesk"),
-                          )
-                        ],
-                      ),
-                    ),
-                    // IconButton(
-                    //   onPressed: () {
-                    //   },
-                    //   icon: Icon(
-                    //     CupertinoIcons.back,
-                    //     color: Colors.white,
-                    //   ),
-                    // ),
-                    // IconButton(
-                    //   onPressed: () {
-                    //   },
-                    //   icon: Icon(
-                    //     CupertinoIcons.forward,
-                    //     color: Colors.white,
-                    //   ),
-                    // ),
-                    IconButton(
-                      onPressed: () {
-                        setState(() {
-                          isFullscreen = true;
-                        });
+      body: BlocBuilder<ArtworkPreviewBloc, ArtworkPreviewState>(
+          builder: (context, state) {
+        if (state.asset != null) {
 
-                        if (injector<ConfigurationService>().isFullscreenIntroEnabled()) {
-                          showModalBottomSheet<void>(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return _fullscreenIntroPopup();
-                            },
-                          );
-                        }
-                      },
-                      icon: Icon(
-                        Icons.fullscreen,
-                        color: Colors.white,
-                      ),
+          final asset = state.asset!;
+
+          if (asset.medium == "video") {
+            _startPlay(asset.previewURL!);
+          }
+
+          return Container(
+              padding: MediaQuery.of(context).padding,
+              child: Column(
+                children: [
+                  !isFullscreen
+                      ? Container(
+                          color: Colors.black,
+                          child: Row(
+                            children: [
+                              IconButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                icon: Icon(
+                                  Icons.close,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      asset.title,
+                                      style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w700,
+                                          fontSize: 12,
+                                          fontFamily: "AtlasGrotesk"),
+                                    ),
+                                    SizedBox(height: 4.0),
+                                    Text(
+                                      "by ${asset.artistName}",
+                                      style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w300,
+                                          fontSize: 12,
+                                          fontFamily: "AtlasGrotesk"),
+                                    )
+                                  ],
+                                ),
+                              ),
+                              IconButton(
+                                onPressed: () {
+                                  currentIndex = currentIndex <= 0 ? widget.payload.ids.length - 1 : currentIndex - 1;
+                                  final id = widget.payload.ids[currentIndex];
+                                  context.read<ArtworkPreviewBloc>().add(ArtworkPreviewGetAssetTokenEvent(id));
+                                },
+                                icon: Icon(
+                                  CupertinoIcons.back,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              IconButton(
+                                onPressed: () {
+                                  currentIndex = currentIndex >= widget.payload.ids.length - 1 ? 0 : currentIndex + 1;
+                                  final id = widget.payload.ids[currentIndex];
+                                  context.read<ArtworkPreviewBloc>().add(ArtworkPreviewGetAssetTokenEvent(id));
+                                },
+                                icon: Icon(
+                                  CupertinoIcons.forward,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              IconButton(
+                                onPressed: () {
+                                  setState(() {
+                                    isFullscreen = true;
+                                  });
+
+                                  if (injector<ConfigurationService>()
+                                      .isFullscreenIntroEnabled()) {
+                                    showModalBottomSheet<void>(
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        return _fullscreenIntroPopup();
+                                      },
+                                    );
+                                  }
+                                },
+                                icon: Icon(
+                                  Icons.fullscreen,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      : SizedBox(),
+                  Expanded(
+                    child: Container(
+                      child: _getArtworkView(asset),
                     ),
-                  ],
-                ),
-              ) : SizedBox(),
-              Expanded(
-                child: Container(
-                  child: _getArtworkView(),
-                ),
-              ),
-            ],
-          )),
+                  ),
+                ],
+              ));
+        } else {
+          return SizedBox();
+        }
+      }),
     );
   }
 
-  Widget _getArtworkView() {
-    switch (widget.asset.projectMetadata.latest.medium) {
+  Widget _getArtworkView(AssetToken asset) {
+    switch (asset.medium) {
       case "image":
-        return Image.network(widget.asset.projectMetadata.latest.previewUrl);
+        return Image.network(asset.previewURL!);
       case "video":
-        return _controller != null
-            ? AspectRatio(
-                aspectRatio: _controller!.value.aspectRatio,
-                child: VideoPlayer(_controller!),
-              )
-            : SizedBox();
+        return FutureBuilder(
+            future: _initializeVideoPlayerFuture,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.done) {
+                return AspectRatio(
+                  aspectRatio: _controller!.value.aspectRatio,
+                  child: VideoPlayer(_controller!),
+                );
+              } else {
+                return SizedBox();
+              }
+            });
       default:
         return WebView(
-            initialUrl: widget.asset.projectMetadata.latest.previewUrl,
+            initialUrl: asset.previewURL,
             javascriptMode: JavascriptMode.unrestricted);
     }
   }
@@ -225,7 +267,8 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
                       fontFamily: "IBMPlexMono"),
                 ),
                 onTap: () {
-                  injector<ConfigurationService>().setFullscreenIntroEnable(false);
+                  injector<ConfigurationService>()
+                      .setFullscreenIntroEnable(false);
                 },
               ),
             ),
@@ -233,5 +276,32 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
         ),
       ),
     );
+  }
+
+  Future<void>? _initializeVideoPlayerFuture;
+
+  Future<bool> _clearPrevious() async {
+    await _controller?.pause();
+    return true;
+  }
+
+  Future<void> _initializePlay(String videoPath) async {
+    _controller = VideoPlayerController.network(videoPath);
+    _initializeVideoPlayerFuture = _controller!.initialize().then((_) {
+      _controller?.play();
+      _controller?.setLooping(true);
+
+    });
+  }
+
+  Future<void> _startPlay(String videoPath) async {
+    setState(() {
+      _initializeVideoPlayerFuture = null;
+    });
+    Future.delayed(const Duration(milliseconds: 200), () {
+      _clearPrevious().then((_) {
+        _initializePlay(videoPath);
+      });
+    });
   }
 }

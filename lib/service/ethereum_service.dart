@@ -1,13 +1,14 @@
 import 'dart:typed_data';
 
 import 'package:autonomy_flutter/service/persona_service.dart';
+import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 
 abstract class EthereumService {
   Future<String> getETHAddress();
   Future<EtherAmount> getBalance(String address);
   Future<String> signPersonalMessage(Uint8List message);
-  Future<BigInt> estimateFee(EthereumAddress to, EtherAmount amount);
+  Future<BigInt> estimateFee(EthereumAddress to, EtherAmount amount, String? data);
   Future<String> sendTransaction(EthereumAddress to, BigInt value, BigInt? gas, String? data);
 }
 
@@ -19,7 +20,7 @@ class EthereumServiceImpl extends EthereumService {
   EthereumServiceImpl(this._personaService, this._web3Client);
 
   @override
-  Future<BigInt> estimateFee(EthereumAddress to, EtherAmount amount) async {
+  Future<BigInt> estimateFee(EthereumAddress to, EtherAmount amount, String? data) async {
     final persona = _personaService.getActivePersona();
     assert(persona != null);
 
@@ -32,6 +33,7 @@ class EthereumServiceImpl extends EthereumService {
         to: to,
         value: amount,
         gasPrice: gasPrice,
+        data: data != null ? hexToBytes(data) : null,
       );
       return gas * gasPrice.getInWei;
     } catch (err) {

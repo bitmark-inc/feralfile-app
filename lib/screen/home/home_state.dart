@@ -1,4 +1,4 @@
-import 'package:autonomy_flutter/model/asset.dart';
+import 'package:autonomy_flutter/database/entity/asset_token.dart';
 
 abstract class HomeEvent {}
 
@@ -12,5 +12,7 @@ class HomeCheckFeralFileLoginEvent extends HomeEvent {}
 
 class HomeState {
   bool? isFeralFileLoggedIn;
-  List<Asset> assets = [];
+  List<AssetToken> ffAssets = [];
+  List<AssetToken> ethAssets = [];
+  List<AssetToken> xtzAssets = [];
 }

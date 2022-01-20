@@ -1,3 +1,4 @@
+import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/model/asset_price.dart';
 import 'package:autonomy_flutter/model/bitmark.dart';
 
@@ -10,8 +11,9 @@ class ArtworkDetailGetInfoEvent extends ArtworkDetailEvent {
 }
 
 class ArtworkDetailState {
+  AssetToken? asset;
   List<Provenance> provenances;
   AssetPrice? assetPrice;
 
-  ArtworkDetailState({required this.provenances, this.assetPrice});
+  ArtworkDetailState({this.asset, required this.provenances, this.assetPrice});
 }

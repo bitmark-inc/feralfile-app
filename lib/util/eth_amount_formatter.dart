@@ -9,7 +9,7 @@ class EthAmountFormatter {
     fromUnit = EtherUnit.wei,
     toUnit = EtherUnit.ether,
   }) {
-    if (amount == BigInt.zero) return "0";
+    if (amount == BigInt.zero) return "0.0";
 
     return EtherAmount.fromUnitAndValue(fromUnit, amount)
         .getValueInUnit(toUnit)

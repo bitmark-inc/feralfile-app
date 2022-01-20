@@ -15,7 +15,7 @@ class WCSendTransactionBloc
       : super(WCSendTransactionState()) {
     on<WCSendTransactionEstimateEvent>((event, emit) async {
       state.fee =
-          await _ethereumService.estimateFee(event.address, event.amount);
+          await _ethereumService.estimateFee(event.address, event.amount, event.data);
       emit(state);
     });
 
