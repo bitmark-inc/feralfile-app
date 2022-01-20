@@ -19,12 +19,14 @@ import 'package:autonomy_flutter/screen/settings/settings_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_bloc.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
+import 'package:autonomy_flutter/screen/wallet_connect/wc_disconnect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/persona_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:wallet_connect/wallet_connect.dart';
 
 import 'common/injector.dart';
 import 'common/network_config_injector.dart';
@@ -112,6 +114,10 @@ class AutonomyApp extends StatelessWidget {
                 builder: (context) => WCConnectPage(
                     args: settings.arguments as WCConnectPageArgs),
               );
+            case WCDisconnectPage.tag:
+              return MaterialPageRoute(
+                builder: (context) => WCDisconnectPage(client: settings.arguments as WCClient),
+              );
             case WCSignMessagePage.tag:
               return MaterialPageRoute(
                 builder: (context) => WCSignMessagePage(
@@ -170,12 +176,12 @@ class AutonomyApp extends StatelessWidget {
             case ArtworkPreviewPage.tag:
               return MaterialPageRoute(
                   builder: (context) => BlocProvider(
-                    create: (_) =>
-                        ArtworkPreviewBloc(networkInjector.I<AppDatabase>().assetDao),
-                    child: ArtworkPreviewPage(
-                      payload: settings.arguments as ArtworkDetailPayload,
-                    ),
-                  ));
+                        create: (_) => ArtworkPreviewBloc(
+                            networkInjector.I<AppDatabase>().assetDao),
+                        child: ArtworkPreviewPage(
+                          payload: settings.arguments as ArtworkDetailPayload,
+                        ),
+                      ));
             case SelectNetworkPage.tag:
               return MaterialPageRoute(
                   builder: (context) => BlocProvider(

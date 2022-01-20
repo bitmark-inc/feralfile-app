@@ -84,6 +84,7 @@ class WalletConnectService {
         print("WC connected");
       },
       onDisconnect: (code, reason) {
+        wcClients.removeWhere((element) => element.remotePeerId == sessionStore?.remotePeerId);
         print("WC disconnected");
       },
       onFailure: (error) {
