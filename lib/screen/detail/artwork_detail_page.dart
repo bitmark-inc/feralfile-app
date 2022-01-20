@@ -20,7 +20,9 @@ class ArtworkDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    context.read<ArtworkDetailBloc>().add(ArtworkDetailGetInfoEvent(payload.ids[payload.currentIndex]));
+    context
+        .read<ArtworkDetailBloc>()
+        .add(ArtworkDetailGetInfoEvent(payload.ids[payload.currentIndex]));
 
     return Scaffold(
       appBar: getBackAppBar(
@@ -78,14 +80,35 @@ class ArtworkDetailPage extends StatelessWidget {
                           asset.desc ?? "",
                           style: Theme.of(context).textTheme.bodyText1,
                         ),
-                        SizedBox(height: 40.0),
-                        _artworkRightView(context),
-                        SizedBox(height: 40.0),
-                        _valueView(context, asset, state.assetPrice),
+                        asset.source == "feralfile"
+                            ? Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  SizedBox(height: 40.0),
+                                  _artworkRightView(context),
+                                ],
+                              )
+                            : SizedBox(),
+                        state.assetPrice != null
+                            ? Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  SizedBox(height: 40.0),
+                                  _valueView(context, asset, state.assetPrice),
+                                ],
+                              )
+                            : SizedBox(),
                         SizedBox(height: 40.0),
                         _metadataView(context, asset),
-                        SizedBox(height: 40.0),
-                        _provenanceView(context, state.provenances),
+                        asset.blockchain == "bitmark"
+                            ? Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  SizedBox(height: 40.0),
+                                  _provenanceView(context, state.provenances),
+                                ],
+                              )
+                            : SizedBox(),
                         SizedBox(height: 40.0),
                       ],
                     ),
@@ -174,8 +197,12 @@ class ArtworkDetailPage extends StatelessWidget {
           style: Theme.of(context).textTheme.headline2,
         ),
         SizedBox(height: 16.0),
-        _rowItem(context, "Initial price",
-            "${asset.basePrice} ${asset.baseCurrency?.toUpperCase()}"),
+        _rowItem(
+            context,
+            "Initial price",
+            asset.basePrice != null
+                ? "${asset.basePrice} ${asset.baseCurrency?.toUpperCase()}"
+                : "N/A"),
         Divider(height: 32.0),
         _rowItem(
             context,
@@ -198,11 +225,19 @@ class ArtworkDetailPage extends StatelessWidget {
                 ? "${assetPrice.minPrice} ${assetPrice.currency.toUpperCase()}"
                 : ""),
         Divider(height: 32.0),
-        _rowItem(context, "Change (\$)",
-            "${changedPrice >= 0 ? "+" : ""}$changedPrice ${assetPrice?.currency.toUpperCase()}"),
+        _rowItem(
+            context,
+            "Change (\$)",
+            assetPrice?.minPrice == null
+                ? "${changedPrice >= 0 ? "+" : ""}$changedPrice ${assetPrice?.currency.toUpperCase()}"
+                : "N/A"),
         Divider(height: 32.0),
-        _rowItem(context, "Change (%)",
-            "${changedPrice >= 0 ? "+" : ""}${changedPrice * 100 / (assetPrice?.purchasedPrice ?? 1)}%"),
+        _rowItem(
+            context,
+            "Change (%)",
+            assetPrice?.minPrice == null
+                ? "${changedPrice >= 0 ? "+" : ""}${changedPrice * 100 / (assetPrice?.purchasedPrice ?? 1)}%"
+                : "N/A"),
       ],
     );
   }
