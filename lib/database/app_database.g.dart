@@ -192,6 +192,36 @@ class _$AssetTokenDao extends AssetTokenDao {
   }
 
   @override
+  Future<List<AssetToken>> findAssetTokensByBlockchain(
+      String blockchain) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM AssetToken WHERE blockchain = ?1',
+        mapper: (Map<String, Object?> row) => AssetToken(
+            artistName: row['artistName'] as String?,
+            artistURL: row['artistURL'] as String?,
+            assetData: row['assetData'] as String?,
+            assetID: row['assetID'] as String?,
+            assetURL: row['assetURL'] as String?,
+            basePrice: row['basePrice'] as double?,
+            baseCurrency: row['baseCurrency'] as String?,
+            blockchain: row['blockchain'] as String,
+            contractType: row['contractType'] as String?,
+            desc: row['desc'] as String?,
+            edition: row['edition'] as int,
+            id: row['id'] as String,
+            maxEdition: row['maxEdition'] as int?,
+            medium: row['medium'] as String?,
+            mintedAt: row['mintedAt'] as int?,
+            previewURL: row['previewURL'] as String?,
+            source: row['source'] as String?,
+            thumbnailURL: row['thumbnailURL'] as String?,
+            galleryThumbnailURL: row['galleryThumbnailURL'] as String?,
+            title: row['title'] as String,
+            ownerAddress: row['ownerAddress'] as String?),
+        arguments: [blockchain]);
+  }
+
+  @override
   Future<AssetToken?> findAssetTokenById(String id) async {
     return _queryAdapter.query('SELECT * FROM AssetToken WHERE id = ?1',
         mapper: (Map<String, Object?> row) => AssetToken(
