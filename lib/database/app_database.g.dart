@@ -81,7 +81,7 @@ class _$AppDatabase extends AppDatabase {
       },
       onCreate: (database, version) async {
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `AssetToken` (`artistName` TEXT, `artistURL` TEXT, `assetData` TEXT, `assetID` TEXT, `assetURL` TEXT, `basePrice` REAL, `baseCurrency` TEXT, `blockchain` TEXT NOT NULL, `contractType` TEXT, `desc` TEXT, `edition` INTEGER NOT NULL, `id` TEXT NOT NULL, `maxEdition` INTEGER, `medium` TEXT, `mintedAt` INTEGER, `previewURL` TEXT, `source` TEXT, `sourceURL` TEXT, `thumbnailURL` TEXT, `galleryThumbnailURL` TEXT, `title` TEXT NOT NULL, `ownerAddress` TEXT, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `AssetToken` (`artistName` TEXT, `artistURL` TEXT, `assetData` TEXT, `assetID` TEXT, `assetURL` TEXT, `basePrice` REAL, `baseCurrency` TEXT, `blockchain` TEXT NOT NULL, `contractType` TEXT, `desc` TEXT, `edition` INTEGER NOT NULL, `id` TEXT NOT NULL, `maxEdition` INTEGER, `medium` TEXT, `mintedAt` TEXT, `previewURL` TEXT, `source` TEXT, `sourceURL` TEXT, `thumbnailURL` TEXT, `galleryThumbnailURL` TEXT, `title` TEXT NOT NULL, `ownerAddress` TEXT, PRIMARY KEY (`id`))');
 
         await callback?.onCreate?.call(database, version);
       },
@@ -182,7 +182,7 @@ class _$AssetTokenDao extends AssetTokenDao {
             id: row['id'] as String,
             maxEdition: row['maxEdition'] as int?,
             medium: row['medium'] as String?,
-            mintedAt: row['mintedAt'] as int?,
+            mintedAt: row['mintedAt'] as String?,
             previewURL: row['previewURL'] as String?,
             source: row['source'] as String?,
             thumbnailURL: row['thumbnailURL'] as String?,
@@ -211,7 +211,7 @@ class _$AssetTokenDao extends AssetTokenDao {
             id: row['id'] as String,
             maxEdition: row['maxEdition'] as int?,
             medium: row['medium'] as String?,
-            mintedAt: row['mintedAt'] as int?,
+            mintedAt: row['mintedAt'] as String?,
             previewURL: row['previewURL'] as String?,
             source: row['source'] as String?,
             thumbnailURL: row['thumbnailURL'] as String?,
@@ -239,7 +239,7 @@ class _$AssetTokenDao extends AssetTokenDao {
             id: row['id'] as String,
             maxEdition: row['maxEdition'] as int?,
             medium: row['medium'] as String?,
-            mintedAt: row['mintedAt'] as int?,
+            mintedAt: row['mintedAt'] as String?,
             previewURL: row['previewURL'] as String?,
             source: row['source'] as String?,
             thumbnailURL: row['thumbnailURL'] as String?,
@@ -247,6 +247,11 @@ class _$AssetTokenDao extends AssetTokenDao {
             title: row['title'] as String,
             ownerAddress: row['ownerAddress'] as String?),
         arguments: [id]);
+  }
+
+  @override
+  Future<void> removeAll() async {
+    await _queryAdapter.queryNoReturn('DELETE FROM AssetToken');
   }
 
   @override
