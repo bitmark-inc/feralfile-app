@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/model/bitmark.dart';
 import 'package:autonomy_flutter/model/blockchain.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
+import 'package:autonomy_flutter/service/tezos_service.dart';
 
 abstract class FeralFileService {
   Future<void> saveAccount();
@@ -33,6 +34,7 @@ class FeralFileServiceImpl extends FeralFileService {
   BitmarkApi _bitmarkApi;
   IndexerApi _indexerApi;
   EthereumService _ethereumService;
+  TezosService _tezosService;
   AppDatabase _appDatabase;
 
   FeralFileServiceImpl(
@@ -41,6 +43,7 @@ class FeralFileServiceImpl extends FeralFileService {
       this._bitmarkApi,
       this._indexerApi,
       this._ethereumService,
+      this._tezosService,
       this._appDatabase);
 
   @override
@@ -63,8 +66,11 @@ class FeralFileServiceImpl extends FeralFileService {
   @override
   Future requestIndex() async {
     final ethAddress = await _ethereumService.getETHAddress();
-
     await _indexerApi.requestIndex({"owner": ethAddress, "blockchain": "eth"});
+
+    final xtzAddress = await _tezosService.getTezosAddress();
+    await _indexerApi
+        .requestIndex({"owner": xtzAddress, "blockchain": "tezos"});
   }
 
   @override
@@ -82,13 +88,19 @@ class FeralFileServiceImpl extends FeralFileService {
     final ethAssetTokens =
         ethAssets.map((e) => AssetToken.fromAsset(e)).toList();
 
+    final xtzAddress = await _tezosService.getTezosAddress();
+    final xtzAssets = await _indexerApi.getNftTokensByOwner(xtzAddress);
+    final xtzAssetTokens =
+        xtzAssets.map((e) => AssetToken.fromAsset(e)).toList();
+
     try {
-      await _appDatabase.assetDao.insertAssets(ffAssetTokens + ethAssetTokens);
+      await _appDatabase.assetDao.insertAssets(ffAssetTokens + ethAssetTokens + xtzAssetTokens);
     } catch (err) {}
 
     return {
       Blockchain.BITMARK: ffAssetTokens,
       Blockchain.ETHEREUM: ethAssetTokens,
+      Blockchain.TEZOS: xtzAssetTokens,
     };
   }
 

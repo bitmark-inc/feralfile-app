@@ -1,3 +1,4 @@
+import 'package:autonomy_flutter/database/dao/asset_token_dao.dart';
 import 'package:autonomy_flutter/model/blockchain.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
@@ -7,8 +8,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 class HomeBloc extends Bloc<HomeEvent, HomeState> {
   FeralFileService _feralFileService;
   WalletConnectService _walletConnectService;
+  AssetTokenDao _assetTokenDao;
 
-  HomeBloc(this._feralFileService, this._walletConnectService) : super(HomeState()) {
+  HomeBloc(this._feralFileService, this._walletConnectService, this._assetTokenDao) : super(HomeState()) {
     on<HomeConnectWCEvent>((event, emit) {
       _walletConnectService.connect(event.uri);
     });
@@ -21,16 +23,27 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         newState.isFeralFileLoggedIn = false;
         emit(newState);
       } else {
-        await _feralFileService.requestIndex();
+        // request index
+        _feralFileService.requestIndex();
 
-        HomeState newState = HomeState();
-        newState.isFeralFileLoggedIn = true;
+        // preload with local database
+        HomeState localState = HomeState();
+        localState.isFeralFileLoggedIn = true;
+
+        localState.ffAssets = await _assetTokenDao.findAssetTokensByBlockchain("bitmark");
+        localState.ethAssets = await _assetTokenDao.findAssetTokensByBlockchain("ethereum");
+        localState.xtzAssets = await _assetTokenDao.findAssetTokensByBlockchain("tezos");
+        emit(localState);
+
+        // sync with remote
+        HomeState remoteState = HomeState();
+        remoteState.isFeralFileLoggedIn = true;
 
         final assets = await _feralFileService.getNftAssets();
-        newState.ffAssets = assets[Blockchain.BITMARK] ?? [];
-        newState.ethAssets = assets[Blockchain.ETHEREUM] ?? [];
-        newState.xtzAssets = assets[Blockchain.TEZOS] ?? [];
-        emit(newState);
+        remoteState.ffAssets = assets[Blockchain.BITMARK] ?? [];
+        remoteState.ethAssets = assets[Blockchain.ETHEREUM] ?? [];
+        remoteState.xtzAssets = assets[Blockchain.TEZOS] ?? [];
+        emit(remoteState);
       }
     });
   }
