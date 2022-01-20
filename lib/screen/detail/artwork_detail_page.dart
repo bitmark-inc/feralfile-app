@@ -10,6 +10,7 @@ import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 
 class ArtworkDetailPage extends StatelessWidget {
   static const tag = "artwork_detail";
@@ -265,7 +266,7 @@ class ArtworkDetailPage extends StatelessWidget {
         Divider(height: 32.0),
         _rowItem(context, "Medium", asset.medium?.capitalize()),
         Divider(height: 32.0),
-        _rowItem(context, "Date minted", asset.mintedAt.toString()),
+        _rowItem(context, "Date minted", asset.mintedAt),
         Divider(height: 32.0),
         _rowItem(context, "Date collected", ""),
         Divider(height: 32.0),

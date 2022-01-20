@@ -18,7 +18,7 @@ class AssetToken {
   String id;
   int? maxEdition;
   String? medium;
-  int? mintedAt;
+  String? mintedAt;
   String? previewURL;
   String? source;
   String? sourceURL;
@@ -66,8 +66,7 @@ class AssetToken {
       id: asset.id,
       maxEdition: asset.projectMetadata.latest.maxEdition,
       medium: asset.projectMetadata.latest.medium,
-      mintedAt:
-          asset.projectMetadata.latest.firstMintedAt?.millisecondsSinceEpoch,
+      mintedAt: asset.mintedAt.toIso8601String(),
       previewURL: asset.projectMetadata.latest.previewUrl,
       source: asset.projectMetadata.latest.source,
       thumbnailURL: asset.projectMetadata.latest.thumbnailUrl,

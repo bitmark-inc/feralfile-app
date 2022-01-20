@@ -20,4 +20,7 @@ abstract class AssetTokenDao {
 
   @delete
   Future<void> deleteAsset(AssetToken asset);
+
+  @Query('DELETE FROM AssetToken')
+  Future<void> removeAll();
 }
