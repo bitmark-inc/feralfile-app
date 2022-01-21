@@ -23,9 +23,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         newState.isFeralFileLoggedIn = false;
         emit(newState);
       } else {
-        // request index
-        _feralFileService.requestIndex();
-
         // preload with local database
         HomeState localState = HomeState();
         localState.isFeralFileLoggedIn = true;
@@ -34,6 +31,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         localState.ethAssets = await _assetTokenDao.findAssetTokensByBlockchain("ethereum");
         localState.xtzAssets = await _assetTokenDao.findAssetTokensByBlockchain("tezos");
         emit(localState);
+
+        // request index
+        await _feralFileService.requestIndex();
 
         // sync with remote
         HomeState remoteState = HomeState();
