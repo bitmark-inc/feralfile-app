@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
@@ -79,238 +80,142 @@ class _HomePageState extends State<HomePage>
             ),
             Expanded(
               child:
-                  BlocBuilder<HomeBloc, HomeState>(builder: (context, state) {
+              BlocBuilder<HomeBloc, HomeState>(builder: (context, state) {
                 return state.isFeralFileLoggedIn != null
                     ? Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(height: 24.0),
-                          Expanded(
-                            child: state.isFeralFileLoggedIn == false ||
-                                    _isAssetsEmpty(state)
-                                ? Padding(
-                                    padding:
-                                        EdgeInsets.symmetric(horizontal: 16.0),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          "Gallery",
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .headline1,
-                                        ),
-                                        SizedBox(height: 24.0),
-                                        Text(
-                                          "Your gallery is empty for now.",
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodyText1,
-                                        ),
-                                      ],
-                                    ),
-                                  )
-                                : Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      state.ffAssets.isNotEmpty
-                                          ? Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Padding(
-                                                  padding: EdgeInsets.symmetric(
-                                                      horizontal: 16.0),
-                                                  child: Text(
-                                                    "Feral File",
-                                                    style: Theme.of(context)
-                                                        .textTheme
-                                                        .headline1,
-                                                  ),
-                                                ),
-                                                GridView.count(
-                                                  physics:
-                                                      const NeverScrollableScrollPhysics(),
-                                                  shrinkWrap: true,
-                                                  crossAxisCount: 3,
-                                                  crossAxisSpacing: 3.0,
-                                                  mainAxisSpacing: 3.0,
-                                                  childAspectRatio: 1.0,
-                                                  children: List.generate(
-                                                      state.ffAssets.length,
-                                                      (index) {
-                                                    final asset =
-                                                        state.ffAssets[index];
-                                                    return GestureDetector(
-                                                      child: Container(
-                                                        child: Image.network(
-                                                          asset.thumbnailURL!,
-                                                          fit: BoxFit.cover,
-                                                        ),
-                                                      ),
-                                                      onTap: () {
-                                                        Navigator.of(context).pushNamed(
-                                                            ArtworkDetailPage
-                                                                .tag,
-                                                            arguments: ArtworkDetailPayload(
-                                                                state.ffAssets
-                                                                    .map((e) =>
-                                                                        e.id)
-                                                                    .toList(),
-                                                                index));
-                                                      },
-                                                    );
-                                                  }),
-                                                ),
-                                                SizedBox(height: 16.0),
-                                              ],
-                                            )
-                                          : SizedBox(),
-                                      state.ethAssets.isNotEmpty
-                                          ? Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Padding(
-                                                  padding: EdgeInsets.only(
-                                                      left: 16.0,
-                                                      right: 16.0,
-                                                      top: 16.0),
-                                                  child: Text(
-                                                    "Opensea",
-                                                    style: Theme.of(context)
-                                                        .textTheme
-                                                        .headline1,
-                                                  ),
-                                                ),
-                                                GridView.count(
-                                                  physics:
-                                                      const NeverScrollableScrollPhysics(),
-                                                  shrinkWrap: true,
-                                                  crossAxisCount: 3,
-                                                  crossAxisSpacing: 3.0,
-                                                  mainAxisSpacing: 3.0,
-                                                  childAspectRatio: 1.0,
-                                                  children: List.generate(
-                                                      state.ethAssets.length,
-                                                      (index) {
-                                                    final asset =
-                                                        state.ethAssets[index];
-                                                    return GestureDetector(
-                                                      child: Container(
-                                                        child: Image.network(
-                                                          asset.thumbnailURL!,
-                                                          fit: BoxFit.cover,
-                                                        ),
-                                                      ),
-                                                      onTap: () {
-                                                        Navigator.of(context).pushNamed(
-                                                            ArtworkDetailPage
-                                                                .tag,
-                                                            arguments: ArtworkDetailPayload(
-                                                                state.ethAssets
-                                                                    .map((e) =>
-                                                                        e.id)
-                                                                    .toList(),
-                                                                index));
-                                                      },
-                                                    );
-                                                  }),
-                                                ),
-                                                SizedBox(height: 16.0),
-                                              ],
-                                            )
-                                          : SizedBox(),
-                                      state.xtzAssets.isNotEmpty
-                                          ? Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Padding(
-                                                  padding: EdgeInsets.only(
-                                                      left: 16.0,
-                                                      right: 16.0,
-                                                      top: 16.0),
-                                                  child: Text(
-                                                    "Tezos",
-                                                    style: Theme.of(context)
-                                                        .textTheme
-                                                        .headline1,
-                                                  ),
-                                                ),
-                                                GridView.count(
-                                                  physics:
-                                                      const NeverScrollableScrollPhysics(),
-                                                  shrinkWrap: true,
-                                                  crossAxisCount: 3,
-                                                  crossAxisSpacing: 3.0,
-                                                  mainAxisSpacing: 3.0,
-                                                  childAspectRatio: 1.0,
-                                                  children: List.generate(
-                                                      state.xtzAssets.length,
-                                                      (index) {
-                                                    final asset =
-                                                        state.xtzAssets[index];
-
-                                                    return GestureDetector(
-                                                      child: Container(
-                                                        child: Image.network(
-                                                          asset.thumbnailURL!,
-                                                          fit: BoxFit.cover,
-                                                        ),
-                                                      ),
-                                                      onTap: () {
-                                                        Navigator.of(context).pushNamed(
-                                                            ArtworkDetailPage
-                                                                .tag,
-                                                            arguments: ArtworkDetailPayload(
-                                                                state.xtzAssets
-                                                                    .map((e) =>
-                                                                        e.id)
-                                                                    .toList(),
-                                                                index));
-                                                      },
-                                                    );
-                                                  }),
-                                                ),
-                                                SizedBox(height: 16.0),
-                                              ],
-                                            )
-                                          : SizedBox(),
-                                    ],
-                                  ),
-                          ),
-                          state.isFeralFileLoggedIn == false
-                              ? Padding(
-                                  padding:
-                                      EdgeInsets.symmetric(horizontal: 16.0),
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        child: AuFilledButton(
-                                          text: "Help us find your collection"
-                                              .toUpperCase(),
-                                          onPress: () {
-                                            Navigator.of(context).pushNamed(
-                                                ScanQRPage.tag,
-                                                arguments: ScannerItem.GLOBAL);
-                                          },
-                                        ),
-                                      )
-                                    ],
-                                  ),
-                                )
-                              : SizedBox(),
-                        ],
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(height: 24.0),
+                    Expanded(
+                      child: state.isFeralFileLoggedIn == false ||
+                          _isAssetsEmpty(state)
+                          ? Padding(
+                        padding:
+                        EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Column(
+                          crossAxisAlignment:
+                          CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Gallery",
+                              style: Theme
+                                  .of(context)
+                                  .textTheme
+                                  .headline1,
+                            ),
+                            SizedBox(height: 24.0),
+                            Text(
+                              "Your gallery is empty for now.",
+                              style: Theme
+                                  .of(context)
+                                  .textTheme
+                                  .bodyText1,
+                            ),
+                          ],
+                        ),
                       )
+                          : _assetsWidget(state),
+                    ),
+                    state.isFeralFileLoggedIn == false
+                        ? Padding(
+                      padding:
+                      EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: AuFilledButton(
+                              text: "Help us find your collection"
+                                  .toUpperCase(),
+                              onPress: () {
+                                Navigator.of(context).pushNamed(
+                                    ScanQRPage.tag,
+                                    arguments: ScannerItem.GLOBAL);
+                              },
+                            ),
+                          )
+                        ],
+                      ),
+                    )
+                        : SizedBox(),
+                  ],
+                )
                     : SizedBox();
               }),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _assetsWidget(HomeState state) {
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment:
+        CrossAxisAlignment.start,
+        children: [
+          state.ffAssets.isNotEmpty
+              ? _assetsSection("Feral File", state.ffAssets)
+              : SizedBox(),
+          state.ethAssets.isNotEmpty
+              ? _assetsSection("Opensea", state.ethAssets)
+              : SizedBox(),
+          state.xtzAssets.isNotEmpty
+              ? _assetsSection("Objkt", state.xtzAssets)
+              : SizedBox(),
+        ],
+      ),
+    );
+  }
+
+  Widget _assetsSection(String name, List<AssetToken> assets) {
+    return Column(
+      crossAxisAlignment:
+      CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding:
+          EdgeInsets.symmetric(
+              horizontal: 16.0),
+          child: Text(
+            name,
+            style: Theme
+                .of(context)
+                .textTheme
+                .headline1,
+          ),
+        ),
+        GridView.count(
+          physics:
+          const NeverScrollableScrollPhysics(),
+          shrinkWrap: true,
+          crossAxisCount: 3,
+          crossAxisSpacing: 3.0,
+          mainAxisSpacing: 3.0,
+          childAspectRatio: 1.0,
+          children: List.generate(
+              assets.length,
+                  (index) {
+                final asset =
+                assets[index];
+                return GestureDetector(
+                  child: Container(
+                    child: Image.network(
+                      asset.thumbnailURL!,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.of(context).pushNamed(
+                        ArtworkDetailPage.tag,
+                        arguments: ArtworkDetailPayload(
+                            assets.map((e) => e.id).toList(), index));
+                  },
+                );
+              }),
+        ),
+        SizedBox(height: 32.0),
+      ],
     );
   }
 

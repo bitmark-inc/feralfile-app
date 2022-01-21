@@ -1,4 +1,5 @@
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
@@ -102,18 +103,19 @@ class SendReviewPage extends StatelessWidget {
                   child: AuFilledButton(
                     text: "Send",
                     onPress: () async {
+                      final networkInjector = injector<NetworkConfigInjector>();
                       switch (payload.type) {
                         case CryptoType.ETH:
                           final address =
                               EthereumAddress.fromHex(payload.address);
-                          final txHash = await injector<EthereumService>()
+                          final txHash = await networkInjector.I<EthereumService>()
                               .sendTransaction(
                                   address, payload.amount, null, null);
 
                           Navigator.of(context).pop(txHash);
                           break;
                         case CryptoType.XTZ:
-                          final sig = await injector<TezosService>()
+                          final sig = await networkInjector.I<TezosService>()
                               .sendTransaction(
                                   payload.address, payload.amount.toInt());
 
