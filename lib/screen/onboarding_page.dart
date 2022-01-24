@@ -1,4 +1,5 @@
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/screen/home/home_page.dart';
 import 'package:autonomy_flutter/service/persona_service.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:flutter/material.dart';
@@ -61,7 +62,7 @@ class OnboardingPage extends StatelessWidget {
                     text: "Start".toUpperCase(),
                     onPress: () {
                       injector<PersonaService>().createPersona("Autonomy");
-                      Navigator.of(context).pushNamed("");
+                      Navigator.of(context).pushNamed(HomePage.tag);
                     },
                   ),
                 )

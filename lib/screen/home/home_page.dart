@@ -14,6 +14,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uni_links/uni_links.dart';
 
 class HomePage extends StatefulWidget {
+  static const tag = "home";
+
   @override
   _HomePageState createState() => _HomePageState();
 }
@@ -66,7 +68,7 @@ class _HomePageState extends State<HomePage>
 
     return Scaffold(
       body: Container(
-        margin: EdgeInsets.only(top: 64.0, bottom: 20.0),
+        margin: EdgeInsets.only(top: 64.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -119,7 +121,7 @@ class _HomePageState extends State<HomePage>
                     state.isFeralFileLoggedIn == false
                         ? Padding(
                       padding:
-                      EdgeInsets.symmetric(horizontal: 16.0),
+                      EdgeInsets.all(16.0),
                       child: Row(
                         children: [
                           Expanded(

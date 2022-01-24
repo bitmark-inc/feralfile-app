@@ -24,7 +24,9 @@ import 'package:autonomy_flutter/screen/wallet_connect/wc_disconnect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/persona_service.dart';
+import 'package:autonomy_flutter/util/migration_util.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:wallet_connect/wallet_connect.dart';
@@ -36,10 +38,13 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await setup();
 
-  final personaService = injector<PersonaService>();
-  if (personaService.getActivePersona() == null) {
-    personaService.createPersona("Autonomy");
-  }
+  await MigrationUtil().migrateIfNeeded();
+
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    statusBarColor: Colors.white,
+    statusBarIconBrightness: Brightness.dark,
+    statusBarBrightness: Brightness.light,
+  ));
 
   await SentryFlutter.init(
     (options) {
@@ -64,6 +69,7 @@ class AutonomyApp extends StatelessWidget {
     return MaterialApp(
         title: 'Autonomy',
         theme: ThemeData(
+          scaffoldBackgroundColor: Colors.white,
           primarySwatch: Colors.grey,
           secondaryHeaderColor: Color(0xFF6D6B6B),
           errorColor: Color(0xFFA1200A),
@@ -106,10 +112,18 @@ class AutonomyApp extends StatelessWidget {
                 fontFamily: "AtlasGrotesk"),
           ),
         ),
+        debugShowCheckedModeBanner: false,
         navigatorKey: injector<NavigationService>().navigatorKey,
         navigatorObservers: [routeObserver],
         onGenerateRoute: (settings) {
           switch (settings.name) {
+            case HomePage.tag:
+              return MaterialPageRoute(
+                  builder: (context) => BlocProvider(
+                        create: (_) => HomeBloc(networkInjector.I(), injector(),
+                            networkInjector.I<AppDatabase>().assetDao),
+                        child: HomePage(),
+                      ));
             case WCConnectPage.tag:
               return MaterialPageRoute(
                 builder: (context) => WCConnectPage(
@@ -117,7 +131,8 @@ class AutonomyApp extends StatelessWidget {
               );
             case WCDisconnectPage.tag:
               return MaterialPageRoute(
-                builder: (context) => WCDisconnectPage(client: settings.arguments as WCClient),
+                builder: (context) =>
+                    WCDisconnectPage(client: settings.arguments as WCClient),
               );
             case WCSignMessagePage.tag:
               return MaterialPageRoute(
@@ -200,12 +215,15 @@ class AutonomyApp extends StatelessWidget {
                       ));
             default:
               if (injector<PersonaService>().getActivePersona() == null) {
-                return MaterialPageRoute(builder: (context) => OnboardingPage());
+                return MaterialPageRoute(
+                    builder: (context) => OnboardingPage());
               } else {
                 return MaterialPageRoute(
                     builder: (context) => BlocProvider(
-                          create: (_) =>
-                              HomeBloc(networkInjector.I(), injector(), networkInjector.I<AppDatabase>().assetDao),
+                          create: (_) => HomeBloc(
+                              networkInjector.I(),
+                              injector(),
+                              networkInjector.I<AppDatabase>().assetDao),
                           child: HomePage(),
                         ));
               }

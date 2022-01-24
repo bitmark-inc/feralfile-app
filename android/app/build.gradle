@@ -34,7 +34,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId "com.bitmark.autonomy_flutter"
+        applicationId "com.bitmark.autonomy_client"
         minSdkVersion 24
         targetSdkVersion 31
         versionCode flutterVersionCode.toInteger()
