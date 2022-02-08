@@ -53,7 +53,7 @@ dependencies:
   libauk_dart:
     git:
       url: https://github.com/autonomy-system/libauk-dart.git
-      ref: c1772969b373bfee81176332c90b9f96dd1a7005
+      ref: main
 
 dev_dependencies:
   flutter_test:
