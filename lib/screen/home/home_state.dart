@@ -8,6 +8,12 @@ class HomeConnectWCEvent extends HomeEvent {
   HomeConnectWCEvent(this.uri);
 }
 
+class HomeConnectTZEvent extends HomeEvent {
+  final String uri;
+
+  HomeConnectTZEvent(this.uri);
+}
+
 class HomeCheckFeralFileLoginEvent extends HomeEvent {}
 
 class HomeState {

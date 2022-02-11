@@ -4,6 +4,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/currency_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/persona_service.dart';
+import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
@@ -46,6 +47,8 @@ Future<void> setup() async {
 
   injector.registerLazySingleton(
       () => WalletConnectService(injector(), injector()));
+  injector
+      .registerLazySingleton(() => TezosBeaconService(injector(), injector()));
   injector.registerLazySingleton<CurrencyExchangeApi>(
       () => CurrencyExchangeApi(dio));
   injector.registerLazySingleton<PersonaService>(

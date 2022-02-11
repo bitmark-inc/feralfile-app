@@ -19,6 +19,8 @@ import 'package:autonomy_flutter/screen/settings/networks/select_network_bloc.da
 import 'package:autonomy_flutter/screen/settings/networks/select_network_page.dart';
 import 'package:autonomy_flutter/screen/settings/settings_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/settings_page.dart';
+import 'package:autonomy_flutter/screen/tezos_beacon/tb_connect_page.dart';
+import 'package:autonomy_flutter/screen/tezos_beacon/tb_sign_message_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_bloc.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
@@ -28,6 +30,7 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/persona_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/migration_util.dart';
+import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
@@ -101,7 +104,10 @@ class AutonomyApp extends StatelessWidget {
             case HomePage.tag:
               return CupertinoPageRoute(
                   builder: (context) => BlocProvider(
-                        create: (_) => HomeBloc(networkInjector.I(), injector(),
+                        create: (_) => HomeBloc(
+                            networkInjector.I(),
+                            injector(),
+                            injector(),
                             networkInjector.I<AppDatabase>().assetDao),
                         child: HomePage(),
                       ));
@@ -196,6 +202,16 @@ class AutonomyApp extends StatelessWidget {
                             payload:
                                 settings.arguments as ArtworkDetailPayload),
                       ));
+            case TBConnectPage.tag:
+              return MaterialPageRoute(
+                builder: (context) =>
+                    TBConnectPage(request: settings.arguments as BeaconRequest),
+              );
+            case TBSignMessagePage.tag:
+              return MaterialPageRoute(
+                builder: (context) => TBSignMessagePage(
+                    request: settings.arguments as BeaconRequest),
+              );
             default:
               if (injector<PersonaService>().getActivePersona() == null) {
                 return CupertinoPageRoute(
@@ -205,6 +221,7 @@ class AutonomyApp extends StatelessWidget {
                     builder: (context) => BlocProvider(
                           create: (_) => HomeBloc(
                               networkInjector.I(),
+                              injector(),
                               injector(),
                               networkInjector.I<AppDatabase>().assetDao),
                           child: HomePage(),

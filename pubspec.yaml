@@ -90,6 +90,7 @@ flutter:
     - assets/images/iconXtz.svg
     - assets/images/iconClose.svg
     - assets/images/cil_external-link.svg
+    - assets/images/tezos_social_icon.svg
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
