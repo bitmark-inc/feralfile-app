@@ -9,7 +9,15 @@
 /* Begin PBXBuildFile section */
 		1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */ = {isa = PBXBuildFile; fileRef = 1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */; };
 		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
+		632FC2F627B4F51E00336DCE /* BeaconConnectService+Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632FC2F527B4F51E00336DCE /* BeaconConnectService+Helpers.swift */; };
+		6399594227B2C2FA002653E7 /* BeaconChannelHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399594127B2C2FA002653E7 /* BeaconChannelHandler.swift */; };
+		6399594427B2C36B002653E7 /* LibAukChannelHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399594327B2C36B002653E7 /* LibAukChannelHandler.swift */; };
 		63CED4A827AE9DFC00699ED5 /* LibAuk in Frameworks */ = {isa = PBXBuildFile; productRef = 63CED4A727AE9DFC00699ED5 /* LibAuk */; };
+		63F1664B27B2509F00451AAA /* BeaconBlockchainTezos in Frameworks */ = {isa = PBXBuildFile; productRef = 63F1664A27B2509F00451AAA /* BeaconBlockchainTezos */; };
+		63F1664D27B2509F00451AAA /* BeaconClientWallet in Frameworks */ = {isa = PBXBuildFile; productRef = 63F1664C27B2509F00451AAA /* BeaconClientWallet */; };
+		63F1664F27B2509F00451AAA /* BeaconCore in Frameworks */ = {isa = PBXBuildFile; productRef = 63F1664E27B2509F00451AAA /* BeaconCore */; };
+		63F1665127B2509F00451AAA /* BeaconTransportP2PMatrix in Frameworks */ = {isa = PBXBuildFile; productRef = 63F1665027B2509F00451AAA /* BeaconTransportP2PMatrix */; };
+		63F1665327B250D600451AAA /* BeaconConnectService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63F1665227B250D600451AAA /* BeaconConnectService.swift */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
@@ -34,7 +42,11 @@
 		1498D2321E8E86230040F4C2 /* GeneratedPluginRegistrant.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GeneratedPluginRegistrant.h; sourceTree = "<group>"; };
 		1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GeneratedPluginRegistrant.m; sourceTree = "<group>"; };
 		3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = AppFrameworkInfo.plist; path = Flutter/AppFrameworkInfo.plist; sourceTree = "<group>"; };
+		632FC2F527B4F51E00336DCE /* BeaconConnectService+Helpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BeaconConnectService+Helpers.swift"; sourceTree = "<group>"; };
+		6399594127B2C2FA002653E7 /* BeaconChannelHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeaconChannelHandler.swift; sourceTree = "<group>"; };
+		6399594327B2C36B002653E7 /* LibAukChannelHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibAukChannelHandler.swift; sourceTree = "<group>"; };
 		63BF0E5F27B0270E00E8B299 /* Runner.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Runner.entitlements; sourceTree = "<group>"; };
+		63F1665227B250D600451AAA /* BeaconConnectService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeaconConnectService.swift; sourceTree = "<group>"; };
 		74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Runner-Bridging-Header.h"; sourceTree = "<group>"; };
 		74858FAE1ED2DC5600515810 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Release.xcconfig; path = Flutter/Release.xcconfig; sourceTree = "<group>"; };
@@ -56,7 +68,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				63F1664B27B2509F00451AAA /* BeaconBlockchainTezos in Frameworks */,
 				63CED4A827AE9DFC00699ED5 /* LibAuk in Frameworks */,
+				63F1665127B2509F00451AAA /* BeaconTransportP2PMatrix in Frameworks */,
+				63F1664D27B2509F00451AAA /* BeaconClientWallet in Frameworks */,
+				63F1664F27B2509F00451AAA /* BeaconCore in Frameworks */,
 				C577A25E2C1FF997DB2CF183 /* Pods_Runner.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -124,6 +140,10 @@
 				1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */,
 				74858FAE1ED2DC5600515810 /* AppDelegate.swift */,
 				74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */,
+				63F1665227B250D600451AAA /* BeaconConnectService.swift */,
+				632FC2F527B4F51E00336DCE /* BeaconConnectService+Helpers.swift */,
+				6399594127B2C2FA002653E7 /* BeaconChannelHandler.swift */,
+				6399594327B2C36B002653E7 /* LibAukChannelHandler.swift */,
 			);
 			path = Runner;
 			sourceTree = "<group>";
@@ -151,6 +171,10 @@
 			name = Runner;
 			packageProductDependencies = (
 				63CED4A727AE9DFC00699ED5 /* LibAuk */,
+				63F1664A27B2509F00451AAA /* BeaconBlockchainTezos */,
+				63F1664C27B2509F00451AAA /* BeaconClientWallet */,
+				63F1664E27B2509F00451AAA /* BeaconCore */,
+				63F1665027B2509F00451AAA /* BeaconTransportP2PMatrix */,
 			);
 			productName = Runner;
 			productReference = 97C146EE1CF9000F007C117D /* Runner.app */;
@@ -182,6 +206,7 @@
 			mainGroup = 97C146E51CF9000F007C117D;
 			packageReferences = (
 				63CED4A627AE9DFC00699ED5 /* XCRemoteSwiftPackageReference "libauk-swift" */,
+				63F1664927B2509F00451AAA /* XCRemoteSwiftPackageReference "beacon-ios-sdk" */,
 			);
 			productRefGroup = 97C146EF1CF9000F007C117D /* Products */;
 			projectDirPath = "";
@@ -281,7 +306,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6399594227B2C2FA002653E7 /* BeaconChannelHandler.swift in Sources */,
 				74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */,
+				632FC2F627B4F51E00336DCE /* BeaconConnectService+Helpers.swift in Sources */,
+				63F1665327B250D600451AAA /* BeaconConnectService.swift in Sources */,
+				6399594427B2C36B002653E7 /* LibAukChannelHandler.swift in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -571,6 +600,14 @@
 				kind = branch;
 			};
 		};
+		63F1664927B2509F00451AAA /* XCRemoteSwiftPackageReference "beacon-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/autonomy-system/beacon-ios-sdk";
+			requirement = {
+				kind = revision;
+				revision = 0682d263661f6ba025c36b10329235ed08a21545;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -578,6 +615,26 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 63CED4A627AE9DFC00699ED5 /* XCRemoteSwiftPackageReference "libauk-swift" */;
 			productName = LibAuk;
+		};
+		63F1664A27B2509F00451AAA /* BeaconBlockchainTezos */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 63F1664927B2509F00451AAA /* XCRemoteSwiftPackageReference "beacon-ios-sdk" */;
+			productName = BeaconBlockchainTezos;
+		};
+		63F1664C27B2509F00451AAA /* BeaconClientWallet */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 63F1664927B2509F00451AAA /* XCRemoteSwiftPackageReference "beacon-ios-sdk" */;
+			productName = BeaconClientWallet;
+		};
+		63F1664E27B2509F00451AAA /* BeaconCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 63F1664927B2509F00451AAA /* XCRemoteSwiftPackageReference "beacon-ios-sdk" */;
+			productName = BeaconCore;
+		};
+		63F1665027B2509F00451AAA /* BeaconTransportP2PMatrix */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 63F1664927B2509F00451AAA /* XCRemoteSwiftPackageReference "beacon-ios-sdk" */;
+			productName = BeaconTransportP2PMatrix;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

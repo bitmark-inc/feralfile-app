@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
+import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -84,6 +85,7 @@ class _ScanQRPageState extends State<ScanQRPage> {
 
       switch (widget.scannerItem) {
         case ScannerItem.WALLET_CONNECT:
+        case ScannerItem.BEACON_CONNECT:
         case ScannerItem.ETH_ADDRESS:
         case ScannerItem.XTZ_ADDRESS:
           Navigator.pop(context, code);
@@ -91,6 +93,9 @@ class _ScanQRPageState extends State<ScanQRPage> {
         case ScannerItem.GLOBAL:
           if (code.startsWith("wc:") == true) {
             injector<WalletConnectService>().connect(code);
+            Navigator.of(context).pop();
+          } else if (code.startsWith("tezos:") == true) {
+            injector<TezosBeaconService>().addPeer(code);
             Navigator.of(context).pop();
           } else if (code.startsWith("tz1")) {
             Navigator.of(context).popAndPushNamed(SendCryptoPage.tag,
@@ -116,4 +121,4 @@ class _ScanQRPageState extends State<ScanQRPage> {
   }
 }
 
-enum ScannerItem { WALLET_CONNECT, ETH_ADDRESS, XTZ_ADDRESS, GLOBAL }
+enum ScannerItem { WALLET_CONNECT, BEACON_CONNECT, ETH_ADDRESS, XTZ_ADDRESS, GLOBAL }

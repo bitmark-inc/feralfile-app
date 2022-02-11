@@ -221,10 +221,16 @@ class _HomePageState extends State<HomePage>
   }
 
   void _handleDeeplink(String? link) {
-    final prefix = "https://au.bitmark.com/apps/wc?uri=";
-    if (link != null && link.startsWith(prefix)) {
-      final wcUri = link.substring(prefix.length);
+    if (link == null) return;
+    final wcPrefix = "https://au.bitmark.com/apps/wc?uri=";
+    final tzPrefix = "https://au.bitmark.com/apps/tezos?uri=";
+
+    if (link.startsWith(wcPrefix)) {
+      final wcUri = link.substring(wcPrefix.length);
       context.read<HomeBloc>().add(HomeConnectWCEvent(wcUri));
+    } else if (link.startsWith(tzPrefix)) {
+      final tzUri = link.substring(wcPrefix.length);
+      context.read<HomeBloc>().add(HomeConnectTZEvent(tzUri));
     }
   }
 }
