@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/screen/settings/preferences/preferences_bloc.da
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_view.dart';
 import 'package:autonomy_flutter/screen/settings/settings_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/settings_state.dart';
+import 'package:autonomy_flutter/screen/settings/support/support_view.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -146,6 +147,8 @@ class _SettingsPageState extends State<SettingsPage>
                               Navigator.of(context).pop();
                             }
                           }),
+                          SizedBox(height: 40),
+                          SupportView(),
                           SizedBox(height: 40),
                         ],
                       ),
