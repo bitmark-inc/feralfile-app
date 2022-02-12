@@ -1,3 +1,4 @@
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:flutter/material.dart';
 
 class AuTextField extends StatelessWidget {
@@ -28,7 +29,7 @@ class AuTextField extends StatelessWidget {
         padding: EdgeInsets.only(top: 8.0, left: 8.0, bottom: 8.0),
         decoration: BoxDecoration(
             border: Border.all(
-                color: isError ? Theme.of(context).errorColor : Colors.black)),
+                color: isError ? AppColorTheme.errorColor : Colors.black)),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
@@ -43,17 +44,19 @@ class AuTextField extends StatelessWidget {
                         style: TextStyle(
                             fontSize: 12,
                             fontFamily: "AtlasGrotesk",
-                            color: Theme.of(context).secondaryHeaderColor,
+                            color: AppColorTheme.secondaryHeaderColor,
                             fontWeight: FontWeight.w700),
                       ),
-                      this.subTitleView != null ? Text(
-                        " | ",
-                        style: TextStyle(
-                            fontSize: 12,
-                            fontFamily: "AtlasGrotesk",
-                            color: Theme.of(context).secondaryHeaderColor,
-                            fontWeight: FontWeight.w300),
-                      ) : SizedBox(),
+                      this.subTitleView != null
+                          ? Text(
+                              " | ",
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  fontFamily: "AtlasGrotesk",
+                                  color: AppColorTheme.secondaryHeaderColor,
+                                  fontWeight: FontWeight.w300),
+                            )
+                          : SizedBox(),
                       this.subTitleView ?? SizedBox(),
                     ],
                   ),

@@ -1,3 +1,4 @@
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -14,7 +15,7 @@ AppBar getBackAppBar(BuildContext context, {required Function() onBack}) {
           Icon(CupertinoIcons.back, color: Colors.black),
           Text(
             "BACK",
-            style: Theme.of(context).textTheme.caption,
+            style: appTextTheme.caption,
           )
         ],
       ),

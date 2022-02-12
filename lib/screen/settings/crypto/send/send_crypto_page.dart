@@ -7,6 +7,7 @@ import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_state.d
 import 'package:autonomy_flutter/screen/settings/crypto/send_review_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/xtz_amount_formatter.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
@@ -61,7 +62,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
             children: [
               Text(
                 "Send ${type == CryptoType.ETH ? "ETH" : "XTZ"}",
-                style: Theme.of(context).textTheme.headline1,
+                style: appTextTheme.headline1,
               ),
               SizedBox(height: 40.0),
               AuTextField(
@@ -116,7 +117,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                               fontSize: 12,
                               decoration: TextDecoration.underline,
                               fontFamily: "AtlasGrotesk",
-                              color: Theme.of(context).secondaryHeaderColor,
+                              color: AppColorTheme.secondaryHeaderColor,
                               fontWeight: FontWeight.w300),
                         ),
                         onTap: () {

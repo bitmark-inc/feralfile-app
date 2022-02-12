@@ -1,5 +1,6 @@
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/screen/settings/networks/select_network_bloc.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -26,14 +27,14 @@ class SelectNetworkPage extends StatelessWidget {
                 padding: EdgeInsets.symmetric(horizontal: 16.0),
                 child: Text(
                   "Network",
-                  style: Theme.of(context).textTheme.headline1,
+                  style: appTextTheme.headline1,
                 ),
               ),
               SizedBox(height: 30),
               ListTile(
                 title: Text(
                   "Main Network",
-                  style: Theme.of(context).textTheme.headline5,
+                  style: appTextTheme.headline5,
                 ),
                 trailing: Radio(
                   activeColor: Colors.black,
@@ -56,7 +57,7 @@ class SelectNetworkPage extends StatelessWidget {
               ListTile(
                 title: Text(
                   'Test Network',
-                  style: Theme.of(context).textTheme.headline5,
+                  style: appTextTheme.headline5,
                 ),
                 trailing: Radio(
                   activeColor: Colors.black,
