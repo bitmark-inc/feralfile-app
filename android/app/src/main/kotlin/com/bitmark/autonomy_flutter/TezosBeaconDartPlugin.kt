@@ -1,5 +1,4 @@
 import android.net.Uri
-import android.util.Log
 import androidx.annotation.NonNull
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.EventChannel
@@ -13,27 +12,24 @@ import it.airgap.beaconsdk.blockchain.tezos.message.request.OperationTezosReques
 import it.airgap.beaconsdk.blockchain.tezos.message.request.PermissionTezosRequest
 import it.airgap.beaconsdk.blockchain.tezos.message.request.SignPayloadTezosRequest
 import it.airgap.beaconsdk.blockchain.tezos.message.response.PermissionTezosResponse
+import it.airgap.beaconsdk.blockchain.tezos.message.response.SignPayloadTezosResponse
 import it.airgap.beaconsdk.blockchain.tezos.tezos
 import it.airgap.beaconsdk.client.wallet.BeaconWalletClient
 import it.airgap.beaconsdk.core.data.BeaconError
 import it.airgap.beaconsdk.core.data.P2P
 import it.airgap.beaconsdk.core.data.P2pPeer
+import it.airgap.beaconsdk.core.data.SigningType
 import it.airgap.beaconsdk.core.message.BeaconMessage
 import it.airgap.beaconsdk.core.message.BeaconRequest
 import it.airgap.beaconsdk.core.message.ErrorBeaconResponse
 import it.airgap.beaconsdk.transport.p2p.matrix.p2pMatrix
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import java.util.*
 
-@DelicateCoroutinesApi
 class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.StreamHandler {
     /// The MethodChannel that will the communication between Flutter and native Android
     ///
@@ -61,7 +57,7 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
             "removePeer" ->
                 removePeers()
             "response" ->
-                respond()
+                respond(call, result)
             "pause", "resume" -> result.success("")
             else -> {
                 result.notImplemented()
@@ -70,7 +66,7 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
     }
 
     override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
-        GlobalScope.launch {
+        CoroutineScope(Dispatchers.IO).launch {
             requestPublisher
                 .onEach { }
                 .collect { request ->
@@ -87,14 +83,18 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
                             val permissionRequest: PermissionTezosRequest = request
 
                             params["type"] = "permission"
-                            params["icon"] = permissionRequest.appMetadata.icon ?: ""
+                            permissionRequest.appMetadata.icon?.let {
+                                params["icon"] = it
+                            }
                             params["appName"] = permissionRequest.appMetadata.name
                         }
                         is SignPayloadTezosRequest -> {
                             val signPayload: SignPayloadTezosRequest = request
 
                             params["type"] = "signPayload"
-                            params["icon"] = signPayload.appMetadata?.icon ?: ""
+                            signPayload.appMetadata?.icon?.let {
+                                params["icon"] = it
+                            }
                             params["appName"] = signPayload.appMetadata?.name ?: ""
                             params["payload"] = signPayload.payload
                             params["sourceAddress"] = signPayload.sourceAddress
@@ -109,7 +109,9 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
                     rev["eventName"] = "observeRequest"
                     rev["params"] = params
 
-                    events?.success(rev)
+                    withContext(Dispatchers.Main) {
+                        events?.success(rev)
+                    }
                 }
         }
     }
@@ -119,11 +121,11 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
 
     private var beaconClient: BeaconWalletClient? = null
     private var awaitingRequest: BeaconRequest? = null
-    private val requestPublisher = MutableSharedFlow<BeaconRequest>();
+    private var requestPublisher = MutableSharedFlow<BeaconRequest>();
 
 
     private fun startBeacon() {
-        GlobalScope.launch {
+        CoroutineScope(Dispatchers.IO).launch {
             beaconClient = BeaconWalletClient(
                 "Autonomy",
                 listOf(
@@ -135,33 +137,41 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
                 )
             }
 
-            beaconClient?.connect()
-                ?.onEach { result ->
-                    Log.d("123123", result.toString())
-//                    result.getOrNull()
-                }
-                ?.collect { result ->
-                    result.getOrNull()?.let {
-                        requestPublisher.emit(it)
+            launch {
+                beaconClient?.connect()
+                    ?.onEach { result -> result.getOrNull()?.let { saveAwaitingRequest(it) } }
+                    ?.collect { result ->
+                        result.getOrNull()?.let {
+                            requestPublisher.emit(it)
+                        }
                     }
-                }
+            }
         }
     }
 
-    private fun respond() {
+    private fun respond(call: MethodCall, result: Result) {
+        val id: String? = call.argument("id")
         val request = awaitingRequest ?: return
 
-        GlobalScope.launch {
+        if (request.id != id) return
+
+        CoroutineScope(Dispatchers.IO).launch {
             val response = when (request) {
-                is PermissionTezosRequest -> PermissionTezosResponse.from(
-                    request,
-                    "edpktpzo8UZieYaJZgCHP6M6hKHPdWBSNqxvmEt6dwWRgxDh1EAFw9"
-                )
+                is PermissionTezosRequest -> {
+                    val publicKey: String? = call.argument("publicKey")
+
+                    publicKey?.let {
+                        PermissionTezosResponse.from(request, it)
+                    } ?: ErrorBeaconResponse.from(request, BeaconError.Aborted)
+                }
                 is OperationTezosRequest -> ErrorBeaconResponse.from(request, BeaconError.Aborted)
-                is SignPayloadTezosRequest -> ErrorBeaconResponse.from(
-                    request,
-                    TezosError.SignatureTypeNotSupported
-                )
+                is SignPayloadTezosRequest -> {
+                    val signature: String? = call.argument("signature")
+
+                    signature?.let {
+                        SignPayloadTezosResponse.from(request, SigningType.Raw, it)
+                    } ?: ErrorBeaconResponse.from(request, BeaconError.Aborted)
+                }
                 is BroadcastTezosRequest -> ErrorBeaconResponse.from(
                     request,
                     TezosError.BroadcastError
@@ -175,13 +185,13 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
 
     private fun addPeer(link: String) {
         val peer = extractPeer(link)
-        GlobalScope.launch {
+        CoroutineScope(Dispatchers.IO).launch {
             beaconClient?.addPeers(peer)
         }
     }
 
     private fun removePeers() {
-        GlobalScope.launch {
+        CoroutineScope(Dispatchers.IO).launch {
             beaconClient?.removeAllPeers()
         }
     }
@@ -194,16 +204,16 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
         awaitingRequest = null
     }
 
+    private val jsonKT = Json { ignoreUnknownKeys = true }
+
     private fun extractPeer(link: String): P2pPeer {
         val uri = Uri.parse(link)
         val message = uri.getQueryParameter("data")
         val messageData = Base58.base58Decode(message)
 
-        Log.d("123123", messageData.toString(Charsets.UTF_8))
-
         val json = messageData.toString(Charsets.UTF_8).substringAfter("{").substringBeforeLast("}")
 
-        return Json { ignoreUnknownKeys = true }.decodeFromString("{$json}")
+        return jsonKT.decodeFromString("{$json}")
     }
 
 }
