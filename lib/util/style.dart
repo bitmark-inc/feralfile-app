@@ -16,11 +16,13 @@ const appTextTheme = TextTheme(
       fontSize: 22,
       fontWeight: FontWeight.w700,
       fontFamily: "AtlasGrotesk"),
-  headline5: TextStyle(
+  headline4: TextStyle(
       color: Colors.black,
       fontSize: 16,
       fontWeight: FontWeight.w700,
-      fontFamily: "AtlasGrotesk"),
+      fontFamily: "AtlasGrotesk-Bold"),
+  headline5:
+      TextStyle(color: Colors.black, fontSize: 12, fontFamily: "AtlasGrotesk"),
   button: TextStyle(
       color: Colors.white,
       fontSize: 14,
@@ -31,8 +33,11 @@ const appTextTheme = TextTheme(
       fontSize: 14,
       fontWeight: FontWeight.w700,
       fontFamily: "IBMPlexMono"),
-  bodyText1:
-      TextStyle(color: Colors.black, fontSize: 16, fontFamily: "AtlasGrotesk"),
+  bodyText1: TextStyle(
+      color: Colors.black,
+      fontSize: 16,
+      fontFamily: "AtlasGrotesk",
+      height: 1.375),
   bodyText2: TextStyle(
       color: Color(0xFF6D6B6B), fontSize: 16, fontFamily: "AtlasGrotesk"),
 );

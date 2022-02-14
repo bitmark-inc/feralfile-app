@@ -1,4 +1,5 @@
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_email_sender/flutter_email_sender.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -12,7 +13,7 @@ class SupportView extends StatelessWidget {
       children: [
         Text(
           "Support",
-          style: Theme.of(context).textTheme.headline1,
+          style: appTextTheme.headline1,
         ),
         SizedBox(height: 24.0),
         _supportItem(
@@ -39,9 +40,9 @@ class SupportView extends StatelessWidget {
           onTap: onTap,
           child: Row(
             children: [
-              Text(title, style: Theme.of(context).textTheme.headline5),
+              Text(title, style: appTextTheme.headline5),
               Spacer(),
-              SvgPicture.asset("assets/images/cil_external-link.svg")
+              SvgPicture.asset("assets/images/cil_external-link.svg"),
             ],
           ),
         ));
