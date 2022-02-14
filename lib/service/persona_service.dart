@@ -1,4 +1,5 @@
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:uuid/uuid.dart';
 
@@ -8,19 +9,20 @@ abstract class PersonaService {
 }
 
 class PersonaServiceImpl extends PersonaService {
-
   ConfigurationService _configurationService;
 
   PersonaServiceImpl(this._configurationService);
 
   @override
   Future<void> createPersona(String name) async {
+    log.info("PersonaService.createPersona: $name");
     final uuid = Uuid().v4();
     final walletStorage = LibAukDart.getWallet(uuid);
     await walletStorage.createKey(name);
 
     List<String> personas = _configurationService.getPersonas().toList();
     personas.add(uuid);
+    log.info("created a persona with uuid: $uuid");
     await _configurationService.setPersonas(personas);
   }
 
@@ -34,5 +36,4 @@ class PersonaServiceImpl extends PersonaService {
       return null;
     }
   }
-
 }

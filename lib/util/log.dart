@@ -1,17 +1,23 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:core';
+import 'package:autonomy_flutter/util/device.dart';
 import 'package:dio/dio.dart';
 import 'package:synchronized/synchronized.dart' as synchronization;
 import 'package:path_provider/path_provider.dart';
 
 import 'package:logging/logging.dart';
 
-final log = Logger('MyClassName');
+final log = Logger('AutonomyLogs');
 
-Future<String> getLogFilePath() async {
+Future<String> getLogFolderPath() async {
   Directory tempDir = await getTemporaryDirectory();
-  return tempDir.path + "/app.log";
+  return tempDir.path + "/logs";
+}
+
+Future<List<String>> getLogFiles() async {
+  final directory = await getLogFolderPath();
+  return Directory(directory).listSync().map((e) => e.path).toList();
 }
 
 class FileLogger {
@@ -19,8 +25,13 @@ class FileLogger {
       synchronization.Lock(); // uses the “synchronized” package
   static late File _logFile;
 
-  static Future initializeLogging(String canonicalLogFileName) async {
-    _logFile = _createLogFile(canonicalLogFileName);
+  static Future initializeLogging() async {
+    DateTime now = new DateTime.now();
+    final directory = await getLogFolderPath();
+    final fileName =
+        "${await getDeviceID() ?? ""}_${now.year}${now.month}${now.day}.log";
+    print(directory);
+    _logFile = await _createLogFile("$directory/$fileName");
     final text = '${new DateTime.now()}: LOGGING STARTED\n';
 
     /// per its documentation, `writeAsString` “Opens the file, writes
@@ -35,8 +46,8 @@ class FileLogger {
     });
   }
 
-  static File _createLogFile(canonicalLogFileName) =>
-      File(canonicalLogFileName);
+  static Future<File> _createLogFile(canonicalLogFileName) async =>
+      File(canonicalLogFileName).create(recursive: true);
 }
 
 class LoggingInterceptor extends Interceptor {

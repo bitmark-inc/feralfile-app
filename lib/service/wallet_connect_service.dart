@@ -3,6 +3,7 @@ import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:wallet_connect/wallet_connect.dart';
 
 class WalletConnectService {
@@ -22,6 +23,7 @@ class WalletConnectService {
   }
 
   connect(String wcUri) {
+    log.info("WalletConnectService.connect: $wcUri");
     final session = WCSession.from(wcUri);
     final peerMeta = WCPeerMeta(
       name: 'Autonomy',
@@ -36,6 +38,7 @@ class WalletConnectService {
   }
 
   disconnect(WCPeerMeta peerMeta) {
+    log.info("WalletConnectService.disconnect: $peerMeta");
     final wcClient =
         wcClients.lastWhere((element) => element.remotePeerMeta == peerMeta);
 
@@ -48,6 +51,8 @@ class WalletConnectService {
   }
 
   approveSession(WCPeerMeta peerMeta, List<String> accounts, int chainId) {
+    log.info(
+        "WalletConnectService.approveSession: $peerMeta, $accounts, $chainId");
     final wcClient =
         wcClients.lastWhere((element) => element.remotePeerMeta == peerMeta);
 
@@ -56,6 +61,7 @@ class WalletConnectService {
   }
 
   rejectSession(WCPeerMeta peerMeta) {
+    log.info("WalletConnectService.rejectSession: $peerMeta");
     final wcClient =
         wcClients.lastWhere((element) => element.remotePeerMeta == peerMeta);
 
@@ -64,6 +70,7 @@ class WalletConnectService {
   }
 
   approveRequest(WCPeerMeta peerMeta, int id, String result) {
+    log.info("WalletConnectService.approveRequest: $peerMeta, $result");
     final wcClient =
         wcClients.lastWhere((element) => element.remotePeerMeta == peerMeta);
 
@@ -71,6 +78,7 @@ class WalletConnectService {
   }
 
   rejectRequest(WCPeerMeta peerMeta, int id) {
+    log.info("WalletConnectService.rejectRequest: $peerMeta, $id");
     final wcClient =
         wcClients.lastWhere((element) => element.remotePeerMeta == peerMeta);
 
@@ -84,7 +92,8 @@ class WalletConnectService {
         print("WC connected");
       },
       onDisconnect: (code, reason) {
-        wcClients.removeWhere((element) => element.remotePeerId == sessionStore?.remotePeerId);
+        wcClients.removeWhere(
+            (element) => element.remotePeerId == sessionStore?.remotePeerId);
         print("WC disconnected");
       },
       onFailure: (error) {
