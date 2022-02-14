@@ -20,6 +20,7 @@ import 'package:autonomy_flutter/screen/settings/networks/select_network_page.da
 import 'package:autonomy_flutter/screen/settings/settings_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/settings_page.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_connect_page.dart';
+import 'package:autonomy_flutter/screen/tezos_beacon/tb_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_sign_message_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_bloc.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
@@ -210,6 +211,11 @@ class AutonomyApp extends StatelessWidget {
             case TBSignMessagePage.tag:
               return MaterialPageRoute(
                 builder: (context) => TBSignMessagePage(
+                    request: settings.arguments as BeaconRequest),
+              );
+            case TBSendTransactionPage.tag:
+              return MaterialPageRoute(
+                builder: (context) => TBSendTransactionPage(
                     request: settings.arguments as BeaconRequest),
               );
             default:

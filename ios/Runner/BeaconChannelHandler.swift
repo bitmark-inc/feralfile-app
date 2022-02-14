@@ -70,6 +70,13 @@ class BeaconChannelHandler: NSObject, FlutterStreamHandler {
                 } else {
                     response = signPayload.decline()
                 }
+            case let .operation(operation):
+                let txHash: String? = args["txHash"] as? String
+                if let txHash = txHash {
+                    response = operation.done(txHash: txHash)
+                } else {
+                    response = operation.decline()
+                }
             default:
                 break
             }
@@ -98,7 +105,7 @@ class BeaconChannelHandler: NSObject, FlutterStreamHandler {
         BeaconConnectService.shared.observeRequest()
             .sink(receiveCompletion: { _ in }, receiveValue: { [weak self] request in
                 self?.requests.append(request)
-                var params = [
+                var params: [String: Any] = [
                         "id": request.id,
                         "blockchainIdentifier": request.blockchainIdentifier,
                         "senderID": request.senderID,
@@ -123,6 +130,76 @@ class BeaconChannelHandler: NSObject, FlutterStreamHandler {
                         params["sourceAddress"] = signPayload.sourceAddress
                     case let .operation(operation):
                         params["type"] = "operation"
+                        params["icon"] = operation.appMetadata?.icon ?? ""
+                        params["appName"] = operation.appMetadata?.name ?? ""
+                        params["sourceAddress"] = operation.sourceAddress
+                        
+                        var operationDetails = [[String:Any?]]()
+                        operation.operationDetails.forEach({ operation in
+                            switch operation {
+                            case let .transaction(transaction):
+                                
+                                let entrypoint: String
+
+                                switch transaction.parameters?.entrypoint {
+                                case let .custom(custom):
+                                    entrypoint = custom
+                                case let .common(common):
+                                    entrypoint = common.rawValue
+                                case .none:
+                                    entrypoint = ""
+                                }
+                                
+                                func getParams(value: Micheline.MichelsonV1Expression) -> [String: Any] {
+                                    var params: [String: Any] = [:]
+
+                                    switch value {
+                                    case let .literal(literal):
+                                        switch literal {
+                                        case .string(let string):
+                                            params["string"] = string
+                                        case .int(let value):
+                                            params["int"] = value
+                                        case .bytes(let array):
+                                            params["bytes"] = array
+                                        }
+                                    case let .prim(prim):
+                                        params["prim"] = prim.prim
+                                        params["args"] = prim.args?.map({ getParams(value: $0) })
+                                    case .sequence(_):
+                                        break
+                                    }
+                                    
+                                    return params
+                                }
+                                
+                                let params: [String: Any]
+                                if let value = transaction.parameters?.value {
+                                    params = getParams(value: value)
+                                } else {
+                                    params = [:]
+                                }
+
+                                
+                                let detail: [String : Any?] = [
+                                    "source": transaction.source,
+                                    "gasLimit": transaction.gasLimit,
+                                    "storageLimit": transaction.storageLimit,
+                                    "fee": transaction.fee,
+                                    "amount": transaction.amount,
+                                    "counter": transaction.counter,
+                                    "destination": transaction.destination,
+                                    "entrypoint": entrypoint,
+                                    "parameters": params,
+                                ]
+                                operationDetails.append(detail)
+                            default:
+                                break
+                            }
+                        })
+
+                        
+                        params["operationDetails"] = operationDetails
                     case .broadcast(_):
                         params["type"] = "broadcast"
                         break;

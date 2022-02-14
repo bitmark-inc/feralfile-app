@@ -1,8 +1,12 @@
+import 'dart:convert';
+
 import 'package:flutter/services.dart';
+import 'package:tezart/tezart.dart';
 
 class TezosBeaconChannel {
   static const MethodChannel _channel = const MethodChannel('tezos_beacon');
-  static const EventChannel _eventChannel = const EventChannel('tezos_beacon/event');
+  static const EventChannel _eventChannel =
+      const EventChannel('tezos_beacon/event');
 
   TezosBeaconChannel({required this.handler}) {
     listen();
@@ -29,17 +33,15 @@ class TezosBeaconChannel {
   }
 
   Future permissionResponse(String id, String? publicKey) async {
-    await _channel.invokeMethod('response', {
-      "id": id,
-      "publicKey": publicKey
-    });
+    await _channel.invokeMethod('response', {"id": id, "publicKey": publicKey});
   }
 
   Future signResponse(String id, String? signature) async {
-    await _channel.invokeMethod('response', {
-      "id": id,
-      "signature": signature
-    });
+    await _channel.invokeMethod('response', {"id": id, "signature": signature});
+  }
+
+  Future operationResponse(String id, String? txHash) async {
+    await _channel.invokeMethod('response', {"id": id, "txHash": txHash});
   }
 
   void listen() async {
@@ -56,7 +58,8 @@ class TezosBeaconChannel {
           final String? appName = params["appName"];
           final String? icon = params["icon"];
 
-          final request = BeaconRequest(id, blockchainIdentifier, senderID, version, originID, type, appName, icon);
+          final request = BeaconRequest(id, blockchainIdentifier, senderID,
+              version, originID, type, appName, icon);
           switch (type) {
             case "signPayload":
               final String? payload = params["payload"];
@@ -65,6 +68,30 @@ class TezosBeaconChannel {
               request.sourceAddress = sourceAddress;
               break;
             case "operation":
+              final List operationsDetails = params["operationDetails"];
+              final String? sourceAddress = params["sourceAddress"];
+
+              List<TransactionOperation> operations = [];
+              operationsDetails.forEach((element) {
+                print(element["parameters"]);
+
+                final String destination = element["destination"] ?? "";
+                final String amount = element["amount"] ?? "0";
+                final String? entrypoint = element["entrypoint"];
+                final Map<String, dynamic> parameters = json.decode(json.encode(element["parameters"]));
+
+                print(parameters.runtimeType);
+
+                operations.add(TransactionOperation(
+                  amount: int.parse(amount),
+                  destination: destination,
+                  entrypoint: entrypoint,
+                  params: parameters,
+                ));
+              });
+
+              request.operations = operations;
+              request.sourceAddress = sourceAddress;
               break;
           }
 
@@ -74,6 +101,7 @@ class TezosBeaconChannel {
     }
   }
 }
+
 abstract class BeaconHandler {
   void onRequest(BeaconRequest request);
 }
@@ -88,6 +116,7 @@ class BeaconRequest {
   final String? appName;
   final String? icon;
 
+  List<TransactionOperation>? operations;
   String? payload;
   String? sourceAddress;
 
@@ -104,6 +133,6 @@ class P2PPeer {
   final String icon;
   final String appURL;
 
-  P2PPeer(this.id, this.name, this.publicKey, this.relayServer, this.version, this.icon, this.appURL);
-
+  P2PPeer(this.id, this.name, this.publicKey, this.relayServer, this.version,
+      this.icon, this.appURL);
 }

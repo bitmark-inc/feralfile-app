@@ -7,10 +7,12 @@ import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.Result
 import io.github.novacrypto.base58.Base58
 import it.airgap.beaconsdk.blockchain.tezos.data.TezosError
+import it.airgap.beaconsdk.blockchain.tezos.data.operation.*
 import it.airgap.beaconsdk.blockchain.tezos.message.request.BroadcastTezosRequest
 import it.airgap.beaconsdk.blockchain.tezos.message.request.OperationTezosRequest
 import it.airgap.beaconsdk.blockchain.tezos.message.request.PermissionTezosRequest
 import it.airgap.beaconsdk.blockchain.tezos.message.request.SignPayloadTezosRequest
+import it.airgap.beaconsdk.blockchain.tezos.message.response.OperationTezosResponse
 import it.airgap.beaconsdk.blockchain.tezos.message.response.PermissionTezosResponse
 import it.airgap.beaconsdk.blockchain.tezos.message.response.SignPayloadTezosResponse
 import it.airgap.beaconsdk.blockchain.tezos.tezos
@@ -29,6 +31,8 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 
 class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.StreamHandler {
     /// The MethodChannel that will the communication between Flutter and native Android
@@ -100,7 +104,76 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
                             params["sourceAddress"] = signPayload.sourceAddress
                         }
                         is OperationTezosRequest -> {
+                            val operationRequest: OperationTezosRequest = request
+
                             params["type"] = "operation"
+                            operationRequest.appMetadata?.icon?.let {
+                                params["icon"] = it
+                            }
+                            params["appName"] = operationRequest.appMetadata?.name ?: ""
+                            params["sourceAddress"] = operationRequest.sourceAddress
+
+                            fun getParams(value: MichelineMichelsonV1Expression): Map<String, Any> {
+                                val result: HashMap<String, Any> = HashMap()
+
+                                when (value) {
+                                    is MichelinePrimitiveApplication -> {
+                                        result["prim"] = value.prim
+                                        value.args?.map { arg -> getParams(arg) }?.let {
+                                            result["args"] = it
+                                        }
+                                    }
+                                    is MichelinePrimitiveInt -> {
+                                        result["int"] = value.int
+                                    }
+                                    is MichelinePrimitiveString -> {
+                                        result["string"] = value.string
+                                    }
+                                    is MichelinePrimitiveBytes -> {
+                                        result["bytes"] = value.bytes
+                                    }
+                                    is MichelineNode -> {
+                                        result["expressions"] = value.expressions.map { arg -> getParams(arg) }
+                                    }
+                                }
+
+                                return result
+                            }
+
+                            val operationDetails: ArrayList<HashMap<String, Any>> = ArrayList()
+                            operationRequest.operationDetails.forEach { operation ->
+                                (operation as? TezosTransactionOperation)?.let { transaction ->
+                                    val detail: HashMap<String, Any> = HashMap()
+                                    transaction.source?.let {
+                                        detail["source"] = it
+                                    }
+                                    transaction.gasLimit?.let {
+                                        detail["gasLimit"] = it
+                                    }
+                                    transaction.storageLimit?.let {
+                                        detail["storageLimit"] = it
+                                    }
+                                    transaction.fee?.let {
+                                        detail["fee"] = it
+                                    }
+                                    transaction.amount.let {
+                                        detail["amount"] = it
+                                    }
+                                    transaction.counter?.let {
+                                        detail["counter"] = it
+                                    }
+                                    transaction.parameters?.entrypoint?.let {
+                                        detail["entrypoint"] = it
+                                    }
+                                    transaction.parameters?.value?.let { value -> getParams(value) }?.let {
+                                        detail["parameters"] = it
+                                    }
+
+                                    operationDetails.add(detail)
+                                }
+                            }
+
+                            params["operationDetails"] = operationDetails
                         }
                         else -> {
                         }
@@ -164,7 +237,13 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
                         PermissionTezosResponse.from(request, it)
                     } ?: ErrorBeaconResponse.from(request, BeaconError.Aborted)
                 }
-                is OperationTezosRequest -> ErrorBeaconResponse.from(request, BeaconError.Aborted)
+                is OperationTezosRequest -> {
+                    val txHash: String? = call.argument("txHash")
+
+                    txHash?.let {
+                        OperationTezosResponse.from(request, txHash)
+                    } ?: ErrorBeaconResponse.from(request, BeaconError.Aborted)
+                }
                 is SignPayloadTezosRequest -> {
                     val signature: String? = call.argument("signature")
 
