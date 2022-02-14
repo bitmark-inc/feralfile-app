@@ -20,6 +20,27 @@ class AutonomyButtonClipper extends CustomClipper<Path> {
   bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }
 
+class AutonomyTopRightRectangleClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    double radius = 14;
+
+    Path path = Path()
+      ..lineTo(0, 0)
+      ..lineTo(size.width - radius, 0)
+      ..lineTo(size.width, radius)
+      ..lineTo(size.width, size.height)
+      ..lineTo(0, size.height)
+      ..lineTo(0, 0)
+      ..close();
+
+    return path;
+  }
+
+  @override
+  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
+}
+
 class AutonomyOutlineButtonClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
