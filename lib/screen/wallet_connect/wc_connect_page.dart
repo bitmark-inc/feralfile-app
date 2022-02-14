@@ -4,6 +4,7 @@ import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/material.dart';
@@ -35,7 +36,7 @@ class WCConnectPage extends StatelessWidget {
             SizedBox(height: 8.0),
             Text(
               "Connect",
-              style: Theme.of(context).textTheme.headline1,
+              style: appTextTheme.headline1,
             ),
             SizedBox(height: 40.0),
             Row(
@@ -50,11 +51,10 @@ class WCConnectPage extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(args.peerMeta.name,
-                          style: Theme.of(context).textTheme.headline5),
+                      Text(args.peerMeta.name, style: appTextTheme.headline5),
                       Text(
                         "requests permission to:",
-                        style: Theme.of(context).textTheme.bodyText1,
+                        style: appTextTheme.bodyText1,
                       ),
                     ],
                   ),
@@ -64,12 +64,12 @@ class WCConnectPage extends StatelessWidget {
             SizedBox(height: 16.0),
             Text(
               "• View your persona’s balance and activity",
-              style: Theme.of(context).textTheme.bodyText1,
+              style: appTextTheme.bodyText1,
             ),
             SizedBox(height: 4.0),
             Text(
               "• Request approval for transactions",
-              style: Theme.of(context).textTheme.bodyText1,
+              style: appTextTheme.bodyText1,
             ),
             Expanded(child: SizedBox()),
             Row(
@@ -78,9 +78,14 @@ class WCConnectPage extends StatelessWidget {
                   child: AuFilledButton(
                     text: "Authorize".toUpperCase(),
                     onPress: () async {
-                      final address =
-                          await networkInjector.I<EthereumService>().getETHAddress();
-                      final chainId = injector<ConfigurationService>().getNetwork() == Network.MAINNET ? 1 : 4;
+                      final address = await networkInjector
+                          .I<EthereumService>()
+                          .getETHAddress();
+                      final chainId =
+                          injector<ConfigurationService>().getNetwork() ==
+                                  Network.MAINNET
+                              ? 1
+                              : 4;
                       injector<WalletConnectService>()
                           .approveSession(args.peerMeta, [address], chainId);
                       Navigator.of(context).pop();

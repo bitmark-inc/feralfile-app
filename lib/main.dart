@@ -26,6 +26,7 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/persona_service.dart';
 import 'package:autonomy_flutter/util/migration_util.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -66,81 +67,51 @@ class AutonomyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final networkInjector = injector<NetworkConfigInjector>();
 
-    return MaterialApp(
+    return CupertinoApp(
         title: 'Autonomy',
-        theme: ThemeData(
+        theme: CupertinoThemeData(
           scaffoldBackgroundColor: Colors.white,
-          primarySwatch: Colors.grey,
-          secondaryHeaderColor: Color(0xFF6D6B6B),
-          errorColor: Color(0xFFA1200A),
-          textTheme: TextTheme(
-            headline1: TextStyle(
-                color: Colors.black,
-                fontSize: 36,
-                fontWeight: FontWeight.w700,
-                fontFamily: "AtlasGrotesk"),
-            headline2: TextStyle(
-                color: Colors.black,
-                fontSize: 24,
-                fontWeight: FontWeight.w700,
-                fontFamily: "AtlasGrotesk"),
-            headline3: TextStyle(
-                color: Colors.black,
-                fontSize: 22,
-                fontWeight: FontWeight.w700,
-                fontFamily: "AtlasGrotesk"),
-            headline5: TextStyle(
-                color: Colors.black,
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                fontFamily: "AtlasGrotesk"),
-            button: TextStyle(
-                color: Colors.white,
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                fontFamily: "IBMPlexMono"),
-            caption: TextStyle(
-                color: Colors.black,
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                fontFamily: "IBMPlexMono"),
-            bodyText1: TextStyle(
-                color: Colors.black, fontSize: 16, fontFamily: "AtlasGrotesk"),
-            bodyText2: TextStyle(
-                color: Color(0xFF6D6B6B),
-                fontSize: 16,
-                fontFamily: "AtlasGrotesk"),
+          primaryColor: Colors.grey,
+          barBackgroundColor: Color(0xFF6D6B6B),
+          // errorColor: Color(0xFFA1200A),
+          textTheme: CupertinoTextThemeData(
+            primaryColor: Colors.grey,
           ),
         ),
+        localizationsDelegates: [
+          DefaultMaterialLocalizations.delegate,
+          DefaultCupertinoLocalizations.delegate,
+          DefaultWidgetsLocalizations.delegate,
+        ],
         debugShowCheckedModeBanner: false,
         navigatorKey: injector<NavigationService>().navigatorKey,
         navigatorObservers: [routeObserver],
         onGenerateRoute: (settings) {
           switch (settings.name) {
             case HomePage.tag:
-              return MaterialPageRoute(
+              return CupertinoPageRoute(
                   builder: (context) => BlocProvider(
                         create: (_) => HomeBloc(networkInjector.I(), injector(),
                             networkInjector.I<AppDatabase>().assetDao),
                         child: HomePage(),
                       ));
             case WCConnectPage.tag:
-              return MaterialPageRoute(
+              return CupertinoPageRoute(
                 builder: (context) => WCConnectPage(
                     args: settings.arguments as WCConnectPageArgs),
               );
             case WCDisconnectPage.tag:
-              return MaterialPageRoute(
+              return CupertinoPageRoute(
                 builder: (context) =>
                     WCDisconnectPage(client: settings.arguments as WCClient),
               );
             case WCSignMessagePage.tag:
-              return MaterialPageRoute(
+              return CupertinoPageRoute(
                 builder: (context) => WCSignMessagePage(
                     args: settings.arguments as WCSignMessagePageArgs),
               );
             case WCSendTransactionPage.tag:
-              return MaterialPageRoute(
+              return CupertinoPageRoute(
                 builder: (context) => BlocProvider(
                   create: (_) => WCSendTransactionBloc(
                       injector(), networkInjector.I(), injector()),
@@ -149,12 +120,14 @@ class AutonomyApp extends StatelessWidget {
                 ),
               );
             case ScanQRPage.tag:
-              return MaterialPageRoute(
+              return CupertinoPageRoute(
+                  fullscreenDialog: true,
                   builder: (context) => ScanQRPage(
                         scannerItem: settings.arguments as ScannerItem,
                       ));
             case SettingsPage.tag:
-              return MaterialPageRoute(
+              return CupertinoPageRoute(
+                fullscreenDialog: true,
                 builder: (context) => BlocProvider(
                   create: (_) => SettingsBloc(
                       injector(), networkInjector.I(), networkInjector.I()),
@@ -162,7 +135,7 @@ class AutonomyApp extends StatelessWidget {
                 ),
               );
             case WalletDetailPage.tag:
-              return MaterialPageRoute(
+              return CupertinoPageRoute(
                   builder: (context) => BlocProvider(
                         create: (_) => WalletDetailBloc(networkInjector.I(),
                             networkInjector.I(), injector()),
@@ -170,11 +143,11 @@ class AutonomyApp extends StatelessWidget {
                             type: settings.arguments as CryptoType),
                       ));
             case ReceivePage.tag:
-              return MaterialPageRoute(
+              return CupertinoPageRoute(
                   builder: (context) => ReceivePage(
                       payload: settings.arguments as WalletPayload));
             case SendCryptoPage.tag:
-              return MaterialPageRoute(
+              return CupertinoPageRoute(
                   builder: (context) => BlocProvider(
                         create: (_) => SendCryptoBloc(
                             networkInjector.I(),
@@ -185,12 +158,12 @@ class AutonomyApp extends StatelessWidget {
                             data: settings.arguments as SendData),
                       ));
             case SendReviewPage.tag:
-              return MaterialPageRoute(
+              return CupertinoPageRoute(
                   builder: (context) => SendReviewPage(
                         payload: settings.arguments as SendCryptoPayload,
                       ));
             case ArtworkPreviewPage.tag:
-              return MaterialPageRoute(
+              return CupertinoPageRoute(
                   builder: (context) => BlocProvider(
                         create: (_) => ArtworkPreviewBloc(
                             networkInjector.I<AppDatabase>().assetDao),
@@ -199,13 +172,13 @@ class AutonomyApp extends StatelessWidget {
                         ),
                       ));
             case SelectNetworkPage.tag:
-              return MaterialPageRoute(
+              return CupertinoPageRoute(
                   builder: (context) => BlocProvider(
                         create: (_) => SelectNetworkBloc(injector()),
                         child: SelectNetworkPage(),
                       ));
             case ArtworkDetailPage.tag:
-              return MaterialPageRoute(
+              return CupertinoPageRoute(
                   builder: (context) => BlocProvider(
                         create: (_) => ArtworkDetailBloc(networkInjector.I(),
                             networkInjector.I<AppDatabase>().assetDao),
@@ -215,10 +188,10 @@ class AutonomyApp extends StatelessWidget {
                       ));
             default:
               if (injector<PersonaService>().getActivePersona() == null) {
-                return MaterialPageRoute(
+                return CupertinoPageRoute(
                     builder: (context) => OnboardingPage());
               } else {
-                return MaterialPageRoute(
+                return CupertinoPageRoute(
                     builder: (context) => BlocProvider(
                           create: (_) => HomeBloc(
                               networkInjector.I(),

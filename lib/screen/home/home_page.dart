@@ -7,6 +7,7 @@ import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/screen/settings/settings_page.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -82,65 +83,58 @@ class _HomePageState extends State<HomePage>
             ),
             Expanded(
               child:
-              BlocBuilder<HomeBloc, HomeState>(builder: (context, state) {
+                  BlocBuilder<HomeBloc, HomeState>(builder: (context, state) {
                 return state.isFeralFileLoggedIn != null
                     ? Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(height: 24.0),
-                    Expanded(
-                      child: state.isFeralFileLoggedIn == false ||
-                          _isAssetsEmpty(state)
-                          ? Padding(
-                        padding:
-                        EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Column(
-                          crossAxisAlignment:
-                          CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Gallery",
-                              style: Theme
-                                  .of(context)
-                                  .textTheme
-                                  .headline1,
-                            ),
-                            SizedBox(height: 24.0),
-                            Text(
-                              "Your gallery is empty for now.",
-                              style: Theme
-                                  .of(context)
-                                  .textTheme
-                                  .bodyText1,
-                            ),
-                          ],
-                        ),
-                      )
-                          : _assetsWidget(state),
-                    ),
-                    state.isFeralFileLoggedIn == false
-                        ? Padding(
-                      padding:
-                      EdgeInsets.all(16.0),
-                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          SizedBox(height: 24.0),
                           Expanded(
-                            child: AuFilledButton(
-                              text: "Help us find your collection"
-                                  .toUpperCase(),
-                              onPress: () {
-                                Navigator.of(context).pushNamed(
-                                    ScanQRPage.tag,
-                                    arguments: ScannerItem.GLOBAL);
-                              },
-                            ),
-                          )
+                            child: state.isFeralFileLoggedIn == false ||
+                                    _isAssetsEmpty(state)
+                                ? Padding(
+                                    padding:
+                                        EdgeInsets.symmetric(horizontal: 16.0),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          "Gallery",
+                                          style: appTextTheme.headline1,
+                                        ),
+                                        SizedBox(height: 24.0),
+                                        Text(
+                                          "Your gallery is empty for now.",
+                                          style: appTextTheme.bodyText1,
+                                        ),
+                                      ],
+                                    ),
+                                  )
+                                : _assetsWidget(state),
+                          ),
+                          state.isFeralFileLoggedIn == false
+                              ? Padding(
+                                  padding: EdgeInsets.all(16.0),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: AuFilledButton(
+                                          text: "Help us find your collection"
+                                              .toUpperCase(),
+                                          onPress: () {
+                                            Navigator.of(context).pushNamed(
+                                                ScanQRPage.tag,
+                                                arguments: ScannerItem.GLOBAL);
+                                          },
+                                        ),
+                                      )
+                                    ],
+                                  ),
+                                )
+                              : SizedBox(),
                         ],
-                      ),
-                    )
-                        : SizedBox(),
-                  ],
-                )
+                      )
                     : SizedBox();
               }),
             ),
@@ -153,8 +147,7 @@ class _HomePageState extends State<HomePage>
   Widget _assetsWidget(HomeState state) {
     return SingleChildScrollView(
       child: Column(
-        crossAxisAlignment:
-        CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           state.ffAssets.isNotEmpty
               ? _assetsSection("Feral File", state.ffAssets)
@@ -172,49 +165,38 @@ class _HomePageState extends State<HomePage>
 
   Widget _assetsSection(String name, List<AssetToken> assets) {
     return Column(
-      crossAxisAlignment:
-      CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding:
-          EdgeInsets.symmetric(
-              horizontal: 16.0),
+          padding: EdgeInsets.symmetric(horizontal: 16.0),
           child: Text(
             name,
-            style: Theme
-                .of(context)
-                .textTheme
-                .headline1,
+            style: appTextTheme.headline1,
           ),
         ),
         GridView.count(
-          physics:
-          const NeverScrollableScrollPhysics(),
+          physics: const NeverScrollableScrollPhysics(),
           shrinkWrap: true,
           crossAxisCount: 3,
           crossAxisSpacing: 3.0,
           mainAxisSpacing: 3.0,
           childAspectRatio: 1.0,
-          children: List.generate(
-              assets.length,
-                  (index) {
-                final asset =
-                assets[index];
-                return GestureDetector(
-                  child: Container(
-                    child: Image.network(
-                      asset.thumbnailURL!,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  onTap: () {
-                    Navigator.of(context).pushNamed(
-                        ArtworkDetailPage.tag,
-                        arguments: ArtworkDetailPayload(
-                            assets.map((e) => e.id).toList(), index));
-                  },
-                );
-              }),
+          children: List.generate(assets.length, (index) {
+            final asset = assets[index];
+            return GestureDetector(
+              child: Container(
+                child: Image.network(
+                  asset.thumbnailURL!,
+                  fit: BoxFit.cover,
+                ),
+              ),
+              onTap: () {
+                Navigator.of(context).pushNamed(ArtworkDetailPage.tag,
+                    arguments: ArtworkDetailPayload(
+                        assets.map((e) => e.id).toList(), index));
+              },
+            );
+          }),
         ),
         SizedBox(height: 32.0),
       ],

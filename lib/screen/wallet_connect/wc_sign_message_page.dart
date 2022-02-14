@@ -5,6 +5,7 @@ import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/material.dart';
@@ -47,27 +48,27 @@ class WCSignMessagePage extends StatelessWidget {
                     SizedBox(height: 8.0),
                     Text(
                       "Confirm",
-                      style: Theme.of(context).textTheme.headline1,
+                      style: appTextTheme.headline1,
                     ),
                     SizedBox(height: 40.0),
                     Text(
                       "Connection",
-                      style: Theme.of(context).textTheme.headline5,
+                      style: appTextTheme.headline5,
                     ),
                     SizedBox(height: 16.0),
                     Text(
                       args.peerMeta.name,
-                      style: Theme.of(context).textTheme.bodyText2,
+                      style: appTextTheme.bodyText2,
                     ),
                     Divider(height: 32),
                     Text(
                       "Message",
-                      style: Theme.of(context).textTheme.headline5,
+                      style: appTextTheme.headline5,
                     ),
                     SizedBox(height: 16.0),
                     Text(
                       messageInUtf8,
-                      style: Theme.of(context).textTheme.bodyText2,
+                      style: appTextTheme.bodyText2,
                     ),
                   ],
                 ),
@@ -79,7 +80,8 @@ class WCSignMessagePage extends StatelessWidget {
                   child: AuFilledButton(
                     text: "Sign".toUpperCase(),
                     onPress: () async {
-                      final signature = await networkInjector.I<EthereumService>()
+                      final signature = await networkInjector
+                          .I<EthereumService>()
                           .signPersonalMessage(message);
                       injector<WalletConnectService>()
                           .approveRequest(args.peerMeta, args.id, signature);
