@@ -18,15 +18,13 @@ import 'package:autonomy_flutter/util/log.dart';
 final injector = GetIt.instance;
 
 Future<void> setup() async {
-  String logFilePath = await getLogFilePath();
-  await FileLogger.initializeLogging(logFilePath);
+  await FileLogger.initializeLogging();
 
   Logger.root.level = Level.ALL; // defaults to Level.INFO
   Logger.root.onRecord.listen((record) {
     print('${record.level.name}: ${record.time}: ${record.message}');
     FileLogger.log(record.toString());
   });
-  log.shout("write log to $logFilePath");
 
   final sharedPreferences = await SharedPreferences.getInstance();
 

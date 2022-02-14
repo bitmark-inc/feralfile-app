@@ -48,13 +48,13 @@ class SupportView extends StatelessWidget {
   }
 
   void _emailUs() async {
-    String logFilePath = await getLogFilePath();
+    final logFiles = await getLogFiles();
 
     final Email email = Email(
       body: '',
       subject: 'Autonomy Support',
       recipients: ['support@bitmark.com'],
-      attachmentPaths: [logFilePath],
+      attachmentPaths: logFiles,
       isHTML: false,
     );
 
@@ -62,7 +62,7 @@ class SupportView extends StatelessWidget {
   }
 
   void _launchDiscord() async {
-    if (!await launch('https://discord.com/invite/Wm2ZvGSxqg'))
-      throw 'could not launch discord';
+    if (!await launch('https://discord.com/invite/Wm2ZvGSxqg',
+        forceSafariVC: false)) throw 'could not launch discord';
   }
 }
