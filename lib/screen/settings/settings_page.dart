@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/screen/settings/settings_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/settings_state.dart';
 import 'package:autonomy_flutter/screen/settings/support/support_view.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -106,7 +107,7 @@ class _SettingsPageState extends State<SettingsPage>
                           SizedBox(height: 16.0),
                           Text(
                             "Cryptos",
-                            style: Theme.of(context).textTheme.headline1,
+                            style: appTextTheme.headline1,
                           ),
                           SizedBox(height: 16.0),
                           _settingItem(
@@ -131,7 +132,7 @@ class _SettingsPageState extends State<SettingsPage>
                           SizedBox(height: 24.0),
                           Text(
                             "Networks",
-                            style: Theme.of(context).textTheme.headline1,
+                            style: appTextTheme.headline1,
                           ),
                           SizedBox(height: 16.0),
                           _settingItem(
@@ -171,7 +172,7 @@ class _SettingsPageState extends State<SettingsPage>
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(name, style: Theme.of(context).textTheme.headline5),
+            Text(name, style: appTextTheme.headline5),
             Row(
               children: [
                 Text(

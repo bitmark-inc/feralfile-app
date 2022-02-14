@@ -2,6 +2,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_disconnect_page.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -15,15 +16,16 @@ class ConnectionView extends StatelessWidget {
       children: [
         Text(
           "Connections",
-          style: Theme.of(context).textTheme.headline1,
+          style: appTextTheme.headline1,
         ),
         SizedBox(height: 16.0),
         ...connections
             .map((el) => Column(
                   children: [
-                    _connectionItem(
-                        context, el.remotePeerMeta?.name ?? "", "", () {
-                          Navigator.of(context).pushNamed(WCDisconnectPage.tag, arguments: el);
+                    _connectionItem(context, el.remotePeerMeta?.name ?? "", "",
+                        () {
+                      Navigator.of(context)
+                          .pushNamed(WCDisconnectPage.tag, arguments: el);
                     }),
                     Divider(height: 32.0),
                   ],
@@ -31,13 +33,12 @@ class ConnectionView extends StatelessWidget {
             .toList(),
         GestureDetector(
           onTap: () {
-            Navigator.of(context).pushNamed(ScanQRPage.tag, arguments: ScannerItem.GLOBAL);
+            Navigator.of(context)
+                .pushNamed(ScanQRPage.tag, arguments: ScannerItem.GLOBAL);
           },
           child: Row(
             mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Icon(Icons.add)
-            ],
+            children: [Icon(Icons.add)],
           ),
         ),
       ],
@@ -50,7 +51,7 @@ class ConnectionView extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(name, style: Theme.of(context).textTheme.headline5),
+          Text(name, style: appTextTheme.headline5),
           Row(
             children: [
               Text(

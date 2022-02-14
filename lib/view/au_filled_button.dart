@@ -1,3 +1,4 @@
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:flutter/material.dart';
 
@@ -28,7 +29,7 @@ class AuFilledButton extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 14)),
         child: Text(
           text.toUpperCase(),
-          style: textStyle ?? Theme.of(context).textTheme.button,
+          style: textStyle ?? appTextTheme.button,
         ),
         onPressed: onPress,
       ),

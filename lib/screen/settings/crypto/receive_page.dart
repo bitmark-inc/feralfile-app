@@ -1,4 +1,5 @@
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/material.dart';
@@ -28,10 +29,7 @@ class ReceivePage extends StatelessWidget {
           children: [
             Text(
               "Receive ${payload.type == CryptoType.ETH ? "ETH" : "XTZ"}",
-              style: Theme
-                  .of(context)
-                  .textTheme
-                  .headline1,
+              style: appTextTheme.headline1,
             ),
             SizedBox(height: 96),
             Center(
@@ -52,7 +50,7 @@ class ReceivePage extends StatelessWidget {
                   Text(
                     "Deposit address",
                     style: TextStyle(
-                        color: Theme.of(context).secondaryHeaderColor,
+                        color: AppColorTheme.secondaryHeaderColor,
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                         fontFamily: "AtlasGrotesk"),
@@ -63,10 +61,10 @@ class ReceivePage extends StatelessWidget {
                       payload.address,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w300,
-                        fontFamily: "IBMPlexMono"),
+                          color: Colors.black,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w300,
+                          fontFamily: "IBMPlexMono"),
                     ),
                   ),
                 ],

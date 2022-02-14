@@ -2,6 +2,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/material.dart';
@@ -19,7 +20,6 @@ class WCDisconnectPage extends StatefulWidget {
 }
 
 class _WCDisconnectPageState extends State<WCDisconnectPage> {
-
   String address = "";
 
   @override
@@ -47,17 +47,17 @@ class _WCDisconnectPageState extends State<WCDisconnectPage> {
           children: [
             Text(
               peerData?.name ?? "",
-              style: Theme.of(context).textTheme.headline1,
+              style: appTextTheme.headline1,
             ),
             SizedBox(height: 40.0),
             Text(
               "Public address",
-              style: Theme.of(context).textTheme.headline5,
+              style: appTextTheme.headline5,
             ),
             SizedBox(height: 16.0),
             Text(
               address,
-              style: Theme.of(context).textTheme.bodyText2,
+              style: appTextTheme.bodyText2,
             ),
             Expanded(child: SizedBox()),
             Row(
@@ -67,7 +67,8 @@ class _WCDisconnectPageState extends State<WCDisconnectPage> {
                     text: "Disconnect".toUpperCase(),
                     onPress: () async {
                       if (widget.client.remotePeerMeta != null) {
-                        injector<WalletConnectService>().disconnect(widget.client.remotePeerMeta!);
+                        injector<WalletConnectService>()
+                            .disconnect(widget.client.remotePeerMeta!);
                       }
                       Navigator.of(context).pop();
                     },
@@ -82,7 +83,9 @@ class _WCDisconnectPageState extends State<WCDisconnectPage> {
   }
 
   Future _fetchAddress() async {
-    final ethAddress = await injector<NetworkConfigInjector>().I<EthereumService>().getETHAddress();
+    final ethAddress = await injector<NetworkConfigInjector>()
+        .I<EthereumService>()
+        .getETHAddress();
     setState(() {
       address = ethAddress;
     });

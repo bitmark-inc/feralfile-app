@@ -5,6 +5,7 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_page.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_outlined_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/cupertino.dart';
@@ -46,7 +47,7 @@ class ArtworkDetailPage extends StatelessWidget {
                     padding: EdgeInsets.symmetric(horizontal: 16.0),
                     child: Text(
                       asset.title,
-                      style: Theme.of(context).textTheme.headline1,
+                      style: appTextTheme.headline1,
                     ),
                   ),
                   SizedBox(height: 8.0),
@@ -54,7 +55,7 @@ class ArtworkDetailPage extends StatelessWidget {
                     padding: EdgeInsets.symmetric(horizontal: 16.0),
                     child: Text(
                       "by ${asset.artistName} (${asset.edition}/${asset.maxEdition})",
-                      style: Theme.of(context).textTheme.headline3,
+                      style: appTextTheme.headline3,
                     ),
                   ),
                   SizedBox(height: 16.0),
@@ -68,6 +69,7 @@ class ArtworkDetailPage extends StatelessWidget {
                       children: [
                         Container(
                           width: 165,
+                          height: 48,
                           child: AuOutlinedButton(
                               text: "VIEW ARTWORK \u25b6",
                               onPress: () {
@@ -79,7 +81,7 @@ class ArtworkDetailPage extends StatelessWidget {
                         SizedBox(height: 40.0),
                         Text(
                           asset.desc ?? "",
-                          style: Theme.of(context).textTheme.bodyText1,
+                          style: appTextTheme.bodyText1,
                         ),
                         asset.source == "feralfile"
                             ? Column(
@@ -131,12 +133,12 @@ class ArtworkDetailPage extends StatelessWidget {
       children: [
         Text(
           "Rights",
-          style: Theme.of(context).textTheme.headline2,
+          style: appTextTheme.headline2,
         ),
         SizedBox(height: 16.0),
         Text(
           "You’ll retain these rights forever. Your rights are guaranteed in perpetuity until you resell or transfer ownership of the work.",
-          style: Theme.of(context).textTheme.bodyText1,
+          style: appTextTheme.bodyText1,
         ),
         SizedBox(height: 16.0),
         _artworkRightItem(context, "Download",
@@ -171,7 +173,7 @@ class ArtworkDetailPage extends StatelessWidget {
           children: [
             Text(
               name,
-              style: Theme.of(context).textTheme.headline5,
+              style: appTextTheme.headline5,
             ),
             Icon(CupertinoIcons.forward)
           ],
@@ -179,7 +181,7 @@ class ArtworkDetailPage extends StatelessWidget {
         SizedBox(height: 16.0),
         Text(
           body,
-          style: Theme.of(context).textTheme.bodyText1,
+          style: appTextTheme.bodyText1,
         ),
       ],
     );
@@ -195,7 +197,7 @@ class ArtworkDetailPage extends StatelessWidget {
       children: [
         Text(
           "Value",
-          style: Theme.of(context).textTheme.headline2,
+          style: appTextTheme.headline2,
         ),
         SizedBox(height: 16.0),
         _rowItem(
@@ -249,7 +251,7 @@ class ArtworkDetailPage extends StatelessWidget {
       children: [
         Text(
           "Metadata",
-          style: Theme.of(context).textTheme.headline2,
+          style: appTextTheme.headline2,
         ),
         SizedBox(height: 16.0),
         _rowItem(context, "Title", asset.title),
@@ -281,7 +283,7 @@ class ArtworkDetailPage extends StatelessWidget {
       children: [
         Text(
           "Provenance",
-          style: Theme.of(context).textTheme.headline2,
+          style: appTextTheme.headline2,
         ),
         SizedBox(height: 16.0),
         ...provenances
@@ -301,7 +303,7 @@ class ArtworkDetailPage extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-          child: Text(name, style: Theme.of(context).textTheme.headline5),
+          child: Text(name, style: appTextTheme.headline5),
         ),
         Expanded(
           child: Row(
