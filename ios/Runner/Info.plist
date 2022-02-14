@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>LSApplicationCategoryType</key>
+	<string></string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
@@ -45,5 +47,11 @@
 	<string>Light</string>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+    <key>NSCameraUsageDescription</key>
+    <string>QR code scanning requires camera access.</string>
+    <key>NSFaceIDUsageDescription</key>
+    <string>Allow Autonomy to use Face ID to authenticate.</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>Viewing artwork with microphone enable.</string>
 </dict>
 </plist>
