@@ -12,9 +12,22 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'network_config_injector.dart';
 
+import 'package:logging/logging.dart';
+import 'package:autonomy_flutter/util/log.dart';
+
 final injector = GetIt.instance;
 
 Future<void> setup() async {
+  String logFilePath = await getLogFilePath();
+  await FileLogger.initializeLogging(logFilePath);
+
+  Logger.root.level = Level.ALL; // defaults to Level.INFO
+  Logger.root.onRecord.listen((record) {
+    print('${record.level.name}: ${record.time}: ${record.message}');
+    FileLogger.log(record.toString());
+  });
+  log.shout("write log to $logFilePath");
+
   final sharedPreferences = await SharedPreferences.getInstance();
 
   final testnetDB = await $FloorAppDatabase
@@ -25,6 +38,7 @@ Future<void> setup() async {
       .build();
 
   final dio = Dio(); // Provide a dio instance
+  dio.interceptors.add(LoggingInterceptor());
 
   injector.registerSingleton<ConfigurationService>(
       ConfigurationServiceImpl(sharedPreferences));
@@ -41,5 +55,6 @@ Future<void> setup() async {
   injector.registerLazySingleton<CurrencyService>(
       () => CurrencyServiceImpl(injector()));
 
-  injector.registerLazySingleton(() => NetworkConfigInjector(injector(), dio, testnetDB, mainnetDB));
+  injector.registerLazySingleton(
+      () => NetworkConfigInjector(injector(), dio, testnetDB, mainnetDB));
 }
