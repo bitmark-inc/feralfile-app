@@ -36,6 +36,11 @@ Future<void> setup() async {
       .databaseBuilder('app_database_testnet.db')
       .build();
 
+  final cloudDB =
+      await $FloorCloudDatabase.databaseBuilder('cloud_database.db').build();
+
+  injector.registerLazySingleton(() => cloudDB);
+
   final dio = Dio(); // Provide a dio instance
   dio.interceptors.add(LoggingInterceptor());
 
