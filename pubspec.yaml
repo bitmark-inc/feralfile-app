@@ -54,6 +54,7 @@ dependencies:
   logging: ^1.0.2
   path_provider: ^2.0.9
   url_launcher: ^6.0.20
+  device_info_plus: ^3.2.1
   libauk_dart:
     git:
       url: https://github.com/autonomy-system/libauk-dart.git
