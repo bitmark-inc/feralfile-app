@@ -39,14 +39,16 @@ class AuTextField extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Text(
-                        title,
-                        style: TextStyle(
-                            fontSize: 12,
-                            fontFamily: "AtlasGrotesk",
-                            color: AppColorTheme.secondaryHeaderColor,
-                            fontWeight: FontWeight.w700),
-                      ),
+                      if (title.isNotEmpty) ...[
+                        Text(
+                          title,
+                          style: TextStyle(
+                              fontSize: 12,
+                              fontFamily: "AtlasGrotesk",
+                              color: AppColorTheme.secondaryHeaderColor,
+                              fontWeight: FontWeight.w700),
+                        ),
+                      ],
                       this.subTitleView != null
                           ? Text(
                               " | ",
