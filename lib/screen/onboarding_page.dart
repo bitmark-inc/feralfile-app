@@ -1,10 +1,22 @@
-import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/screen/home/home_page.dart';
-import 'package:autonomy_flutter/service/persona_service.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/bloc/router/router_bloc.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-class OnboardingPage extends StatelessWidget {
+class OnboardingPage extends StatefulWidget {
+  @override
+  State<OnboardingPage> createState() => _OnboardingPageState();
+}
+
+class _OnboardingPageState extends State<OnboardingPage> {
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    context.read<RouterBloc>().add(DefineViewRoutingEvent());
+  }
+
+  // @override
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -55,19 +67,39 @@ class OnboardingPage extends StatelessWidget {
               ],
             ),
             SizedBox(height: 60.0),
-            Row(
-              children: [
-                Expanded(
-                  child: AuFilledButton(
-                    text: "Start".toUpperCase(),
-                    onPress: () {
-                      injector<PersonaService>().createPersona("Autonomy");
-                      Navigator.of(context).pushNamed(HomePage.tag);
-                    },
-                  ),
-                )
-              ],
-            )
+            BlocConsumer<RouterBloc, RouterState>(
+              listener: (context, state) {
+                switch (state.onboardingStep) {
+                  case OnboardingStep.dashboard:
+                    Navigator.of(context).pushNamed(AppRouter.homePage);
+                    break;
+
+                  default:
+                    break;
+                }
+              },
+              builder: (context, state) {
+                switch (state.onboardingStep) {
+                  case OnboardingStep.startScreen:
+                    return Row(
+                      children: [
+                        Expanded(
+                          child: AuFilledButton(
+                            text: "Start".toUpperCase(),
+                            onPress: () {
+                              Navigator.of(context)
+                                  .pushNamed(AppRouter.beOwnGalleryPage);
+                            },
+                          ),
+                        )
+                      ],
+                    );
+
+                  default:
+                    return SizedBox();
+                }
+              },
+            ),
           ],
         ),
       ),
