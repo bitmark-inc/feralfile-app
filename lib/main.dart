@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
@@ -24,6 +26,7 @@ import 'package:autonomy_flutter/screen/wallet_connect/wc_disconnect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/persona_service.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/migration_util.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -59,6 +62,13 @@ void main() async {
       blocObserver: AppBlocObserver(),
     ),
   );
+
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+    log.severe("unhandled error: $details");
+    // quit the app with error
+    exit(1);
+  };
 }
 
 class AutonomyApp extends StatelessWidget {
@@ -243,7 +253,7 @@ class AppBlocObserver extends BlocObserver {
   @override
   void onTransition(Bloc bloc, Transition transition) {
     super.onTransition(bloc, transition);
-    print(transition);
+    log.info(transition);
   }
 }
 

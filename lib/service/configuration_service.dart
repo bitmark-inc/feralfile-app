@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:autonomy_flutter/model/account.dart';
 import 'package:autonomy_flutter/model/network.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wallet_connect/wallet_connect.dart';
 
@@ -57,6 +58,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
   @override
   Future<void> setPersonas(List<String> value) async {
+    log.info("setPersonas: $value");
     await _preferences.setStringList(KEY_PERSONA, value);
   }
 
@@ -67,6 +69,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
   @override
   Future<void> setWCSessions(List<WCSessionStore> value) async {
+    log.info("setWCSessions: $value");
     final json = jsonEncode(value);
     await _preferences.setString(KEY_WC_SESSIONS, json);
   }
@@ -75,19 +78,24 @@ class ConfigurationServiceImpl implements ConfigurationService {
   List<WCSessionStore> getWCSessions() {
     final json = _preferences.getString(KEY_WC_SESSIONS);
     final sessions = json != null ? jsonDecode(json) : List.empty();
-    return List.from(sessions).map((e) => WCSessionStore.fromJson(e)).toList(growable: false);
+    return List.from(sessions)
+        .map((e) => WCSessionStore.fromJson(e))
+        .toList(growable: false);
   }
 
   @override
   Future<void> setNetwork(Network value) async {
+    log.info("setNetwork: $value");
     await _preferences.setString(KEY_NETWORK, value.toString());
   }
 
   @override
   Network getNetwork() {
-    final value = _preferences.getString(KEY_NETWORK) ?? Network.MAINNET.toString();
+    final value =
+        _preferences.getString(KEY_NETWORK) ?? Network.MAINNET.toString();
     try {
-      return Network.values.firstWhere((element) => element.toString() == value);
+      return Network.values
+          .firstWhere((element) => element.toString() == value);
     } catch (e) {
       return Network.MAINNET;
     }
@@ -100,6 +108,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
   @override
   Future<void> setDevicePasscodeEnabled(bool value) async {
+    log.info("setDevicePasscodeEnabled: $value");
     await _preferences.setBool(KEY_DEVICE_PASSCODE, value);
   }
 
@@ -115,11 +124,13 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
   @override
   Future<void> setAnalyticEnabled(bool value) async {
+    log.info("setAnalyticEnabled: $value");
     await _preferences.setBool(KEY_ANALYTICS, value);
   }
 
   @override
   Future<void> setNotificationEnabled(bool value) async {
+    log.info("setNotificationEnabled: $value");
     await _preferences.setBool(KEY_NOTIFICATION, value);
   }
 
@@ -130,6 +141,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
   @override
   Future<void> setFullscreenIntroEnable(bool value) async {
+    log.info("setFullscreenIntroEnable: $value");
     await _preferences.setBool(KEY_FULLSCREEN_INTRO, value);
   }
 }
