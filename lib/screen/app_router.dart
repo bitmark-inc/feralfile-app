@@ -34,6 +34,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wallet_connect/wallet_connect.dart';
 
 class AppRouter {
+  static const onboardingPage = "onboarding";
   static const beOwnGalleryPage = 'be_own_gallery';
   static const newAccountPage = "new_account";
   static const namePersonaPage = "name_persona_page";
@@ -43,6 +44,11 @@ class AppRouter {
     final networkInjector = injector<NetworkConfigInjector>();
 
     switch (settings.name) {
+      case onboardingPage:
+        return CupertinoPageRoute(
+            builder: (context) => BlocProvider(
+                create: (_) => RouterBloc(injector<CloudDatabase>()),
+                child: OnboardingPage()));
       case homePage:
         return CupertinoPageRoute(
             builder: (context) => BlocProvider(
