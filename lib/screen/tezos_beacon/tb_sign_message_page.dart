@@ -3,25 +3,24 @@ import 'dart:convert';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
-import 'package:autonomy_flutter/service/feralfile_service.dart';
-import 'package:autonomy_flutter/service/wallet_connect_service.dart';
+import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/material.dart';
-import 'package:wallet_connect/models/wc_peer_meta.dart';
 import 'package:web3dart/crypto.dart';
 
-class WCSignMessagePage extends StatelessWidget {
-  static const String tag = 'wc_sign_message';
+class TBSignMessagePage extends StatelessWidget {
+  static const String tag = 'tb_sign_message';
 
-  final WCSignMessagePageArgs args;
+  final BeaconRequest request;
 
-  const WCSignMessagePage({Key? key, required this.args}) : super(key: key);
+  const TBSignMessagePage({Key? key, required this.request}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final message = hexToBytes(args.message);
+    final message = hexToBytes(request.payload!);
     final messageInUtf8 = utf8.decode(message, allowMalformed: true);
 
     final networkInjector = injector<NetworkConfigInjector>();
@@ -30,8 +29,7 @@ class WCSignMessagePage extends StatelessWidget {
       appBar: getBackAppBar(
         context,
         onBack: () {
-          injector<WalletConnectService>()
-              .rejectRequest(args.peerMeta, args.id);
+          injector<TezosBeaconService>().signResponse(request.id, null);
           Navigator.of(context).pop();
         },
       ),
@@ -57,7 +55,7 @@ class WCSignMessagePage extends StatelessWidget {
                     ),
                     SizedBox(height: 16.0),
                     Text(
-                      args.peerMeta.name,
+                      request.appName ?? "",
                       style: appTextTheme.bodyText2,
                     ),
                     Divider(height: 32),
@@ -83,15 +81,8 @@ class WCSignMessagePage extends StatelessWidget {
                       final signature = await networkInjector
                           .I<EthereumService>()
                           .signPersonalMessage(message);
-                      injector<WalletConnectService>()
-                          .approveRequest(args.peerMeta, args.id, signature);
-
-                      if (args.peerMeta.url.contains("feralfile")) {
-                        Future.delayed(const Duration(milliseconds: 3000), () {
-                          networkInjector.I<FeralFileService>().saveAccount();
-                        });
-                      }
-
+                      injector<TezosBeaconService>()
+                          .signResponse(request.id, signature);
                       Navigator.of(context).pop();
                     },
                   ),
@@ -103,12 +94,4 @@ class WCSignMessagePage extends StatelessWidget {
       ),
     );
   }
-}
-
-class WCSignMessagePageArgs {
-  final int id;
-  final WCPeerMeta peerMeta;
-  final String message;
-
-  WCSignMessagePageArgs(this.id, this.peerMeta, this.message);
 }

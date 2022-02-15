@@ -2,17 +2,23 @@ import 'package:autonomy_flutter/database/dao/asset_token_dao.dart';
 import 'package:autonomy_flutter/model/blockchain.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
+import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class HomeBloc extends Bloc<HomeEvent, HomeState> {
   FeralFileService _feralFileService;
   WalletConnectService _walletConnectService;
+  TezosBeaconService _tezosBeaconService;
   AssetTokenDao _assetTokenDao;
 
-  HomeBloc(this._feralFileService, this._walletConnectService, this._assetTokenDao) : super(HomeState()) {
+  HomeBloc(this._feralFileService, this._walletConnectService, this._tezosBeaconService, this._assetTokenDao) : super(HomeState()) {
     on<HomeConnectWCEvent>((event, emit) {
       _walletConnectService.connect(event.uri);
+    });
+
+    on<HomeConnectTZEvent>((event, emit) {
+      _tezosBeaconService.addPeer(event.uri);
     });
 
     on<HomeCheckFeralFileLoginEvent>((event, emit) async {

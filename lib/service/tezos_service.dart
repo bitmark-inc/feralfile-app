@@ -10,7 +10,9 @@ import 'package:tezart/src/crypto/crypto.dart' show Prefixes;
 
 abstract class TezosService {
   Future<String> getTezosAddress();
+  Future<String> getPublicKey();
   Future<int> getBalance(String address);
+  Future<int> estimateOperationFee(List<TransactionOperation> operation);
   Future<int> estimateFee(String to, int amount);
   Future<String?> sendTransaction(String to, int amount);
 }
@@ -35,9 +37,37 @@ class TezosServiceImpl extends TezosService {
   }
 
   @override
+  Future<String> getPublicKey() async {
+    final wallet = await _personaService.getActivePersona()?.getTezosWallet();
+    if (wallet != null) {
+      return crypto.encodeWithPrefix(
+        prefix: Prefixes.edpk,
+        bytes: wallet.publicKey,
+      );
+    } else {
+      return "";
+    }
+  }
+
+  @override
   Future<int> getBalance(String address) {
     log.info("TezosService.getBalance: $address");
     return _tezartClient.getBalance(address: address);
+  }
+
+  @override
+  Future<int> estimateOperationFee(List<TransactionOperation> operations) async {
+    final keystore = await _getKeystore();
+
+    var operationList = OperationsList(source: keystore, rpcInterface: _tezartClient.rpcInterface);
+
+    operations.forEach((element) {
+      operationList.appendOperation(element);
+    });
+
+    await operationList.estimate();
+
+    return operationList.operations.map((e) => e.fee).reduce((value, element) => value + element);
   }
 
   @override

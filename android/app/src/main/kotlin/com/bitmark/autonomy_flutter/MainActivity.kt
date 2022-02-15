@@ -1,5 +1,6 @@
 package com.bitmark.autonomy_flutter
 
+import TezosBeaconDartPlugin
 import android.content.Context
 import androidx.annotation.NonNull
 import io.flutter.embedding.android.FlutterFragmentActivity
@@ -23,6 +24,8 @@ class MainActivity : FlutterFragmentActivity() {
                 result.notImplemented()
             }
         }
+
+        TezosBeaconDartPlugin().createChannels(flutterEngine)
     }
 
     private fun getExistingUuids(): String {
