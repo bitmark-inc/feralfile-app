@@ -4,6 +4,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -45,27 +46,27 @@ class TBSignMessagePage extends StatelessWidget {
                     SizedBox(height: 8.0),
                     Text(
                       "Confirm",
-                      style: Theme.of(context).textTheme.headline1,
+                      style: appTextTheme.headline1,
                     ),
                     SizedBox(height: 40.0),
                     Text(
                       "Connection",
-                      style: Theme.of(context).textTheme.headline5,
+                      style: appTextTheme.headline5,
                     ),
                     SizedBox(height: 16.0),
                     Text(
                       request.appName ?? "",
-                      style: Theme.of(context).textTheme.bodyText2,
+                      style: appTextTheme.bodyText2,
                     ),
                     Divider(height: 32),
                     Text(
                       "Message",
-                      style: Theme.of(context).textTheme.headline5,
+                      style: appTextTheme.headline5,
                     ),
                     SizedBox(height: 16.0),
                     Text(
                       messageInUtf8,
-                      style: Theme.of(context).textTheme.bodyText2,
+                      style: appTextTheme.bodyText2,
                     ),
                   ],
                 ),
