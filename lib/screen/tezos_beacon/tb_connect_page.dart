@@ -2,6 +2,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -35,7 +36,7 @@ class TBConnectPage extends StatelessWidget {
             SizedBox(height: 8.0),
             Text(
               "Connect",
-              style: Theme.of(context).textTheme.headline1,
+              style: appTextTheme.headline1,
             ),
             SizedBox(height: 40.0),
             Row(
@@ -57,10 +58,10 @@ class TBConnectPage extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(request.appName ?? "",
-                          style: Theme.of(context).textTheme.headline5),
+                          style: appTextTheme.headline5),
                       Text(
                         "requests permission to:",
-                        style: Theme.of(context).textTheme.bodyText1,
+                        style: appTextTheme.bodyText1,
                       ),
                     ],
                   ),
@@ -70,12 +71,12 @@ class TBConnectPage extends StatelessWidget {
             SizedBox(height: 16.0),
             Text(
               "• View your persona’s balance and activity",
-              style: Theme.of(context).textTheme.bodyText1,
+              style: appTextTheme.bodyText1,
             ),
             SizedBox(height: 4.0),
             Text(
               "• Request approval for transactions",
-              style: Theme.of(context).textTheme.bodyText1,
+              style: appTextTheme.bodyText1,
             ),
             Expanded(child: SizedBox()),
             Row(
