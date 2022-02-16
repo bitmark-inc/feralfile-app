@@ -104,8 +104,8 @@ void showErrorDialog(BuildContext context, String title, String description,
       });
 }
 
-void showErrorDiablog(
-    BuildContext context, ErrorEvent event, Function()? defaultAction) {
+void showErrorDiablog(BuildContext context, ErrorEvent event,
+    {Function()? defaultAction}) {
   String defaultButton = "";
   String? cancelButton;
   switch (event.state) {
@@ -130,10 +130,12 @@ void showErrorDialogFromException(Object exception) {
   final event = transalateError(exception);
   final context = injector<NavigationService>().navigatorKey.currentContext;
   if (context != null) {
-    showErrorDiablog(context, event, (() {
-      Navigator.of(context)
-          .pushNamed(SentryReportPage.tag, arguments: exception);
-    }));
+    showErrorDiablog(
+      context,
+      event,
+      defaultAction: () => Navigator.of(context)
+          .pushNamed(SentryReportPage.tag, arguments: exception),
+    );
   }
 }
 
