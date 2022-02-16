@@ -1,14 +1,11 @@
 import 'dart:convert';
 
-import 'package:autonomy_flutter/model/account.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wallet_connect/wallet_connect.dart';
 
 abstract class ConfigurationService {
-  Future<void> setAccount(Account value);
-  Account? getAccount();
   Future<void> setPersonas(List<String> value);
   List<String> getPersonas();
   Future<void> setWCSessions(List<WCSessionStore> value);
@@ -23,6 +20,7 @@ abstract class ConfigurationService {
   bool isAnalyticsEnabled();
   Future<void> setFullscreenIntroEnable(bool value);
   bool isFullscreenIntroEnabled();
+  bool matchFeralFileSourceInNetwork(String source);
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
@@ -38,23 +36,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   SharedPreferences _preferences;
 
   ConfigurationServiceImpl(this._preferences);
-
-  @override
-  Future<void> setAccount(Account value) async {
-    final json = jsonEncode(value);
-    await _preferences.setString(KEY_ACCOUNT, json);
-  }
-
-  @override
-  Account? getAccount() {
-    final data = _preferences.getString(KEY_ACCOUNT);
-    if (data == null) {
-      return null;
-    } else {
-      final json = jsonDecode(data);
-      return Account.fromJson(json);
-    }
-  }
 
   @override
   Future<void> setPersonas(List<String> value) async {
@@ -143,5 +124,15 @@ class ConfigurationServiceImpl implements ConfigurationService {
   Future<void> setFullscreenIntroEnable(bool value) async {
     log.info("setFullscreenIntroEnable: $value");
     await _preferences.setBool(KEY_FULLSCREEN_INTRO, value);
+  }
+
+  @override
+  bool matchFeralFileSourceInNetwork(String source) {
+    final network = getNetwork();
+    if (network == Network.MAINNET) {
+      return source == "https://feralfile.com";
+    } else {
+      return source != "https://feralfile.com";
+    }
   }
 }

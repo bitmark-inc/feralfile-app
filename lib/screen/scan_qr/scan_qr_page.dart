@@ -97,6 +97,7 @@ class _ScanQRPageState extends State<ScanQRPage> {
           } else if (code.startsWith("tezos:") == true) {
             injector<TezosBeaconService>().addPeer(code);
             Navigator.of(context).pop();
+            /* TODO: Remove or support for multiple wallets
           } else if (code.startsWith("tz1")) {
             Navigator.of(context).popAndPushNamed(SendCryptoPage.tag,
                 arguments: SendData(CryptoType.XTZ, code));
@@ -108,6 +109,7 @@ class _ScanQRPageState extends State<ScanQRPage> {
             } catch (err) {
               log(err.toString());
             }
+            */
           }
           break;
       }
@@ -121,4 +123,22 @@ class _ScanQRPageState extends State<ScanQRPage> {
   }
 }
 
-enum ScannerItem { WALLET_CONNECT, BEACON_CONNECT, ETH_ADDRESS, XTZ_ADDRESS, GLOBAL }
+enum ScannerItem {
+  WALLET_CONNECT,
+  BEACON_CONNECT,
+  ETH_ADDRESS,
+  XTZ_ADDRESS,
+  FERALFILE_TOKEN,
+  GLOBAL
+}
+
+extension ScannerItemValue on ScannerItem {
+  String pureValue(String string) {
+    switch (this) {
+      case ScannerItem.FERALFILE_TOKEN:
+        return string.replaceFirst("feralfile-api:", "");
+      default:
+        return string;
+    }
+  }
+}

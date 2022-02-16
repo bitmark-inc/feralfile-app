@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/router/router_bloc.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
@@ -13,6 +15,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    log("DefineViewRoutingEvent");
     context.read<RouterBloc>().add(DefineViewRoutingEvent());
   }
 

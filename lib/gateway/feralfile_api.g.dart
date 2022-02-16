@@ -16,20 +16,20 @@ class _FeralFileApi implements FeralFileApi {
   String? baseUrl;
 
   @override
-  Future<Map<String, Account>> getAccount(bearerToken) async {
+  Future<Map<String, FFAccount>> getAccount(bearerToken) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _data = <String, dynamic>{};
     final _result = await _dio.fetch<Map<String, dynamic>>(
-        _setStreamType<Map<String, Account>>(Options(
+        _setStreamType<Map<String, FFAccount>>(Options(
                 method: 'GET',
                 headers: <String, dynamic>{r'Authorization': bearerToken},
                 extra: _extra)
-            .compose(_dio.options, '/api/accounts/me',
+            .compose(_dio.options, '/api/accounts/me?includeWyre=true',
                 queryParameters: queryParameters, data: _data)
             .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
     var value = _result.data!.map((k, dynamic v) =>
-        MapEntry(k, Account.fromJson(v as Map<String, dynamic>)));
+        MapEntry(k, FFAccount.fromJson(v as Map<String, dynamic>)));
     return value;
   }
 

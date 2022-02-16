@@ -23,7 +23,6 @@ class TBSendTransactionPage extends StatefulWidget {
 }
 
 class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
-
   int? _fee;
 
   @override
@@ -33,6 +32,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
   }
 
   Future _estimateFee() async {
+    /* TODO: Update with multiple wallets
     try {
       final fee = await injector<NetworkConfigInjector>()
           .I<TezosService>()
@@ -41,13 +41,16 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
         _fee = fee;
       });
     } catch (err) {
-     log.warning(err);
+      log.warning(err);
     }
+    */
   }
 
   @override
   Widget build(BuildContext context) {
-    final total = _fee != null ? (widget.request.operations!.first.amount ?? 0) + _fee! : null;
+    final total = _fee != null
+        ? (widget.request.operations!.first.amount ?? 0) + _fee!
+        : null;
     return Scaffold(
       appBar: getBackAppBar(
         context,
@@ -154,13 +157,14 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                   child: AuFilledButton(
                     text: "Send".toUpperCase(),
                     onPress: () async {
-                      final txHash = await injector<NetworkConfigInjector>()
-                          .I<TezosService>()
-                          .sendOperationTransaction(widget.request.operations!);
+                      // TODO
+                      // final txHash = await injector<NetworkConfigInjector>()
+                      //     .I<TezosService>()
+                      //     .sendOperationTransaction(widget.request.operations!);
 
-                      injector<TezosBeaconService>()
-                          .operationResponse(widget.request.id, txHash);
-                      Navigator.of(context).pop();
+                      // injector<TezosBeaconService>()
+                      //     .operationResponse(widget.request.id, txHash);
+                      // Navigator.of(context).pop();
                     },
                   ),
                 )

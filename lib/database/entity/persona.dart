@@ -1,4 +1,5 @@
 import 'package:floor/floor.dart';
+import 'package:libauk_dart/libauk_dart.dart';
 
 class DateTimeConverter extends TypeConverter<DateTime, int> {
   @override
@@ -25,8 +26,7 @@ class Persona {
     required this.createdAt,
   });
 
-  Persona.newPersona(
-      {required this.uuid, required this.name, DateTime? createdAt})
+  Persona.newPersona({required this.uuid, this.name = "", DateTime? createdAt})
       : createdAt = createdAt ?? DateTime.now();
 
   Persona copyWith({
@@ -37,5 +37,9 @@ class Persona {
         uuid: this.uuid,
         name: name ?? this.name,
         createdAt: createdAt ?? this.createdAt);
+  }
+
+  WalletStorage wallet() {
+    return LibAukDart.getWallet(uuid);
   }
 }

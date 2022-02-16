@@ -10,12 +10,16 @@ import 'package:autonomy_flutter/gateway/indexer_api.dart';
 import 'package:autonomy_flutter/model/asset_price.dart';
 import 'package:autonomy_flutter/model/bitmark.dart';
 import 'package:autonomy_flutter/model/blockchain.dart';
+import 'package:autonomy_flutter/model/ff_account.dart';
+import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 
 abstract class FeralFileService {
   Future<void> saveAccount();
+
+  Future<FFAccount> getAccount(String token);
 
   String getAccountNumber();
 
@@ -48,7 +52,20 @@ class FeralFileServiceImpl extends FeralFileService {
 
   @override
   String getAccountNumber() {
-    return _configurationService.getAccount()?.accountNumber ?? "";
+    // TODO
+    return "";
+  }
+
+  @override
+  Future<FFAccount> getAccount(String token) async {
+    final response = await _feralFileApi.getAccount("Bearer $token");
+
+    final ffAccount = response["result"];
+    if (ffAccount == null) {
+      throw Exception('Invalid response');
+    }
+
+    return ffAccount;
   }
 
   @override
@@ -59,49 +76,50 @@ class FeralFileServiceImpl extends FeralFileService {
 
     final account = response["result"];
     if (account != null) {
-      await _configurationService.setAccount(account);
+      // await _configurationService.setAccount(account);
     }
   }
 
   @override
   Future requestIndex() async {
-    final ethAddress = await _ethereumService.getETHAddress();
-    await _indexerApi.requestIndex({"owner": ethAddress, "blockchain": "eth"});
+    // final ethAddress = await _ethereumService.getETHAddress();
+    // await _indexerApi.requestIndex({"owner": ethAddress, "blockchain": "eth"});
 
-    final xtzAddress = await _tezosService.getTezosAddress();
-    await _indexerApi
-        .requestIndex({"owner": xtzAddress, "blockchain": "tezos"});
+    // final xtzAddress = await _tezosService.getTezosAddress();
+    // await _indexerApi
+    //     .requestIndex({"owner": xtzAddress, "blockchain": "tezos"});
   }
 
   @override
   Future<Map<Blockchain, List<AssetToken>>> getNftAssets() async {
-    final accountNumber = getAccountNumber();
-    final response = await _bitmarkApi.getBitmarkIDs(accountNumber, false);
-    final List<String> bitmarkIds =
-        response["bitmarks"]?.map((e) => e.id).toList() ?? [];
+    // final accountNumber = getAccountNumber();
+    // final response = await _bitmarkApi.getBitmarkIDs(accountNumber, false);
+    // final List<String> bitmarkIds =
+    //     response["bitmarks"]?.map((e) => e.id).toList() ?? [];
 
-    final ffAssets = await _indexerApi.getNftTokens({"ids": bitmarkIds});
-    final ffAssetTokens = ffAssets.map((e) => AssetToken.fromAsset(e)).toList();
+    // final ffAssets = await _indexerApi.getNftTokens({"ids": bitmarkIds});
+    // final ffAssetTokens = ffAssets.map((e) => AssetToken.fromAsset(e)).toList();
 
-    final ethAddress = await _ethereumService.getETHAddress();
-    final ethAssets = await _indexerApi.getNftTokensByOwner(ethAddress);
-    final ethAssetTokens =
-        ethAssets.map((e) => AssetToken.fromAsset(e)).toList();
+    // final ethAddress = await _ethereumService.getETHAddress();
+    // final ethAssets = await _indexerApi.getNftTokensByOwner(ethAddress);
+    // final ethAssetTokens =
+    //     ethAssets.map((e) => AssetToken.fromAsset(e)).toList();
 
-    final xtzAddress = await _tezosService.getTezosAddress();
-    final xtzAssets = await _indexerApi.getNftTokensByOwner(xtzAddress);
-    final xtzAssetTokens =
-        xtzAssets.map((e) => AssetToken.fromAsset(e)).toList();
+    // final xtzAddress = await _tezosService.getTezosAddress();
+    // final xtzAssets = await _indexerApi.getNftTokensByOwner(xtzAddress);
+    // final xtzAssetTokens =
+    //     xtzAssets.map((e) => AssetToken.fromAsset(e)).toList();
+    // try {
+    //   await _appDatabase.assetDao
+    //       .insertAssets(ffAssetTokens + ethAssetTokens + xtzAssetTokens);
+    // } catch (err) {}
 
-    try {
-      await _appDatabase.assetDao.insertAssets(ffAssetTokens + ethAssetTokens + xtzAssetTokens);
-    } catch (err) {}
-
-    return {
-      Blockchain.BITMARK: ffAssetTokens,
-      Blockchain.ETHEREUM: ethAssetTokens,
-      Blockchain.TEZOS: xtzAssetTokens,
-    };
+    // return {
+    //   Blockchain.BITMARK: ffAssetTokens,
+    //   Blockchain.ETHEREUM: ethAssetTokens,
+    //   Blockchain.TEZOS: xtzAssetTokens,
+    // };
+    return {};
   }
 
   @override
@@ -120,14 +138,15 @@ class FeralFileServiceImpl extends FeralFileService {
   }
 
   Future<String> _getToken() async {
-    final address = await _ethereumService.getETHAddress();
-    final timestamp =
-        (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
-    final message = AppConfig.ffAuthorizationPrefix + timestamp;
-    final signature = await _ethereumService
-        .signPersonalMessage(Uint8List.fromList(utf8.encode(message)));
-    final rawToken = "$address|$message|$signature";
-    final bytes = utf8.encode(rawToken);
-    return base64.encode(bytes);
+    // final address = await _ethereumService.getETHAddress();
+    // final timestamp =
+    //     (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
+    // final message = AppConfig.ffAuthorizationPrefix + timestamp;
+    // final signature = await _ethereumService
+    //     .signPersonalMessage(Uint8List.fromList(utf8.encode(message)));
+    // final rawToken = "$address|$message|$signature";
+    // final bytes = utf8.encode(rawToken);
+    // return base64.encode(bytes);
+    return "";
   }
 }

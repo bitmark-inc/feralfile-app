@@ -78,12 +78,12 @@ class TBSignMessagePage extends StatelessWidget {
                   child: AuFilledButton(
                     text: "Sign".toUpperCase(),
                     onPress: () async {
-                      final signature = await networkInjector
-                          .I<EthereumService>()
-                          .signPersonalMessage(message);
-                      injector<TezosBeaconService>()
-                          .signResponse(request.id, signature);
-                      Navigator.of(context).pop();
+                      // final signature = await networkInjector
+                      //     .I<EthereumService>()
+                      //     .signPersonalMessage(message);
+                      // injector<TezosBeaconService>()
+                      //     .signResponse(request.id, signature);
+                      // Navigator.of(context).pop();
                     },
                   ),
                 )

@@ -1,8 +1,13 @@
 import 'package:autonomy_flutter/model/currency_exchange.dart';
+import 'package:libauk_dart/libauk_dart.dart';
 
 abstract class SendCryptoEvent {}
 
-class GetBalanceEvent extends SendCryptoEvent {}
+class GetBalanceEvent extends SendCryptoEvent {
+  final WalletStorage wallet;
+
+  GetBalanceEvent(this.wallet);
+}
 
 class AmountChangedEvent extends SendCryptoEvent {
   final String amount;
@@ -30,6 +35,8 @@ class EstimateFeeEvent extends SendCryptoEvent {
 }
 
 class SendCryptoState {
+  WalletStorage? wallet;
+
   bool isScanQR;
   bool isCrypto;
 
@@ -47,7 +54,8 @@ class SendCryptoState {
   CurrencyExchangeRate exchangeRate;
 
   SendCryptoState(
-      {this.isScanQR = true,
+      {this.wallet,
+      this.isScanQR = true,
       this.isCrypto = true,
       this.isAddressError = false,
       this.isAmountError = false,
@@ -60,6 +68,7 @@ class SendCryptoState {
       this.exchangeRate = const CurrencyExchangeRate(eth: "1.0", xtz: "1.0")});
 
   SendCryptoState clone() => SendCryptoState(
+        wallet: wallet,
         isScanQR: isScanQR,
         isCrypto: isCrypto,
         isAddressError: isAddressError,

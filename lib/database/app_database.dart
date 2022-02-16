@@ -1,8 +1,10 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/database/dao/asset_token_dao.dart';
+import 'package:autonomy_flutter/database/dao/connection_dao.dart';
 import 'package:autonomy_flutter/database/dao/persona_dao.dart';
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
+import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:floor/floor.dart';
 import 'package:sqflite/sqflite.dart' as sqflite;
@@ -15,7 +17,8 @@ abstract class AppDatabase extends FloorDatabase {
 }
 
 @TypeConverters([DateTimeConverter])
-@Database(version: 1, entities: [Persona])
+@Database(version: 1, entities: [Persona, Connection])
 abstract class CloudDatabase extends FloorDatabase {
   PersonaDao get personaDao;
+  ConnectionDao get connectionDao;
 }

@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:libauk_dart/libauk_dart.dart';
 
 class SendCryptoPage extends StatefulWidget {
   static const String tag = 'send_crypto';
@@ -39,7 +40,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
       _addressController.text = widget.data.address!;
     }
 
-    context.read<SendCryptoBloc>().add(GetBalanceEvent());
+    context.read<SendCryptoBloc>().add(GetBalanceEvent(widget.data.wallet));
   }
 
   @override
@@ -112,23 +113,23 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                   keyboardType: TextInputType.numberWithOptions(decimal: true),
                   subTitleView: state.maxAllow != null
                       ? GestureDetector(
-                    child: Text(
-                      _maxAmountText(state),
-                      style: TextStyle(
-                          fontSize: 12,
-                          decoration: TextDecoration.underline,
-                          fontFamily: "AtlasGrotesk",
-                          color: AppColorTheme.secondaryHeaderColor,
-                          fontWeight: FontWeight.w300),
-                    ),
-                    onTap: () {
-                      String amountInStr = _maxAmount(state);
-                      _amountController.text = amountInStr;
-                      context
-                          .read<SendCryptoBloc>()
-                          .add(AmountChangedEvent(amountInStr));
-                    },
-                  )
+                          child: Text(
+                            _maxAmountText(state),
+                            style: TextStyle(
+                                fontSize: 12,
+                                decoration: TextDecoration.underline,
+                                fontFamily: "AtlasGrotesk",
+                                color: AppColorTheme.secondaryHeaderColor,
+                                fontWeight: FontWeight.w300),
+                          ),
+                          onTap: () {
+                            String amountInStr = _maxAmount(state);
+                            _amountController.text = amountInStr;
+                            context
+                                .read<SendCryptoBloc>()
+                                .add(AmountChangedEvent(amountInStr));
+                          },
+                        )
                       : null,
                   suffix: IconButton(
                     icon: SvgPicture.asset(state.isCrypto
@@ -183,19 +184,20 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                         text: "Review",
                         onPress: state.isValid
                             ? () async {
-                          final payload = SendCryptoPayload(
-                              type,
-                              state.address!,
-                              state.amount!,
-                              state.fee!,
-                              state.exchangeRate);
-                          final txHash = await Navigator.of(context)
-                              .pushNamed(SendReviewPage.tag,
-                              arguments: payload);
-                          if (txHash != null && txHash is String) {
-                            Navigator.of(context).pop();
-                          }
-                        }
+                                final payload = SendCryptoPayload(
+                                    type,
+                                    state.wallet!,
+                                    state.address!,
+                                    state.amount!,
+                                    state.fee!,
+                                    state.exchangeRate);
+                                final txHash = await Navigator.of(context)
+                                    .pushNamed(SendReviewPage.tag,
+                                        arguments: payload);
+                                if (txHash != null && txHash is String) {
+                                  Navigator.of(context).pop();
+                                }
+                              }
                             : null,
                       ),
                     ),
@@ -269,19 +271,21 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
 }
 
 class SendData {
+  final WalletStorage wallet;
   final CryptoType type;
   final String? address;
 
-  SendData(this.type, this.address);
+  SendData(this.wallet, this.type, this.address);
 }
 
 class SendCryptoPayload {
   final CryptoType type;
+  final WalletStorage wallet;
   final String address;
   final BigInt amount;
   final BigInt fee;
   final CurrencyExchangeRate exchangeRate;
 
-  SendCryptoPayload(
-      this.type, this.address, this.amount, this.fee, this.exchangeRate);
+  SendCryptoPayload(this.type, this.wallet, this.address, this.amount, this.fee,
+      this.exchangeRate);
 }

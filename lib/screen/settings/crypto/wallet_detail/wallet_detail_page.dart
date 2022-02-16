@@ -1,3 +1,7 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:libauk_dart/libauk_dart.dart';
+
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/receive_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_page.dart';
@@ -5,19 +9,17 @@ import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_det
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_state.dart';
 import 'package:autonomy_flutter/view/au_outlined_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 class WalletDetailPage extends StatelessWidget {
-  static const String tag = 'wallet_detail';
+  final WalletDetailsPayload payload;
 
-  final CryptoType type;
-
-  const WalletDetailPage({Key? key, required this.type}) : super(key: key);
+  const WalletDetailPage({Key? key, required this.payload}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    context.read<WalletDetailBloc>().add(WalletDetailBalanceEvent(type));
+    context
+        .read<WalletDetailBloc>()
+        .add(WalletDetailBalanceEvent(payload.type, payload.wallet));
 
     return Scaffold(
       appBar: getBackAppBar(
@@ -26,7 +28,8 @@ class WalletDetailPage extends StatelessWidget {
           Navigator.of(context).pop();
         },
       ),
-      body: BlocBuilder<WalletDetailBloc, WalletDetailState>(builder: (context, state) {
+      body: BlocBuilder<WalletDetailBloc, WalletDetailState>(
+          builder: (context, state) {
         return Container(
           margin: EdgeInsets.all(16.0),
           child: Column(
@@ -39,7 +42,9 @@ class WalletDetailPage extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      state.balance.isNotEmpty ? state.balance : "-- ${type == CryptoType.ETH ? "ETH" : "XTZ"}",
+                      state.balance.isNotEmpty
+                          ? state.balance
+                          : "-- ${payload.type == CryptoType.ETH ? "ETH" : "XTZ"}",
                       style: TextStyle(
                           color: Colors.black,
                           fontSize: 24,
@@ -48,7 +53,9 @@ class WalletDetailPage extends StatelessWidget {
                     ),
                     SizedBox(height: 8.0),
                     Text(
-                      state.balanceInUSD.isNotEmpty ? state.balanceInUSD : "-- USD",
+                      state.balanceInUSD.isNotEmpty
+                          ? state.balanceInUSD
+                          : "-- USD",
                       style: TextStyle(
                           color: Colors.black,
                           fontSize: 16,
@@ -65,7 +72,9 @@ class WalletDetailPage extends StatelessWidget {
                     child: AuOutlinedButton(
                       text: "Send",
                       onPress: () {
-                        Navigator.of(context).pushNamed(SendCryptoPage.tag, arguments: SendData(type, null));
+                        Navigator.of(context).pushNamed(SendCryptoPage.tag,
+                            arguments:
+                                SendData(payload.wallet, payload.type, null));
                       },
                     ),
                   ),
@@ -77,7 +86,9 @@ class WalletDetailPage extends StatelessWidget {
                       text: "Receive",
                       onPress: () {
                         if (state.address.isNotEmpty) {
-                          Navigator.of(context).pushNamed(ReceivePage.tag, arguments: WalletPayload(type, state.address));
+                          Navigator.of(context).pushNamed(ReceivePage.tag,
+                              arguments:
+                                  WalletPayload(CryptoType.ETH, state.address));
                         }
                       },
                     ),
@@ -90,6 +101,16 @@ class WalletDetailPage extends StatelessWidget {
       }),
     );
   }
+}
+
+class WalletDetailsPayload {
+  final CryptoType type;
+  final WalletStorage wallet;
+
+  WalletDetailsPayload({
+    required this.type,
+    required this.wallet,
+  });
 }
 
 enum CryptoType {
