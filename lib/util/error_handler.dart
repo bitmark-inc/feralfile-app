@@ -5,6 +5,7 @@ import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../screen/report/sentry_report_page.dart';
 
@@ -25,6 +26,8 @@ class ErrorEvent {
 
   ErrorEvent(this.err, this.title, this.message, this.state);
 }
+
+PlatformException? lastException;
 
 ErrorEvent transalateError(Object exception) {
   if (exception is DioError) {
@@ -127,6 +130,12 @@ void showErrorDiablog(BuildContext context, ErrorEvent event,
 }
 
 void showErrorDialogFromException(Object exception) {
+  if (exception is PlatformException &&
+      lastException != null &&
+      lastException?.message == exception.message) {
+    return;
+  }
+  lastException = exception as PlatformException?;
   final event = transalateError(exception);
   final context = injector<NavigationService>().navigatorKey.currentContext;
   if (context != null) {
