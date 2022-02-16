@@ -4,16 +4,24 @@ import 'package:autonomy_flutter/service/persona_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter/foundation.dart';
 import 'package:libauk_dart/libauk_dart.dart';
-import 'package:tezart/tezart.dart';
 import 'package:tezart/src/crypto/crypto.dart' as crypto;
 import 'package:tezart/src/crypto/crypto.dart' show Prefixes;
+import 'package:tezart/tezart.dart';
 
 abstract class TezosService {
   Future<String> getTezosAddress();
+
   Future<String> getPublicKey();
+
   Future<int> getBalance(String address);
+
   Future<int> estimateOperationFee(List<TransactionOperation> operation);
+
   Future<int> estimateFee(String to, int amount);
+
+  Future<String?> sendOperationTransaction(
+      List<TransactionOperation> operation);
+
   Future<String?> sendTransaction(String to, int amount);
 }
 
@@ -56,18 +64,53 @@ class TezosServiceImpl extends TezosService {
   }
 
   @override
-  Future<int> estimateOperationFee(List<TransactionOperation> operations) async {
+  Future<int> estimateOperationFee(
+      List<TransactionOperation> operations) async {
+    log.info("TezosService.estimateOperationFee");
+
     final keystore = await _getKeystore();
 
-    var operationList = OperationsList(source: keystore, rpcInterface: _tezartClient.rpcInterface);
+    var operationList = OperationsList(
+        source: keystore, rpcInterface: _tezartClient.rpcInterface);
 
     operations.forEach((element) {
       operationList.appendOperation(element);
     });
 
+    final isReveal = await _tezartClient.isKeyRevealed(keystore.address);
+    if (!isReveal) {
+      operationList.prependOperation(RevealOperation());
+    }
+
     await operationList.estimate();
 
-    return operationList.operations.map((e) => e.fee).reduce((value, element) => value + element);
+    return operationList.operations
+        .map((e) => e.fee)
+        .reduce((value, element) => value + element);
+  }
+
+  @override
+  Future<String?> sendOperationTransaction(
+      List<TransactionOperation> operations) async {
+    log.info("TezosService.sendOperationTransaction");
+
+    final keystore = await _getKeystore();
+
+    var operationList = OperationsList(
+        source: keystore, rpcInterface: _tezartClient.rpcInterface);
+
+    operations.forEach((element) {
+      operationList.appendOperation(element);
+    });
+
+    final isReveal = await _tezartClient.isKeyRevealed(keystore.address);
+    if (!isReveal) {
+      operationList.prependOperation(RevealOperation());
+    }
+
+    await operationList.execute();
+
+    return operationList.result.signature?.edsig;
   }
 
   @override
@@ -75,20 +118,18 @@ class TezosServiceImpl extends TezosService {
     log.info("TezosService.estimateFee: $to, $amount");
     final keystore = await _getKeystore();
     final operation = await _tezartClient.transferOperation(
-        source: keystore, destination: to, amount: amount, reveal: true);
+      source: keystore,
+      destination: to,
+      amount: amount,
+      reveal: true,
+      customGasLimit: 10500,
+      customStorageLimit: 257,
+    );
     await operation.estimate();
 
     return operation.operations
         .map((e) => e.fee)
         .reduce((value, element) => value + element);
-    //
-    // final operationsList = OperationsList(rpcInterface: _tezartClient.rpcInterface, source: keystore);
-    // final transactionOperation = TransactionOperation(amount: 1, destination: to);
-    //
-    // operationsList.appendOperation(transactionOperation);
-    // await operationsList.estimate();
-    //
-    // return operationsList.operations.map((e) => e.fee).reduce((value, element) => value + element);
   }
 
   @override
@@ -96,18 +137,16 @@ class TezosServiceImpl extends TezosService {
     log.info("TezosService.sendTransaction: $to, $amount");
     final keystore = await _getKeystore();
     final operation = await _tezartClient.transferOperation(
-        source: keystore, destination: to, amount: amount, reveal: true);
+      source: keystore,
+      destination: to,
+      amount: amount,
+      reveal: true,
+      customGasLimit: 10500,
+      customStorageLimit: 257,
+    );
     await operation.execute();
 
     return operation.result.signature?.edsig;
-    //
-    // final operationsList = OperationsList(rpcInterface: _tezartClient.rpcInterface, source: keystore);
-    // final transactionOperation = TransactionOperation(amount: amount, destination: to);
-    //
-    // operationsList.appendOperation(transactionOperation);
-    // await operationsList.execute();
-
-    // return operationsList.result.signature?.edsig;
   }
 
   Future<Keystore> _getKeystore() async {

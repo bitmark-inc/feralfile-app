@@ -70,7 +70,7 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                         SizedBox(height: 40.0),
                         Text(
                           "Asset",
-                          style: appTextTheme.headline5,
+                          style: appTextTheme.headline4,
                         ),
                         SizedBox(height: 16.0),
                         Text(
@@ -80,7 +80,7 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                         Divider(height: 32),
                         Text(
                           "From",
-                          style: appTextTheme.headline5,
+                          style: appTextTheme.headline4,
                         ),
                         SizedBox(height: 16.0),
                         Text(
@@ -90,7 +90,7 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                         Divider(height: 32),
                         Text(
                           "Connection",
-                          style: appTextTheme.headline5,
+                          style: appTextTheme.headline4,
                         ),
                         SizedBox(height: 16.0),
                         Text(
@@ -103,7 +103,7 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                           children: [
                             Text(
                               "Send",
-                              style: appTextTheme.headline5,
+                              style: appTextTheme.headline4,
                             ),
                             Text(
                               "${EthAmountFormatter(amount.getInWei).format()} ETH",
@@ -117,7 +117,7 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                           children: [
                             Text(
                               "Gas fee",
-                              style: appTextTheme.headline5,
+                              style: appTextTheme.headline4,
                             ),
                             Text(
                               "${state.fee != null ? EthAmountFormatter(state.fee!).format() : "-"} ETH",
@@ -131,11 +131,11 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                           children: [
                             Text(
                               "Total Amount",
-                              style: appTextTheme.headline5,
+                              style: appTextTheme.headline4,
                             ),
                             Text(
                               "${total != null ? EthAmountFormatter(total).format() : "-"} ETH",
-                              style: appTextTheme.headline5,
+                              style: appTextTheme.headline4,
                             ),
                           ],
                         ),

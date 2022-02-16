@@ -77,16 +77,20 @@ class TezosBeaconChannel {
 
                 final String destination = element["destination"] ?? "";
                 final String amount = element["amount"] ?? "0";
+                final String? storageLimit = element["storageLimit"];
+                final String? gasLimit = element["gasLimit"];
+                final String? fee = element["fee"];
                 final String? entrypoint = element["entrypoint"];
                 final Map<String, dynamic> parameters = json.decode(json.encode(element["parameters"]));
-
-                print(parameters.runtimeType);
 
                 operations.add(TransactionOperation(
                   amount: int.parse(amount),
                   destination: destination,
                   entrypoint: entrypoint,
                   params: parameters,
+                  customFee: fee != null ? int.parse(fee) : null,
+                  customGasLimit: gasLimit != null ? int.parse(gasLimit) : 100000,
+                  customStorageLimit: storageLimit != null ? int.parse(storageLimit) : 1000
                 ));
               });
 

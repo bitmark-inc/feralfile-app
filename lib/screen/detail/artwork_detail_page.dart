@@ -173,7 +173,7 @@ class ArtworkDetailPage extends StatelessWidget {
           children: [
             Text(
               name,
-              style: appTextTheme.headline5,
+              style: appTextTheme.headline4,
             ),
             Icon(CupertinoIcons.forward)
           ],
@@ -303,7 +303,7 @@ class ArtworkDetailPage extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-          child: Text(name, style: appTextTheme.headline5),
+          child: Text(name, style: appTextTheme.headline4),
         ),
         Expanded(
           child: Row(

@@ -2,6 +2,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
 import 'package:autonomy_flutter/util/xtz_amount_formatter.dart';
@@ -22,6 +23,9 @@ class TBSendTransactionPage extends StatefulWidget {
 }
 
 class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
+
+  int? _fee;
+
   @override
   void initState() {
     super.initState();
@@ -29,16 +33,21 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
   }
 
   Future _estimateFee() async {
-    print("*********************");
-    final fee = await injector<NetworkConfigInjector>()
-        .I<TezosService>()
-        .estimateOperationFee(widget.request.operations!);
-    print("---------------------");
-    print(fee);
+    try {
+      final fee = await injector<NetworkConfigInjector>()
+          .I<TezosService>()
+          .estimateOperationFee(widget.request.operations!);
+      setState(() {
+        _fee = fee;
+      });
+    } catch (err) {
+     log.warning(err);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final total = _fee != null ? (widget.request.operations!.first.amount ?? 0) + _fee! : null;
     return Scaffold(
       appBar: getBackAppBar(
         context,
@@ -66,7 +75,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                     SizedBox(height: 40.0),
                     Text(
                       "Asset",
-                      style: appTextTheme.headline5,
+                      style: appTextTheme.headline4,
                     ),
                     SizedBox(height: 16.0),
                     Text(
@@ -76,7 +85,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                     Divider(height: 32),
                     Text(
                       "From",
-                      style: appTextTheme.headline5,
+                      style: appTextTheme.headline4,
                     ),
                     SizedBox(height: 16.0),
                     Text(
@@ -86,7 +95,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                     Divider(height: 32),
                     Text(
                       "Connection",
-                      style: appTextTheme.headline5,
+                      style: appTextTheme.headline4,
                     ),
                     SizedBox(height: 16.0),
                     Text(
@@ -99,7 +108,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                       children: [
                         Text(
                           "Send",
-                          style: appTextTheme.headline5,
+                          style: appTextTheme.headline4,
                         ),
                         Text(
                           "${XtzAmountFormatter(widget.request.operations!.first.amount ?? 0).format()} XTZ",
@@ -113,10 +122,10 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                       children: [
                         Text(
                           "Gas fee",
-                          style: appTextTheme.headline5,
+                          style: appTextTheme.headline4,
                         ),
                         Text(
-                          "- XTZ",
+                          "${_fee != null ? XtzAmountFormatter(_fee!).format() : "-"} XTZ",
                           style: appTextTheme.bodyText2,
                         ),
                       ],
@@ -127,11 +136,11 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                       children: [
                         Text(
                           "Total Amount",
-                          style: appTextTheme.headline5,
+                          style: appTextTheme.headline4,
                         ),
                         Text(
-                          "- XTZ",
-                          style: appTextTheme.headline5,
+                          "${total != null ? XtzAmountFormatter(total).format() : "-"} XTZ",
+                          style: appTextTheme.headline4,
                         ),
                       ],
                     ),
@@ -145,7 +154,13 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                   child: AuFilledButton(
                     text: "Send".toUpperCase(),
                     onPress: () async {
-                      // if (state.fee == null) return;
+                      final txHash = await injector<NetworkConfigInjector>()
+                          .I<TezosService>()
+                          .sendOperationTransaction(widget.request.operations!);
+
+                      injector<TezosBeaconService>()
+                          .operationResponse(widget.request.id, txHash);
+                      Navigator.of(context).pop();
                     },
                   ),
                 )
