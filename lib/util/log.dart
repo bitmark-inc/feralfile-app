@@ -20,6 +20,14 @@ Future<List<String>> getLogFiles() async {
   return Directory(directory).listSync().map((e) => e.path).toList();
 }
 
+Future<String> getLatestLogFile() async {
+  final directory = await getLogFolderPath();
+  final fileList = Directory(directory).listSync();
+  fileList.sort(((a, b) => b.path.compareTo(a.path)));
+
+  return fileList.map((e) => e.path).toList().first;
+}
+
 class FileLogger {
   static final _lock =
       synchronization.Lock(); // uses the “synchronized” package
