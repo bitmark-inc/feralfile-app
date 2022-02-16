@@ -52,89 +52,78 @@ class _SettingsPageState extends State<SettingsPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          Padding(
-            padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
-            child: GestureDetector(
-              child: IconButton(
-                icon: Icon(Icons.qr_code),
-                onPressed: () {
-                  Navigator.of(context)
-                      .pushNamed(ScanQRPage.tag, arguments: ScannerItem.GLOBAL);
-                },
+      body: Container(
+        margin: EdgeInsets.only(
+            top: MediaQuery.of(context).padding.top,
+            left: 16.0,
+            right: 16.0,
+            bottom: 20.0),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Expanded(
+            child: SingleChildScrollView(
+              child: Stack(
+                children: [
+                  IconButton(
+                    icon: Icon(Icons.qr_code),
+                    onPressed: () {
+                      Navigator.of(context).pushNamed(ScanQRPage.tag,
+                          arguments: ScannerItem.GLOBAL);
+                    },
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      GestureDetector(
+                        child: Center(
+                          child: Image.asset("assets/images/penrose.png"),
+                        ),
+                        onTap: () {
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                      SizedBox(height: 24.0),
+                      AccountsView(),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          TextButton(
+                              onPressed: () => Navigator.of(context)
+                                  .pushNamed(AppRouter.linkAccountpage),
+                              child:
+                                  Text('+ Add', style: appTextTheme.bodyText2)),
+                        ],
+                      ),
+                      SizedBox(height: 16.0),
+                      BlocProvider(
+                        create: (_) => PreferencesBloc(injector()),
+                        child: PreferenceView(),
+                      ),
+                      SizedBox(height: 24.0),
+                      Text(
+                        "Networks",
+                        style: appTextTheme.headline1,
+                      ),
+                      SizedBox(height: 16.0),
+                      _settingItem(
+                          context,
+                          "Select network",
+                          injector<ConfigurationService>().getNetwork() ==
+                                  Network.TESTNET
+                              ? "Test network"
+                              : "Main network", () async {
+                        await Navigator.of(context)
+                            .pushNamed(SelectNetworkPage.tag);
+                      }),
+                      SizedBox(height: 40),
+                      SupportView(),
+                      SizedBox(height: 40),
+                    ],
+                  ),
+                ],
               ),
-              onTap: () {
-                Navigator.of(context).pop();
-              },
             ),
           ),
-          Container(
-            margin: EdgeInsets.only(
-                top: MediaQuery.of(context).padding.top + 32,
-                left: 16.0,
-                right: 16.0,
-                bottom: 20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                GestureDetector(
-                  child: Center(
-                    child: Image.asset("assets/images/penrose.png"),
-                  ),
-                  onTap: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-                SizedBox(height: 24.0),
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        AccountsView(),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            TextButton(
-                                onPressed: () => Navigator.of(context)
-                                    .pushNamed(AppRouter.linkAccountpage),
-                                child: Text('+ Add',
-                                    style: appTextTheme.bodyText2)),
-                          ],
-                        ),
-                        SizedBox(height: 16.0),
-                        BlocProvider(
-                          create: (_) => PreferencesBloc(injector()),
-                          child: PreferenceView(),
-                        ),
-                        SizedBox(height: 24.0),
-                        Text(
-                          "Networks",
-                          style: appTextTheme.headline1,
-                        ),
-                        SizedBox(height: 16.0),
-                        _settingItem(
-                            context,
-                            "Select network",
-                            injector<ConfigurationService>().getNetwork() ==
-                                    Network.TESTNET
-                                ? "Test network"
-                                : "Main network", () async {
-                          await Navigator.of(context)
-                              .pushNamed(SelectNetworkPage.tag);
-                        }),
-                        SizedBox(height: 40),
-                        SupportView(),
-                        SizedBox(height: 40),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          )
-        ],
+        ]),
       ),
     );
   }

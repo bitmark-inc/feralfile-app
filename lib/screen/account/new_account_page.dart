@@ -71,14 +71,14 @@ class NewAccountPage extends StatelessWidget {
             UIHelper.hideInfoDialog(context);
             UIHelper.showInfoDialog(context, "Account created", "");
 
-            Future.delayed(Duration(seconds: 1));
-
-            UIHelper.hideInfoDialog(context);
-            final createdPersona = state.persona;
-            if (createdPersona != null) {
-              Navigator.of(context).pushNamed(AppRouter.namePersonaPage,
-                  arguments: createdPersona.uuid);
-            }
+            Future.delayed(SHORT_SHOW_DIALOG_DURATION, () {
+              UIHelper.hideInfoDialog(context);
+              final createdPersona = state.persona;
+              if (createdPersona != null) {
+                Navigator.of(context).pushNamed(AppRouter.namePersonaPage,
+                    arguments: createdPersona.uuid);
+              }
+            });
             break;
 
           default:
@@ -96,6 +96,7 @@ class NewAccountPage extends StatelessWidget {
   Widget _optionItem(BuildContext context, String title, String description,
       {required Function() onTap}) {
     return GestureDetector(
+      behavior: HitTestBehavior.translucent,
       child: Container(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

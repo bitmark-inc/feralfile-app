@@ -69,6 +69,10 @@ class AuTextField extends StatelessWidget {
                         isDense: true,
                         border: InputBorder.none,
                         hintText: placeholder,
+                        hintStyle: TextStyle(
+                          fontSize: 16,
+                          fontFamily: "AtlasGrotesk",
+                        ),
                       ),
                       keyboardType: keyboardType,
                       style: TextStyle(

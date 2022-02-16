@@ -1,19 +1,34 @@
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/theme_manager.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:flutter/material.dart';
 
 enum ActionState { notRequested, loading, error, done }
 
+const SHOW_DIALOG_DURATION = const Duration(seconds: 2);
+const SHORT_SHOW_DIALOG_DURATION = const Duration(seconds: 1);
+
+void doneOnboarding(BuildContext context) {
+  injector<ConfigurationService>().setDoneOnboarding(true);
+  Navigator.of(context)
+      .pushNamedAndRemoveUntil(AppRouter.homePage, (route) => false);
+}
+
 class UIHelper {
   static showInfoDialog(
-      BuildContext context, String title, String description) {
+    BuildContext context,
+    String title,
+    String description, {
+    bool isDismissible = true,
+  }) {
     final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
 
     showModalBottomSheet(
         context: context,
-        // isDismissible: false,
+        isDismissible: isDismissible,
         enableDrag: false,
-        // isScrollControlled: false,
         builder: (context) {
           return Container(
             color: Color(0xFF737373),
@@ -45,6 +60,6 @@ class UIHelper {
   }
 
   static hideInfoDialog(BuildContext context) {
-    Navigator.of(context).pop();
+    Navigator.popUntil(context, (route) => route.settings.name != null);
   }
 }

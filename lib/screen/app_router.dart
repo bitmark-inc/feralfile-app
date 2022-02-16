@@ -73,11 +73,13 @@ class AppRouter {
     switch (settings.name) {
       case onboardingPage:
         return CupertinoPageRoute(
+            settings: settings,
             builder: (context) => BlocProvider(
                 create: (_) => RouterBloc(injector<CloudDatabase>()),
                 child: OnboardingPage()));
       case homePage:
         return CupertinoPageRoute(
+            settings: settings,
             builder: (context) => BlocProvider(
                   create: (_) => HomeBloc(networkInjector.I(), injector(),
                       injector(), networkInjector.I<AppDatabase>().assetDao),
@@ -85,24 +87,29 @@ class AppRouter {
                 ));
       case beOwnGalleryPage:
         return CupertinoPageRoute(
+          settings: settings,
           builder: (context) => BeOwnGalleryPage(),
         );
       case AppRouter.newAccountPage:
         return CupertinoPageRoute(
+            settings: settings,
             builder: (context) => BlocProvider(
                 create: (_) => PersonaBloc(injector<CloudDatabase>()),
                 child: NewAccountPage()));
 
       case AppRouter.linkAccountpage:
-        return CupertinoPageRoute(builder: (context) => LinkAccountPage());
+        return CupertinoPageRoute(
+            settings: settings, builder: (context) => LinkAccountPage());
 
       case accountsPreviewPage:
         return CupertinoPageRoute(
+            settings: settings,
             builder: (context) => BlocProvider.value(
                 value: accountsBloc, child: AccountsPreviewPage()));
 
       case linkFeralFilePage:
         return CupertinoPageRoute(
+            settings: settings,
             builder: (context) => BlocProvider(
                 create: (_) => FeralfileBloc(
                     injector(), networkInjector.I(), injector<CloudDatabase>()),
@@ -110,27 +117,32 @@ class AppRouter {
 
       case AppRouter.namePersonaPage:
         return CupertinoPageRoute(
+            settings: settings,
             builder: (context) => BlocProvider(
                   create: (_) => PersonaBloc(injector<CloudDatabase>()),
                   child: NamePersonaPage(uuid: settings.arguments as String),
                 ));
       case WCConnectPage.tag:
         return CupertinoPageRoute(
+          settings: settings,
           builder: (context) =>
               WCConnectPage(args: settings.arguments as WCConnectPageArgs),
         );
       case WCDisconnectPage.tag:
         return CupertinoPageRoute(
+          settings: settings,
           builder: (context) =>
               WCDisconnectPage(client: settings.arguments as WCClient),
         );
       case WCSignMessagePage.tag:
         return CupertinoPageRoute(
+          settings: settings,
           builder: (context) => WCSignMessagePage(
               args: settings.arguments as WCSignMessagePageArgs),
         );
       case WCSendTransactionPage.tag:
         return CupertinoPageRoute(
+          settings: settings,
           builder: (context) => BlocProvider(
             create: (_) => WCSendTransactionBloc(
                 injector(), networkInjector.I(), injector()),
@@ -140,12 +152,14 @@ class AppRouter {
         );
       case ScanQRPage.tag:
         return CupertinoPageRoute(
+            settings: settings,
             fullscreenDialog: true,
             builder: (context) => ScanQRPage(
                   scannerItem: settings.arguments as ScannerItem,
                 ));
       case settingsPage:
         return CupertinoPageRoute(
+            settings: settings,
             fullscreenDialog: true,
             builder: (context) => MultiBlocProvider(providers: [
                   BlocProvider.value(value: accountsBloc),
@@ -157,6 +171,7 @@ class AppRouter {
 
       case personaDetailsPage:
         return CupertinoPageRoute(
+            settings: settings,
             builder: (context) => MultiBlocProvider(
                     providers: [
                       BlocProvider.value(value: ethereumBloc),
@@ -168,6 +183,7 @@ class AppRouter {
 
       case linkedAccountDetailsPage:
         return CupertinoPageRoute(
+            settings: settings,
             builder: (context) => BlocProvider(
                   create: (_) => FeralfileBloc(injector(), networkInjector.I(),
                       injector<CloudDatabase>()),
@@ -177,6 +193,7 @@ class AppRouter {
 
       case walletDetailsPage:
         return CupertinoPageRoute(
+            settings: settings,
             builder: (context) => BlocProvider(
                   create: (_) => WalletDetailBloc(
                       networkInjector.I(), networkInjector.I(), injector()),
@@ -185,10 +202,12 @@ class AppRouter {
                 ));
       case ReceivePage.tag:
         return CupertinoPageRoute(
+            settings: settings,
             builder: (context) =>
                 ReceivePage(payload: settings.arguments as WalletPayload));
       case SendCryptoPage.tag:
         return CupertinoPageRoute(
+            settings: settings,
             builder: (context) => BlocProvider(
                   create: (_) => SendCryptoBloc(
                       networkInjector.I(),
@@ -199,11 +218,13 @@ class AppRouter {
                 ));
       case SendReviewPage.tag:
         return CupertinoPageRoute(
+            settings: settings,
             builder: (context) => SendReviewPage(
                   payload: settings.arguments as SendCryptoPayload,
                 ));
       case ArtworkPreviewPage.tag:
         return CupertinoPageRoute(
+            settings: settings,
             builder: (context) => BlocProvider(
                   create: (_) => ArtworkPreviewBloc(
                       networkInjector.I<AppDatabase>().assetDao),
@@ -213,12 +234,14 @@ class AppRouter {
                 ));
       case SelectNetworkPage.tag:
         return CupertinoPageRoute(
+            settings: settings,
             builder: (context) => BlocProvider(
                   create: (_) => SelectNetworkBloc(injector()),
                   child: SelectNetworkPage(),
                 ));
       case ArtworkDetailPage.tag:
         return CupertinoPageRoute(
+            settings: settings,
             builder: (context) => BlocProvider(
                   create: (_) => ArtworkDetailBloc(networkInjector.I(),
                       networkInjector.I<AppDatabase>().assetDao),
@@ -227,16 +250,19 @@ class AppRouter {
                 ));
       case TBConnectPage.tag:
         return MaterialPageRoute(
+          settings: settings,
           builder: (context) =>
               TBConnectPage(request: settings.arguments as BeaconRequest),
         );
       case TBSignMessagePage.tag:
         return MaterialPageRoute(
+          settings: settings,
           builder: (context) =>
               TBSignMessagePage(request: settings.arguments as BeaconRequest),
         );
       case TBSendTransactionPage.tag:
         return MaterialPageRoute(
+          settings: settings,
           builder: (context) => TBSendTransactionPage(
               request: settings.arguments as BeaconRequest),
         );

@@ -18,6 +18,8 @@ abstract class ConfigurationService {
   bool isNotificationEnabled();
   Future<void> setAnalyticEnabled(bool value);
   bool isAnalyticsEnabled();
+  Future<void> setDoneOnboarding(bool value);
+  bool isDoneOnboarding();
   Future<void> setFullscreenIntroEnable(bool value);
   bool isFullscreenIntroEnabled();
   bool matchFeralFileSourceInNetwork(String source);
@@ -32,6 +34,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_NOTIFICATION = "notifications";
   static const String KEY_ANALYTICS = "analytics";
   static const String KEY_FULLSCREEN_INTRO = "fullscreen_intro";
+  static const String KEY_DONE_ONBOARING = "done_onboarding";
 
   SharedPreferences _preferences;
 
@@ -104,9 +107,20 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
+  bool isDoneOnboarding() {
+    return _preferences.getBool(KEY_DONE_ONBOARING) ?? false;
+  }
+
+  @override
   Future<void> setAnalyticEnabled(bool value) async {
     log.info("setAnalyticEnabled: $value");
     await _preferences.setBool(KEY_ANALYTICS, value);
+  }
+
+  @override
+  Future<void> setDoneOnboarding(bool value) async {
+    log.info("setDoneOnboarding: $value");
+    await _preferences.setBool(KEY_DONE_ONBOARING, value);
   }
 
   @override

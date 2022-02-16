@@ -1,6 +1,8 @@
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/feralfile/feralfile_bloc.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
@@ -39,11 +41,15 @@ class _LinkFeralFilePageState extends State<LinkFeralFilePage> {
                 UIHelper.showInfoDialog(context, 'Account linked',
                     'Autonomy has linked your Feral File account.');
 
-                Future.delayed(Duration(seconds: 2));
-                Navigator.of(context).pushNamed(AppRouter.accountsPreviewPage);
+                Future.delayed(SHORT_SHOW_DIALOG_DURATION, () {
+                  if (injector<ConfigurationService>().isDoneOnboarding()) {
+                    Navigator.of(context).popUntil((route) =>
+                        route.settings.name == AppRouter.settingsPage);
+                  } else {
+                    doneOnboarding(context);
+                  }
+                });
                 break;
-              // Navigator.popUntil(
-              //     context, ModalRoute.withName(AppRouter.homePage));
 
               default:
                 break;
@@ -62,12 +68,12 @@ class _LinkFeralFilePageState extends State<LinkFeralFilePage> {
                           "Feral File",
                           style: appTextTheme.headline1,
                         ),
-                        SizedBox(height: 30),
+                        addTitleSpace(),
                         Text(
                           "To link to your Feral File account, sign in to Feral File and then navigate to Account.",
                           style: appTextTheme.bodyText1,
                         ),
-                        SizedBox(height: 5),
+                        SizedBox(height: 40),
                         AuTextField(
                           title: "",
                           placeholder: "Paste token from your account",
@@ -107,15 +113,12 @@ class _LinkFeralFilePageState extends State<LinkFeralFilePage> {
                       child: AuFilledButton(
                         text: "LINK".toUpperCase(),
                         onPress: () {
-                          // final pureFFToken = ScannerItem.FERALFILE_TOKEN
-                          //     .pureValue(_tokenController.text);
+                          final pureFFToken = ScannerItem.FERALFILE_TOKEN
+                              .pureValue(_tokenController.text);
 
-                          // context
-                          //     .read<FeralfileBloc>()
-                          //     .add(LinkFFAccountInfoEvent(pureFFToken));
-
-                          Navigator.of(context)
-                              .pushNamed(AppRouter.accountsPreviewPage);
+                          context
+                              .read<FeralfileBloc>()
+                              .add(LinkFFAccountInfoEvent(pureFFToken));
                         },
                       ),
                     ),
