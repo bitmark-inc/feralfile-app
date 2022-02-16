@@ -80,11 +80,11 @@ class WCSignMessagePage extends StatelessWidget {
                   child: AuFilledButton(
                     text: "Sign".toUpperCase(),
                     onPress: () async {
-                      final signature = await networkInjector
-                          .I<EthereumService>()
-                          .signPersonalMessage(message);
-                      injector<WalletConnectService>()
-                          .approveRequest(args.peerMeta, args.id, signature);
+                      // final signature = await networkInjector
+                      //     .I<EthereumService>()
+                      //     .signPersonalMessage(message);
+                      // injector<WalletConnectService>()
+                      //     .approveRequest(args.peerMeta, args.id, signature);
 
                       if (args.peerMeta.url.contains("feralfile")) {
                         Future.delayed(const Duration(milliseconds: 3000), () {

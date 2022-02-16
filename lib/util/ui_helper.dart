@@ -2,7 +2,7 @@ import 'package:autonomy_flutter/util/theme_manager.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:flutter/material.dart';
 
-enum ActionState { notRequested, loading, done }
+enum ActionState { notRequested, loading, error, done }
 
 class UIHelper {
   static showInfoDialog(

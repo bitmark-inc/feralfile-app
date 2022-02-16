@@ -4,7 +4,7 @@ import 'package:floor/floor.dart';
 @dao
 abstract class PersonaDao {
   @Query('SELECT * FROM Persona')
-  Future<List<Persona>> getAllPersona();
+  Future<List<Persona>> getPersonas();
 
   @insert
   Future<void> insertPersona(Persona persona);

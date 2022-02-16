@@ -88,9 +88,13 @@ flutter:
     - assets/images/iconEth.svg
     - assets/images/iconUsd.svg
     - assets/images/iconXtz.svg
+    - assets/images/iconBitmark.svg
     - assets/images/iconClose.svg
     - assets/images/cil_external-link.svg
     - assets/images/tezos_social_icon.svg
+    - assets/images/feralfileAppIcon.svg
+    - assets/images/autonomyIcon.svg
+    - assets/images/autonomyIcon.png
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

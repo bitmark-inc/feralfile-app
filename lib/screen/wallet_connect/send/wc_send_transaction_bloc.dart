@@ -14,16 +14,16 @@ class WCSendTransactionBloc
       this._walletConnectService)
       : super(WCSendTransactionState()) {
     on<WCSendTransactionEstimateEvent>((event, emit) async {
-      state.fee =
-          await _ethereumService.estimateFee(event.address, event.amount, event.data);
-      emit(state);
+      // state.fee = await _ethereumService.estimateFee(
+      //     event.address, event.amount, event.data);
+      // emit(state);
     });
 
     on<WCSendTransactionSendEvent>((event, emit) async {
-      final txHash = await _ethereumService.sendTransaction(
-          event.to, event.value, event.gas, event.data);
-      _walletConnectService.approveRequest(event.peerMeta, event.requestId, txHash);
-      _navigationService.goBack();
+      // final txHash = await _ethereumService.sendTransaction(
+      // event.to, event.value, event.gas, event.data);
+      // _walletConnectService.approveRequest(event.peerMeta, event.requestId, txHash);
+      // _navigationService.goBack();
     });
 
     on<WCSendTransactionRejectEvent>((event, emit) async {

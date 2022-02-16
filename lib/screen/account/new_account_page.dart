@@ -40,9 +40,8 @@ class NewAccountPage extends StatelessWidget {
                         _optionItem(context, "Yes",
                             "I already have NFTs in other wallets that I want to view with Autonomy.",
                             onTap: () {
-                          UIHelper.showInfoDialog(context, "Created", "");
-
-                          // Navigator.of(context).pushNamed(HomePage.tag);
+                          Navigator.of(context)
+                              .pushNamed(AppRouter.linkAccountpage);
                         }),
                         Divider(
                           height: 1,
@@ -94,29 +93,30 @@ class NewAccountPage extends StatelessWidget {
     );
   }
 
-  GestureDetector _optionItem(
-      BuildContext context, String title, String description,
+  Widget _optionItem(BuildContext context, String title, String description,
       {required Function() onTap}) {
     return GestureDetector(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                title,
-                style: appTextTheme.headline4,
-              ),
-              Icon(CupertinoIcons.forward),
-            ],
-          ),
-          SizedBox(height: 16),
-          Text(
-            description,
-            style: appTextTheme.bodyText1,
-          ),
-        ],
+      child: Container(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  title,
+                  style: appTextTheme.headline4,
+                ),
+                Icon(CupertinoIcons.forward),
+              ],
+            ),
+            SizedBox(height: 16),
+            Text(
+              description,
+              style: appTextTheme.bodyText1,
+            ),
+          ],
+        ),
       ),
       onTap: () {
         onTap();

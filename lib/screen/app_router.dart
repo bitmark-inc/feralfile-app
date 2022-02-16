@@ -1,11 +1,21 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
+import 'package:autonomy_flutter/database/entity/connection.dart';
+import 'package:autonomy_flutter/database/entity/persona.dart';
+import 'package:autonomy_flutter/screen/account/accounts_preview_page.dart';
+import 'package:autonomy_flutter/screen/account/link_account_page.dart';
+import 'package:autonomy_flutter/screen/account/link_feralfile_page.dart';
+import 'package:autonomy_flutter/screen/account/linked_account_details_page.dart';
 import 'package:autonomy_flutter/screen/account/name_persona_page.dart';
 import 'package:autonomy_flutter/screen/account/new_account_page.dart';
+import 'package:autonomy_flutter/screen/account/persona_details_page.dart';
 import 'package:autonomy_flutter/screen/be_own_gallery_page.dart';
+import 'package:autonomy_flutter/screen/bloc/ethereum/ethereum_bloc.dart';
+import 'package:autonomy_flutter/screen/bloc/feralfile/feralfile_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/router/router_bloc.dart';
+import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_bloc.dart';
@@ -22,14 +32,20 @@ import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_det
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
 import 'package:autonomy_flutter/screen/settings/networks/select_network_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/networks/select_network_page.dart';
-import 'package:autonomy_flutter/screen/settings/settings_bloc.dart';
+import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/settings_page.dart';
+import 'package:autonomy_flutter/screen/tezos_beacon/tb_connect_page.dart';
+import 'package:autonomy_flutter/screen/tezos_beacon/tb_send_transaction_page.dart';
+import 'package:autonomy_flutter/screen/tezos_beacon/tb_sign_message_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_bloc.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_disconnect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
+import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wallet_connect/wallet_connect.dart';
 
@@ -37,11 +53,22 @@ class AppRouter {
   static const onboardingPage = "onboarding";
   static const beOwnGalleryPage = 'be_own_gallery';
   static const newAccountPage = "new_account";
+  static const linkAccountpage = "link_account";
+  static const accountsPreviewPage = 'accounts_preview';
+  static const linkFeralFilePage = "link_feralfile";
   static const namePersonaPage = "name_persona_page";
   static const homePage = "home_page";
+  static const settingsPage = "settings";
+  static const personaDetailsPage = "persona_details";
+  static const linkedAccountDetailsPage = 'linked_account_details';
+  static const walletDetailsPage = 'wallet_detail';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final networkInjector = injector<NetworkConfigInjector>();
+
+    final ethereumBloc = EthereumBloc(injector(), networkInjector.I());
+    final tezosBloc = TezosBloc(injector(), networkInjector.I());
+    final accountsBloc = AccountsBloc(injector(), injector<CloudDatabase>());
 
     switch (settings.name) {
       case onboardingPage:
@@ -65,6 +92,21 @@ class AppRouter {
             builder: (context) => BlocProvider(
                 create: (_) => PersonaBloc(injector<CloudDatabase>()),
                 child: NewAccountPage()));
+
+      case AppRouter.linkAccountpage:
+        return CupertinoPageRoute(builder: (context) => LinkAccountPage());
+
+      case accountsPreviewPage:
+        return CupertinoPageRoute(
+            builder: (context) => BlocProvider.value(
+                value: accountsBloc, child: AccountsPreviewPage()));
+
+      case linkFeralFilePage:
+        return CupertinoPageRoute(
+            builder: (context) => BlocProvider(
+                create: (_) => FeralfileBloc(
+                    injector(), networkInjector.I(), injector<CloudDatabase>()),
+                child: LinkFeralFilePage()));
 
       case AppRouter.namePersonaPage:
         return CupertinoPageRoute(
@@ -102,22 +144,44 @@ class AppRouter {
             builder: (context) => ScanQRPage(
                   scannerItem: settings.arguments as ScannerItem,
                 ));
-      case SettingsPage.tag:
+      case settingsPage:
         return CupertinoPageRoute(
-          fullscreenDialog: true,
-          builder: (context) => BlocProvider(
-            create: (_) => SettingsBloc(
-                injector(), networkInjector.I(), networkInjector.I()),
-            child: SettingsPage(),
-          ),
-        );
-      case WalletDetailPage.tag:
+            fullscreenDialog: true,
+            builder: (context) => MultiBlocProvider(providers: [
+                  BlocProvider.value(value: accountsBloc),
+                  BlocProvider(
+                      create: (_) => PersonaBloc(injector<CloudDatabase>())),
+                  BlocProvider.value(value: ethereumBloc),
+                  BlocProvider.value(value: tezosBloc),
+                ], child: SettingsPage()));
+
+      case personaDetailsPage:
+        return CupertinoPageRoute(
+            builder: (context) => MultiBlocProvider(
+                    providers: [
+                      BlocProvider.value(value: ethereumBloc),
+                      BlocProvider.value(value: tezosBloc),
+                    ],
+                    child: PersonaDetailsPage(
+                      persona: settings.arguments as Persona,
+                    )));
+
+      case linkedAccountDetailsPage:
+        return CupertinoPageRoute(
+            builder: (context) => BlocProvider(
+                  create: (_) => FeralfileBloc(injector(), networkInjector.I(),
+                      injector<CloudDatabase>()),
+                  child: LinkedAccountDetailsPage(
+                      connection: settings.arguments as Connection),
+                ));
+
+      case walletDetailsPage:
         return CupertinoPageRoute(
             builder: (context) => BlocProvider(
                   create: (_) => WalletDetailBloc(
                       networkInjector.I(), networkInjector.I(), injector()),
-                  child:
-                      WalletDetailPage(type: settings.arguments as CryptoType),
+                  child: WalletDetailPage(
+                      payload: settings.arguments as WalletDetailsPayload),
                 ));
       case ReceivePage.tag:
         return CupertinoPageRoute(
@@ -177,10 +241,7 @@ class AppRouter {
               request: settings.arguments as BeaconRequest),
         );
       default:
-        return CupertinoPageRoute(
-            builder: (context) => BlocProvider(
-                create: (_) => RouterBloc(injector<CloudDatabase>()),
-                child: OnboardingPage()));
+        throw Exception('Invalid route: ${settings.name}');
     }
   }
 }

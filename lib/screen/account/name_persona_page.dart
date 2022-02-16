@@ -81,18 +81,27 @@ class _NamePersonaPageState extends State<NamePersonaPage> {
                   ),
                 ),
               ),
-              Row(
+              Column(
                 children: [
-                  Expanded(
-                    child: AuFilledButton(
-                      text: "SAVE ALIAS".toUpperCase(),
-                      onPress: () {
-                        context
-                            .read<PersonaBloc>()
-                            .add(NamePersonaEvent(_nameController.text));
-                      },
-                    ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: AuFilledButton(
+                          text: "SAVE ALIAS".toUpperCase(),
+                          onPress: () {
+                            context
+                                .read<PersonaBloc>()
+                                .add(NamePersonaEvent(_nameController.text));
+                          },
+                        ),
+                      ),
+                    ],
                   ),
+                  TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pushNamed(AppRouter.homePage);
+                      },
+                      child: Text("SKIP", style: appTextTheme.bodyText1)),
                 ],
               ),
             ],

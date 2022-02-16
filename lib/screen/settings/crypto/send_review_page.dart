@@ -111,16 +111,18 @@ class SendReviewPage extends StatelessWidget {
                               EthereumAddress.fromHex(payload.address);
                           final txHash = await networkInjector
                               .I<EthereumService>()
-                              .sendTransaction(
-                                  address, payload.amount, null, null);
+                              .sendTransaction(payload.wallet, address,
+                                  payload.amount, null, null);
 
                           Navigator.of(context).pop(txHash);
                           break;
                         case CryptoType.XTZ:
+                          final tezosWallet =
+                              await payload.wallet.getTezosWallet();
                           final sig = await networkInjector
                               .I<TezosService>()
-                              .sendTransaction(
-                                  payload.address, payload.amount.toInt());
+                              .sendTransaction(tezosWallet, payload.address,
+                                  payload.amount.toInt());
 
                           Navigator.of(context).pop(sig);
                           break;

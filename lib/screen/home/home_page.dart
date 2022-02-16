@@ -2,11 +2,11 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
-import 'package:autonomy_flutter/screen/settings/settings_page.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:flutter/material.dart';
@@ -78,7 +78,7 @@ class _HomePageState extends State<HomePage>
                 child: Image.asset("assets/images/penrose.png"),
               ),
               onTap: () {
-                Navigator.of(context).pushNamed(SettingsPage.tag);
+                Navigator.of(context).pushNamed(AppRouter.settingsPage);
               },
             ),
             Expanded(

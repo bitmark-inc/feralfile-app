@@ -327,6 +327,8 @@ class _$CloudDatabase extends CloudDatabase {
 
   PersonaDao? _personaDaoInstance;
 
+  ConnectionDao? _connectionDaoInstance;
+
   Future<sqflite.Database> open(String path, List<Migration> migrations,
       [Callback? callback]) async {
     final databaseOptions = sqflite.OpenDatabaseOptions(
@@ -347,6 +349,8 @@ class _$CloudDatabase extends CloudDatabase {
       onCreate: (database, version) async {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `Persona` (`uuid` TEXT NOT NULL, `name` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, PRIMARY KEY (`uuid`))');
+        await database.execute(
+            'CREATE TABLE IF NOT EXISTS `Connection` (`key` TEXT NOT NULL, `name` TEXT NOT NULL, `data` TEXT NOT NULL, `connectionType` TEXT NOT NULL, `accountNumber` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, PRIMARY KEY (`key`))');
 
         await callback?.onCreate?.call(database, version);
       },
@@ -357,6 +361,11 @@ class _$CloudDatabase extends CloudDatabase {
   @override
   PersonaDao get personaDao {
     return _personaDaoInstance ??= _$PersonaDao(database, changeListener);
+  }
+
+  @override
+  ConnectionDao get connectionDao {
+    return _connectionDaoInstance ??= _$ConnectionDao(database, changeListener);
   }
 }
 
@@ -392,7 +401,7 @@ class _$PersonaDao extends PersonaDao {
   final UpdateAdapter<Persona> _personaUpdateAdapter;
 
   @override
-  Future<List<Persona>> getAllPersona() async {
+  Future<List<Persona>> getPersonas() async {
     return _queryAdapter.queryList('SELECT * FROM Persona',
         mapper: (Map<String, Object?> row) => Persona(
             uuid: row['uuid'] as String,
@@ -418,6 +427,80 @@ class _$PersonaDao extends PersonaDao {
   @override
   Future<void> updatePersona(Persona persona) async {
     await _personaUpdateAdapter.update(persona, OnConflictStrategy.abort);
+  }
+}
+
+class _$ConnectionDao extends ConnectionDao {
+  _$ConnectionDao(this.database, this.changeListener)
+      : _queryAdapter = QueryAdapter(database),
+        _connectionInsertionAdapter = InsertionAdapter(
+            database,
+            'Connection',
+            (Connection item) => <String, Object?>{
+                  'key': item.key,
+                  'name': item.name,
+                  'data': item.data,
+                  'connectionType': item.connectionType,
+                  'accountNumber': item.accountNumber,
+                  'createdAt': _dateTimeConverter.encode(item.createdAt)
+                }),
+        _connectionUpdateAdapter = UpdateAdapter(
+            database,
+            'Connection',
+            ['key'],
+            (Connection item) => <String, Object?>{
+                  'key': item.key,
+                  'name': item.name,
+                  'data': item.data,
+                  'connectionType': item.connectionType,
+                  'accountNumber': item.accountNumber,
+                  'createdAt': _dateTimeConverter.encode(item.createdAt)
+                });
+
+  final sqflite.DatabaseExecutor database;
+
+  final StreamController<String> changeListener;
+
+  final QueryAdapter _queryAdapter;
+
+  final InsertionAdapter<Connection> _connectionInsertionAdapter;
+
+  final UpdateAdapter<Connection> _connectionUpdateAdapter;
+
+  @override
+  Future<List<Connection>> getConnections() async {
+    return _queryAdapter.queryList('SELECT * FROM Connection',
+        mapper: (Map<String, Object?> row) => Connection(
+            key: row['key'] as String,
+            name: row['name'] as String,
+            data: row['data'] as String,
+            connectionType: row['connectionType'] as String,
+            accountNumber: row['accountNumber'] as String,
+            createdAt: _dateTimeConverter.decode(row['createdAt'] as int)));
+  }
+
+  @override
+  Future<Connection?> findById(String key) async {
+    return _queryAdapter.query('SELECT * FROM Connection WHERE key = ?1',
+        mapper: (Map<String, Object?> row) => Connection(
+            key: row['key'] as String,
+            name: row['name'] as String,
+            data: row['data'] as String,
+            connectionType: row['connectionType'] as String,
+            accountNumber: row['accountNumber'] as String,
+            createdAt: _dateTimeConverter.decode(row['createdAt'] as int)),
+        arguments: [key]);
+  }
+
+  @override
+  Future<void> insertConnection(Connection connection) async {
+    await _connectionInsertionAdapter.insert(
+        connection, OnConflictStrategy.replace);
+  }
+
+  @override
+  Future<void> updateConnection(Connection connection) async {
+    await _connectionUpdateAdapter.update(connection, OnConflictStrategy.abort);
   }
 }
 
