@@ -51,7 +51,7 @@ class WCConnectPage extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(args.peerMeta.name, style: appTextTheme.headline5),
+                      Text(args.peerMeta.name, style: appTextTheme.headline4),
                       Text(
                         "requests permission to:",
                         style: appTextTheme.bodyText1,
