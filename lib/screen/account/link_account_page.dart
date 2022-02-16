@@ -1,5 +1,6 @@
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
@@ -33,7 +34,7 @@ class LinkAccountPage extends StatelessWidget {
                       "Link account",
                       style: appTextTheme.headline1,
                     ),
-                    SizedBox(height: 30),
+                    addTitleSpace(),
                     RichText(
                       text: TextSpan(
                         style: appTextTheme.bodyText1,
@@ -50,7 +51,9 @@ class LinkAccountPage extends StatelessWidget {
                         ],
                       ),
                     ),
+                    SizedBox(height: 24),
                     _bitmarkLinkView(context),
+                    SizedBox(height: 40),
                   ],
                 ),
               ),
@@ -70,13 +73,14 @@ class LinkAccountPage extends StatelessWidget {
           style: appTextTheme.headline4,
         ),
         SizedBox(
-          height: 8,
+          height: 16,
         ),
         TappableForwardRow(
             leftWidget: Row(
               children: [
                 SvgPicture.asset("assets/images/feralfileAppIcon.svg"),
-                Text("Feral File", style: appTextTheme.bodyText1),
+                SizedBox(width: 16),
+                Text("Feral File", style: appTextTheme.headline4),
               ],
             ),
             onTap: () {

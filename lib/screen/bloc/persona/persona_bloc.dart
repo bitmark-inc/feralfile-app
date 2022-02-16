@@ -13,7 +13,7 @@ class PersonaBloc extends Bloc<PersonaEvent, PersonaState> {
   PersonaBloc(this._cloudDB) : super(PersonaState()) {
     on<CreatePersonaEvent>((event, emit) async {
       emit(PersonaState(createAccountState: ActionState.loading));
-      await Future.delayed(Duration(seconds: 3));
+      await Future.delayed(SHOW_DIALOG_DURATION);
 
       final uuid = Uuid().v4();
       final walletStorage = LibAukDart.getWallet(uuid);

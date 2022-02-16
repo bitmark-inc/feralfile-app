@@ -28,9 +28,13 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final addressStyle = appTextTheme.bodyText2?.copyWith(color: Colors.black);
+    final balanceStyle = appTextTheme.bodyText2?.copyWith(color: Colors.black);
+
     return Scaffold(
       appBar: getBackAppBar(
         context,
+        title: widget.connection.name.toUpperCase(),
         onBack: () {
           Navigator.of(context).pop();
         },
@@ -54,23 +58,27 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
                           "Linked address",
                           style: appTextTheme.headline1,
                         ),
-                        SizedBox(height: 30),
+                        SizedBox(height: 24),
                         Row(
                           children: [
                             SvgPicture.asset("assets/images/iconBitmark.svg"),
+                            SizedBox(width: 16),
                             Expanded(
                               child: Text(
                                 state.connection?.accountNumber ?? "",
-                                style: appTextTheme.bodyText1,
+                                style: addressStyle,
                               ),
                             ),
                           ],
                         ),
+                        SizedBox(height: 40),
                         Text(
                           "Crypto",
                           style: appTextTheme.headline1,
                         ),
+                        SizedBox(height: 24),
                         Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
                               'USD Coin (USDC)',
@@ -79,20 +87,23 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
                             if (wyreWallet == null) ...[
                               Text(
                                 "-- USDC",
-                                style: appTextTheme.bodyText1,
+                                style: balanceStyle,
                               ),
                             ] else ...[
                               Text(
                                 "${wyreWallet.availableBalances['USDC'] ?? 0} USDC",
-                                style: appTextTheme.bodyText1,
+                                style: balanceStyle,
                               ),
                             ]
                           ],
                         ),
+                        SizedBox(height: 16),
+                        SizedBox(height: 40),
                         Text(
                           "Backup",
                           style: appTextTheme.headline1,
                         ),
+                        SizedBox(height: 24),
                         Text(
                             "The keys for this account are in FeralFile. You should manage your key backups there.",
                             style: appTextTheme.bodyText1),

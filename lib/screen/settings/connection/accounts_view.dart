@@ -22,7 +22,7 @@ class AccountsView extends StatelessWidget {
               "Accounts",
               style: appTextTheme.headline1,
             ),
-            SizedBox(height: 16.0),
+            SizedBox(height: 24),
             ...accounts
                 .map((el) => Column(
                       children: [
@@ -47,13 +47,12 @@ class AccountsView extends StatelessWidget {
                   width: 24,
                   height: 24,
                   child: Image.asset("assets/images/autonomyIcon.png")),
-              Column(children: [
-                Text(
-                    persona.name.isNotEmpty
-                        ? persona.name
-                        : account.accountNumber.mask(4),
-                    style: appTextTheme.bodyText1),
-              ]),
+              SizedBox(width: 16),
+              Text(
+                  persona.name.isNotEmpty
+                      ? persona.name
+                      : account.accountNumber.mask(4),
+                  style: appTextTheme.headline4),
             ],
           ),
           onTap: () {
@@ -69,17 +68,25 @@ class AccountsView extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               SvgPicture.asset("assets/images/feralfileAppIcon.svg"),
-              Column(children: [
-                if (connection.name.isEmpty) ...[
-                  Text(connection.accountNumber.mask(4),
-                      style: appTextTheme.bodyText1),
-                ] else ...[
-                  Text(connection.name, style: appTextTheme.bodyText1),
-                  Text(connection.accountNumber.mask(4),
-                      style: appTextTheme.bodyText1),
-                ]
-              ]),
+              SizedBox(width: 16),
+              Text(
+                  connection.name.isNotEmpty
+                      ? connection.name
+                      : connection.accountNumber.mask(4),
+                  style: appTextTheme.headline4),
             ],
+          ),
+          rightWidget: Container(
+            padding: EdgeInsets.symmetric(vertical: 5, horizontal: 8),
+            decoration: BoxDecoration(
+                border: Border.all(color: Color(0x999999999), width: 1)),
+            child: Text(
+              "LINKED",
+              style: TextStyle(
+                  color: Color(0x999999999),
+                  fontSize: 12,
+                  fontFamily: "IBMPlexMono"),
+            ),
           ),
           onTap: () {
             Navigator.of(context).pushNamed(AppRouter.linkedAccountDetailsPage,

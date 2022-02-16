@@ -33,22 +33,23 @@ class FeralfileBloc extends Bloc<FeralFileEvent, FeralFileState> {
     });
 
     on<LinkFFAccountInfoEvent>((event, emit) async {
-      try {
-        final network = _configurationService.getNetwork();
-        final source = network == Network.MAINNET
-            ? "https://feralfile.com"
-            : "https://feralfile1.dev.bitmark.com";
+      // try {
+      final network = _configurationService.getNetwork();
+      final source = network == Network.MAINNET
+          ? "https://feralfile.com"
+          : "https://feralfile1.dev.bitmark.com";
 
-        final ffToken = event.token;
-        final ffAccount = await _feralFileService.getAccount(ffToken);
-        final connection = Connection.fromFFToken(ffToken, source, ffAccount);
+      final ffToken = event.token;
+      final ffAccount = await _feralFileService.getAccount(ffToken);
+      final connection = Connection.fromFFToken(ffToken, source, ffAccount);
 
-        _cloudDB.connectionDao.insertConnection(connection);
+      _cloudDB.connectionDao.insertConnection(connection);
 
-        emit(FeralFileState(linkState: ActionState.done));
-      } catch (error) {
-        emit(FeralFileState(linkState: ActionState.error));
-      }
+      emit(FeralFileState(linkState: ActionState.done));
+      // } catch (error) {
+      //   emit(FeralFileState(linkState: ActionState.error));
+      //   rethrow
+      // }
     });
   }
 }

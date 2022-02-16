@@ -7,6 +7,7 @@ import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_det
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/xtz_amount_formatter.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
@@ -50,9 +51,13 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
     final network = injector<ConfigurationService>().getNetwork();
     final uuid = widget.persona.uuid;
 
+    final addressStyle = appTextTheme.bodyText2?.copyWith(color: Colors.black);
+    final balanceStyle = appTextTheme.bodyText2?.copyWith(color: Colors.black);
+
     return Scaffold(
       appBar: getBackAppBar(
         context,
+        title: widget.persona.name.toUpperCase(),
         onBack: () {
           Navigator.of(context).pop();
         },
@@ -71,7 +76,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
                     "Addresses",
                     style: appTextTheme.headline1,
                   ),
-                  SizedBox(height: 30),
+                  SizedBox(height: 24),
                   BlocBuilder<EthereumBloc, EthereumState>(
                       builder: (context, state) {
                     return Column(
@@ -79,15 +84,16 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
                         Row(
                           children: [
                             SvgPicture.asset("assets/images/iconEth.svg"),
+                            SizedBox(width: 16),
                             Expanded(
                               child: Text(
                                 state.personaAddresses?[uuid] ?? "",
-                                style: appTextTheme.bodyText1,
+                                style: addressStyle,
                               ),
                             ),
                           ],
                         ),
-                        Divider(height: 32.0),
+                        addDivider(),
                       ],
                     );
                   }),
@@ -95,26 +101,29 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
                     return Column(
                       children: [
                         Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             SvgPicture.asset("assets/images/iconXtz.svg"),
+                            SizedBox(width: 16),
                             Expanded(
                               child: Text(
                                 state.personaAddresses?[uuid] ?? "",
-                                style: appTextTheme.bodyText1,
+                                style: addressStyle,
                               ),
                             ),
+                            SizedBox(height: 16),
                           ],
                         ),
-                        Divider(height: 32.0),
                       ],
                     );
                   }),
+                  SizedBox(height: 40),
                   Text(
                     "Crypto",
                     style: appTextTheme.headline1,
                   ),
                   SizedBox(
-                    height: 15,
+                    height: 24,
                   ),
                   Column(
                     children: [
@@ -131,7 +140,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
                                   ethBalance == null
                                       ? "-- ETH"
                                       : "${EthAmountFormatter(ethBalance.getInWei).format()} ETH",
-                                  style: appTextTheme.bodyText1),
+                                  style: balanceStyle),
                               onTap: () => Navigator.of(context).pushNamed(
                                     AppRouter.walletDetailsPage,
                                     arguments: WalletDetailsPayload(
@@ -140,6 +149,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
                                   ));
                         },
                       ),
+                      addDivider(),
                       BlocBuilder<TezosBloc, TezosState>(
                         builder: (context, state) {
                           final tezosAddress = state.personaAddresses?[uuid];
@@ -153,7 +163,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
                                   xtzBalance == null
                                       ? "-- XTZ"
                                       : "${XtzAmountFormatter(xtzBalance).format()} XTZ",
-                                  style: appTextTheme.bodyText1),
+                                  style: balanceStyle),
                               onTap: () => Navigator.of(context).pushNamed(
                                     AppRouter.walletDetailsPage,
                                     arguments: WalletDetailsPayload(

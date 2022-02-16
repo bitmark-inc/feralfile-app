@@ -1,5 +1,7 @@
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
@@ -33,9 +35,7 @@ class _NamePersonaPageState extends State<NamePersonaPage> {
     return Scaffold(
       appBar: getBackAppBar(
         context,
-        onBack: () {
-          Navigator.of(context).pop();
-        },
+        onBack: null,
       ),
       body: BlocListener<PersonaBloc, PersonaState>(
         listener: (context, state) {
@@ -45,7 +45,7 @@ class _NamePersonaPageState extends State<NamePersonaPage> {
               break;
 
             case ActionState.done:
-              Navigator.of(context).pushNamed(AppRouter.homePage);
+              _doneNaming();
               break;
 
             default:
@@ -67,7 +67,7 @@ class _NamePersonaPageState extends State<NamePersonaPage> {
                         "Account alias",
                         style: appTextTheme.headline1,
                       ),
-                      SizedBox(height: 30),
+                      addTitleSpace(),
                       Text(
                         "You can add an optional alias for this account to help you recognize it. This alias will only be visible to you in Autonomy.",
                         style: appTextTheme.bodyText1,
@@ -99,9 +99,11 @@ class _NamePersonaPageState extends State<NamePersonaPage> {
                   ),
                   TextButton(
                       onPressed: () {
-                        Navigator.of(context).pushNamed(AppRouter.homePage);
+                        _doneNaming();
                       },
-                      child: Text("SKIP", style: appTextTheme.bodyText1)),
+                      child: Text("SKIP",
+                          style: appTextTheme.button
+                              ?.copyWith(color: Colors.black))),
                 ],
               ),
             ],
@@ -109,5 +111,14 @@ class _NamePersonaPageState extends State<NamePersonaPage> {
         ),
       ),
     );
+  }
+
+  void _doneNaming() {
+    if (injector<ConfigurationService>().isDoneOnboarding()) {
+      Navigator.of(context)
+          .popUntil((route) => route.settings.name == AppRouter.settingsPage);
+    } else {
+      doneOnboarding(context);
+    }
   }
 }

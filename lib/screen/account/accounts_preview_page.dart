@@ -3,6 +3,7 @@ import 'package:autonomy_flutter/screen/settings/connection/accounts_view.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/src/provider.dart';
 
@@ -24,6 +25,7 @@ class _AccountsPreviewPageState extends State<AccountsPreviewPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: getBackAppBar(context, onBack: null),
       body: Container(
         margin:
             EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
@@ -59,7 +61,9 @@ class _AccountsPreviewPageState extends State<AccountsPreviewPage> {
                     onPressed: () {
                       Navigator.of(context).pushNamed(AppRouter.homePage);
                     },
-                    child: Text("DONE", style: appTextTheme.bodyText1)),
+                    child: Text("DONE",
+                        style: appTextTheme.button
+                            ?.copyWith(color: Colors.black))),
               ],
             ),
           ],

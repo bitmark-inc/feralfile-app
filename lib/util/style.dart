@@ -37,10 +37,18 @@ const appTextTheme = TextTheme(
       color: Colors.black,
       fontSize: 16,
       fontFamily: "AtlasGrotesk",
-      height: 1.375),
+      height: 1.377),
   bodyText2: TextStyle(
-      color: Color(0xFF6D6B6B), fontSize: 16, fontFamily: "AtlasGrotesk"),
+      color: Color(0xFF6D6B6B), fontSize: 16, fontFamily: "IBMPlexMono"),
 );
+
+SizedBox addTitleSpace() {
+  return const SizedBox(height: 40);
+}
+
+Divider addDivider() {
+  return const Divider(height: 32.0);
+}
 
 class AppColorTheme {
   static const scaffoldBackgroundColor = Colors.white;
