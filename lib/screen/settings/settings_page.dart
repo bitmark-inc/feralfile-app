@@ -172,7 +172,7 @@ class _SettingsPageState extends State<SettingsPage>
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(name, style: appTextTheme.headline5),
+            Text(name, style: appTextTheme.headline4),
             Row(
               children: [
                 Text(

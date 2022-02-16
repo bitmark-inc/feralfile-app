@@ -51,7 +51,7 @@ class TBSignMessagePage extends StatelessWidget {
                     SizedBox(height: 40.0),
                     Text(
                       "Connection",
-                      style: appTextTheme.headline5,
+                      style: appTextTheme.headline4,
                     ),
                     SizedBox(height: 16.0),
                     Text(
@@ -61,7 +61,7 @@ class TBSignMessagePage extends StatelessWidget {
                     Divider(height: 32),
                     Text(
                       "Message",
-                      style: appTextTheme.headline5,
+                      style: appTextTheme.headline4,
                     ),
                     SizedBox(height: 16.0),
                     Text(

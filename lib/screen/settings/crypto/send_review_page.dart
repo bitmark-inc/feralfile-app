@@ -42,7 +42,7 @@ class SendReviewPage extends StatelessWidget {
             SizedBox(height: 40.0),
             Text(
               "To",
-              style: appTextTheme.headline5,
+              style: appTextTheme.headline4,
             ),
             SizedBox(height: 16.0),
             Text(
@@ -55,7 +55,7 @@ class SendReviewPage extends StatelessWidget {
               children: [
                 Text(
                   "Send",
-                  style: appTextTheme.headline5,
+                  style: appTextTheme.headline4,
                 ),
                 Text(
                   payload.type == CryptoType.ETH
@@ -71,7 +71,7 @@ class SendReviewPage extends StatelessWidget {
               children: [
                 Text(
                   "Gas fee",
-                  style: appTextTheme.headline5,
+                  style: appTextTheme.headline4,
                 ),
                 Text(
                   payload.type == CryptoType.ETH
@@ -87,13 +87,13 @@ class SendReviewPage extends StatelessWidget {
               children: [
                 Text(
                   "Total Amount",
-                  style: appTextTheme.headline5,
+                  style: appTextTheme.headline4,
                 ),
                 Text(
                   payload.type == CryptoType.ETH
                       ? "${EthAmountFormatter(total).format()} ETH (${payload.exchangeRate.ethToUsd(total)} USD)"
                       : "${XtzAmountFormatter(total.toInt()).format()} XTZ (${payload.exchangeRate.xtzToUsd(total.toInt())} USD)",
-                  style: appTextTheme.headline5,
+                  style: appTextTheme.headline4,
                 ),
               ],
             ),

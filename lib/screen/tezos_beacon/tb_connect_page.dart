@@ -58,7 +58,7 @@ class TBConnectPage extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(request.appName ?? "",
-                          style: appTextTheme.headline5),
+                          style: appTextTheme.headline4),
                       Text(
                         "requests permission to:",
                         style: appTextTheme.bodyText1,

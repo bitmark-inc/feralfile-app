@@ -16,7 +16,7 @@ class AuOutlinedButton extends StatelessWidget {
         ClipPath(
           clipper: AutonomyOutlineButtonClipper(),
           child: Container(
-              width: double.infinity, height: 30, color: Colors.black),
+              width: double.infinity, height: 48, color: Colors.black),
         ),
         Container(
           width: double.infinity,

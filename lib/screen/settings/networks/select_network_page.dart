@@ -34,7 +34,7 @@ class SelectNetworkPage extends StatelessWidget {
               ListTile(
                 title: Text(
                   "Main Network",
-                  style: appTextTheme.headline5,
+                  style: appTextTheme.headline4,
                 ),
                 trailing: Radio(
                   activeColor: Colors.black,
@@ -57,7 +57,7 @@ class SelectNetworkPage extends StatelessWidget {
               ListTile(
                 title: Text(
                   'Test Network',
-                  style: appTextTheme.headline5,
+                  style: appTextTheme.headline4,
                 ),
                 trailing: Radio(
                   activeColor: Colors.black,
