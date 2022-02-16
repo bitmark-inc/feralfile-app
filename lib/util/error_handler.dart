@@ -6,6 +6,8 @@ import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:qr_code_scanner/qr_code_scanner.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import '../screen/report/sentry_report_page.dart';
 
@@ -16,6 +18,7 @@ enum ErrorItemState {
   close,
   tryAgain,
   settings,
+  camera,
 }
 
 class ErrorEvent {
@@ -33,6 +36,9 @@ ErrorEvent transalateError(Object exception) {
   if (exception is DioError) {
     return ErrorEvent(null, "Network error",
         "Check your connection and try again.", ErrorItemState.tryAgain);
+  } else if (exception is CameraException) {
+    return ErrorEvent(null, "Enable camera",
+        "QR code scanning requires camera access.", ErrorItemState.camera);
   } else {
     return ErrorEvent(
         exception,
@@ -122,6 +128,10 @@ void showErrorDiablog(BuildContext context, ErrorEvent event,
     case ErrorItemState.tryAgain:
       defaultButton = "TRY AGAIN";
       break;
+    case ErrorItemState.camera:
+      defaultButton = "OPEN SETTINGS";
+      defaultAction = () async => await openAppSettings();
+      break;
     default:
       break;
   }
@@ -130,12 +140,13 @@ void showErrorDiablog(BuildContext context, ErrorEvent event,
 }
 
 void showErrorDialogFromException(Object exception) {
-  if (exception is PlatformException &&
-      lastException != null &&
-      lastException?.message == exception.message) {
-    return;
+  if (exception is PlatformException) {
+    if (lastException != null && lastException?.message == exception.message) {
+      return;
+    }
+    lastException = exception;
   }
-  lastException = exception as PlatformException?;
+
   final event = transalateError(exception);
   final context = injector<NavigationService>().navigatorKey.currentContext;
   if (context != null) {
