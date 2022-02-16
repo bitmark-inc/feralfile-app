@@ -28,6 +28,7 @@ class AuTextField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Expanded(
+        flex: expanded ? 1 : 0,
         child: Container(
             padding: EdgeInsets.only(top: 8.0, left: 8.0, bottom: 8.0),
             decoration: BoxDecoration(
