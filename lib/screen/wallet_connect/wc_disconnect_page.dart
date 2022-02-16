@@ -52,7 +52,7 @@ class _WCDisconnectPageState extends State<WCDisconnectPage> {
             SizedBox(height: 40.0),
             Text(
               "Public address",
-              style: appTextTheme.headline5,
+              style: appTextTheme.headline4,
             ),
             SizedBox(height: 16.0),
             Text(

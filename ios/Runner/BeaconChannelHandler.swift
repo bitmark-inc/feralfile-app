@@ -6,13 +6,14 @@
 //
 
 import Combine
+import Flutter
 import BeaconBlockchainTezos
 import BeaconClientWallet
 import BeaconTransportP2PMatrix
 import BeaconCore
 import Base58Swift
 
-class BeaconChannelHandler: NSObject, FlutterStreamHandler {
+class BeaconChannelHandler: NSObject {
     
     static let shared = BeaconChannelHandler()
     private var cancelBag = Set<AnyCancellable>()
@@ -20,6 +21,9 @@ class BeaconChannelHandler: NSObject, FlutterStreamHandler {
     
     func connect() {
         BeaconConnectService.shared.startBeacon()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            BeaconConnectService.shared.startDAppBeacon()
+        }
     }
     
     func addPeer(call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -100,8 +104,21 @@ class BeaconChannelHandler: NSObject, FlutterStreamHandler {
     func resume(call: FlutterMethodCall, result: @escaping FlutterResult) {
         BeaconConnectService.shared.resume()
     }
-    
+}
+
+extension BeaconChannelHandler: FlutterStreamHandler {
     func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
+        self.observerRequests(events: events)
+        
+        return nil
+    }
+    
+    func onCancel(withArguments arguments: Any?) -> FlutterError? {
+        cancelBag.removeAll()
+        return nil
+    }
+    
+    private func observerRequests(events: @escaping FlutterEventSink) {
         BeaconConnectService.shared.observeRequest()
             .sink(receiveCompletion: { _ in }, receiveValue: { [weak self] request in
                 self?.requests.append(request)
@@ -211,11 +228,5 @@ class BeaconChannelHandler: NSObject, FlutterStreamHandler {
                 ])
             })
             .store(in: &cancelBag)
-        return nil
-    }
-    
-    func onCancel(withArguments arguments: Any?) -> FlutterError? {
-        cancelBag.removeAll()
-        return nil
     }
 }

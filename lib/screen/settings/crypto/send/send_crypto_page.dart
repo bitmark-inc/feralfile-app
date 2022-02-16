@@ -57,150 +57,152 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
           builder: (context, state) {
         return Container(
           margin: EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Send ${type == CryptoType.ETH ? "ETH" : "XTZ"}",
-                style: appTextTheme.headline1,
-              ),
-              SizedBox(height: 40.0),
-              AuTextField(
-                title: "To",
-                placeholder: "Paste or scan address",
-                isError: state.isAddressError,
-                controller: _addressController,
-                suffix: IconButton(
-                  icon: SvgPicture.asset(state.isScanQR
-                      ? "assets/images/iconQr.svg"
-                      : "assets/images/iconClose.svg"),
-                  onPressed: () async {
-                    if (_addressController.text.isNotEmpty) {
-                      _addressController.text = "";
-                      context
-                          .read<SendCryptoBloc>()
-                          .add(AddressChangedEvent(""));
-                    } else {
-                      dynamic address = await Navigator.of(context).pushNamed(
-                          ScanQRPage.tag,
-                          arguments: type == CryptoType.ETH
-                              ? ScannerItem.ETH_ADDRESS
-                              : ScannerItem.XTZ_ADDRESS);
-                      print(address);
-                      if (address != null && address is String) {
-                        _addressController.text = address;
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Send ${type == CryptoType.ETH ? "ETH" : "XTZ"}",
+                  style: appTextTheme.headline1,
+                ),
+                SizedBox(height: 40.0),
+                AuTextField(
+                  title: "To",
+                  placeholder: "Paste or scan address",
+                  isError: state.isAddressError,
+                  controller: _addressController,
+                  suffix: IconButton(
+                    icon: SvgPicture.asset(state.isScanQR
+                        ? "assets/images/iconQr.svg"
+                        : "assets/images/iconClose.svg"),
+                    onPressed: () async {
+                      if (_addressController.text.isNotEmpty) {
+                        _addressController.text = "";
                         context
                             .read<SendCryptoBloc>()
-                            .add(AddressChangedEvent(address));
-                      }
-                    }
-                  },
-                ),
-                onChanged: (value) {
-                  context
-                      .read<SendCryptoBloc>()
-                      .add(AddressChangedEvent(_addressController.text));
-                },
-              ),
-              SizedBox(height: 16.0),
-              AuTextField(
-                title: "Send",
-                placeholder: "0",
-                isError: state.isAmountError,
-                controller: _amountController,
-                keyboardType: TextInputType.number,
-                subTitleView: state.maxAllow != null
-                    ? GestureDetector(
-                        child: Text(
-                          _maxAmountText(state),
-                          style: TextStyle(
-                              fontSize: 12,
-                              decoration: TextDecoration.underline,
-                              fontFamily: "AtlasGrotesk",
-                              color: AppColorTheme.secondaryHeaderColor,
-                              fontWeight: FontWeight.w300),
-                        ),
-                        onTap: () {
-                          String amountInStr = _maxAmount(state);
-                          _amountController.text = amountInStr;
+                            .add(AddressChangedEvent(""));
+                      } else {
+                        dynamic address = await Navigator.of(context).pushNamed(
+                            ScanQRPage.tag,
+                            arguments: type == CryptoType.ETH
+                                ? ScannerItem.ETH_ADDRESS
+                                : ScannerItem.XTZ_ADDRESS);
+                        print(address);
+                        if (address != null && address is String) {
+                          _addressController.text = address;
                           context
                               .read<SendCryptoBloc>()
-                              .add(AmountChangedEvent(amountInStr));
-                        },
-                      )
-                    : null,
-                suffix: IconButton(
-                  icon: SvgPicture.asset(state.isCrypto
-                      ? "assets/images/iconEth.svg"
-                      : "assets/images/iconUsd.svg"),
-                  onPressed: () {
-                    double amount =
-                        double.tryParse(_amountController.text) ?? 0;
-                    if (state.isCrypto) {
-                      if (type == CryptoType.ETH) {
-                        _amountController.text = state.exchangeRate
-                            .ethToUsd(BigInt.from(amount * pow(10, 18)));
-                      } else {
-                        _amountController.text = state.exchangeRate
-                            .xtzToUsd((amount * pow(10, 6)).toInt());
+                              .add(AddressChangedEvent(address));
+                        }
                       }
-                    } else {
-                      if (type == CryptoType.ETH) {
-                        _amountController.text =
-                            (double.parse(state.exchangeRate.eth) * amount)
-                                .toStringAsFixed(5);
-                      } else {
-                        _amountController.text =
-                            (double.parse(state.exchangeRate.xtz) * amount)
-                                .toStringAsFixed(6);
-                      }
-                    }
-
+                    },
+                  ),
+                  onChanged: (value) {
                     context
                         .read<SendCryptoBloc>()
-                        .add(CurrencyTypeChangedEvent(!state.isCrypto));
+                        .add(AddressChangedEvent(_addressController.text));
                   },
                 ),
-                onChanged: (value) {
-                  context
-                      .read<SendCryptoBloc>()
-                      .add(AmountChangedEvent(_amountController.text));
-                },
-              ),
-              SizedBox(height: 8.0),
-              Text(_gasFee(state),
-                  style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 12,
-                      fontFamily: "AtlasGrotesk")),
-              SizedBox(height: 24.0),
-              // Expanded(child: SizedBox()),
-              Row(
-                children: [
-                  Expanded(
-                    child: AuFilledButton(
-                      text: "Review",
-                      onPress: state.isValid
-                          ? () async {
-                              final payload = SendCryptoPayload(
-                                  type,
-                                  state.address!,
-                                  state.amount!,
-                                  state.fee!,
-                                  state.exchangeRate);
-                              final txHash = await Navigator.of(context)
-                                  .pushNamed(SendReviewPage.tag,
-                                      arguments: payload);
-                              if (txHash != null && txHash is String) {
-                                Navigator.of(context).pop();
-                              }
-                            }
-                          : null,
+                SizedBox(height: 16.0),
+                AuTextField(
+                  title: "Send",
+                  placeholder: "0",
+                  isError: state.isAmountError,
+                  controller: _amountController,
+                  keyboardType: TextInputType.numberWithOptions(decimal: true),
+                  subTitleView: state.maxAllow != null
+                      ? GestureDetector(
+                    child: Text(
+                      _maxAmountText(state),
+                      style: TextStyle(
+                          fontSize: 12,
+                          decoration: TextDecoration.underline,
+                          fontFamily: "AtlasGrotesk",
+                          color: AppColorTheme.secondaryHeaderColor,
+                          fontWeight: FontWeight.w300),
                     ),
+                    onTap: () {
+                      String amountInStr = _maxAmount(state);
+                      _amountController.text = amountInStr;
+                      context
+                          .read<SendCryptoBloc>()
+                          .add(AmountChangedEvent(amountInStr));
+                    },
+                  )
+                      : null,
+                  suffix: IconButton(
+                    icon: SvgPicture.asset(state.isCrypto
+                        ? "assets/images/iconEth.svg"
+                        : "assets/images/iconUsd.svg"),
+                    onPressed: () {
+                      double amount =
+                          double.tryParse(_amountController.text) ?? 0;
+                      if (state.isCrypto) {
+                        if (type == CryptoType.ETH) {
+                          _amountController.text = state.exchangeRate
+                              .ethToUsd(BigInt.from(amount * pow(10, 18)));
+                        } else {
+                          _amountController.text = state.exchangeRate
+                              .xtzToUsd((amount * pow(10, 6)).toInt());
+                        }
+                      } else {
+                        if (type == CryptoType.ETH) {
+                          _amountController.text =
+                              (double.parse(state.exchangeRate.eth) * amount)
+                                  .toStringAsFixed(5);
+                        } else {
+                          _amountController.text =
+                              (double.parse(state.exchangeRate.xtz) * amount)
+                                  .toStringAsFixed(6);
+                        }
+                      }
+
+                      context
+                          .read<SendCryptoBloc>()
+                          .add(CurrencyTypeChangedEvent(!state.isCrypto));
+                    },
                   ),
-                ],
-              )
-            ],
+                  onChanged: (value) {
+                    context
+                        .read<SendCryptoBloc>()
+                        .add(AmountChangedEvent(_amountController.text));
+                  },
+                ),
+                SizedBox(height: 8.0),
+                Text(_gasFee(state),
+                    style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 12,
+                        fontFamily: "AtlasGrotesk")),
+                SizedBox(height: 24.0),
+                // Expanded(child: SizedBox()),
+                Row(
+                  children: [
+                    Expanded(
+                      child: AuFilledButton(
+                        text: "Review",
+                        onPress: state.isValid
+                            ? () async {
+                          final payload = SendCryptoPayload(
+                              type,
+                              state.address!,
+                              state.amount!,
+                              state.fee!,
+                              state.exchangeRate);
+                          final txHash = await Navigator.of(context)
+                              .pushNamed(SendReviewPage.tag,
+                              arguments: payload);
+                          if (txHash != null && txHash is String) {
+                            Navigator.of(context).pop();
+                          }
+                        }
+                            : null,
+                      ),
+                    ),
+                  ],
+                )
+              ],
+            ),
           ),
         );
       }),

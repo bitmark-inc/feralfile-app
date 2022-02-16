@@ -76,7 +76,7 @@ class PreferenceView extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(title, style: appTextTheme.headline5),
+              Text(title, style: appTextTheme.headline4),
               CupertinoSwitch(
                 value: isEnabled,
                 onChanged: onChanged,

@@ -40,7 +40,7 @@ class SupportView extends StatelessWidget {
           onTap: onTap,
           child: Row(
             children: [
-              Text(title, style: appTextTheme.headline5),
+              Text(title, style: appTextTheme.headline4),
               Spacer(),
               SvgPicture.asset("assets/images/cil_external-link.svg"),
             ],
