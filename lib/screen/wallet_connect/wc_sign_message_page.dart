@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/material.dart';
+import 'package:libauk_dart/libauk_dart.dart';
 import 'package:wallet_connect/models/wc_peer_meta.dart';
 import 'package:web3dart/crypto.dart';
 
@@ -80,11 +81,13 @@ class WCSignMessagePage extends StatelessWidget {
                   child: AuFilledButton(
                     text: "Sign".toUpperCase(),
                     onPress: () async {
-                      // final signature = await networkInjector
-                      //     .I<EthereumService>()
-                      //     .signPersonalMessage(message);
-                      // injector<WalletConnectService>()
-                      //     .approveRequest(args.peerMeta, args.id, signature);
+                      final WalletStorage persona = LibAukDart.getWallet(args.uuid);
+                      final signature = await networkInjector
+                          .I<EthereumService>()
+                          .signPersonalMessage(persona, message);
+
+                      injector<WalletConnectService>()
+                          .approveRequest(args.peerMeta, args.id, signature);
 
                       if (args.peerMeta.url.contains("feralfile")) {
                         Future.delayed(const Duration(milliseconds: 3000), () {
@@ -109,6 +112,7 @@ class WCSignMessagePageArgs {
   final int id;
   final WCPeerMeta peerMeta;
   final String message;
+  final String uuid;
 
-  WCSignMessagePageArgs(this.id, this.peerMeta, this.message);
+  WCSignMessagePageArgs(this.id, this.peerMeta, this.message, this.uuid);
 }

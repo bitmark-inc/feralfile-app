@@ -10,6 +10,7 @@ import 'package:autonomy_flutter/screen/settings/preferences/preferences_view.da
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/support/support_view.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';

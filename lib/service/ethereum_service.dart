@@ -7,7 +7,7 @@ import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 
 abstract class EthereumService {
-  Future<String> getETHAddress();
+  Future<String> getETHAddress(WalletStorage wallet);
   Future<EtherAmount> getBalance(String address);
   Future<String> signPersonalMessage(WalletStorage wallet, Uint8List message);
   Future<BigInt> estimateFee(WalletStorage wallet, EthereumAddress to,
@@ -42,12 +42,10 @@ class EthereumServiceImpl extends EthereumService {
     }
   }
 
-  // TODO: Remove this or change it to support multiple wallets
   @override
-  Future<String> getETHAddress() async {
-    // final address = await _personaService.getActivePersona()?.getETHAddress();
-    final address = "abc";
-    if (address == null || address == "") {
+  Future<String> getETHAddress(WalletStorage wallet) async {
+    final address = await wallet.getETHAddress();
+    if (address.isEmpty) {
       return "";
     } else {
       log.info(address);

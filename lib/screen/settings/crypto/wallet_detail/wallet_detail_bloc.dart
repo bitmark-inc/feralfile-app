@@ -20,6 +20,7 @@ class WalletDetailBloc extends Bloc<WalletDetailEvent, WalletDetailState> {
       : super(WalletDetailState()) {
     on<WalletDetailBalanceEvent>((event, emit) async {
       final exchangeRate = await _currencyService.getExchangeRates();
+      final newState = WalletDetailState();
 
       switch (event.type) {
         case CryptoType.ETH:
@@ -27,10 +28,10 @@ class WalletDetailBloc extends Bloc<WalletDetailEvent, WalletDetailState> {
           emit(state.copyWith(address: address));
           final balance = await _ethereumService.getBalance(address);
 
-          state.address = address;
-          state.balance =
+          newState.address = address;
+          newState.balance =
               "${EthAmountFormatter(balance.getInWei).format().characters.take(7)} ETH";
-          state.balanceInUSD = (balance.getInWei.toDouble() /
+          newState.balanceInUSD = (balance.getInWei.toDouble() /
                       pow(10, 18) /
                       double.parse(exchangeRate.eth))
                   .toStringAsFixed(2) +
@@ -43,9 +44,9 @@ class WalletDetailBloc extends Bloc<WalletDetailEvent, WalletDetailState> {
 
           final balance = await _tezosService.getBalance(address);
 
-          state.address = address;
-          state.balance = "${XtzAmountFormatter(balance).format()} XTZ";
-          state.balanceInUSD =
+          newState.address = address;
+          newState.balance = "${XtzAmountFormatter(balance).format()} XTZ";
+          newState.balanceInUSD =
               (balance / pow(10, 6) / double.parse(exchangeRate.xtz))
                       .toStringAsFixed(2) +
                   " USD";
@@ -53,7 +54,7 @@ class WalletDetailBloc extends Bloc<WalletDetailEvent, WalletDetailState> {
           break;
       }
 
-      emit(state);
+      emit(newState);
     });
   }
 }

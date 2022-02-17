@@ -113,7 +113,7 @@ class _LinkWalletConnectPageState extends State<LinkWalletConnectPage> {
                     size: 180.0,
                   )
                 : CupertinoActivityIndicator(
-                    color: Colors.black,
+                    // color: Colors.black,
                   ),
           );
         });

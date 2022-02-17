@@ -1,5 +1,6 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/common/network_config_injector.dart';
+import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -9,6 +10,7 @@ import 'package:autonomy_flutter/util/xtz_amount_formatter.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/material.dart';
+import 'package:libauk_dart/libauk_dart.dart';
 
 class TBSendTransactionPage extends StatefulWidget {
   static const String tag = 'tb_send_transaction';
@@ -24,26 +26,38 @@ class TBSendTransactionPage extends StatefulWidget {
 
 class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
   int? _fee;
+  TezosWallet? _currentWallet;
 
   @override
   void initState() {
     super.initState();
-    _estimateFee();
+    fetchPersona();
   }
 
-  Future _estimateFee() async {
-    /* TODO: Update with multiple wallets
+  Future fetchPersona() async {
+    final personas = await injector<CloudDatabase>().personaDao.getPersonas();
+    final wallets = await Future.wait(personas.map((e) => LibAukDart.getWallet(e.uuid).getTezosWallet()));
+
+    final currentWallet = wallets.firstWhere((element) => element.address == widget.request.sourceAddress);
+
+    _estimateFee(currentWallet);
+
+    setState(() {
+      _currentWallet = currentWallet;
+    });
+  }
+
+  Future _estimateFee(TezosWallet wallet) async {
     try {
       final fee = await injector<NetworkConfigInjector>()
           .I<TezosService>()
-          .estimateOperationFee(widget.request.operations!);
+          .estimateOperationFee(wallet, widget.request.operations!);
       setState(() {
         _fee = fee;
       });
     } catch (err) {
       log.warning(err);
     }
-    */
   }
 
   @override
@@ -156,16 +170,15 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                 Expanded(
                   child: AuFilledButton(
                     text: "Send".toUpperCase(),
-                    onPress: () async {
-                      // TODO
-                      // final txHash = await injector<NetworkConfigInjector>()
-                      //     .I<TezosService>()
-                      //     .sendOperationTransaction(widget.request.operations!);
+                    onPress: _currentWallet != null ? () async {
+                      final txHash = await injector<NetworkConfigInjector>()
+                          .I<TezosService>()
+                          .sendOperationTransaction(_currentWallet!, widget.request.operations!);
 
-                      // injector<TezosBeaconService>()
-                      //     .operationResponse(widget.request.id, txHash);
-                      // Navigator.of(context).pop();
-                    },
+                      injector<TezosBeaconService>()
+                          .operationResponse(widget.request.id, txHash);
+                      Navigator.of(context).pop();
+                    } : null,
                   ),
                 )
               ],

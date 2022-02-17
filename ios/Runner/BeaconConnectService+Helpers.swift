@@ -5,6 +5,7 @@
 //  Created by Ho Hien on 10/02/2022.
 //
 
+import Combine
 import Foundation
 import BeaconCore
 import BeaconBlockchainTezos
@@ -46,12 +47,8 @@ extension OperationTezosRequest {
 }
 
 enum WalletConnectionEvent {
-    case wcRequestedPermission(String)
-    case beaconConnecting(String)
     case beaconRequestedPermission(Beacon.P2PPeer)
     case beaconLinked(Beacon.P2PPeer, String, PermissionTezosResponse)
-//    case linked(Connection)
-    case beaconError(Beacon.Error)
     case error(Error)
     case userAborted
 }
@@ -81,5 +78,44 @@ extension Beacon.Peer {
             return peer
         }
     }
+}
 
+extension Beacon.DAppClient {
+
+    func newOwnSerializedPeer(completion: @escaping (Result<String, Beacon.Error>) -> Void) {
+        guard let beacon = Beacon.dappShared else {
+            completion(.failure(.uninitialized))
+            return
+        }
+
+        getRelayServers { result in
+            switch result {
+            case let .success(relayServers):
+                let peer = Beacon.P2PPeer(
+                    id: UUID().uuidString.lowercased(),
+                    name: self.name,
+                    publicKey: HexString(from: beacon.app.keyPair.publicKey).asString(),
+                    relayServer: relayServers.first ?? "beacon-node-1.sky.papers.tech",
+                    version: "2",
+                    icon: nil,
+                    appURL: nil)
+
+                do {
+                    let serializedPeer = try beacon.dependencyRegistry.serializer.serialize(message: peer)
+                    completion(.success(serializedPeer))
+
+                } catch {
+                    completion(.failure(Beacon.Error(error)))
+                }
+
+            case let .failure(error):
+                completion(.failure(error))
+
+            }
+        }
+    }
+}
+
+enum AppError: Error {
+    case pendingBeaconClient
 }

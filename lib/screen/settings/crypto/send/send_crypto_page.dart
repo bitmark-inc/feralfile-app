@@ -133,11 +133,13 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                       : null,
                   suffix: IconButton(
                     icon: SvgPicture.asset(state.isCrypto
-                        ? "assets/images/iconEth.svg"
+                        ? (widget.data.type == CryptoType.ETH
+                            ? "assets/images/iconEth.svg"
+                            : "assets/images/iconXtz.svg")
                         : "assets/images/iconUsd.svg"),
                     onPressed: () {
                       double amount =
-                          double.tryParse(_amountController.text) ?? 0;
+                          double.tryParse(_amountController.text.replaceAll(",", ".")) ?? 0;
                       if (state.isCrypto) {
                         if (type == CryptoType.ETH) {
                           _amountController.text = state.exchangeRate
@@ -166,7 +168,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                   onChanged: (value) {
                     context
                         .read<SendCryptoBloc>()
-                        .add(AmountChangedEvent(_amountController.text));
+                        .add(AmountChangedEvent(_amountController.text.replaceAll(",", ".")));
                   },
                 ),
                 SizedBox(height: 8.0),

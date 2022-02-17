@@ -31,7 +31,7 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
         EtherUnit.wei, widget.args.transaction.value);
 
     context.read<WCSendTransactionBloc>().add(WCSendTransactionEstimateEvent(
-        to, amount, widget.args.transaction.data));
+        to, amount, widget.args.transaction.data, widget.args.uuid));
   }
 
   @override
@@ -160,7 +160,9 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                                   to,
                                   amount.getInWei,
                                   state.fee!,
-                                  widget.args.transaction.data));
+                                  widget.args.transaction.data,
+                                  widget.args.uuid
+                              ));
                         },
                       ),
                     )
@@ -179,6 +181,7 @@ class WCSendTransactionPageArgs {
   final int id;
   final WCPeerMeta peerMeta;
   final WCEthereumTransaction transaction;
+  final String uuid;
 
-  WCSendTransactionPageArgs(this.id, this.peerMeta, this.transaction);
+  WCSendTransactionPageArgs(this.id, this.peerMeta, this.transaction, this.uuid);
 }
