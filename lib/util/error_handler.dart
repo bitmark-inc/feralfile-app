@@ -40,21 +40,17 @@ ErrorEvent? transalateError(Object exception) {
         exception.type == DioErrorType.receiveTimeout) {
       return ErrorEvent(null, "Network error",
           "Check your connection and try again.", ErrorItemState.tryAgain);
-    } else {
-      // send exception to Sentry and ignore the error
-      Sentry.captureException(exception);
-      return null;
     }
   } else if (exception is CameraException) {
     return ErrorEvent(null, "Enable camera",
         "QR code scanning requires camera access.", ErrorItemState.camera);
-  } else {
-    return ErrorEvent(
-        exception,
-        "Uh oh!",
-        "Autonomy has encountered an unexpected problem. Please report the issue so that we can work on a fix.",
-        ErrorItemState.suggestReportIssue);
   }
+
+  return ErrorEvent(
+      exception,
+      "Uh oh!",
+      "Autonomy has encountered an unexpected problem. Please report the issue so that we can work on a fix.",
+      ErrorItemState.suggestReportIssue);
 }
 
 void showErrorDialog(BuildContext context, String title, String description,
