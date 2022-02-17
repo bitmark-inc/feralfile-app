@@ -183,9 +183,11 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             fullscreenDialog: true,
-            builder: (context) => ScanQRPage(
-                  scannerItem: settings.arguments as ScannerItem,
-                ));
+            builder: (context) => BlocProvider(
+                create: (_) => FeralfileBloc(
+                    injector(), networkInjector.I(), injector<CloudDatabase>()),
+                child: ScanQRPage(
+                    scannerItem: settings.arguments as ScannerItem)));
       case settingsPage:
         return CupertinoPageRoute(
             settings: settings,

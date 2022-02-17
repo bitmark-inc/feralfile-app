@@ -3,8 +3,10 @@ import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:bloc/bloc.dart';
+import 'package:dio/dio.dart';
 import 'package:meta/meta.dart';
 
 part 'feralfile_state.dart';
@@ -33,23 +35,30 @@ class FeralfileBloc extends Bloc<FeralFileEvent, FeralFileState> {
     });
 
     on<LinkFFAccountInfoEvent>((event, emit) async {
-      // try {
-      final network = _configurationService.getNetwork();
-      final source = network == Network.MAINNET
-          ? "https://feralfile.com"
-          : "https://feralfile1.dev.bitmark.com";
+      try {
+        final network = _configurationService.getNetwork();
+        final source = network == Network.MAINNET
+            ? "https://feralfile.com"
+            : "https://feralfile1.dev.bitmark.com";
 
-      final ffToken = event.token;
-      final ffAccount = await _feralFileService.getAccount(ffToken);
-      final connection = Connection.fromFFToken(ffToken, source, ffAccount);
+        final ffToken = event.token;
+        final ffAccount = await _feralFileService.getAccount(ffToken);
+        final connection = Connection.fromFFToken(ffToken, source, ffAccount);
 
-      _cloudDB.connectionDao.insertConnection(connection);
+        _cloudDB.connectionDao.insertConnection(connection);
 
-      emit(FeralFileState(linkState: ActionState.done));
-      // } catch (error) {
-      //   emit(FeralFileState(linkState: ActionState.error));
-      //   rethrow
-      // }
+        emit(FeralFileState(linkState: ActionState.done));
+      } on DioError catch (error) {
+        final code = decodeErrorResponse(error);
+        if (code == null) rethrow;
+
+        final apiError = getAPIErrorCode(code);
+        if (apiError == APIErrorCode.notLoggedIn) {
+          emit(state.copyWith(linkState: ActionState.error));
+          return;
+        }
+        rethrow;
+      }
     });
   }
 }
