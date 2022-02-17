@@ -23,6 +23,10 @@ abstract class ConfigurationService {
   Future<void> setFullscreenIntroEnable(bool value);
   bool isFullscreenIntroEnabled();
   bool matchFeralFileSourceInNetwork(String source);
+  Future<void> setWCDappSession(String? value);
+  String? getWCDappSession();
+  Future<void> setWCDappAccounts(List<String>? value);
+  List<String>? getWCDappAccounts();
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
@@ -35,6 +39,10 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_ANALYTICS = "analytics";
   static const String KEY_FULLSCREEN_INTRO = "fullscreen_intro";
   static const String KEY_DONE_ONBOARING = "done_onboarding";
+
+  // keys for WalletConnect dapp side
+  static const String KEY_WC_DAPP_SESSION = "wc_dapp_store";
+  static const String KEY_WC_DAPP_ACCOUNTS = "wc_dapp_accounts";
 
   SharedPreferences _preferences;
 
@@ -148,5 +156,35 @@ class ConfigurationServiceImpl implements ConfigurationService {
     } else {
       return source != "https://feralfile.com";
     }
+  }
+
+  @override
+  Future<void> setWCDappSession(String? value) async {
+    log.info("setWCDappSession: $value");
+    if (value != null) {
+      await _preferences.setString(KEY_WC_DAPP_SESSION, value);
+    } else {
+      await _preferences.remove(KEY_WC_DAPP_SESSION);
+    }
+  }
+
+  @override
+  String? getWCDappSession() {
+    return _preferences.getString(KEY_WC_DAPP_SESSION);
+  }
+
+  @override
+  Future<void> setWCDappAccounts(List<String>? value) async {
+    log.info("setWCDappAccounts: $value");
+    if (value != null) {
+      await _preferences.setStringList(KEY_WC_DAPP_ACCOUNTS, value);
+    } else {
+      await _preferences.remove(KEY_WC_DAPP_ACCOUNTS);
+    }
+  }
+
+  @override
+  List<String>? getWCDappAccounts() {
+    return _preferences.getStringList(KEY_WC_DAPP_ACCOUNTS);
   }
 }

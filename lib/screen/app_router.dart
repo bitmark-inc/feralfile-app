@@ -6,6 +6,7 @@ import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/screen/account/accounts_preview_page.dart';
 import 'package:autonomy_flutter/screen/account/link_account_page.dart';
 import 'package:autonomy_flutter/screen/account/link_feralfile_page.dart';
+import 'package:autonomy_flutter/screen/account/link_wallet_connect_page.dart';
 import 'package:autonomy_flutter/screen/account/linked_account_details_page.dart';
 import 'package:autonomy_flutter/screen/account/name_persona_page.dart';
 import 'package:autonomy_flutter/screen/account/new_account_page.dart';
@@ -55,6 +56,7 @@ class AppRouter {
   static const beOwnGalleryPage = 'be_own_gallery';
   static const newAccountPage = "new_account";
   static const linkAccountpage = "link_account";
+  static const linkWalletConnectPage = "link_wallet_connect";
   static const accountsPreviewPage = 'accounts_preview';
   static const linkFeralFilePage = "link_feralfile";
   static const namePersonaPage = "name_persona_page";
@@ -115,6 +117,14 @@ class AppRouter {
                 create: (_) => FeralfileBloc(
                     injector(), networkInjector.I(), injector<CloudDatabase>()),
                 child: LinkFeralFilePage()));
+
+      case linkWalletConnectPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => BlocProvider(
+                create: (_) => FeralfileBloc(
+                    injector(), networkInjector.I(), injector<CloudDatabase>()),
+                child: LinkWalletConnectPage()));
 
       case AppRouter.namePersonaPage:
         return CupertinoPageRoute(

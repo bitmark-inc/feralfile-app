@@ -29,7 +29,6 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
   web3dart: ^2.3.3
-  wallet_connect: ^1.0.2
   flutter_bloc: ^8.0.0
   shared_preferences: ^2.0.0
   get_it: ^7.2.0
@@ -59,6 +58,8 @@ dependencies:
     git:
       url: https://github.com/autonomy-system/libauk-dart.git
       ref: main
+  wallet_connect:
+    git: git@github.com:autonomy-system/wallet-connect-dart.git
 
 dev_dependencies:
   flutter_test:
@@ -94,7 +95,10 @@ flutter:
     - assets/images/tezos_social_icon.svg
     - assets/images/feralfileAppIcon.svg
     - assets/images/autonomyIcon.svg
-    - assets/images/autonomyIcon.png
+    - assets/images/rainbow.png
+    - assets/images/trust-alternative.png
+    - assets/images/metamask-alternative.png
+    - assets/images/walletconnect-alternative.png
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
