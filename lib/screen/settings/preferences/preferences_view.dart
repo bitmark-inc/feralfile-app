@@ -20,6 +20,7 @@ class PreferenceView extends StatelessWidget {
               "Preferences",
               style: appTextTheme.headline1,
             ),
+            SizedBox(height: 24),
             _preferenceItem(
               context,
               "Device passcode",

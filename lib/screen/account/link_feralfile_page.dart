@@ -78,28 +78,18 @@ class _LinkFeralFilePageState extends State<LinkFeralFilePage> {
                           title: "",
                           placeholder: "Paste token from your account",
                           controller: _tokenController,
+                          isError: state.linkState == ActionState.error,
                           suffix: IconButton(
                             icon: SvgPicture.asset("assets/images/iconQr.svg"),
                             onPressed: () async {
-                              // if (_addressController.text.isNotEmpty) {
-                              //   _addressController.text = "";
-                              //   context
-                              //       .read<SendCryptoBloc>()
-                              //       .add(AddressChangedEvent(""));
-                              // } else {
-                              //   dynamic address = await Navigator.of(context)
-                              //       .pushNamed(ScanQRPage.tag,
-                              //           arguments: type == CryptoType.ETH
-                              //               ? ScannerItem.ETH_ADDRESS
-                              //               : ScannerItem.XTZ_ADDRESS);
-                              //   print(address);
-                              //   if (address != null && address is String) {
-                              //     _addressController.text = address;
-                              //     context
-                              //         .read<SendCryptoBloc>()
-                              //         .add(AddressChangedEvent(address));
-                              //   }
-                              // }
+                              dynamic feralFileToken =
+                                  await Navigator.of(context).pushNamed(
+                                AppRouter.scanQRPage,
+                                arguments: ScannerItem.FERALFILE_TOKEN_READ,
+                              );
+
+                              _tokenController.text = feralFileToken;
+                              _linkFF();
                             },
                           ),
                         ),
@@ -112,14 +102,7 @@ class _LinkFeralFilePageState extends State<LinkFeralFilePage> {
                     Expanded(
                       child: AuFilledButton(
                         text: "LINK".toUpperCase(),
-                        onPress: () {
-                          final pureFFToken = ScannerItem.FERALFILE_TOKEN
-                              .pureValue(_tokenController.text);
-
-                          context
-                              .read<FeralfileBloc>()
-                              .add(LinkFFAccountInfoEvent(pureFFToken));
-                        },
+                        onPress: () => _linkFF(),
                       ),
                     ),
                   ],
@@ -130,5 +113,12 @@ class _LinkFeralFilePageState extends State<LinkFeralFilePage> {
         ),
       ),
     );
+  }
+
+  void _linkFF() {
+    final pureFFToken =
+        ScannerItem.FERALFILE_TOKEN.pureValue(_tokenController.text);
+
+    context.read<FeralfileBloc>().add(LinkFFAccountInfoEvent(pureFFToken));
   }
 }

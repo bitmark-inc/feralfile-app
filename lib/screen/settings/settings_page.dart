@@ -98,17 +98,17 @@ class _SettingsPageState extends State<SettingsPage>
                                   Text('+ Add', style: appTextTheme.bodyText2)),
                         ],
                       ),
-                      SizedBox(height: 16.0),
+                      SizedBox(height: 40),
                       BlocProvider(
                         create: (_) => PreferencesBloc(injector()),
                         child: PreferenceView(),
                       ),
-                      SizedBox(height: 24.0),
+                      SizedBox(height: 40.0),
                       Text(
                         "Networks",
                         style: appTextTheme.headline1,
                       ),
-                      SizedBox(height: 16.0),
+                      SizedBox(height: 24.0),
                       _settingItem(
                           context,
                           "Select network",

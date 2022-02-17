@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class TappableForwardRow extends StatelessWidget {
   final Widget? leftWidget;
@@ -23,7 +24,7 @@ class TappableForwardRow extends StatelessWidget {
             children: [
               rightWidget ?? SizedBox(),
               SizedBox(width: 8.0),
-              Icon(CupertinoIcons.forward)
+              SvgPicture.asset('assets/images/iconForward.svg'),
             ],
           )
         ],
