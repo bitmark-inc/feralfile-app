@@ -9,6 +9,8 @@ class RouterBloc extends Bloc<RouterEvent, RouterState> {
   RouterBloc(this._cloudDB)
       : super(RouterState(onboardingStep: OnboardingStep.undefined)) {
     on<DefineViewRoutingEvent>((event, emit) async {
+      if (state.onboardingStep != OnboardingStep.undefined) return;
+
       final personas = await _cloudDB.personaDao.getPersonas();
       if (personas.isEmpty) {
         emit(RouterState(onboardingStep: OnboardingStep.startScreen));

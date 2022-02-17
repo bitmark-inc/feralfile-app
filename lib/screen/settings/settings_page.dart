@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class SettingsPage extends StatefulWidget {
   @override
@@ -64,7 +65,9 @@ class _SettingsPageState extends State<SettingsPage>
               child: Stack(
                 children: [
                   IconButton(
-                    icon: Icon(Icons.qr_code),
+                    padding: EdgeInsets.symmetric(vertical: 12),
+                    constraints: BoxConstraints(),
+                    icon: SvgPicture.asset("assets/images/iconQr.svg"),
                     onPressed: () {
                       Navigator.of(context).pushNamed(ScanQRPage.tag,
                           arguments: ScannerItem.GLOBAL);
@@ -73,6 +76,7 @@ class _SettingsPageState extends State<SettingsPage>
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      SizedBox(height: 24),
                       GestureDetector(
                         child: Center(
                           child: Image.asset("assets/images/penrose.png"),
