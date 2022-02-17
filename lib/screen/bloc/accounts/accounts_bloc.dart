@@ -29,20 +29,33 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
       }
 
       for (var connection in connections) {
-        final source = connection.ffConnection?.source;
-        if (source == null) break;
-        if (_configurationService.matchFeralFileSourceInNetwork(source)) {
-          final accountNumber = connection.accountNumber;
-          try {
-            final account = accounts.firstWhere(
-                (element) => element.accountNumber == accountNumber);
-            account.connections?.add(connection);
-          } catch (error) {
+        switch (connection.connectionType) {
+          case "feralFileToken":
+            final source = connection.ffConnection!.source;
+            if (_configurationService.matchFeralFileSourceInNetwork(source)) {
+              final accountNumber = connection.accountNumber;
+              try {
+                final account = accounts.firstWhere(
+                        (element) => element.accountNumber == accountNumber);
+                account.connections?.add(connection);
+              } catch (error) {
+                accounts.add(Account(
+                    accountNumber: accountNumber,
+                    connections: [connection],
+                    type: ConnectionType.feralFileToken,
+                    createdAt: connection.createdAt));
+              }
+            }
+            break;
+          case "walletBeacon":
             accounts.add(Account(
-                accountNumber: accountNumber,
-                connections: [connection],
-                createdAt: connection.createdAt));
-          }
+              accountNumber: connection.accountNumber,
+              connections: [connection],
+              name: connection.name,
+              type: ConnectionType.walletBeacon,
+              createdAt: connection.createdAt,
+            ));
+            break;
         }
       }
 

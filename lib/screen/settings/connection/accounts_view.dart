@@ -1,3 +1,4 @@
+import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -62,12 +63,24 @@ class AccountsView extends StatelessWidget {
     }
 
     final connection = account.connections?.first;
+    Widget icon;
+    switch (account.type) {
+      case ConnectionType.feralFileWeb3:
+        icon = SvgPicture.asset("assets/images/feralfileAppIcon.svg");
+        break;
+      case ConnectionType.walletBeacon:
+        icon = Image.asset("assets/images/tezos_wallet.png");
+        break;
+      default:
+        icon = Image.asset("assets/images/autonomyIcon.png");
+        break;
+    }
     if (connection != null) {
       return TappableForwardRow(
           leftWidget: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              SvgPicture.asset("assets/images/feralfileAppIcon.svg"),
+              icon,
               SizedBox(width: 16),
               Text(
                   connection.name.isNotEmpty

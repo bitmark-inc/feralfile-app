@@ -7,6 +7,8 @@ class GetAccountsEvent extends AccountsEvent {}
 class Account {
   Persona? persona;
   List<Connection>? connections;
+  String? name;
+  ConnectionType? type;
   String accountNumber;
   DateTime createdAt;
 
@@ -14,6 +16,8 @@ class Account {
     this.persona,
     this.connections,
     this.accountNumber = "",
+    this.name,
+    this.type,
     required this.createdAt,
   });
 }

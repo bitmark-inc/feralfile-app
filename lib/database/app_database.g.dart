@@ -507,6 +507,11 @@ class _$ConnectionDao extends ConnectionDao {
   }
 
   @override
+  Future<void> removeAll() async {
+    await _queryAdapter.queryNoReturn('DELETE FROM Connection');
+  }
+
+  @override
   Future<void> insertConnection(Connection connection) async {
     await _connectionInsertionAdapter.insert(
         connection, OnConflictStrategy.replace);

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:autonomy_flutter/model/p2p_peer.dart';
+import 'package:autonomy_flutter/model/tezos_connection.dart';
 import 'package:flutter/services.dart';
 import 'package:tezart/tezart.dart';
 
@@ -112,12 +113,14 @@ class TezosBeaconChannel {
         case "observeEvent":
           switch (params["type"]) {
             case "beaconRequestedPermission":
-              final Uint8List data = params["connection"];
-              print(utf8.decode(data));
+              final Uint8List data = params["peer"];
+              Peer peer = Peer.fromJson(json.decode(utf8.decode(data)));
+              handler!.onRequestedPermission(peer);
               break;
             case "beaconLinked":
-              final Uint8List data = params["peer"];
-              print(utf8.decode(data));
+              final Uint8List data = params["connection"];
+              TezosConnection tezosConnection = TezosConnection.fromJson(json.decode(utf8.decode(data)));
+              handler!.onLinked(tezosConnection);
               break;
             case "error":
               break;
@@ -132,8 +135,8 @@ class TezosBeaconChannel {
 
 abstract class BeaconHandler {
   void onRequest(BeaconRequest request);
-  void onRequestedPermission();
-  void onLinked();
+  void onRequestedPermission(Peer peer);
+  void onLinked(TezosConnection tezosConnection);
   void onAbort();
 }
 

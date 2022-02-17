@@ -9,8 +9,8 @@ class P2PPeer {
   final String publicKey;
   final String relayServer;
   final String version;
-  final String icon;
-  final String appURL;
+  final String? icon;
+  final String? appURL;
 
   P2PPeer(this.id, this.name, this.publicKey, this.relayServer, this.version,
       this.icon, this.appURL);

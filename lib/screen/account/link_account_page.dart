@@ -1,11 +1,13 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_dapp_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:share/share.dart';
 
 class LinkAccountPage extends StatelessWidget {
   const LinkAccountPage({Key? key}) : super(key: key);
@@ -55,6 +57,8 @@ class LinkAccountPage extends StatelessWidget {
                     _bitmarkLinkView(context),
                     SizedBox(height: 24),
                     _ethereumLinkView(context),
+                    SizedBox(height: 24),
+                    _tezosLinkView(context),
                     SizedBox(height: 40),
                   ],
                 ),
@@ -127,6 +131,50 @@ class LinkAccountPage extends StatelessWidget {
             ),
             onTap: () {
               Navigator.of(context).pushNamed(AppRouter.linkWalletConnectPage);
+            }),
+      ],
+    );
+  }
+
+  Widget _tezosLinkView(BuildContext context) {
+    final tezosBeaconService = injector<TezosBeaconService>();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "TEZOS",
+          style: appTextTheme.headline4,
+        ),
+        SizedBox(
+          height: 20,
+        ),
+        TappableForwardRow(
+            leftWidget: Row(
+              children: [
+                Image.asset("assets/images/kukai_wallet.png"),
+                SizedBox(width: 16),
+                Text("Kukai", style: appTextTheme.headline4),
+              ],
+            ),
+            onTap: () async {
+              final uri = await tezosBeaconService.getConnectionURI();
+              Share.share("https://wallet.kukai.app/tezos$uri");
+            }),
+        SizedBox(width: 16),
+        Divider(),
+        SizedBox(width: 16),
+        TappableForwardRow(
+            leftWidget: Row(
+              children: [
+                Image.asset("assets/images/tezos_wallet.png"),
+                SizedBox(width: 16),
+                Text("Other Tezos wallets", style: appTextTheme.headline4),
+              ],
+            ),
+            onTap: () async {
+              final uri = await tezosBeaconService.getConnectionURI();
+              Navigator.of(context).pushNamed(AppRouter.linkBeaconConnectPage, arguments: uri);
             }),
       ],
     );
