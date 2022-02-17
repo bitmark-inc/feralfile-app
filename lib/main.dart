@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:autonomy_flutter/database/app_database.dart';
@@ -8,6 +9,7 @@ import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_page.dart
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_page.dart';
 import 'package:autonomy_flutter/screen/onboarding_page.dart';
+import 'package:autonomy_flutter/screen/report/sentry_report_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/receive_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_bloc.dart';
@@ -29,6 +31,7 @@ import 'package:autonomy_flutter/screen/wallet_connect/wc_disconnect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/persona_service.dart';
+import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/migration_util.dart';
 import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
@@ -43,36 +46,37 @@ import 'common/injector.dart';
 import 'common/network_config_injector.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await setup();
+  await SentryFlutter.init((options) {
+    options.dsn =
+        'https://3327d497b7324d2e9824c88bec2235e2@o142150.ingest.sentry.io/6088804';
+    // Set tracesSampleRate to 1.0 to capture 100% of transactions for performance monitoring.
+    // We recommend adjusting this value in production.
+    options.tracesSampleRate = 1.0;
+  });
 
-  await MigrationUtil().migrateIfNeeded();
+  runZonedGuarded(() async {
+    WidgetsFlutterBinding.ensureInitialized();
+    await setup();
 
-  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    statusBarColor: Colors.white,
-    statusBarIconBrightness: Brightness.dark,
-    statusBarBrightness: Brightness.light,
-  ));
+    await MigrationUtil().migrateIfNeeded();
 
-  await SentryFlutter.init(
-    (options) {
-      options.dsn =
-          'https://3327d497b7324d2e9824c88bec2235e2@o142150.ingest.sentry.io/6088804';
-      // Set tracesSampleRate to 1.0 to capture 100% of transactions for performance monitoring.
-      // We recommend adjusting this value in production.
-      options.tracesSampleRate = 1.0;
-    },
-    appRunner: () => BlocOverrides.runZoned(
+    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+      statusBarColor: Colors.white,
+      statusBarIconBrightness: Brightness.dark,
+      statusBarBrightness: Brightness.light,
+    ));
+
+    BlocOverrides.runZoned(
       () => runApp(AutonomyApp()),
       blocObserver: AppBlocObserver(),
-    ),
-  );
+    );
+  }, (Object error, StackTrace stackTrace) {
+    showErrorDialogFromException(error);
+  });
 
   FlutterError.onError = (FlutterErrorDetails details) {
     FlutterError.presentError(details);
-    log.severe("unhandled error: $details");
-    // quit the app with error
-    exit(1);
+    showErrorDialogFromException(details.exception);
   };
 }
 
@@ -178,6 +182,12 @@ class AutonomyApp extends StatelessWidget {
               return CupertinoPageRoute(
                   builder: (context) => SendReviewPage(
                         payload: settings.arguments as SendCryptoPayload,
+                      ));
+            case SentryReportPage.tag:
+              return CupertinoPageRoute(
+                  fullscreenDialog: true,
+                  builder: (context) => SentryReportPage(
+                        payload: settings.arguments,
                       ));
             case ArtworkPreviewPage.tag:
               return CupertinoPageRoute(
