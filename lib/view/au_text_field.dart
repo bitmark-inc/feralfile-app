@@ -5,6 +5,7 @@ class AuTextField extends StatelessWidget {
   final String title;
   final String placeholder;
   final bool isError;
+  final bool expanded;
   final TextEditingController controller;
   final Widget? subTitleView;
   final Widget? suffix;
@@ -16,6 +17,7 @@ class AuTextField extends StatelessWidget {
       required this.title,
       this.placeholder = "",
       this.isError = false,
+      this.expanded = false,
       required this.controller,
       this.subTitleView,
       this.suffix,
@@ -25,72 +27,74 @@ class AuTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-        padding: EdgeInsets.only(top: 8.0, left: 8.0, bottom: 8.0),
-        decoration: BoxDecoration(
-            border: Border.all(
-                color: isError ? AppColorTheme.errorColor : Colors.black)),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+    return Expanded(
+        flex: expanded ? 1 : 0,
+        child: Container(
+            padding: EdgeInsets.only(top: 8.0, left: 8.0, bottom: 8.0),
+            decoration: BoxDecoration(
+                border: Border.all(
+                    color: isError ? AppColorTheme.errorColor : Colors.black)),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (title.isNotEmpty) ...[
-                        Text(
-                          title,
-                          style: TextStyle(
-                              fontSize: 12,
-                              fontFamily: "AtlasGrotesk",
-                              color: AppColorTheme.secondaryHeaderColor,
-                              fontWeight: FontWeight.w700),
-                        ),
-                      ],
-                      this.subTitleView != null
-                          ? Text(
-                              " | ",
+                      Row(
+                        children: [
+                          if (title.isNotEmpty) ...[
+                            Text(
+                              title,
                               style: TextStyle(
                                   fontSize: 12,
                                   fontFamily: "AtlasGrotesk",
                                   color: AppColorTheme.secondaryHeaderColor,
-                                  fontWeight: FontWeight.w300),
-                            )
-                          : SizedBox(),
-                      this.subTitleView ?? SizedBox(),
-                    ],
-                  ),
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 8.0),
-                    child: TextField(
-                      decoration: InputDecoration(
-                        isDense: true,
-                        border: InputBorder.none,
-                        hintText: placeholder,
-                        hintStyle: TextStyle(
-                          fontSize: 16,
-                          fontFamily: "AtlasGrotesk",
+                                  fontWeight: FontWeight.w700),
+                            ),
+                          ],
+                          this.subTitleView != null
+                              ? Text(
+                                  " | ",
+                                  style: TextStyle(
+                                      fontSize: 12,
+                                      fontFamily: "AtlasGrotesk",
+                                      color: AppColorTheme.secondaryHeaderColor,
+                                      fontWeight: FontWeight.w300),
+                                )
+                              : SizedBox(),
+                          this.subTitleView ?? SizedBox(),
+                        ],
+                      ),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 8.0),
+                        child: TextField(
+                          decoration: InputDecoration(
+                            isDense: true,
+                            border: InputBorder.none,
+                            hintText: placeholder,
+                            hintStyle: TextStyle(
+                              fontSize: 16,
+                              fontFamily: "AtlasGrotesk",
+                            ),
+                          ),
+                          keyboardType: keyboardType,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w300,
+                            // height: 1.2,
+                            fontFamily: "IBMPlexMono",
+                            color: Colors.black,
+                          ),
+                          controller: controller,
+                          onChanged: onChanged,
                         ),
                       ),
-                      keyboardType: keyboardType,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w300,
-                        // height: 1.2,
-                        fontFamily: "IBMPlexMono",
-                        color: Colors.black,
-                      ),
-                      controller: controller,
-                      onChanged: onChanged,
-                    ),
+                    ],
                   ),
-                ],
-              ),
-            ),
-            suffix ?? SizedBox(),
-          ],
-        ));
+                ),
+                suffix ?? SizedBox(),
+              ],
+            )));
   }
 }

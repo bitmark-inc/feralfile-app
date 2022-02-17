@@ -23,6 +23,7 @@ import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_page.dart
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_page.dart';
 import 'package:autonomy_flutter/screen/onboarding_page.dart';
+import 'package:autonomy_flutter/screen/report/sentry_report_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/receive_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_bloc.dart';
@@ -266,6 +267,13 @@ class AppRouter {
           builder: (context) => TBSendTransactionPage(
               request: settings.arguments as BeaconRequest),
         );
+      case SentryReportPage.tag:
+        return CupertinoPageRoute(
+            settings: settings,
+            fullscreenDialog: true,
+            builder: (context) => SentryReportPage(
+                  payload: settings.arguments,
+                ));
       default:
         throw Exception('Invalid route: ${settings.name}');
     }
