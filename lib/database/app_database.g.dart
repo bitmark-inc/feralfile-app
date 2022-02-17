@@ -480,6 +480,20 @@ class _$ConnectionDao extends ConnectionDao {
   }
 
   @override
+  Future<List<Connection>> getConnectionsByType(String type) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM Connection WHERE connectionType = ?1',
+        mapper: (Map<String, Object?> row) => Connection(
+            key: row['key'] as String,
+            name: row['name'] as String,
+            data: row['data'] as String,
+            connectionType: row['connectionType'] as String,
+            accountNumber: row['accountNumber'] as String,
+            createdAt: _dateTimeConverter.decode(row['createdAt'] as int)),
+        arguments: [type]);
+  }
+
+  @override
   Future<Connection?> findById(String key) async {
     return _queryAdapter.query('SELECT * FROM Connection WHERE key = ?1',
         mapper: (Map<String, Object?> row) => Connection(

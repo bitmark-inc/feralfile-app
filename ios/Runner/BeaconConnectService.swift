@@ -25,7 +25,6 @@ class BeaconConnectService {
     
     var beaconDappClient: Beacon.DAppClient?
     let eventsSubject = PassthroughSubject<WalletConnectionEvent, Never>()
-    let dappEventsSubject = PassthroughSubject<DappConnectionEvent, Never>()
     
     func startBeacon() {
         guard beaconClient == nil else {
@@ -91,11 +90,7 @@ class BeaconConnectService {
     func observeEvents() -> AnyPublisher<WalletConnectionEvent, Never> {
         eventsSubject.eraseToAnyPublisher()
     }
-
-    func observeDappEvents() -> AnyPublisher<DappConnectionEvent, Never> {
-        dappEventsSubject.eraseToAnyPublisher()
-    }
-
+    
     func addPeer(deeplink: String) -> AnyPublisher<Beacon.P2PPeer, Error> {
         return Just(())
             .flatMap { _ -> AnyPublisher<Beacon.P2PPeer, Error> in
@@ -142,6 +137,24 @@ class BeaconConnectService {
         }
         .eraseToAnyPublisher()
     }
+    
+    func removePeerFromDApp(_ peer: Beacon.P2PPeer) -> AnyPublisher<Void, Error> {
+        print("[TezosBeaconService] removePeerFromDApp")
+
+        return Future<Void, Error> { [self] (promise) in
+            self.beaconDappClient?.remove([.p2p(peer)]) { result in
+                switch result {
+                case .success:
+                    print("[TezosBeaconService][Done] removePeerFromDApp")
+                    promise(.success(()))
+
+                case let .failure(error):
+                    promise(.failure(error))
+                }
+            }
+        }
+        .eraseToAnyPublisher()
+    }
 
     func response(_ content: TezosBeaconResponse, completion: @escaping Completion<Void>) {
         beaconClient?.respond(with: content, completion: { result in
@@ -173,6 +186,29 @@ class BeaconConnectService {
 
 //DApp Beacon
 extension BeaconConnectService {
+    
+    func getConnectionURI() -> AnyPublisher<String, Error> {
+        Future<String, Error> { [weak self] (promise) in
+            guard let self = self,
+                  let beaconDappClient = self.beaconDappClient else {
+                promise(.failure(AppError.pendingBeaconClient))
+                return
+            }
+
+            beaconDappClient.newOwnSerializedPeer { result in
+                switch result {
+                case let .success(data):
+                    promise(.success("?type=tzip10&data=\(data)"))
+
+                case let .failure(error):
+                    promise(.failure(error))
+                }
+            }
+
+        }
+        .eraseToAnyPublisher()
+    }
+    
     func startDAppBeacon() {
         guard beaconDappClient == nil else {
             listenForDappRequests()
@@ -206,7 +242,7 @@ extension BeaconConnectService {
         }
     }
 
-    func listenForDappRequests() {
+    private func listenForDappRequests() {
         startOpenChannelListener(completion: { result in
             switch result {
             case let .failure(error):
@@ -232,7 +268,7 @@ extension BeaconConnectService {
         }
     }
 
-    func startOpenChannelListener(completion: @escaping (Result<(), Beacon.Error>) -> Void) {
+    private func startOpenChannelListener(completion: @escaping (Result<(), Beacon.Error>) -> Void) {
         guard let beaconClient = beaconDappClient else {
             completion(.failure(.uninitialized))
             return
@@ -276,7 +312,7 @@ extension BeaconConnectService {
         }
     }
 
-    func onBeaconResponse(result: Result<BeaconResponse<Tezos>, Beacon.Error>) {
+    private func onBeaconResponse(result: Result<BeaconResponse<Tezos>, Beacon.Error>) {
         switch result {
         case let .success(response):
             switch response {

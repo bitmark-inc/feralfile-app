@@ -6,6 +6,9 @@ abstract class ConnectionDao {
   @Query('SELECT * FROM Connection')
   Future<List<Connection>> getConnections();
 
+  @Query('SELECT * FROM Connection WHERE connectionType = :type')
+  Future<List<Connection>> getConnectionsByType(String type);
+
   @Insert(onConflict: OnConflictStrategy.replace)
   Future<void> insertConnection(Connection connection);
 

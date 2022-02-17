@@ -5,6 +5,9 @@ import 'package:uuid/uuid.dart';
 
 abstract class PersonaService {
   WalletStorage? getActivePersona();
+
+  List<WalletStorage> getPersonas();
+
   Future<void> createPersona(String name);
 }
 
@@ -35,5 +38,13 @@ class PersonaServiceImpl extends PersonaService {
     } else {
       return null;
     }
+  }
+
+  @override
+  List<WalletStorage> getPersonas() {
+    return _configurationService
+        .getPersonas()
+        .map((uuid) => LibAukDart.getWallet(uuid))
+        .toList();
   }
 }

@@ -1,23 +1,36 @@
+import 'dart:convert';
+
+import 'package:autonomy_flutter/database/app_database.dart';
+import 'package:autonomy_flutter/database/entity/connection.dart';
+import 'package:autonomy_flutter/model/connection_supports.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:wallet_connect/wallet_connect.dart';
 
 class WalletConnectService {
   final NavigationService _navigationService;
-  final ConfigurationService _configurationService;
+  final CloudDatabase _cloudDB;
 
   final List<WCClient> wcClients = List.empty(growable: true);
+  Map<WCPeerMeta, String> tmpUuids = Map();
 
-  WalletConnectService(this._navigationService, this._configurationService) {
-    final wcSessions = _configurationService.getWCSessions();
+  WalletConnectService(this._navigationService, this._cloudDB) {
+    initSessions();
+  }
 
-    wcSessions.forEach((element) {
-      final WCClient wcClient = _createWCClient(element);
-      wcClient.connectFromSessionStore(sessionStore: element, isWallet: true);
+  Future initSessions() async {
+    final wcConnections = await _cloudDB.connectionDao
+        .getConnectionsByType(ConnectionType.walletConnect.rawValue);
+    wcConnections.forEach((element) {
+      final WCClient? wcClient = _createWCClient(element);
+      final sessionStore = element.wcConnection?.sessionStore;
+
+      if (wcClient == null || sessionStore == null) return;
+
+      wcClient.connectFromSessionStore(sessionStore: sessionStore, isWallet: true);
       wcClients.add(wcClient);
     });
   }
@@ -33,6 +46,7 @@ class WalletConnectService {
     );
 
     final wcClient = _createWCClient(null);
+    if (wcClient == null) return;
     wcClient.connectNewSession(session: session, peerMeta: peerMeta);
     wcClients.add(wcClient);
   }
@@ -44,20 +58,30 @@ class WalletConnectService {
 
     wcClient.disconnect();
     wcClients.remove(wcClient);
-
-    final wcSessions = _configurationService.getWCSessions().toList();
-    wcSessions.removeWhere((element) => element.remotePeerMeta == peerMeta);
-    _configurationService.setWCSessions(wcSessions);
   }
 
-  approveSession(WCPeerMeta peerMeta, List<String> accounts, int chainId) {
+  approveSession(
+      String uuid, WCPeerMeta peerMeta, List<String> accounts, int chainId) {
     log.info(
         "WalletConnectService.approveSession: $peerMeta, $accounts, $chainId");
     final wcClient =
         wcClients.lastWhere((element) => element.remotePeerMeta == peerMeta);
-
     wcClient.approveSession(accounts: accounts, chainId: chainId);
-    _configurationService.setWCSessions([wcClient.sessionStore]);
+
+    tmpUuids[peerMeta] = uuid;
+
+    final wcConnection = WalletConnectConnection(
+        personaUuid: uuid, sessionStore: wcClient.sessionStore);
+
+    final connection = Connection(
+      key: wcClient.remotePeerId!,
+      name: peerMeta.name,
+      data: json.encode(wcConnection),
+      connectionType: ConnectionType.walletConnect.rawValue,
+      accountNumber: "",
+      createdAt: DateTime.now(),
+    );
+    _cloudDB.connectionDao.insertConnection(connection);
   }
 
   rejectSession(WCPeerMeta peerMeta) {
@@ -85,7 +109,10 @@ class WalletConnectService {
     wcClient.rejectRequest(id: id);
   }
 
-  WCClient _createWCClient(WCSessionStore? sessionStore) {
+  WCClient? _createWCClient(Connection? connection) {
+    final wcConnection = connection?.wcConnection;
+    final sessionStore = wcConnection?.sessionStore;
+
     WCPeerMeta? currentPeerMeta = sessionStore?.remotePeerMeta;
     return WCClient(
       onConnect: () {
@@ -104,14 +131,21 @@ class WalletConnectService {
         _navigationService.navigateTo(WCConnectPage.tag,
             arguments: WCConnectPageArgs(id, peerMeta));
       },
-      onEthSign: (id, message) {
+      onEthSign: (id, message) async {
+        String? uuid = wcConnection?.personaUuid ?? tmpUuids[currentPeerMeta!];
+        if (uuid == null) return;
+
         _navigationService.navigateTo(WCSignMessagePage.tag,
-            arguments:
-                WCSignMessagePageArgs(id, currentPeerMeta!, message.data!));
+            arguments: WCSignMessagePageArgs(
+                id, currentPeerMeta!, message.data!, uuid));
       },
       onEthSendTransaction: (id, tx) {
+        String? uuid = wcConnection?.personaUuid ?? tmpUuids[currentPeerMeta!];
+        if (uuid == null) return;
+
         _navigationService.navigateTo(WCSendTransactionPage.tag,
-            arguments: WCSendTransactionPageArgs(id, currentPeerMeta!, tx));
+            arguments:
+                WCSendTransactionPageArgs(id, currentPeerMeta!, tx, uuid));
       },
       onEthSignTransaction: (id, tx) {
         // Respond to eth_signTransaction request callback

@@ -501,13 +501,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.12.11"
-  material_color_utilities:
-    dependency: transitive
-    description:
-      name: material_color_utilities
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.1.3"
   memoize:
     dependency: transitive
     description:
@@ -995,7 +988,7 @@ packages:
       name: test_api
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.4.8"
+    version: "0.4.3"
   tezart:
     dependency: "direct main"
     description:
@@ -1142,7 +1135,7 @@ packages:
       path: "."
       ref: HEAD
       resolved-ref: "60919193f36ae4f026dfdebe929d1a1ab0d23d29"
-      url: "git@github.com:autonomy-system/wallet-connect-dart.git"
+      url: "https://github.com/autonomy-system/wallet-connect-dart.git"
     source: git
     version: "1.0.2"
   watcher:

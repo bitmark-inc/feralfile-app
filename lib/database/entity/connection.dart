@@ -81,7 +81,16 @@ class Connection {
   }
 
   FeralFileConnection? get ffConnection {
+    if (connectionType != ConnectionType.feralFileToken.rawValue) return null;
+
     final jsonData = json.decode(this.data);
     return FeralFileConnection.fromJson(jsonData);
+  }
+
+  WalletConnectConnection? get wcConnection {
+    if (connectionType != ConnectionType.walletConnect.rawValue) return null;
+
+    final jsonData = json.decode(this.data);
+    return WalletConnectConnection.fromJson(jsonData);
   }
 }

@@ -83,11 +83,11 @@ class _WCDisconnectPageState extends State<WCDisconnectPage> {
   }
 
   Future _fetchAddress() async {
-    final ethAddress = await injector<NetworkConfigInjector>()
-        .I<EthereumService>()
-        .getETHAddress();
-    setState(() {
-      address = ethAddress;
-    });
+    // final ethAddress = await injector<NetworkConfigInjector>()
+    //     .I<EthereumService>()
+    //     .getETHAddress();
+    // setState(() {
+    //   address = ethAddress;
+    // });
   }
 }

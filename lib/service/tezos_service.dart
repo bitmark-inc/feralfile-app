@@ -9,7 +9,7 @@ import 'package:tezart/src/crypto/crypto.dart' show Prefixes;
 import 'package:tezart/tezart.dart';
 
 abstract class TezosService {
-  Future<String> getPublicKey();
+  Future<String> getPublicKey(TezosWallet wallet);
 
   Future<int> getBalance(String address);
 
@@ -32,16 +32,11 @@ class TezosServiceImpl extends TezosService {
 
   // TODO: Update to support multiple wallets
   @override
-  Future<String> getPublicKey() async {
-    final wallet = await _personaService.getActivePersona()?.getTezosWallet();
-    if (wallet != null) {
-      return crypto.encodeWithPrefix(
-        prefix: Prefixes.edpk,
-        bytes: wallet.publicKey,
-      );
-    } else {
-      return "";
-    }
+  Future<String> getPublicKey(TezosWallet wallet) async {
+    return crypto.encodeWithPrefix(
+      prefix: Prefixes.edpk,
+      bytes: wallet.publicKey,
+    );
   }
 
   @override

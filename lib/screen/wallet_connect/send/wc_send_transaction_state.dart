@@ -7,8 +7,9 @@ class WCSendTransactionEstimateEvent extends WCSendTransactionEvent {
   final EthereumAddress address;
   final EtherAmount amount;
   final String data;
+  final String uuid;
 
-  WCSendTransactionEstimateEvent(this.address, this.amount, this.data);
+  WCSendTransactionEstimateEvent(this.address, this.amount, this.data, this.uuid);
 }
 
 class WCSendTransactionSendEvent extends WCSendTransactionEvent {
@@ -18,8 +19,9 @@ class WCSendTransactionSendEvent extends WCSendTransactionEvent {
   final BigInt value;
   final BigInt? gas;
   final String? data;
+  final String uuid;
 
-  WCSendTransactionSendEvent(this.peerMeta, this.requestId, this.to, this.value, this.gas, this.data);
+  WCSendTransactionSendEvent(this.peerMeta, this.requestId, this.to, this.value, this.gas, this.data, this.uuid);
 }
 
 class WCSendTransactionRejectEvent extends WCSendTransactionEvent {
