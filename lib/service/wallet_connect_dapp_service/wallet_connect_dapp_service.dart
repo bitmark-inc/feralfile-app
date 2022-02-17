@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/wallet_connect_dapp_service/wc_connected_session.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/rand.dart';
 import 'package:flutter/cupertino.dart';
@@ -15,7 +16,8 @@ class WalletConnectDappService {
   ValueNotifier<String?> wcURI = ValueNotifier(null);
   late WCPeerMeta _dappPeerMeta;
   ValueNotifier<bool> isConnected = ValueNotifier(false);
-  ValueNotifier<List<String>?> remotePeerAccount = ValueNotifier([]);
+  ValueNotifier<WCConnectedSession?> remotePeerAccount = ValueNotifier(null);
+
   final ConfigurationService _configurationService;
 
   WalletConnectDappService(this._configurationService);
@@ -34,27 +36,19 @@ class WalletConnectDappService {
       onSessionApproved: _onSessionAppoved,
     );
 
-    final storedWCSessionString = _configurationService.getWCDappSession();
-    if (storedWCSessionString != null) {
-      _wcSessionStore =
-          WCSessionStore.fromJson(jsonDecode(storedWCSessionString));
-      _dappPeerMeta = _wcSessionStore.peerMeta;
-      _wcSession = _wcSessionStore.session;
-    } else {
-      _dappPeerMeta = WCPeerMeta(
-        name: 'Autonomy',
-        url: 'https://autonomy.io',
-        description:
-            'Autonomy is the home for all your NFT art and other collectibles — a seamless, customizable way to enjoy your collection.',
-        icons: [],
-      );
+    _dappPeerMeta = WCPeerMeta(
+      name: 'Autonomy',
+      url: 'https://autonomy.io',
+      description:
+          'Autonomy is the home for all your NFT art and other collectibles — a seamless, customizable way to enjoy your collection.',
+      icons: [],
+    );
 
-      _wcSession = WCSession(
-          topic: Uuid().v4(),
-          version: "1",
-          bridge: "https://walletconnect.bitmark.com",
-          key: generateRandomHex(32));
-    }
+    _wcSession = WCSession(
+        topic: Uuid().v4(),
+        version: "1",
+        bridge: "https://walletconnect.bitmark.com",
+        key: generateRandomHex(32));
 
     final encodedBridge = Uri.encodeComponent(_wcSession.bridge);
     wcURI.value = "wc:" +
@@ -70,21 +64,15 @@ class WalletConnectDappService {
   }
 
   connect() {
-    final storedWCSessionString = _configurationService.getWCDappSession();
-    if (storedWCSessionString != null) {
-      _wcClient.connectFromSessionStore(
-          sessionStore: _wcSessionStore, isWallet: false);
-    } else {
-      _wcClient.connectNewSession(
-          session: _wcSession, peerMeta: _dappPeerMeta, isWallet: false);
-    }
+    _wcClient.connectNewSession(
+        session: _wcSession, peerMeta: _dappPeerMeta, isWallet: false);
   }
 
   disconnect() {
     _configurationService.setWCDappSession(null);
     _configurationService.setWCDappAccounts(null);
     isConnected.value = false;
-    remotePeerAccount.value = [];
+    // remotePeerAccount.value = [];
     _wcClient.disconnect();
   }
 
@@ -93,7 +81,7 @@ class WalletConnectDappService {
     log.info("WC connected, stored accounts: $accounts");
     if (accounts != null) {
       isConnected.value = true;
-      remotePeerAccount.value = accounts;
+      // remotePeerAccount.value = accounts;
     }
   }
 
@@ -131,15 +119,7 @@ class WalletConnectDappService {
   }
 
   _onSessionAppoved(int id, WCApproveSessionResponse response) {
-    if (response.approved) {
-      remotePeerAccount.value = response.accounts;
-      isConnected.value = true;
-    }
-
-    _storeSession(response);
-  }
-
-  _storeSession(WCApproveSessionResponse response) {
+    log.info("WC _onSessionAppoved, reason: $response");
     if (response.approved) {
       _wcSessionStore = WCSessionStore(
           session: _wcSession,
@@ -148,12 +128,11 @@ class WalletConnectDappService {
           chainId: response.chainId!,
           peerId: _wcClient.peerId!,
           remotePeerId: response.peerId);
-      _configurationService
-          .setWCDappSession(jsonEncode(_wcSessionStore.toJson()));
-      _configurationService.setWCDappAccounts(response.accounts);
-    } else {
-      _configurationService.setWCDappSession(null);
-      _configurationService.setWCDappAccounts(null);
+
+      final connectedSession = WCConnectedSession(
+          sessionStore: _wcSessionStore, accounts: response.accounts);
+
+      remotePeerAccount.value = connectedSession;
     }
   }
 }

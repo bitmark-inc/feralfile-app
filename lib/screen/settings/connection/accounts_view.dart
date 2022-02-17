@@ -63,24 +63,12 @@ class AccountsView extends StatelessWidget {
     }
 
     final connection = account.connections?.first;
-    Widget icon;
-    switch (account.type) {
-      case ConnectionType.feralFileWeb3:
-        icon = SvgPicture.asset("assets/images/feralfileAppIcon.svg");
-        break;
-      case ConnectionType.walletBeacon:
-        icon = Image.asset("assets/images/tezos_wallet.png");
-        break;
-      default:
-        icon = Image.asset("assets/images/autonomyIcon.png");
-        break;
-    }
     if (connection != null) {
       return TappableForwardRow(
           leftWidget: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              icon,
+              _appLogo(connection),
               SizedBox(width: 16),
               Text(
                   connection.name.isNotEmpty
@@ -108,5 +96,38 @@ class AccountsView extends StatelessWidget {
     }
 
     return SizedBox();
+  }
+
+  Widget _appLogo(Connection connection) {
+    switch (connection.connectionType) {
+      case 'feralFileToken':
+      case 'feralFileWeb3':
+        return SvgPicture.asset("assets/images/feralfileAppIcon.svg");
+
+      case 'walletConnect':
+        final walletName =
+            connection.wcConnectedSession?.sessionStore.remotePeerMeta.name;
+
+        switch (walletName) {
+          case "MetaMask":
+            return Image.asset("assets/images/metamask-alternative.png");
+          case "Trust Wallet":
+            return Image.asset("assets/images/trust-alternative.png");
+          default:
+            return Image.asset("assets/images/walletconnect-alternative.png");
+        }
+
+      case 'walletBeacon':
+        final walletName = connection.walletBeaconConnection?.peer.name;
+        switch (walletName) {
+          case "Kukai Wallet":
+            return Image.asset("assets/images/kukai-wallet.png");
+          default:
+            return Image.asset("assets/images/tezos_wallet.png");
+        }
+
+      default:
+        return SizedBox();
+    }
   }
 }

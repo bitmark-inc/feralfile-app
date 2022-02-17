@@ -119,8 +119,9 @@ class TezosBeaconChannel {
               break;
             case "beaconLinked":
               final Uint8List data = params["connection"];
-              TezosConnection tezosConnection = TezosConnection.fromJson(json.decode(utf8.decode(data)));
-              handler!.onLinked(tezosConnection);
+              TezosConnection tezosConnection =
+                  TezosConnection.fromJson(json.decode(utf8.decode(data)));
+              await handler!.onLinked(tezosConnection);
               break;
             case "error":
               break;
@@ -136,7 +137,7 @@ class TezosBeaconChannel {
 abstract class BeaconHandler {
   void onRequest(BeaconRequest request);
   void onRequestedPermission(Peer peer);
-  void onLinked(TezosConnection tezosConnection);
+  Future<void> onLinked(TezosConnection tezosConnection);
   void onAbort();
 }
 

@@ -23,14 +23,15 @@ class WalletConnectService {
 
   Future initSessions() async {
     final wcConnections = await _cloudDB.connectionDao
-        .getConnectionsByType(ConnectionType.walletConnect.rawValue);
+        .getConnectionsByType(ConnectionType.dappConnect.rawValue);
     wcConnections.forEach((element) {
       final WCClient? wcClient = _createWCClient(element);
       final sessionStore = element.wcConnection?.sessionStore;
 
       if (wcClient == null || sessionStore == null) return;
 
-      wcClient.connectFromSessionStore(sessionStore: sessionStore, isWallet: true);
+      wcClient.connectFromSessionStore(
+          sessionStore: sessionStore, isWallet: true);
       wcClients.add(wcClient);
     });
   }
@@ -77,7 +78,7 @@ class WalletConnectService {
       key: wcClient.remotePeerId!,
       name: peerMeta.name,
       data: json.encode(wcConnection),
-      connectionType: ConnectionType.walletConnect.rawValue,
+      connectionType: ConnectionType.dappConnect.rawValue,
       accountNumber: "",
       createdAt: DateTime.now(),
     );
