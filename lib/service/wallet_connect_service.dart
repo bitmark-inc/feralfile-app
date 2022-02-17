@@ -17,7 +17,7 @@ class WalletConnectService {
 
     wcSessions.forEach((element) {
       final WCClient wcClient = _createWCClient(element);
-      wcClient.connectFromSessionStore(element);
+      wcClient.connectFromSessionStore(sessionStore: element, isWallet: true);
       wcClients.add(wcClient);
     });
   }

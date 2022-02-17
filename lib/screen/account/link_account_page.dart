@@ -1,7 +1,7 @@
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/service/wallet_connect_dapp_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:flutter/material.dart';
@@ -53,6 +53,8 @@ class LinkAccountPage extends StatelessWidget {
                     ),
                     SizedBox(height: 24),
                     _bitmarkLinkView(context),
+                    SizedBox(height: 24),
+                    _ethereumLinkView(context),
                     SizedBox(height: 40),
                   ],
                 ),
@@ -85,6 +87,46 @@ class LinkAccountPage extends StatelessWidget {
             ),
             onTap: () {
               Navigator.of(context).pushNamed(AppRouter.linkFeralFilePage);
+            }),
+      ],
+    );
+  }
+
+  Widget _ethereumLinkView(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "ETHEREUM",
+          style: appTextTheme.headline4,
+        ),
+        SizedBox(
+          height: 20,
+        ),
+        TappableForwardRow(
+            leftWidget: Row(
+              children: [
+                Image.asset("assets/images/metamask-alternative.png"),
+                SizedBox(width: 16),
+                Text("MetaMask", style: appTextTheme.headline4),
+              ],
+            ),
+            onTap: () {
+              Navigator.of(context).pushNamed(AppRouter.linkFeralFilePage);
+            }),
+        SizedBox(width: 16),
+        Divider(),
+        SizedBox(width: 16),
+        TappableForwardRow(
+            leftWidget: Row(
+              children: [
+                Image.asset("assets/images/walletconnect-alternative.png"),
+                SizedBox(width: 16),
+                Text("Other  Ethereum wallets", style: appTextTheme.headline4),
+              ],
+            ),
+            onTap: () {
+              Navigator.of(context).pushNamed(AppRouter.linkWalletConnectPage);
             }),
       ],
     );
