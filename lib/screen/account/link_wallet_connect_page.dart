@@ -1,8 +1,8 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/bloc/feralfile/feralfile_bloc.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/wallet_connect_dapp_service.dart';
+import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
+import 'package:autonomy_flutter/service/wallet_connect_dapp_service/wallet_connect_dapp_service.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -25,6 +25,21 @@ class _LinkWalletConnectPageState extends State<LinkWalletConnectPage> {
 
     injector<WalletConnectDappService>().start();
     injector<WalletConnectDappService>().connect();
+
+    injector<WalletConnectDappService>().remotePeerAccount.addListener(() {
+      log.info("WalletConnectDappService GetNotifier");
+      final connectedSession =
+          injector<WalletConnectDappService>().remotePeerAccount.value;
+      if (connectedSession == null) return;
+      context
+          .read<AccountsBloc>()
+          .add(LinkEthereumWalletEvent(connectedSession));
+
+      final walletName = connectedSession.sessionStore.remotePeerMeta.name;
+
+      UIHelper.showInfoDialog(context, "Account linked",
+          "Autonomy has received autorization to link to your NFTs in ${walletName}.");
+    });
   }
 
   @override
@@ -35,64 +50,52 @@ class _LinkWalletConnectPageState extends State<LinkWalletConnectPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: getBackAppBar(
-        context,
-        onBack: () {
-          Navigator.of(context).pop();
-        },
-      ),
-      body: Container(
-        margin:
-            EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
-        child: BlocConsumer<FeralfileBloc, FeralFileState>(
-          listener: (context, state) {
-            switch (state.linkState) {
-              case ActionState.done:
-                UIHelper.showInfoDialog(context, 'Account linked',
-                    'Autonomy has linked your Feral File account.');
-
-                Future.delayed(SHORT_SHOW_DIALOG_DURATION, () {
-                  if (injector<ConfigurationService>().isDoneOnboarding()) {
-                    Navigator.of(context).popUntil((route) =>
-                        route.settings.name == AppRouter.settingsPage);
-                  } else {
-                    doneOnboarding(context);
-                  }
-                });
-                break;
-
-              default:
-                break;
-            }
+    return BlocListener<AccountsBloc, AccountsState>(
+      listener: (context, state) {
+        final linkedAccount = state.justLinkedAccount;
+        if (linkedAccount != null) {
+          Future.delayed(SHORT_SHOW_DIALOG_DURATION, () {
+            UIHelper.hideInfoDialog(context);
+            Navigator.of(context).pushNamed(AppRouter.nameLinkedAccountPage,
+                arguments: linkedAccount);
+          });
+        }
+      },
+      child: Scaffold(
+        appBar: getBackAppBar(
+          context,
+          onBack: () {
+            Navigator.of(context).pop();
           },
-          builder: (context, state) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text(
-                          "Scan code to link",
-                          style: appTextTheme.headline1,
-                        ),
-                        addTitleSpace(),
-                        Text(
-                          "If your wallet is on another device, you can open it and scan the QR code below to link your account to Autonomy: ",
-                          style: appTextTheme.bodyText1,
-                        ),
-                        SizedBox(height: 24),
-                        _wcQRCode()
-                      ],
-                    ),
+        ),
+        body: Container(
+          margin:
+              EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        "Scan code to link",
+                        style: appTextTheme.headline1,
+                      ),
+                      addTitleSpace(),
+                      Text(
+                        "If your wallet is on another device, you can open it and scan the QR code below to link your account to Autonomy: ",
+                        style: appTextTheme.bodyText1,
+                      ),
+                      SizedBox(height: 24),
+                      _wcQRCode()
+                    ],
                   ),
                 ),
-              ],
-            );
-          },
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -114,7 +117,7 @@ class _LinkWalletConnectPageState extends State<LinkWalletConnectPage> {
                   )
                 : CupertinoActivityIndicator(
                     // color: Colors.black,
-                  ),
+                    ),
           );
         });
   }

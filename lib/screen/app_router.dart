@@ -3,13 +3,12 @@ import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
-import 'package:autonomy_flutter/model/tezos_connection.dart';
 import 'package:autonomy_flutter/screen/account/accounts_preview_page.dart';
 import 'package:autonomy_flutter/screen/account/link_account_page.dart';
 import 'package:autonomy_flutter/screen/account/link_feralfile_page.dart';
 import 'package:autonomy_flutter/screen/account/link_wallet_connect_page.dart';
 import 'package:autonomy_flutter/screen/account/linked_account_details_page.dart';
-import 'package:autonomy_flutter/screen/account/name_connection_page.dart';
+import 'package:autonomy_flutter/screen/account/name_linked_account_page.dart';
 import 'package:autonomy_flutter/screen/account/name_persona_page.dart';
 import 'package:autonomy_flutter/screen/account/new_account_page.dart';
 import 'package:autonomy_flutter/screen/account/persona_details_page.dart';
@@ -64,12 +63,13 @@ class AppRouter {
   static const accountsPreviewPage = 'accounts_preview';
   static const linkFeralFilePage = "link_feralfile";
   static const namePersonaPage = "name_persona_page";
-  static const nameConnectionPage = "name_connection_page";
+  static const nameLinkedAccountPage = 'name_linked_account';
   static const homePage = "home_page";
   static const settingsPage = "settings";
   static const personaDetailsPage = "persona_details";
   static const linkedAccountDetailsPage = 'linked_account_details';
   static const walletDetailsPage = 'wallet_detail';
+  static const scanQRPage = 'qr_scanner';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final networkInjector = injector<NetworkConfigInjector>();
@@ -132,10 +132,8 @@ class AppRouter {
       case linkWalletConnectPage:
         return CupertinoPageRoute(
             settings: settings,
-            builder: (context) => BlocProvider(
-                create: (_) => FeralfileBloc(
-                    injector(), networkInjector.I(), injector<CloudDatabase>()),
-                child: LinkWalletConnectPage()));
+            builder: (context) => BlocProvider.value(
+                value: accountsBloc, child: LinkWalletConnectPage()));
 
       case AppRouter.namePersonaPage:
         return CupertinoPageRoute(
@@ -144,11 +142,15 @@ class AppRouter {
                   create: (_) => PersonaBloc(injector<CloudDatabase>()),
                   child: NamePersonaPage(uuid: settings.arguments as String),
                 ));
-      case AppRouter.nameConnectionPage:
+
+      case AppRouter.nameLinkedAccountPage:
         return CupertinoPageRoute(
             settings: settings,
-            builder: (context) => NameConnectionPage(
-                connection: settings.arguments as TezosConnection));
+            builder: (context) => BlocProvider.value(
+                value: accountsBloc,
+                child: NameLinkedAccountPage(
+                    connection: settings.arguments as Connection)));
+
       case WCConnectPage.tag:
         return CupertinoPageRoute(
           settings: settings,

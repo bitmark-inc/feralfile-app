@@ -4,11 +4,26 @@ abstract class AccountsEvent {}
 
 class GetAccountsEvent extends AccountsEvent {}
 
+class LinkEthereumWalletEvent extends AccountsEvent {
+  final WCConnectedSession session;
+
+  LinkEthereumWalletEvent(this.session);
+}
+
+class NameLinkedAccountEvent extends AccountsEvent {
+  final Connection connection;
+  final String name;
+
+  NameLinkedAccountEvent(
+    this.connection,
+    this.name,
+  );
+}
+
 class Account {
   Persona? persona;
   List<Connection>? connections;
   String? name;
-  ConnectionType? type;
   String accountNumber;
   DateTime createdAt;
 
@@ -17,7 +32,6 @@ class Account {
     this.connections,
     this.accountNumber = "",
     this.name,
-    this.type,
     required this.createdAt,
   });
 }
@@ -26,5 +40,26 @@ class AccountsState {
   List<Account>? accounts;
   Network? network;
 
-  AccountsState({this.accounts, this.network});
+  Connection? justLinkedAccount;
+
+  AccountsState({this.accounts, this.network, this.justLinkedAccount});
+
+  AccountsState copyWith({
+    List<Account>? accounts,
+    Network? network,
+    Connection? justLinkedAccount,
+  }) {
+    return AccountsState(
+      accounts: accounts ?? this.accounts,
+      network: network ?? this.network,
+      justLinkedAccount: justLinkedAccount ?? this.justLinkedAccount,
+    );
+  }
+
+  AccountsState resetLinkedAccountState() {
+    return AccountsState(
+        accounts: accounts ?? this.accounts,
+        network: network ?? this.network,
+        justLinkedAccount: null);
+  }
 }

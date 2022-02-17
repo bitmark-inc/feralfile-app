@@ -3,10 +3,12 @@ import 'dart:convert';
 import 'package:autonomy_flutter/model/connection_supports.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/tezos_connection.dart';
+import 'package:autonomy_flutter/service/wallet_connect_dapp_service/wc_connected_session.dart';
 import 'package:floor/floor.dart';
 
 enum ConnectionType {
-  walletConnect,
+  walletConnect, // Autonomy connect to Wallet
+  dappConnect, // Autonomy connect to Dapp
   beaconP2PPeer,
   walletBeacon,
   feralFileToken,
@@ -51,6 +53,17 @@ class Connection {
     );
   }
 
+  factory Connection.fromETHWallet(WCConnectedSession connectedSession) {
+    return Connection(
+      key: connectedSession.accounts.first,
+      name: "",
+      data: json.encode(connectedSession),
+      connectionType: ConnectionType.walletConnect.rawValue,
+      accountNumber: connectedSession.accounts.first,
+      createdAt: DateTime.now(),
+    );
+  }
+
   Connection copyFFWith(FFAccount ffAccount) {
     final ffConnection = this.ffConnection;
     if (ffConnection == null) {
@@ -89,7 +102,7 @@ class Connection {
   }
 
   WalletConnectConnection? get wcConnection {
-    if (connectionType != ConnectionType.walletConnect.rawValue) return null;
+    if (connectionType != ConnectionType.dappConnect.rawValue) return null;
 
     final jsonData = json.decode(this.data);
     return WalletConnectConnection.fromJson(jsonData);
@@ -100,5 +113,12 @@ class Connection {
 
     final jsonData = json.decode(this.data);
     return TezosConnection.fromJson(jsonData);
+  }
+
+  WCConnectedSession? get wcConnectedSession {
+    if (connectionType != ConnectionType.walletConnect.rawValue) return null;
+
+    final jsonData = json.decode(this.data);
+    return WCConnectedSession.fromJson(jsonData);
   }
 }

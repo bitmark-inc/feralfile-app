@@ -1,7 +1,7 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
-import 'package:autonomy_flutter/service/wallet_connect_dapp_service.dart';
+import 'package:autonomy_flutter/service/wallet_connect_dapp_service/wallet_connect_dapp_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
@@ -55,9 +55,10 @@ class LinkAccountPage extends StatelessWidget {
                     ),
                     SizedBox(height: 24),
                     _bitmarkLinkView(context),
+                    addDivider(),
                     SizedBox(height: 24),
                     _ethereumLinkView(context),
-                    SizedBox(height: 24),
+                    SizedBox(height: 40),
                     _tezosLinkView(context),
                     SizedBox(height: 40),
                   ],
@@ -118,15 +119,13 @@ class LinkAccountPage extends StatelessWidget {
             onTap: () {
               Navigator.of(context).pushNamed(AppRouter.linkFeralFilePage);
             }),
-        SizedBox(width: 16),
-        Divider(),
-        SizedBox(width: 16),
+        addDivider(),
         TappableForwardRow(
             leftWidget: Row(
               children: [
                 Image.asset("assets/images/walletconnect-alternative.png"),
                 SizedBox(width: 16),
-                Text("Other  Ethereum wallets", style: appTextTheme.headline4),
+                Text("Other Ethereum wallets", style: appTextTheme.headline4),
               ],
             ),
             onTap: () {
@@ -161,9 +160,7 @@ class LinkAccountPage extends StatelessWidget {
               final uri = await tezosBeaconService.getConnectionURI();
               Share.share("https://wallet.kukai.app/tezos$uri");
             }),
-        SizedBox(width: 16),
-        Divider(),
-        SizedBox(width: 16),
+        addDivider(),
         TappableForwardRow(
             leftWidget: Row(
               children: [
@@ -174,7 +171,8 @@ class LinkAccountPage extends StatelessWidget {
             ),
             onTap: () async {
               final uri = await tezosBeaconService.getConnectionURI();
-              Navigator.of(context).pushNamed(AppRouter.linkBeaconConnectPage, arguments: uri);
+              Navigator.of(context)
+                  .pushNamed(AppRouter.linkBeaconConnectPage, arguments: uri);
             }),
       ],
     );

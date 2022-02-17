@@ -1,10 +1,8 @@
-import 'dart:convert';
-
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
-import 'package:autonomy_flutter/model/tezos_connection.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
+import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -12,23 +10,28 @@ import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-class NameConnectionPage extends StatefulWidget {
-  final TezosConnection connection;
+class NameLinkedAccountPage extends StatefulWidget {
+  final Connection connection;
 
-  const NameConnectionPage({Key? key, required this.connection})
+  const NameLinkedAccountPage({Key? key, required this.connection})
       : super(key: key);
 
   @override
-  State<NameConnectionPage> createState() => _NameConnectionPageState();
+  State<NameLinkedAccountPage> createState() => _NameLinkedAccountPageState();
 }
 
-class _NameConnectionPageState extends State<NameConnectionPage> {
+class _NameLinkedAccountPageState extends State<NameLinkedAccountPage> {
   TextEditingController _nameController = TextEditingController();
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+
+    if (_nameController.text.isEmpty) {
+      _nameController.text = widget.connection.name;
+    }
   }
 
   @override
@@ -36,9 +39,7 @@ class _NameConnectionPageState extends State<NameConnectionPage> {
     return Scaffold(
       appBar: getBackAppBar(
         context,
-        onBack: () {
-          Navigator.of(context).pop();
-        },
+        onBack: null,
       ),
       body: Container(
         margin:
@@ -76,22 +77,10 @@ class _NameConnectionPageState extends State<NameConnectionPage> {
                     Expanded(
                       child: AuFilledButton(
                         text: "SAVE ALIAS".toUpperCase(),
-                        onPress: () async {
-                          final tezosConnection = widget.connection;
-                          final connection = Connection(
-                            key: tezosConnection.address,
-                            name: _nameController.text,
-                            data: json.encode(tezosConnection),
-                            connectionType:
-                                ConnectionType.walletBeacon.rawValue,
-                            accountNumber: tezosConnection.address,
-                            createdAt: DateTime.now(),
-                          );
-
-                          await injector<CloudDatabase>()
-                              .connectionDao
-                              .insertConnection(connection);
-
+                        onPress: () {
+                          context.read<AccountsBloc>().add(
+                              NameLinkedAccountEvent(
+                                  widget.connection, _nameController.text));
                           _doneNaming();
                         },
                       ),

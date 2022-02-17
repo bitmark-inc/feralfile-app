@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/model/connection_supports.dart';
@@ -83,12 +84,23 @@ class TezosBeaconService implements BeaconHandler {
   }
 
   @override
-  void onLinked(TezosConnection tezosConnection) {
+  Future<void> onLinked(TezosConnection tezosConnection) async {
     log.info("TezosBeaconService: ${tezosConnection.toJson()}");
 
+    final connection = Connection(
+      key: tezosConnection.address,
+      name: "",
+      data: json.encode(tezosConnection),
+      connectionType: ConnectionType.walletBeacon.rawValue,
+      accountNumber: tezosConnection.address,
+      createdAt: DateTime.now(),
+    );
+
+    await injector<CloudDatabase>().connectionDao.insertConnection(connection);
+
     UIHelper.hideInfoDialog(_navigationService.navigatorKey.currentContext!);
-    _navigationService.navigateTo(AppRouter.nameConnectionPage,
-        arguments: tezosConnection);
+    _navigationService.navigateTo(AppRouter.nameLinkedAccountPage,
+        arguments: connection);
   }
 
   @override

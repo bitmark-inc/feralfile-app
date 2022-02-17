@@ -30,7 +30,6 @@ class TezosServiceImpl extends TezosService {
 
   TezosServiceImpl(this._tezartClient, this._personaService);
 
-  // TODO: Update to support multiple wallets
   @override
   Future<String> getPublicKey(TezosWallet wallet) async {
     return crypto.encodeWithPrefix(
