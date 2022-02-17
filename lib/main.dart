@@ -1,8 +1,9 @@
-import 'dart:io';
+import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/migration_util.dart';
 import 'package:flutter/cupertino.dart';
@@ -12,36 +13,37 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await setup();
+  await SentryFlutter.init((options) {
+    options.dsn =
+        'https://3327d497b7324d2e9824c88bec2235e2@o142150.ingest.sentry.io/6088804';
+    // Set tracesSampleRate to 1.0 to capture 100% of transactions for performance monitoring.
+    // We recommend adjusting this value in production.
+    options.tracesSampleRate = 1.0;
+  });
 
-  await MigrationUtil().migrateIfNeeded();
+  runZonedGuarded(() async {
+    WidgetsFlutterBinding.ensureInitialized();
+    await setup();
 
-  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    statusBarColor: Colors.white,
-    statusBarIconBrightness: Brightness.dark,
-    statusBarBrightness: Brightness.light,
-  ));
+    await MigrationUtil().migrateIfNeeded();
 
-  await SentryFlutter.init(
-    (options) {
-      options.dsn =
-          'https://3327d497b7324d2e9824c88bec2235e2@o142150.ingest.sentry.io/6088804';
-      // Set tracesSampleRate to 1.0 to capture 100% of transactions for performance monitoring.
-      // We recommend adjusting this value in production.
-      options.tracesSampleRate = 1.0;
-    },
-    appRunner: () => BlocOverrides.runZoned(
+    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+      statusBarColor: Colors.white,
+      statusBarIconBrightness: Brightness.dark,
+      statusBarBrightness: Brightness.light,
+    ));
+
+    BlocOverrides.runZoned(
       () => runApp(AutonomyApp()),
       blocObserver: AppBlocObserver(),
-    ),
-  );
+    );
+  }, (Object error, StackTrace stackTrace) {
+    showErrorDialogFromException(error);
+  });
 
   FlutterError.onError = (FlutterErrorDetails details) {
     FlutterError.presentError(details);
-    log.severe("unhandled error: $details");
-    // quit the app with error
-    exit(1);
+    showErrorDialogFromException(details.exception);
   };
 }
 
