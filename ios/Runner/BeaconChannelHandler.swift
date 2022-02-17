@@ -120,7 +120,7 @@ class BeaconChannelHandler: NSObject {
 extension BeaconChannelHandler: FlutterStreamHandler {
     func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
         self.observerRequests(events: events)
-        
+        self.observeEvents(events: events)
         return nil
     }
     
@@ -248,7 +248,7 @@ extension BeaconChannelHandler: FlutterStreamHandler {
                 
                 switch event {
                 case let .beaconRequestedPermission(peer):
-                    params["type"] = "beaconRequestedPermissionp"
+                    params["type"] = "beaconRequestedPermission"
                     let data = try? JSONEncoder().encode(peer)
                     params["peer"] = data
                 case let .beaconLinked(p2pPeer, address, permissionResponse):

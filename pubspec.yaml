@@ -99,6 +99,9 @@ flutter:
     - assets/images/trust-alternative.png
     - assets/images/metamask-alternative.png
     - assets/images/walletconnect-alternative.png
+    - assets/images/kukai_wallet.png
+    - assets/images/tezos_wallet.png
+
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

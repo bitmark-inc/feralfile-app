@@ -15,6 +15,9 @@ abstract class ConnectionDao {
   @Query('SELECT * FROM Connection WHERE key = :key')
   Future<Connection?> findById(String key);
 
+  @Query('DELETE FROM Connection')
+  Future<void> removeAll();
+
   @update
   Future<void> updateConnection(Connection connection);
 }

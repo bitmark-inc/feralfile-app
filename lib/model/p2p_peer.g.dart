@@ -13,8 +13,8 @@ P2PPeer _$P2PPeerFromJson(Map<String, dynamic> json) {
     json['publicKey'] as String,
     json['relayServer'] as String,
     json['version'] as String,
-    json['icon'] as String,
-    json['appURL'] as String,
+    json['icon'] as String?,
+    json['appURL'] as String?,
   );
 }
 

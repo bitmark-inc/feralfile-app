@@ -5,12 +5,15 @@ import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/model/connection_supports.dart';
 import 'package:autonomy_flutter/model/p2p_peer.dart';
+import 'package:autonomy_flutter/model/tezos_connection.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_connect_page.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_sign_message_page.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 
 class TezosBeaconService implements BeaconHandler {
   final NavigationService _navigationService;
@@ -38,8 +41,8 @@ class TezosBeaconService implements BeaconHandler {
 
     if (_currentPeer != null && uuid != null) {
       final peer = _currentPeer!;
-      final bcConnection = BeaconConnectConnection(
-          personaUuid: uuid, peer: peer);
+      final bcConnection =
+          BeaconConnectConnection(personaUuid: uuid, peer: peer);
 
       final connection = Connection(
         key: peer.id,
@@ -68,23 +71,32 @@ class TezosBeaconService implements BeaconHandler {
     } else if (request.type == "signPayload") {
       _navigationService.navigateTo(TBSignMessagePage.tag, arguments: request);
     } else if (request.type == "operation") {
-      _navigationService.navigateTo(TBSendTransactionPage.tag, arguments: request);
+      _navigationService.navigateTo(TBSendTransactionPage.tag,
+          arguments: request);
     }
   }
 
   @override
   void onAbort() {
-    // TODO: implement onAbort
+    log.info("TezosBeaconService: onAbort");
+    UIHelper.hideInfoDialog(_navigationService.navigatorKey.currentContext!);
   }
 
   @override
-  void onLinked() {
-    // TODO: implement onLinked
+  void onLinked(TezosConnection tezosConnection) {
+    log.info("TezosBeaconService: ${tezosConnection.toJson()}");
+
+    UIHelper.hideInfoDialog(_navigationService.navigatorKey.currentContext!);
+    _navigationService.navigateTo(AppRouter.nameConnectionPage,
+        arguments: tezosConnection);
   }
 
   @override
-  void onRequestedPermission() {
-    // TODO: implement onRequestedPermission
+  void onRequestedPermission(Peer peer) {
+    log.info("TezosBeaconService: ${peer.toJson()}");
+    UIHelper.showInfoDialog(
+        _navigationService.navigatorKey.currentContext!,
+        "Link requested",
+        "Autonomy has sent a request to ${peer.name} to link to your account. Please open the wallet and authorize the request. ");
   }
-
 }

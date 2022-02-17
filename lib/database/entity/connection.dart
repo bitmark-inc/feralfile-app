@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:autonomy_flutter/model/connection_supports.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
+import 'package:autonomy_flutter/model/tezos_connection.dart';
 import 'package:floor/floor.dart';
 
 enum ConnectionType {
@@ -92,5 +93,12 @@ class Connection {
 
     final jsonData = json.decode(this.data);
     return WalletConnectConnection.fromJson(jsonData);
+  }
+
+  TezosConnection? get walletBeaconConnection {
+    if (connectionType != ConnectionType.walletBeacon.rawValue) return null;
+
+    final jsonData = json.decode(this.data);
+    return TezosConnection.fromJson(jsonData);
   }
 }
