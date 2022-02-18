@@ -89,8 +89,13 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider(
-                  create: (_) => HomeBloc(networkInjector.I(), injector(),
-                      injector(), networkInjector.I<AppDatabase>().assetDao),
+                  create: (_) => HomeBloc(
+                      networkInjector.I(),
+                      injector(),
+                      injector(),
+                      networkInjector.I<AppDatabase>().assetDao,
+                      networkInjector.I(),
+                      injector<CloudDatabase>()),
                   child: HomePage(),
                 ));
       case beOwnGalleryPage:
@@ -107,7 +112,9 @@ class AppRouter {
 
       case AppRouter.linkAccountpage:
         return CupertinoPageRoute(
-            settings: settings, builder: (context) => LinkAccountPage());
+            settings: settings,
+            builder: (context) => BlocProvider.value(
+                value: accountsBloc, child: LinkAccountPage()));
 
       case accountsPreviewPage:
         return CupertinoPageRoute(

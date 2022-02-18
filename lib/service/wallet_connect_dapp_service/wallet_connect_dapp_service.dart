@@ -22,7 +22,7 @@ class WalletConnectDappService {
 
   WalletConnectDappService(this._configurationService);
 
-  start() async {
+  start({String schemeLink = "wc:"}) async {
     _wcClient = WCClient(
       onSessionRequest: _onSessionRequest,
       onSessionUpdate: _onSessionUpdate,
@@ -51,7 +51,7 @@ class WalletConnectDappService {
         key: generateRandomHex(32));
 
     final encodedBridge = Uri.encodeComponent(_wcSession.bridge);
-    wcURI.value = "wc:" +
+    wcURI.value = schemeLink +
         _wcSession.topic +
         "@" +
         _wcSession.version +

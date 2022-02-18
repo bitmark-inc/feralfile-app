@@ -1,4 +1,5 @@
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 
 abstract class HomeEvent {}
 
@@ -14,11 +15,14 @@ class HomeConnectTZEvent extends HomeEvent {
   HomeConnectTZEvent(this.uri);
 }
 
-class HomeCheckFeralFileLoginEvent extends HomeEvent {}
+class RefreshTokensEvent extends HomeEvent {}
 
 class HomeState {
-  bool? isFeralFileLoggedIn;
-  List<AssetToken> ffAssets = [];
-  List<AssetToken> ethAssets = [];
-  List<AssetToken> xtzAssets = [];
+  List<AssetToken>? tokens;
+  ActionState fetchTokenState;
+
+  HomeState({
+    this.tokens = null,
+    this.fetchTokenState = ActionState.notRequested,
+  });
 }

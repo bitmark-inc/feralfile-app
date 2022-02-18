@@ -85,7 +85,7 @@ class _LinkFeralFilePageState extends State<LinkFeralFilePage> {
                               dynamic feralFileToken =
                                   await Navigator.of(context).pushNamed(
                                 AppRouter.scanQRPage,
-                                arguments: ScannerItem.FERALFILE_TOKEN_READ,
+                                arguments: ScannerItem.FERALFILE_TOKEN,
                               );
 
                               _tokenController.text = feralFileToken;
