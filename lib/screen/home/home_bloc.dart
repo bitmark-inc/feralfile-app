@@ -1,6 +1,9 @@
+import 'dart:developer';
+
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/dao/asset_token_dao.dart';
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
+import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/gateway/indexer_api.dart';
 import 'package:autonomy_flutter/model/blockchain.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
@@ -35,6 +38,40 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       _tezosBeaconService.addPeer(event.uri);
     });
 
+    void _requestIndex(List<String> ethAddresses, List<String> tezosAddresses,
+        List<Connection> linkedAccounts) {
+      for (var ethAddress in ethAddresses) {
+        log("[HomeBloc] RequestIndex for $ethAddress");
+        _indexerApi.requestIndex({"owner": ethAddress});
+      }
+
+      for (var tezosAddress in tezosAddresses) {
+        log("[HomeBloc] RequestIndex for $tezosAddress");
+        _indexerApi
+            .requestIndex({"owner": tezosAddress, "blockchain": "tezos"});
+      }
+
+      for (var linkAccount in linkedAccounts) {
+        switch (linkAccount.connectionType) {
+          case 'walletConnect':
+            final ethAddress = linkAccount.accountNumber;
+            log("[HomeBloc] RequestIndex for linked $ethAddress");
+            _indexerApi.requestIndex({"owner": ethAddress});
+            break;
+
+          case 'walletBeacon':
+            final tezosAddress = linkAccount.accountNumber;
+            log("[HomeBloc] RequestIndex for linked $tezosAddress");
+            _indexerApi
+                .requestIndex({"owner": tezosAddress, "blockchain": "tezos"});
+            break;
+
+          default:
+            break;
+        }
+      }
+    }
+
     on<RefreshTokensEvent>((event, emit) async {
       try {
         final currentTokens = await _assetTokenDao.findAllAssetTokens();
@@ -46,18 +83,24 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
         var accountNumbers =
             linkedAccounts.map((e) => e.accountNumber).toList();
+        List<String> ethAddresses = [];
+        List<String> tezosAddresses = [];
 
         for (var persona in personas) {
           final ethAddress = await persona.wallet().getETHAddress();
           final tezosWallet = await persona.wallet().getTezosWallet();
           final tezosAddress = tezosWallet.address;
 
-          accountNumbers += [ethAddress, tezosAddress];
+          ethAddresses += [ethAddress];
+          tezosAddresses += [tezosAddress];
         }
+        List allAccountNumbers = List.from(accountNumbers)
+          ..addAll(ethAddresses)
+          ..addAll(tezosAddresses);
 
         List<AssetToken> allTokens = [];
 
-        for (var accountNumber in accountNumbers) {
+        for (var accountNumber in allAccountNumbers) {
           final tokens = await _indexerApi.getNftTokensByOwner(accountNumber);
           allTokens += tokens.map((e) => AssetToken.fromAsset(e)).toList();
         }
@@ -72,8 +115,13 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           await _assetTokenDao.removeAll();
         }
 
-        // Reindex AccountNumber
-        // TODO:
+        // Request ReIndex
+        try {
+          _requestIndex(ethAddresses, tezosAddresses, linkedAccounts);
+        } catch (exception) {
+          log("[HomeBloc] error when request index");
+          Sentry.captureException(exception);
+        }
 
         // reload
         final tokens = await _assetTokenDao.findAllAssetTokens();
