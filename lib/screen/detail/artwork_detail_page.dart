@@ -9,9 +9,10 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_outlined_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ArtworkDetailPage extends StatelessWidget {
   static const tag = "artwork_detail";
@@ -71,7 +72,7 @@ class ArtworkDetailPage extends StatelessWidget {
                           width: 165,
                           height: 48,
                           child: AuOutlinedButton(
-                              text: "VIEW ARTWORK \u25b6",
+                              text: "VIEW ARTWORK ‣",
                               onPress: () {
                                 Navigator.of(context).pushNamed(
                                     ArtworkPreviewPage.tag,
@@ -136,56 +137,81 @@ class ArtworkDetailPage extends StatelessWidget {
           style: appTextTheme.headline2,
         ),
         SizedBox(height: 16.0),
-        Text(
-          "You’ll retain these rights forever. Your rights are guaranteed in perpetuity until you resell or transfer ownership of the work.",
-          style: appTextTheme.bodyText1,
+        RichText(
+          text: TextSpan(children: [
+            TextSpan(
+              style: appTextTheme.bodyText1,
+              text:
+                  "Feral File protects artist and collector rights. Learn more on the ",
+            ),
+            TextSpan(
+              style: TextStyle(
+                  color: Color(0xFF5B5BFF),
+                  fontSize: 16,
+                  fontFamily: "AtlasGrotesk",
+                  height: 1.377),
+              text: "Artist + Collector Rights",
+              recognizer: TapGestureRecognizer()
+                ..onTap = () {
+                  launch("https://feralfile.com/docs/artist-collector-rights");
+                },
+            ),
+            TextSpan(
+              style: appTextTheme.bodyText1,
+              text: " page.",
+            ),
+          ]),
         ),
-        SizedBox(height: 16.0),
-        _artworkRightItem(context, "Download",
-            "As a collector, you have access to a permanent link where you can download the work’s original, full-resolution files and technical details."),
-        Divider(height: 32.0),
-        _artworkRightItem(context, "Display",
-            "Using the artist’s installation guidelines, you have the right to display the work both privately and publicly."),
-        Divider(height: 32.0),
-        _artworkRightItem(context, "Authenticate",
-            "You have the right to be assured of the work’s authenticity. Feral File guarantees the provenance of every edition using a public ledger recorded on the Bitmark blockchain."),
-        Divider(height: 32.0),
-        _artworkRightItem(context, "Loan or lease",
-            "You may grant others the temporary right to display the work."),
-        Divider(height: 32.0),
-        _artworkRightItem(context, "Resell or transfer",
-            "You are entitled to transfer your rights to the work to another collector or entity. Keep in mind that if you resell the work, the artist will earn 10% of the sale and Feral File will earn 5%."),
-        Divider(height: 32.0),
-        _artworkRightItem(context, "Remain anonymous",
-            "While all sales are recorded publicly on the public blockchain, you can use an alias to keep your collection private."),
-        Divider(height: 32.0),
-        _artworkRightItem(context, "Respect the artist’s rights",
-            "Feral File protects artists by forefronting their rights, just like we forefront your rights as a collector. Learn more on the Artist + Collector Rights page."),
+        // Text(
+        //   "Feral File protects artist and collector rights. Learn more on the Artist + Collector Rights page.",
+        //   style: appTextTheme.bodyText1,
+        // ),
+        // SizedBox(height: 16.0),
+        // _artworkRightItem(context, "Download",
+        //     "As a collector, you have access to a permanent link where you can download the work’s original, full-resolution files and technical details."),
+        // Divider(height: 32.0),
+        // _artworkRightItem(context, "Display",
+        //     "Using the artist’s installation guidelines, you have the right to display the work both privately and publicly."),
+        // Divider(height: 32.0),
+        // _artworkRightItem(context, "Authenticate",
+        //     "You have the right to be assured of the work’s authenticity. Feral File guarantees the provenance of every edition using a public ledger recorded on the Bitmark blockchain."),
+        // Divider(height: 32.0),
+        // _artworkRightItem(context, "Loan or lease",
+        //     "You may grant others the temporary right to display the work."),
+        // Divider(height: 32.0),
+        // _artworkRightItem(context, "Resell or transfer",
+        //     "You are entitled to transfer your rights to the work to another collector or entity. Keep in mind that if you resell the work, the artist will earn 10% of the sale and Feral File will earn 5%."),
+        // Divider(height: 32.0),
+        // _artworkRightItem(context, "Remain anonymous",
+        //     "While all sales are recorded publicly on the public blockchain, you can use an alias to keep your collection private."),
+        // Divider(height: 32.0),
+        // _artworkRightItem(context, "Respect the artist’s rights",
+        //     "Feral File protects artists by forefronting their rights, just like we forefront your rights as a collector. Learn more on the Artist + Collector Rights page."),
       ],
     );
   }
 
-  Widget _artworkRightItem(BuildContext context, String name, String body) {
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              name,
-              style: appTextTheme.headline4,
-            ),
-            Icon(CupertinoIcons.forward)
-          ],
-        ),
-        SizedBox(height: 16.0),
-        Text(
-          body,
-          style: appTextTheme.bodyText1,
-        ),
-      ],
-    );
-  }
+  // Widget _artworkRightItem(BuildContext context, String name, String body) {
+  //   return Column(
+  //     children: [
+  //       Row(
+  //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //         children: [
+  //           Text(
+  //             name,
+  //             style: appTextTheme.headline4,
+  //           ),
+  //           Icon(CupertinoIcons.forward)
+  //         ],
+  //       ),
+  //       SizedBox(height: 16.0),
+  //       Text(
+  //         body,
+  //         style: appTextTheme.bodyText1,
+  //       ),
+  //     ],
+  //   );
+  // }
 
   Widget _valueView(
       BuildContext context, AssetToken asset, AssetPrice? assetPrice) {
@@ -269,10 +295,10 @@ class ArtworkDetailPage extends StatelessWidget {
         _rowItem(context, "Medium", asset.medium?.capitalize()),
         Divider(height: 32.0),
         _rowItem(context, "Date minted", asset.mintedAt),
-        Divider(height: 32.0),
-        _rowItem(context, "Date collected", ""),
-        Divider(height: 32.0),
-        _rowItem(context, "Artwork data", asset.assetData),
+        asset.assetData != null && asset.assetData!.isNotEmpty ? Column(
+          children: [Divider(height: 32.0),
+            _rowItem(context, "Artwork data", asset.assetData)],
+        ) : SizedBox(),
       ],
     );
   }
