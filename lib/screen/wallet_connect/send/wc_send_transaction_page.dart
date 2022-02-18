@@ -4,6 +4,7 @@ import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wallet_connect/models/ethereum/wc_ethereum_transaction.dart';
@@ -22,6 +23,8 @@ class WCSendTransactionPage extends StatefulWidget {
 }
 
 class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
+  bool _isSending = false;
+
   @override
   void initState() {
     super.initState();
@@ -45,133 +48,145 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                   widget.args.peerMeta, widget.args.id));
         },
       ),
-      body: Container(
-        margin: EdgeInsets.all(16.0),
-        child: BlocBuilder<WCSendTransactionBloc, WCSendTransactionState>(
-          builder: (context, state) {
-            final EtherAmount amount = EtherAmount.fromUnitAndValue(
-                EtherUnit.wei, widget.args.transaction.value);
-            final total =
+      body: Stack(
+        children: [
+          Container(
+            margin: EdgeInsets.only(
+                top: 16.0,
+                left: 16.0,
+                right: 16.0,
+                bottom: MediaQuery.of(context).padding.bottom),
+            child: BlocBuilder<WCSendTransactionBloc, WCSendTransactionState>(
+              builder: (context, state) {
+                final EtherAmount amount = EtherAmount.fromUnitAndValue(
+                    EtherUnit.wei, widget.args.transaction.value);
+                final total =
                 state.fee != null ? state.fee! + amount.getInWei : null;
 
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(height: 8.0),
-                        Text(
-                          "Confirm",
-                          style: appTextTheme.headline1,
-                        ),
-                        SizedBox(height: 40.0),
-                        Text(
-                          "Asset",
-                          style: appTextTheme.headline4,
-                        ),
-                        SizedBox(height: 16.0),
-                        Text(
-                          "Ethereum (ETH)",
-                          style: appTextTheme.bodyText2,
-                        ),
-                        Divider(height: 32),
-                        Text(
-                          "From",
-                          style: appTextTheme.headline4,
-                        ),
-                        SizedBox(height: 16.0),
-                        Text(
-                          widget.args.transaction.from,
-                          style: appTextTheme.bodyText2,
-                        ),
-                        Divider(height: 32),
-                        Text(
-                          "Connection",
-                          style: appTextTheme.headline4,
-                        ),
-                        SizedBox(height: 16.0),
-                        Text(
-                          widget.args.peerMeta.name,
-                          style: appTextTheme.bodyText2,
-                        ),
-                        Divider(height: 32),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "Send",
-                              style: appTextTheme.headline4,
-                            ),
-                            Text(
-                              "${EthAmountFormatter(amount.getInWei).format()} ETH",
-                              style: appTextTheme.bodyText2,
-                            ),
-                          ],
-                        ),
-                        Divider(height: 32),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "Gas fee",
-                              style: appTextTheme.headline4,
-                            ),
-                            Text(
-                              "${state.fee != null ? EthAmountFormatter(state.fee!).format() : "-"} ETH",
-                              style: appTextTheme.bodyText2,
-                            ),
-                          ],
-                        ),
-                        Divider(height: 32),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "Total Amount",
-                              style: appTextTheme.headline4,
-                            ),
-                            Text(
-                              "${total != null ? EthAmountFormatter(total).format() : "-"} ETH",
-                              style: appTextTheme.headline4,
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                Row(
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
-                      child: AuFilledButton(
-                        text: "Send".toUpperCase(),
-                        onPress: () async {
-                          if (state.fee == null) return;
-                          final to = EthereumAddress.fromHex(
-                              widget.args.transaction.to);
-
-                          context.read<WCSendTransactionBloc>().add(
-                              WCSendTransactionSendEvent(
-                                  widget.args.peerMeta,
-                                  widget.args.id,
-                                  to,
-                                  amount.getInWei,
-                                  state.fee!,
-                                  widget.args.transaction.data,
-                                  widget.args.uuid
-                              ));
-                        },
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(height: 8.0),
+                            Text(
+                              "Confirm",
+                              style: appTextTheme.headline1,
+                            ),
+                            SizedBox(height: 40.0),
+                            Text(
+                              "Asset",
+                              style: appTextTheme.headline4,
+                            ),
+                            SizedBox(height: 16.0),
+                            Text(
+                              "Ethereum (ETH)",
+                              style: appTextTheme.bodyText2,
+                            ),
+                            Divider(height: 32),
+                            Text(
+                              "From",
+                              style: appTextTheme.headline4,
+                            ),
+                            SizedBox(height: 16.0),
+                            Text(
+                              widget.args.transaction.from,
+                              style: appTextTheme.bodyText2,
+                            ),
+                            Divider(height: 32),
+                            Text(
+                              "Connection",
+                              style: appTextTheme.headline4,
+                            ),
+                            SizedBox(height: 16.0),
+                            Text(
+                              widget.args.peerMeta.name,
+                              style: appTextTheme.bodyText2,
+                            ),
+                            Divider(height: 32),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  "Send",
+                                  style: appTextTheme.headline4,
+                                ),
+                                Text(
+                                  "${EthAmountFormatter(amount.getInWei).format()} ETH",
+                                  style: appTextTheme.bodyText2,
+                                ),
+                              ],
+                            ),
+                            Divider(height: 32),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  "Gas fee",
+                                  style: appTextTheme.headline4,
+                                ),
+                                Text(
+                                  "${state.fee != null ? EthAmountFormatter(state.fee!).format() : "-"} ETH",
+                                  style: appTextTheme.bodyText2,
+                                ),
+                              ],
+                            ),
+                            Divider(height: 32),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  "Total Amount",
+                                  style: appTextTheme.headline4,
+                                ),
+                                Text(
+                                  "${total != null ? EthAmountFormatter(total).format() : "-"} ETH",
+                                  style: appTextTheme.headline4,
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
-                    )
+                    ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: AuFilledButton(
+                            text: "Send".toUpperCase(),
+                            onPress: (state.fee != null && !_isSending) ? () async {
+                              setState(() {
+                                _isSending = true;
+                              });
+
+                              final to = EthereumAddress.fromHex(
+                                  widget.args.transaction.to);
+
+                              context.read<WCSendTransactionBloc>().add(
+                                  WCSendTransactionSendEvent(
+                                      widget.args.peerMeta,
+                                      widget.args.id,
+                                      to,
+                                      amount.getInWei,
+                                      state.fee!,
+                                      widget.args.transaction.data,
+                                      widget.args.uuid
+                                  ));
+                            } : null,
+                          ),
+                        )
+                      ],
+                    ),
                   ],
-                ),
-              ],
-            );
-          },
-        ),
+                );
+              },
+            ),
+          ),
+          _isSending ? Center(child: CupertinoActivityIndicator()) : SizedBox(),
+        ],
       ),
     );
   }
