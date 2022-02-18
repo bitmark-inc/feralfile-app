@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
 import 'package:autonomy_flutter/util/xtz_amount_formatter.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 
@@ -27,6 +28,7 @@ class TBSendTransactionPage extends StatefulWidget {
 class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
   int? _fee;
   TezosWallet? _currentWallet;
+  bool _isSending = false;
 
   @override
   void initState() {
@@ -74,117 +76,130 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
           Navigator.of(context).pop();
         },
       ),
-      body: Container(
-        margin: EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(height: 8.0),
-                    Text(
-                      "Confirm",
-                      style: appTextTheme.headline1,
-                    ),
-                    SizedBox(height: 40.0),
-                    Text(
-                      "Asset",
-                      style: appTextTheme.headline4,
-                    ),
-                    SizedBox(height: 16.0),
-                    Text(
-                      "Tezos (XTZ)",
-                      style: appTextTheme.bodyText2,
-                    ),
-                    Divider(height: 32),
-                    Text(
-                      "From",
-                      style: appTextTheme.headline4,
-                    ),
-                    SizedBox(height: 16.0),
-                    Text(
-                      widget.request.sourceAddress ?? "",
-                      style: appTextTheme.bodyText2,
-                    ),
-                    Divider(height: 32),
-                    Text(
-                      "Connection",
-                      style: appTextTheme.headline4,
-                    ),
-                    SizedBox(height: 16.0),
-                    Text(
-                      widget.request.appName ?? "",
-                      style: appTextTheme.bodyText2,
-                    ),
-                    Divider(height: 32),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Send",
-                          style: appTextTheme.headline4,
-                        ),
-                        Text(
-                          "${XtzAmountFormatter(widget.request.operations!.first.amount ?? 0).format()} XTZ",
-                          style: appTextTheme.bodyText2,
-                        ),
-                      ],
-                    ),
-                    Divider(height: 32),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Gas fee",
-                          style: appTextTheme.headline4,
-                        ),
-                        Text(
-                          "${_fee != null ? XtzAmountFormatter(_fee!).format() : "-"} XTZ",
-                          style: appTextTheme.bodyText2,
-                        ),
-                      ],
-                    ),
-                    Divider(height: 32),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Total Amount",
-                          style: appTextTheme.headline4,
-                        ),
-                        Text(
-                          "${total != null ? XtzAmountFormatter(total).format() : "-"} XTZ",
-                          style: appTextTheme.headline4,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            Row(
+      body: Stack(
+        children: [
+          Container(
+            margin: EdgeInsets.only(
+                top: 16.0,
+                left: 16.0,
+                right: 16.0,
+                bottom: MediaQuery.of(context).padding.bottom),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
-                  child: AuFilledButton(
-                    text: "Send".toUpperCase(),
-                    onPress: (_currentWallet != null && _fee != null)? () async {
-                      final txHash = await injector<NetworkConfigInjector>()
-                          .I<TezosService>()
-                          .sendOperationTransaction(_currentWallet!, widget.request.operations!);
-
-                      injector<TezosBeaconService>()
-                          .operationResponse(widget.request.id, txHash);
-                      Navigator.of(context).pop();
-                    } : null,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(height: 8.0),
+                        Text(
+                          "Confirm",
+                          style: appTextTheme.headline1,
+                        ),
+                        SizedBox(height: 40.0),
+                        Text(
+                          "Asset",
+                          style: appTextTheme.headline4,
+                        ),
+                        SizedBox(height: 16.0),
+                        Text(
+                          "Tezos (XTZ)",
+                          style: appTextTheme.bodyText2,
+                        ),
+                        Divider(height: 32),
+                        Text(
+                          "From",
+                          style: appTextTheme.headline4,
+                        ),
+                        SizedBox(height: 16.0),
+                        Text(
+                          widget.request.sourceAddress ?? "",
+                          style: appTextTheme.bodyText2,
+                        ),
+                        Divider(height: 32),
+                        Text(
+                          "Connection",
+                          style: appTextTheme.headline4,
+                        ),
+                        SizedBox(height: 16.0),
+                        Text(
+                          widget.request.appName ?? "",
+                          style: appTextTheme.bodyText2,
+                        ),
+                        Divider(height: 32),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Send",
+                              style: appTextTheme.headline4,
+                            ),
+                            Text(
+                              "${XtzAmountFormatter(widget.request.operations!.first.amount ?? 0).format()} XTZ",
+                              style: appTextTheme.bodyText2,
+                            ),
+                          ],
+                        ),
+                        Divider(height: 32),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Gas fee",
+                              style: appTextTheme.headline4,
+                            ),
+                            Text(
+                              "${_fee != null ? XtzAmountFormatter(_fee!).format() : "-"} XTZ",
+                              style: appTextTheme.bodyText2,
+                            ),
+                          ],
+                        ),
+                        Divider(height: 32),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Total Amount",
+                              style: appTextTheme.headline4,
+                            ),
+                            Text(
+                              "${total != null ? XtzAmountFormatter(total).format() : "-"} XTZ",
+                              style: appTextTheme.headline4,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                )
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: AuFilledButton(
+                        text: "Send".toUpperCase(),
+                        onPress: (_currentWallet != null && _fee != null && !_isSending) ? () async {
+                          setState(() {
+                            _isSending = true;
+                          });
+
+                          final txHash = await injector<NetworkConfigInjector>()
+                              .I<TezosService>()
+                              .sendOperationTransaction(_currentWallet!, widget.request.operations!);
+
+                          injector<TezosBeaconService>()
+                              .operationResponse(widget.request.id, txHash);
+                          Navigator.of(context).pop();
+                        } : null,
+                      ),
+                    )
+                  ],
+                ),
               ],
             ),
-          ],
-        ),
+          ),
+          _isSending ? Center(child: CupertinoActivityIndicator()) : SizedBox(),
+        ],
       ),
     );
   }

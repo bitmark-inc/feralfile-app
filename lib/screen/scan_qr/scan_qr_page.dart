@@ -149,6 +149,7 @@ class _ScanQRPageState extends State<ScanQRPage> {
 
         case ScannerItem.ETH_ADDRESS:
         case ScannerItem.XTZ_ADDRESS:
+          controller.dispose();
           Navigator.pop(context, code);
           break;
         case ScannerItem.GLOBAL:
