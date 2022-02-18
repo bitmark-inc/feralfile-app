@@ -170,7 +170,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                 Expanded(
                   child: AuFilledButton(
                     text: "Send".toUpperCase(),
-                    onPress: _currentWallet != null ? () async {
+                    onPress: (_currentWallet != null && _fee != null)? () async {
                       final txHash = await injector<NetworkConfigInjector>()
                           .I<TezosService>()
                           .sendOperationTransaction(_currentWallet!, widget.request.operations!);
