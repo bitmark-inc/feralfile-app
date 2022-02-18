@@ -1,16 +1,104 @@
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_dapp_service/wallet_connect_dapp_service.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:share/share.dart';
+import 'package:url_launcher/url_launcher.dart';
 
-class LinkAccountPage extends StatelessWidget {
+class LinkAccountPage extends StatefulWidget {
   const LinkAccountPage({Key? key}) : super(key: key);
+
+  @override
+  State<LinkAccountPage> createState() => _LinkAccountPageState();
+}
+
+class _LinkAccountPageState extends State<LinkAccountPage>
+    with RouteAware, WidgetsBindingObserver {
+  VoidCallback? _wcURIListener;
+  VoidCallback? _remotePeerWCAccountListener;
+  bool _moveToOtherEtherumWalletPage = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+  }
+
+  @override
+  void didPopNext() {
+    super.didPopNext();
+
+    _moveToOtherEtherumWalletPage = false;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Open Metamask
+    if (_wcURIListener == null) {
+      _wcURIListener = () {
+        log.info("_wcURIListener Get Notifier");
+        if (_moveToOtherEtherumWalletPage) return;
+        final _uri = injector<WalletConnectDappService>().wcURI.value;
+        log.info("_wcURIListener Get wcURI $_uri");
+
+        if (_uri == null) return;
+        final metamaksLink =
+            "https://metamask.app.link/wc?uri=" + Uri.encodeComponent(_uri);
+        log.info(metamaksLink);
+        launch(metamaksLink, forceSafariVC: false, universalLinksOnly: true);
+      };
+
+      injector<WalletConnectDappService>().wcURI.addListener(_wcURIListener!);
+    }
+
+    // Link Successfully
+    if (_remotePeerWCAccountListener == null) {
+      _remotePeerWCAccountListener = () {
+        log.info("WalletConnectDappService GetNotifier: remotePeerAccount");
+        final connectedSession =
+            injector<WalletConnectDappService>().remotePeerAccount.value;
+        if (connectedSession == null) return;
+
+        context
+            .read<AccountsBloc>()
+            .add(LinkEthereumWalletEvent(connectedSession));
+      };
+
+      injector<WalletConnectDappService>()
+          .remotePeerAccount
+          .addListener(_remotePeerWCAccountListener!);
+    }
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    routeObserver.unsubscribe(this);
+
+    if (_wcURIListener != null) {
+      injector<WalletConnectDappService>()
+          .wcURI
+          .removeListener(_wcURIListener!);
+    }
+
+    if (_remotePeerWCAccountListener != null) {
+      injector<WalletConnectDappService>()
+          .remotePeerAccount
+          .removeListener(_remotePeerWCAccountListener!);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,51 +109,72 @@ class LinkAccountPage extends StatelessWidget {
           Navigator.of(context).pop();
         },
       ),
-      body: Container(
-        margin:
-            EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Link account",
-                      style: appTextTheme.headline1,
-                    ),
-                    addTitleSpace(),
-                    RichText(
-                      text: TextSpan(
-                        style: appTextTheme.bodyText1,
-                        children: <TextSpan>[
-                          TextSpan(
-                              text:
-                                  'Linking your account to Autonomy does not import or access your private keys.',
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.bold)),
-                          TextSpan(
-                            text:
-                                ' If you have multiple accounts in your wallet, make sure that the account you want to link is active. ',
-                          ),
-                        ],
+      body: BlocListener<AccountsBloc, AccountsState>(
+        listener: (context, state) {
+          final linkedAccount = state.justLinkedAccount;
+
+          if (linkedAccount != null) {
+            final walletName = linkedAccount
+                    .wcConnectedSession?.sessionStore.remotePeerMeta.name ??
+                'your wallet';
+            UIHelper.showInfoDialog(context, "Account linked",
+                "Autonomy has received autorization to link to your NFTs in $walletName.");
+
+            final delay = _moveToOtherEtherumWalletPage ? 3 : 5;
+
+            Future.delayed(Duration(seconds: delay), () {
+              UIHelper.hideInfoDialog(context);
+              Navigator.of(context).pushNamed(AppRouter.nameLinkedAccountPage,
+                  arguments: linkedAccount);
+            });
+          }
+        },
+        child: Container(
+          margin:
+              EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Link account",
+                        style: appTextTheme.headline1,
                       ),
-                    ),
-                    SizedBox(height: 24),
-                    _bitmarkLinkView(context),
-                    addDivider(),
-                    SizedBox(height: 24),
-                    _ethereumLinkView(context),
-                    SizedBox(height: 40),
-                    _tezosLinkView(context),
-                    SizedBox(height: 40),
-                  ],
+                      addTitleSpace(),
+                      RichText(
+                        text: TextSpan(
+                          style: appTextTheme.bodyText1,
+                          children: <TextSpan>[
+                            TextSpan(
+                                text:
+                                    'Linking your account to Autonomy does not import or access your private keys.',
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold)),
+                            TextSpan(
+                              text:
+                                  ' If you have multiple accounts in your wallet, make sure that the account you want to link is active. ',
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: 24),
+                      _bitmarkLinkView(context),
+                      addDivider(),
+                      SizedBox(height: 24),
+                      _ethereumLinkView(context),
+                      SizedBox(height: 40),
+                      _tezosLinkView(context),
+                      SizedBox(height: 40),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -117,7 +226,7 @@ class LinkAccountPage extends StatelessWidget {
               ],
             ),
             onTap: () {
-              Navigator.of(context).pushNamed(AppRouter.linkFeralFilePage);
+              _linkMetamask(context);
             }),
         addDivider(),
         TappableForwardRow(
@@ -129,6 +238,7 @@ class LinkAccountPage extends StatelessWidget {
               ],
             ),
             onTap: () {
+              _moveToOtherEtherumWalletPage = true;
               Navigator.of(context).pushNamed(AppRouter.linkWalletConnectPage);
             }),
       ],
@@ -176,5 +286,10 @@ class LinkAccountPage extends StatelessWidget {
             }),
       ],
     );
+  }
+
+  Future _linkMetamask(BuildContext context) async {
+    injector<WalletConnectDappService>().start();
+    injector<WalletConnectDappService>().connect();
   }
 }

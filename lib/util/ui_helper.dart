@@ -1,6 +1,7 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/theme_manager.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:flutter/material.dart';
@@ -23,6 +24,7 @@ class UIHelper {
     String description, {
     bool isDismissible = false,
   }) {
+    log.info("[UIHelper] showInfoDialog: $title, $description");
     final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
 
     showModalBottomSheet(
