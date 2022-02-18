@@ -2,17 +2,20 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_page.dart';
-import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/bloc/feralfile/feralfile_bloc.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
+import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:provider/src/provider.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
-import 'package:web3dart/credentials.dart';
 
 class ScanQRPage extends StatefulWidget {
-  static const String tag = 'qr_scanner';
+  static const String tag = AppRouter.scanQRPage;
 
   final ScannerItem scannerItem;
 
@@ -26,6 +29,7 @@ class ScanQRPage extends StatefulWidget {
 class _ScanQRPageState extends State<ScanQRPage> {
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
   late QRViewController controller;
+  var isScanDataError = false;
 
   // In order to get hot reload to work we need to pause the camera if the platform
   // is android, or resume the camera if the platform is iOS.
@@ -57,17 +61,47 @@ class _ScanQRPageState extends State<ScanQRPage> {
 
   @override
   Widget build(BuildContext context) {
+    final qrSize = MediaQuery.of(context).size.width - 90;
     return Scaffold(
       body: Stack(
         children: <Widget>[
           Container(
             child: QRView(
               key: qrKey,
+              overlay: QrScannerOverlayShape(
+                borderColor: isScanDataError ? Colors.red : Colors.black,
+                cutOutSize: qrSize,
+                borderRadius: 20,
+                borderWidth: 8,
+                borderLength: qrSize / 2,
+              ),
               onQRViewCreated: _onQRViewCreated,
             ),
           ),
-          AppBar(
-            backgroundColor: Colors.transparent,
+          Padding(
+            padding: const EdgeInsets.fromLTRB(15, 55, 15, 0),
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: () => Navigator.of(context).pop(),
+              child: Row(
+                children: [
+                  Icon(CupertinoIcons.back, color: Colors.white),
+                  Text(
+                    "BACK",
+                    style: appTextTheme.caption?.copyWith(color: Colors.white),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.fromLTRB(0, qrSize + 40, 0, 0),
+            child: Center(
+              child: Text(
+                "SCAN QR CODE",
+                style: appTextTheme.button?.copyWith(color: Colors.white),
+              ),
+            ),
           ),
         ],
       ),
@@ -77,26 +111,53 @@ class _ScanQRPageState extends State<ScanQRPage> {
   void _onQRViewCreated(QRViewController controller) {
     this.controller = controller;
     controller.scannedDataStream.listen((scanData) async {
-      controller.dispose();
-
       if (scanData.code == null) return;
 
       final code = scanData.code!;
 
       switch (widget.scannerItem) {
         case ScannerItem.WALLET_CONNECT:
+          if (code.startsWith("wc:") == true) {
+            _handleWalletConnect(code);
+          } else {
+            setState(() {
+              isScanDataError = true;
+            });
+          }
+          break;
+
         case ScannerItem.BEACON_CONNECT:
+          if (code.startsWith("tezos://") == true) {
+            _handleBeaconConnect(code);
+          } else {
+            setState(() {
+              isScanDataError = true;
+            });
+          }
+          break;
+
+        case ScannerItem.FERALFILE_TOKEN:
+          if (code.startsWith("feralfile-api:") == true) {
+            controller.dispose();
+            Navigator.pop(context, code);
+          } else {
+            setState(() {
+              isScanDataError = true;
+            });
+          }
+          break;
+
         case ScannerItem.ETH_ADDRESS:
         case ScannerItem.XTZ_ADDRESS:
           Navigator.pop(context, code);
           break;
         case ScannerItem.GLOBAL:
           if (code.startsWith("wc:") == true) {
-            injector<WalletConnectService>().connect(code);
-            Navigator.of(context).pop();
+            _handleWalletConnect(code);
           } else if (code.startsWith("tezos:") == true) {
-            injector<TezosBeaconService>().addPeer(code);
-            Navigator.of(context).pop();
+            _handleBeaconConnect(code);
+          } else if (code.startsWith("feralfile-api:") == true) {
+            _handleFeralFileToken(code);
             /* TODO: Remove or support for multiple wallets
           } else if (code.startsWith("tz1")) {
             Navigator.of(context).popAndPushNamed(SendCryptoPage.tag,
@@ -110,10 +171,32 @@ class _ScanQRPageState extends State<ScanQRPage> {
               log(err.toString());
             }
             */
+          } else {
+            setState(() {
+              isScanDataError = true;
+            });
           }
           break;
       }
     });
+  }
+
+  void _handleWalletConnect(String code) {
+    controller.dispose();
+    injector<WalletConnectService>().connect(code);
+    Navigator.of(context).pop();
+  }
+
+  void _handleBeaconConnect(String code) {
+    controller.dispose();
+    injector<TezosBeaconService>().addPeer(code);
+    Navigator.of(context).pop();
+  }
+
+  void _handleFeralFileToken(String code) {
+    controller.dispose();
+    context.read<FeralfileBloc>().add(LinkFFAccountInfoEvent(code));
+    Navigator.of(context).pop();
   }
 
   @override
@@ -129,7 +212,6 @@ enum ScannerItem {
   ETH_ADDRESS,
   XTZ_ADDRESS,
   FERALFILE_TOKEN,
-  FERALFILE_TOKEN_READ,
   GLOBAL
 }
 

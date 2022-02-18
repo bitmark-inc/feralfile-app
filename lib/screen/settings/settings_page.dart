@@ -94,8 +94,9 @@ class _SettingsPageState extends State<SettingsPage>
                           TextButton(
                               onPressed: () => Navigator.of(context)
                                   .pushNamed(AppRouter.linkAccountpage),
-                              child:
-                                  Text('+ Add', style: appTextTheme.bodyText2)),
+                              child: Text('+ Add',
+                                  style: appTextTheme.bodyText2
+                                      ?.copyWith(color: Colors.black))),
                         ],
                       ),
                       SizedBox(height: 40),

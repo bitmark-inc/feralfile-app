@@ -2,7 +2,9 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/screen/bloc/feralfile/feralfile_bloc.dart';
+import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
+import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/xtz_amount_formatter.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -30,8 +32,17 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
 
     context.read<FeralfileBloc>().add(GetFFAccountInfoEvent(widget.connection));
 
-    if (widget.connection.connectionType == "walletBeacon") {
-      fetchXtzBalance();
+    switch (widget.connection.connectionType) {
+      case "walletBeacon":
+        fetchXtzBalance();
+        break;
+
+      case "walletConnect":
+        fetchETHBalance();
+        break;
+
+      default:
+        break;
     }
   }
 
@@ -41,6 +52,15 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
         .getBalance(widget.connection.accountNumber);
     setState(() {
       _balance = "${XtzAmountFormatter(balance).format()} XTZ";
+    });
+  }
+
+  Future fetchETHBalance() async {
+    final balance = await injector<NetworkConfigInjector>()
+        .I<EthereumService>()
+        .getBalance(widget.connection.accountNumber);
+    setState(() {
+      _balance = "${EthAmountFormatter(balance.getInWei).format()} ETH";
     });
   }
 
@@ -72,16 +92,16 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
                   final String source;
                   final String coinType;
                   final String balanceString;
-                  final Widget icon;
+                  final String addressType;
                   switch (widget.connection.connectionType) {
+                    case "feralFileToken":
                     case "feralFileWeb3":
                       source = "FeralFile";
                       coinType = "USD Coin (USDC)";
                       balanceString = wyreWallet == null
                           ? "-- USDC"
                           : "${wyreWallet.availableBalances['USDC'] ?? 0} USDC";
-                      icon = SvgPicture.asset(
-                          "assets/images/feralfileAppIcon.svg");
+                      addressType = 'Bitmark';
                       break;
                     case "walletBeacon":
                       source =
@@ -89,14 +109,21 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
                               "Tezos Wallet";
                       coinType = "Tezos (XTZ)";
                       balanceString = _balance ?? "-- XTZ";
-                      icon = SvgPicture.asset(
-                          "assets/images/iconXtz.svg");
+                      addressType = 'Tezos';
                       break;
+
+                    case "walletConnect":
+                      source = "Ethereum Wallet";
+                      coinType = "Ethereum (ETH)";
+                      balanceString = _balance ?? "-- ETH";
+                      addressType = 'Ethereum';
+                      break;
+
                     default:
                       source = "";
                       coinType = "";
                       balanceString = "";
-                      icon = Image.asset("assets/images/autonomyIcon.png");
+                      addressType = "";
                       break;
                   }
 
@@ -108,10 +135,10 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
                           style: appTextTheme.headline1,
                         ),
                         SizedBox(height: 24),
+                        Text(addressType, style: appTextTheme.headline4),
+                        SizedBox(height: 16),
                         Row(
                           children: [
-                            icon,
-                            SizedBox(width: 16),
                             Expanded(
                               child: Text(
                                 state.connection?.accountNumber ?? "",

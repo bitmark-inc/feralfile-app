@@ -80,11 +80,12 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
                   BlocBuilder<EthereumBloc, EthereumState>(
                       builder: (context, state) {
                     return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        Text("Ethereum", style: appTextTheme.headline4),
+                        SizedBox(height: 16),
                         Row(
                           children: [
-                            SvgPicture.asset("assets/images/iconEth.svg"),
-                            SizedBox(width: 16),
                             Expanded(
                               child: Text(
                                 state.personaAddresses?[uuid] ?? "",
@@ -99,19 +100,18 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
                   }),
                   BlocBuilder<TezosBloc, TezosState>(builder: (context, state) {
                     return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        Text("Tezos", style: appTextTheme.headline4),
+                        SizedBox(height: 16),
                         Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            SvgPicture.asset("assets/images/iconXtz.svg"),
-                            SizedBox(width: 16),
                             Expanded(
                               child: Text(
                                 state.personaAddresses?[uuid] ?? "",
                                 style: addressStyle,
                               ),
                             ),
-                            SizedBox(height: 16),
                           ],
                         ),
                       ],

@@ -2,7 +2,6 @@ import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
-import 'package:autonomy_flutter/util/xtz_amount_formatter.dart';
 import 'package:bloc/bloc.dart';
 
 part 'tezos_state.dart';
@@ -35,8 +34,6 @@ class TezosBloc extends Bloc<TezosEvent, TezosState> {
       balances[network]![event.address] = balance;
 
       emit(state.copyWith(balances: balances));
-
-      // final xtzBalanceStr = "${XtzAmountFormatter(xtzBalance).format()} XTZ";
     });
 
     on<GetTezosBalanceWithUUIDEvent>((event, emit) async {

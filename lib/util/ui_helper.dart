@@ -21,7 +21,7 @@ class UIHelper {
     BuildContext context,
     String title,
     String description, {
-    bool isDismissible = true,
+    bool isDismissible = false,
   }) {
     final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
 

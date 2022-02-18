@@ -15,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uni_links/uni_links.dart';
+import "package:collection/collection.dart";
 
 class HomePage extends StatefulWidget {
   static const tag = "home";
@@ -52,7 +53,7 @@ class _HomePageState extends State<HomePage>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       Future.delayed(const Duration(milliseconds: 3500), () {
-        context.read<HomeBloc>().add(HomeCheckFeralFileLoginEvent());
+        context.read<HomeBloc>().add(RefreshTokensEvent());
       });
     }
   }
@@ -61,108 +62,97 @@ class _HomePageState extends State<HomePage>
   void didPopNext() {
     super.didPopNext();
     Future.delayed(const Duration(milliseconds: 3500), () {
-      context.read<HomeBloc>().add(HomeCheckFeralFileLoginEvent());
+      context.read<HomeBloc>().add(RefreshTokensEvent());
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    context.read<HomeBloc>().add(HomeCheckFeralFileLoginEvent());
+    context.read<HomeBloc>().add(RefreshTokensEvent());
 
     return Scaffold(
-      body: Container(
-        margin: EdgeInsets.only(top: 64.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            GestureDetector(
-              child: Center(
-                child: Image.asset("assets/images/penrose.png"),
-              ),
-              onTap: () {
-                Navigator.of(context).pushNamed(AppRouter.settingsPage);
-              },
+      body: Stack(fit: StackFit.loose, children: [
+        BlocBuilder<HomeBloc, HomeState>(builder: (context, state) {
+          final tokens = state.tokens;
+          return Container(
+            margin: EdgeInsets.only(
+                top: MediaQuery.of(context).padding.top + 110,
+                left: 0.0,
+                right: 0.0,
+                bottom: 0.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (tokens == null || tokens.isEmpty) ...[
+                  _emptyGallery(),
+                ] else ...[
+                  _assetsWidget(tokens),
+                ]
+              ],
             ),
-            Expanded(
-              child:
-                  BlocBuilder<HomeBloc, HomeState>(builder: (context, state) {
-                return state.isFeralFileLoggedIn != null
-                    ? Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(height: 24.0),
-                          Expanded(
-                            child: state.isFeralFileLoggedIn == false ||
-                                    _isAssetsEmpty(state)
-                                ? Padding(
-                                    padding:
-                                        EdgeInsets.symmetric(horizontal: 16.0),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          "Gallery",
-                                          style: appTextTheme.headline1,
-                                        ),
-                                        SizedBox(height: 24.0),
-                                        Text(
-                                          "Your gallery is empty for now.",
-                                          style: appTextTheme.bodyText1,
-                                        ),
-                                      ],
-                                    ),
-                                  )
-                                : _assetsWidget(state),
-                          ),
-                          state.isFeralFileLoggedIn == false
-                              ? Padding(
-                                  padding: EdgeInsets.all(16.0),
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        child: AuFilledButton(
-                                          text: "Help us find your collection"
-                                              .toUpperCase(),
-                                          onPress: () {
-                                            Navigator.of(context).pushNamed(
-                                                ScanQRPage.tag,
-                                                arguments: ScannerItem.GLOBAL);
-                                          },
-                                        ),
-                                      )
-                                    ],
-                                  ),
-                                )
-                              : SizedBox(),
-                        ],
-                      )
-                    : SizedBox();
-              }),
+          );
+        }),
+        Align(
+          alignment: Alignment.topCenter,
+          child: Padding(
+            padding:
+                EdgeInsets.only(top: MediaQuery.of(context).padding.top + 25),
+            child: GestureDetector(
+              child: Image.asset("assets/images/penrose.png"),
+              onTap: () =>
+                  Navigator.of(context).pushNamed(AppRouter.settingsPage),
             ),
-          ],
+          ),
         ),
-      ),
+      ]),
     );
   }
 
-  Widget _assetsWidget(HomeState state) {
+  Widget _emptyGallery() {
+    return Padding(
+        padding: EdgeInsets.symmetric(horizontal: 16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Gallery",
+              style: appTextTheme.headline1,
+            ),
+            SizedBox(height: 24.0),
+            Text(
+              "Your gallery is empty for now.",
+              style: appTextTheme.bodyText1,
+            ),
+          ],
+        ));
+  }
+
+  Widget _assetsWidget(List<AssetToken> tokens) {
+    final groupBySource = groupBy(tokens, (AssetToken obj) => obj.source);
+    final sources = groupBySource.keys.toList();
+
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          state.ffAssets.isNotEmpty
-              ? _assetsSection("Feral File", state.ffAssets)
-              : SizedBox(),
-          state.ethAssets.isNotEmpty
-              ? _assetsSection("Opensea", state.ethAssets)
-              : SizedBox(),
-          state.xtzAssets.isNotEmpty
-              ? _assetsSection("Objkt", state.xtzAssets)
-              : SizedBox(),
+          ...sources
+              .map((source) => _assetsSection(
+                  _polishSource(source ?? ""), groupBySource[source] ?? []))
+              .toList(),
         ],
       ),
     );
+  }
+
+  String _polishSource(String source) {
+    switch (source) {
+      case 'feralfile':
+        return 'Feral File';
+      case 'ArtBlocks':
+        return 'Art Blocks';
+      default:
+        return source;
+    }
   }
 
   Widget _assetsSection(String name, List<AssetToken> assets) {
@@ -203,12 +193,6 @@ class _HomePageState extends State<HomePage>
         SizedBox(height: 32.0),
       ],
     );
-  }
-
-  bool _isAssetsEmpty(HomeState state) {
-    return state.xtzAssets.isEmpty &&
-        state.ffAssets.isEmpty &&
-        state.ethAssets.isEmpty;
   }
 
   Future<void> _initUniLinks() async {
