@@ -121,7 +121,7 @@ class AccountsView extends StatelessWidget {
         final walletName = connection.walletBeaconConnection?.peer.name;
         switch (walletName) {
           case "Kukai Wallet":
-            return Image.asset("assets/images/kukai-wallet.png");
+            return Image.asset("assets/images/kukai_wallet.png");
           default:
             return Image.asset("assets/images/tezos_wallet.png");
         }
