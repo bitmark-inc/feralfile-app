@@ -18,7 +18,7 @@ class Asset {
   ProjectMetadata projectMetadata;
 
   factory Asset.fromJson(Map<String, dynamic> json) => Asset(
-        id: json["id"],
+        id: json["indexID"],
         edition: json["edition"],
         blockchain: json["blockchain"],
         mintedAt: DateTime.parse(json["mintedAt"]),
@@ -28,7 +28,7 @@ class Asset {
       );
 
   Map<String, dynamic> toJson() => {
-        "id": id,
+        "indexID": id,
         "edition": edition,
         "blockchain": blockchain,
         "mintedAt": mintedAt.toIso8601String(),
