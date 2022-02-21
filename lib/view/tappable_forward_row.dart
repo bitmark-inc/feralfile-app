@@ -19,7 +19,7 @@ class TappableForwardRow extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          leftWidget ?? SizedBox(),
+          Expanded(child: leftWidget ?? SizedBox()),
           Row(
             children: [
               rightWidget ?? SizedBox(),
