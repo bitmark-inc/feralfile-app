@@ -25,6 +25,10 @@ class AuThemeManager {
       backgroundColor: Colors.black,
       textTheme: ThemeData.light().textTheme.copyWith(
             headline1: appTextTheme.headline1?.copyWith(color: Colors.white),
+            headline2: appTextTheme.headline2?.copyWith(color: Colors.white),
+            headline3: appTextTheme.headline3?.copyWith(color: Colors.white),
+            headline4: appTextTheme.headline4?.copyWith(color: Colors.white),
+            headline5: appTextTheme.headline5?.copyWith(color: Colors.white),
             bodyText1: appTextTheme.bodyText1?.copyWith(color: Colors.white),
           ));
 }

@@ -57,6 +57,7 @@ dependencies:
   url_launcher: ^6.0.20
   device_info_plus: ^3.2.1
   in_app_purchase: ^2.0.1
+  modal_bottom_sheet: ^2.0.0
   libauk_dart:
     git:
       url: https://github.com/autonomy-system/libauk-dart.git
@@ -93,6 +94,7 @@ flutter:
     - assets/images/iconClose.svg
     - assets/images/cil_external-link.svg
     - assets/images/tezos_social_icon.svg
+    - assets/images/premium_comparation.svg
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
