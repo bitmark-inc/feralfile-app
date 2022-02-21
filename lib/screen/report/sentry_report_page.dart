@@ -42,11 +42,12 @@ class _SentryReportPageState extends State<SentryReportPage> {
               "Report issue",
               style: appTextTheme.headline1,
             ),
-            SizedBox(height: 40.0),
+            addTitleSpace(),
             AuTextField(
               title: "",
               placeholder: "Describe your issue here",
               expanded: true,
+              maxLines: null,
               keyboardType: TextInputType.multiline,
               controller: _feedbackTextController,
             ),

@@ -92,7 +92,7 @@ class WalletDetailPage extends StatelessWidget {
                         if (state.address.isNotEmpty) {
                           Navigator.of(context).pushNamed(ReceivePage.tag,
                               arguments:
-                                  WalletPayload(CryptoType.ETH, state.address));
+                                  WalletPayload(payload.type, state.address));
                         }
                       },
                     ),

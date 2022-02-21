@@ -4,6 +4,8 @@ import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/screen/account/accounts_preview_page.dart';
+import 'package:autonomy_flutter/screen/account/add_account_page.dart';
+import 'package:autonomy_flutter/screen/account/import_account_page.dart';
 import 'package:autonomy_flutter/screen/account/link_account_page.dart';
 import 'package:autonomy_flutter/screen/account/link_feralfile_page.dart';
 import 'package:autonomy_flutter/screen/account/link_wallet_connect_page.dart';
@@ -57,6 +59,7 @@ class AppRouter {
   static const onboardingPage = "onboarding";
   static const beOwnGalleryPage = 'be_own_gallery';
   static const newAccountPage = "new_account";
+  static const addAccountPage = 'add_account';
   static const linkAccountpage = "link_account";
   static const linkWalletConnectPage = "link_wallet_connect";
   static const linkBeaconConnectPage = "link_beacon_connect";
@@ -64,6 +67,7 @@ class AppRouter {
   static const linkFeralFilePage = "link_feralfile";
   static const namePersonaPage = "name_persona_page";
   static const nameLinkedAccountPage = 'name_linked_account';
+  static const importAccountPage = 'import_account';
   static const homePage = "home_page";
   static const settingsPage = "settings";
   static const personaDetailsPage = "persona_details";
@@ -109,6 +113,13 @@ class AppRouter {
             builder: (context) => BlocProvider(
                 create: (_) => PersonaBloc(injector<CloudDatabase>()),
                 child: NewAccountPage()));
+
+      case addAccountPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => BlocProvider(
+                create: (_) => PersonaBloc(injector<CloudDatabase>()),
+                child: AddAccountPage()));
 
       case AppRouter.linkAccountpage:
         return CupertinoPageRoute(
@@ -157,6 +168,13 @@ class AppRouter {
                 value: accountsBloc,
                 child: NameLinkedAccountPage(
                     connection: settings.arguments as Connection)));
+
+      case importAccountPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => BlocProvider(
+                create: (_) => PersonaBloc(injector<CloudDatabase>()),
+                child: ImportAccountPage()));
 
       case WCConnectPage.tag:
         return CupertinoPageRoute(

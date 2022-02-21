@@ -43,6 +43,8 @@ class AccountsView extends StatelessWidget {
     if (persona != null) {
       return TappableForwardRow(
           leftWidget: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
               Container(
                   width: 24,
@@ -66,7 +68,8 @@ class AccountsView extends StatelessWidget {
     if (connection != null) {
       return TappableForwardRow(
           leftWidget: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
               _appLogo(connection),
               SizedBox(width: 16),

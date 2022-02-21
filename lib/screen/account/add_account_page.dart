@@ -3,11 +3,11 @@ import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-class NewAccountPage extends StatelessWidget {
+class AddAccountPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -26,29 +26,18 @@ class NewAccountPage extends StatelessWidget {
             Expanded(
               child: SingleChildScrollView(
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Do you have NFTs you want to view with Autonomy?",
+                      "Add account",
                       style: appTextTheme.headline1,
                     ),
-                    SizedBox(height: 30),
-                    Wrap(
-                      spacing: 16,
-                      runSpacing: 16,
-                      crossAxisAlignment: WrapCrossAlignment.start,
-                      children: [
-                        _optionItem(context, "Yes",
-                            "I already have NFTs in other wallets that I want to view with Autonomy.",
-                            onTap: () {
-                          Navigator.of(context)
-                              .pushNamed(AppRouter.linkAccountpage);
-                        }),
-                        Divider(
-                          height: 1,
-                        ),
-                        createPersonaOption(),
-                      ],
-                    ),
+                    addTitleSpace(),
+                    _linkAccountOption(context),
+                    addDivider(),
+                    _importAccountOption(context),
+                    addDivider(),
+                    _createAccountOption(context),
                   ],
                 ),
               ),
@@ -59,7 +48,38 @@ class NewAccountPage extends StatelessWidget {
     );
   }
 
-  BlocConsumer<PersonaBloc, PersonaState> createPersonaOption() {
+  Widget _linkAccountOption(BuildContext context) {
+    return TappableForwardRow(
+      leftWidget: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Link account', style: appTextTheme.headline4),
+          SizedBox(height: 16),
+          Text(
+              'I already have NFTs in other wallets that I want to view with Autonomy.',
+              style: appTextTheme.bodyText1),
+        ],
+      ),
+      onTap: () => Navigator.of(context).pushNamed(AppRouter.linkAccountpage),
+    );
+  }
+
+  Widget _importAccountOption(BuildContext context) {
+    return TappableForwardRow(
+      leftWidget: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Import account', style: appTextTheme.headline4),
+          SizedBox(height: 16),
+          Text('Enter recovery phrase from existing account.',
+              style: appTextTheme.bodyText1),
+        ],
+      ),
+      onTap: () => Navigator.of(context).pushNamed(AppRouter.importAccountPage),
+    );
+  }
+
+  Widget _createAccountOption(BuildContext context) {
     return BlocConsumer<PersonaBloc, PersonaState>(
       listener: (context, state) {
         switch (state.createAccountState) {
@@ -86,41 +106,19 @@ class NewAccountPage extends StatelessWidget {
         }
       },
       builder: (context, state) {
-        return _optionItem(context, "No", "Make a new account.", onTap: () {
-          context.read<PersonaBloc>().add(CreatePersonaEvent());
-        });
-      },
-    );
-  }
-
-  Widget _optionItem(BuildContext context, String title, String description,
-      {required Function() onTap}) {
-    return GestureDetector(
-      behavior: HitTestBehavior.translucent,
-      child: Container(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  title,
-                  style: appTextTheme.headline4,
-                ),
-                Icon(CupertinoIcons.forward),
-              ],
-            ),
-            SizedBox(height: 16),
-            Text(
-              description,
-              style: appTextTheme.bodyText1,
-            ),
-          ],
-        ),
-      ),
-      onTap: () {
-        onTap();
+        return TappableForwardRow(
+          leftWidget: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Create account', style: appTextTheme.headline4),
+              SizedBox(height: 16),
+              Text('Make a new account.', style: appTextTheme.bodyText1),
+            ],
+          ),
+          onTap: () {
+            context.read<PersonaBloc>().add(CreatePersonaEvent());
+          },
+        );
       },
     );
   }
