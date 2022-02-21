@@ -33,9 +33,28 @@ class _IndexerApi implements IndexerApi {
   }
 
   @override
-  Future<List<Asset>> getNftTokensByOwner(owner) async {
+  Future<List<Asset>> getNFTTokens(offset) async {
     const _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{r'owner': owner};
+    final queryParameters = <String, dynamic>{r'offset': offset};
+    final _data = <String, dynamic>{};
+    final _result = await _dio.fetch<List<dynamic>>(_setStreamType<List<Asset>>(
+        Options(method: 'POST', headers: <String, dynamic>{}, extra: _extra)
+            .compose(_dio.options, '/nft/query',
+                queryParameters: queryParameters, data: _data)
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+    var value = _result.data!
+        .map((dynamic i) => Asset.fromJson(i as Map<String, dynamic>))
+        .toList();
+    return value;
+  }
+
+  @override
+  Future<List<Asset>> getNftTokensByOwner(owner, offset) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      r'owner': owner,
+      r'offset': offset
+    };
     final _data = <String, dynamic>{};
     final _result = await _dio.fetch<List<dynamic>>(_setStreamType<List<Asset>>(
         Options(method: 'GET', headers: <String, dynamic>{}, extra: _extra)
