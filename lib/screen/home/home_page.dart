@@ -7,6 +7,7 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import "package:collection/collection.dart";
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -70,21 +71,23 @@ class _HomePageState extends State<HomePage>
       body: Stack(fit: StackFit.loose, children: [
         BlocBuilder<HomeBloc, HomeState>(builder: (context, state) {
           final tokens = state.tokens;
-          return Container(
-            margin: EdgeInsets.only(
-                top: MediaQuery.of(context).padding.top + 110,
-                left: 0.0,
-                right: 0.0,
-                bottom: 0.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (tokens == null || tokens.isEmpty) ...[
-                  _emptyGallery(),
-                ] else ...[
-                  _assetsWidget(tokens),
-                ]
-              ],
+          return SingleChildScrollView(
+            child: Container(
+              margin: EdgeInsets.only(
+                  top: MediaQuery.of(context).padding.top + 110,
+                  left: 0.0,
+                  right: 0.0,
+                  bottom: 0.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (tokens == null || tokens.isEmpty) ...[
+                    _emptyGallery(),
+                  ] else ...[
+                    _assetsWidget(tokens),
+                  ]
+                ],
+              ),
             ),
           );
         }),
@@ -99,6 +102,29 @@ class _HomePageState extends State<HomePage>
                   Navigator.of(context).pushNamed(AppRouter.settingsPage),
             ),
           ),
+        ),
+        BlocBuilder<HomeBloc, HomeState>(
+          builder: (context, state) {
+            if (state.fetchTokenState == ActionState.loading) {
+              return Align(
+                alignment: Alignment.topRight,
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(
+                      0, MediaQuery.of(context).padding.top + 120, 20, 0),
+                  child: SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
+                      strokeWidth: 2,
+                    ),
+                  ),
+                ),
+              );
+            } else {
+              return SizedBox();
+            }
+          },
         ),
       ]),
     );
@@ -127,16 +153,14 @@ class _HomePageState extends State<HomePage>
     final groupBySource = groupBy(tokens, (AssetToken obj) => obj.source);
     final sources = groupBySource.keys.toList();
 
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ...sources
-              .map((source) => _assetsSection(
-                  _polishSource(source ?? ""), groupBySource[source] ?? []))
-              .toList(),
-        ],
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ...sources
+            .map((source) => _assetsSection(
+                _polishSource(source ?? ""), groupBySource[source] ?? []))
+            .toList(),
+      ],
     );
   }
 

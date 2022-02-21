@@ -5,11 +5,11 @@ import 'package:autonomy_flutter/database/dao/asset_token_dao.dart';
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/gateway/indexer_api.dart';
-import 'package:autonomy_flutter/model/blockchain.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -101,8 +101,19 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         List<AssetToken> allTokens = [];
 
         for (var accountNumber in allAccountNumbers) {
-          final tokens = await _indexerApi.getNftTokensByOwner(accountNumber);
-          allTokens += tokens.map((e) => AssetToken.fromAsset(e)).toList();
+          var offset = 0;
+
+          while (true) {
+            final tokens =
+                await _indexerApi.getNftTokensByOwner(accountNumber, offset);
+            allTokens += tokens.map((e) => AssetToken.fromAsset(e)).toList();
+
+            if (tokens.length < INDEXER_TOKENS_MAXIMUM) {
+              break;
+            } else {
+              offset += INDEXER_TOKENS_MAXIMUM;
+            }
+          }
         }
 
         // Insert with con
