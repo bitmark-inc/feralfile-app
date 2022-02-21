@@ -1,65 +1,55 @@
-import 'dart:io';
-
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/iap_service.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
-import 'package:in_app_purchase_android/billing_client_wrappers.dart';
-import 'package:in_app_purchase_android/in_app_purchase_android.dart';
-import 'package:in_app_purchase_storekit/in_app_purchase_storekit.dart';
-import 'package:in_app_purchase_storekit/store_kit_wrappers.dart';
 
 const String _subscriptionId = 'Au_IntroSub';
 
 class UpgradesBloc extends Bloc<UpgradeEvent, UpgradeState> {
-  final InAppPurchase _inAppPurchase = InAppPurchase.instance;
-  ConfigurationService _configurationService;
+  IAPService _iapService;
 
-  static List<String> _kProductIds = <String>[
-    _subscriptionId,
-  ];
+  UpgradesBloc(this._iapService)
+      : super(UpgradeState(IAPProductStatus.loading, null)) {
+    _iapService.purchases.addListener(() => add(UpgradeInfoEvent()));
+    _iapService.products.addListener(() => add(UpgradeInfoEvent()));
 
-  UpgradesBloc(this._configurationService)
-      : super(UpgradeState(false, false, null)) {
     on<UpgradeInfoEvent>((event, emit) async {
-      final isPaid = await _checkIsPaid();
+      try {
+        _iapService.setup();
+        final productId = _iapService.products.value.keys.first;
+        final subscriptionProductDetails =
+            _iapService.products.value[productId];
+        final subscriptionState = _iapService.purchases.value[productId];
 
-      emit(UpgradeState(isPaid, false, null));
+        emit(UpgradeState(subscriptionState ?? IAPProductStatus.notPurchased,
+            subscriptionProductDetails));
+      } catch (error) {
+        log.warning("error when loading IAP", error);
+        emit(UpgradeState(IAPProductStatus.error, null));
+      }
     });
 
     on<UpgradeUpdateEvent>((event, emit) async {
       emit(event.newState);
     });
-  }
 
-  Future<bool> _checkIsPaid() async {
-    return false;
-  }
-
-  Future<void> setupIAP() async {
-    if (Platform.isIOS) {
-      var iosPlatformAddition = _inAppPurchase
-          .getPlatformAddition<InAppPurchaseStoreKitPlatformAddition>();
-      await iosPlatformAddition.setDelegate(PaymentQueueDelegate());
-    }
-
-    ProductDetailsResponse productDetailResponse =
-        await _inAppPurchase.queryProductDetails(_kProductIds.toSet());
-    if (productDetailResponse.error != null) {
-      return;
-    }
-  }
-}
-
-class PaymentQueueDelegate implements SKPaymentQueueDelegateWrapper {
-  @override
-  bool shouldContinueTransaction(
-      SKPaymentTransactionWrapper transaction, SKStorefrontWrapper storefront) {
-    return true;
-  }
-
-  @override
-  bool shouldShowPriceConsent() {
-    return false;
+    on<UpgradePurchaseEvent>((event, emit) async {
+      try {
+        final productId = _iapService.products.value.keys.first;
+        final subscriptionProductDetails =
+            _iapService.products.value[productId];
+        if (subscriptionProductDetails != null) {
+          await _iapService.purchase(subscriptionProductDetails);
+          emit(UpgradeState(
+              IAPProductStatus.pending, subscriptionProductDetails));
+        } else {
+          log.warning("No item to purchase");
+        }
+      } catch (error) {
+        log.warning(error);
+        emit(UpgradeState(IAPProductStatus.error, null));
+      }
+    });
   }
 }

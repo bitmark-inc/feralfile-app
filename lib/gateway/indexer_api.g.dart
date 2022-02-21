@@ -19,10 +19,11 @@ class _IndexerApi implements IndexerApi {
   Future<List<Asset>> getNftTokens(ids) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
     _data.addAll(ids);
     final _result = await _dio.fetch<List<dynamic>>(_setStreamType<List<Asset>>(
-        Options(method: 'POST', headers: <String, dynamic>{}, extra: _extra)
+        Options(method: 'POST', headers: _headers, extra: _extra)
             .compose(_dio.options, '/nft/query',
                 queryParameters: queryParameters, data: _data)
             .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
@@ -36,9 +37,10 @@ class _IndexerApi implements IndexerApi {
   Future<List<Asset>> getNftTokensByOwner(owner) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{r'owner': owner};
+    final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
     final _result = await _dio.fetch<List<dynamic>>(_setStreamType<List<Asset>>(
-        Options(method: 'GET', headers: <String, dynamic>{}, extra: _extra)
+        Options(method: 'GET', headers: _headers, extra: _extra)
             .compose(_dio.options, '/nft',
                 queryParameters: queryParameters, data: _data)
             .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
@@ -52,10 +54,11 @@ class _IndexerApi implements IndexerApi {
   Future<dynamic> requestIndex(payload) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
     _data.addAll(payload);
     final _result = await _dio.fetch(_setStreamType<dynamic>(
-        Options(method: 'POST', headers: <String, dynamic>{}, extra: _extra)
+        Options(method: 'POST', headers: _headers, extra: _extra)
             .compose(_dio.options, '/nft/index',
                 queryParameters: queryParameters, data: _data)
             .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
