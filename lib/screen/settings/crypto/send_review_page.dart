@@ -2,8 +2,10 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
+import 'package:autonomy_flutter/util/biometrics_util.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/xtz_amount_formatter.dart';
@@ -11,6 +13,7 @@ import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:local_auth/local_auth.dart';
 import 'package:web3dart/credentials.dart';
 
 class SendReviewPage extends StatefulWidget {
@@ -126,6 +129,25 @@ class _SendReviewPageState extends State<SendReviewPage> {
 
                                 final networkInjector =
                                     injector<NetworkConfigInjector>();
+                                final configurationService =
+                                    injector<ConfigurationService>();
+
+                                if (configurationService
+                                        .isDevicePasscodeEnabled() &&
+                                    await authenticateIsAvailable()) {
+                                  final localAuth = LocalAuthentication();
+                                  final didAuthenticate =
+                                      await localAuth.authenticate(
+                                          localizedReason:
+                                              'Authentication for "Autonomy"');
+                                  if (!didAuthenticate) {
+                                    setState(() {
+                                      _isSending = false;
+                                    });
+                                    return;
+                                  }
+                                }
+
                                 switch (widget.payload.type) {
                                   case CryptoType.ETH:
                                     final address = EthereumAddress.fromHex(

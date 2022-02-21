@@ -1,8 +1,10 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
+import 'package:autonomy_flutter/util/biometrics_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
@@ -12,6 +14,7 @@ import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:libauk_dart/libauk_dart.dart';
+import 'package:local_auth/local_auth.dart';
 
 class TBSendTransactionPage extends StatefulWidget {
   static const String tag = 'tb_send_transaction';
@@ -183,6 +186,25 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                             _isSending = true;
                           });
 
+                          final configurationService =
+                          injector<ConfigurationService>();
+
+                          if (configurationService
+                              .isDevicePasscodeEnabled() &&
+                              await authenticateIsAvailable()) {
+                            final localAuth = LocalAuthentication();
+                            final didAuthenticate =
+                            await localAuth.authenticate(
+                                localizedReason:
+                                'Authentication for "Autonomy"');
+                            if (!didAuthenticate) {
+                              setState(() {
+                                _isSending = false;
+                              });
+                              return;
+                            }
+                          }
+
                           final txHash = await injector<NetworkConfigInjector>()
                               .I<TezosService>()
                               .sendOperationTransaction(_currentWallet!, widget.request.operations!);
@@ -190,6 +212,10 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                           injector<TezosBeaconService>()
                               .operationResponse(widget.request.id, txHash);
                           Navigator.of(context).pop();
+
+                          setState(() {
+                            _isSending = false;
+                          });
                         } : null,
                       ),
                     )

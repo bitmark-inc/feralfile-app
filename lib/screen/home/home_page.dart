@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -8,6 +10,7 @@ import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import "package:collection/collection.dart";
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -197,8 +200,8 @@ class _HomePageState extends State<HomePage>
             final asset = assets[index];
             return GestureDetector(
               child: Container(
-                child: Image.network(
-                  asset.thumbnailURL!,
+                child: CachedNetworkImage(
+                  imageUrl: asset.thumbnailURL!,
                   fit: BoxFit.cover,
                 ),
               ),
