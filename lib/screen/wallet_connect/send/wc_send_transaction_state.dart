@@ -33,4 +33,5 @@ class WCSendTransactionRejectEvent extends WCSendTransactionEvent {
 
 class WCSendTransactionState {
   BigInt? fee;
+  bool isSending = false;
 }

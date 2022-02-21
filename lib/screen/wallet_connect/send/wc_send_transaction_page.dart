@@ -2,8 +2,8 @@ import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_state.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -23,8 +23,6 @@ class WCSendTransactionPage extends StatefulWidget {
 }
 
 class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
-  bool _isSending = false;
-
   @override
   void initState() {
     super.initState();
@@ -48,22 +46,20 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                   widget.args.peerMeta, widget.args.id));
         },
       ),
-      body: Stack(
-        children: [
-          Container(
-            margin: EdgeInsets.only(
-                top: 16.0,
-                left: 16.0,
-                right: 16.0,
-                bottom: MediaQuery.of(context).padding.bottom),
-            child: BlocBuilder<WCSendTransactionBloc, WCSendTransactionState>(
-              builder: (context, state) {
-                final EtherAmount amount = EtherAmount.fromUnitAndValue(
-                    EtherUnit.wei, widget.args.transaction.value);
-                final total =
-                state.fee != null ? state.fee! + amount.getInWei : null;
-
-                return Column(
+      body: BlocBuilder<WCSendTransactionBloc, WCSendTransactionState>(
+        builder: (context, state) {
+          final EtherAmount amount = EtherAmount.fromUnitAndValue(
+              EtherUnit.wei, widget.args.transaction.value);
+          final total = state.fee != null ? state.fee! + amount.getInWei : null;
+          return Stack(
+            children: [
+              Container(
+                margin: EdgeInsets.only(
+                    top: 16.0,
+                    left: 16.0,
+                    right: 16.0,
+                    bottom: MediaQuery.of(context).padding.bottom),
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
@@ -157,36 +153,35 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                         Expanded(
                           child: AuFilledButton(
                             text: "Send".toUpperCase(),
-                            onPress: (state.fee != null && !_isSending) ? () async {
-                              setState(() {
-                                _isSending = true;
-                              });
+                            onPress: (state.fee != null && !state.isSending)
+                                ? () async {
+                                    final to = EthereumAddress.fromHex(
+                                        widget.args.transaction.to);
 
-                              final to = EthereumAddress.fromHex(
-                                  widget.args.transaction.to);
-
-                              context.read<WCSendTransactionBloc>().add(
-                                  WCSendTransactionSendEvent(
-                                      widget.args.peerMeta,
-                                      widget.args.id,
-                                      to,
-                                      amount.getInWei,
-                                      state.fee!,
-                                      widget.args.transaction.data,
-                                      widget.args.uuid
-                                  ));
-                            } : null,
+                                    context.read<WCSendTransactionBloc>().add(
+                                        WCSendTransactionSendEvent(
+                                            widget.args.peerMeta,
+                                            widget.args.id,
+                                            to,
+                                            amount.getInWei,
+                                            state.fee!,
+                                            widget.args.transaction.data,
+                                            widget.args.uuid));
+                                  }
+                                : null,
                           ),
                         )
                       ],
                     ),
                   ],
-                );
-              },
-            ),
-          ),
-          _isSending ? Center(child: CupertinoActivityIndicator()) : SizedBox(),
-        ],
+                ),
+              ),
+              state.isSending
+                  ? Center(child: CupertinoActivityIndicator())
+                  : SizedBox(),
+            ],
+          );
+        },
       ),
     );
   }
@@ -198,5 +193,6 @@ class WCSendTransactionPageArgs {
   final WCEthereumTransaction transaction;
   final String uuid;
 
-  WCSendTransactionPageArgs(this.id, this.peerMeta, this.transaction, this.uuid);
+  WCSendTransactionPageArgs(
+      this.id, this.peerMeta, this.transaction, this.uuid);
 }

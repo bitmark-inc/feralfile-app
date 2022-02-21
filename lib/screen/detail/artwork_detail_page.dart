@@ -8,6 +8,7 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_outlined_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -60,8 +61,10 @@ class ArtworkDetailPage extends StatelessWidget {
                     ),
                   ),
                   SizedBox(height: 16.0),
-                  Image.network(asset.thumbnailURL!,
-                      width: double.infinity, fit: BoxFit.cover),
+                  CachedNetworkImage(
+                      imageUrl: asset.thumbnailURL!,
+                      width: double.infinity,
+                      fit: BoxFit.cover),
                   SizedBox(height: 16.0),
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16.0),
@@ -295,10 +298,14 @@ class ArtworkDetailPage extends StatelessWidget {
         _rowItem(context, "Medium", asset.medium?.capitalize()),
         Divider(height: 32.0),
         _rowItem(context, "Date minted", asset.mintedAt),
-        asset.assetData != null && asset.assetData!.isNotEmpty ? Column(
-          children: [Divider(height: 32.0),
-            _rowItem(context, "Artwork data", asset.assetData)],
-        ) : SizedBox(),
+        asset.assetData != null && asset.assetData!.isNotEmpty
+            ? Column(
+                children: [
+                  Divider(height: 32.0),
+                  _rowItem(context, "Artwork data", asset.assetData)
+                ],
+              )
+            : SizedBox(),
       ],
     );
   }
