@@ -64,16 +64,42 @@ class Connection {
     );
   }
 
+  factory Connection.fromFFWeb3(
+      String topic, String source, String personaAddress, FFAccount ffAccount) {
+    final ffWeb3Connection = FeralFileWeb3Connection(
+        personaAddress: personaAddress, source: source, ffAccount: ffAccount);
+
+    return Connection(
+      key: topic,
+      name: ffAccount.alias,
+      data: json.encode(ffWeb3Connection),
+      connectionType: ConnectionType.feralFileWeb3.rawValue,
+      accountNumber: ffAccount.accountNumber,
+      createdAt: DateTime.now(),
+    );
+  }
+
   Connection copyFFWith(FFAccount ffAccount) {
     final ffConnection = this.ffConnection;
-    if (ffConnection == null) {
+    final ffWeb3Connection = this.ffWeb3Connection;
+
+    if (ffConnection != null) {
+      final newFFConnection = FeralFileConnection(
+          source: ffConnection.source, ffAccount: ffAccount);
+
+      return this
+          .copyWith(name: ffAccount.alias, data: json.encode(newFFConnection));
+    } else if (ffWeb3Connection != null) {
+      final newFFWeb3Connection = FeralFileWeb3Connection(
+          personaAddress: ffWeb3Connection.personaAddress,
+          source: ffWeb3Connection.source,
+          ffAccount: ffAccount);
+
+      return this.copyWith(
+          name: ffAccount.alias, data: json.encode(newFFWeb3Connection));
+    } else {
       throw Exception("incorrectDataFlow");
     }
-    final newFFConnection =
-        FeralFileConnection(source: ffConnection.source, ffAccount: ffAccount);
-
-    return this
-        .copyWith(name: ffAccount.alias, data: json.encode(newFFConnection));
   }
 
   Connection copyWith({
@@ -99,6 +125,13 @@ class Connection {
 
     final jsonData = json.decode(this.data);
     return FeralFileConnection.fromJson(jsonData);
+  }
+
+  FeralFileWeb3Connection? get ffWeb3Connection {
+    if (connectionType != ConnectionType.feralFileWeb3.rawValue) return null;
+
+    final jsonData = json.decode(this.data);
+    return FeralFileWeb3Connection.fromJson(jsonData);
   }
 
   WalletConnectConnection? get wcConnection {

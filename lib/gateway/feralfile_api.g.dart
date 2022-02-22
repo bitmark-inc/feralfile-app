@@ -34,19 +34,17 @@ class _FeralFileApi implements FeralFileApi {
   }
 
   @override
-  Future<Map<String, List<AssetPrice>>> getAssetPrice(bearerToken, body) async {
+  Future<Map<String, List<AssetPrice>>> getAssetPrice(body) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _data = <String, dynamic>{};
     _data.addAll(body);
     final _result = await _dio.fetch<Map<String, dynamic>>(
-        _setStreamType<Map<String, List<AssetPrice>>>(Options(
-                method: 'POST',
-                headers: <String, dynamic>{r'Authorization': bearerToken},
-                extra: _extra)
-            .compose(_dio.options, '/api/asset-prices',
-                queryParameters: queryParameters, data: _data)
-            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+        _setStreamType<Map<String, List<AssetPrice>>>(
+            Options(method: 'POST', headers: <String, dynamic>{}, extra: _extra)
+                .compose(_dio.options, '/api/asset-prices',
+                    queryParameters: queryParameters, data: _data)
+                .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
     var value = _result.data!.map((k, dynamic v) => MapEntry(
         k,
         (v as List)

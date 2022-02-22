@@ -203,6 +203,7 @@ class _HomePageState extends State<HomePage>
                 child: CachedNetworkImage(
                   imageUrl: asset.thumbnailURL!,
                   fit: BoxFit.cover,
+                  errorWidget: (context, url, error) => SizedBox(height: 100),
                 ),
               ),
               onTap: () {

@@ -15,6 +15,5 @@ abstract class FeralFileApi {
 
   @POST("/api/asset-prices")
   Future<Map<String, List<AssetPrice>>> getAssetPrice(
-      @Header("Authorization") String bearerToken,
       @Body() Map<String, List<String>> body);
 }

@@ -191,8 +191,11 @@ class AppRouter {
       case WCSignMessagePage.tag:
         return CupertinoPageRoute(
           settings: settings,
-          builder: (context) => WCSignMessagePage(
-              args: settings.arguments as WCSignMessagePageArgs),
+          builder: (context) => BlocProvider(
+              create: (_) => FeralfileBloc(
+                  injector(), networkInjector.I(), injector<CloudDatabase>()),
+              child: WCSignMessagePage(
+                  args: settings.arguments as WCSignMessagePageArgs)),
         );
       case WCSendTransactionPage.tag:
         return CupertinoPageRoute(

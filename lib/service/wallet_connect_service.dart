@@ -25,7 +25,7 @@ class WalletConnectService {
     final wcConnections = await _cloudDB.connectionDao
         .getConnectionsByType(ConnectionType.dappConnect.rawValue);
     wcConnections.forEach((element) {
-      final WCClient? wcClient = _createWCClient(element);
+      final WCClient? wcClient = _createWCClient(null, element);
       final sessionStore = element.wcConnection?.sessionStore;
 
       if (wcClient == null || sessionStore == null) return;
@@ -46,7 +46,7 @@ class WalletConnectService {
       icons: [],
     );
 
-    final wcClient = _createWCClient(null);
+    final wcClient = _createWCClient(session.topic, null);
     if (wcClient == null) return;
     wcClient.connectNewSession(session: session, peerMeta: peerMeta);
     wcClients.add(wcClient);
@@ -110,9 +110,12 @@ class WalletConnectService {
     wcClient.rejectRequest(id: id);
   }
 
-  WCClient? _createWCClient(Connection? connection) {
+  WCClient? _createWCClient(String? _topic, Connection? connection) {
     final wcConnection = connection?.wcConnection;
     final sessionStore = wcConnection?.sessionStore;
+
+    final topic = _topic ?? sessionStore?.session.topic;
+    if (topic == null) return null;
 
     WCPeerMeta? currentPeerMeta = sessionStore?.remotePeerMeta;
     return WCClient(
@@ -121,7 +124,7 @@ class WalletConnectService {
       },
       onDisconnect: (code, reason) {
         wcClients.removeWhere(
-            (element) => element.remotePeerId == sessionStore?.remotePeerId);
+            (element) => element.sessionStore.session.topic == topic);
         print("WC disconnected");
       },
       onFailure: (error) {
@@ -138,7 +141,7 @@ class WalletConnectService {
 
         _navigationService.navigateTo(WCSignMessagePage.tag,
             arguments: WCSignMessagePageArgs(
-                id, currentPeerMeta!, message.data!, uuid));
+                id, topic, currentPeerMeta!, message.data!, uuid));
       },
       onEthSendTransaction: (id, tx) {
         String? uuid = wcConnection?.personaUuid ?? tmpUuids[currentPeerMeta!];

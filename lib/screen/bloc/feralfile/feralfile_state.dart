@@ -8,6 +8,14 @@ class LinkFFAccountInfoEvent extends FeralFileEvent {
   LinkFFAccountInfoEvent(this.token);
 }
 
+class LinkFFWeb3AccountEvent extends FeralFileEvent {
+  final String topic;
+  final String source;
+  final WalletStorage wallet;
+
+  LinkFFWeb3AccountEvent(this.topic, this.source, this.wallet);
+}
+
 class GetFFAccountInfoEvent extends FeralFileEvent {
   final Connection connection;
 

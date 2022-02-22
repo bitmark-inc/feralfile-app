@@ -2,13 +2,14 @@ import 'dart:convert';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/common/network_config_injector.dart';
+import 'package:autonomy_flutter/screen/bloc/feralfile/feralfile_bloc.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
-import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:wallet_connect/models/wc_peer_meta.dart';
 import 'package:web3dart/crypto.dart';
@@ -81,18 +82,19 @@ class WCSignMessagePage extends StatelessWidget {
                   child: AuFilledButton(
                     text: "Sign".toUpperCase(),
                     onPress: () async {
-                      final WalletStorage persona = LibAukDart.getWallet(args.uuid);
+                      final WalletStorage wallet =
+                          LibAukDart.getWallet(args.uuid);
                       final signature = await networkInjector
                           .I<EthereumService>()
-                          .signPersonalMessage(persona, message);
+                          .signPersonalMessage(wallet, message);
 
                       injector<WalletConnectService>()
                           .approveRequest(args.peerMeta, args.id, signature);
 
                       if (args.peerMeta.url.contains("feralfile")) {
-                        Future.delayed(const Duration(milliseconds: 3000), () {
-                          networkInjector.I<FeralFileService>().saveAccount();
-                        });
+                        context.read<FeralfileBloc>().add(
+                            LinkFFWeb3AccountEvent(
+                                args.topic, args.peerMeta.url, wallet));
                       }
 
                       Navigator.of(context).pop();
@@ -110,9 +112,11 @@ class WCSignMessagePage extends StatelessWidget {
 
 class WCSignMessagePageArgs {
   final int id;
+  final String topic;
   final WCPeerMeta peerMeta;
   final String message;
   final String uuid;
 
-  WCSignMessagePageArgs(this.id, this.peerMeta, this.message, this.uuid);
+  WCSignMessagePageArgs(
+      this.id, this.topic, this.peerMeta, this.message, this.uuid);
 }
