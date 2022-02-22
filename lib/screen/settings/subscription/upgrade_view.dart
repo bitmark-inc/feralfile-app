@@ -17,7 +17,7 @@ class UpgradesView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    context.read<UpgradesBloc>().add(UpgradeInfoEvent());
+    context.read<UpgradesBloc>().add(UpgradeQueryInfoEvent());
 
     return BlocBuilder<UpgradesBloc, UpgradeState>(builder: (context, state) {
       return Container(

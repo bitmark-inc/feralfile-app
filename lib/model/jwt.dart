@@ -1,7 +1,8 @@
+import 'package:autonomy_flutter/util/jwt.dart';
+
 class JWT {
   int? expireIn;
   String jwtToken;
-  DateTime _createdAt = DateTime.now();
 
   JWT({required this.jwtToken, this.expireIn});
 
@@ -15,12 +16,10 @@ class JWT {
       };
 
   bool isValid() {
-    if (expireIn != null) {
-      final duration = Duration(minutes: expireIn! - 5);
-      final value = _createdAt.add(duration).compareTo(DateTime.now());
-      return value > 0;
-    }
-
-    return true;
+    final claim = parseJwt(jwtToken);
+    final exp = (claim['exp'] ?? 0) as int;
+    final expDate = DateTime.fromMillisecondsSinceEpoch(exp * 1000);
+    final value = expDate.compareTo(DateTime.now());
+    return value > 0;
   }
 }

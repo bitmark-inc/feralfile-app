@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/gateway/iap_api.dart';
+import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter/cupertino.dart';
@@ -44,6 +45,7 @@ class IAPServiceImpl implements IAPService {
   IAPServiceImpl(this._configurationService, this._iapApi);
 
   Future<void> setup() async {
+    if (jwt != null && jwt.isValid()) {}
     final Stream<List<PurchaseDetails>> purchaseUpdated =
         _inAppPurchase.purchaseStream;
     _subscription = purchaseUpdated.listen((purchaseDetailsList) {
@@ -93,16 +95,16 @@ class IAPServiceImpl implements IAPService {
     await _inAppPurchase.restorePurchases();
   }
 
-  Future<bool> _verifyPurchase(PurchaseDetails purchaseDetails) async {
+  Future<JWT?> _verifyPurchase(PurchaseDetails purchaseDetails) async {
     try {
       final jwt = await _iapApi.verifyIAP({
         'platform': 'apple',
         'receipt_data': purchaseDetails.verificationData.serverVerificationData
       });
-      return jwt.isValid();
+      return jwt;
     } catch (error) {
       log.info("error when verifying receipt", error);
-      return false;
+      return null;
     }
   }
 
@@ -115,10 +117,11 @@ class IAPServiceImpl implements IAPService {
           purchases.value[purchaseDetails.productID] = IAPProductStatus.error;
         } else if (purchaseDetails.status == PurchaseStatus.purchased ||
             purchaseDetails.status == PurchaseStatus.restored) {
-          bool valid = await _verifyPurchase(purchaseDetails);
-          if (valid) {
+          final jwt = await _verifyPurchase(purchaseDetails);
+          if (jwt != null && jwt.isValid()) {
             purchases.value[purchaseDetails.productID] =
                 IAPProductStatus.completed;
+            _configurationService.setIAPJWT(jwt);
           } else {
             purchases.value[purchaseDetails.productID] =
                 IAPProductStatus.expired;

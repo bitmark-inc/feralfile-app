@@ -3,7 +3,9 @@ import 'package:in_app_purchase/in_app_purchase.dart';
 
 abstract class UpgradeEvent {}
 
-class UpgradeInfoEvent extends UpgradeEvent {}
+class UpgradeQueryInfoEvent extends UpgradeEvent {}
+
+class UpgradeIAPInfoEvent extends UpgradeEvent {}
 
 class UpgradePurchaseEvent extends UpgradeEvent {}
 
