@@ -20,6 +20,23 @@ Map<String, dynamic> _$FeralFileConnectionToJson(
       'ffAccount': instance.ffAccount,
     };
 
+FeralFileWeb3Connection _$FeralFileWeb3ConnectionFromJson(
+    Map<String, dynamic> json) {
+  return FeralFileWeb3Connection(
+    personaAddress: json['personaAddress'] as String,
+    source: json['source'] as String,
+    ffAccount: FFAccount.fromJson(json['ffAccount'] as Map<String, dynamic>),
+  );
+}
+
+Map<String, dynamic> _$FeralFileWeb3ConnectionToJson(
+        FeralFileWeb3Connection instance) =>
+    <String, dynamic>{
+      'personaAddress': instance.personaAddress,
+      'source': instance.source,
+      'ffAccount': instance.ffAccount,
+    };
+
 WalletConnectConnection _$WalletConnectConnectionFromJson(
     Map<String, dynamic> json) {
   return WalletConnectConnection(

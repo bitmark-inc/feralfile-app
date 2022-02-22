@@ -1,6 +1,7 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
+import 'package:autonomy_flutter/screen/bloc/ethereum/ethereum_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/feralfile/feralfile_bloc.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
@@ -30,9 +31,14 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
   void initState() {
     super.initState();
 
-    context.read<FeralfileBloc>().add(GetFFAccountInfoEvent(widget.connection));
-
     switch (widget.connection.connectionType) {
+      case 'feralFileWeb3':
+      case 'feralFileToken':
+        context
+            .read<FeralfileBloc>()
+            .add(GetFFAccountInfoEvent(widget.connection));
+        break;
+
       case "walletBeacon":
         fetchXtzBalance();
         break;

@@ -32,8 +32,12 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
 
       for (var connection in connections) {
         switch (connection.connectionType) {
+          case 'feralFileWeb3':
           case "feralFileToken":
-            final source = connection.ffConnection!.source;
+            final source = connection.ffConnection?.source ??
+                connection.ffWeb3Connection?.source;
+            if (source == null) continue;
+
             if (_configurationService.matchFeralFileSourceInNetwork(source)) {
               final accountNumber = connection.accountNumber;
               try {
@@ -48,6 +52,7 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
               }
             }
             break;
+
           default:
             accounts.add(Account(
               accountNumber: connection.accountNumber,

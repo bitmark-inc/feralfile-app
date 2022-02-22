@@ -62,9 +62,11 @@ class ArtworkDetailPage extends StatelessWidget {
                   ),
                   SizedBox(height: 16.0),
                   CachedNetworkImage(
-                      imageUrl: asset.thumbnailURL!,
-                      width: double.infinity,
-                      fit: BoxFit.cover),
+                    imageUrl: asset.thumbnailURL!,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    errorWidget: (context, url, error) => SizedBox(height: 100),
+                  ),
                   SizedBox(height: 16.0),
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16.0),

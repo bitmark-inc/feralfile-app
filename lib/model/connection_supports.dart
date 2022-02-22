@@ -1,7 +1,7 @@
 import 'package:json_annotation/json_annotation.dart';
+import 'package:wallet_connect/wc_session_store.dart';
 
 import 'package:autonomy_flutter/model/ff_account.dart';
-import 'package:wallet_connect/wc_session_store.dart';
 
 import 'p2p_peer.dart';
 
@@ -21,6 +21,24 @@ class FeralFileConnection {
       _$FeralFileConnectionFromJson(json);
 
   Map<String, dynamic> toJson() => _$FeralFileConnectionToJson(this);
+}
+
+@JsonSerializable()
+class FeralFileWeb3Connection {
+  String personaAddress;
+  String source;
+  FFAccount ffAccount;
+
+  FeralFileWeb3Connection({
+    required this.personaAddress,
+    required this.source,
+    required this.ffAccount,
+  });
+
+  factory FeralFileWeb3Connection.fromJson(Map<String, dynamic> json) =>
+      _$FeralFileWeb3ConnectionFromJson(json);
+
+  Map<String, dynamic> toJson() => _$FeralFileWeb3ConnectionToJson(this);
 }
 
 @JsonSerializable()

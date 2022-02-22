@@ -61,38 +61,40 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Import account",
-                        style: appTextTheme.headline1,
-                      ),
-                      addTitleSpace(),
-                      Text(
-                        "Enter recovery phrase from existing account. Write it in the same order that it was presented to you.",
-                        style: appTextTheme.bodyText1,
-                      ),
-                      SizedBox(height: 40),
-                      Container(
-                        height: 120,
-                        child: Column(
-                          children: [
-                            AuTextField(
-                              title: "",
-                              placeholder: "Separate your words with ‘space’",
-                              keyboardType: TextInputType.multiline,
-                              expanded: true,
-                              maxLines: null,
-                              controller: _phraseTextController,
-                              isError:
-                                  state.importPersonaState == ActionState.error,
-                            ),
-                          ],
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Import account",
+                          style: appTextTheme.headline1,
                         ),
-                      ),
-                      SizedBox(),
-                    ],
+                        addTitleSpace(),
+                        Text(
+                          "Enter recovery phrase from existing account. Write it in the same order that it was presented to you.",
+                          style: appTextTheme.bodyText1,
+                        ),
+                        SizedBox(height: 40),
+                        Container(
+                          height: 120,
+                          child: Column(
+                            children: [
+                              AuTextField(
+                                title: "",
+                                placeholder: "Separate your words with ‘space’",
+                                keyboardType: TextInputType.multiline,
+                                expanded: true,
+                                maxLines: null,
+                                controller: _phraseTextController,
+                                isError: state.importPersonaState ==
+                                    ActionState.error,
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(),
+                      ],
+                    ),
                   ),
                 ),
                 Row(

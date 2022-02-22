@@ -89,7 +89,7 @@ class _WCConnectPageState extends State<WCConnectPage> {
             ),
             SizedBox(height: 16.0),
             Text(
-              "• View your persona’s balance and activity",
+              "• View your account balance and NFTs",
               style: appTextTheme.bodyText1,
             ),
             SizedBox(height: 4.0),
@@ -99,7 +99,7 @@ class _WCConnectPageState extends State<WCConnectPage> {
             ),
             SizedBox(height: 32.0),
             Text(
-              "Choose a persona: ",
+              "Under the account: ",
               style: appTextTheme.headline4,
             ),
             SizedBox(height: 16.0),
@@ -145,10 +145,9 @@ class _WCConnectPageState extends State<WCConnectPage> {
               children: [
                 Expanded(
                   child: AuFilledButton(
-                    text: "Authorize".toUpperCase(),
+                    text: "Connect".toUpperCase(),
                     onPress: selectedPersona != null
                         ? () async {
-                      print("**************");
                             final address = await networkInjector
                                 .I<EthereumService>()
                                 .getETHAddress(selectedPersona!.wallet());
