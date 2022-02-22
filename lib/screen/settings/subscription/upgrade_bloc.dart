@@ -1,39 +1,49 @@
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 
-const String _subscriptionId = 'Au_IntroSub';
-
 class UpgradesBloc extends Bloc<UpgradeEvent, UpgradeState> {
   IAPService _iapService;
+  ConfigurationService _configurationService;
 
-  UpgradesBloc(this._iapService)
+  UpgradesBloc(this._iapService, this._configurationService)
       : super(UpgradeState(IAPProductStatus.loading, null)) {
-    _iapService.purchases.addListener(() => add(UpgradeInfoEvent()));
-    _iapService.products.addListener(() => add(UpgradeInfoEvent()));
-
-    on<UpgradeInfoEvent>((event, emit) async {
-      try {
+    // Query IAP info initially
+    on<UpgradeQueryInfoEvent>((event, emit) async {
+      final jwt = _configurationService.getIAPJWT();
+      if (_configurationService.getIAPJWT()?.isValid() == true) {
+        emit(UpgradeState(IAPProductStatus.completed, null));
+      } else {
+        emit(UpgradeState(IAPProductStatus.loading, null));
         _iapService.setup();
-        final productId = _iapService.products.value.keys.first;
-        final subscriptionProductDetails =
-            _iapService.products.value[productId];
-        final subscriptionState = _iapService.purchases.value[productId];
-
-        emit(UpgradeState(subscriptionState ?? IAPProductStatus.notPurchased,
-            subscriptionProductDetails));
-      } catch (error) {
-        log.warning("error when loading IAP", error);
-        emit(UpgradeState(IAPProductStatus.error, null));
       }
     });
 
+// Return IAP info after getting from Apple / Google
+    on<UpgradeIAPInfoEvent>((event, emit) async {
+      ProductDetails? productDetail;
+      IAPProductStatus state = IAPProductStatus.loading;
+
+      if (_iapService.products.value.isNotEmpty) {
+        final productId = _iapService.products.value.keys.first;
+        productDetail = _iapService.products.value[productId];
+
+        final subscriptionState = _iapService.purchases.value[productId];
+        state = subscriptionState ?? IAPProductStatus.notPurchased;
+      }
+
+      emit(UpgradeState(state, productDetail));
+    });
+
+// Update new state if needed
     on<UpgradeUpdateEvent>((event, emit) async {
       emit(event.newState);
     });
 
+// Purchase event
     on<UpgradePurchaseEvent>((event, emit) async {
       try {
         final productId = _iapService.products.value.keys.first;
@@ -51,5 +61,19 @@ class UpgradesBloc extends Bloc<UpgradeEvent, UpgradeState> {
         emit(UpgradeState(IAPProductStatus.error, null));
       }
     });
+
+    _iapService.purchases.addListener(_onNewIAPEventFunc);
+    _iapService.products.addListener(_onNewIAPEventFunc);
+  }
+
+  void _onNewIAPEventFunc() {
+    add(UpgradeIAPInfoEvent());
+  }
+
+  @override
+  Future<void> close() {
+    _iapService.purchases.removeListener(_onNewIAPEventFunc);
+    _iapService.products.removeListener(_onNewIAPEventFunc);
+    return super.close();
   }
 }
