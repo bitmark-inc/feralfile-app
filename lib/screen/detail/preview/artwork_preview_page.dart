@@ -80,12 +80,13 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
           }
 
           return Container(
-              padding: MediaQuery.of(context).padding,
+              padding: MediaQuery.of(context)
+                  .padding
+                  .copyWith(bottom: 0, top: isFullscreen ? 0 : null),
               child: Column(
                 children: [
                   !isFullscreen
                       ? Container(
-                          color: Colors.black,
                           child: Row(
                             children: [
                               IconButton(
