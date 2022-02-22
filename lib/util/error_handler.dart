@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../screen/report/sentry_report_page.dart';
 
@@ -32,20 +33,24 @@ class ErrorEvent {
 
 PlatformException? lastException;
 
-ErrorEvent transalateError(Object exception) {
+ErrorEvent? transalateError(Object exception) {
   if (exception is DioError) {
-    return ErrorEvent(null, "Network error",
-        "Check your connection and try again.", ErrorItemState.tryAgain);
+    if (exception.type == DioErrorType.sendTimeout ||
+        exception.type == DioErrorType.connectTimeout ||
+        exception.type == DioErrorType.receiveTimeout) {
+      return ErrorEvent(null, "Network error",
+          "Check your connection and try again.", ErrorItemState.tryAgain);
+    }
   } else if (exception is CameraException) {
     return ErrorEvent(null, "Enable camera",
         "QR code scanning requires camera access.", ErrorItemState.camera);
-  } else {
-    return ErrorEvent(
-        exception,
-        "Uh oh!",
-        "Autonomy has encountered an unexpected problem. Please report the issue so that we can work on a fix.",
-        ErrorItemState.suggestReportIssue);
   }
+
+  return ErrorEvent(
+      exception,
+      "Uh oh!",
+      "Autonomy has encountered an unexpected problem. Please report the issue so that we can work on a fix.",
+      ErrorItemState.suggestReportIssue);
 }
 
 void showErrorDialog(BuildContext context, String title, String description,
@@ -149,7 +154,7 @@ void showErrorDialogFromException(Object exception) {
 
   final event = transalateError(exception);
   final context = injector<NavigationService>().navigatorKey.currentContext;
-  if (context != null) {
+  if (context != null && event != null) {
     showErrorDiablog(
       context,
       event,
