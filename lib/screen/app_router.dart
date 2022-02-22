@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/screen/account/name_linked_account_page.dart';
 import 'package:autonomy_flutter/screen/account/name_persona_page.dart';
 import 'package:autonomy_flutter/screen/account/new_account_page.dart';
 import 'package:autonomy_flutter/screen/account/persona_details_page.dart';
+import 'package:autonomy_flutter/screen/account/recovery_phrase_page.dart';
 import 'package:autonomy_flutter/screen/be_own_gallery_page.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/ethereum/ethereum_bloc.dart';
@@ -74,6 +75,7 @@ class AppRouter {
   static const linkedAccountDetailsPage = 'linked_account_details';
   static const walletDetailsPage = 'wallet_detail';
   static const scanQRPage = 'qr_scanner';
+  static const recoveryPhrasePage = 'recovery_phrase';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final networkInjector = injector<NetworkConfigInjector>();
@@ -325,6 +327,13 @@ class AppRouter {
           builder: (context) => TBSendTransactionPage(
               request: settings.arguments as BeaconRequest),
         );
+
+      case recoveryPhrasePage:
+        return MaterialPageRoute(
+            settings: settings,
+            builder: (context) => RecoveryPhrasePage(
+                  words: settings.arguments as List<String>,
+                ));
       case SentryReportPage.tag:
         return CupertinoPageRoute(
             settings: settings,
