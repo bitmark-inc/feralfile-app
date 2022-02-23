@@ -4,7 +4,10 @@ import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/theme_manager.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/view/au_button_clipper.dart';
+import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -59,7 +62,8 @@ class _AccountsViewState extends State<AccountsView> {
 
                               // A pane can dismiss the Slidable.
                               dismissible: DismissiblePane(onDismissed: () {
-                                _deleteAccount(context, account);
+                                _showDeleteAccountConfirmation(
+                                    context, account);
                               }),
 
                               // All actions are defined in the children parameter.
@@ -69,8 +73,9 @@ class _AccountsViewState extends State<AccountsView> {
                                   backgroundColor: Colors.black,
                                   foregroundColor: Colors.white,
                                   icon: CupertinoIcons.delete,
-                                  onPressed: (BuildContext context) {
-                                    _deleteAccount(context, account);
+                                  onPressed: (_) {
+                                    _showDeleteAccountConfirmation(
+                                        context, account);
                                   },
                                 ),
                               ],
@@ -90,6 +95,91 @@ class _AccountsViewState extends State<AccountsView> {
         );
       },
     );
+  }
+
+  void _showDeleteAccountConfirmation(
+      BuildContext pageContext, Account account) {
+    final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
+    var accountName = account.name;
+    if (accountName == null || accountName.isEmpty) {
+      accountName = account.accountNumber.mask(4);
+    }
+
+    showModalBottomSheet(
+        context: pageContext,
+        enableDrag: false,
+        builder: (context) {
+          return Container(
+            color: Color(0xFF737373),
+            child: ClipPath(
+              clipper: AutonomyTopRightRectangleClipper(),
+              child: Container(
+                color: theme.backgroundColor,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 32),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Delete account', style: theme.textTheme.headline1),
+                    SizedBox(height: 40),
+                    RichText(
+                      text: TextSpan(
+                        style: theme.textTheme.bodyText1,
+                        children: <TextSpan>[
+                          TextSpan(
+                            text:
+                                'Are you sure you want to delete the account ',
+                          ),
+                          TextSpan(
+                              text: '“$accountName”',
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold)),
+                          TextSpan(
+                            text: '?',
+                          ),
+                          if (account.persona != null) ...[
+                            TextSpan(
+                                text:
+                                    ' If you haven’t backed up your recovery phrase, you will lose access to your funds.')
+                          ]
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 40),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: AuFilledButton(
+                            text: "DELETE",
+                            onPress: () {
+                              Navigator.of(context).pop();
+                              _deleteAccount(pageContext, account);
+                            },
+                            color: theme.primaryColor,
+                            textStyle: TextStyle(
+                                color: theme.backgroundColor,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                fontFamily: "IBMPlexMono"),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Align(
+                      alignment: Alignment.center,
+                      child: TextButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: Text("CANCEL",
+                              style: theme.textTheme.button
+                                  ?.copyWith(color: Colors.white))),
+                    )
+                  ],
+                ),
+              ),
+            ),
+          );
+        });
   }
 
   void _deleteAccount(BuildContext context, Account account) {

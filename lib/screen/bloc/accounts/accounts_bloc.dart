@@ -25,6 +25,7 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
         final ethAddress = await persona.wallet().getETHAddress();
         final account = Account(
             persona: persona,
+            name: persona.name,
             accountNumber: ethAddress,
             createdAt: persona.createdAt);
         accounts.add(account);
@@ -48,6 +49,7 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
                 accounts.add(Account(
                     accountNumber: accountNumber,
                     connections: [connection],
+                    name: connection.name,
                     createdAt: connection.createdAt));
               }
             }
