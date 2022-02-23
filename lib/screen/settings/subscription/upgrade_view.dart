@@ -1,4 +1,3 @@
-import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
@@ -125,7 +124,7 @@ class UpgradesView extends StatelessWidget {
                           fontFamily: "IBMPlexMono"),
                     ),
                     TextButton(
-                      onPressed: () {},
+                      onPressed: () => Navigator.of(context).pop(),
                       child: Text(
                         "NOT NOW",
                         style: TextStyle(

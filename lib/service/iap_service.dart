@@ -31,6 +31,7 @@ abstract class IAPService {
   Future<void> setup();
   Future<void> purchase(ProductDetails product);
   Future<void> restore();
+  Future<bool> renewJWT();
 }
 
 class IAPServiceImpl implements IAPService {
@@ -74,6 +75,16 @@ class IAPServiceImpl implements IAPService {
         key: (e) => e.id, value: (e) => e);
   }
 
+  Future<bool> renewJWT() async {
+    final receiptData = _configurationService.getIAPReceipt();
+    if (receiptData == null) return false;
+
+    final jwt = await _verifyPurchase(receiptData);
+    if (jwt == null) return false;
+    _configurationService.setIAPJWT(jwt);
+    return true;
+  }
+
   Future<void> purchase(ProductDetails product) async {
     final purchaseParam = PurchaseParam(
       productDetails: product,
@@ -96,12 +107,10 @@ class IAPServiceImpl implements IAPService {
     await _inAppPurchase.restorePurchases();
   }
 
-  Future<JWT?> _verifyPurchase(PurchaseDetails purchaseDetails) async {
+  Future<JWT?> _verifyPurchase(String receiptData) async {
     try {
-      final jwt = await _iapApi.verifyIAP({
-        'platform': 'apple',
-        'receipt_data': purchaseDetails.verificationData.serverVerificationData
-      });
+      final jwt = await _iapApi
+          .verifyIAP({'platform': 'apple', 'receipt_data': receiptData});
       return jwt;
     } catch (error) {
       log.info("error when verifying receipt", error);
@@ -118,11 +127,14 @@ class IAPServiceImpl implements IAPService {
           purchases.value[purchaseDetails.productID] = IAPProductStatus.error;
         } else if (purchaseDetails.status == PurchaseStatus.purchased ||
             purchaseDetails.status == PurchaseStatus.restored) {
-          final jwt = await _verifyPurchase(purchaseDetails);
+          final receiptData =
+              purchaseDetails.verificationData.serverVerificationData;
+          final jwt = await _verifyPurchase(receiptData);
           if (jwt != null && jwt.isValid()) {
             purchases.value[purchaseDetails.productID] =
                 IAPProductStatus.completed;
             _configurationService.setIAPJWT(jwt);
+            _configurationService.setIAPReceipt(receiptData);
           } else {
             purchases.value[purchaseDetails.productID] =
                 IAPProductStatus.expired;
