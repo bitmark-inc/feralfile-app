@@ -1,5 +1,6 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/theme_manager.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
@@ -152,6 +153,7 @@ void showErrorDialogFromException(Object exception) {
     lastException = exception;
   }
 
+  log.warning("Unhandled error:", exception);
   final event = transalateError(exception);
   final context = injector<NavigationService>().navigatorKey.currentContext;
   if (context != null && event != null) {

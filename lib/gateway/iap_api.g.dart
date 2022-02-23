@@ -1,14 +1,14 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'currency_exchange_api.dart';
+part of 'iap_api.dart';
 
 // **************************************************************************
 // RetrofitGenerator
 // **************************************************************************
 
-class _CurrencyExchangeApi implements CurrencyExchangeApi {
-  _CurrencyExchangeApi(this._dio, {this.baseUrl}) {
-    baseUrl ??= 'https://api.coinbase.com';
+class _IAPApi implements IAPApi {
+  _IAPApi(this._dio, {this.baseUrl}) {
+    baseUrl ??= 'https://autonomy-auth.test.bitmark.com';
   }
 
   final Dio _dio;
@@ -16,19 +16,18 @@ class _CurrencyExchangeApi implements CurrencyExchangeApi {
   String? baseUrl;
 
   @override
-  Future<Map<String, CurrencyExchange>> getExchangeRates() async {
+  Future<JWT> verifyIAP(body) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
-    final _result = await _dio.fetch<Map<String, dynamic>>(
-        _setStreamType<Map<String, CurrencyExchange>>(
-            Options(method: 'GET', headers: _headers, extra: _extra)
-                .compose(_dio.options, '/v2/exchange-rates',
-                    queryParameters: queryParameters, data: _data)
-                .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
-    var value = _result.data!.map((k, dynamic v) =>
-        MapEntry(k, CurrencyExchange.fromJson(v as Map<String, dynamic>)));
+    _data.addAll(body);
+    final _result = await _dio.fetch<Map<String, dynamic>>(_setStreamType<JWT>(
+        Options(method: 'POST', headers: _headers, extra: _extra)
+            .compose(_dio.options, '/auth',
+                queryParameters: queryParameters, data: _data)
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+    final value = JWT.fromJson(_result.data!);
     return value;
   }
 
