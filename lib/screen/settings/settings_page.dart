@@ -1,4 +1,5 @@
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
@@ -9,6 +10,8 @@ import 'package:autonomy_flutter/screen/settings/preferences/preferences_bloc.da
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_view.dart';
 import 'package:autonomy_flutter/screen/settings/settings_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/settings_state.dart';
+import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
+import 'package:autonomy_flutter/screen/settings/subscription/upgrade_view.dart';
 import 'package:autonomy_flutter/screen/settings/support/support_view.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -61,6 +64,8 @@ class _SettingsPageState extends State<SettingsPage>
 
   @override
   Widget build(BuildContext context) {
+    final networkInjector = injector<NetworkConfigInjector>();
+
     return Scaffold(
       body: BlocBuilder<SettingsBloc, SettingsState>(builder: (context, state) {
         return Stack(
@@ -148,6 +153,12 @@ class _SettingsPageState extends State<SettingsPage>
                               Navigator.of(context).pop();
                             }
                           }),
+                          SizedBox(height: 40),
+                          BlocProvider(
+                            create: (_) =>
+                                UpgradesBloc(networkInjector.I(), injector()),
+                            child: UpgradesView(),
+                          ),
                           SizedBox(height: 40),
                           SupportView(),
                           SizedBox(height: 40),

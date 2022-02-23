@@ -2,11 +2,13 @@ import 'package:autonomy_flutter/common/app_config.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/gateway/bitmark_api.dart';
 import 'package:autonomy_flutter/gateway/feralfile_api.dart';
+import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/gateway/indexer_api.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
+import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
@@ -22,7 +24,8 @@ class NetworkConfigInjector {
   final ConfigurationService _configurationService;
   final Dio _dio;
 
-  NetworkConfigInjector(this._configurationService, this._dio, AppDatabase testnetDB, AppDatabase mainnetDB) {
+  NetworkConfigInjector(this._configurationService, this._dio,
+      AppDatabase testnetDB, AppDatabase mainnetDB) {
     //Test network
     testnetInjector.registerLazySingleton(
         () => Web3Client(AppConfig.testNetworkConfig.web3RpcUrl, injector()));
@@ -32,6 +35,10 @@ class NetworkConfigInjector {
         baseUrl: AppConfig.testNetworkConfig.feralFileApiUrl));
     testnetInjector.registerLazySingleton<BitmarkApi>(() =>
         BitmarkApi(_dio, baseUrl: AppConfig.testNetworkConfig.bitmarkApiUrl));
+    testnetInjector.registerLazySingleton<IAPApi>(() =>
+        IAPApi(_dio, baseUrl: AppConfig.testNetworkConfig.autonomyAuthUrl));
+    testnetInjector.registerLazySingleton<IAPService>(
+        () => IAPServiceImpl(injector(), testnetInjector()));
     testnetInjector.registerLazySingleton<IndexerApi>(() =>
         IndexerApi(_dio, baseUrl: AppConfig.testNetworkConfig.indexerApiUrl));
 
@@ -41,8 +48,14 @@ class NetworkConfigInjector {
         () => TezosServiceImpl(testnetInjector(), injector()));
     testnetInjector.registerLazySingleton<AppDatabase>(() => testnetDB);
     testnetInjector.registerLazySingleton<FeralFileService>(() =>
-        FeralFileServiceImpl(_configurationService, testnetInjector(),
-            testnetInjector(), testnetInjector(), testnetInjector(), testnetInjector(), testnetInjector()));
+        FeralFileServiceImpl(
+            _configurationService,
+            testnetInjector(),
+            testnetInjector(),
+            testnetInjector(),
+            testnetInjector(),
+            testnetInjector(),
+            testnetInjector()));
 
     //Main network
     mainnetInjector.registerLazySingleton(
@@ -53,6 +66,10 @@ class NetworkConfigInjector {
         baseUrl: AppConfig.mainNetworkConfig.feralFileApiUrl));
     mainnetInjector.registerLazySingleton<BitmarkApi>(() =>
         BitmarkApi(_dio, baseUrl: AppConfig.mainNetworkConfig.bitmarkApiUrl));
+    mainnetInjector.registerLazySingleton<IAPApi>(() =>
+        IAPApi(_dio, baseUrl: AppConfig.mainNetworkConfig.autonomyAuthUrl));
+    mainnetInjector.registerLazySingleton<IAPService>(
+        () => IAPServiceImpl(injector(), mainnetInjector()));
     mainnetInjector.registerLazySingleton<IndexerApi>(() =>
         IndexerApi(_dio, baseUrl: AppConfig.mainNetworkConfig.indexerApiUrl));
 
@@ -62,8 +79,14 @@ class NetworkConfigInjector {
         () => TezosServiceImpl(mainnetInjector(), injector()));
     mainnetInjector.registerLazySingleton<AppDatabase>(() => mainnetDB);
     mainnetInjector.registerLazySingleton<FeralFileService>(() =>
-        FeralFileServiceImpl(_configurationService, mainnetInjector(),
-            mainnetInjector(), mainnetInjector(), mainnetInjector(), mainnetInjector(), mainnetInjector()));
+        FeralFileServiceImpl(
+            _configurationService,
+            mainnetInjector(),
+            mainnetInjector(),
+            mainnetInjector(),
+            mainnetInjector(),
+            mainnetInjector(),
+            mainnetInjector()));
   }
 
   GetIt get I => _configurationService.getNetwork() == Network.MAINNET
