@@ -2,11 +2,13 @@ import 'package:autonomy_flutter/common/app_config.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/gateway/bitmark_api.dart';
 import 'package:autonomy_flutter/gateway/feralfile_api.dart';
+import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/gateway/indexer_api.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
+import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
@@ -33,6 +35,10 @@ class NetworkConfigInjector {
         baseUrl: AppConfig.testNetworkConfig.feralFileApiUrl));
     testnetInjector.registerLazySingleton<BitmarkApi>(() =>
         BitmarkApi(_dio, baseUrl: AppConfig.testNetworkConfig.bitmarkApiUrl));
+    testnetInjector.registerLazySingleton<IAPApi>(() =>
+        IAPApi(_dio, baseUrl: AppConfig.testNetworkConfig.autonomyAuthUrl));
+    testnetInjector.registerLazySingleton<IAPService>(
+        () => IAPServiceImpl(injector(), testnetInjector()));
     testnetInjector.registerLazySingleton<IndexerApi>(() =>
         IndexerApi(_dio, baseUrl: AppConfig.testNetworkConfig.indexerApiUrl));
 
@@ -60,6 +66,10 @@ class NetworkConfigInjector {
         baseUrl: AppConfig.mainNetworkConfig.feralFileApiUrl));
     mainnetInjector.registerLazySingleton<BitmarkApi>(() =>
         BitmarkApi(_dio, baseUrl: AppConfig.mainNetworkConfig.bitmarkApiUrl));
+    mainnetInjector.registerLazySingleton<IAPApi>(() =>
+        IAPApi(_dio, baseUrl: AppConfig.mainNetworkConfig.autonomyAuthUrl));
+    mainnetInjector.registerLazySingleton<IAPService>(
+        () => IAPServiceImpl(injector(), mainnetInjector()));
     mainnetInjector.registerLazySingleton<IndexerApi>(() =>
         IndexerApi(_dio, baseUrl: AppConfig.mainNetworkConfig.indexerApiUrl));
 

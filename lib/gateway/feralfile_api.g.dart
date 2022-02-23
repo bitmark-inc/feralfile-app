@@ -19,15 +19,15 @@ class _FeralFileApi implements FeralFileApi {
   Future<Map<String, FFAccount>> getAccount(bearerToken) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{r'Authorization': bearerToken};
+    _headers.removeWhere((k, v) => v == null);
     final _data = <String, dynamic>{};
     final _result = await _dio.fetch<Map<String, dynamic>>(
-        _setStreamType<Map<String, FFAccount>>(Options(
-                method: 'GET',
-                headers: <String, dynamic>{r'Authorization': bearerToken},
-                extra: _extra)
-            .compose(_dio.options, '/api/accounts/me?includeWyre=true',
-                queryParameters: queryParameters, data: _data)
-            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+        _setStreamType<Map<String, FFAccount>>(
+            Options(method: 'GET', headers: _headers, extra: _extra)
+                .compose(_dio.options, '/api/accounts/me?includeWyre=true',
+                    queryParameters: queryParameters, data: _data)
+                .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
     var value = _result.data!.map((k, dynamic v) =>
         MapEntry(k, FFAccount.fromJson(v as Map<String, dynamic>)));
     return value;
@@ -37,11 +37,12 @@ class _FeralFileApi implements FeralFileApi {
   Future<Map<String, List<AssetPrice>>> getAssetPrice(body) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
     _data.addAll(body);
     final _result = await _dio.fetch<Map<String, dynamic>>(
         _setStreamType<Map<String, List<AssetPrice>>>(
-            Options(method: 'POST', headers: <String, dynamic>{}, extra: _extra)
+            Options(method: 'POST', headers: _headers, extra: _extra)
                 .compose(_dio.options, '/api/asset-prices',
                     queryParameters: queryParameters, data: _data)
                 .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));

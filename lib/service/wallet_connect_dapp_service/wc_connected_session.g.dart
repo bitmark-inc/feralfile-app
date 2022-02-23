@@ -6,14 +6,13 @@ part of 'wc_connected_session.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-WCConnectedSession _$WCConnectedSessionFromJson(Map<String, dynamic> json) {
-  return WCConnectedSession(
-    sessionStore:
-        WCSessionStore.fromJson(json['sessionStore'] as Map<String, dynamic>),
-    accounts:
-        (json['accounts'] as List<dynamic>).map((e) => e as String).toList(),
-  );
-}
+WCConnectedSession _$WCConnectedSessionFromJson(Map<String, dynamic> json) =>
+    WCConnectedSession(
+      sessionStore:
+          WCSessionStore.fromJson(json['sessionStore'] as Map<String, dynamic>),
+      accounts:
+          (json['accounts'] as List<dynamic>).map((e) => e as String).toList(),
+    );
 
 Map<String, dynamic> _$WCConnectedSessionToJson(WCConnectedSession instance) =>
     <String, dynamic>{
