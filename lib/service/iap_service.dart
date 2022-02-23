@@ -45,6 +45,7 @@ class IAPServiceImpl implements IAPService {
   IAPServiceImpl(this._configurationService, this._iapApi);
 
   Future<void> setup() async {
+    final jwt = _configurationService.getIAPJWT();
     if (jwt != null && jwt.isValid()) {}
     final Stream<List<PurchaseDetails>> purchaseUpdated =
         _inAppPurchase.purchaseStream;
