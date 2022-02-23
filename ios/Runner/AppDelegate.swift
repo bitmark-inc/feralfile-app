@@ -42,6 +42,9 @@ import Combine
                 LibAukChannelHandler.shared.signTransaction(call: call, result: result)
             case "getTezosWallet":
                 LibAukChannelHandler.shared.getTezosWallet(call: call, result: result)
+            case "removeKeys":
+                LibAukChannelHandler.shared.getTezosWallet(call: call, result: result)
+
             default:
                 result(FlutterMethodNotImplemented)
             }
@@ -65,8 +68,8 @@ import Combine
             switch call.method {
             case "connect":
                 BeaconChannelHandler.shared.connect()
-//            case "observeRequest":
-//                BeaconChannelHandler.shared.observeRequest(call: call, result: result)
+            case "getConnectionURI":
+                BeaconChannelHandler.shared.getConnectionURI(call: call, result: result)
             case "addPeer":
                 BeaconChannelHandler.shared.addPeer(call: call, result: result)
             case "removePeer":

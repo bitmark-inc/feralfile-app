@@ -9,52 +9,32 @@ import 'package:tezart/src/crypto/crypto.dart' show Prefixes;
 import 'package:tezart/tezart.dart';
 
 abstract class TezosService {
-  Future<String> getTezosAddress();
-
-  Future<String> getPublicKey();
+  Future<String> getPublicKey(TezosWallet wallet);
 
   Future<int> getBalance(String address);
 
-  Future<int> estimateOperationFee(List<TransactionOperation> operation);
+  Future<int> estimateOperationFee(
+      TezosWallet wallet, List<TransactionOperation> operation);
 
-  Future<int> estimateFee(String to, int amount);
+  Future<int> estimateFee(TezosWallet wallet, String to, int amount);
 
   Future<String?> sendOperationTransaction(
-      List<TransactionOperation> operation);
+      TezosWallet wallet, List<TransactionOperation> operation);
 
-  Future<String?> sendTransaction(String to, int amount);
+  Future<String?> sendTransaction(TezosWallet wallet, String to, int amount);
 }
 
 class TezosServiceImpl extends TezosService {
   final TezartClient _tezartClient;
-  final PersonaService _personaService;
 
-  TezosServiceImpl(this._tezartClient, this._personaService);
-
-  @override
-  Future<String> getTezosAddress() async {
-    log.info("TezosService.getTezosAddress");
-    final wallet = await _personaService.getActivePersona()?.getTezosWallet();
-    if (wallet != null) {
-      log.info("got the tezos address: ${wallet.address}");
-      return wallet.address;
-    } else {
-      log.warning("empty tezos wallet");
-      return "";
-    }
-  }
+  TezosServiceImpl(this._tezartClient);
 
   @override
-  Future<String> getPublicKey() async {
-    final wallet = await _personaService.getActivePersona()?.getTezosWallet();
-    if (wallet != null) {
-      return crypto.encodeWithPrefix(
-        prefix: Prefixes.edpk,
-        bytes: wallet.publicKey,
-      );
-    } else {
-      return "";
-    }
+  Future<String> getPublicKey(TezosWallet wallet) async {
+    return crypto.encodeWithPrefix(
+      prefix: Prefixes.edpk,
+      bytes: wallet.publicKey,
+    );
   }
 
   @override
@@ -65,10 +45,9 @@ class TezosServiceImpl extends TezosService {
 
   @override
   Future<int> estimateOperationFee(
-      List<TransactionOperation> operations) async {
+      TezosWallet wallet, List<TransactionOperation> operations) async {
     log.info("TezosService.estimateOperationFee");
-
-    final keystore = await _getKeystore();
+    final keystore = _getKeystore(wallet);
 
     var operationList = OperationsList(
         source: keystore, rpcInterface: _tezartClient.rpcInterface);
@@ -91,10 +70,10 @@ class TezosServiceImpl extends TezosService {
 
   @override
   Future<String?> sendOperationTransaction(
-      List<TransactionOperation> operations) async {
+      TezosWallet wallet, List<TransactionOperation> operations) async {
     log.info("TezosService.sendOperationTransaction");
 
-    final keystore = await _getKeystore();
+    final keystore = _getKeystore(wallet);
 
     var operationList = OperationsList(
         source: keystore, rpcInterface: _tezartClient.rpcInterface);
@@ -114,9 +93,9 @@ class TezosServiceImpl extends TezosService {
   }
 
   @override
-  Future<int> estimateFee(String to, int amount) async {
+  Future<int> estimateFee(TezosWallet wallet, String to, int amount) async {
     log.info("TezosService.estimateFee: $to, $amount");
-    final keystore = await _getKeystore();
+    final keystore = _getKeystore(wallet);
     final operation = await _tezartClient.transferOperation(
       source: keystore,
       destination: to,
@@ -133,9 +112,10 @@ class TezosServiceImpl extends TezosService {
   }
 
   @override
-  Future<String?> sendTransaction(String to, int amount) async {
+  Future<String?> sendTransaction(
+      TezosWallet wallet, String to, int amount) async {
     log.info("TezosService.sendTransaction: $to, $amount");
-    final keystore = await _getKeystore();
+    final keystore = _getKeystore(wallet);
     final operation = await _tezartClient.transferOperation(
       source: keystore,
       destination: to,
@@ -149,14 +129,7 @@ class TezosServiceImpl extends TezosService {
     return operation.result.signature?.edsig;
   }
 
-  Future<Keystore> _getKeystore() async {
-    final wallet = await _personaService.getActivePersona()?.getTezosWallet();
-    assert(wallet != null);
-
-    return compute(_parseSecretKey, wallet!);
-  }
-
-  Keystore _parseSecretKey(TezosWallet wallet) {
+  Keystore _getKeystore(TezosWallet wallet) {
     final secretKey = crypto.secretKeyBytesFromSeedBytes(wallet.secretKey);
 
     final secretString = crypto.encodeWithPrefix(

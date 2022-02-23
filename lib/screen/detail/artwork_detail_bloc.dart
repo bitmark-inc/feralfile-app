@@ -1,5 +1,4 @@
 import 'package:autonomy_flutter/database/dao/asset_token_dao.dart';
-import 'package:autonomy_flutter/model/asset_price.dart';
 import 'package:autonomy_flutter/model/bitmark.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
@@ -18,11 +17,14 @@ class ArtworkDetailBloc extends Bloc<ArtworkDetailEvent, ArtworkDetailState> {
 
       List<Provenance> provenances = [];
       if (asset?.blockchain == "bitmark") {
-        provenances = await _feralFileService.getAssetProvenance(event.id);
+        provenances = await _feralFileService.getAssetProvenance(event.id.replaceAll("bmk--", ""));
       }
-      final assetPrices = await _feralFileService.getAssetPrices([event.id]);
+      final assetPrices = await _feralFileService.getAssetPrices([event.id.replaceAll("bmk--", "")]);
 
-      emit(ArtworkDetailState(asset: asset, provenances: provenances, assetPrice: assetPrices.isNotEmpty ? assetPrices.first : null));
+      emit(ArtworkDetailState(
+          asset: asset,
+          provenances: provenances,
+          assetPrice: assetPrices.isNotEmpty ? assetPrices.first : null));
     });
   }
 }

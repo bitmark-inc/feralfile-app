@@ -42,8 +42,16 @@ class LibAukChannelHandler {
         let date = dateInMili != nil ? Date(timeIntervalSince1970: dateInMili!) : nil
         let wordsArray = words.components(separatedBy: " ")
         
-        LibAuk.shared.storage(for: UUID(uuidString: uuid)!).importKey(words: wordsArray, name: name, creationDate:date)
-            .sink(receiveCompletion: { _ in }, receiveValue: { _ in
+        LibAuk.shared.storage(for: UUID(uuidString: uuid)!)
+            .importKey(words: wordsArray, name: name, creationDate:date)
+            .sink(receiveCompletion: { (completion) in
+                if let error = completion.error {
+                    result(
+                        FlutterError(code: "Failed to import key", message: error.localizedDescription, details: nil)
+                    )
+                }
+
+            }, receiveValue: { _ in
                 result([
                     "error": 0,
                     "msg": "importKey success",
@@ -191,6 +199,27 @@ class LibAukChannelHandler {
             })
             .store(in: &cancelBag)
     }
+
+    func removeKeys(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args: NSDictionary = call.arguments as! NSDictionary
+        let uuid: String = args["uuid"] as! String
+
+        LibAuk.shared.storage(for: UUID(uuidString: uuid)!).removeKeys()
+            .sink(receiveCompletion: { (completion) in
+                if let error = completion.error {
+                    result(
+                        FlutterError(code: "Failed to remove keys", message: error.localizedDescription, details: nil)
+                    )
+                }
+            }, receiveValue: { _ in
+                result([
+                    "error": 0,
+                    "msg": "removeKey success",
+                ])
+            })
+            .store(in: &cancelBag)
+
+    }
     
 }
 
@@ -199,5 +228,14 @@ extension Data {
         let prefix = "\u{19}Ethereum Signed Message:\n"
         let prefixData = (prefix + String(self.count)).data(using: .ascii)!
         return prefixData + self
+    }
+}
+
+extension Subscribers.Completion {
+    var error: Failure? {
+        switch self {
+        case let .failure(error): return error
+        default: return nil
+        }
     }
 }

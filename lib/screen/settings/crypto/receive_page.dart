@@ -23,7 +23,11 @@ class ReceivePage extends StatelessWidget {
         },
       ),
       body: Container(
-        margin: EdgeInsets.all(16.0),
+        margin: EdgeInsets.only(
+            top: 16.0,
+            left: 16.0,
+            right: 16.0,
+            bottom: MediaQuery.of(context).padding.bottom),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

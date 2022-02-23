@@ -22,15 +22,15 @@ class SendCryptoBloc extends Bloc<SendCryptoEvent, SendCryptoState> {
   ) : super(SendCryptoState()) {
     on<GetBalanceEvent>((event, emit) async {
       final newState = state.clone();
+      newState.wallet = event.wallet;
 
       final exchangeRate = await _currencyService.getExchangeRates();
       newState.exchangeRate = exchangeRate;
 
       switch (_type) {
-
         case CryptoType.ETH:
-          final address = await _ethereumService.getETHAddress();
-          final balance = await _ethereumService.getBalance(address);
+          final ownerAddress = await event.wallet.getETHAddress();
+          final balance = await _ethereumService.getBalance(ownerAddress);
 
           newState.balance = balance.getInWei;
 
@@ -41,7 +41,8 @@ class SendCryptoBloc extends Bloc<SendCryptoEvent, SendCryptoState> {
           }
           break;
         case CryptoType.XTZ:
-          final address = await _tezosService.getTezosAddress();
+          final tezosWallet = await event.wallet.getTezosWallet();
+          final address = tezosWallet.address;
           final balance = await _tezosService.getBalance(address);
 
           newState.balance = BigInt.from(balance);
@@ -109,7 +110,8 @@ class SendCryptoBloc extends Bloc<SendCryptoEvent, SendCryptoState> {
 
         print(value);
 
-        final amount = BigInt.from(value * pow(10, _type == CryptoType.ETH ? 18 : 6));
+        final amount =
+            BigInt.from(value * pow(10, _type == CryptoType.ETH ? 18 : 6));
 
         newState.amount = amount;
         newState.isValid = _isValid(newState);
@@ -140,11 +142,17 @@ class SendCryptoBloc extends Bloc<SendCryptoEvent, SendCryptoState> {
       switch (_type) {
         case CryptoType.ETH:
           final address = EthereumAddress.fromHex(event.address);
+          final wallet = state.wallet;
+          if (wallet == null) return;
           fee = await _ethereumService.estimateFee(
-              address, EtherAmount.inWei(event.amount), null);
+              wallet, address, EtherAmount.inWei(event.amount), null);
           break;
         case CryptoType.XTZ:
-          final tezosFee = await _tezosService.estimateFee(event.address, event.amount.toInt());
+          final wallet = state.wallet;
+          if (wallet == null) return;
+          final tezosWallet = await wallet.getTezosWallet();
+          final tezosFee = await _tezosService.estimateFee(
+              tezosWallet, event.address, event.amount.toInt());
           fee = BigInt.from(tezosFee);
           break;
       }

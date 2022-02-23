@@ -1,0 +1,120 @@
+import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
+import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:autonomy_flutter/view/au_text_field.dart';
+import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+class ImportAccountPage extends StatefulWidget {
+  const ImportAccountPage({Key? key}) : super(key: key);
+
+  @override
+  State<ImportAccountPage> createState() => _ImportAccountPageState();
+}
+
+class _ImportAccountPageState extends State<ImportAccountPage> {
+  TextEditingController _phraseTextController = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: getBackAppBar(
+        context,
+        onBack: () {
+          Navigator.of(context).pop();
+        },
+      ),
+      body: BlocConsumer<PersonaBloc, PersonaState>(
+        listener: (context, state) {
+          switch (state.importPersonaState) {
+            case ActionState.loading:
+              UIHelper.showInfoDialog(context, "Importing...", "");
+              break;
+
+            case ActionState.error:
+              UIHelper.hideInfoDialog(context);
+              break;
+
+            case ActionState.done:
+              UIHelper.hideInfoDialog(context);
+              UIHelper.showInfoDialog(context, "Account imported", "");
+              Future.delayed(SHORT_SHOW_DIALOG_DURATION, () {
+                UIHelper.hideInfoDialog(context);
+                final persona = state.persona;
+                if (persona != null) {
+                  Navigator.of(context).popAndPushNamed(
+                      AppRouter.namePersonaPage,
+                      arguments: persona.uuid);
+                }
+              });
+              break;
+          }
+        },
+        builder: (context, state) {
+          return Container(
+            margin: EdgeInsets.only(
+                top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Import account",
+                          style: appTextTheme.headline1,
+                        ),
+                        addTitleSpace(),
+                        Text(
+                          "Enter recovery phrase from existing account. Write it in the same order that it was presented to you.",
+                          style: appTextTheme.bodyText1,
+                        ),
+                        SizedBox(height: 40),
+                        Container(
+                          height: 120,
+                          child: Column(
+                            children: [
+                              AuTextField(
+                                title: "",
+                                placeholder: "Separate your words with ‘space’",
+                                keyboardType: TextInputType.multiline,
+                                expanded: true,
+                                maxLines: null,
+                                controller: _phraseTextController,
+                                isError: state.importPersonaState ==
+                                    ActionState.error,
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(),
+                      ],
+                    ),
+                  ),
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: AuFilledButton(
+                        text: "CONFIRM".toUpperCase(),
+                        onPress: () {
+                          context.read<PersonaBloc>().add(
+                              ImportPersonaEvent(_phraseTextController.text));
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}

@@ -1,5 +1,7 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/common/network_config_injector.dart';
+import 'package:autonomy_flutter/database/app_database.dart';
+import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -9,12 +11,34 @@ import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-class TBConnectPage extends StatelessWidget {
+class TBConnectPage extends StatefulWidget {
   static const String tag = 'tb_connect';
 
   final BeaconRequest request;
 
   const TBConnectPage({Key? key, required this.request}) : super(key: key);
+
+  @override
+  State<TBConnectPage> createState() => _TBConnectPageState();
+}
+
+class _TBConnectPageState extends State<TBConnectPage> {
+  List<Persona> personas = [];
+  Persona? selectedPersona;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchPersonas();
+  }
+
+  Future fetchPersonas() async {
+    final personas = await injector<CloudDatabase>().personaDao.getPersonas();
+    setState(() {
+      this.personas = personas;
+      this.selectedPersona = personas.first;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +48,8 @@ class TBConnectPage extends StatelessWidget {
       appBar: getBackAppBar(
         context,
         onBack: () {
-          injector<TezosBeaconService>().permissionResponse(request.id, null);
+          injector<TezosBeaconService>()
+              .permissionResponse(null, widget.request.id, null);
           Navigator.of(context).pop();
         },
       ),
@@ -41,9 +66,9 @@ class TBConnectPage extends StatelessWidget {
             SizedBox(height: 40.0),
             Row(
               children: [
-                request.icon != null
+                widget.request.icon != null
                     ? Image.network(
-                        request.icon!,
+                        widget.request.icon!,
                         width: 64.0,
                         height: 64.0,
                       )
@@ -57,7 +82,7 @@ class TBConnectPage extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(request.appName ?? "",
+                      Text(widget.request.appName ?? "",
                           style: appTextTheme.headline4),
                       Text(
                         "requests permission to:",
@@ -78,21 +103,71 @@ class TBConnectPage extends StatelessWidget {
               "• Request approval for transactions",
               style: appTextTheme.bodyText1,
             ),
-            Expanded(child: SizedBox()),
+            SizedBox(height: 32.0),
+            Text(
+              "Choose a persona: ",
+              style: appTextTheme.headline4,
+            ),
+            SizedBox(height: 16.0),
+            Expanded(
+              child: ListView(
+                children: <Widget>[
+                  ...personas
+                      .map((persona) => Column(
+                            children: [
+                              ListTile(
+                                title: Row(
+                                  children: [
+                                    Container(
+                                        width: 24,
+                                        height: 24,
+                                        child: Image.asset(
+                                            "assets/images/autonomyIcon.png")),
+                                    SizedBox(width: 16.0),
+                                    Text(persona.name,
+                                        style: appTextTheme.bodyText1)
+                                  ],
+                                ),
+                                contentPadding: EdgeInsets.zero,
+                                trailing: Radio(
+                                  activeColor: Colors.black,
+                                  value: persona,
+                                  groupValue: selectedPersona,
+                                  onChanged: (Persona? value) {
+                                    setState(() {
+                                      selectedPersona = value;
+                                    });
+                                  },
+                                ),
+                              ),
+                              Divider(height: 16.0),
+                            ],
+                          ))
+                      .toList(),
+                ],
+              ),
+            ),
             Row(
               children: [
                 Expanded(
                   child: AuFilledButton(
                     text: "Authorize".toUpperCase(),
-                    onPress: () async {
-                      final publicKey = await networkInjector
-                          .I<TezosService>()
-                          .getPublicKey();
-                      injector<TezosBeaconService>()
-                          .permissionResponse(request.id, publicKey);
+                    onPress: selectedPersona != null
+                        ? () async {
+                            final tezosWallet = await selectedPersona!
+                                .wallet()
+                                .getTezosWallet();
+                            final publicKey = await networkInjector
+                                .I<TezosService>()
+                                .getPublicKey(tezosWallet);
+                            injector<TezosBeaconService>().permissionResponse(
+                                tezosWallet.address,
+                                widget.request.id,
+                                publicKey);
 
-                      Navigator.of(context).pop();
-                    },
+                            Navigator.of(context).pop();
+                          }
+                        : null,
                   ),
                 )
               ],

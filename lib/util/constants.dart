@@ -1,0 +1,1 @@
+const INDEXER_TOKENS_MAXIMUM = 50;

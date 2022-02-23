@@ -36,11 +36,11 @@ class CurrencyExchangeRate {
       };
 
   String ethToUsd(BigInt amount) {
-    return (amount.toDouble() / pow(10, 18) / double.parse(eth) - 0.01)
+    return (amount.toDouble() / pow(10, 18) / double.parse(eth))
         .toStringAsFixed(2);
   }
 
   String xtzToUsd(int amount) {
-    return (amount / pow(10, 6) / double.parse(xtz) - 0.01).toStringAsFixed(2);
+    return (amount / pow(10, 6) / double.parse(xtz)).toStringAsFixed(2);
   }
 }

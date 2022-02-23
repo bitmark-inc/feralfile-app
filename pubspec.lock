@@ -1211,9 +1211,11 @@ packages:
   wallet_connect:
     dependency: "direct main"
     description:
-      name: wallet_connect
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "."
+      ref: HEAD
+      resolved-ref: "60919193f36ae4f026dfdebe929d1a1ab0d23d29"
+      url: "https://github.com/autonomy-system/wallet-connect-dart.git"
+    source: git
     version: "1.0.2"
   watcher:
     dependency: transitive

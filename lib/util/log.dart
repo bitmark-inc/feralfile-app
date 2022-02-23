@@ -1,14 +1,37 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:core';
-import 'package:autonomy_flutter/util/device.dart';
-import 'package:dio/dio.dart';
-import 'package:synchronized/synchronized.dart' as synchronization;
-import 'package:path_provider/path_provider.dart';
+import 'dart:io';
 
+import 'package:dio/dio.dart';
 import 'package:logging/logging.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:synchronized/synchronized.dart' as synchronization;
+
+import 'package:autonomy_flutter/util/device.dart';
 
 final log = Logger('AutonomyLogs');
+
+enum APIErrorCode {
+  invalidToken,
+  notLoggedIn,
+  expiredSubscription,
+  ffNotConnected
+}
+
+APIErrorCode? getAPIErrorCode(int code) {
+  switch (code) {
+    case 7001:
+      return APIErrorCode.invalidToken;
+    case 1002:
+      return APIErrorCode.notLoggedIn;
+    case 1041:
+      return APIErrorCode.expiredSubscription;
+    case 2013:
+      return APIErrorCode.ffNotConnected;
+    default:
+      return null;
+  }
+}
 
 Future<String> getLogFolderPath() async {
   Directory tempDir = await getTemporaryDirectory();
@@ -26,6 +49,13 @@ Future<String> getLatestLogFile() async {
   fileList.sort(((a, b) => b.path.compareTo(a.path)));
 
   return fileList.map((e) => e.path).toList().first;
+}
+
+int? decodeErrorResponse(dynamic e) {
+  if (e is DioError && e.type == DioErrorType.response) {
+    return e.response?.data['error']['code'] as int;
+  }
+  return null;
 }
 
 class FileLogger {

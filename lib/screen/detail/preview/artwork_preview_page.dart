@@ -58,7 +58,6 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
 
   @override
   void dispose() {
-    _initializeVideoPlayerFuture = null;
     _controller?.pause().then((_) {
       _controller?.dispose();
     });
@@ -76,17 +75,18 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
 
           final asset = state.asset!;
 
-          if (asset.medium == "video") {
+          if (asset.medium == "video" && loadedPath != asset.previewURL) {
             _startPlay(asset.previewURL!);
           }
 
           return Container(
-              padding: MediaQuery.of(context).padding,
+              padding: MediaQuery.of(context)
+                  .padding
+                  .copyWith(bottom: 0, top: isFullscreen ? 0 : null),
               child: Column(
                 children: [
                   !isFullscreen
                       ? Container(
-                          color: Colors.black,
                           child: Row(
                             children: [
                               IconButton(
@@ -188,18 +188,14 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
       case "image":
         return Image.network(asset.previewURL!);
       case "video":
-        return FutureBuilder(
-            future: _initializeVideoPlayerFuture,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.done) {
-                return AspectRatio(
-                  aspectRatio: _controller!.value.aspectRatio,
-                  child: VideoPlayer(_controller!),
-                );
-              } else {
-                return SizedBox();
-              }
-            });
+        if (_controller != null) {
+          return AspectRatio(
+            aspectRatio: _controller!.value.aspectRatio,
+            child: VideoPlayer(_controller!),
+          );
+        } else {
+          return SizedBox();
+        }
       default:
         return WebView(
             initialUrl: asset.previewURL,
@@ -278,7 +274,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
     );
   }
 
-  Future<void>? _initializeVideoPlayerFuture;
+  String? loadedPath;
 
   Future<bool> _clearPrevious() async {
     await _controller?.pause();
@@ -287,17 +283,17 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
 
   Future<void> _initializePlay(String videoPath) async {
     _controller = VideoPlayerController.network(videoPath);
-    _initializeVideoPlayerFuture = _controller!.initialize().then((_) {
+    _controller!.initialize().then((_) {
       _controller?.play();
       _controller?.setLooping(true);
-
+      setState(() {
+      });
     });
   }
 
   Future<void> _startPlay(String videoPath) async {
-    setState(() {
-      _initializeVideoPlayerFuture = null;
-    });
+    loadedPath = videoPath;
+
     Future.delayed(const Duration(milliseconds: 200), () {
       _clearPrevious().then((_) {
         _initializePlay(videoPath);
