@@ -14,8 +14,17 @@ class UpgradesBloc extends Bloc<UpgradeEvent, UpgradeState> {
     // Query IAP info initially
     on<UpgradeQueryInfoEvent>((event, emit) async {
       final jwt = _configurationService.getIAPJWT();
-      if (_configurationService.getIAPJWT()?.isValid() == true) {
-        emit(UpgradeState(IAPProductStatus.completed, null));
+      if (jwt != null) {
+        if (jwt.isValid()) {
+          emit(UpgradeState(IAPProductStatus.completed, null));
+        } else {
+          final result = await _iapService.renewJWT();
+          emit(UpgradeState(
+              result
+                  ? IAPProductStatus.completed
+                  : IAPProductStatus.notPurchased,
+              null));
+        }
       } else {
         emit(UpgradeState(IAPProductStatus.loading, null));
         _iapService.setup();

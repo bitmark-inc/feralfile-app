@@ -8,6 +8,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wallet_connect/wallet_connect.dart';
 
 abstract class ConfigurationService {
+  Future<void> setIAPReceipt(String? value);
+  String? getIAPReceipt();
   Future<void> setIAPJWT(JWT value);
   JWT? getIAPJWT();
   Future<void> setAccount(Account value);
@@ -29,6 +31,7 @@ abstract class ConfigurationService {
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
+  static const String KEY_IAP_RECEIPT = "key_iap_receipt";
   static const String KEY_IAP_JWT = "key_iap_jwt";
   static const String KEY_ACCOUNT = "key_account";
   static const String KEY_PERSONA = "key_persona";
@@ -42,6 +45,20 @@ class ConfigurationServiceImpl implements ConfigurationService {
   SharedPreferences _preferences;
 
   ConfigurationServiceImpl(this._preferences);
+
+  @override
+  Future<void> setIAPReceipt(String? value) async {
+    if (value != null) {
+      await _preferences.setString(KEY_IAP_RECEIPT, value);
+    }
+
+    await _preferences.remove(KEY_IAP_RECEIPT);
+  }
+
+  @override
+  String? getIAPReceipt() {
+    return _preferences.getString(KEY_IAP_RECEIPT);
+  }
 
   @override
   Future<void> setIAPJWT(JWT value) async {
