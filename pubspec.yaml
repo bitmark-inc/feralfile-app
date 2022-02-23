@@ -55,6 +55,7 @@ dependencies:
   url_launcher: ^6.0.20
   device_info_plus: ^3.2.1
   cached_network_image: ^3.2.0
+  flutter_slidable: ^1.2.0
   libauk_dart:
     git:
       url: https://github.com/autonomy-system/libauk-dart.git

@@ -401,6 +401,15 @@ class _$PersonaDao extends PersonaDao {
                   'uuid': item.uuid,
                   'name': item.name,
                   'createdAt': _dateTimeConverter.encode(item.createdAt)
+                }),
+        _personaDeletionAdapter = DeletionAdapter(
+            database,
+            'Persona',
+            ['uuid'],
+            (Persona item) => <String, Object?>{
+                  'uuid': item.uuid,
+                  'name': item.name,
+                  'createdAt': _dateTimeConverter.encode(item.createdAt)
                 });
 
   final sqflite.DatabaseExecutor database;
@@ -412,6 +421,8 @@ class _$PersonaDao extends PersonaDao {
   final InsertionAdapter<Persona> _personaInsertionAdapter;
 
   final UpdateAdapter<Persona> _personaUpdateAdapter;
+
+  final DeletionAdapter<Persona> _personaDeletionAdapter;
 
   @override
   Future<List<Persona>> getPersonas() async {
@@ -441,6 +452,11 @@ class _$PersonaDao extends PersonaDao {
   Future<void> updatePersona(Persona persona) async {
     await _personaUpdateAdapter.update(persona, OnConflictStrategy.abort);
   }
+
+  @override
+  Future<void> deletePersona(Persona persona) async {
+    await _personaDeletionAdapter.delete(persona);
+  }
 }
 
 class _$ConnectionDao extends ConnectionDao {
@@ -468,6 +484,18 @@ class _$ConnectionDao extends ConnectionDao {
                   'connectionType': item.connectionType,
                   'accountNumber': item.accountNumber,
                   'createdAt': _dateTimeConverter.encode(item.createdAt)
+                }),
+        _connectionDeletionAdapter = DeletionAdapter(
+            database,
+            'Connection',
+            ['key'],
+            (Connection item) => <String, Object?>{
+                  'key': item.key,
+                  'name': item.name,
+                  'data': item.data,
+                  'connectionType': item.connectionType,
+                  'accountNumber': item.accountNumber,
+                  'createdAt': _dateTimeConverter.encode(item.createdAt)
                 });
 
   final sqflite.DatabaseExecutor database;
@@ -479,6 +507,8 @@ class _$ConnectionDao extends ConnectionDao {
   final InsertionAdapter<Connection> _connectionInsertionAdapter;
 
   final UpdateAdapter<Connection> _connectionUpdateAdapter;
+
+  final DeletionAdapter<Connection> _connectionDeletionAdapter;
 
   @override
   Future<List<Connection>> getConnections() async {
@@ -496,6 +526,19 @@ class _$ConnectionDao extends ConnectionDao {
   Future<List<Connection>> getLinkedAccounts() async {
     return _queryAdapter.queryList(
         'SELECT * FROM Connection WHERE connectionType NOT IN ("dappConnect", "beaconP2PPeer")',
+        mapper: (Map<String, Object?> row) => Connection(
+            key: row['key'] as String,
+            name: row['name'] as String,
+            data: row['data'] as String,
+            connectionType: row['connectionType'] as String,
+            accountNumber: row['accountNumber'] as String,
+            createdAt: _dateTimeConverter.decode(row['createdAt'] as int)));
+  }
+
+  @override
+  Future<List<Connection>> getRelatedPersonaConnections() async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM Connection WHERE connectionType IN ("dappConnect", "beaconP2PPeer")',
         mapper: (Map<String, Object?> row) => Connection(
             key: row['key'] as String,
             name: row['name'] as String,
@@ -538,6 +581,13 @@ class _$ConnectionDao extends ConnectionDao {
   }
 
   @override
+  Future<void> deleteConnectionsByAccountNumber(String accountNumber) async {
+    await _queryAdapter.queryNoReturn(
+        'DELETE FROM Connection WHERE accountNumber = ?1',
+        arguments: [accountNumber]);
+  }
+
+  @override
   Future<void> insertConnection(Connection connection) async {
     await _connectionInsertionAdapter.insert(
         connection, OnConflictStrategy.replace);
@@ -546,6 +596,11 @@ class _$ConnectionDao extends ConnectionDao {
   @override
   Future<void> updateConnection(Connection connection) async {
     await _connectionUpdateAdapter.update(connection, OnConflictStrategy.abort);
+  }
+
+  @override
+  Future<void> deleteConnection(Connection connection) async {
+    await _connectionDeletionAdapter.delete(connection);
   }
 }
 

@@ -75,7 +75,7 @@ class WalletConnectService {
         personaUuid: uuid, sessionStore: wcClient.sessionStore);
 
     final connection = Connection(
-      key: wcClient.remotePeerId!,
+      key: wcClient.session!.topic,
       name: peerMeta.name,
       data: json.encode(wcConnection),
       connectionType: ConnectionType.dappConnect.rawValue,

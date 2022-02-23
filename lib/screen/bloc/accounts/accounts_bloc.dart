@@ -91,5 +91,13 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
       _cloudDB.connectionDao.updateConnection(connection);
       add(GetAccountsEvent());
     });
+
+    on<DeleteLinkedAccountEvent>((event, emit) {
+      final connection = event.connection;
+      _cloudDB.connectionDao
+          .deleteConnectionsByAccountNumber(connection.accountNumber);
+
+      add(GetAccountsEvent());
+    });
   }
 }

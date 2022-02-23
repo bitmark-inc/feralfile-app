@@ -14,4 +14,7 @@ abstract class PersonaDao {
 
   @update
   Future<void> updatePersona(Persona persona);
+
+  @delete
+  Future<void> deletePersona(Persona persona);
 }

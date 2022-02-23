@@ -26,9 +26,8 @@ abstract class TezosService {
 
 class TezosServiceImpl extends TezosService {
   final TezartClient _tezartClient;
-  final PersonaService _personaService;
 
-  TezosServiceImpl(this._tezartClient, this._personaService);
+  TezosServiceImpl(this._tezartClient);
 
   @override
   Future<String> getPublicKey(TezosWallet wallet) async {

@@ -199,6 +199,27 @@ class LibAukChannelHandler {
             })
             .store(in: &cancelBag)
     }
+
+    func removeKeys(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args: NSDictionary = call.arguments as! NSDictionary
+        let uuid: String = args["uuid"] as! String
+
+        LibAuk.shared.storage(for: UUID(uuidString: uuid)!).removeKeys()
+            .sink(receiveCompletion: { (completion) in
+                if let error = completion.error {
+                    result(
+                        FlutterError(code: "Failed to remove keys", message: error.localizedDescription, details: nil)
+                    )
+                }
+            }, receiveValue: { _ in
+                result([
+                    "error": 0,
+                    "msg": "removeKey success",
+                ])
+            })
+            .store(in: &cancelBag)
+
+    }
     
 }
 
