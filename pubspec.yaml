@@ -41,7 +41,8 @@ dependencies:
   qr_flutter: ^4.0.0
   share: ^2.0.4
   flutter_svg: ^1.0.0
-  tezart: ^2.0.3
+  tezart:
+    git: git@github.com:autonomy-system/tezart.git
   local_auth: ^1.1.10
   sentry_flutter: ^6.2.2
   video_player: ^2.2.0
@@ -56,6 +57,8 @@ dependencies:
   device_info_plus: ^3.2.1
   cached_network_image: ^3.2.0
   flutter_slidable: ^1.2.0
+  in_app_purchase: ^2.0.1
+  modal_bottom_sheet: ^2.0.0
   libauk_dart:
     git:
       url: https://github.com/autonomy-system/libauk-dart.git
@@ -104,7 +107,7 @@ flutter:
     - assets/images/walletconnect-alternative.png
     - assets/images/kukai_wallet.png
     - assets/images/tezos_wallet.png
-
+    - assets/images/premium_comparation.svg
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

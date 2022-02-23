@@ -6,12 +6,11 @@ part of 'connection_supports.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-FeralFileConnection _$FeralFileConnectionFromJson(Map<String, dynamic> json) {
-  return FeralFileConnection(
-    source: json['source'] as String,
-    ffAccount: FFAccount.fromJson(json['ffAccount'] as Map<String, dynamic>),
-  );
-}
+FeralFileConnection _$FeralFileConnectionFromJson(Map<String, dynamic> json) =>
+    FeralFileConnection(
+      source: json['source'] as String,
+      ffAccount: FFAccount.fromJson(json['ffAccount'] as Map<String, dynamic>),
+    );
 
 Map<String, dynamic> _$FeralFileConnectionToJson(
         FeralFileConnection instance) =>
@@ -21,13 +20,12 @@ Map<String, dynamic> _$FeralFileConnectionToJson(
     };
 
 FeralFileWeb3Connection _$FeralFileWeb3ConnectionFromJson(
-    Map<String, dynamic> json) {
-  return FeralFileWeb3Connection(
-    personaAddress: json['personaAddress'] as String,
-    source: json['source'] as String,
-    ffAccount: FFAccount.fromJson(json['ffAccount'] as Map<String, dynamic>),
-  );
-}
+        Map<String, dynamic> json) =>
+    FeralFileWeb3Connection(
+      personaAddress: json['personaAddress'] as String,
+      source: json['source'] as String,
+      ffAccount: FFAccount.fromJson(json['ffAccount'] as Map<String, dynamic>),
+    );
 
 Map<String, dynamic> _$FeralFileWeb3ConnectionToJson(
         FeralFileWeb3Connection instance) =>
@@ -38,13 +36,12 @@ Map<String, dynamic> _$FeralFileWeb3ConnectionToJson(
     };
 
 WalletConnectConnection _$WalletConnectConnectionFromJson(
-    Map<String, dynamic> json) {
-  return WalletConnectConnection(
-    personaUuid: json['personaUuid'] as String,
-    sessionStore:
-        WCSessionStore.fromJson(json['sessionStore'] as Map<String, dynamic>),
-  );
-}
+        Map<String, dynamic> json) =>
+    WalletConnectConnection(
+      personaUuid: json['personaUuid'] as String,
+      sessionStore:
+          WCSessionStore.fromJson(json['sessionStore'] as Map<String, dynamic>),
+    );
 
 Map<String, dynamic> _$WalletConnectConnectionToJson(
         WalletConnectConnection instance) =>
@@ -54,12 +51,11 @@ Map<String, dynamic> _$WalletConnectConnectionToJson(
     };
 
 BeaconConnectConnection _$BeaconConnectConnectionFromJson(
-    Map<String, dynamic> json) {
-  return BeaconConnectConnection(
-    personaUuid: json['personaUuid'] as String,
-    peer: P2PPeer.fromJson(json['peer'] as Map<String, dynamic>),
-  );
-}
+        Map<String, dynamic> json) =>
+    BeaconConnectConnection(
+      personaUuid: json['personaUuid'] as String,
+      peer: P2PPeer.fromJson(json['peer'] as Map<String, dynamic>),
+    );
 
 Map<String, dynamic> _$BeaconConnectConnectionToJson(
         BeaconConnectConnection instance) =>

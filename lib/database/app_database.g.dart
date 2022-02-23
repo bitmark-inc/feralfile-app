@@ -6,6 +6,7 @@ part of 'app_database.dart';
 // FloorGenerator
 // **************************************************************************
 
+// ignore: avoid_classes_with_only_static_members
 class $FloorAppDatabase {
   /// Creates a database builder for a persistent database.
   /// Once a database is built, you should keep a reference to it and re-use it.
@@ -284,6 +285,7 @@ class _$AssetTokenDao extends AssetTokenDao {
   }
 }
 
+// ignore: avoid_classes_with_only_static_members
 class $FloorCloudDatabase {
   /// Creates a database builder for a persistent database.
   /// Once a database is built, you should keep a reference to it and re-use it.
@@ -525,7 +527,7 @@ class _$ConnectionDao extends ConnectionDao {
   @override
   Future<List<Connection>> getLinkedAccounts() async {
     return _queryAdapter.queryList(
-        'SELECT * FROM Connection WHERE connectionType NOT IN ("dappConnect", "beaconP2PPeer")',
+        'SELECT * FROM Connection WHERE connectionType NOT IN (\"dappConnect\", \"beaconP2PPeer\")',
         mapper: (Map<String, Object?> row) => Connection(
             key: row['key'] as String,
             name: row['name'] as String,
@@ -538,7 +540,7 @@ class _$ConnectionDao extends ConnectionDao {
   @override
   Future<List<Connection>> getRelatedPersonaConnections() async {
     return _queryAdapter.queryList(
-        'SELECT * FROM Connection WHERE connectionType IN ("dappConnect", "beaconP2PPeer")',
+        'SELECT * FROM Connection WHERE connectionType IN (\"dappConnect\", \"beaconP2PPeer\")',
         mapper: (Map<String, Object?> row) => Connection(
             key: row['key'] as String,
             name: row['name'] as String,

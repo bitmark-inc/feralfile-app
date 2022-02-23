@@ -1,11 +1,16 @@
 import 'dart:convert';
 
+import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wallet_connect/wallet_connect.dart';
 
 abstract class ConfigurationService {
+  Future<void> setIAPReceipt(String? value);
+  String? getIAPReceipt();
+  Future<void> setIAPJWT(JWT value);
+  JWT? getIAPJWT();
   Future<void> setPersonas(List<String> value);
   List<String> getPersonas();
   Future<void> setWCSessions(List<WCSessionStore> value);
@@ -30,6 +35,8 @@ abstract class ConfigurationService {
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
+  static const String KEY_IAP_RECEIPT = "key_iap_receipt";
+  static const String KEY_IAP_JWT = "key_iap_jwt";
   static const String KEY_ACCOUNT = "key_account";
   static const String KEY_PERSONA = "key_persona";
   static const String KEY_WC_SESSIONS = "key_wc_sessions";
@@ -47,6 +54,37 @@ class ConfigurationServiceImpl implements ConfigurationService {
   SharedPreferences _preferences;
 
   ConfigurationServiceImpl(this._preferences);
+
+  @override
+  Future<void> setIAPReceipt(String? value) async {
+    if (value != null) {
+      await _preferences.setString(KEY_IAP_RECEIPT, value);
+    }
+
+    await _preferences.remove(KEY_IAP_RECEIPT);
+  }
+
+  @override
+  String? getIAPReceipt() {
+    return _preferences.getString(KEY_IAP_RECEIPT);
+  }
+
+  @override
+  Future<void> setIAPJWT(JWT value) async {
+    final json = jsonEncode(value);
+    await _preferences.setString(KEY_IAP_JWT, json);
+  }
+
+  @override
+  JWT? getIAPJWT() {
+    final data = _preferences.getString(KEY_IAP_JWT);
+    if (data == null) {
+      return null;
+    } else {
+      final json = jsonDecode(data);
+      return JWT.fromJson(json);
+    }
+  }
 
   @override
   Future<void> setPersonas(List<String> value) async {

@@ -1,4 +1,5 @@
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -8,6 +9,8 @@ import 'package:autonomy_flutter/screen/settings/networks/select_network_page.da
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_view.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
+import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
+import 'package:autonomy_flutter/screen/settings/subscription/upgrade_view.dart';
 import 'package:autonomy_flutter/screen/settings/support/support_view.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
@@ -53,6 +56,8 @@ class _SettingsPageState extends State<SettingsPage>
 
   @override
   Widget build(BuildContext context) {
+    final networkInjector = injector<NetworkConfigInjector>();
+
     return Scaffold(
       body: Container(
         margin: EdgeInsets.only(
@@ -105,6 +110,12 @@ class _SettingsPageState extends State<SettingsPage>
                         child: PreferenceView(),
                       ),
                       SizedBox(height: 40.0),
+                      BlocProvider(
+                        create: (_) =>
+                            UpgradesBloc(networkInjector.I(), injector()),
+                        child: UpgradesView(),
+                      ),
+                      SizedBox(height: 40),
                       Text(
                         "Networks",
                         style: appTextTheme.headline1,
