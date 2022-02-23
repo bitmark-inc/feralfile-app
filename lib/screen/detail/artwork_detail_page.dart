@@ -8,10 +8,12 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_outlined_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ArtworkDetailPage extends StatelessWidget {
   static const tag = "artwork_detail";
@@ -59,8 +61,12 @@ class ArtworkDetailPage extends StatelessWidget {
                     ),
                   ),
                   SizedBox(height: 16.0),
-                  Image.network(asset.thumbnailURL!,
-                      width: double.infinity, fit: BoxFit.cover),
+                  CachedNetworkImage(
+                    imageUrl: asset.thumbnailURL!,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    errorWidget: (context, url, error) => SizedBox(height: 100),
+                  ),
                   SizedBox(height: 16.0),
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16.0),
@@ -71,7 +77,7 @@ class ArtworkDetailPage extends StatelessWidget {
                           width: 165,
                           height: 48,
                           child: AuOutlinedButton(
-                              text: "VIEW ARTWORK \u25b6",
+                              text: "VIEW ARTWORK ‣",
                               onPress: () {
                                 Navigator.of(context).pushNamed(
                                     ArtworkPreviewPage.tag,
@@ -136,9 +142,30 @@ class ArtworkDetailPage extends StatelessWidget {
           style: appTextTheme.headline2,
         ),
         SizedBox(height: 16.0),
-        Text(
-          "You’ll retain these rights forever. Your rights are guaranteed in perpetuity until you resell or transfer ownership of the work.",
-          style: appTextTheme.bodyText1,
+        RichText(
+          text: TextSpan(children: [
+            TextSpan(
+              style: appTextTheme.bodyText1,
+              text:
+                  "Feral File protects artist and collector rights. Learn more on the ",
+            ),
+            TextSpan(
+              style: TextStyle(
+                  color: Color(0xFF5B5BFF),
+                  fontSize: 16,
+                  fontFamily: "AtlasGrotesk",
+                  height: 1.377),
+              text: "Artist + Collector Rights",
+              recognizer: TapGestureRecognizer()
+                ..onTap = () {
+                  launch("https://feralfile.com/docs/artist-collector-rights");
+                },
+            ),
+            TextSpan(
+              style: appTextTheme.bodyText1,
+              text: " page.",
+            ),
+          ]),
         ),
         SizedBox(height: 16.0),
         _artworkRightItem(context, "Download",
@@ -257,10 +284,14 @@ class ArtworkDetailPage extends StatelessWidget {
         _rowItem(context, "Title", asset.title),
         Divider(height: 32.0),
         _rowItem(context, "Artist", asset.artistName),
-        Divider(height: 32.0),
-        _rowItem(context, "Edition number", asset.edition.toString()),
-        Divider(height: 32.0),
-        _rowItem(context, "Edition size", asset.maxEdition.toString()),
+        (asset.maxEdition ?? 0) > 0 ? Column(
+          children: [
+            Divider(height: 32.0),
+            _rowItem(context, "Edition number", asset.edition.toString()),
+            Divider(height: 32.0),
+            _rowItem(context, "Edition size", asset.maxEdition.toString()),
+          ],
+        ) : SizedBox(),
         Divider(height: 32.0),
         _rowItem(context, "Source", asset.source?.capitalize()),
         Divider(height: 32.0),
@@ -269,10 +300,14 @@ class ArtworkDetailPage extends StatelessWidget {
         _rowItem(context, "Medium", asset.medium?.capitalize()),
         Divider(height: 32.0),
         _rowItem(context, "Date minted", asset.mintedAt),
-        Divider(height: 32.0),
-        _rowItem(context, "Date collected", ""),
-        Divider(height: 32.0),
-        _rowItem(context, "Artwork data", asset.assetData),
+        asset.assetData != null && asset.assetData!.isNotEmpty
+            ? Column(
+                children: [
+                  Divider(height: 32.0),
+                  _rowItem(context, "Artwork data", asset.assetData)
+                ],
+              )
+            : SizedBox(),
       ],
     );
   }

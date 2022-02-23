@@ -43,9 +43,9 @@ class NetworkConfigInjector {
         IndexerApi(_dio, baseUrl: AppConfig.testNetworkConfig.indexerApiUrl));
 
     testnetInjector.registerLazySingleton<EthereumService>(
-        () => EthereumServiceImpl(injector(), testnetInjector()));
+        () => EthereumServiceImpl(testnetInjector()));
     testnetInjector.registerLazySingleton<TezosService>(
-        () => TezosServiceImpl(testnetInjector(), injector()));
+        () => TezosServiceImpl(testnetInjector()));
     testnetInjector.registerLazySingleton<AppDatabase>(() => testnetDB);
     testnetInjector.registerLazySingleton<FeralFileService>(() =>
         FeralFileServiceImpl(
@@ -74,9 +74,9 @@ class NetworkConfigInjector {
         IndexerApi(_dio, baseUrl: AppConfig.mainNetworkConfig.indexerApiUrl));
 
     mainnetInjector.registerLazySingleton<EthereumService>(
-        () => EthereumServiceImpl(injector(), mainnetInjector()));
+        () => EthereumServiceImpl(mainnetInjector()));
     mainnetInjector.registerLazySingleton<TezosService>(
-        () => TezosServiceImpl(mainnetInjector(), injector()));
+        () => TezosServiceImpl(mainnetInjector()));
     mainnetInjector.registerLazySingleton<AppDatabase>(() => mainnetDB);
     mainnetInjector.registerLazySingleton<FeralFileService>(() =>
         FeralFileServiceImpl(

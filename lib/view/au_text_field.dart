@@ -11,6 +11,7 @@ class AuTextField extends StatelessWidget {
   final Widget? suffix;
   final TextInputType keyboardType;
   final ValueChanged<String>? onChanged;
+  final int? maxLines;
 
   const AuTextField(
       {Key? key,
@@ -18,6 +19,7 @@ class AuTextField extends StatelessWidget {
       this.placeholder = "",
       this.isError = false,
       this.expanded = false,
+      this.maxLines = 1,
       required this.controller,
       this.subTitleView,
       this.suffix,
@@ -66,31 +68,46 @@ class AuTextField extends StatelessWidget {
                           this.subTitleView ?? SizedBox(),
                         ],
                       ),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 8.0),
-                        child: TextField(
-                          decoration: InputDecoration(
-                            isDense: true,
-                            border: InputBorder.none,
-                            hintText: placeholder,
-                          ),
-                          keyboardType: keyboardType,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w300,
-                            // height: 1.2,
-                            fontFamily: "IBMPlexMono",
-                            color: Colors.black,
-                          ),
-                          controller: controller,
-                          onChanged: onChanged,
+                      if (maxLines == 1) ...[
+                        _textFieldWidget(context)
+                      ] else ...[
+                        Expanded(
+                          child: _textFieldWidget(context),
                         ),
-                      ),
+                      ]
                     ],
                   ),
                 ),
                 suffix ?? SizedBox(),
               ],
             )));
+  }
+
+  Widget _textFieldWidget(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 8.0),
+      child: TextField(
+        maxLines: maxLines,
+        decoration: InputDecoration(
+          isDense: true,
+          border: InputBorder.none,
+          hintText: placeholder,
+          hintStyle: TextStyle(
+            fontSize: 16,
+            fontFamily: "AtlasGrotesk",
+          ),
+        ),
+        keyboardType: keyboardType,
+        style: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w300,
+          // height: 1.2,
+          fontFamily: "IBMPlexMono",
+          color: Colors.black,
+        ),
+        controller: controller,
+        onChanged: onChanged,
+      ),
+    );
   }
 }

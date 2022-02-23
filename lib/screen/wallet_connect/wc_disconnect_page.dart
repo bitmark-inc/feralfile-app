@@ -8,6 +8,7 @@ import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:wallet_connect/wallet_connect.dart';
 
+// TODO: This page currently doesn't work but it's no used. Update when it's used.
 class WCDisconnectPage extends StatefulWidget {
   static const String tag = 'wc_disconnect';
 
@@ -83,11 +84,11 @@ class _WCDisconnectPageState extends State<WCDisconnectPage> {
   }
 
   Future _fetchAddress() async {
-    final ethAddress = await injector<NetworkConfigInjector>()
-        .I<EthereumService>()
-        .getETHAddress();
-    setState(() {
-      address = ethAddress;
-    });
+    // final ethAddress = await injector<NetworkConfigInjector>()
+    //     .I<EthereumService>()
+    //     .getETHAddress();
+    // setState(() {
+    //   address = ethAddress;
+    // });
   }
 }

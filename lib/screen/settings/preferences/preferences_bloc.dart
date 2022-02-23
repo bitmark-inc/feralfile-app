@@ -26,7 +26,6 @@ class PreferencesBloc extends Bloc<PreferenceEvent, PreferenceState> {
       if (event.newState.isDevicePasscodeEnabled != state.isDevicePasscodeEnabled) {
         final canCheckBiometrics = await authenticateIsAvailable();
         if (canCheckBiometrics) {
-          print(await _localAuth.getAvailableBiometrics());
           if (state.isDevicePasscodeEnabled) {
             final didAuthenticate =
             await _localAuth.authenticate(

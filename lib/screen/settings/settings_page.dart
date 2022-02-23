@@ -2,26 +2,25 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/network.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
-import 'package:autonomy_flutter/screen/settings/connection/connections_view.dart';
-import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
+import 'package:autonomy_flutter/screen/settings/connection/accounts_view.dart';
 import 'package:autonomy_flutter/screen/settings/networks/select_network_page.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_view.dart';
-import 'package:autonomy_flutter/screen/settings/settings_bloc.dart';
-import 'package:autonomy_flutter/screen/settings/settings_state.dart';
+import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_view.dart';
 import 'package:autonomy_flutter/screen/settings/support/support_view.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class SettingsPage extends StatefulWidget {
-  static const String tag = 'settings';
-
   @override
   State<SettingsPage> createState() => _SettingsPageState();
 }
@@ -33,7 +32,7 @@ class _SettingsPageState extends State<SettingsPage>
     super.initState();
     WidgetsBinding.instance?.addObserver(this);
 
-    context.read<SettingsBloc>().add(SettingsGetBalanceEvent());
+    context.read<AccountsBloc>().add(GetAccountsEvent());
   }
 
   @override
@@ -50,16 +49,9 @@ class _SettingsPageState extends State<SettingsPage>
   }
 
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      context.read<SettingsBloc>().add(SettingsGetBalanceEvent());
-    }
-  }
-
-  @override
   void didPopNext() {
     super.didPopNext();
-    context.read<SettingsBloc>().add(SettingsGetBalanceEvent());
+    context.read<AccountsBloc>().add(GetAccountsEvent());
   }
 
   @override
@@ -67,111 +59,89 @@ class _SettingsPageState extends State<SettingsPage>
     final networkInjector = injector<NetworkConfigInjector>();
 
     return Scaffold(
-      body: BlocBuilder<SettingsBloc, SettingsState>(builder: (context, state) {
-        return Stack(
-          children: [
-            Padding(
-              padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
-              child: GestureDetector(
-                child: IconButton(
-                  icon: Icon(Icons.qr_code),
-                  onPressed: () {
-                    Navigator.of(context).pushNamed(ScanQRPage.tag,
-                        arguments: ScannerItem.GLOBAL);
-                  },
-                ),
-                onTap: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            ),
-            Container(
-              margin: EdgeInsets.only(
-                  top: MediaQuery.of(context).padding.top + 32,
-                  left: 16.0,
-                  right: 16.0,
-                  bottom: 20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+      body: Container(
+        margin: EdgeInsets.only(
+            top: MediaQuery.of(context).padding.top,
+            left: 16.0,
+            right: 16.0,
+            bottom: 20.0),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Expanded(
+            child: SingleChildScrollView(
+              child: Stack(
                 children: [
-                  GestureDetector(
-                    child: Center(
-                      child: Image.asset("assets/images/penrose.png"),
-                    ),
-                    onTap: () {
-                      Navigator.of(context).pop();
+                  IconButton(
+                    padding: EdgeInsets.symmetric(vertical: 12),
+                    constraints: BoxConstraints(),
+                    icon: SvgPicture.asset("assets/images/iconQr.svg"),
+                    onPressed: () {
+                      Navigator.of(context).pushNamed(ScanQRPage.tag,
+                          arguments: ScannerItem.GLOBAL);
                     },
                   ),
-                  SizedBox(height: 24.0),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(height: 24),
+                      GestureDetector(
+                        child: Center(
+                          child: Image.asset("assets/images/penrose.png"),
+                        ),
+                        onTap: () {
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                      SizedBox(height: 24.0),
+                      AccountsView(),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          ConnectionView(),
-                          SizedBox(height: 16.0),
-                          Text(
-                            "Cryptos",
-                            style: appTextTheme.headline1,
-                          ),
-                          SizedBox(height: 16.0),
-                          _settingItem(
-                              context, "Ethereum", state.ethBalance ?? "-- ETH",
-                              () {
-                            Navigator.of(context).pushNamed(
-                                WalletDetailPage.tag,
-                                arguments: CryptoType.ETH);
-                          }),
-                          _settingItem(
-                              context, "Tezos", state.xtzBalance ?? "-- XTZ",
-                              () {
-                            Navigator.of(context).pushNamed(
-                                WalletDetailPage.tag,
-                                arguments: CryptoType.XTZ);
-                          }),
-                          SizedBox(height: 24.0),
-                          BlocProvider(
-                            create: (_) => PreferencesBloc(injector()),
-                            child: PreferenceView(),
-                          ),
-                          SizedBox(height: 24.0),
-                          Text(
-                            "Networks",
-                            style: appTextTheme.headline1,
-                          ),
-                          SizedBox(height: 16.0),
-                          _settingItem(
-                              context,
-                              "Select network",
-                              state.network == Network.TESTNET
-                                  ? "Test network"
-                                  : "Main network", () async {
-                            await Navigator.of(context)
-                                .pushNamed(SelectNetworkPage.tag);
-                            if (injector<ConfigurationService>().getNetwork() !=
-                                state.network) {
-                              Navigator.of(context).pop();
-                            }
-                          }),
-                          SizedBox(height: 40),
-                          BlocProvider(
-                            create: (_) =>
-                                UpgradesBloc(networkInjector.I(), injector()),
-                            child: UpgradesView(),
-                          ),
-                          SizedBox(height: 40),
-                          SupportView(),
-                          SizedBox(height: 40),
+                          TextButton(
+                              onPressed: () => Navigator.of(context)
+                                  .pushNamed(AppRouter.addAccountPage),
+                              child: Text('+ Add',
+                                  style: appTextTheme.bodyText2
+                                      ?.copyWith(color: Colors.black))),
                         ],
                       ),
-                    ),
+                      SizedBox(height: 40),
+                      BlocProvider(
+                        create: (_) => PreferencesBloc(injector()),
+                        child: PreferenceView(),
+                      ),
+                      SizedBox(height: 40.0),
+                      BlocProvider(
+                        create: (_) =>
+                            UpgradesBloc(networkInjector.I(), injector()),
+                        child: UpgradesView(),
+                      ),
+                      SizedBox(height: 40),
+                      Text(
+                        "Networks",
+                        style: appTextTheme.headline1,
+                      ),
+                      SizedBox(height: 24.0),
+                      _settingItem(
+                          context,
+                          "Select network",
+                          injector<ConfigurationService>().getNetwork() ==
+                                  Network.TESTNET
+                              ? "Test network"
+                              : "Main network", () async {
+                        await Navigator.of(context)
+                            .pushNamed(SelectNetworkPage.tag);
+                      }),
+                      SizedBox(height: 40),
+                      SupportView(),
+                      SizedBox(height: 40),
+                    ],
                   ),
                 ],
               ),
-            )
-          ],
-        );
-      }),
+            ),
+          ),
+        ]),
+      ),
     );
   }
 

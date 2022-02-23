@@ -1,5 +1,8 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
+import 'package:autonomy_flutter/model/p2p_peer.dart';
+import 'package:autonomy_flutter/model/tezos_connection.dart';
 import 'package:flutter/services.dart';
 import 'package:tezart/tezart.dart';
 
@@ -42,6 +45,12 @@ class TezosBeaconChannel {
 
   Future operationResponse(String id, String? txHash) async {
     await _channel.invokeMethod('response', {"id": id, "txHash": txHash});
+  }
+
+  Future<String> getConnectionURI() async {
+    Map res = await _channel.invokeMethod('getConnectionURI', {});
+
+    return res["uri"];
   }
 
   void listen() async {
@@ -101,6 +110,25 @@ class TezosBeaconChannel {
 
           handler!.onRequest(request);
           break;
+        case "observeEvent":
+          switch (params["type"]) {
+            case "beaconRequestedPermission":
+              final Uint8List data = params["peer"];
+              Peer peer = Peer.fromJson(json.decode(utf8.decode(data)));
+              handler!.onRequestedPermission(peer);
+              break;
+            case "beaconLinked":
+              final Uint8List data = params["connection"];
+              TezosConnection tezosConnection =
+                  TezosConnection.fromJson(json.decode(utf8.decode(data)));
+              await handler!.onLinked(tezosConnection);
+              break;
+            case "error":
+              break;
+            case "userAborted":
+              handler!.onAbort();
+              break;
+          }
       }
     }
   }
@@ -108,6 +136,9 @@ class TezosBeaconChannel {
 
 abstract class BeaconHandler {
   void onRequest(BeaconRequest request);
+  void onRequestedPermission(Peer peer);
+  Future<void> onLinked(TezosConnection tezosConnection);
+  void onAbort();
 }
 
 class BeaconRequest {
@@ -126,17 +157,4 @@ class BeaconRequest {
 
   BeaconRequest(this.id, this.blockchainIdentifier, this.senderID, this.version,
       this.originID, this.type, this.appName, this.icon);
-}
-
-class P2PPeer {
-  final String id;
-  final String name;
-  final String publicKey;
-  final String relayServer;
-  final String version;
-  final String icon;
-  final String appURL;
-
-  P2PPeer(this.id, this.name, this.publicKey, this.relayServer, this.version,
-      this.icon, this.appURL);
 }

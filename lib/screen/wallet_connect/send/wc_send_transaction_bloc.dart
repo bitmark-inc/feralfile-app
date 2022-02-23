@@ -1,28 +1,59 @@
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_state.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
+import 'package:autonomy_flutter/util/biometrics_util.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:libauk_dart/libauk_dart.dart';
+import 'package:local_auth/local_auth.dart';
 
 class WCSendTransactionBloc
     extends Bloc<WCSendTransactionEvent, WCSendTransactionState> {
   final NavigationService _navigationService;
   final EthereumService _ethereumService;
   final WalletConnectService _walletConnectService;
+  final ConfigurationService _configurationService;
 
   WCSendTransactionBloc(this._navigationService, this._ethereumService,
-      this._walletConnectService)
+      this._walletConnectService, this._configurationService)
       : super(WCSendTransactionState()) {
     on<WCSendTransactionEstimateEvent>((event, emit) async {
-      state.fee =
-          await _ethereumService.estimateFee(event.address, event.amount, event.data);
+      final WalletStorage persona = LibAukDart.getWallet(event.uuid);
+
+      state.fee = await _ethereumService.estimateFee(
+          persona, event.address, event.amount, event.data);
       emit(state);
     });
 
     on<WCSendTransactionSendEvent>((event, emit) async {
+      final sendingState = WCSendTransactionState();
+      sendingState.fee = state.fee;
+      sendingState.isSending = true;
+      emit(sendingState);
+
+      if (_configurationService.isDevicePasscodeEnabled() &&
+          await authenticateIsAvailable()) {
+        final localAuth = LocalAuthentication();
+        final didAuthenticate =
+        await localAuth.authenticate(
+            localizedReason:
+            'Authentication for "Autonomy"');
+        if (!didAuthenticate) {
+          final newState = WCSendTransactionState();
+          newState.fee = state.fee;
+          newState.isSending = false;
+          emit(newState);
+          return;
+        }
+      }
+
+      final WalletStorage persona = LibAukDart.getWallet(event.uuid);
+
       final txHash = await _ethereumService.sendTransaction(
-          event.to, event.value, event.gas, event.data);
-      _walletConnectService.approveRequest(event.peerMeta, event.requestId, txHash);
+          persona, event.to, event.value, event.gas, event.data);
+      _walletConnectService.approveRequest(
+          event.peerMeta, event.requestId, txHash);
       _navigationService.goBack();
     });
 

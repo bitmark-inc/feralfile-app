@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:autonomy_flutter/model/account.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -12,8 +11,6 @@ abstract class ConfigurationService {
   String? getIAPReceipt();
   Future<void> setIAPJWT(JWT value);
   JWT? getIAPJWT();
-  Future<void> setAccount(Account value);
-  Account? getAccount();
   Future<void> setPersonas(List<String> value);
   List<String> getPersonas();
   Future<void> setWCSessions(List<WCSessionStore> value);
@@ -26,8 +23,15 @@ abstract class ConfigurationService {
   bool isNotificationEnabled();
   Future<void> setAnalyticEnabled(bool value);
   bool isAnalyticsEnabled();
+  Future<void> setDoneOnboarding(bool value);
+  bool isDoneOnboarding();
   Future<void> setFullscreenIntroEnable(bool value);
   bool isFullscreenIntroEnabled();
+  bool matchFeralFileSourceInNetwork(String source);
+  Future<void> setWCDappSession(String? value);
+  String? getWCDappSession();
+  Future<void> setWCDappAccounts(List<String>? value);
+  List<String>? getWCDappAccounts();
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
@@ -41,6 +45,11 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_NOTIFICATION = "notifications";
   static const String KEY_ANALYTICS = "analytics";
   static const String KEY_FULLSCREEN_INTRO = "fullscreen_intro";
+  static const String KEY_DONE_ONBOARING = "done_onboarding";
+
+  // keys for WalletConnect dapp side
+  static const String KEY_WC_DAPP_SESSION = "wc_dapp_store";
+  static const String KEY_WC_DAPP_ACCOUNTS = "wc_dapp_accounts";
 
   SharedPreferences _preferences;
 
@@ -74,23 +83,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
     } else {
       final json = jsonDecode(data);
       return JWT.fromJson(json);
-    }
-  }
-
-  @override
-  Future<void> setAccount(Account value) async {
-    final json = jsonEncode(value);
-    await _preferences.setString(KEY_ACCOUNT, json);
-  }
-
-  @override
-  Account? getAccount() {
-    final data = _preferences.getString(KEY_ACCOUNT);
-    if (data == null) {
-      return null;
-    } else {
-      final json = jsonDecode(data);
-      return Account.fromJson(json);
     }
   }
 
@@ -161,9 +153,20 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
+  bool isDoneOnboarding() {
+    return _preferences.getBool(KEY_DONE_ONBOARING) ?? false;
+  }
+
+  @override
   Future<void> setAnalyticEnabled(bool value) async {
     log.info("setAnalyticEnabled: $value");
     await _preferences.setBool(KEY_ANALYTICS, value);
+  }
+
+  @override
+  Future<void> setDoneOnboarding(bool value) async {
+    log.info("setDoneOnboarding: $value");
+    await _preferences.setBool(KEY_DONE_ONBOARING, value);
   }
 
   @override
@@ -181,5 +184,45 @@ class ConfigurationServiceImpl implements ConfigurationService {
   Future<void> setFullscreenIntroEnable(bool value) async {
     log.info("setFullscreenIntroEnable: $value");
     await _preferences.setBool(KEY_FULLSCREEN_INTRO, value);
+  }
+
+  @override
+  bool matchFeralFileSourceInNetwork(String source) {
+    final network = getNetwork();
+    if (network == Network.MAINNET) {
+      return source == "https://feralfile.com";
+    } else {
+      return source != "https://feralfile.com";
+    }
+  }
+
+  @override
+  Future<void> setWCDappSession(String? value) async {
+    log.info("setWCDappSession: $value");
+    if (value != null) {
+      await _preferences.setString(KEY_WC_DAPP_SESSION, value);
+    } else {
+      await _preferences.remove(KEY_WC_DAPP_SESSION);
+    }
+  }
+
+  @override
+  String? getWCDappSession() {
+    return _preferences.getString(KEY_WC_DAPP_SESSION);
+  }
+
+  @override
+  Future<void> setWCDappAccounts(List<String>? value) async {
+    log.info("setWCDappAccounts: $value");
+    if (value != null) {
+      await _preferences.setStringList(KEY_WC_DAPP_ACCOUNTS, value);
+    } else {
+      await _preferences.remove(KEY_WC_DAPP_ACCOUNTS);
+    }
+  }
+
+  @override
+  List<String>? getWCDappAccounts() {
+    return _preferences.getStringList(KEY_WC_DAPP_ACCOUNTS);
   }
 }

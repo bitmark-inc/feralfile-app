@@ -104,12 +104,23 @@ class BeaconChannelHandler: NSObject {
     func resume(call: FlutterMethodCall, result: @escaping FlutterResult) {
         BeaconConnectService.shared.resume()
     }
+    
+    func getConnectionURI(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        BeaconConnectService.shared.getConnectionURI()
+            .sink(receiveCompletion: { _ in }, receiveValue: { uri in
+                result([
+                    "error": 0,
+                    "uri": uri,
+                ])
+            })
+            .store(in: &cancelBag)
+    }
 }
 
 extension BeaconChannelHandler: FlutterStreamHandler {
     func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
         self.observerRequests(events: events)
-        
+        self.observeEvents(events: events)
         return nil
     }
     
@@ -120,7 +131,7 @@ extension BeaconChannelHandler: FlutterStreamHandler {
     
     private func observerRequests(events: @escaping FlutterEventSink) {
         BeaconConnectService.shared.observeRequest()
-            .sink(receiveCompletion: { _ in }, receiveValue: { [weak self] request in
+            .sink { [weak self] request in
                 self?.requests.append(request)
                 var params: [String: Any] = [
                         "id": request.id,
@@ -226,7 +237,42 @@ extension BeaconChannelHandler: FlutterStreamHandler {
                     "eventName": "observeRequest",
                     "params": params,
                 ])
-            })
+            }
             .store(in: &cancelBag)
     }
+    
+    func observeEvents(events: @escaping FlutterEventSink) {
+        BeaconConnectService.shared.observeEvents()
+            .sink { (event) in
+                var params: [String: Any] = [:]
+                
+                switch event {
+                case let .beaconRequestedPermission(peer):
+                    params["type"] = "beaconRequestedPermission"
+                    let data = try? JSONEncoder().encode(peer)
+                    params["peer"] = data
+                case let .beaconLinked(p2pPeer, address, permissionResponse):
+                    let dappConnection = TezosWalletConnection(address: address, peer: p2pPeer, permissionResponse: permissionResponse)
+                    let data = try? JSONEncoder().encode(dappConnection)
+                    params["type"] = "beaconLinked"
+                    params["connection"] = data
+                case .error(_):
+                    params["type"] = "error"
+                case .userAborted:
+                    params["type"] = "userAborted"
+                }
+                
+                events([
+                    "eventName": "observeEvent",
+                    "params": params,
+                ])
+            }
+            .store(in: &cancelBag)
+    }
+}
+
+struct TezosWalletConnection: Codable {
+    let address: String
+    let peer: Beacon.P2PPeer
+    let permissionResponse: PermissionTezosResponse
 }

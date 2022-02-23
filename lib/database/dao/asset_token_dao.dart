@@ -21,6 +21,9 @@ abstract class AssetTokenDao {
   @delete
   Future<void> deleteAsset(AssetToken asset);
 
+  @Query('DELETE FROM AssetToken WHERE id NOT IN (:ids)')
+  Future<void> deleteAssetsNotIn(List<String> ids);
+
   @Query('DELETE FROM AssetToken')
   Future<void> removeAll();
 }

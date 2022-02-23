@@ -21,8 +21,7 @@ class SupportView extends StatelessWidget {
           "Contact us by email",
           onTap: _emailUs,
         ),
-        Divider(),
-        SizedBox(height: 16.0),
+        addDivider(),
         _supportItem(
           context,
           "Reach out to us on Discord",
@@ -35,17 +34,16 @@ class SupportView extends StatelessWidget {
   Widget _supportItem(BuildContext context, String title,
       {GestureTapCallback? onTap}) {
     return Container(
-        padding: EdgeInsets.only(bottom: 16.0),
         child: GestureDetector(
-          onTap: onTap,
-          child: Row(
-            children: [
-              Text(title, style: appTextTheme.headline4),
-              Spacer(),
-              SvgPicture.asset("assets/images/cil_external-link.svg"),
-            ],
-          ),
-        ));
+      onTap: onTap,
+      child: Row(
+        children: [
+          Text(title, style: appTextTheme.headline4),
+          Spacer(),
+          SvgPicture.asset("assets/images/cil_external-link.svg"),
+        ],
+      ),
+    ));
   }
 
   void _emailUs() async {
