@@ -20,6 +20,12 @@ class NameLinkedAccountEvent extends AccountsEvent {
   );
 }
 
+class DeleteLinkedAccountEvent extends AccountsEvent {
+  final Connection connection;
+
+  DeleteLinkedAccountEvent(this.connection);
+}
+
 class Account {
   Persona? persona;
   List<Connection>? connections;

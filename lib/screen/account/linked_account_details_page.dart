@@ -11,7 +11,6 @@ import 'package:autonomy_flutter/util/xtz_amount_formatter.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 class LinkedAccountDetailsPage extends StatefulWidget {
   final Connection connection;
@@ -147,7 +146,7 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
                           children: [
                             Expanded(
                               child: Text(
-                                state.connection?.accountNumber ?? "",
+                                widget.connection.accountNumber,
                                 style: addressStyle,
                               ),
                             ),

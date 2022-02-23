@@ -65,5 +65,36 @@ class PersonaBloc extends Bloc<PersonaEvent, PersonaState> {
         emit(state.copyWith(importPersonaState: ActionState.error));
       }
     });
+
+    on<DeletePersonaEvent>((event, emit) async {
+      log.info('[PersonaBloc] DeletePersonaEvent');
+      emit(state.copyWith(deletePersonaState: ActionState.loading));
+
+      final deletedPersona = event.persona;
+      _cloudDB.personaDao.deletePersona(deletedPersona);
+      LibAukDart.getWallet(deletedPersona.uuid).removeKeys();
+
+      final connections = await _cloudDB.connectionDao.getConnections();
+      for (var connection in connections) {
+        switch (connection.connectionType) {
+          case 'dappConnect':
+            if (deletedPersona.uuid == connection.wcConnection?.personaUuid) {
+              _cloudDB.connectionDao.deleteConnection(connection);
+            }
+            break;
+
+          case 'beaconP2PPeer':
+            if (deletedPersona.uuid ==
+                connection.beaconConnectConnection?.personaUuid) {
+              _cloudDB.connectionDao.deleteConnection(connection);
+            }
+            break;
+
+          // Note: Should app delete feralFileWeb3 too ??
+        }
+      }
+
+      emit(state.copyWith(deletePersonaState: ActionState.done));
+    });
   }
 }

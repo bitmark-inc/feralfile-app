@@ -29,6 +29,17 @@ class Connection {
   String accountNumber;
   DateTime createdAt;
 
+  /* Data
+  enum ConnectionType {
+    walletConnect, => WCConnectedSession
+    dappConnect, => WalletConnectConnection
+    beaconP2PPeer, => BeaconConnectConnection
+    walletBeacon, => TezosConnection
+    feralFileToken, => FeralFileConnection
+    feralFileWeb3, => FeralFileWeb3Connection
+  }
+  */
+
   Connection({
     required this.key,
     required this.name,
@@ -146,6 +157,13 @@ class Connection {
 
     final jsonData = json.decode(this.data);
     return TezosConnection.fromJson(jsonData);
+  }
+
+  BeaconConnectConnection? get beaconConnectConnection {
+    if (connectionType != ConnectionType.beaconP2PPeer.rawValue) return null;
+
+    final jsonData = json.decode(this.data);
+    return BeaconConnectConnection.fromJson(jsonData);
   }
 
   WCConnectedSession? get wcConnectedSession {
