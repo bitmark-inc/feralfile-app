@@ -29,6 +29,8 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
   late int currentIndex;
   WebViewController? _webViewController;
 
+  ShakeDetector? _detector;
+
   @override
   void initState() {
     super.initState();
@@ -48,13 +50,13 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
     //     });
     // }
 
-    ShakeDetector detector = ShakeDetector.autoStart(onPhoneShake: () {
+    _detector = ShakeDetector.autoStart(onPhoneShake: () {
       setState(() {
         isFullscreen = false;
       });
     });
 
-    detector.startListening();
+    _detector?.startListening();
   }
 
   @override
@@ -64,6 +66,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
     });
     _controller = null;
     _webViewController = null;
+    _detector?.stopListening();
     super.dispose();
   }
 

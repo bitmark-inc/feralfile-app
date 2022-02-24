@@ -310,26 +310,26 @@ class AppRouter {
                       payload: settings.arguments as ArtworkDetailPayload),
                 ));
       case TBConnectPage.tag:
-        return MaterialPageRoute(
+        return CupertinoPageRoute(
           settings: settings,
           builder: (context) =>
               TBConnectPage(request: settings.arguments as BeaconRequest),
         );
       case TBSignMessagePage.tag:
-        return MaterialPageRoute(
+        return CupertinoPageRoute(
           settings: settings,
           builder: (context) =>
               TBSignMessagePage(request: settings.arguments as BeaconRequest),
         );
       case TBSendTransactionPage.tag:
-        return MaterialPageRoute(
+        return CupertinoPageRoute(
           settings: settings,
           builder: (context) => TBSendTransactionPage(
               request: settings.arguments as BeaconRequest),
         );
 
       case recoveryPhrasePage:
-        return MaterialPageRoute(
+        return CupertinoPageRoute(
             settings: settings,
             builder: (context) => RecoveryPhrasePage(
                   words: settings.arguments as List<String>,
