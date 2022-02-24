@@ -2,7 +2,6 @@ import 'dart:developer';
 
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/router/router_bloc.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -85,7 +84,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
               listener: (context, state) {
                 switch (state.onboardingStep) {
                   case OnboardingStep.dashboard:
-                    Navigator.of(context).pushNamed(AppRouter.homePage);
+                    Navigator.of(context)
+                        .pushReplacementNamed(AppRouter.homePage);
                     break;
 
                   default:
