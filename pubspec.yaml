@@ -59,6 +59,7 @@ dependencies:
   flutter_slidable: ^1.2.0
   in_app_purchase: ^2.0.1
   modal_bottom_sheet: ^2.0.0
+  flutter_native_splash: ^2.0.5
   libauk_dart:
     git:
       url: https://github.com/autonomy-system/libauk-dart.git
