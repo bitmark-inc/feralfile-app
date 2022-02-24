@@ -27,6 +27,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
   VideoPlayerController? _controller;
   bool isFullscreen = false;
   late int currentIndex;
+  WebViewController? _webViewController;
 
   @override
   void initState() {
@@ -62,6 +63,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
       _controller?.dispose();
     });
     _controller = null;
+    _webViewController = null;
     super.dispose();
   }
 
@@ -199,6 +201,18 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
       default:
         return WebView(
             initialUrl: asset.previewURL,
+            onWebViewCreated: (WebViewController webViewController) {
+              _webViewController = webViewController;
+            },
+            onPageFinished: (some) async {
+              final javascriptString = '''
+                var meta = document.createElement('meta');
+                            meta.setAttribute('name', 'viewport');
+                            meta.setAttribute('content', 'width=device-width');
+                            document.getElementsByTagName('head')[0].appendChild(meta);
+                ''';
+              await _webViewController?.runJavascript(javascriptString);
+            },
             javascriptMode: JavascriptMode.unrestricted);
     }
   }
