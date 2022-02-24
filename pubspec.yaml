@@ -110,6 +110,8 @@ flutter:
     - assets/images/kukai_wallet.png
     - assets/images/tezos_wallet.png
     - assets/images/premium_comparation.svg
+    - assets/images/face_id.svg
+    - assets/images/touch_id.svg
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
