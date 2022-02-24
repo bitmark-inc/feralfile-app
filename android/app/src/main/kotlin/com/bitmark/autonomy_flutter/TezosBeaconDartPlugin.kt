@@ -6,8 +6,11 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.Result
 import io.github.novacrypto.base58.Base58
-import it.airgap.beaconsdk.blockchain.tezos.data.TezosError
+import it.airgap.beaconsdk.blockchain.tezos.data.TezosAppMetadata
+import it.airgap.beaconsdk.blockchain.tezos.data.TezosNetwork
+import it.airgap.beaconsdk.blockchain.tezos.data.TezosPermission
 import it.airgap.beaconsdk.blockchain.tezos.data.operation.*
+import it.airgap.beaconsdk.blockchain.tezos.internal.wallet.TezosWallet
 import it.airgap.beaconsdk.blockchain.tezos.message.request.BroadcastTezosRequest
 import it.airgap.beaconsdk.blockchain.tezos.message.request.OperationTezosRequest
 import it.airgap.beaconsdk.blockchain.tezos.message.request.PermissionTezosRequest
@@ -17,17 +20,14 @@ import it.airgap.beaconsdk.blockchain.tezos.message.response.PermissionTezosResp
 import it.airgap.beaconsdk.blockchain.tezos.message.response.SignPayloadTezosResponse
 import it.airgap.beaconsdk.blockchain.tezos.tezos
 import it.airgap.beaconsdk.client.wallet.BeaconWalletClient
-import it.airgap.beaconsdk.core.data.BeaconError
-import it.airgap.beaconsdk.core.data.P2P
-import it.airgap.beaconsdk.core.data.P2pPeer
-import it.airgap.beaconsdk.core.data.SigningType
-import it.airgap.beaconsdk.core.message.BeaconMessage
-import it.airgap.beaconsdk.core.message.BeaconRequest
-import it.airgap.beaconsdk.core.message.ErrorBeaconResponse
+import it.airgap.beaconsdk.core.data.*
+import it.airgap.beaconsdk.core.internal.utils.*
+import it.airgap.beaconsdk.core.message.*
 import it.airgap.beaconsdk.transport.p2p.matrix.p2pMatrix
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.onEach
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import java.util.*
@@ -52,8 +52,11 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
 
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
         when (call.method) {
-            "connect" ->
+            "connect" -> {
                 startBeacon()
+            }
+            "getConnectionURI" ->
+                getConnectionURI(call, result)
             "addPeer" -> {
                 val link: String = call.argument("link") ?: ""
                 addPeer(link)
@@ -75,7 +78,7 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
                 .onEach { }
                 .collect { request ->
                     val rev: HashMap<String, Any> = HashMap()
-                    val params: HashMap<String, Any> = HashMap();
+                    val params: HashMap<String, Any> = HashMap()
                     params["id"] = request.id
                     params["blockchainIdentifier"] = request.blockchainIdentifier
                     params["senderID"] = request.senderId
@@ -133,7 +136,8 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
                                         result["bytes"] = value.bytes
                                     }
                                     is MichelineNode -> {
-                                        result["expressions"] = value.expressions.map { arg -> getParams(arg) }
+                                        result["expressions"] =
+                                            value.expressions.map { arg -> getParams(arg) }
                                     }
                                 }
 
@@ -165,9 +169,10 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
                                     transaction.parameters?.entrypoint?.let {
                                         detail["entrypoint"] = it
                                     }
-                                    transaction.parameters?.value?.let { value -> getParams(value) }?.let {
-                                        detail["parameters"] = it
-                                    }
+                                    transaction.parameters?.value?.let { value -> getParams(value) }
+                                        ?.let {
+                                            detail["parameters"] = it
+                                        }
 
                                     operationDetails.add(detail)
                                 }
@@ -187,15 +192,60 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
                     }
                 }
         }
+
+        CoroutineScope(Dispatchers.IO).launch {
+            dappPermissionPublisher
+                .collect {
+                    val rev: HashMap<String, Any> = HashMap()
+                    val params: HashMap<String, Any> = HashMap()
+
+                    dependencyRegistry.crypto
+
+                    params["type"] = "beaconRequestedPermission"
+                    val data = jsonKT.encodeToString(it, P2pPeer::class).encodeToByteArray()
+                    params["peer"] = data
+
+                    rev["eventName"] = "observeEvent"
+                    rev["params"] = params
+
+                    withContext(Dispatchers.Main) {
+                        events?.success(rev)
+                    }
+                }
+        }
+
+        CoroutineScope(Dispatchers.IO).launch {
+            eventPublisher
+                .collect {
+                    val rev: HashMap<String, Any> = HashMap()
+                    val params: HashMap<String, Any> = HashMap()
+
+                    params["type"] = "beaconLinked"
+                    val data =
+                        jsonKT.encodeToString(it, TezosWalletConnection::class).encodeToByteArray()
+                    params["connection"] = data
+
+                    rev["eventName"] = "observeEvent"
+                    rev["params"] = params
+
+                    withContext(Dispatchers.Main) {
+                        events?.success(rev)
+                    }
+                }
+        }
+
+
     }
 
     override fun onCancel(arguments: Any?) {
     }
 
     private var beaconClient: BeaconWalletClient? = null
-    private var awaitingRequest: BeaconRequest? = null
-    private var requestPublisher = MutableSharedFlow<BeaconRequest>();
 
+    private var awaitingRequest: BeaconRequest? = null
+    private var requestPublisher = MutableSharedFlow<BeaconRequest>()
+    private var eventPublisher = MutableSharedFlow<TezosWalletConnection>()
+    private var dappPermissionPublisher = MutableSharedFlow<P2pPeer>()
 
     private fun startBeacon() {
         CoroutineScope(Dispatchers.IO).launch {
@@ -215,11 +265,59 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
                     ?.onEach { result -> result.getOrNull()?.let { saveAwaitingRequest(it) } }
                     ?.collect { result ->
                         result.getOrNull()?.let {
-                            requestPublisher.emit(it)
+                            when (it) {
+                                is PermissionTezosResponse -> {
+                                    val publicKey = it.publicKey
+                                    val peerPublicKey = it.requestOrigin.id
+
+                                    val peer =
+                                        dependencyRegistry.storageManager.findPeer { peer -> peer.publicKey == peerPublicKey }
+                                    val address = TezosWallet(
+                                        dependencyRegistry.crypto,
+                                        dependencyRegistry.base58Check
+                                    ).address(publicKey).getOrDefault("")
+
+                                    eventPublisher.emit(TezosWalletConnection(address, peer, it))
+                                }
+                                is BeaconRequest -> {
+                                    requestPublisher.emit(it)
+                                }
+                                else -> {
+                                    //ignore
+                                }
+                            }
                         }
                     }
             }
+
+            startOpenChannelListener()
         }
+    }
+
+    private fun getConnectionURI(call: MethodCall, result: Result) {
+        val rev: HashMap<String, Any> = HashMap()
+        rev["error"] = 0
+
+        beaconClient?.let { client ->
+            val relayServers = client.connectionController.getRelayServers()
+            val peer = P2pPeer(
+                id = UUID.randomUUID().toString().lowercase(),
+                name = beaconSdk.app.name,
+                publicKey = beaconSdk.beaconId,
+                relayServer = relayServers.firstOrNull() ?: "beacon-node-1.sky.papers.tech",
+                version = "2"
+            )
+
+            dependencyRegistry.serializer.serialize(peer).getOrNull()?.let {
+                rev["uri"] = "?type=tzip10&data=$it"
+            } ?: run {
+                rev["uri"] = ""
+            }
+        } ?: run {
+            rev["uri"] = ""
+        }
+
+        result.success(rev)
     }
 
     private fun respond(call: MethodCall, result: Result) {
@@ -251,9 +349,12 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
                         SignPayloadTezosResponse.from(request, SigningType.Raw, it)
                     } ?: ErrorBeaconResponse.from(request, BeaconError.Aborted)
                 }
-                is BroadcastTezosRequest -> ErrorBeaconResponse.from(
-                    request,
-                    TezosError.BroadcastError
+                is BroadcastTezosRequest -> ErrorBeaconResponse(
+                    request.id,
+                    request.version,
+                    request.origin,
+                    BeaconError.Unknown,
+                    null
                 )
                 else -> ErrorBeaconResponse.from(request, BeaconError.Unknown)
             }
@@ -295,4 +396,42 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
         return jsonKT.decodeFromString("{$json}")
     }
 
+    private suspend fun startOpenChannelListener() {
+        beaconClient?.let { client ->
+            client.connectionController.startOpenChannelListener()
+                .collect {
+                    val peer = it.getOrNull() ?: return@collect
+
+                    val metadata = client.getOwnAppMetadata()
+                    val request = PermissionTezosRequest(
+                        id = UUID.randomUUID().toString().lowercase(),
+                        version = "2",
+                        blockchainIdentifier = "tezos",
+                        senderId = metadata.senderId,
+                        appMetadata = TezosAppMetadata(
+                            metadata.senderId,
+                            metadata.name,
+                            metadata.icon
+                        ),
+                        origin = Origin.forPeer(peer = peer),
+                        network = TezosNetwork.Mainnet(),
+                        scopes = listOf(
+                            TezosPermission.Scope.OperationRequest,
+                            TezosPermission.Scope.Sign
+                        )
+                    )
+
+                    client.request(request)
+
+                    dappPermissionPublisher.emit(peer)
+                }
+        }
+    }
 }
+
+@Serializable
+data class TezosWalletConnection(
+    val address: String,
+    val peer: Peer?,
+    val permissionResponse: PermissionTezosResponse
+)
