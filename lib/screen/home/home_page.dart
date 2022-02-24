@@ -58,10 +58,10 @@ class _HomePageState extends State<HomePage>
         Future.delayed(const Duration(milliseconds: 3500), () {
           context.read<HomeBloc>().add(RefreshTokensEvent());
         });
-        break;
-      case AppLifecycleState.paused:
         if (injector<ConfigurationService>().isDevicePasscodeEnabled())
           injector<NavigationService>().lockScreen();
+        break;
+      case AppLifecycleState.paused:
         break;
       default:
         break;
