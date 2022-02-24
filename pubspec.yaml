@@ -55,6 +55,7 @@ dependencies:
   path_provider: ^2.0.9
   url_launcher: ^6.0.20
   device_info_plus: ^3.2.1
+  package_info_plus: ^1.4.0
   cached_network_image: ^3.2.0
   flutter_slidable: ^1.2.0
   in_app_purchase: ^2.0.1
@@ -109,6 +110,8 @@ flutter:
     - assets/images/kukai_wallet.png
     - assets/images/tezos_wallet.png
     - assets/images/premium_comparation.svg
+    - assets/images/face_id.svg
+    - assets/images/touch_id.svg
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

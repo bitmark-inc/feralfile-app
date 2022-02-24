@@ -8,10 +8,13 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import "package:collection/collection.dart";
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -51,10 +54,18 @@ class _HomePageState extends State<HomePage>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      Future.delayed(const Duration(milliseconds: 3500), () {
-        context.read<HomeBloc>().add(RefreshTokensEvent());
-      });
+    switch (state) {
+      case AppLifecycleState.resumed:
+        Future.delayed(const Duration(milliseconds: 3500), () {
+          context.read<HomeBloc>().add(RefreshTokensEvent());
+        });
+        break;
+      case AppLifecycleState.paused:
+        if (injector<ConfigurationService>().isDevicePasscodeEnabled())
+          injector<NavigationService>().lockScreen();
+        break;
+      default:
+        break;
     }
   }
 
@@ -114,14 +125,7 @@ class _HomePageState extends State<HomePage>
                 child: Padding(
                   padding: EdgeInsets.fromLTRB(
                       0, MediaQuery.of(context).padding.top + 120, 20, 0),
-                  child: SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
-                      strokeWidth: 2,
-                    ),
-                  ),
+                  child: CupertinoActivityIndicator(),
                 ),
               );
             } else {
