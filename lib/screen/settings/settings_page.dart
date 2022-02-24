@@ -15,10 +15,12 @@ import 'package:autonomy_flutter/screen/settings/support/support_view.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/view/eula_privacy.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 class SettingsPage extends StatefulWidget {
   @override
@@ -27,11 +29,13 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage>
     with RouteAware, WidgetsBindingObserver {
+  PackageInfo? _packageInfo;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance?.addObserver(this);
-
+    _loadPackageInfo();
     context.read<AccountsBloc>().add(GetAccountsEvent());
   }
 
@@ -133,7 +137,19 @@ class _SettingsPageState extends State<SettingsPage>
                       }),
                       SizedBox(height: 40),
                       SupportView(),
-                      SizedBox(height: 40),
+                      SizedBox(height: 56),
+                      Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            if (_packageInfo != null)
+                              Text(
+                                "Version ${_packageInfo!.version}(${_packageInfo!.buildNumber})",
+                                style: appTextTheme.headline5,
+                              ),
+                            SizedBox(height: 5),
+                            eulaAndPrivacyView(),
+                          ]),
+                      SizedBox(height: 17),
                     ],
                   ),
                 ],
@@ -173,5 +189,12 @@ class _SettingsPageState extends State<SettingsPage>
       ),
       onTap: onTap,
     );
+  }
+
+  Future<void> _loadPackageInfo() async {
+    final info = await PackageInfo.fromPlatform();
+    setState(() {
+      _packageInfo = info;
+    });
   }
 }

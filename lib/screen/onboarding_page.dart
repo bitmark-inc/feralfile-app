@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/router/router_bloc.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:autonomy_flutter/view/eula_privacy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -51,34 +52,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                       child:
                           Image.asset("assets/images/penrose_onboarding.png"))),
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  "EULA",
-                  style: TextStyle(
-                      fontFamily: "AtlasGrotesk",
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black),
-                ),
-                Text(
-                  " and ",
-                  style: TextStyle(
-                      fontFamily: "AtlasGrotesk",
-                      fontSize: 12,
-                      color: Colors.black),
-                ),
-                Text(
-                  "Privacy Policy",
-                  style: TextStyle(
-                      fontFamily: "AtlasGrotesk",
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black),
-                ),
-              ],
-            ),
+            eulaAndPrivacyView(),
             SizedBox(height: 32.0),
             BlocConsumer<RouterBloc, RouterState>(
               listener: (context, state) {
