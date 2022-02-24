@@ -8,6 +8,8 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -51,10 +53,18 @@ class _HomePageState extends State<HomePage>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      Future.delayed(const Duration(milliseconds: 3500), () {
-        context.read<HomeBloc>().add(RefreshTokensEvent());
-      });
+    switch (state) {
+      case AppLifecycleState.resumed:
+        Future.delayed(const Duration(milliseconds: 3500), () {
+          context.read<HomeBloc>().add(RefreshTokensEvent());
+        });
+        break;
+      case AppLifecycleState.paused:
+        if (injector<ConfigurationService>().isDevicePasscodeEnabled())
+          injector<NavigationService>().lockScreen();
+        break;
+      default:
+        break;
     }
   }
 
