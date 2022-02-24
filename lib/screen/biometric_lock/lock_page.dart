@@ -104,7 +104,7 @@ class LockingOverlay extends ModalRoute<void> {
 
   Future<void> _authenticate() async {
     bool didAuthenticate = await _localAuth.authenticate(
-        localizedReason: 'Please authenticate to show account balance');
+        localizedReason: 'Authentication for "Autonomy"');
 
     if (didAuthenticate) {
       injector<NavigationService>().unlockScreen();
