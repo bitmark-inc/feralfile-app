@@ -34,7 +34,7 @@ class Peer {
 
   String relayServer;
   String id;
-  String kind;
+  String? kind;
   String publicKey;
   String name;
   String version;
@@ -124,7 +124,7 @@ class RequestOrigin {
   String id;
 
   factory RequestOrigin.fromJson(Map<String, dynamic> json) => RequestOrigin(
-    kind: json["kind"],
+    kind: json["kind"] ?? json["type"] ?? "",
     id: json["id"],
   );
 

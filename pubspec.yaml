@@ -42,7 +42,7 @@ dependencies:
   share: ^2.0.4
   flutter_svg: ^1.0.0
   tezart:
-    git: git@github.com:autonomy-system/tezart.git
+    git: https://github.com/autonomy-system/tezart.git
   local_auth: ^1.1.10
   sentry_flutter: ^6.2.2
   video_player: ^2.2.0
