@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import "package:collection/collection.dart";
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -124,14 +125,7 @@ class _HomePageState extends State<HomePage>
                 child: Padding(
                   padding: EdgeInsets.fromLTRB(
                       0, MediaQuery.of(context).padding.top + 120, 20, 0),
-                  child: SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
-                      strokeWidth: 2,
-                    ),
-                  ),
+                  child: CupertinoActivityIndicator(),
                 ),
               );
             } else {
