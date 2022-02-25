@@ -209,8 +209,8 @@ class _AccountsViewState extends State<AccountsView> {
                   child: Image.asset("assets/images/autonomyIcon.png")),
               SizedBox(width: 16),
               Text(
-                  persona.name.isNotEmpty
-                      ? persona.name
+                  account.name.isNotEmpty
+                      ? account.name
                       : account.accountNumber.mask(4),
                   style: appTextTheme.headline4),
             ],
