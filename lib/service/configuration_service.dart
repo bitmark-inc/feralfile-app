@@ -11,8 +11,6 @@ abstract class ConfigurationService {
   String? getIAPReceipt();
   Future<void> setIAPJWT(JWT value);
   JWT? getIAPJWT();
-  Future<void> setPersonas(List<String> value);
-  List<String> getPersonas();
   Future<void> setWCSessions(List<WCSessionStore> value);
   List<WCSessionStore> getWCSessions();
   Future<void> setNetwork(Network value);
@@ -37,8 +35,6 @@ abstract class ConfigurationService {
 class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_IAP_RECEIPT = "key_iap_receipt";
   static const String KEY_IAP_JWT = "key_iap_jwt";
-  static const String KEY_ACCOUNT = "key_account";
-  static const String KEY_PERSONA = "key_persona";
   static const String KEY_WC_SESSIONS = "key_wc_sessions";
   static const String KEY_NETWORK = "key_network";
   static const String KEY_DEVICE_PASSCODE = "device_passcode";
@@ -84,17 +80,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
       final json = jsonDecode(data);
       return JWT.fromJson(json);
     }
-  }
-
-  @override
-  Future<void> setPersonas(List<String> value) async {
-    log.info("setPersonas: $value");
-    await _preferences.setStringList(KEY_PERSONA, value);
-  }
-
-  @override
-  List<String> getPersonas() {
-    return _preferences.getStringList(KEY_PERSONA) ?? List.empty();
   }
 
   @override
