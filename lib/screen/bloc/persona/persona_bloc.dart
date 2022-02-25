@@ -3,7 +3,6 @@ import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:bloc/bloc.dart';
-import 'package:flutter/material.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:uuid/uuid.dart';
 
@@ -38,6 +37,7 @@ class PersonaBloc extends Bloc<PersonaEvent, PersonaState> {
       if (oldPersona == null) return;
       emit(state.copyWith(namePersonaState: ActionState.loading));
 
+      await oldPersona.wallet().updateName(event.name);
       final updatedPersona = oldPersona.copyWith(name: event.name);
       await _cloudDB.personaDao.updatePersona(updatedPersona);
 

@@ -436,6 +436,11 @@ class _$PersonaDao extends PersonaDao {
   }
 
   @override
+  Future<int?> getPersonasCount() async {
+    await _queryAdapter.queryNoReturn('SELECT COUNT(*) FROM Persona');
+  }
+
+  @override
   Future<Persona?> findById(String uuid) async {
     return _queryAdapter.query('SELECT * FROM Persona WHERE uuid = ?1',
         mapper: (Map<String, Object?> row) => Persona(
@@ -447,7 +452,7 @@ class _$PersonaDao extends PersonaDao {
 
   @override
   Future<void> insertPersona(Persona persona) async {
-    await _personaInsertionAdapter.insert(persona, OnConflictStrategy.abort);
+    await _personaInsertionAdapter.insert(persona, OnConflictStrategy.replace);
   }
 
   @override

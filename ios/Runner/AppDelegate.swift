@@ -53,9 +53,14 @@ import Combine
         let migrationChannel = FlutterMethodChannel(name: "migration_util",
                                                     binaryMessenger: controller.binaryMessenger)
         migrationChannel.setMethodCallHandler({(call: FlutterMethodCall, result: @escaping FlutterResult) -> Void in
-            if (call.method == "getExistingUuids") {
-                result("")
-            } else {
+            switch call.method {
+            case "getiOSMigrationData":
+                SystemChannelHandler.shared.getiOSMigrationData(call: call, result: result)
+
+            case "cleariOSMigrationData":
+                SystemChannelHandler.shared.cleariOSMigrationData(call: call, result: result)
+
+            default:
                 result(FlutterMethodNotImplemented)
             }
         })

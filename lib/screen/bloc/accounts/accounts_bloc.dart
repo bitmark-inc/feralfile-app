@@ -23,9 +23,15 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
 
       for (var persona in personas) {
         final ethAddress = await persona.wallet().getETHAddress();
+        var name = await persona.wallet().getName();
+
+        if (name.isEmpty) {
+          name = persona.name;
+        }
+
         final account = Account(
             persona: persona,
-            name: persona.name,
+            name: name,
             accountNumber: ethAddress,
             createdAt: persona.createdAt);
         accounts.add(account);

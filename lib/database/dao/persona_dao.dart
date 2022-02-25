@@ -6,7 +6,10 @@ abstract class PersonaDao {
   @Query('SELECT * FROM Persona')
   Future<List<Persona>> getPersonas();
 
-  @insert
+  @Query('SELECT COUNT(*) FROM Persona')
+  Future<int?> getPersonasCount();
+
+  @Insert(onConflict: OnConflictStrategy.replace)
   Future<void> insertPersona(Persona persona);
 
   @Query('SELECT * FROM Persona WHERE uuid = :uuid')
