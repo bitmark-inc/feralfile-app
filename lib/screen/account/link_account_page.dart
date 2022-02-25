@@ -54,10 +54,10 @@ class _LinkAccountPageState extends State<LinkAccountPage>
         log.info("_wcURIListener Get wcURI $_uri");
 
         if (_uri == null) return;
-        final metamaksLink =
+        final metamaskLink =
             "https://metamask.app.link/wc?uri=" + Uri.encodeComponent(_uri);
-        log.info(metamaksLink);
-        launch(metamaksLink, forceSafariVC: false, universalLinksOnly: true);
+        log.info(metamaskLink);
+        _launchURL(metamaskLink);
       };
 
       injector<WalletConnectDappService>().wcURI.addListener(_wcURIListener!);
@@ -79,6 +79,14 @@ class _LinkAccountPageState extends State<LinkAccountPage>
       injector<WalletConnectDappService>()
           .remotePeerAccount
           .addListener(_remotePeerWCAccountListener!);
+    }
+  }
+
+  void _launchURL(String _url) async {
+    if (!await launch(_url, forceSafariVC: false, universalLinksOnly: true)) {
+      _moveToOtherEtherumWalletPage = true;
+      Navigator.of(context)
+          .pushNamed(AppRouter.linkWalletConnectPage, arguments: "MetaMask");
     }
   }
 
