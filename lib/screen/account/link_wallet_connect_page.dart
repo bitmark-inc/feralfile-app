@@ -13,7 +13,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 class LinkWalletConnectPage extends StatefulWidget {
-  const LinkWalletConnectPage({Key? key}) : super(key: key);
+  final String unableOpenAppname;
+  const LinkWalletConnectPage({Key? key, this.unableOpenAppname = ""})
+      : super(key: key);
 
   @override
   State<LinkWalletConnectPage> createState() => _LinkWalletConnectPageState();
@@ -61,6 +63,13 @@ class _LinkWalletConnectPageState extends State<LinkWalletConnectPage> {
                       style: appTextTheme.headline1,
                     ),
                     addTitleSpace(),
+                    if (widget.unableOpenAppname.isNotEmpty) ...[
+                      Text(
+                          "We were unable to open ${widget.unableOpenAppname} on this device.",
+                          style: appTextTheme.bodyText1
+                              ?.copyWith(fontWeight: FontWeight.bold)),
+                      SizedBox(height: 24),
+                    ],
                     Text(
                       "If your wallet is on another device, you can open it and scan the QR code below to link your account to Autonomy: ",
                       style: appTextTheme.bodyText1,
