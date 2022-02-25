@@ -42,6 +42,9 @@ const appTextTheme = TextTheme(
       color: Color(0xFF6D6B6B), fontSize: 16, fontFamily: "IBMPlexMono"),
 );
 
+const copiedTextStyle = TextStyle(
+    color: Colors.black, fontSize: 12, fontFamily: "AtlasGrotesk-Bold");
+
 SizedBox addTitleSpace() {
   return const SizedBox(height: 40);
 }

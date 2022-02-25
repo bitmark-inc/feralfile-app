@@ -1,13 +1,20 @@
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
-class LinkBeaconConnectPage extends StatelessWidget {
-
+class LinkBeaconConnectPage extends StatefulWidget {
   final String uri;
 
   const LinkBeaconConnectPage({Key? key, required this.uri}) : super(key: key);
+
+  @override
+  State<LinkBeaconConnectPage> createState() => _LinkBeaconConnectPageState();
+}
+
+class _LinkBeaconConnectPageState extends State<LinkBeaconConnectPage> {
+  bool _copied = false;
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +27,7 @@ class LinkBeaconConnectPage extends StatelessWidget {
       ),
       body: Container(
         margin:
-        EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
+            EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -39,16 +46,29 @@ class LinkBeaconConnectPage extends StatelessWidget {
                       style: appTextTheme.bodyText1,
                     ),
                     SizedBox(height: 24),
-                    Container(
-                      alignment: Alignment.center,
-                      width: 180,
-                      height: 180,
-                      child: QrImage(
-                        data: "tezos://$uri",
-                        version: QrVersions.auto,
-                        size: 180.0,
+                    GestureDetector(
+                      child: Container(
+                        alignment: Alignment.center,
+                        width: 180,
+                        height: 180,
+                        child: QrImage(
+                          data: "tezos://${widget.uri}",
+                          version: QrVersions.auto,
+                          size: 180.0,
+                        ),
                       ),
-                    )
+                      onTap: () {
+                        Clipboard.setData(
+                            ClipboardData(text: "tezos://${widget.uri}"));
+                        setState(() {
+                          _copied = true;
+                        });
+                      },
+                    ),
+                    if (_copied) ...[
+                      SizedBox(height: 24),
+                      Center(child: Text("Copied", style: copiedTextStyle)),
+                    ]
                   ],
                 ),
               ),
