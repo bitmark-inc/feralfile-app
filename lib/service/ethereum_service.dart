@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 
-import 'package:autonomy_flutter/service/persona_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:web3dart/crypto.dart';

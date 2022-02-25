@@ -1,8 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:autonomy_flutter/service/persona_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:flutter/foundation.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:tezart/src/crypto/crypto.dart' as crypto;
 import 'package:tezart/src/crypto/crypto.dart' show Prefixes;
