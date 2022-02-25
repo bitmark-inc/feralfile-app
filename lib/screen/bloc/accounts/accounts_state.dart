@@ -29,7 +29,7 @@ class DeleteLinkedAccountEvent extends AccountsEvent {
 class Account {
   Persona? persona;
   List<Connection>? connections;
-  String? name;
+  String name;
   String accountNumber;
   DateTime createdAt;
 
@@ -37,7 +37,7 @@ class Account {
     this.persona,
     this.connections,
     this.accountNumber = "",
-    this.name,
+    this.name = "",
     required this.createdAt,
   });
 }

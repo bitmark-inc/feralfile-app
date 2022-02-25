@@ -5,7 +5,6 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/migration_util.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -24,8 +23,6 @@ void main() async {
   runZonedGuarded(() async {
     WidgetsFlutterBinding.ensureInitialized();
     await setup();
-
-    await MigrationUtil().migrateIfNeeded();
 
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
       statusBarColor: Colors.white,
