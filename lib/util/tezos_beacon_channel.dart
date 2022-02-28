@@ -23,16 +23,13 @@ class TezosBeaconChannel {
 
   Future<P2PPeer> addPeer(String link) async {
     final Map res = await _channel.invokeMethod('addPeer', {"link": link});
+    final peerData = json.decode(res['result']);
+    return P2PPeer.fromJson(peerData);
+  }
 
-    final String id = res["id"];
-    final String name = res["name"];
-    final String publicKey = res["publicKey"];
-    final String relayServer = res["relayServer"];
-    final String version = res["version"];
-    final String icon = res["icon"];
-    final String appURL = res["appURL"];
-
-    return P2PPeer(id, name, publicKey, relayServer, version, icon, appURL);
+  Future removePeer(P2PPeer peer) async {
+    final peerJSON = json.encode(peer);
+    await _channel.invokeMethod('removePeer', {'peer': peerJSON});
   }
 
   Future permissionResponse(String id, String? publicKey) async {

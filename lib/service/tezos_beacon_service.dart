@@ -8,9 +8,9 @@ import 'package:autonomy_flutter/model/connection_supports.dart';
 import 'package:autonomy_flutter/model/p2p_peer.dart';
 import 'package:autonomy_flutter/model/tezos_connection.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/tezos_beacon/tb_connect_page.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_sign_message_page.dart';
+import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
@@ -35,6 +35,10 @@ class TezosBeaconService implements BeaconHandler {
   Future addPeer(String link) async {
     final peer = await _beaconChannel.addPeer(link);
     _currentPeer = peer;
+  }
+
+  Future removePeer(P2PPeer peer) async {
+    await _beaconChannel.removePeer(peer);
   }
 
   Future permissionResponse(String? uuid, String id, String? publicKey) async {
@@ -68,7 +72,7 @@ class TezosBeaconService implements BeaconHandler {
   @override
   void onRequest(BeaconRequest request) {
     if (request.type == "permission") {
-      _navigationService.navigateTo(TBConnectPage.tag, arguments: request);
+      _navigationService.navigateTo(WCConnectPage.tag, arguments: request);
     } else if (request.type == "signPayload") {
       _navigationService.navigateTo(TBSignMessagePage.tag, arguments: request);
     } else if (request.type == "operation") {

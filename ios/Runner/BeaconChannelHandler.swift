@@ -31,23 +31,54 @@ class BeaconChannelHandler: NSObject {
         let link: String = args["link"] as! String
 
         BeaconConnectService.shared.addPeer(deeplink: link)
-            .sink(receiveCompletion: { _ in }, receiveValue: { peer in
+            .tryMap { try JSONEncoder().encode($0) }
+            .map { String(data: $0, encoding: .utf8) }
+            .sink(receiveCompletion: {  (completion) in
+                if let error = completion.error {
+                    result(
+                        FlutterError(code: "Failed to addPeer", message: error.localizedDescription, details: nil)
+                    )
+                }
+
+            }, receiveValue: { serializedPeer in
                 result([
                     "error": 0,
-                    "id": peer.id ?? "",
-                    "version": peer.version,
-                    "publicKey": peer.publicKey,
-                    "icon": peer.icon ?? "",
-                    "name": peer.name,
-                    "relayServer": peer.relayServer,
-                    "appURL": peer.appURL?.absoluteString ?? "",
+                    "result": serializedPeer as Any
                 ])
             })
             .store(in: &cancelBag)
     }
     
     func removePeer(call: FlutterMethodCall, result: @escaping FlutterResult) {
-//        BeaconConnectService.shared.removePeer()
+        do {
+            let args: NSDictionary = call.arguments as! NSDictionary
+            let peerJSON: String = args["peer"] as! String
+
+            let decoder = JSONDecoder()
+            let peer = try decoder.decode(Beacon.P2PPeer.self, from: Data(peerJSON))
+
+            BeaconConnectService.shared.removePeer(peer)
+                .sink(receiveCompletion: { (completion) in
+                    if let error = completion.error {
+                        result(
+                            FlutterError(code: "Failed to removePeer", message: error.localizedDescription, details: nil)
+                        )
+                    }
+
+                }, receiveValue: { _ in
+                    result([
+                        "error": 0,
+                        "msg": "removePeer success",
+                    ])
+                })
+                .store(in: &cancelBag)
+
+        } catch {
+            result(
+                FlutterError(code: "Failed to removePeer", message: error.localizedDescription, details: nil)
+            )
+        }
+
     }
     
     func response(call: FlutterMethodCall, result: @escaping FlutterResult) {
