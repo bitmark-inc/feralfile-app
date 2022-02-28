@@ -8,17 +8,22 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 class LinkWalletConnectPage extends StatefulWidget {
-  const LinkWalletConnectPage({Key? key}) : super(key: key);
+  final String unableOpenAppname;
+  const LinkWalletConnectPage({Key? key, this.unableOpenAppname = ""})
+      : super(key: key);
 
   @override
   State<LinkWalletConnectPage> createState() => _LinkWalletConnectPageState();
 }
 
 class _LinkWalletConnectPageState extends State<LinkWalletConnectPage> {
+  bool _copied = false;
+
   @override
   void initState() {
     super.initState();
@@ -58,12 +63,23 @@ class _LinkWalletConnectPageState extends State<LinkWalletConnectPage> {
                       style: appTextTheme.headline1,
                     ),
                     addTitleSpace(),
+                    if (widget.unableOpenAppname.isNotEmpty) ...[
+                      Text(
+                          "We were unable to open ${widget.unableOpenAppname} on this device.",
+                          style: appTextTheme.bodyText1
+                              ?.copyWith(fontWeight: FontWeight.bold)),
+                      SizedBox(height: 24),
+                    ],
                     Text(
                       "If your wallet is on another device, you can open it and scan the QR code below to link your account to Autonomy: ",
                       style: appTextTheme.bodyText1,
                     ),
                     SizedBox(height: 24),
-                    _wcQRCode()
+                    _wcQRCode(),
+                    if (_copied) ...[
+                      SizedBox(height: 24),
+                      Center(child: Text("Copied", style: copiedTextStyle)),
+                    ]
                   ],
                 ),
               ),
@@ -78,19 +94,27 @@ class _LinkWalletConnectPageState extends State<LinkWalletConnectPage> {
     return ValueListenableBuilder<String?>(
         valueListenable: injector<WalletConnectDappService>().wcURI,
         builder: (BuildContext context, String? wcURI, Widget? child) {
-          return Container(
-            alignment: Alignment.center,
-            width: 180,
-            height: 180,
-            child: wcURI != null
-                ? QrImage(
-                    data: wcURI,
-                    version: QrVersions.auto,
-                    size: 180.0,
-                  )
-                : CupertinoActivityIndicator(
-                    // color: Colors.black,
-                    ),
+          return GestureDetector(
+            child: Container(
+              alignment: Alignment.center,
+              width: 180,
+              height: 180,
+              child: wcURI != null
+                  ? QrImage(
+                      data: wcURI,
+                      version: QrVersions.auto,
+                      size: 180.0,
+                    )
+                  : CupertinoActivityIndicator(
+                      // color: Colors.black,
+                      ),
+            ),
+            onTap: () {
+              Clipboard.setData(ClipboardData(text: wcURI));
+              setState(() {
+                _copied = true;
+              });
+            },
           );
         });
   }
