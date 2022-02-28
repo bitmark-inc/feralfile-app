@@ -51,19 +51,19 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
     // }
 
     _detector = ShakeDetector.autoStart(onPhoneShake: () {
-      setState(() {
-        isFullscreen = false;
-      });
+      if (isFullscreen) {
+        setState(() {
+          isFullscreen = false;
+        });
+      }
     });
 
     _detector?.startListening();
   }
 
   @override
-  void dispose() {
-    _controller?.pause().then((_) {
-      _controller?.dispose();
-    });
+  void dispose() async {
+    _controller?.dispose();
     _controller = null;
     _webViewController = null;
     _detector?.stopListening();
@@ -175,7 +175,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
                         )
                       : SizedBox(),
                   Expanded(
-                    child: Container(
+                    child: Center(
                       child: _getArtworkView(asset),
                     ),
                   ),
