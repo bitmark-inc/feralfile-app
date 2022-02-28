@@ -153,7 +153,10 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider.value(
-                value: accountsBloc, child: LinkWalletConnectPage()));
+                value: accountsBloc,
+                child: LinkWalletConnectPage(
+                  unableOpenAppname: (settings.arguments as String?) ?? "",
+                )));
 
       case AppRouter.namePersonaPage:
         return CupertinoPageRoute(
