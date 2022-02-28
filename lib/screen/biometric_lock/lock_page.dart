@@ -10,7 +10,7 @@ class LockingOverlay extends ModalRoute<void> {
   final LocalAuthentication _localAuth = LocalAuthentication();
   List<BiometricType> _availableBiometrics = List.empty();
   @override
-  Duration get transitionDuration => Duration(milliseconds: 500);
+  Duration get transitionDuration => Duration(milliseconds: 300);
 
   @override
   bool get opaque => true;
@@ -35,7 +35,7 @@ class LockingOverlay extends ModalRoute<void> {
 
   @override
   TickerFuture didPush() {
-    Future.delayed(Duration(milliseconds: 500), _authenticate);
+    Future.delayed(Duration(milliseconds: 700), _authenticate);
     return super.didPush();
   }
 

@@ -23,12 +23,15 @@ class PreferenceView extends StatelessWidget {
             SizedBox(height: 24),
             _preferenceItem(
               context,
-              "Device passcode",
-              "Use device passcode to unlock the app, transact, and authenticate.",
+              state.authMethodName,
+              "Use ${state.authMethodName != 'Device Passcode' ? state.authMethodName : 'device passcode'} to unlock the app, transact, and authenticate.",
               state.isDevicePasscodeEnabled,
               (value) {
-                final newState = PreferenceState(value,
-                    state.isNotificationEnabled, state.isAnalyticEnabled);
+                final newState = PreferenceState(
+                    value,
+                    state.isNotificationEnabled,
+                    state.isAnalyticEnabled,
+                    state.authMethodName);
                 context
                     .read<PreferencesBloc>()
                     .add(PreferenceUpdateEvent(newState));
@@ -42,7 +45,7 @@ class PreferenceView extends StatelessWidget {
               state.isNotificationEnabled,
               (value) {
                 final newState = PreferenceState(state.isDevicePasscodeEnabled,
-                    value, state.isAnalyticEnabled);
+                    value, state.isAnalyticEnabled, state.authMethodName);
                 context
                     .read<PreferencesBloc>()
                     .add(PreferenceUpdateEvent(newState));
@@ -56,7 +59,7 @@ class PreferenceView extends StatelessWidget {
               state.isAnalyticEnabled,
               (value) {
                 final newState = PreferenceState(state.isDevicePasscodeEnabled,
-                    state.isNotificationEnabled, value);
+                    state.isNotificationEnabled, value, state.authMethodName);
                 context
                     .read<PreferencesBloc>()
                     .add(PreferenceUpdateEvent(newState));

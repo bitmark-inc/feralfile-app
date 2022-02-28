@@ -384,6 +384,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "5.1.0"
+  flutter_fgbg:
+    dependency: "direct main"
+    description:
+      name: flutter_fgbg
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.1.0"
   flutter_native_splash:
     dependency: "direct main"
     description:
@@ -464,6 +471,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.15.0"
+  html_unescape:
+    dependency: "direct main"
+    description:
+      name: html_unescape
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.0.0"
   http:
     dependency: "direct main"
     description:
