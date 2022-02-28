@@ -12,5 +12,12 @@ class PreferenceState {
   bool isDevicePasscodeEnabled;
   final bool isNotificationEnabled;
   final bool isAnalyticEnabled;
+  final String authMethodName;
 
-  PreferenceState(this.isDevicePasscodeEnabled, this.isNotificationEnabled, this.isAnalyticEnabled);}
+  PreferenceState(
+    this.isDevicePasscodeEnabled,
+    this.isNotificationEnabled,
+    this.isAnalyticEnabled,
+    this.authMethodName,
+  );
+}

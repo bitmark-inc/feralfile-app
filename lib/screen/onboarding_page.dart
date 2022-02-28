@@ -29,68 +29,77 @@ class _OnboardingPageState extends State<OnboardingPage> {
       penroseWidth = 380;
     }
 
+    final edgeInsets =
+        EdgeInsets.only(top: 135.0, bottom: 32.0, left: 16.0, right: 16.0);
+
     return Scaffold(
-      body: Container(
-        margin:
-            EdgeInsets.only(top: 135.0, bottom: 32.0, left: 16.0, right: 16.0),
+        body: Stack(children: [
+      Container(
+        margin: edgeInsets,
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Text(
               "AUTONOMY",
+              textAlign: TextAlign.center,
               style: TextStyle(
                   fontFamily: "DomaineSansText",
                   fontSize: 48,
                   color: Colors.black),
             ),
-            Expanded(
-              child: Center(
-                  child: Container(
-                      width: penroseWidth,
-                      height: penroseWidth,
-                      margin: EdgeInsets.fromLTRB(0, 0, 0, 38),
-                      child:
-                          Image.asset("assets/images/penrose_onboarding.png"))),
-            ),
-            eulaAndPrivacyView(),
-            SizedBox(height: 32.0),
-            BlocConsumer<RouterBloc, RouterState>(
-              listener: (context, state) {
-                switch (state.onboardingStep) {
-                  case OnboardingStep.dashboard:
-                    Navigator.of(context)
-                        .pushReplacementNamed(AppRouter.homePage);
-                    break;
-
-                  default:
-                    break;
-                }
-              },
-              builder: (context, state) {
-                switch (state.onboardingStep) {
-                  case OnboardingStep.startScreen:
-                    return Row(
-                      children: [
-                        Expanded(
-                          child: AuFilledButton(
-                            text: "Start".toUpperCase(),
-                            onPress: () {
-                              Navigator.of(context)
-                                  .pushNamed(AppRouter.beOwnGalleryPage);
-                            },
-                          ),
-                        )
-                      ],
-                    );
-
-                  default:
-                    return SizedBox();
-                }
-              },
-            ),
           ],
         ),
       ),
-    );
+      SafeArea(
+        child: Center(
+            child: Container(
+                width: penroseWidth,
+                height: penroseWidth,
+                margin: EdgeInsets.fromLTRB(0, 0, 0, 0),
+                child: Image.asset("assets/images/penrose_onboarding.png"))),
+      ),
+      Container(
+        margin: edgeInsets,
+        child: Column(mainAxisAlignment: MainAxisAlignment.end, children: [
+          eulaAndPrivacyView(),
+          SizedBox(height: 32.0),
+          BlocConsumer<RouterBloc, RouterState>(
+            listener: (context, state) {
+              switch (state.onboardingStep) {
+                case OnboardingStep.dashboard:
+                  Navigator.of(context)
+                      .pushReplacementNamed(AppRouter.homePage);
+                  break;
+
+                default:
+                  break;
+              }
+            },
+            builder: (context, state) {
+              switch (state.onboardingStep) {
+                case OnboardingStep.startScreen:
+                  return Row(
+                    children: [
+                      Expanded(
+                        child: AuFilledButton(
+                          text: "Start".toUpperCase(),
+                          onPress: () {
+                            Navigator.of(context)
+                                .pushNamed(AppRouter.beOwnGalleryPage);
+                          },
+                        ),
+                      )
+                    ],
+                  );
+
+                default:
+                  return SizedBox();
+              }
+            },
+          ),
+        ]),
+      )
+    ]));
   }
 }

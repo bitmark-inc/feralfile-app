@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 
 void main() async {
   await SentryFlutter.init((options) {
@@ -21,7 +22,8 @@ void main() async {
   });
 
   runZonedGuarded(() async {
-    WidgetsFlutterBinding.ensureInitialized();
+    FlutterNativeSplash.preserve(
+        widgetsBinding: WidgetsFlutterBinding.ensureInitialized());
     await setup();
 
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
@@ -30,18 +32,19 @@ void main() async {
       statusBarBrightness: Brightness.light,
     ));
 
+    FlutterError.onError = (FlutterErrorDetails details) {
+      FlutterError.presentError(details);
+      showErrorDialogFromException(details.exception);
+    };
+
     BlocOverrides.runZoned(
       () => runApp(AutonomyApp()),
       blocObserver: AppBlocObserver(),
     );
+    FlutterNativeSplash.remove();
   }, (Object error, StackTrace stackTrace) {
     showErrorDialogFromException(error);
   });
-
-  FlutterError.onError = (FlutterErrorDetails details) {
-    FlutterError.presentError(details);
-    showErrorDialogFromException(details.exception);
-  };
 }
 
 class AutonomyApp extends StatelessWidget {

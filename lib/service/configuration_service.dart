@@ -118,7 +118,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
   @override
   bool isDevicePasscodeEnabled() {
-    return _preferences.getBool(KEY_DEVICE_PASSCODE) ?? true;
+    return _preferences.getBool(KEY_DEVICE_PASSCODE) ?? false;
   }
 
   @override

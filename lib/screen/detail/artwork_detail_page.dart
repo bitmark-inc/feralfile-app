@@ -13,6 +13,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:html_unescape/html_unescape.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class ArtworkDetailPage extends StatelessWidget {
@@ -24,6 +25,7 @@ class ArtworkDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final unescape = HtmlUnescape();
     context
         .read<ArtworkDetailBloc>()
         .add(ArtworkDetailGetInfoEvent(payload.ids[payload.currentIndex]));
@@ -86,7 +88,7 @@ class ArtworkDetailPage extends StatelessWidget {
                         ),
                         SizedBox(height: 40.0),
                         Text(
-                          asset.desc ?? "",
+                          unescape.convert(asset.desc ?? ""),
                           style: appTextTheme.bodyText1,
                         ),
                         asset.source == "feralfile"
@@ -196,18 +198,18 @@ class ArtworkDetailPage extends StatelessWidget {
     return Column(
       children: [
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Text(
               name,
               style: appTextTheme.headline4,
             ),
-            Icon(CupertinoIcons.forward)
           ],
         ),
         SizedBox(height: 16.0),
         Text(
           body,
+          textAlign: TextAlign.start,
           style: appTextTheme.bodyText1,
         ),
       ],
@@ -284,14 +286,17 @@ class ArtworkDetailPage extends StatelessWidget {
         _rowItem(context, "Title", asset.title),
         Divider(height: 32.0),
         _rowItem(context, "Artist", asset.artistName),
-        (asset.maxEdition ?? 0) > 0 ? Column(
-          children: [
-            Divider(height: 32.0),
-            _rowItem(context, "Edition number", asset.edition.toString()),
-            Divider(height: 32.0),
-            _rowItem(context, "Edition size", asset.maxEdition.toString()),
-          ],
-        ) : SizedBox(),
+        (asset.maxEdition ?? 0) > 0
+            ? Column(
+                children: [
+                  Divider(height: 32.0),
+                  _rowItem(context, "Edition number", asset.edition.toString()),
+                  Divider(height: 32.0),
+                  _rowItem(
+                      context, "Edition size", asset.maxEdition.toString()),
+                ],
+              )
+            : SizedBox(),
         Divider(height: 32.0),
         _rowItem(context, "Source", asset.source?.capitalize()),
         Divider(height: 32.0),
