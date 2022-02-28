@@ -198,18 +198,18 @@ class ArtworkDetailPage extends StatelessWidget {
     return Column(
       children: [
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Text(
               name,
               style: appTextTheme.headline4,
             ),
-            Icon(CupertinoIcons.forward)
           ],
         ),
         SizedBox(height: 16.0),
         Text(
           body,
+          textAlign: TextAlign.start,
           style: appTextTheme.bodyText1,
         ),
       ],
