@@ -19,6 +19,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uni_links/uni_links.dart';
+import 'package:flutter_fgbg/flutter_fgbg.dart';
 
 class HomePage extends StatefulWidget {
   static const tag = "home";
@@ -30,12 +31,14 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage>
     with RouteAware, WidgetsBindingObserver {
   StreamSubscription? _deeplinkSubscription;
+  StreamSubscription<FGBGType>? _fgbgSubscription;
 
   @override
   void initState() {
     super.initState();
     _initUniLinks();
     WidgetsBinding.instance?.addObserver(this);
+    _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
   }
 
   @override
@@ -49,24 +52,8 @@ class _HomePageState extends State<HomePage>
     WidgetsBinding.instance?.removeObserver(this);
     routeObserver.unsubscribe(this);
     _deeplinkSubscription?.cancel();
+    _fgbgSubscription?.cancel();
     super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    switch (state) {
-      case AppLifecycleState.resumed:
-        Future.delayed(const Duration(milliseconds: 3500), () {
-          context.read<HomeBloc>().add(RefreshTokensEvent());
-        });
-        break;
-      case AppLifecycleState.paused:
-        if (injector<ConfigurationService>().isDevicePasscodeEnabled())
-          injector<NavigationService>().lockScreen();
-        break;
-      default:
-        break;
-    }
   }
 
   @override
@@ -245,6 +232,20 @@ class _HomePageState extends State<HomePage>
     } else if (link.startsWith(tzPrefix)) {
       final tzUri = link.substring(wcPrefix.length);
       context.read<HomeBloc>().add(HomeConnectTZEvent(tzUri));
+    }
+  }
+
+  void _handleForeBackground(FGBGType event) {
+    switch (event) {
+      case FGBGType.foreground:
+        if (injector<ConfigurationService>().isDevicePasscodeEnabled())
+          injector<NavigationService>().lockScreen();
+        Future.delayed(const Duration(milliseconds: 3500), () {
+          context.read<HomeBloc>().add(RefreshTokensEvent());
+        });
+        break;
+      case FGBGType.background:
+        break;
     }
   }
 }
