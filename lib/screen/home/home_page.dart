@@ -8,6 +8,7 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
+import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -238,13 +239,17 @@ class _HomePageState extends State<HomePage>
   void _handleForeBackground(FGBGType event) {
     switch (event) {
       case FGBGType.foreground:
-        if (injector<ConfigurationService>().isDevicePasscodeEnabled())
+        if (injector<ConfigurationService>().isDevicePasscodeEnabled()) {
           injector<NavigationService>().lockScreen();
-        Future.delayed(const Duration(milliseconds: 3500), () {
+        }
+        Future.delayed(const Duration(milliseconds: 3500), () async {
           context.read<HomeBloc>().add(RefreshTokensEvent());
+          await injector<AWSService>()
+              .storeEventWithDeviceData("device_foreground");
         });
         break;
       case FGBGType.background:
+        injector<AWSService>().storeEventWithDeviceData("device_background");
         break;
     }
   }

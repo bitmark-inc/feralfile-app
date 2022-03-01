@@ -1,4 +1,5 @@
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/theme_manager.dart';
@@ -154,6 +155,8 @@ void showErrorDialogFromException(Object exception) {
   }
 
   log.warning("Unhandled error:", exception);
+  injector<AWSService>().storeEventWithDeviceData("unhandled_error",
+      data: {"message": exception.toString()});
   final event = transalateError(exception);
   final context = injector<NavigationService>().navigatorKey.currentContext;
   if (context != null && event != null) {
