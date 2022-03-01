@@ -41,6 +41,8 @@ dependencies:
   qr_flutter: ^4.0.0
   share: ^2.0.4
   flutter_svg: ^1.0.0
+  aws_firehose_api: ^1.2.0
+  aws_cognito_identity_api: ^1.2.0
   tezart:
     git: https://github.com/autonomy-system/tezart.git
   local_auth: ^1.1.10

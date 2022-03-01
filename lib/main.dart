@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -36,6 +37,7 @@ void main() async {
       FlutterError.presentError(details);
       showErrorDialogFromException(details.exception);
     };
+    await injector<AWSService>().initServices();
 
     BlocOverrides.runZoned(
       () => runApp(AutonomyApp()),
