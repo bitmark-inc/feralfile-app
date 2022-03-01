@@ -64,8 +64,8 @@ class AccountsState {
 
   AccountsState resetLinkedAccountState() {
     return AccountsState(
-        accounts: accounts ?? this.accounts,
-        network: network ?? this.network,
+        accounts: this.accounts,
+        network: this.network,
         justLinkedAccount: null);
   }
 }

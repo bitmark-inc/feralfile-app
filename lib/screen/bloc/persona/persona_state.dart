@@ -4,6 +4,8 @@ abstract class PersonaEvent {}
 
 class CreatePersonaEvent extends PersonaEvent {}
 
+class GetListPersonaEvent extends PersonaEvent {}
+
 class ImportPersonaEvent extends PersonaEvent {
   final String words;
 
@@ -35,13 +37,15 @@ class PersonaState {
   ActionState deletePersonaState = ActionState.notRequested;
 
   Persona? persona;
+  List<Persona>? personas;
 
   PersonaState(
       {this.createAccountState = ActionState.notRequested,
       this.namePersonaState = ActionState.notRequested,
       this.importPersonaState = ActionState.notRequested,
       this.deletePersonaState = ActionState.notRequested,
-      this.persona});
+      this.persona,
+      this.personas});
 
   PersonaState copyWith({
     ActionState? createAccountState,
@@ -49,6 +53,7 @@ class PersonaState {
     ActionState? importPersonaState,
     ActionState? deletePersonaState,
     Persona? persona,
+    List<Persona>? personas,
   }) {
     return PersonaState(
       createAccountState: createAccountState ?? this.createAccountState,
@@ -56,6 +61,7 @@ class PersonaState {
       importPersonaState: importPersonaState ?? this.importPersonaState,
       deletePersonaState: deletePersonaState ?? this.deletePersonaState,
       persona: persona ?? this.persona,
+      personas: personas ?? this.personas,
     );
   }
 }

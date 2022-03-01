@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/util/xtz_amount_formatter.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:share/share.dart';
 
 class LinkedAccountDetailsPage extends StatefulWidget {
   final Connection connection;
@@ -132,6 +133,8 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
                       break;
                   }
 
+                  final address = widget.connection.accountNumber;
+
                   return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -140,13 +143,31 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
                           style: appTextTheme.headline1,
                         ),
                         SizedBox(height: 24),
-                        Text(addressType, style: appTextTheme.headline4),
-                        SizedBox(height: 16),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(addressType, style: appTextTheme.headline4),
+                            TextButton(
+                              onPressed: () =>
+                                  Share.share("$addressType address: $address"),
+                              child: Text(
+                                "Share",
+                                style: TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 12,
+                                    fontFamily: "AtlasGrotesk",
+                                    fontWeight: FontWeight.bold),
+                              ),
+                              style:
+                                  ButtonStyle(alignment: Alignment.centerRight),
+                            )
+                          ],
+                        ),
                         Row(
                           children: [
                             Expanded(
                               child: Text(
-                                widget.connection.accountNumber,
+                                address,
                                 style: addressStyle,
                               ),
                             ),

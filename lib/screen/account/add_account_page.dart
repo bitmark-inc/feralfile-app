@@ -71,7 +71,8 @@ class AddAccountPage extends StatelessWidget {
         children: [
           Text('Import account', style: appTextTheme.headline4),
           SizedBox(height: 16),
-          Text('Enter recovery phrase from existing account.',
+          Text(
+              'Enter a recovery phrase from another wallet to control your NFTs, sign authorizations, and connect to other platforms.',
               style: appTextTheme.bodyText1),
         ],
       ),
@@ -83,19 +84,14 @@ class AddAccountPage extends StatelessWidget {
     return BlocConsumer<PersonaBloc, PersonaState>(
       listener: (context, state) {
         switch (state.createAccountState) {
-          case ActionState.loading:
-            UIHelper.showInfoDialog(context, "Creating...", "");
-            break;
-
           case ActionState.done:
             UIHelper.hideInfoDialog(context);
-            UIHelper.showInfoDialog(context, "Account created", "");
-
-            Future.delayed(SHORT_SHOW_DIALOG_DURATION, () {
+            UIHelper.showGeneratedPersonaDialog(context, onContinue: () {
               UIHelper.hideInfoDialog(context);
               final createdPersona = state.persona;
               if (createdPersona != null) {
-                Navigator.of(context).pushNamed(AppRouter.namePersonaPage,
+                Navigator.of(context).pushNamedAndRemoveUntil(
+                    AppRouter.namePersonaPage, (route) => false,
                     arguments: createdPersona.uuid);
               }
             });
@@ -112,7 +108,9 @@ class AddAccountPage extends StatelessWidget {
             children: [
               Text('Create account', style: appTextTheme.headline4),
               SizedBox(height: 16),
-              Text('Make a new account.', style: appTextTheme.bodyText1),
+              Text(
+                  'Make a new account with addresses you can use to collect or receive NFTs on Ethereum, Feral File, and Tezos.',
+                  style: appTextTheme.bodyText1),
             ],
           ),
           onTap: () {

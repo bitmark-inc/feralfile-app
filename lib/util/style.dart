@@ -61,3 +61,8 @@ class AppColorTheme {
   static const errorColor = Color(0xFFA1200A);
   static const textColor = Colors.grey;
 }
+
+final grantPermissions = const [
+  'View account balance and NFTs',
+  'Request approval for transactions',
+];

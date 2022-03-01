@@ -172,4 +172,16 @@ class Connection {
     final jsonData = json.decode(this.data);
     return WCConnectedSession.fromJson(jsonData);
   }
+
+  String get appName {
+    if (wcConnection != null) {
+      return wcConnection?.sessionStore.remotePeerMeta.name ?? "";
+    }
+
+    if (beaconConnectConnection != null) {
+      return beaconConnectConnection?.peer.name ?? "";
+    }
+
+    return "";
+  }
 }
