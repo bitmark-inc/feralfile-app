@@ -6,6 +6,7 @@ import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/screen/connection/persona_connections_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -94,3 +95,26 @@ class AppBlocObserver extends BlocObserver {
 
 final RouteObserver<ModalRoute<void>> routeObserver =
     RouteObserver<ModalRoute<void>>();
+
+var memoryValues = MemoryValues(scopedPersona: null);
+
+class MemoryValues {
+  String? scopedPersona;
+  PersonaConnectionsPayload? personaConnectionPayload;
+
+  MemoryValues({
+    this.scopedPersona,
+    this.personaConnectionPayload,
+  });
+
+  MemoryValues copyWith({
+    String? scopedPersona,
+    PersonaConnectionsPayload? personaConnectionPayload,
+  }) {
+    return MemoryValues(
+      scopedPersona: scopedPersona ?? this.scopedPersona,
+      personaConnectionPayload:
+          personaConnectionPayload ?? this.personaConnectionPayload,
+    );
+  }
+}

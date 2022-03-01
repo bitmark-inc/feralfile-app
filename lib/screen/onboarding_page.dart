@@ -69,7 +69,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
               switch (state.onboardingStep) {
                 case OnboardingStep.dashboard:
                   Navigator.of(context)
-                      .pushReplacementNamed(AppRouter.homePage);
+                      .pushReplacementNamed(AppRouter.homePageNoTransition);
                   break;
 
                 default:

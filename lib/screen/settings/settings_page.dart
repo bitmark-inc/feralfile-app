@@ -13,7 +13,6 @@ import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart'
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_view.dart';
 import 'package:autonomy_flutter/screen/settings/support/support_view.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/eula_privacy.dart';
 import 'package:flutter/cupertino.dart';
@@ -96,7 +95,21 @@ class _SettingsPageState extends State<SettingsPage>
                         },
                       ),
                       SizedBox(height: 24.0),
-                      AccountsView(),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Accounts",
+                            style: appTextTheme.headline1,
+                          ),
+                          SizedBox(height: 24),
+                          Text(
+                              'Autonomy accounts are full, multi-chain accounts. Linked accounts link to single-chain accounts from other wallets.',
+                              style: appTextTheme.bodyText1),
+                          SizedBox(height: 10),
+                          AccountsView(),
+                        ],
+                      ),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
@@ -106,6 +119,7 @@ class _SettingsPageState extends State<SettingsPage>
                               child: Text('+ Add',
                                   style: appTextTheme.bodyText2
                                       ?.copyWith(color: Colors.black))),
+                          SizedBox(width: 20),
                         ],
                       ),
                       SizedBox(height: 40),
