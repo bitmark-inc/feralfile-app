@@ -74,6 +74,12 @@ class AddAccountPage extends StatelessWidget {
           Text(
               'Enter a recovery phrase from another wallet to control your NFTs, sign authorizations, and connect to other platforms.',
               style: appTextTheme.bodyText1),
+          SizedBox(height: 16),
+          Text(
+            'Learn more about Autonomy security...',
+            style:
+                appTextTheme.bodyText1?.copyWith(fontWeight: FontWeight.bold),
+          )
         ],
       ),
       onTap: () => Navigator.of(context).pushNamed(AppRouter.importAccountPage),
@@ -90,8 +96,7 @@ class AddAccountPage extends StatelessWidget {
               UIHelper.hideInfoDialog(context);
               final createdPersona = state.persona;
               if (createdPersona != null) {
-                Navigator.of(context).pushNamedAndRemoveUntil(
-                    AppRouter.namePersonaPage, (route) => false,
+                Navigator.of(context).pushNamed(AppRouter.namePersonaPage,
                     arguments: createdPersona.uuid);
               }
             });

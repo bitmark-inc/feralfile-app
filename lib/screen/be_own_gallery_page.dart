@@ -26,7 +26,7 @@ class BeOwnGalleryPage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "VIEW YOUR DIGITAL ARTWORK COLLECTION ANYTIME, ANYWHERE.",
+                      "View your digital artwork collection anytime, anywhere.",
                       style: appTextTheme.headline1,
                     ),
                     SizedBox(height: 30),
