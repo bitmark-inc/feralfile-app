@@ -8,9 +8,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:bloc/bloc.dart';
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
 import 'package:libauk_dart/libauk_dart.dart';
-import 'package:meta/meta.dart';
 
 part 'feralfile_state.dart';
 
