@@ -73,23 +73,26 @@ class _GlobalReceivePageState extends State<GlobalReceivePage> {
                   style: appTextTheme.bodyText1,
                 ),
                 SizedBox(height: 24),
-                ...categorizedAccounts.map((e) => Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(e.category.toUpperCase(),
-                            style: appTextTheme.headline4),
-                        ...e.accounts
-                            .map((account) => Container(
-                                padding: EdgeInsets.only(top: 16, bottom: 16),
-                                child: accountWithConnectionItem(
-                                    context, account,
-                                    onTap: () => Navigator.of(context)
-                                        .pushNamed(GlobalReceiveDetailPage.tag,
-                                            arguments: account))))
-                            .toList(),
-                        SizedBox(height: 40)
-                      ],
-                    )),
+                ...categorizedAccounts.map((e) => e.accounts.length > 0
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(e.category.toUpperCase(),
+                              style: appTextTheme.headline4),
+                          ...e.accounts
+                              .map((account) => Container(
+                                  padding: EdgeInsets.only(top: 16, bottom: 16),
+                                  child: accountWithConnectionItem(
+                                      context, account,
+                                      onTap: () => Navigator.of(context)
+                                          .pushNamed(
+                                              GlobalReceiveDetailPage.tag,
+                                              arguments: account))))
+                              .toList(),
+                          SizedBox(height: 40)
+                        ],
+                      )
+                    : Container()),
               ],
             ),
           ),
