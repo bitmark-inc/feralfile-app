@@ -23,7 +23,8 @@ class ArtworkPreviewPage extends StatefulWidget {
   State<ArtworkPreviewPage> createState() => _ArtworkPreviewPageState();
 }
 
-class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
+class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
+    with WidgetsBindingObserver {
   VideoPlayerController? _controller;
   bool isFullscreen = false;
   late int currentIndex;
@@ -34,6 +35,8 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
   @override
   void initState() {
     super.initState();
+    Future.delayed(Duration(milliseconds: 500),
+        (() => WidgetsBinding.instance?.addObserver(this)));
 
     currentIndex = widget.payload.currentIndex;
     final id = widget.payload.ids[currentIndex];
@@ -55,11 +58,18 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
 
   @override
   void dispose() async {
+    WidgetsBinding.instance?.removeObserver(this);
     _controller?.dispose();
     _controller = null;
     _webViewController = null;
     _detector?.stopListening();
     super.dispose();
+  }
+
+  @override
+  void didChangeMetrics() {
+    super.didChangeMetrics();
+    _updateWebviewSize();
   }
 
   @override
@@ -100,6 +110,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
                                   children: [
                                     Text(
                                       asset.title,
+                                      overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
                                           color: Colors.white,
                                           fontWeight: FontWeight.w700,
@@ -109,6 +120,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
                                     SizedBox(height: 4.0),
                                     Text(
                                       "by ${asset.artistName}",
+                                      overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
                                           color: Colors.white,
                                           fontWeight: FontWeight.w300,
@@ -148,7 +160,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
                                 ),
                               ),
                               IconButton(
-                                onPressed: () {
+                                onPressed: () async {
                                   setState(() {
                                     isFullscreen = true;
                                   });
@@ -282,6 +294,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
                 onTap: () {
                   injector<ConfigurationService>()
                       .setFullscreenIntroEnable(false);
+                  Navigator.of(context).pop();
                 },
               ),
             ),
@@ -296,6 +309,15 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
   Future<bool> _clearPrevious() async {
     await _controller?.pause();
     return true;
+  }
+
+  _updateWebviewSize() {
+    if (_webViewController != null) {
+      Future.delayed(
+          Duration(milliseconds: 100),
+          (() => _webViewController
+              ?.runJavascript("window.dispatchEvent(new Event('resize'));")));
+    }
   }
 
   Future<void> _initializePlay(String videoPath) async {
