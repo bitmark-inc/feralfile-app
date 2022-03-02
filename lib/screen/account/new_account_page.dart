@@ -63,19 +63,14 @@ class NewAccountPage extends StatelessWidget {
     return BlocConsumer<PersonaBloc, PersonaState>(
       listener: (context, state) {
         switch (state.createAccountState) {
-          case ActionState.loading:
-            UIHelper.showInfoDialog(context, "Creating...", "");
-            break;
-
           case ActionState.done:
             UIHelper.hideInfoDialog(context);
-            UIHelper.showInfoDialog(context, "Account created", "");
-
-            Future.delayed(SHORT_SHOW_DIALOG_DURATION, () {
+            UIHelper.showGeneratedPersonaDialog(context, onContinue: () {
               UIHelper.hideInfoDialog(context);
               final createdPersona = state.persona;
               if (createdPersona != null) {
-                Navigator.of(context).pushNamed(AppRouter.namePersonaPage,
+                Navigator.of(context).pushNamedAndRemoveUntil(
+                    AppRouter.namePersonaPage, (route) => false,
                     arguments: createdPersona.uuid);
               }
             });
@@ -86,9 +81,9 @@ class NewAccountPage extends StatelessWidget {
         }
       },
       builder: (context, state) {
-        return _optionItem(context, "No", "Make a new account.", onTap: () {
-          context.read<PersonaBloc>().add(CreatePersonaEvent());
-        });
+        return _optionItem(context, "No",
+            "Make a new account with addresses you can use to collect or receive NFTs on Ethereum, Feral File, and Tezos.",
+            onTap: () => context.read<PersonaBloc>().add(CreatePersonaEvent()));
       },
     );
   }

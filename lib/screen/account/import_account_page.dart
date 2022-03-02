@@ -30,18 +30,13 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
       body: BlocConsumer<PersonaBloc, PersonaState>(
         listener: (context, state) {
           switch (state.importPersonaState) {
-            case ActionState.loading:
-              UIHelper.showInfoDialog(context, "Importing...", "");
-              break;
-
             case ActionState.error:
               UIHelper.hideInfoDialog(context);
               break;
 
             case ActionState.done:
               UIHelper.hideInfoDialog(context);
-              UIHelper.showInfoDialog(context, "Account imported", "");
-              Future.delayed(SHORT_SHOW_DIALOG_DURATION, () {
+              UIHelper.showImportedPersonaDialog(context, onContinue: () {
                 UIHelper.hideInfoDialog(context);
                 final persona = state.persona;
                 if (persona != null) {
@@ -50,6 +45,7 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
                       arguments: persona.uuid);
                 }
               });
+
               break;
           }
         },
@@ -71,7 +67,7 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
                         ),
                         addTitleSpace(),
                         Text(
-                          "Enter recovery phrase from existing account. Write it in the same order that it was presented to you.",
+                          "Importing your account will also add support for all chains featured in Autonomy. We will automatically back up your account in your iCloud Keychain.",
                           style: appTextTheme.bodyText1,
                         ),
                         SizedBox(height: 40),
