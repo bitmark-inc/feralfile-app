@@ -47,6 +47,9 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
               });
 
               break;
+
+            default:
+              break;
           }
         },
         builder: (context, state) {

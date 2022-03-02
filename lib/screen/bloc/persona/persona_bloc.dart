@@ -111,7 +111,7 @@ class PersonaBloc extends Bloc<PersonaEvent, PersonaState> {
         switch (connection.connectionType) {
           case 'dappConnect':
             if (deletedPersona.uuid == connection.wcConnection?.personaUuid) {
-              _cloudDB.connectionDao.deleteConnection(connection);
+              await _cloudDB.connectionDao.deleteConnection(connection);
 
               final wcPeer = connection.wcConnection?.sessionStore.peerMeta;
               if (wcPeer != null) wcPeers.add(wcPeer);
@@ -121,7 +121,7 @@ class PersonaBloc extends Bloc<PersonaEvent, PersonaState> {
           case 'beaconP2PPeer':
             if (deletedPersona.uuid ==
                 connection.beaconConnectConnection?.personaUuid) {
-              _cloudDB.connectionDao.deleteConnection(connection);
+              await _cloudDB.connectionDao.deleteConnection(connection);
 
               final bcPeer = connection.beaconConnectConnection?.peer;
               if (bcPeer != null) bcPeers.add(bcPeer);

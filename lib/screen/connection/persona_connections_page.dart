@@ -222,7 +222,8 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
         leftWidget: Row(children: [
           UIHelper.buildConnectionAppWidget(connection, 24),
           SizedBox(width: 16),
-          Text(connection.appName, style: appTextTheme.headline4),
+          Expanded(
+              child: Text(connection.appName, style: appTextTheme.headline4)),
         ]),
         onTap: () => Navigator.of(context).pushNamed(
             AppRouter.connectionDetailsPage,
