@@ -183,7 +183,8 @@ class UIHelper {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('ACCOUNT GENERATED WITH:', style: theme.textTheme.headline5),
+            Text('MULTI-CHAIN ACCOUNT GENERATED WITH:',
+                style: theme.textTheme.headline5),
             SizedBox(height: 16),
             Text('• Bitmark address', style: theme.textTheme.headline4),
             SizedBox(height: 16),

@@ -12,6 +12,7 @@ class AuTextField extends StatelessWidget {
   final TextInputType keyboardType;
   final ValueChanged<String>? onChanged;
   final int? maxLines;
+  final int? hintMaxLines;
 
   const AuTextField(
       {Key? key,
@@ -20,6 +21,7 @@ class AuTextField extends StatelessWidget {
       this.isError = false,
       this.expanded = false,
       this.maxLines = 1,
+      this.hintMaxLines = null,
       required this.controller,
       this.subTitleView,
       this.suffix,
@@ -92,6 +94,7 @@ class AuTextField extends StatelessWidget {
           isDense: true,
           border: InputBorder.none,
           hintText: placeholder,
+          hintMaxLines: hintMaxLines,
           hintStyle: TextStyle(
             fontSize: 16,
             fontFamily: "AtlasGrotesk",
