@@ -1,6 +1,7 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/model/network.dart';
+import 'package:autonomy_flutter/screen/connection/persona_connections_page.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/ethereum/ethereum_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
@@ -14,7 +15,9 @@ import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:uuid/uuid.dart';
 
 class PersonaDetailsPage extends StatefulWidget {
   final Persona persona;
@@ -95,45 +98,67 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
         ),
         SizedBox(height: 24),
         BlocBuilder<EthereumBloc, EthereumState>(builder: (context, state) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text("Ethereum", style: appTextTheme.headline4),
-              SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      state.personaAddresses?[uuid] ?? "",
-                      style: addressStyle,
-                    ),
-                  ),
-                ],
-              ),
-              addDivider(),
-            ],
+          return _addressRow(
+            address: state.personaAddresses?[uuid] ?? "",
+            type: CryptoType.ETH,
           );
         }),
+        addDivider(),
         BlocBuilder<TezosBloc, TezosState>(builder: (context, state) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text("Tezos", style: appTextTheme.headline4),
-              SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      state.personaAddresses?[uuid] ?? "",
-                      style: addressStyle,
-                    ),
-                  ),
-                ],
-              ),
-            ],
+          return _addressRow(
+            address: state.personaAddresses?[uuid] ?? "",
+            type: CryptoType.XTZ,
           );
         }),
       ],
+    );
+  }
+
+  Widget _addressRow({required String address, required CryptoType type}) {
+    var typeText = "";
+    switch (type) {
+      case CryptoType.ETH:
+        typeText = "Ethereum";
+        break;
+      case CryptoType.XTZ:
+        typeText = "Tezos";
+        break;
+    }
+
+    return GestureDetector(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(typeText, style: appTextTheme.headline4),
+              SvgPicture.asset('assets/images/iconForward.svg'),
+            ],
+          ),
+          SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  address,
+                  style: addressStyle,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+      onTap: () {
+        final payload = PersonaConnectionsPayload(
+          personaUUID: widget.persona.uuid,
+          address: address,
+          type: type,
+        );
+
+        Navigator.of(context)
+            .pushNamed(AppRouter.personaConnectionsPage, arguments: payload);
+      },
     );
   }
 

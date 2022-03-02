@@ -132,7 +132,8 @@ class _LinkAccountPageState extends State<LinkAccountPage>
 
             Future.delayed(Duration(seconds: delay), () {
               UIHelper.hideInfoDialog(context);
-              Navigator.of(context).pushNamed(AppRouter.nameLinkedAccountPage,
+              Navigator.of(context).pushNamedAndRemoveUntil(
+                  AppRouter.nameLinkedAccountPage, (route) => false,
                   arguments: linkedAccount);
             });
           }

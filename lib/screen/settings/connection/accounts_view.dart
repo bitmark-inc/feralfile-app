@@ -46,11 +46,6 @@ class _AccountsViewState extends State<AccountsView> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              "Accounts",
-              style: appTextTheme.headline1,
-            ),
-            SizedBox(height: 24),
             ...accounts
                 .map((account) => Column(
                       children: [
@@ -101,7 +96,7 @@ class _AccountsViewState extends State<AccountsView> {
       BuildContext pageContext, Account account) {
     final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
     var accountName = account.name;
-    if (accountName == null || accountName.isEmpty) {
+    if (accountName.isEmpty) {
       accountName = account.accountNumber.mask(4);
     }
 
@@ -240,11 +235,11 @@ class _AccountsViewState extends State<AccountsView> {
           rightWidget: Container(
             padding: EdgeInsets.symmetric(vertical: 5, horizontal: 8),
             decoration: BoxDecoration(
-                border: Border.all(color: Color(0x999999999), width: 1)),
+                border: Border.all(color: Color(0xFF6D6B6B), width: 1)),
             child: Text(
               "LINKED",
               style: TextStyle(
-                  color: Color(0x999999999),
+                  color: Color(0xFF6D6B6B),
                   fontSize: 12,
                   fontFamily: "IBMPlexMono"),
             ),

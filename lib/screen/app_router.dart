@@ -13,6 +13,9 @@ import 'package:autonomy_flutter/screen/account/linked_account_details_page.dart
 import 'package:autonomy_flutter/screen/account/name_linked_account_page.dart';
 import 'package:autonomy_flutter/screen/account/name_persona_page.dart';
 import 'package:autonomy_flutter/screen/account/new_account_page.dart';
+import 'package:autonomy_flutter/screen/bloc/connections/connections_bloc.dart';
+import 'package:autonomy_flutter/screen/connection/connection_details_page.dart';
+import 'package:autonomy_flutter/screen/connection/persona_connections_page.dart';
 import 'package:autonomy_flutter/screen/account/persona_details_page.dart';
 import 'package:autonomy_flutter/screen/account/recovery_phrase_page.dart';
 import 'package:autonomy_flutter/screen/be_own_gallery_page.dart';
@@ -40,7 +43,6 @@ import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_det
 import 'package:autonomy_flutter/screen/settings/networks/select_network_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/networks/select_network_page.dart';
 import 'package:autonomy_flutter/screen/settings/settings_page.dart';
-import 'package:autonomy_flutter/screen/tezos_beacon/tb_connect_page.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_sign_message_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_bloc.dart';
@@ -50,7 +52,6 @@ import 'package:autonomy_flutter/screen/wallet_connect/wc_disconnect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
 import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wallet_connect/wallet_connect.dart';
 
@@ -70,12 +71,16 @@ class AppRouter {
   static const nameLinkedAccountPage = 'name_linked_account';
   static const importAccountPage = 'import_account';
   static const homePage = "home_page";
+  static const homePageNoTransition = 'home_page_NoTransition';
   static const settingsPage = "settings";
   static const personaDetailsPage = "persona_details";
+  static const personaConnectionsPage = "persona_connections";
+  static const connectionDetailsPage = 'connection_details';
   static const linkedAccountDetailsPage = 'linked_account_details';
   static const walletDetailsPage = 'wallet_detail';
   static const scanQRPage = 'qr_scanner';
   static const recoveryPhrasePage = 'recovery_phrase';
+  static const wcConnectPage = 'wc_connect';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final networkInjector = injector<NetworkConfigInjector>();
@@ -89,8 +94,25 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider(
-                create: (_) => RouterBloc(injector<CloudDatabase>()),
+                create: (_) =>
+                    RouterBloc(injector(), injector<CloudDatabase>()),
                 child: OnboardingPage()));
+
+      case homePageNoTransition:
+        return PageRouteBuilder(
+            settings: settings,
+            pageBuilder: (context, animetion1, animation2) => BlocProvider(
+                  create: (_) => HomeBloc(
+                      networkInjector.I(),
+                      injector(),
+                      injector(),
+                      networkInjector.I<AppDatabase>().assetDao,
+                      networkInjector.I(),
+                      injector<CloudDatabase>()),
+                  child: HomePage(),
+                ),
+            transitionDuration: Duration(seconds: 0));
+
       case homePage:
         return CupertinoPageRoute(
             settings: settings,
@@ -113,14 +135,22 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider(
-                create: (_) => PersonaBloc(injector<CloudDatabase>()),
+                create: (_) => PersonaBloc(
+                      injector<CloudDatabase>(),
+                      injector(),
+                      injector(),
+                    ),
                 child: NewAccountPage()));
 
       case addAccountPage:
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider(
-                create: (_) => PersonaBloc(injector<CloudDatabase>()),
+                create: (_) => PersonaBloc(
+                      injector<CloudDatabase>(),
+                      injector(),
+                      injector(),
+                    ),
                 child: AddAccountPage()));
 
       case AppRouter.linkAccountpage:
@@ -132,8 +162,15 @@ class AppRouter {
       case accountsPreviewPage:
         return CupertinoPageRoute(
             settings: settings,
-            builder: (context) => BlocProvider.value(
-                value: accountsBloc, child: AccountsPreviewPage()));
+            builder: (context) => MultiBlocProvider(providers: [
+                  BlocProvider.value(value: accountsBloc),
+                  BlocProvider(
+                      create: (_) => PersonaBloc(
+                            injector<CloudDatabase>(),
+                            injector(),
+                            injector(),
+                          )),
+                ], child: AccountsPreviewPage()));
 
       case linkFeralFilePage:
         return CupertinoPageRoute(
@@ -162,7 +199,11 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider(
-                  create: (_) => PersonaBloc(injector<CloudDatabase>()),
+                  create: (_) => PersonaBloc(
+                    injector<CloudDatabase>(),
+                    injector(),
+                    injector(),
+                  ),
                   child: NamePersonaPage(uuid: settings.arguments as String),
                 ));
 
@@ -178,15 +219,48 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider(
-                create: (_) => PersonaBloc(injector<CloudDatabase>()),
+                create: (_) => PersonaBloc(
+                      injector<CloudDatabase>(),
+                      injector(),
+                      injector(),
+                    ),
                 child: ImportAccountPage()));
 
-      case WCConnectPage.tag:
-        return CupertinoPageRoute(
-          settings: settings,
-          builder: (context) =>
-              WCConnectPage(args: settings.arguments as WCConnectPageArgs),
-        );
+      case wcConnectPage:
+        final argument = settings.arguments;
+        switch (argument.runtimeType) {
+          case WCConnectPageArgs:
+            return CupertinoPageRoute(
+              settings: settings,
+              builder: (context) => BlocProvider(
+                  create: (_) => PersonaBloc(
+                        injector<CloudDatabase>(),
+                        injector(),
+                        injector(),
+                      ),
+                  child: WCConnectPage(
+                      wcConnectArgs: argument as WCConnectPageArgs,
+                      beaconRequest: null)),
+            );
+
+          case BeaconRequest:
+            return CupertinoPageRoute(
+              settings: settings,
+              builder: (context) => BlocProvider(
+                  create: (_) => PersonaBloc(
+                        injector<CloudDatabase>(),
+                        injector(),
+                        injector(),
+                      ),
+                  child: WCConnectPage(
+                      wcConnectArgs: null,
+                      beaconRequest: argument as BeaconRequest?)),
+            );
+
+          default:
+            throw Exception('Invalid route: ${settings.name}');
+        }
+
       case WCDisconnectPage.tag:
         return CupertinoPageRoute(
           settings: settings,
@@ -228,7 +302,11 @@ class AppRouter {
             builder: (context) => MultiBlocProvider(providers: [
                   BlocProvider.value(value: accountsBloc),
                   BlocProvider(
-                      create: (_) => PersonaBloc(injector<CloudDatabase>())),
+                      create: (_) => PersonaBloc(
+                            injector<CloudDatabase>(),
+                            injector(),
+                            injector(),
+                          )),
                   BlocProvider.value(value: ethereumBloc),
                   BlocProvider.value(value: tezosBloc),
                 ], child: SettingsPage()));
@@ -244,6 +322,31 @@ class AppRouter {
                     child: PersonaDetailsPage(
                       persona: settings.arguments as Persona,
                     )));
+
+      case personaConnectionsPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => BlocProvider(
+                create: (_) => ConnectionsBloc(
+                      injector<CloudDatabase>(),
+                      injector(),
+                      injector(),
+                    ),
+                child: PersonaConnectionsPage(
+                    payload: settings.arguments as PersonaConnectionsPayload)));
+
+      case connectionDetailsPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => BlocProvider(
+                create: (_) => ConnectionsBloc(
+                      injector<CloudDatabase>(),
+                      injector(),
+                      injector(),
+                    ),
+                child: ConnectionDetailsPage(
+                  connectionItem: settings.arguments as ConnectionItem,
+                )));
 
       case linkedAccountDetailsPage:
         return CupertinoPageRoute(
@@ -312,12 +415,6 @@ class AppRouter {
                   child: ArtworkDetailPage(
                       payload: settings.arguments as ArtworkDetailPayload),
                 ));
-      case TBConnectPage.tag:
-        return CupertinoPageRoute(
-          settings: settings,
-          builder: (context) =>
-              TBConnectPage(request: settings.arguments as BeaconRequest),
-        );
       case TBSignMessagePage.tag:
         return CupertinoPageRoute(
           settings: settings,

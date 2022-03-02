@@ -1,4 +1,5 @@
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -115,8 +116,15 @@ class _NamePersonaPageState extends State<NamePersonaPage> {
 
   void _doneNaming() {
     if (injector<ConfigurationService>().isDoneOnboarding()) {
-      Navigator.of(context)
-          .popUntil((route) => route.settings.name == AppRouter.settingsPage);
+      if (memoryValues.personaConnectionPayload != null) {
+        Navigator.of(context).pushNamedAndRemoveUntil(
+            AppRouter.personaConnectionsPage,
+            (route) => route.settings.name == AppRouter.settingsPage,
+            arguments: memoryValues.personaConnectionPayload!);
+      } else {
+        Navigator.of(context)
+            .popUntil((route) => route.settings.name == AppRouter.settingsPage);
+      }
     } else {
       doneOnboarding(context);
     }
