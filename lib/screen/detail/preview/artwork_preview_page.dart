@@ -7,7 +7,6 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shake/shake.dart';
 import 'package:video_player/video_player.dart';
@@ -60,7 +59,6 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
         setState(() {
           isFullscreen = false;
         });
-        SystemChrome.restoreSystemUIOverlays();
       }
     });
 
@@ -70,7 +68,6 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   @override
   void dispose() async {
     WidgetsBinding.instance?.removeObserver(this);
-    SystemChrome.restoreSystemUIOverlays();
     _controller?.dispose();
     _controller = null;
     _webViewController = null;
@@ -177,8 +174,6 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                                     isFullscreen = true;
                                   });
 
-                                  SystemChrome.setEnabledSystemUIMode(
-                                      SystemUiMode.leanBack);
                                   if (injector<ConfigurationService>()
                                       .isFullscreenIntroEnabled()) {
                                     showModalBottomSheet<void>(
