@@ -57,6 +57,10 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
         setState(() {
           isFullscreen = false;
         });
+        Future.delayed(
+            Duration(milliseconds: 300),
+            (() => _webViewController
+                ?.runJavascript("window.dispatchEvent(new Event('resize'));")));
       }
     });
 
@@ -160,11 +164,14 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
                                 ),
                               ),
                               IconButton(
-                                onPressed: () {
+                                onPressed: () async {
                                   setState(() {
                                     isFullscreen = true;
                                   });
-
+                                  Future.delayed(
+                                      Duration(milliseconds: 300),
+                                      (() => _webViewController?.runJavascript(
+                                          "window.dispatchEvent(new Event('resize'));")));
                                   if (injector<ConfigurationService>()
                                       .isFullscreenIntroEnabled()) {
                                     showModalBottomSheet<void>(
@@ -292,6 +299,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
                 onTap: () {
                   injector<ConfigurationService>()
                       .setFullscreenIntroEnable(false);
+                  Navigator.of(context).pop();
                 },
               ),
             ),
