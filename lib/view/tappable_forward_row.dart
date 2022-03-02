@@ -6,8 +6,7 @@ class TappableForwardRow extends StatelessWidget {
   final Widget? leftWidget;
   final Widget? rightWidget;
   final Widget? bottomWidget;
-  final Function() onTap;
-
+  final Function()? onTap;
   const TappableForwardRow(
       {Key? key,
       this.leftWidget,
@@ -21,9 +20,7 @@ class TappableForwardRow extends StatelessWidget {
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       child: _content(),
-      onTap: () {
-        onTap();
-      },
+      onTap: onTap,
       // onTap: onTap,
     );
   }
@@ -48,8 +45,10 @@ class TappableForwardRow extends StatelessWidget {
         Row(
           children: [
             rightWidget ?? SizedBox(),
-            SizedBox(width: 8.0),
-            SvgPicture.asset('assets/images/iconForward.svg'),
+            if (onTap != null) ...[
+              SizedBox(width: 8.0),
+              SvgPicture.asset('assets/images/iconForward.svg'),
+            ],
           ],
         )
       ],
