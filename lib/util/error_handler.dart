@@ -161,7 +161,7 @@ void showErrorDialogFromException(Object exception) {
     lastException = exception;
   }
 
-  log.warning("Unhandled error:", exception);
+  log.warning("Unhandled error: $exception", exception);
   injector<AWSService>().storeEventWithDeviceData("unhandled_error",
       data: {"message": exception.toString()});
   final event = translateError(exception);
