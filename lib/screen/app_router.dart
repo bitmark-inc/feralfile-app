@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/screen/account/name_linked_account_page.dart';
 import 'package:autonomy_flutter/screen/account/name_persona_page.dart';
 import 'package:autonomy_flutter/screen/account/new_account_page.dart';
 import 'package:autonomy_flutter/screen/bloc/connections/connections_bloc.dart';
+import 'package:autonomy_flutter/screen/cloud_page.dart';
 import 'package:autonomy_flutter/screen/connection/connection_details_page.dart';
 import 'package:autonomy_flutter/screen/connection/persona_connections_page.dart';
 import 'package:autonomy_flutter/screen/account/persona_details_page.dart';
@@ -83,6 +84,7 @@ class AppRouter {
   static const scanQRPage = 'qr_scanner';
   static const recoveryPhrasePage = 'recovery_phrase';
   static const wcConnectPage = 'wc_connect';
+  static const cloudPage = 'cloud_page';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final networkInjector = injector<NetworkConfigInjector>();
@@ -436,6 +438,14 @@ class AppRouter {
             builder: (context) => RecoveryPhrasePage(
                   words: settings.arguments as List<String>,
                 ));
+
+      case cloudPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => CloudPage(
+                  section: settings.arguments as String,
+                ));
+
       case SentryReportPage.tag:
         return CupertinoPageRoute(
             settings: settings,

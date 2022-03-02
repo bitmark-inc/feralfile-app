@@ -1,6 +1,7 @@
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/gateway/currency_exchange_api.dart';
 import 'package:autonomy_flutter/service/aws_service.dart';
+import 'package:autonomy_flutter/service/cloud_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/currency_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -62,6 +63,9 @@ Future<void> setup() async {
       () => CurrencyExchangeApi(dio));
   injector.registerLazySingleton<CurrencyService>(
       () => CurrencyServiceImpl(injector()));
+
+  final cloudService = CloudService();
+  injector.registerLazySingleton(() => cloudService);
 
   injector.registerLazySingleton(
       () => NetworkConfigInjector(injector(), dio, testnetDB, mainnetDB));

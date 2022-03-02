@@ -23,7 +23,8 @@ class ArtworkPreviewPage extends StatefulWidget {
   State<ArtworkPreviewPage> createState() => _ArtworkPreviewPageState();
 }
 
-class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
+class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
+    with WidgetsBindingObserver {
   VideoPlayerController? _controller;
   bool isFullscreen = false;
   late int currentIndex;
@@ -34,21 +35,15 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
   @override
   void initState() {
     super.initState();
+    Future.delayed(Duration(milliseconds: 500),
+        (() => WidgetsBinding.instance?.addObserver(this)));
 
     currentIndex = widget.payload.currentIndex;
     final id = widget.payload.ids[currentIndex];
 
-    context.read<ArtworkPreviewBloc>().add(ArtworkPreviewGetAssetTokenEvent(id));
-    //
-    // // _controller.
-    // if (artwork.medium == "video") {
-    //   _controller = VideoPlayerController.network(artwork.previewURL!)
-    //     ..initialize().then((_) {
-    //       _controller?.play();
-    //       _controller?.setLooping(true);
-    //       setState(() {});
-    //     });
-    // }
+    context
+        .read<ArtworkPreviewBloc>()
+        .add(ArtworkPreviewGetAssetTokenEvent(id));
 
     _detector = ShakeDetector.autoStart(onPhoneShake: () {
       if (isFullscreen) {
@@ -63,11 +58,18 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
 
   @override
   void dispose() async {
+    WidgetsBinding.instance?.removeObserver(this);
     _controller?.dispose();
     _controller = null;
     _webViewController = null;
     _detector?.stopListening();
     super.dispose();
+  }
+
+  @override
+  void didChangeMetrics() {
+    super.didChangeMetrics();
+    _updateWebviewSize();
   }
 
   @override
@@ -77,7 +79,6 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
       body: BlocBuilder<ArtworkPreviewBloc, ArtworkPreviewState>(
           builder: (context, state) {
         if (state.asset != null) {
-
           final asset = state.asset!;
 
           if (asset.medium == "video" && loadedPath != asset.previewURL) {
@@ -109,6 +110,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
                                   children: [
                                     Text(
                                       asset.title,
+                                      overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
                                           color: Colors.white,
                                           fontWeight: FontWeight.w700,
@@ -118,6 +120,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
                                     SizedBox(height: 4.0),
                                     Text(
                                       "by ${asset.artistName}",
+                                      overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
                                           color: Colors.white,
                                           fontWeight: FontWeight.w300,
@@ -129,9 +132,12 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
                               ),
                               IconButton(
                                 onPressed: () {
-                                  currentIndex = currentIndex <= 0 ? widget.payload.ids.length - 1 : currentIndex - 1;
+                                  currentIndex = currentIndex <= 0
+                                      ? widget.payload.ids.length - 1
+                                      : currentIndex - 1;
                                   final id = widget.payload.ids[currentIndex];
-                                  context.read<ArtworkPreviewBloc>().add(ArtworkPreviewGetAssetTokenEvent(id));
+                                  context.read<ArtworkPreviewBloc>().add(
+                                      ArtworkPreviewGetAssetTokenEvent(id));
                                 },
                                 icon: Icon(
                                   CupertinoIcons.back,
@@ -140,9 +146,13 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
                               ),
                               IconButton(
                                 onPressed: () {
-                                  currentIndex = currentIndex >= widget.payload.ids.length - 1 ? 0 : currentIndex + 1;
+                                  currentIndex = currentIndex >=
+                                          widget.payload.ids.length - 1
+                                      ? 0
+                                      : currentIndex + 1;
                                   final id = widget.payload.ids[currentIndex];
-                                  context.read<ArtworkPreviewBloc>().add(ArtworkPreviewGetAssetTokenEvent(id));
+                                  context.read<ArtworkPreviewBloc>().add(
+                                      ArtworkPreviewGetAssetTokenEvent(id));
                                 },
                                 icon: Icon(
                                   CupertinoIcons.forward,
@@ -150,7 +160,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
                                 ),
                               ),
                               IconButton(
-                                onPressed: () {
+                                onPressed: () async {
                                   setState(() {
                                     isFullscreen = true;
                                   });
@@ -203,6 +213,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
         }
       default:
         return WebView(
+            key: UniqueKey(),
             initialUrl: asset.previewURL,
             onWebViewCreated: (WebViewController webViewController) {
               _webViewController = webViewController;
@@ -216,7 +227,8 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
                 ''';
               await _webViewController?.runJavascript(javascriptString);
             },
-            javascriptMode: JavascriptMode.unrestricted);
+            javascriptMode: JavascriptMode.unrestricted,
+            backgroundColor: Colors.black);
     }
   }
 
@@ -282,6 +294,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
                 onTap: () {
                   injector<ConfigurationService>()
                       .setFullscreenIntroEnable(false);
+                  Navigator.of(context).pop();
                 },
               ),
             ),
@@ -298,13 +311,21 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
     return true;
   }
 
+  _updateWebviewSize() {
+    if (_webViewController != null) {
+      Future.delayed(
+          Duration(milliseconds: 100),
+          (() => _webViewController
+              ?.runJavascript("window.dispatchEvent(new Event('resize'));")));
+    }
+  }
+
   Future<void> _initializePlay(String videoPath) async {
     _controller = VideoPlayerController.network(videoPath);
     _controller!.initialize().then((_) {
       _controller?.play();
       _controller?.setLooping(true);
-      setState(() {
-      });
+      setState(() {});
     });
   }
 

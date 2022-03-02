@@ -120,15 +120,23 @@ class WalletConnectService {
     WCPeerMeta? currentPeerMeta = sessionStore?.remotePeerMeta;
     return WCClient(
       onConnect: () {
-        print("WC connected");
+        log.info("WC connected");
       },
-      onDisconnect: (code, reason) {
-        wcClients.removeWhere(
-            (element) => element.sessionStore.session.topic == topic);
-        print("WC disconnected");
+      onDisconnect: (code, reason) async {
+        log.info("WC disconnected");
+        wcClients.removeWhere((element) => element.session == null);
+
+        if (connection != null) {
+          _cloudDB.connectionDao.deleteConnection(connection);
+        } else {
+          final removingConnection = await _cloudDB.connectionDao.findById(topic);
+          if (removingConnection != null) {
+            _cloudDB.connectionDao.deleteConnection(removingConnection);
+          }
+        }
       },
       onFailure: (error) {
-        print("WC failed to connect: $error");
+        log.info("WC failed to connect: $error");
       },
       onSessionRequest: (id, peerMeta) {
         currentPeerMeta = peerMeta;
