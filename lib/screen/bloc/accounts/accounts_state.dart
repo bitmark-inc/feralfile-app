@@ -4,6 +4,8 @@ abstract class AccountsEvent {}
 
 class GetAccountsEvent extends AccountsEvent {}
 
+class GetCategorizedAccountsEvent extends AccountsEvent {}
+
 class LinkEthereumWalletEvent extends AccountsEvent {
   final WCConnectedSession session;
 
@@ -30,33 +32,49 @@ class Account {
   Persona? persona;
   List<Connection>? connections;
   String name;
+  String? blockchain;
   String accountNumber;
   DateTime createdAt;
 
   Account({
     this.persona,
     this.connections,
+    this.blockchain,
     this.accountNumber = "",
     this.name = "",
     required this.createdAt,
   });
 }
 
+class CategorizedAccounts {
+  String category;
+  List<Account> accounts;
+
+  CategorizedAccounts(this.category, this.accounts);
+}
+
 class AccountsState {
   List<Account>? accounts;
+  List<CategorizedAccounts>? categorizedAccounts;
   Network? network;
 
   Connection? justLinkedAccount;
 
-  AccountsState({this.accounts, this.network, this.justLinkedAccount});
+  AccountsState(
+      {this.accounts,
+      this.categorizedAccounts,
+      this.network,
+      this.justLinkedAccount});
 
   AccountsState copyWith({
     List<Account>? accounts,
+    List<CategorizedAccounts>? categorizedAccounts,
     Network? network,
     Connection? justLinkedAccount,
   }) {
     return AccountsState(
       accounts: accounts ?? this.accounts,
+      categorizedAccounts: categorizedAccounts ?? this.categorizedAccounts,
       network: network ?? this.network,
       justLinkedAccount: justLinkedAccount ?? this.justLinkedAccount,
     );

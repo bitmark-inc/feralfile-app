@@ -30,6 +30,8 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_page.dart';
+import 'package:autonomy_flutter/screen/global_receive/receive_detail_page.dart';
+import 'package:autonomy_flutter/screen/global_receive/receive_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_page.dart';
 import 'package:autonomy_flutter/screen/onboarding_page.dart';
@@ -449,6 +451,29 @@ class AppRouter {
             settings: settings,
             fullscreenDialog: true,
             builder: (context) => SentryReportPage(
+                  payload: settings.arguments,
+                ));
+
+      case GlobalReceivePage.tag:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => MultiBlocProvider(providers: [
+                  BlocProvider.value(value: accountsBloc),
+                  BlocProvider(
+                    create: (_) => PersonaBloc(
+                      injector<CloudDatabase>(),
+                      injector(),
+                      injector(),
+                    ),
+                  ),
+                  BlocProvider.value(value: ethereumBloc),
+                  BlocProvider.value(value: tezosBloc),
+                ], child: GlobalReceivePage()));
+
+      case GlobalReceiveDetailPage.tag:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => GlobalReceiveDetailPage(
                   payload: settings.arguments,
                 ));
       default:
