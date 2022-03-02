@@ -38,7 +38,9 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
     currentIndex = widget.payload.currentIndex;
     final id = widget.payload.ids[currentIndex];
 
-    context.read<ArtworkPreviewBloc>().add(ArtworkPreviewGetAssetTokenEvent(id));
+    context
+        .read<ArtworkPreviewBloc>()
+        .add(ArtworkPreviewGetAssetTokenEvent(id));
     //
     // // _controller.
     // if (artwork.medium == "video") {
@@ -77,7 +79,6 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
       body: BlocBuilder<ArtworkPreviewBloc, ArtworkPreviewState>(
           builder: (context, state) {
         if (state.asset != null) {
-
           final asset = state.asset!;
 
           if (asset.medium == "video" && loadedPath != asset.previewURL) {
@@ -109,6 +110,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
                                   children: [
                                     Text(
                                       asset.title,
+                                      overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
                                           color: Colors.white,
                                           fontWeight: FontWeight.w700,
@@ -118,6 +120,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
                                     SizedBox(height: 4.0),
                                     Text(
                                       "by ${asset.artistName}",
+                                      overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
                                           color: Colors.white,
                                           fontWeight: FontWeight.w300,
@@ -129,9 +132,12 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
                               ),
                               IconButton(
                                 onPressed: () {
-                                  currentIndex = currentIndex <= 0 ? widget.payload.ids.length - 1 : currentIndex - 1;
+                                  currentIndex = currentIndex <= 0
+                                      ? widget.payload.ids.length - 1
+                                      : currentIndex - 1;
                                   final id = widget.payload.ids[currentIndex];
-                                  context.read<ArtworkPreviewBloc>().add(ArtworkPreviewGetAssetTokenEvent(id));
+                                  context.read<ArtworkPreviewBloc>().add(
+                                      ArtworkPreviewGetAssetTokenEvent(id));
                                 },
                                 icon: Icon(
                                   CupertinoIcons.back,
@@ -140,9 +146,13 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
                               ),
                               IconButton(
                                 onPressed: () {
-                                  currentIndex = currentIndex >= widget.payload.ids.length - 1 ? 0 : currentIndex + 1;
+                                  currentIndex = currentIndex >=
+                                          widget.payload.ids.length - 1
+                                      ? 0
+                                      : currentIndex + 1;
                                   final id = widget.payload.ids[currentIndex];
-                                  context.read<ArtworkPreviewBloc>().add(ArtworkPreviewGetAssetTokenEvent(id));
+                                  context.read<ArtworkPreviewBloc>().add(
+                                      ArtworkPreviewGetAssetTokenEvent(id));
                                 },
                                 icon: Icon(
                                   CupertinoIcons.forward,
@@ -303,8 +313,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
     _controller!.initialize().then((_) {
       _controller?.play();
       _controller?.setLooping(true);
-      setState(() {
-      });
+      setState(() {});
     });
   }
 
