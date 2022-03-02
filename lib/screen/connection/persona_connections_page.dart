@@ -211,6 +211,7 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
             Navigator.of(context)
                 .pushNamed(AppRouter.scanQRPage, arguments: scanItem);
           }),
+      addDivider(),
     ]);
   }
 

@@ -347,15 +347,9 @@ class _WCConnectPageState extends State<WCConnectPage> {
     return BlocConsumer<PersonaBloc, PersonaState>(
       listener: (context, state) {
         switch (state.createAccountState) {
-          case ActionState.loading:
-            UIHelper.showInfoDialog(context, "Creating...", "");
-            break;
-
           case ActionState.done:
             UIHelper.hideInfoDialog(context);
-            UIHelper.showInfoDialog(context, "Account created", "");
-
-            Future.delayed(SHORT_SHOW_DIALOG_DURATION, () {
+            UIHelper.showGeneratedPersonaDialog(context, onContinue: () {
               UIHelper.hideInfoDialog(context);
               final createdPersona = state.persona;
               if (createdPersona != null) {

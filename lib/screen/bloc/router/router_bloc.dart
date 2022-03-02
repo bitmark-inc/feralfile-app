@@ -24,6 +24,7 @@ class RouterBloc extends Bloc<RouterEvent, RouterState> {
         _configurationService.setDoneOnboarding(false);
         emit(RouterState(onboardingStep: OnboardingStep.startScreen));
       } else {
+        _configurationService.setDoneOnboarding(true);
         emit(RouterState(onboardingStep: OnboardingStep.dashboard));
       }
     });
