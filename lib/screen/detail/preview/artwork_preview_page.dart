@@ -57,10 +57,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
         setState(() {
           isFullscreen = false;
         });
-        Future.delayed(
-            Duration(milliseconds: 300),
-            (() => _webViewController
-                ?.runJavascript("window.dispatchEvent(new Event('resize'));")));
+        _updateWebviewSize();
       }
     });
 
@@ -168,10 +165,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
                                   setState(() {
                                     isFullscreen = true;
                                   });
-                                  Future.delayed(
-                                      Duration(milliseconds: 300),
-                                      (() => _webViewController?.runJavascript(
-                                          "window.dispatchEvent(new Event('resize'));")));
+                                  _updateWebviewSize();
                                   if (injector<ConfigurationService>()
                                       .isFullscreenIntroEnabled()) {
                                     showModalBottomSheet<void>(
@@ -314,6 +308,13 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
   Future<bool> _clearPrevious() async {
     await _controller?.pause();
     return true;
+  }
+
+  _updateWebviewSize() {
+    Future.delayed(
+        Duration(milliseconds: 100),
+        (() => _webViewController
+            ?.runJavascript("window.dispatchEvent(new Event('resize'));")));
   }
 
   Future<void> _initializePlay(String videoPath) async {
