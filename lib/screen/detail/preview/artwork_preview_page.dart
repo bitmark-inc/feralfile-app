@@ -35,7 +35,8 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance?.addObserver(this);
+    Future.delayed(Duration(milliseconds: 500),
+        (() => WidgetsBinding.instance?.addObserver(this)));
 
     currentIndex = widget.payload.currentIndex;
     final id = widget.payload.ids[currentIndex];
