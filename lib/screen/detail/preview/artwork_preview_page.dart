@@ -292,7 +292,6 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
   }
 
   String? loadedPath;
-  AssetToken? _loadedAsset;
 
   Future<bool> _clearPrevious() async {
     await _controller?.pause();

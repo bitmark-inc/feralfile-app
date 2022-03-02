@@ -42,14 +42,16 @@ class UIHelper {
                 color: theme.backgroundColor,
                 padding:
                     const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(title, style: theme.textTheme.headline1),
-                    SizedBox(height: 40),
-                    content,
-                  ],
+                child: SingleChildScrollView(
+                 child: Column(
+                   mainAxisSize: MainAxisSize.min,
+                   crossAxisAlignment: CrossAxisAlignment.start,
+                   children: [
+                     Text(title, style: theme.textTheme.headline1),
+                     SizedBox(height: 40),
+                     content,
+                   ],
+                 ),
                 ),
               ),
             ),
