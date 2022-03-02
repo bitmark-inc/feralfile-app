@@ -7,6 +7,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shake/shake.dart';
 import 'package:video_player/video_player.dart';
@@ -23,7 +24,8 @@ class ArtworkPreviewPage extends StatefulWidget {
   State<ArtworkPreviewPage> createState() => _ArtworkPreviewPageState();
 }
 
-class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
+class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
+    with WidgetsBindingObserver {
   VideoPlayerController? _controller;
   bool isFullscreen = false;
   late int currentIndex;
@@ -34,6 +36,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance?.addObserver(this);
 
     currentIndex = widget.payload.currentIndex;
     final id = widget.payload.ids[currentIndex];
@@ -57,7 +60,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
         setState(() {
           isFullscreen = false;
         });
-        _updateWebviewSize();
+        SystemChrome.restoreSystemUIOverlays();
       }
     });
 
@@ -66,11 +69,19 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
 
   @override
   void dispose() async {
+    WidgetsBinding.instance?.removeObserver(this);
+    SystemChrome.restoreSystemUIOverlays();
     _controller?.dispose();
     _controller = null;
     _webViewController = null;
     _detector?.stopListening();
     super.dispose();
+  }
+
+  @override
+  void didChangeMetrics() {
+    super.didChangeMetrics();
+    _updateWebviewSize();
   }
 
   @override
@@ -165,7 +176,9 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
                                   setState(() {
                                     isFullscreen = true;
                                   });
-                                  _updateWebviewSize();
+
+                                  SystemChrome.setEnabledSystemUIMode(
+                                      SystemUiMode.leanBack);
                                   if (injector<ConfigurationService>()
                                       .isFullscreenIntroEnabled()) {
                                     showModalBottomSheet<void>(
@@ -311,10 +324,12 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage> {
   }
 
   _updateWebviewSize() {
-    Future.delayed(
-        Duration(milliseconds: 100),
-        (() => _webViewController
-            ?.runJavascript("window.dispatchEvent(new Event('resize'));")));
+    if (_webViewController != null) {
+      Future.delayed(
+          Duration(milliseconds: 100),
+          (() => _webViewController
+              ?.runJavascript("window.dispatchEvent(new Event('resize'));")));
+    }
   }
 
   Future<void> _initializePlay(String videoPath) async {
