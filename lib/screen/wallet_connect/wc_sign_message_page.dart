@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/common/network_config_injector.dart';
@@ -6,6 +7,7 @@ import 'package:autonomy_flutter/screen/bloc/feralfile/feralfile_bloc.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/material.dart';
@@ -25,8 +27,6 @@ class WCSignMessagePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final message = hexToBytes(args.message);
     final messageInUtf8 = utf8.decode(message, allowMalformed: true);
-
-    final networkInjector = injector<NetworkConfigInjector>();
 
     return Scaffold(
       appBar: getBackAppBar(
@@ -76,37 +76,54 @@ class WCSignMessagePage extends StatelessWidget {
                 ),
               ),
             ),
-            Row(
-              children: [
-                Expanded(
-                  child: AuFilledButton(
-                    text: "Sign".toUpperCase(),
-                    onPress: () async {
-                      final WalletStorage wallet =
-                          LibAukDart.getWallet(args.uuid);
-                      final signature = await networkInjector
-                          .I<EthereumService>()
-                          .signPersonalMessage(wallet, message);
-
-                      injector<WalletConnectService>()
-                          .approveRequest(args.peerMeta, args.id, signature);
-
-                      if (args.peerMeta.url.contains("feralfile")) {
-                        context.read<FeralfileBloc>().add(
-                            LinkFFWeb3AccountEvent(
-                                args.topic, args.peerMeta.url, wallet));
-                      }
-
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                )
-              ],
-            )
+            _signButton(context, message),
           ],
         ),
       ),
     );
+  }
+
+  Widget _signButton(BuildContext pageContext, Uint8List message) {
+    return BlocConsumer<FeralfileBloc, FeralFileState>(
+        listener: (context, state) {
+      switch (state.linkState) {
+        case ActionState.done:
+          Navigator.of(context).pop();
+          break;
+        default:
+          break;
+      }
+    }, builder: (context, state) {
+      final networkInjector = injector<NetworkConfigInjector>();
+
+      return Row(
+        children: [
+          Expanded(
+            child: AuFilledButton(
+              text: "Sign".toUpperCase(),
+              onPress: () async {
+                final WalletStorage wallet = LibAukDart.getWallet(args.uuid);
+                final signature = await networkInjector
+                    .I<EthereumService>()
+                    .signPersonalMessage(wallet, message);
+
+                injector<WalletConnectService>()
+                    .approveRequest(args.peerMeta, args.id, signature);
+
+                if (args.peerMeta.url.contains("feralfile")) {
+                  context.read<FeralfileBloc>().add(LinkFFWeb3AccountEvent(
+                      args.topic, args.peerMeta.url, wallet));
+
+                  // result in listener - linkState.done
+                } else {
+                  Navigator.of(context).pop();
+                }
+              },
+            ),
+          )
+        ],
+      );
+    });
   }
 }
 
