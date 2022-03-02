@@ -20,11 +20,27 @@ Widget accountWithConnectionItem(BuildContext context, Account account,
                 height: 24,
                 child: Image.asset("assets/images/autonomyIcon.png")),
             SizedBox(width: 16),
-            Text(
-                account.name.isNotEmpty
-                    ? account.name
-                    : account.accountNumber.mask(4),
-                style: appTextTheme.headline4),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Text(
+                    account.name.isNotEmpty
+                        ? account.name
+                        : account.accountNumber.mask(4),
+                    overflow: TextOverflow.ellipsis,
+                    style: appTextTheme.headline4),
+                SizedBox(height: 4),
+                Text(
+                  account.accountNumber.mask(4),
+                  style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w400,
+                      fontFamily: "IBMPlexMono"),
+                ),
+              ],
+            ),
           ],
         ),
         onTap: onTap);
