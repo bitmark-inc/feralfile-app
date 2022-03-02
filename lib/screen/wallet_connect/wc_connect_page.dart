@@ -92,6 +92,11 @@ class _WCConnectPageState extends State<WCConnectPage> {
           selectedPersona!.uuid, wcConnectArgs.peerMeta, [address], chainId);
       payloadAddress = address;
       payloadType = CryptoType.ETH;
+
+      if (wcConnectArgs.peerMeta.url.contains("feralfile")) {
+        Navigator.of(context).pop();
+        return;
+      }
     }
 
     if (beaconRequest != null) {
