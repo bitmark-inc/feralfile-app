@@ -20,7 +20,8 @@ const appTextTheme = TextTheme(
       color: Colors.black,
       fontSize: 16,
       fontWeight: FontWeight.w700,
-      fontFamily: "AtlasGrotesk-Bold"),
+      fontFamily: "AtlasGrotesk-Bold",
+      height: 1.377),
   headline5:
       TextStyle(color: Colors.black, fontSize: 12, fontFamily: "AtlasGrotesk"),
   button: TextStyle(
@@ -43,7 +44,11 @@ const appTextTheme = TextTheme(
 );
 
 const copiedTextStyle = TextStyle(
-    color: Colors.black, fontSize: 12, fontFamily: "AtlasGrotesk-Bold");
+  color: Colors.black,
+  fontSize: 12,
+  fontFamily: "AtlasGrotesk-Bold",
+  fontWeight: FontWeight.bold,
+);
 
 SizedBox addTitleSpace() {
   return const SizedBox(height: 40);
