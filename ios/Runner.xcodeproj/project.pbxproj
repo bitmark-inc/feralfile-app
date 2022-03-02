@@ -20,6 +20,9 @@
 		63F1665327B250D600451AAA /* BeaconConnectService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63F1665227B250D600451AAA /* BeaconConnectService.swift */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
 		768E7EE927C770D000585D12 /* SystemChannelHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 768E7EE827C770D000585D12 /* SystemChannelHandler.swift */; };
+		768E7EEB27CE4C5D00585D12 /* CloudKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 768E7EEA27CE4C5D00585D12 /* CloudKitManager.swift */; };
+		768E7EED27CE506600585D12 /* CloudChannelHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 768E7EEC27CE506600585D12 /* CloudChannelHandler.swift */; };
+		76F3288827CE585F00C3B9FA /* CloudKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 76F3288727CE585F00C3B9FA /* CloudKit.framework */; };
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
@@ -51,6 +54,9 @@
 		74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Runner-Bridging-Header.h"; sourceTree = "<group>"; };
 		74858FAE1ED2DC5600515810 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		768E7EE827C770D000585D12 /* SystemChannelHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemChannelHandler.swift; sourceTree = "<group>"; };
+		768E7EEA27CE4C5D00585D12 /* CloudKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudKitManager.swift; sourceTree = "<group>"; };
+		768E7EEC27CE506600585D12 /* CloudChannelHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudChannelHandler.swift; sourceTree = "<group>"; };
+		76F3288727CE585F00C3B9FA /* CloudKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CloudKit.framework; path = System/Library/Frameworks/CloudKit.framework; sourceTree = SDKROOT; };
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Release.xcconfig; path = Flutter/Release.xcconfig; sourceTree = "<group>"; };
 		9740EEB21CF90195004384FC /* Debug.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Debug.xcconfig; path = Flutter/Debug.xcconfig; sourceTree = "<group>"; };
 		9740EEB31CF90195004384FC /* Generated.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Generated.xcconfig; path = Flutter/Generated.xcconfig; sourceTree = "<group>"; };
@@ -70,6 +76,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				76F3288827CE585F00C3B9FA /* CloudKit.framework in Frameworks */,
 				63F1664B27B2509F00451AAA /* BeaconBlockchainTezos in Frameworks */,
 				63CED4A827AE9DFC00699ED5 /* LibAuk in Frameworks */,
 				63F1665127B2509F00451AAA /* BeaconTransportP2PMatrix in Frameworks */,
@@ -95,6 +102,7 @@
 		48A495939161E7A3DB3133FE /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				76F3288727CE585F00C3B9FA /* CloudKit.framework */,
 				A451CD8AF50E41359BCF628F /* Pods_Runner.framework */,
 			);
 			name = Frameworks;
@@ -147,6 +155,8 @@
 				6399594127B2C2FA002653E7 /* BeaconChannelHandler.swift */,
 				6399594327B2C36B002653E7 /* LibAukChannelHandler.swift */,
 				74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */,
+				768E7EEA27CE4C5D00585D12 /* CloudKitManager.swift */,
+				768E7EEC27CE506600585D12 /* CloudChannelHandler.swift */,
 			);
 			path = Runner;
 			sourceTree = "<group>";
@@ -311,6 +321,8 @@
 			files = (
 				6399594227B2C2FA002653E7 /* BeaconChannelHandler.swift in Sources */,
 				74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */,
+				768E7EEB27CE4C5D00585D12 /* CloudKitManager.swift in Sources */,
+				768E7EED27CE506600585D12 /* CloudChannelHandler.swift in Sources */,
 				632FC2F627B4F51E00336DCE /* BeaconConnectService+Helpers.swift in Sources */,
 				63F1665327B250D600451AAA /* BeaconConnectService.swift in Sources */,
 				6399594427B2C36B002653E7 /* LibAukChannelHandler.swift in Sources */,

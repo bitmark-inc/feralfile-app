@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_view.dart';
 import 'package:autonomy_flutter/screen/settings/support/support_view.dart';
+import 'package:autonomy_flutter/service/cloud_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/eula_privacy.dart';
@@ -112,9 +113,15 @@ class _SettingsPageState extends State<SettingsPage>
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            "Accounts",
-                            style: appTextTheme.headline1,
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "Accounts",
+                                style: appTextTheme.headline1,
+                              ),
+                              _cloudAvailabilityWidget(),
+                            ],
                           ),
                           SizedBox(height: 24),
                           Text(
@@ -224,5 +231,21 @@ class _SettingsPageState extends State<SettingsPage>
     setState(() {
       _packageInfo = info;
     });
+  }
+
+  Widget _cloudAvailabilityWidget() {
+    return ValueListenableBuilder<bool>(
+        valueListenable: injector<CloudService>().isAvailableNotifier,
+        builder: (BuildContext context, bool isAvailable, Widget? child) {
+          if (isAvailable) {
+            return SizedBox();
+          } else {
+            return IconButton(
+              onPressed: () => Navigator.of(context)
+                  .pushNamed(AppRouter.cloudPage, arguments: "settings"),
+              icon: SvgPicture.asset("assets/images/iconCloudOff.svg"),
+            );
+          }
+        });
   }
 }

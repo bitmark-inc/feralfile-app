@@ -2,6 +2,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_dapp_service/wallet_connect_dapp_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -132,9 +133,15 @@ class _LinkAccountPageState extends State<LinkAccountPage>
 
             Future.delayed(Duration(seconds: delay), () {
               UIHelper.hideInfoDialog(context);
-              Navigator.of(context).pushNamedAndRemoveUntil(
-                  AppRouter.nameLinkedAccountPage, (route) => false,
-                  arguments: linkedAccount);
+
+              if (injector<ConfigurationService>().isDoneOnboarding()) {
+                Navigator.of(context).pushNamed(AppRouter.nameLinkedAccountPage,
+                    arguments: linkedAccount);
+              } else {
+                Navigator.of(context).pushNamedAndRemoveUntil(
+                    AppRouter.nameLinkedAccountPage, (route) => false,
+                    arguments: linkedAccount);
+              }
             });
           }
         },

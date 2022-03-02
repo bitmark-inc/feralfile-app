@@ -70,6 +70,10 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
                           "Importing your account will also add support for all chains featured in Autonomy. We will automatically back up your account in your iCloud Keychain.",
                           style: appTextTheme.bodyText1,
                         ),
+                        SizedBox(height: 16),
+                        Text('Learn why this is safe...',
+                            style: appTextTheme.bodyText1
+                                ?.copyWith(fontWeight: FontWeight.bold)),
                         SizedBox(height: 40),
                         Container(
                           height: 120,
@@ -77,10 +81,12 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
                             children: [
                               AuTextField(
                                 title: "",
-                                placeholder: "Separate your words with ‘space’",
+                                placeholder:
+                                    "Enter recovery phrase with each word separated by a space",
                                 keyboardType: TextInputType.multiline,
                                 expanded: true,
                                 maxLines: null,
+                                hintMaxLines: 2,
                                 controller: _phraseTextController,
                                 isError: state.importPersonaState ==
                                     ActionState.error,

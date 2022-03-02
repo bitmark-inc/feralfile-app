@@ -162,6 +162,7 @@ extension BeaconChannelHandler: FlutterStreamHandler {
     
     private func observerRequests(events: @escaping FlutterEventSink) {
         BeaconConnectService.shared.observeRequest()
+            .throttle(for: 1.0, scheduler: RunLoop.main, latest: true)
             .sink { [weak self] request in
                 self?.requests.append(request)
                 var params: [String: Any] = [
