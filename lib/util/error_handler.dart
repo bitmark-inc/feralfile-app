@@ -11,6 +11,7 @@ import 'package:flutter/services.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:tezart/tezart.dart';
 
 import '../screen/report/sentry_report_page.dart';
 
@@ -35,7 +36,7 @@ class ErrorEvent {
 
 PlatformException? lastException;
 
-ErrorEvent? transalateError(Object exception) {
+ErrorEvent? translateError(Object exception) {
   if (exception is DioError) {
     if (exception.type == DioErrorType.sendTimeout ||
         exception.type == DioErrorType.connectTimeout ||
@@ -46,6 +47,12 @@ ErrorEvent? transalateError(Object exception) {
   } else if (exception is CameraException) {
     return ErrorEvent(null, "Enable camera",
         "QR code scanning requires camera access.", ErrorItemState.camera);
+  } else if (exception is TezartNodeError || exception is TezartHttpError) {
+    return ErrorEvent(
+        exception,
+        "Uh oh!",
+        "Cannot connect to the Tezos node (smartpy.io) at the moment.\nPlease try later.",
+        ErrorItemState.suggestReportIssue);
   }
 
   return ErrorEvent(
@@ -157,7 +164,7 @@ void showErrorDialogFromException(Object exception) {
   log.warning("Unhandled error:", exception);
   injector<AWSService>().storeEventWithDeviceData("unhandled_error",
       data: {"message": exception.toString()});
-  final event = transalateError(exception);
+  final event = translateError(exception);
   final context = injector<NavigationService>().navigatorKey.currentContext;
   if (context != null && event != null) {
     showErrorDiablog(
