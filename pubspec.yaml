@@ -71,6 +71,7 @@ dependencies:
       ref: main
   wallet_connect:
     git: https://github.com/autonomy-system/wallet-connect-dart.git
+  collection: ^1.15.0
 
 dev_dependencies:
   flutter_test:
@@ -102,6 +103,7 @@ flutter:
     - assets/images/iconXtz.svg
     - assets/images/iconBitmark.svg
     - assets/images/iconClose.svg
+    - assets/images/iconReceive.svg
     - assets/images/iconForward.svg
     - assets/images/cil_external-link.svg
     - assets/images/tezos_social_icon.svg

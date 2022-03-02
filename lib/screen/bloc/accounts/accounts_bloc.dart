@@ -77,6 +77,72 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
       emit(AccountsState(accounts: accounts, network: network));
     });
 
+    on<GetCategorizedAccountsEvent>((event, emit) async {
+      final personas = await _cloudDB.personaDao.getPersonas();
+      final connections = await _cloudDB.connectionDao.getLinkedAccounts();
+
+      List<CategorizedAccounts> categorizedAccounts = [
+        CategorizedAccounts("Bitmark", []),
+        CategorizedAccounts("Ethereum", []),
+        CategorizedAccounts("Tezos", [])
+      ];
+
+      for (var persona in personas) {
+        final ethAddress = await persona.wallet().getETHAddress();
+        final xtzAddress = (await persona.wallet().getTezosWallet()).address;
+        var name = await persona.wallet().getName();
+
+        if (name.isEmpty) {
+          name = persona.name;
+        }
+
+        final ethAccount = Account(
+            persona: persona,
+            name: name,
+            blockchain: "Ethereum",
+            accountNumber: ethAddress,
+            createdAt: persona.createdAt);
+        categorizedAccounts[1].accounts.add(ethAccount);
+
+        final xtzAccount = Account(
+            persona: persona,
+            name: name,
+            blockchain: "Tezos",
+            accountNumber: xtzAddress,
+            createdAt: persona.createdAt);
+        categorizedAccounts[2].accounts.add(xtzAccount);
+      }
+
+      for (var connection in connections) {
+        switch (connection.connectionType) {
+          case "walletConnect":
+            categorizedAccounts[1].accounts.add(Account(
+                  blockchain: "Ethereum",
+                  accountNumber: connection.accountNumber,
+                  connections: [connection],
+                  name: connection.name,
+                  createdAt: connection.createdAt,
+                ));
+            break;
+          case "beaconP2PPeer":
+          case "walletBeacon":
+            categorizedAccounts[2].accounts.add(Account(
+                  blockchain: "Tezos",
+                  accountNumber: connection.accountNumber,
+                  connections: [connection],
+                  name: connection.name,
+                  createdAt: connection.createdAt,
+                ));
+            break;
+          default:
+            break;
+        }
+      }
+      final network = _configurationService.getNetwork();
+      emit(AccountsState(
+          categorizedAccounts: categorizedAccounts, network: network));
+    });
+
     on<LinkEthereumWalletEvent>((event, emit) async {
       final connection = Connection.fromETHWallet(event.session);
       final existingConnection =
