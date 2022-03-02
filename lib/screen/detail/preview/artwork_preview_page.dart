@@ -43,16 +43,6 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     context
         .read<ArtworkPreviewBloc>()
         .add(ArtworkPreviewGetAssetTokenEvent(id));
-    //
-    // // _controller.
-    // if (artwork.medium == "video") {
-    //   _controller = VideoPlayerController.network(artwork.previewURL!)
-    //     ..initialize().then((_) {
-    //       _controller?.play();
-    //       _controller?.setLooping(true);
-    //       setState(() {});
-    //     });
-    // }
 
     _detector = ShakeDetector.autoStart(onPhoneShake: () {
       if (isFullscreen) {
@@ -222,6 +212,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
         }
       default:
         return WebView(
+            key: UniqueKey(),
             initialUrl: asset.previewURL,
             onWebViewCreated: (WebViewController webViewController) {
               _webViewController = webViewController;
@@ -235,7 +226,8 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                 ''';
               await _webViewController?.runJavascript(javascriptString);
             },
-            javascriptMode: JavascriptMode.unrestricted);
+            javascriptMode: JavascriptMode.unrestricted,
+            backgroundColor: Colors.black);
     }
   }
 

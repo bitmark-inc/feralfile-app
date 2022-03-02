@@ -90,6 +90,9 @@ import Combine
             }
         })
         beaconEventChannel.setStreamHandler(BeaconChannelHandler.shared)
+
+        let cloudEventChannel = FlutterEventChannel(name: "cloud/event", binaryMessenger: controller.binaryMessenger)
+        cloudEventChannel.setStreamHandler(CloudChannelHandler.shared)
         
         GeneratedPluginRegistrant.register(with: self)
         return super.application(application, didFinishLaunchingWithOptions: launchOptions)
