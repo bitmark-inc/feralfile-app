@@ -68,11 +68,13 @@ class AccountsState {
 
   AccountsState copyWith({
     List<Account>? accounts,
+    List<CategorizedAccounts>? categorizedAccounts,
     Network? network,
     Connection? justLinkedAccount,
   }) {
     return AccountsState(
       accounts: accounts ?? this.accounts,
+      categorizedAccounts: categorizedAccounts ?? this.categorizedAccounts,
       network: network ?? this.network,
       justLinkedAccount: justLinkedAccount ?? this.justLinkedAccount,
     );

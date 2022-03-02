@@ -124,7 +124,6 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
                   createdAt: connection.createdAt,
                 ));
             break;
-          case "beaconP2PPeer":
           case "walletBeacon":
             categorizedAccounts[2].accounts.add(Account(
                   blockchain: "Tezos",
@@ -138,9 +137,8 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
             break;
         }
       }
-      final network = _configurationService.getNetwork();
-      emit(AccountsState(
-          categorizedAccounts: categorizedAccounts, network: network));
+
+      emit(state.copyWith(categorizedAccounts: categorizedAccounts));
     });
 
     on<LinkEthereumWalletEvent>((event, emit) async {
