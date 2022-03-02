@@ -5,8 +5,10 @@ import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
+import 'package:autonomy_flutter/screen/global_receive/receive_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
+import 'package:autonomy_flutter/screen/settings/crypto/receive_page.dart';
 import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -18,6 +20,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:uni_links/uni_links.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
 
@@ -92,6 +95,18 @@ class _HomePageState extends State<HomePage>
             ),
           );
         }),
+        Align(
+          alignment: Alignment.topRight,
+          child: Padding(
+            padding: EdgeInsets.only(
+                top: MediaQuery.of(context).padding.top + 16, right: 16),
+            child: GestureDetector(
+              child: SvgPicture.asset("assets/images/iconReceive.svg"),
+              onTap: () =>
+                  Navigator.of(context).pushNamed(GlobalReceivePage.tag),
+            ),
+          ),
+        ),
         Align(
           alignment: Alignment.topCenter,
           child: Padding(
