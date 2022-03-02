@@ -3,6 +3,7 @@ import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/global_receive/receive_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/screen/settings/connection/accounts_view.dart';
 import 'package:autonomy_flutter/screen/settings/networks/select_network_page.dart';
@@ -73,14 +74,27 @@ class _SettingsPageState extends State<SettingsPage>
             child: SingleChildScrollView(
               child: Stack(
                 children: [
-                  IconButton(
+                  Container(
                     padding: EdgeInsets.symmetric(vertical: 12),
-                    constraints: BoxConstraints(),
-                    icon: SvgPicture.asset("assets/images/iconQr.svg"),
-                    onPressed: () {
-                      Navigator.of(context).pushNamed(ScanQRPage.tag,
-                          arguments: ScannerItem.GLOBAL);
-                    },
+                    child: Row(
+                      children: [
+                        IconButton(
+                          constraints: BoxConstraints(),
+                          icon: SvgPicture.asset("assets/images/iconQr.svg"),
+                          onPressed: () {
+                            Navigator.of(context).pushNamed(ScanQRPage.tag,
+                                arguments: ScannerItem.GLOBAL);
+                          },
+                        ),
+                        Spacer(),
+                        GestureDetector(
+                          child:
+                              SvgPicture.asset("assets/images/iconReceive.svg"),
+                          onTap: () => Navigator.of(context)
+                              .pushNamed(GlobalReceivePage.tag),
+                        ),
+                      ],
+                    ),
                   ),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
