@@ -5,7 +5,9 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/feralfile/feralfile_bloc.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -60,48 +62,67 @@ class _ScanQRPageState extends State<ScanQRPage> {
   @override
   Widget build(BuildContext context) {
     final qrSize = MediaQuery.of(context).size.width - 90;
-    return Scaffold(
-      body: Stack(
-        children: <Widget>[
-          Container(
-            child: QRView(
-              key: qrKey,
-              overlay: QrScannerOverlayShape(
-                borderColor: isScanDataError ? Colors.red : Colors.black,
-                cutOutSize: qrSize,
-                borderRadius: 20,
-                borderWidth: 8,
-                borderLength: qrSize / 2,
-              ),
-              onQRViewCreated: _onQRViewCreated,
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(15, 55, 15, 0),
-            child: GestureDetector(
-              behavior: HitTestBehavior.translucent,
-              onTap: () => Navigator.of(context).pop(),
-              child: Row(
-                children: [
-                  Icon(CupertinoIcons.back, color: Colors.white),
-                  Text(
-                    "BACK",
-                    style: appTextTheme.caption?.copyWith(color: Colors.white),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Padding(
-            padding: EdgeInsets.fromLTRB(0, qrSize + 40, 0, 0),
-            child: Center(
-              child: Text(
-                "SCAN QR CODE",
-                style: appTextTheme.button?.copyWith(color: Colors.white),
+
+    return BlocListener<FeralfileBloc, FeralFileState>(
+      listener: (context, state) {
+        switch (state.linkState) {
+          case ActionState.done:
+            Navigator.of(context).pop();
+            break;
+
+          case ActionState.error:
+            _handleError("feralfile-api:qrcode-with-feralfile-format");
+            controller.resumeCamera();
+            break;
+
+          default:
+            break;
+        }
+      },
+      child: Scaffold(
+        body: Stack(
+          children: <Widget>[
+            Container(
+              child: QRView(
+                key: qrKey,
+                overlay: QrScannerOverlayShape(
+                  borderColor: isScanDataError ? Colors.red : Colors.black,
+                  cutOutSize: qrSize,
+                  borderRadius: 20,
+                  borderWidth: 8,
+                  borderLength: qrSize / 2,
+                ),
+                onQRViewCreated: _onQRViewCreated,
               ),
             ),
-          ),
-        ],
+            Padding(
+              padding: const EdgeInsets.fromLTRB(15, 55, 15, 0),
+              child: GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onTap: () => Navigator.of(context).pop(),
+                child: Row(
+                  children: [
+                    Icon(CupertinoIcons.back, color: Colors.white),
+                    Text(
+                      "BACK",
+                      style:
+                          appTextTheme.caption?.copyWith(color: Colors.white),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.fromLTRB(0, qrSize + 40, 0, 0),
+              child: Center(
+                child: Text(
+                  "SCAN QR CODE",
+                  style: appTextTheme.button?.copyWith(color: Colors.white),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -118,9 +139,7 @@ class _ScanQRPageState extends State<ScanQRPage> {
           if (code.startsWith("wc:") == true) {
             _handleWalletConnect(code);
           } else {
-            setState(() {
-              isScanDataError = true;
-            });
+            _handleError(code);
           }
           break;
 
@@ -128,9 +147,7 @@ class _ScanQRPageState extends State<ScanQRPage> {
           if (code.startsWith("tezos://") == true) {
             _handleBeaconConnect(code);
           } else {
-            setState(() {
-              isScanDataError = true;
-            });
+            _handleError(code);
           }
           break;
 
@@ -139,9 +156,7 @@ class _ScanQRPageState extends State<ScanQRPage> {
             controller.dispose();
             Navigator.pop(context, code);
           } else {
-            setState(() {
-              isScanDataError = true;
-            });
+            _handleError(code);
           }
           break;
 
@@ -171,13 +186,21 @@ class _ScanQRPageState extends State<ScanQRPage> {
             }
             */
           } else {
-            setState(() {
-              isScanDataError = true;
-            });
+            _handleError(code);
           }
           break;
       }
     });
+  }
+
+  void _handleError(String data) {
+    setState(() {
+      isScanDataError = true;
+    });
+
+    log.info("[Scanner][start] scan ${widget.scannerItem}");
+    log.info(
+        "[Scanner][incorrectScanItem] item: ${data.substring(0, data.length ~/ 2)}");
   }
 
   void _handleWalletConnect(String code) {
@@ -193,9 +216,9 @@ class _ScanQRPageState extends State<ScanQRPage> {
   }
 
   void _handleFeralFileToken(String code) {
-    controller.dispose();
-    context.read<FeralfileBloc>().add(LinkFFAccountInfoEvent(code));
-    Navigator.of(context).pop();
+    controller.pauseCamera();
+    final pureFFToken = ScannerItem.FERALFILE_TOKEN.pureValue(code);
+    context.read<FeralfileBloc>().add(LinkFFAccountInfoEvent(pureFFToken));
   }
 
   @override
