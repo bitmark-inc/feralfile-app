@@ -12,8 +12,10 @@ class LinkFFWeb3AccountEvent extends FeralFileEvent {
   final String topic;
   final String source;
   final WalletStorage wallet;
+  bool shouldRetry;
 
-  LinkFFWeb3AccountEvent(this.topic, this.source, this.wallet);
+  LinkFFWeb3AccountEvent(
+      this.topic, this.source, this.wallet, this.shouldRetry);
 }
 
 class GetFFAccountInfoEvent extends FeralFileEvent {
