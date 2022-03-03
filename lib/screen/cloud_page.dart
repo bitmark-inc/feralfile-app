@@ -1,6 +1,7 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
 import 'package:autonomy_flutter/service/cloud_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -141,15 +142,9 @@ class CloudPage extends StatelessWidget {
 
   void _continue(BuildContext context) {
     if (injector<ConfigurationService>().isDoneOnboarding()) {
-      if (memoryValues.personaConnectionPayload != null) {
-        Navigator.of(context).pushNamedAndRemoveUntil(
-            AppRouter.personaConnectionsPage,
-            (route) => route.settings.name == AppRouter.settingsPage,
-            arguments: memoryValues.personaConnectionPayload!);
-      } else {
-        Navigator.of(context)
-            .popUntil((route) => route.settings.name == AppRouter.settingsPage);
-      }
+      Navigator.of(context).popUntil((route) =>
+          route.settings.name == AppRouter.settingsPage ||
+          route.settings.name == AppRouter.wcConnectPage);
     } else {
       doneOnboarding(context);
     }
