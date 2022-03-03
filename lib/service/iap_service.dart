@@ -13,6 +13,7 @@ import 'package:in_app_purchase_storekit/store_kit_wrappers.dart';
 
 const List<String> _kProductIds = <String>[
   'Au_IntroSub',
+  'com.bitmark.autonomy_client.subscribe',
 ];
 
 enum IAPProductStatus {
@@ -73,6 +74,8 @@ class IAPServiceImpl implements IAPService {
 
     products.value = Map.fromIterable(productDetailResponse.productDetails,
         key: (e) => e.id, value: (e) => e);
+
+    restore();
   }
 
   Future<bool> renewJWT() async {
@@ -108,9 +111,13 @@ class IAPServiceImpl implements IAPService {
   }
 
   Future<JWT?> _verifyPurchase(String receiptData) async {
+    var platform = 'google';
+    if (Platform.isIOS) {
+      platform = 'apple';
+    }
     try {
       final jwt = await _iapApi
-          .verifyIAP({'platform': 'apple', 'receipt_data': receiptData});
+          .verifyIAP({'platform': platform, 'receipt_data': receiptData});
       return jwt;
     } catch (error) {
       log.info("error when verifying receipt", error);
