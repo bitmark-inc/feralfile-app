@@ -26,21 +26,25 @@ class FeralFileState {
   ActionState linkState;
   ActionState refreshState;
   Connection? connection;
+  String errorMessage = '';
 
   FeralFileState(
       {this.refreshState = ActionState.notRequested,
       this.linkState = ActionState.notRequested,
-      this.connection});
+      this.connection,
+      this.errorMessage = ''});
 
   FeralFileState copyWith({
     ActionState? refreshState,
     ActionState? linkState,
     Connection? connection,
+    String? errorMessage,
   }) {
     return FeralFileState(
       refreshState: refreshState ?? this.refreshState,
       linkState: linkState ?? this.linkState,
       connection: connection ?? this.connection,
+      errorMessage: errorMessage ?? this.errorMessage,
     );
   }
 }
