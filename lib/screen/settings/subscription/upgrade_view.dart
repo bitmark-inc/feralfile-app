@@ -95,46 +95,48 @@ class UpgradesView extends StatelessWidget {
                 color: theme.backgroundColor,
                 padding:
                     const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text("More Autonomy", style: theme.textTheme.headline1),
-                    SizedBox(height: 40),
-                    SvgPicture.asset(
-                      'assets/images/premium_comparation.svg',
-                      height: 320,
-                    ),
-                    SizedBox(height: 16),
-                    Text(
-                        "*Coming in Q1: View your collection on TVs and projectors. Preserve and authentificate your artworks for the long-term.",
-                        style: theme.textTheme.headline5),
-                    SizedBox(height: 40),
-                    AuFilledButton(
-                      text: "SUBSCRIBE FOR ${price ?? "\$4.99"}/MONTH",
-                      onPress: () {
-                        if (onPressSubscribe != null) onPressSubscribe();
-                        Navigator.of(context).pop();
-                      },
-                      color: Colors.white,
-                      textStyle: TextStyle(
-                          color: Colors.black,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          fontFamily: "IBMPlexMono"),
-                    ),
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: Text(
-                        "NOT NOW",
-                        style: TextStyle(
-                            color: Colors.white,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text("More Autonomy", style: theme.textTheme.headline1),
+                      SizedBox(height: 40),
+                      SvgPicture.asset(
+                        'assets/images/premium_comparation.svg',
+                        height: 320,
+                      ),
+                      SizedBox(height: 16),
+                      Text(
+                          "*Coming in Q1: View your collection on TVs and projectors. Preserve and authentificate your artworks for the long-term.",
+                          style: theme.textTheme.headline5),
+                      SizedBox(height: 40),
+                      AuFilledButton(
+                        text: "SUBSCRIBE FOR ${price ?? "\$4.99"}/MONTH",
+                        onPress: () {
+                          if (onPressSubscribe != null) onPressSubscribe();
+                          Navigator.of(context).pop();
+                        },
+                        color: Colors.white,
+                        textStyle: TextStyle(
+                            color: Colors.black,
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
                             fontFamily: "IBMPlexMono"),
                       ),
-                    ),
-                  ],
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: Text(
+                          "NOT NOW",
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              fontFamily: "IBMPlexMono"),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
