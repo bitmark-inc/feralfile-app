@@ -42,7 +42,8 @@ class WCConnectPage extends StatefulWidget {
   State<WCConnectPage> createState() => _WCConnectPageState();
 }
 
-class _WCConnectPageState extends State<WCConnectPage> {
+class _WCConnectPageState extends State<WCConnectPage>
+    with RouteAware, WidgetsBindingObserver {
   Persona? selectedPersona;
   List<Persona>? personas;
   bool generatedPersona = false;
@@ -50,9 +51,26 @@ class _WCConnectPageState extends State<WCConnectPage> {
   @override
   void initState() {
     super.initState();
-
     context.read<PersonaBloc>().add(GetListPersonaEvent());
-    memoryValues.personaConnectionPayload = null;
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+  }
+
+  @override
+  void didPopNext() {
+    super.didPopNext();
+    context.read<PersonaBloc>().add(GetListPersonaEvent());
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    routeObserver.unsubscribe(this);
   }
 
   void _reject() {
@@ -94,7 +112,7 @@ class _WCConnectPageState extends State<WCConnectPage> {
       payloadType = CryptoType.ETH;
 
       if (wcConnectArgs.peerMeta.url.contains("feralfile")) {
-        Navigator.of(context).pop();
+        _navigateWhenConnectFeralFile();
         return;
       }
     }
@@ -116,20 +134,18 @@ class _WCConnectPageState extends State<WCConnectPage> {
       type: payloadType,
     );
 
-    if (generatedPersona) {
-      memoryValues.personaConnectionPayload = payload;
-      Navigator.of(context).popAndPushNamed(AppRouter.namePersonaPage,
-          arguments: selectedPersona!.uuid);
+    if (memoryValues.scopedPersona != null) {
+      // from persona details flow
+      Navigator.of(context).pop();
     } else {
-      if (memoryValues.scopedPersona != null) {
-        // from persona details flow
-        Navigator.of(context).pop();
-      } else {
-        Navigator.of(context).pushReplacementNamed(
-            AppRouter.personaConnectionsPage,
-            arguments: payload);
-      }
+      Navigator.of(context).pushReplacementNamed(
+          AppRouter.personaConnectionsPage,
+          arguments: payload);
     }
+  }
+
+  void _navigateWhenConnectFeralFile() {
+    Navigator.of(context).pop();
   }
 
   @override
@@ -358,12 +374,8 @@ class _WCConnectPageState extends State<WCConnectPage> {
               UIHelper.hideInfoDialog(context);
               final createdPersona = state.persona;
               if (createdPersona != null) {
-                setState(() {
-                  generatedPersona = true;
-                  selectedPersona = createdPersona;
-                });
-
-                _approve();
+                Navigator.of(context).pushNamed(AppRouter.namePersonaPage,
+                    arguments: createdPersona.uuid);
               }
             });
             break;

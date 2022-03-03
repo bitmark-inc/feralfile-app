@@ -49,10 +49,8 @@ class ConnectionDetailsPage extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Expanded(
-                                child: Text(connection.appName,
-                                    style: appTextTheme.headline4),
-                              ),
+                              Text(connection.appName,
+                                  style: appTextTheme.headline4),
                               Text(
                                 "You have granted permission to:",
                                 style: appTextTheme.bodyText1,

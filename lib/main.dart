@@ -100,21 +100,14 @@ var memoryValues = MemoryValues(scopedPersona: null);
 
 class MemoryValues {
   String? scopedPersona;
-  PersonaConnectionsPayload? personaConnectionPayload;
 
   MemoryValues({
     this.scopedPersona,
-    this.personaConnectionPayload,
   });
 
   MemoryValues copyWith({
     String? scopedPersona,
-    PersonaConnectionsPayload? personaConnectionPayload,
   }) {
-    return MemoryValues(
-      scopedPersona: scopedPersona ?? this.scopedPersona,
-      personaConnectionPayload:
-          personaConnectionPayload ?? this.personaConnectionPayload,
-    );
+    return MemoryValues(scopedPersona: scopedPersona ?? this.scopedPersona);
   }
 }
