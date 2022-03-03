@@ -4,12 +4,12 @@ import 'package:autonomy_flutter/model/bitmark.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_page.dart';
+import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_outlined_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -304,7 +304,12 @@ class ArtworkDetailPage extends StatelessWidget {
         Divider(height: 32.0),
         _rowItem(context, "Medium", asset.medium?.capitalize()),
         Divider(height: 32.0),
-        _rowItem(context, "Date minted", asset.mintedAt),
+        _rowItem(
+            context,
+            "Date minted",
+            asset.mintedAt != null
+                ? localTimeStringFromISO8601(asset.mintedAt!)
+                : null),
         asset.assetData != null && asset.assetData!.isNotEmpty
             ? Column(
                 children: [
@@ -329,8 +334,8 @@ class ArtworkDetailPage extends StatelessWidget {
         ...provenances
             .map((el) => Column(
                   children: [
-                    _rowItem(
-                        context, el.owner.mask(4), el.createdAt.toString()),
+                    _rowItem(context, el.owner.mask(4),
+                        localTimeString(el.createdAt)),
                     Divider(height: 32.0),
                   ],
                 ))
