@@ -3,7 +3,6 @@ import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/network.dart';
-import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -90,6 +89,7 @@ class FeralfileBloc extends Bloc<FeralFileEvent, FeralFileState> {
               event.topic, event.source, personaAddress, ffAccount);
           _cloudDB.connectionDao.insertConnection(connection);
           emit(state.setEvent(LinkAccountSuccess(connection)));
+          return;
         } catch (error) {
           // loop with delay because FeralFile may take time to execute 2FA
           if (retries < retryLimit) {
