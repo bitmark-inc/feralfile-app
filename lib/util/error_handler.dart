@@ -1,4 +1,5 @@
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -23,6 +24,7 @@ enum ErrorItemState {
   tryAgain,
   settings,
   camera,
+  seeAccount,
 }
 
 class ErrorEvent {
@@ -62,19 +64,39 @@ ErrorEvent? translateError(Object exception) {
       ErrorItemState.suggestReportIssue);
 }
 
-void showErrorDialog(BuildContext context, String title, String description,
+bool isShowErrorDialogWorking = false;
+
+Future showErrorDialog(BuildContext context, String title, String description,
     String defaultButton,
-    [Function()? defaultButtonOnPress, String? cancelButton]) {
+    [Function()? defaultButtonOnPress,
+    String? cancelButton,
+    Function()? cancelButtonOnPress]) async {
+  if (isShowErrorDialogWorking) {
+    log.info("showErrorDialog is working");
+    return;
+  }
+
+  isShowErrorDialogWorking = true;
+  if (ModalRoute.of(context)?.settings.name == null) {
+    // do not show the error dialog if there is another dialog already showing
+    return;
+  }
+
   final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
 
-  showModalBottomSheet(
+  var cuttedColor = Color(0xFF737373);
+  if (ModalRoute.of(context)?.settings.name == AppRouter.scanQRPage) {
+    cuttedColor = Color.fromARGB(255, 62, 60, 61);
+  }
+
+  await showModalBottomSheet(
       context: context,
       // isDismissible: false,
       enableDrag: false,
       // isScrollControlled: false,
       builder: (context) {
         return Container(
-          color: Color(0xFF737373),
+          color: cuttedColor,
           child: ClipPath(
             clipper: AutonomyTopRightRectangleClipper(),
             child: Container(
@@ -111,6 +133,10 @@ void showErrorDialog(BuildContext context, String title, String description,
                         text: cancelButton,
                         onPress: () {
                           Navigator.of(context).pop();
+
+                          if (cancelButtonOnPress != null) {
+                            cancelButtonOnPress();
+                          }
                         },
                         textStyle: TextStyle(
                             fontSize: 14,
@@ -125,10 +151,18 @@ void showErrorDialog(BuildContext context, String title, String description,
           ),
         );
       });
+
+  await Future.delayed(Duration(seconds: 1), () {
+    isShowErrorDialogWorking = false;
+  });
 }
 
-void showErrorDiablog(BuildContext context, ErrorEvent event,
-    {Function()? defaultAction}) {
+void showErrorDiablog(
+  BuildContext context,
+  ErrorEvent event, {
+  Function()? defaultAction,
+  Function()? cancelAction,
+}) {
   String defaultButton = "";
   String? cancelButton;
   switch (event.state) {
@@ -142,15 +176,22 @@ void showErrorDiablog(BuildContext context, ErrorEvent event,
     case ErrorItemState.tryAgain:
       defaultButton = "TRY AGAIN";
       break;
+
     case ErrorItemState.camera:
       defaultButton = "OPEN SETTINGS";
       defaultAction = () async => await openAppSettings();
       break;
+
+    case ErrorItemState.seeAccount:
+      defaultButton = "SEE ACCOUNT";
+      cancelButton = "CLOSE";
+      break;
+
     default:
       break;
   }
   showErrorDialog(context, event.title, event.message, defaultButton,
-      defaultAction, cancelButton);
+      defaultAction, cancelButton, cancelAction);
 }
 
 void showErrorDialogFromException(Object exception) {

@@ -23,28 +23,56 @@ class GetFFAccountInfoEvent extends FeralFileEvent {
 }
 
 class FeralFileState {
-  ActionState linkState;
   ActionState refreshState;
   Connection? connection;
-  String errorMessage = '';
+  FeralFileBlocStateEvent? event;
 
   FeralFileState(
       {this.refreshState = ActionState.notRequested,
-      this.linkState = ActionState.notRequested,
       this.connection,
-      this.errorMessage = ''});
+      this.event});
 
   FeralFileState copyWith({
     ActionState? refreshState,
-    ActionState? linkState,
     Connection? connection,
-    String? errorMessage,
+    FeralFileBlocStateEvent? event,
   }) {
     return FeralFileState(
       refreshState: refreshState ?? this.refreshState,
-      linkState: linkState ?? this.linkState,
       connection: connection ?? this.connection,
-      errorMessage: errorMessage ?? this.errorMessage,
+      event: event ?? this.event,
     );
   }
+
+  FeralFileState setEvent(FeralFileBlocStateEvent? event) {
+    return FeralFileState(
+      refreshState: this.refreshState,
+      connection: this.connection,
+      event: event,
+    );
+  }
+
+  bool get isError {
+    if (event == null) return false;
+    if (event is LinkAccountSuccess) return false;
+    return true;
+  }
 }
+
+abstract class FeralFileBlocStateEvent {}
+
+class LinkAccountSuccess extends FeralFileBlocStateEvent {
+  final Connection connection;
+
+  LinkAccountSuccess(this.connection);
+}
+
+class AlreadyLinkedError extends FeralFileBlocStateEvent {
+  final Connection connection;
+
+  AlreadyLinkedError(this.connection);
+}
+
+class FFNotConnected extends FeralFileBlocStateEvent {}
+
+class NotFFLoggedIn extends FeralFileBlocStateEvent {}
