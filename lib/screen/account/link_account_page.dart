@@ -5,6 +5,7 @@ import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_dapp_service/wallet_connect_dapp_service.dart';
+import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -120,9 +121,11 @@ class _LinkAccountPageState extends State<LinkAccountPage>
       ),
       body: BlocListener<AccountsBloc, AccountsState>(
         listener: (context, state) {
-          final linkedAccount = state.justLinkedAccount;
+          final event = state.event;
+          if (event == null) return;
 
-          if (linkedAccount != null) {
+          if (event is LinkAccountSuccess) {
+            final linkedAccount = event.connection;
             final walletName = linkedAccount
                     .wcConnectedSession?.sessionStore.remotePeerMeta.name ??
                 'your wallet';
@@ -144,6 +147,22 @@ class _LinkAccountPageState extends State<LinkAccountPage>
               }
             });
           }
+
+          if (event is AlreadyLinkedError) {
+            showErrorDiablog(
+                context,
+                ErrorEvent(
+                    null,
+                    "Already linked",
+                    "You’ve already linked this account to Autonomy.",
+                    ErrorItemState.seeAccount), defaultAction: () {
+              Navigator.of(context).pushNamed(
+                  AppRouter.linkedAccountDetailsPage,
+                  arguments: event.connection);
+            });
+          }
+
+          context.read<AccountsBloc>().add(ResetEventEvent());
         },
         child: Container(
           margin:

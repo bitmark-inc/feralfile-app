@@ -17,6 +17,9 @@ abstract class ConnectionDao {
   @Query('SELECT * FROM Connection WHERE connectionType = :type')
   Future<List<Connection>> getConnectionsByType(String type);
 
+  @Query('SELECT * FROM Connection WHERE accountNumber = :accountNumber')
+  Future<List<Connection>> getConnectionsByAccountNumber(String accountNumber);
+
   @Insert(onConflict: OnConflictStrategy.replace)
   Future<void> insertConnection(Connection connection);
 

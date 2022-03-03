@@ -1,7 +1,9 @@
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
+import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/network.dart';
+import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -69,23 +71,27 @@ class FeralfileBloc extends Bloc<FeralFileEvent, FeralFileState> {
     });
 
     on<LinkFFWeb3AccountEvent>((event, emit) async {
-      // TODO: Handle when already linked
       try {
         final personaAddress = await event.wallet.getETHAddress();
         final ffAccount = await _feralFileService.getWeb3Account(event.wallet);
 
+        final alreadyLinkedAccount = await getExistingAccount(ffAccount);
+        if (alreadyLinkedAccount != null) {
+          emit(state.setEvent(AlreadyLinkedError(alreadyLinkedAccount)));
+          return;
+        }
+
         final connection = Connection.fromFFWeb3(
             event.topic, event.source, personaAddress, ffAccount);
         _cloudDB.connectionDao.insertConnection(connection);
-        emit(FeralFileState(linkState: ActionState.done));
+        emit(state.setEvent(LinkAccountSuccess(connection)));
       } catch (error) {
         final code = decodeErrorResponse(error);
         if (code == null) rethrow;
 
         final apiError = getAPIErrorCode(code);
         if (apiError == APIErrorCode.ffNotConnected) {
-          emit(state.copyWith(
-              linkState: ActionState.error, errorMessage: "ffNotConnected"));
+          emit(state.setEvent(FFNotConnected()));
           return;
         }
 
@@ -102,22 +108,37 @@ class FeralfileBloc extends Bloc<FeralFileEvent, FeralFileState> {
 
         final ffToken = event.token;
         final ffAccount = await _feralFileService.getAccount(ffToken);
+
+        final alreadyLinkedAccount = await getExistingAccount(ffAccount);
+        if (alreadyLinkedAccount != null) {
+          emit(state.setEvent(AlreadyLinkedError(alreadyLinkedAccount)));
+          return;
+        }
+
         final connection = Connection.fromFFToken(ffToken, source, ffAccount);
 
         _cloudDB.connectionDao.insertConnection(connection);
-
-        emit(FeralFileState(linkState: ActionState.done));
+        emit(state.setEvent(LinkAccountSuccess(connection)));
       } on DioError catch (error) {
         final code = decodeErrorResponse(error);
         if (code == null) rethrow;
 
         final apiError = getAPIErrorCode(code);
         if (apiError == APIErrorCode.notLoggedIn) {
-          emit(state.copyWith(linkState: ActionState.error));
+          emit(state.setEvent(NotFFLoggedIn()));
           return;
         }
         rethrow;
       }
     });
+  }
+
+  Future<Connection?> getExistingAccount(FFAccount ffAccount) async {
+    final existingConnections = await _cloudDB.connectionDao
+        .getConnectionsByAccountNumber(ffAccount.accountNumber);
+
+    if (existingConnections.isEmpty) return null;
+
+    return existingConnections.first;
   }
 }

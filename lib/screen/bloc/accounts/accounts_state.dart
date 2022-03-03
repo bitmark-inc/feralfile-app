@@ -2,6 +2,8 @@ part of 'accounts_bloc.dart';
 
 abstract class AccountsEvent {}
 
+class ResetEventEvent extends AccountsEvent {}
+
 class GetAccountsEvent extends AccountsEvent {}
 
 class GetCategorizedAccountsEvent extends AccountsEvent {}
@@ -57,33 +59,44 @@ class AccountsState {
   List<Account>? accounts;
   List<CategorizedAccounts>? categorizedAccounts;
   Network? network;
-
-  Connection? justLinkedAccount;
+  AccountBlocStateEvent? event;
 
   AccountsState(
-      {this.accounts,
-      this.categorizedAccounts,
-      this.network,
-      this.justLinkedAccount});
+      {this.accounts, this.categorizedAccounts, this.network, this.event});
 
-  AccountsState copyWith({
-    List<Account>? accounts,
-    List<CategorizedAccounts>? categorizedAccounts,
-    Network? network,
-    Connection? justLinkedAccount,
-  }) {
+  AccountsState copyWith(
+      {List<Account>? accounts,
+      List<CategorizedAccounts>? categorizedAccounts,
+      Network? network,
+      AccountBlocStateEvent? event}) {
     return AccountsState(
       accounts: accounts ?? this.accounts,
       categorizedAccounts: categorizedAccounts ?? this.categorizedAccounts,
       network: network ?? this.network,
-      justLinkedAccount: justLinkedAccount ?? this.justLinkedAccount,
+      event: event ?? this.event,
     );
   }
 
-  AccountsState resetLinkedAccountState() {
+  AccountsState setEvent(AccountBlocStateEvent? event) {
     return AccountsState(
-        accounts: this.accounts,
-        network: this.network,
-        justLinkedAccount: null);
+      accounts: this.accounts,
+      network: this.network,
+      categorizedAccounts: this.categorizedAccounts,
+      event: event,
+    );
   }
+}
+
+abstract class AccountBlocStateEvent {}
+
+class LinkAccountSuccess extends AccountBlocStateEvent {
+  final Connection connection;
+
+  LinkAccountSuccess(this.connection);
+}
+
+class AlreadyLinkedError extends AccountBlocStateEvent {
+  final Connection connection;
+
+  AlreadyLinkedError(this.connection);
 }

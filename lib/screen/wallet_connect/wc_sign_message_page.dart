@@ -88,27 +88,39 @@ class WCSignMessagePage extends StatelessWidget {
   Widget _signButton(BuildContext pageContext, Uint8List message) {
     return BlocConsumer<FeralfileBloc, FeralFileState>(
         listener: (context, state) {
-      switch (state.linkState) {
-        case ActionState.done:
+      final event = state.event;
+      if (event == null) return;
+
+      if (event is LinkAccountSuccess) {
+        Navigator.of(context).pop();
+        return;
+      } else if (event is AlreadyLinkedError) {
+        showErrorDiablog(
+            context,
+            ErrorEvent(
+                null,
+                "Already linked",
+                "You’ve already linked this account to Autonomy.",
+                ErrorItemState.seeAccount), defaultAction: () {
+          Navigator.of(context).pushReplacementNamed(
+              AppRouter.linkedAccountDetailsPage,
+              arguments: event.connection);
+        }, cancelAction: () {
           Navigator.of(context).pop();
-          break;
+        });
 
-        case ActionState.error:
-          // only have ffNotConnected case so far
-          showErrorDiablog(
-              context,
-              ErrorEvent(
-                  null,
-                  "Uh-oh!",
-                  "To sign in with a Web3 wallet, you must first create a Feral File account then connect your wallet.",
-                  ErrorItemState.close), defaultAction: () {
-            Navigator.of(context).popUntil(
-                (route) => route.settings.name == AppRouter.settingsPage);
-          });
-          break;
-
-        default:
-          break;
+        return;
+      } else if (event is FFNotConnected) {
+        showErrorDiablog(
+            context,
+            ErrorEvent(
+                null,
+                "Uh-oh!",
+                "To sign in with a Web3 wallet, you must first create a Feral File account then connect your wallet.",
+                ErrorItemState.close), defaultAction: () {
+          Navigator.of(context).popUntil(
+              (route) => route.settings.name == AppRouter.settingsPage);
+        });
       }
     }, builder: (context, state) {
       final networkInjector = injector<NetworkConfigInjector>();
