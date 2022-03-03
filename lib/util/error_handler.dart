@@ -77,11 +77,6 @@ Future showErrorDialog(BuildContext context, String title, String description,
   }
 
   isShowErrorDialogWorking = true;
-  if (ModalRoute.of(context)?.settings.name == null) {
-    // do not show the error dialog if there is another dialog already showing
-    return;
-  }
-
   final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
 
   var cuttedColor = Color(0xFF737373);

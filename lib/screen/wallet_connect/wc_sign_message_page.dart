@@ -29,6 +29,8 @@ class WCSignMessagePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final message = hexToBytes(args.message);
     final messageInUtf8 = utf8.decode(message, allowMalformed: true);
+    final shouldRetry = messageInUtf8
+        .contains("Feral File is requesting to connect your wallet address");
 
     return Scaffold(
       appBar: getBackAppBar(
@@ -78,14 +80,15 @@ class WCSignMessagePage extends StatelessWidget {
                 ),
               ),
             ),
-            _signButton(context, message),
+            _signButton(context, message, shouldRetry),
           ],
         ),
       ),
     );
   }
 
-  Widget _signButton(BuildContext pageContext, Uint8List message) {
+  Widget _signButton(
+      BuildContext pageContext, Uint8List message, bool shouldRetry) {
     return BlocConsumer<FeralfileBloc, FeralFileState>(
         listener: (context, state) {
       final event = state.event;
@@ -141,7 +144,7 @@ class WCSignMessagePage extends StatelessWidget {
 
                 if (args.peerMeta.url.contains("feralfile")) {
                   context.read<FeralfileBloc>().add(LinkFFWeb3AccountEvent(
-                      args.topic, args.peerMeta.url, wallet));
+                      args.topic, args.peerMeta.url, wallet, shouldRetry));
 
                   // result in listener - linkState.done
                 } else {

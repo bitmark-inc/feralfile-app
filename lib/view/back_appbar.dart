@@ -38,10 +38,13 @@ AppBar getBackAppBar(BuildContext context,
             ],
           ),
         ),
-        Text(
-          title,
-          overflow: TextOverflow.ellipsis,
-          style: appTextTheme.caption,
+        Expanded(
+          child: Text(
+            title,
+            overflow: TextOverflow.ellipsis,
+            style: appTextTheme.caption,
+            textAlign: TextAlign.center,
+          ),
         ),
         SizedBox(width: 60),
       ],
