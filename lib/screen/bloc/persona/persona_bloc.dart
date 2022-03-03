@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/model/p2p_peer.dart';
@@ -37,6 +35,10 @@ class PersonaBloc extends Bloc<PersonaEvent, PersonaState> {
 
       emit(
           PersonaState(createAccountState: ActionState.done, persona: persona));
+
+      await Future.delayed(Duration(microseconds: 500), () {
+        emit(state.copyWith(createAccountState: ActionState.notRequested));
+      });
     });
 
     on<GetListPersonaEvent>((event, emit) async {
