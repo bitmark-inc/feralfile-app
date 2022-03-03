@@ -4,7 +4,6 @@ import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_dapp_service/wc_connected_session.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 part 'accounts_state.dart';
@@ -15,6 +14,10 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
 
   AccountsBloc(this._configurationService, this._cloudDB)
       : super(AccountsState()) {
+    on<ResetEventEvent>((event, emit) async {
+      emit(state.setEvent(null));
+    });
+
     on<GetAccountsEvent>((event, emit) async {
       final personas = await _cloudDB.personaDao.getPersonas();
       final connections = await _cloudDB.connectionDao.getLinkedAccounts();
@@ -143,15 +146,15 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
 
     on<LinkEthereumWalletEvent>((event, emit) async {
       final connection = Connection.fromETHWallet(event.session);
-      final existingConnection =
-          await _cloudDB.connectionDao.findById(connection.key);
-      if (existingConnection != null) {
-        connection.name = existingConnection.name;
+      final alreadyLinkedAccount =
+          await getExistingAccount(connection.accountNumber);
+      if (alreadyLinkedAccount != null) {
+        emit(state.setEvent(AlreadyLinkedError(alreadyLinkedAccount)));
+        return;
       }
 
       _cloudDB.connectionDao.insertConnection(connection);
-      emit(state.copyWith(justLinkedAccount: connection));
-      emit(state.resetLinkedAccountState()); // reset
+      emit(state.setEvent(LinkAccountSuccess(connection)));
 
       add(GetAccountsEvent());
     });
@@ -171,5 +174,14 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
 
       add(GetAccountsEvent());
     });
+  }
+
+  Future<Connection?> getExistingAccount(String accountNumber) async {
+    final existingConnections = await _cloudDB.connectionDao
+        .getConnectionsByAccountNumber(accountNumber);
+
+    if (existingConnections.isEmpty) return null;
+
+    return existingConnections.first;
   }
 }

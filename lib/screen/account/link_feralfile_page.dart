@@ -1,8 +1,10 @@
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/screen/account/linked_account_details_page.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/feralfile/feralfile_bloc.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
@@ -36,23 +38,36 @@ class _LinkFeralFilePageState extends State<LinkFeralFilePage> {
             EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
         child: BlocConsumer<FeralfileBloc, FeralFileState>(
           listener: (context, state) {
-            switch (state.linkState) {
-              case ActionState.done:
-                UIHelper.showInfoDialog(context, 'Account linked',
-                    'Autonomy has linked your Feral File account.');
+            final event = state.event;
+            if (event == null) return;
 
-                Future.delayed(SHORT_SHOW_DIALOG_DURATION, () {
-                  if (injector<ConfigurationService>().isDoneOnboarding()) {
-                    Navigator.of(context).popUntil((route) =>
-                        route.settings.name == AppRouter.settingsPage);
-                  } else {
-                    doneOnboarding(context);
-                  }
-                });
-                break;
+            if (event is LinkAccountSuccess) {
+              UIHelper.showInfoDialog(context, 'Account linked',
+                  'Autonomy has linked your Feral File account.');
 
-              default:
-                break;
+              Future.delayed(SHORT_SHOW_DIALOG_DURATION, () {
+                if (injector<ConfigurationService>().isDoneOnboarding()) {
+                  Navigator.of(context).popUntil(
+                      (route) => route.settings.name == AppRouter.settingsPage);
+                } else {
+                  doneOnboarding(context);
+                }
+              });
+
+              return;
+            } else if (event is AlreadyLinkedError) {
+              showErrorDiablog(
+                  context,
+                  ErrorEvent(
+                      null,
+                      "Already linked",
+                      "You’ve already linked this account to Autonomy.",
+                      ErrorItemState.seeAccount), defaultAction: () {
+                Navigator.of(context).pushReplacementNamed(
+                    AppRouter.linkedAccountDetailsPage,
+                    arguments: event.connection);
+              });
+              return;
             }
           },
           builder: (context, state) {
@@ -78,7 +93,7 @@ class _LinkFeralFilePageState extends State<LinkFeralFilePage> {
                           title: "",
                           placeholder: "Paste token from your account",
                           controller: _tokenController,
-                          isError: state.linkState == ActionState.error,
+                          isError: state.isError,
                           suffix: IconButton(
                             icon: SvgPicture.asset("assets/images/iconQr.svg"),
                             onPressed: () async {

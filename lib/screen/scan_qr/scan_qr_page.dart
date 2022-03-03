@@ -5,9 +5,9 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/feralfile/feralfile_bloc.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
+import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -65,18 +65,28 @@ class _ScanQRPageState extends State<ScanQRPage> {
 
     return BlocListener<FeralfileBloc, FeralFileState>(
       listener: (context, state) {
-        switch (state.linkState) {
-          case ActionState.done:
-            Navigator.of(context).pop();
-            break;
+        final event = state.event;
+        if (event == null) return;
 
-          case ActionState.error:
-            _handleError("feralfile-api:qrcode-with-feralfile-format");
+        if (event is LinkAccountSuccess) {
+          Navigator.of(context).pop();
+        } else if (event is AlreadyLinkedError) {
+          showErrorDiablog(
+              context,
+              ErrorEvent(
+                  null,
+                  "Already linked",
+                  "You’ve already linked this account to Autonomy.",
+                  ErrorItemState.seeAccount), defaultAction: () {
+            Navigator.of(context).pushReplacementNamed(
+                AppRouter.linkedAccountDetailsPage,
+                arguments: event.connection);
+          }, cancelAction: () {
             controller.resumeCamera();
-            break;
-
-          default:
-            break;
+          });
+        } else if (event is NotFFLoggedIn) {
+          _handleError("feralfile-api:qrcode-with-feralfile-format");
+          controller.resumeCamera();
         }
       },
       child: Scaffold(
