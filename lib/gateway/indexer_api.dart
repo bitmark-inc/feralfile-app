@@ -1,4 +1,5 @@
 import 'package:autonomy_flutter/model/asset.dart';
+import 'package:autonomy_flutter/model/identity.dart';
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 
@@ -24,4 +25,9 @@ abstract class IndexerApi {
 
   @POST("/nft/index")
   Future requestIndex(@Body() Map<String, String> payload);
+
+  @GET("/identity/{accountNumber}")
+  Future<BlockchainIdentity> getIdentity(
+    @Path("accountNumber") String accountNumber,
+  );
 }
