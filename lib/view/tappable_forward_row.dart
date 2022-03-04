@@ -21,7 +21,6 @@ class TappableForwardRow extends StatelessWidget {
       behavior: HitTestBehavior.translucent,
       child: _content(),
       onTap: onTap,
-      // onTap: onTap,
     );
   }
 

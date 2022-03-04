@@ -10,8 +10,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class GlobalReceivePage extends StatefulWidget {
-  static const tag = "global_receive";
-
   const GlobalReceivePage({Key? key}) : super(key: key);
   @override
   State<GlobalReceivePage> createState() => _GlobalReceivePageState();

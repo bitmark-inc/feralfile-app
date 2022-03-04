@@ -5,22 +5,20 @@ import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
-import 'package:autonomy_flutter/screen/global_receive/receive_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
-import 'package:autonomy_flutter/screen/settings/crypto/receive_page.dart';
 import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/view/penrose_scrolling_container.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import "package:collection/collection.dart";
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:uni_links/uni_links.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
 
@@ -73,16 +71,13 @@ class _HomePageState extends State<HomePage>
 
     return Scaffold(
       body: Stack(fit: StackFit.loose, children: [
-        BlocBuilder<HomeBloc, HomeState>(builder: (context, state) {
-          final tokens = state.tokens;
-          return SingleChildScrollView(
-            child: Container(
-              margin: EdgeInsets.only(
-                  top: MediaQuery.of(context).padding.top + 110,
-                  left: 0.0,
-                  right: 0.0,
-                  bottom: 0.0),
-              child: Column(
+        PenroseScrollingContainer(
+          page: AppRouter.homePage,
+          content: BlocBuilder<HomeBloc, HomeState>(
+            builder: (context, state) {
+              final tokens = state.tokens;
+
+              return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   if (tokens == null || tokens.isEmpty) ...[
@@ -91,32 +86,8 @@ class _HomePageState extends State<HomePage>
                     _assetsWidget(tokens),
                   ]
                 ],
-              ),
-            ),
-          );
-        }),
-        Align(
-          alignment: Alignment.topRight,
-          child: Padding(
-            padding: EdgeInsets.only(
-                top: MediaQuery.of(context).padding.top + 16, right: 16),
-            child: GestureDetector(
-              child: SvgPicture.asset("assets/images/iconReceive.svg"),
-              onTap: () =>
-                  Navigator.of(context).pushNamed(GlobalReceivePage.tag),
-            ),
-          ),
-        ),
-        Align(
-          alignment: Alignment.topCenter,
-          child: Padding(
-            padding:
-                EdgeInsets.only(top: MediaQuery.of(context).padding.top + 25),
-            child: GestureDetector(
-              child: Image.asset("assets/images/penrose.png"),
-              onTap: () =>
-                  Navigator.of(context).pushNamed(AppRouter.settingsPage),
-            ),
+              );
+            },
           ),
         ),
         BlocBuilder<HomeBloc, HomeState>(
@@ -189,7 +160,7 @@ class _HomePageState extends State<HomePage>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16.0),
+          padding: EdgeInsets.symmetric(horizontal: 15.0),
           child: Text(
             name,
             style: appTextTheme.headline1,
@@ -202,6 +173,7 @@ class _HomePageState extends State<HomePage>
           crossAxisSpacing: 3.0,
           mainAxisSpacing: 3.0,
           childAspectRatio: 1.0,
+          padding: EdgeInsets.symmetric(vertical: 24),
           children: List.generate(assets.length, (index) {
             final asset = assets[index];
             return GestureDetector(
