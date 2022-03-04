@@ -35,7 +35,7 @@ class BeaconConnectService {
         do {
             Beacon.WalletClient.create(
                 with: .init(
-                    name: "Autonomy",
+                    name: Constant.appname,
                     blockchains: [Tezos.factory],
                     connections: [.p2p(.init(client: try Transport.P2P.Matrix.factory()))]
                 )
@@ -220,7 +220,7 @@ extension BeaconConnectService {
 
             Beacon.DAppClient.create(
                 with: .init(
-                    name: "Autonomy",
+                    name: Constant.appname,
                     blockchains: [Tezos.factory],
                     connections: [.p2p(.init(client: try Transport.P2P.Matrix.factory(storagePlugin: storage)))]
                 )
