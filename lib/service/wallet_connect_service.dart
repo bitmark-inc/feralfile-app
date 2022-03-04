@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:autonomy_flutter/database/app_database.dart';
+import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/model/connection_supports.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
@@ -129,7 +129,8 @@ class WalletConnectService {
         if (connection != null) {
           _cloudDB.connectionDao.deleteConnection(connection);
         } else {
-          final removingConnection = await _cloudDB.connectionDao.findById(topic);
+          final removingConnection =
+              await _cloudDB.connectionDao.findById(topic);
           if (removingConnection != null) {
             _cloudDB.connectionDao.deleteConnection(removingConnection);
           }

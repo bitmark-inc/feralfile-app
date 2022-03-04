@@ -1,6 +1,7 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
+import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/screen/account/accounts_preview_page.dart';
@@ -14,6 +15,7 @@ import 'package:autonomy_flutter/screen/account/name_linked_account_page.dart';
 import 'package:autonomy_flutter/screen/account/name_persona_page.dart';
 import 'package:autonomy_flutter/screen/account/new_account_page.dart';
 import 'package:autonomy_flutter/screen/bloc/connections/connections_bloc.dart';
+import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/cloud_page.dart';
 import 'package:autonomy_flutter/screen/connection/connection_details_page.dart';
 import 'package:autonomy_flutter/screen/connection/persona_connections_page.dart';
@@ -413,12 +415,18 @@ class AppRouter {
       case ArtworkDetailPage.tag:
         return CupertinoPageRoute(
             settings: settings,
-            builder: (context) => BlocProvider(
-                  create: (_) => ArtworkDetailBloc(networkInjector.I(),
-                      networkInjector.I<AppDatabase>().assetDao),
-                  child: ArtworkDetailPage(
-                      payload: settings.arguments as ArtworkDetailPayload),
-                ));
+            builder: (context) => MultiBlocProvider(
+                    providers: [
+                      BlocProvider(
+                          create: (_) => IdentityBloc(
+                              networkInjector.I<AppDatabase>(),
+                              networkInjector.I())),
+                      BlocProvider(
+                          create: (_) => ArtworkDetailBloc(networkInjector.I(),
+                              networkInjector.I<AppDatabase>().assetDao)),
+                    ],
+                    child: ArtworkDetailPage(
+                        payload: settings.arguments as ArtworkDetailPayload)));
       case TBSignMessagePage.tag:
         return CupertinoPageRoute(
           settings: settings,

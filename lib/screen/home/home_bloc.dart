@@ -1,6 +1,6 @@
 import 'dart:developer';
 
-import 'package:autonomy_flutter/database/app_database.dart';
+import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/dao/asset_token_dao.dart';
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
