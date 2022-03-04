@@ -163,7 +163,7 @@ class _WCConnectPageState extends State<WCConnectPage>
         onBack: () => _reject(),
       ),
       body: Container(
-        margin: EdgeInsets.all(16.0),
+        margin: pageEdgeInsetsWithSubmitButton,
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(
             "Connect",
@@ -178,10 +178,10 @@ class _WCConnectPageState extends State<WCConnectPage>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 ...grantPermissions
-                    .map((permission) => Column(children: [
+                    .map(
+                      (permission) =>
                           Text("• $permission", style: appTextTheme.bodyText1),
-                          SizedBox(height: 4),
-                        ]))
+                    )
                     .toList(),
               ],
             ),
@@ -333,7 +333,7 @@ class _WCConnectPageState extends State<WCConnectPage>
                                         "assets/images/autonomyIcon.png")),
                                 SizedBox(width: 16.0),
                                 Text(persona.name,
-                                    style: appTextTheme.bodyText1)
+                                    style: appTextTheme.headline4)
                               ],
                             ),
                             contentPadding: EdgeInsets.zero,

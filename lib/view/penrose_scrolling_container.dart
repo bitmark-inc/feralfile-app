@@ -62,7 +62,7 @@ class _PenroseScrollingContainerState extends State<PenroseScrollingContainer> {
         opacity: _someElementsOpacity,
         child: Container(
           alignment: Alignment.topCenter,
-          padding: EdgeInsets.fromLTRB(7, 35, 12, 90),
+          padding: EdgeInsets.fromLTRB(7, 42, 12, 90),
           child: Row(
             children: [
               IconButton(
@@ -94,6 +94,7 @@ class _PenroseScrollingContainerState extends State<PenroseScrollingContainer> {
               switch (widget.page) {
                 case AppRouter.homePage:
                   Navigator.of(context).pushNamed(AppRouter.settingsPage);
+
                   break;
                 case AppRouter.settingsPage:
                   Navigator.of(context).pop();

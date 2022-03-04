@@ -38,8 +38,7 @@ class CloudPage extends StatelessWidget {
         valueListenable: injector<CloudService>().isAvailableNotifier,
         builder: (BuildContext context, bool isAvailable, Widget? child) {
           return Container(
-            margin: EdgeInsets.only(
-                top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
+            margin: pageEdgeInsetsWithSubmitButton,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

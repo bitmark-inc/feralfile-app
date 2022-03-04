@@ -140,7 +140,7 @@ class _SettingsPageState extends State<SettingsPage>
                 SizedBox(height: 5),
                 eulaAndPrivacyView(),
               ]),
-              SizedBox(height: 17),
+              SizedBox(height: 60),
             ],
           ),
         ),
