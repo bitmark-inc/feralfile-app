@@ -7,14 +7,14 @@ class AppConfig {
       "https://hangzhounet.smartpy.io",
       "https://api.test.bitmark.com",
       "https://indexer.test.autonomy.io",
-      "https://autonomy-auth.test.bitmark.com",
+      "https://accounts.test.autonomy.io",
       "https://feralfile1.dev.bitmark.com");
   static const AppConfigNetwork mainNetworkConfig = AppConfigNetwork(
       "https://mainnet.infura.io/v3/ab0e0fe9710b412ca73bb044713a3523",
       "https://mainnet.smartpy.io/",
       "https://api.bitmark.com",
       "https://indexer.autonomy.io",
-      "https://autonomy-auth.test.bitmark.com",
+      "https://accounts.test.autonomy.io",
       "https://feralfile.com");
 }
 
