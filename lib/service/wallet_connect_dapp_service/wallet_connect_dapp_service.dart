@@ -107,7 +107,9 @@ class WalletConnectDappService {
     log.info("WC onSessionUpdate");
     _configurationService.setWCDappSession(null);
     _configurationService.setWCDappAccounts(null);
-    remotePeerAccount.value = updatedSession.accounts;
+    final connectedSession = WCConnectedSession(
+        sessionStore: _wcSessionStore, accounts: updatedSession.accounts);
+    remotePeerAccount.value = connectedSession;
   }
 
   _onEthSign(id, message) {}
