@@ -235,17 +235,21 @@ class AppRouter {
         switch (argument.runtimeType) {
           case WCConnectPageArgs:
             return CupertinoPageRoute(
-              settings: settings,
-              builder: (context) => BlocProvider(
-                  create: (_) => PersonaBloc(
-                        injector<CloudDatabase>(),
-                        injector(),
-                        injector(),
-                      ),
-                  child: WCConnectPage(
-                      wcConnectArgs: argument as WCConnectPageArgs,
-                      beaconRequest: null)),
-            );
+                settings: settings,
+                builder: (context) => MultiBlocProvider(
+                        providers: [
+                          BlocProvider.value(value: accountsBloc),
+                          BlocProvider(
+                            create: (_) => PersonaBloc(
+                              injector<CloudDatabase>(),
+                              injector(),
+                              injector(),
+                            ),
+                          ),
+                        ],
+                        child: WCConnectPage(
+                            wcConnectArgs: argument as WCConnectPageArgs,
+                            beaconRequest: null)));
 
           case BeaconRequest:
             return CupertinoPageRoute(

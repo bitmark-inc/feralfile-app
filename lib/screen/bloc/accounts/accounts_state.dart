@@ -30,6 +30,8 @@ class DeleteLinkedAccountEvent extends AccountsEvent {
   DeleteLinkedAccountEvent(this.connection);
 }
 
+class FetchAllAddressesEvent extends AccountsEvent {}
+
 class Account {
   Persona? persona;
   List<Connection>? connections;
@@ -99,4 +101,10 @@ class AlreadyLinkedError extends AccountBlocStateEvent {
   final Connection connection;
 
   AlreadyLinkedError(this.connection);
+}
+
+class FetchAllAddressesSuccessEvent extends AccountBlocStateEvent {
+  final List<String> addresses;
+
+  FetchAllAddressesSuccessEvent(this.addresses);
 }
