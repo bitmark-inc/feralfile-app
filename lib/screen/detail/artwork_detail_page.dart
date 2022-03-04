@@ -1,12 +1,14 @@
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/model/asset_price.dart';
 import 'package:autonomy_flutter/model/bitmark.dart';
+import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_page.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_outlined_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -323,38 +325,55 @@ class ArtworkDetailPage extends StatelessWidget {
   }
 
   Widget _provenanceView(BuildContext context, List<Provenance> provenances) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          "Provenance",
-          style: appTextTheme.headline2,
-        ),
-        SizedBox(height: 16.0),
-        ...provenances
-            .map((el) => Column(
-                  children: [
-                    _rowItem(context, el.owner.mask(4),
-                        localTimeString(el.createdAt)),
-                    Divider(height: 32.0),
-                  ],
-                ))
-            .toList()
-      ],
-    );
+    context
+        .read<IdentityBloc>()
+        .add(GetIdentityEvent(provenances.map((e) => e.owner)));
+
+    return BlocBuilder<IdentityBloc, IdentityState>(
+        builder: (context, state) => Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Provenance",
+                  style: appTextTheme.headline2,
+                ),
+                SizedBox(height: 16.0),
+                ...provenances.map((el) {
+                  final identity = state.identityMap[el.owner];
+                  final onNameTap = () => identity != null
+                      ? UIHelper.showIdentityDetailDialog(context,
+                          name: identity, address: el.owner)
+                      : null;
+                  return Column(
+                    children: [
+                      _rowItem(context, identity ?? el.owner.mask(4),
+                          localTimeString(el.createdAt),
+                          onNameTap: onNameTap),
+                      Divider(height: 32.0),
+                    ],
+                  );
+                }).toList()
+              ],
+            ));
   }
 
-  Widget _rowItem(BuildContext context, String name, String? value) {
+  Widget _rowItem(BuildContext context, String name, String? value,
+      {Function()? onNameTap, Function()? onValueTap}) {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
-          child: Text(name, style: appTextTheme.headline4),
+          child: GestureDetector(
+            child: Text(name, style: appTextTheme.headline4),
+            onTap: onNameTap,
+          ),
         ),
         Expanded(
           child: Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               Expanded(
+                  child: GestureDetector(
                 child: Text(
                   value ?? "",
                   textAlign: TextAlign.end,
@@ -364,7 +383,8 @@ class ArtworkDetailPage extends StatelessWidget {
                       fontWeight: FontWeight.w300,
                       fontFamily: "IBMPlexMono"),
                 ),
-              ),
+                onTap: onValueTap,
+              )),
               // SizedBox(width: 8.0),
               // Icon(CupertinoIcons.forward)
             ],
