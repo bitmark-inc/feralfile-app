@@ -29,8 +29,6 @@ class WCSignMessagePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final message = hexToBytes(args.message);
     final messageInUtf8 = utf8.decode(message, allowMalformed: true);
-    final shouldRetry = messageInUtf8
-        .contains("Feral File is requesting to connect your wallet address");
 
     return Scaffold(
       appBar: getBackAppBar(
@@ -80,7 +78,7 @@ class WCSignMessagePage extends StatelessWidget {
                 ),
               ),
             ),
-            _signButton(context, message, shouldRetry),
+            _signButton(context, message, messageInUtf8),
           ],
         ),
       ),
@@ -88,7 +86,7 @@ class WCSignMessagePage extends StatelessWidget {
   }
 
   Widget _signButton(
-      BuildContext pageContext, Uint8List message, bool shouldRetry) {
+      BuildContext pageContext, Uint8List message, String messageInUtf8) {
     return BlocConsumer<FeralfileBloc, FeralFileState>(
         listener: (context, state) {
       final event = state.event;
@@ -143,9 +141,17 @@ class WCSignMessagePage extends StatelessWidget {
                     .approveRequest(args.peerMeta, args.id, signature);
 
                 if (args.peerMeta.url.contains("feralfile")) {
-                  context.read<FeralfileBloc>().add(LinkFFWeb3AccountEvent(
-                      args.topic, args.peerMeta.url, wallet, shouldRetry));
-
+                  if (messageInUtf8.contains(
+                      'Feral File is requesting to connect your wallet address')) {
+                    context.read<FeralfileBloc>().add(LinkFFWeb3AccountEvent(
+                        args.topic, args.peerMeta.url, wallet, true));
+                  } else if (messageInUtf8.contains(
+                      'Feral File is requesting authorization to sign in')) {
+                    context.read<FeralfileBloc>().add(LinkFFWeb3AccountEvent(
+                        args.topic, args.peerMeta.url, wallet, false));
+                  } else {
+                    Navigator.of(context).pop();
+                  }
                   // result in listener - linkState.done
                 } else {
                   Navigator.of(context).pop();
