@@ -4,6 +4,7 @@ import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/screen/connection/persona_connections_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
@@ -12,6 +13,7 @@ import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -88,7 +90,7 @@ class _WCConnectPageState extends State<WCConnectPage>
     Navigator.of(context).pop();
   }
 
-  Future _approve() async {
+  Future _approve(List<String>? addresses) async {
     if (selectedPersona == null) return;
 
     final wcConnectArgs = widget.wcConnectArgs;
@@ -106,8 +108,13 @@ class _WCConnectPageState extends State<WCConnectPage>
           injector<ConfigurationService>().getNetwork() == Network.MAINNET
               ? 1
               : 4;
-      injector<WalletConnectService>().approveSession(
-          selectedPersona!.uuid, wcConnectArgs.peerMeta, [address], chainId);
+
+      final approvedAddresses = addresses ?? [address];
+      log.info(
+          "[WCConnectPage] approve WCConnect with addreses ${approvedAddresses}");
+      injector<WalletConnectService>().approveSession(selectedPersona!.uuid,
+          wcConnectArgs.peerMeta, approvedAddresses, chainId);
+
       payloadAddress = address;
       payloadType = CryptoType.ETH;
 
@@ -350,15 +357,37 @@ class _WCConnectPageState extends State<WCConnectPage>
             ],
           ),
         ),
-        Row(
-          children: [
-            Expanded(
-              child: AuFilledButton(
-                text: "Connect".toUpperCase(),
-                onPress: () => _approve(),
-              ),
-            )
-          ],
+        BlocListener<AccountsBloc, AccountsState>(
+          listener: (context, state) {
+            final event = state.event;
+            if (event == null) return;
+
+            // Approve for Autonomy TV
+            if (event is FetchAllAddressesSuccessEvent) {
+              _approve(event.addresses);
+            }
+          },
+          child: Row(
+            children: [
+              Expanded(
+                child: AuFilledButton(
+                  text: "Connect".toUpperCase(),
+                  onPress: () {
+                    // Handle for Autonomy TV
+                    if (widget.wcConnectArgs?.peerMeta.name == 'Autonomy TV') {
+                      context
+                          .read<AccountsBloc>()
+                          .add(FetchAllAddressesEvent());
+                      // continue do action in listener
+                      return;
+                    }
+
+                    _approve(null);
+                  },
+                ),
+              )
+            ],
+          ),
         )
       ],
     );
