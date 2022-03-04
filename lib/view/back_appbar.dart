@@ -2,6 +2,7 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 AppBar getBackAppBar(BuildContext context,
     {String title = "", required Function()? onBack}) {
@@ -25,7 +26,8 @@ AppBar getBackAppBar(BuildContext context,
               if (onBack != null) ...[
                 Row(
                   children: [
-                    Icon(CupertinoIcons.back, color: Colors.black),
+                    SvgPicture.asset('assets/images/nav-arrow-left.svg'),
+                    SizedBox(width: 7),
                     Text(
                       "BACK",
                       style: appTextTheme.caption,

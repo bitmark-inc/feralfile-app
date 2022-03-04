@@ -82,6 +82,7 @@ class AppRouter {
   static const linkedAccountDetailsPage = 'linked_account_details';
   static const walletDetailsPage = 'wallet_detail';
   static const scanQRPage = 'qr_scanner';
+  static const globalReceivePage = 'global_receive';
   static const recoveryPhrasePage = 'recovery_phrase';
   static const wcConnectPage = 'wc_connect';
   static const cloudPage = 'cloud_page';
@@ -458,7 +459,7 @@ class AppRouter {
                   payload: settings.arguments,
                 ));
 
-      case GlobalReceivePage.tag:
+      case globalReceivePage:
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => MultiBlocProvider(providers: [

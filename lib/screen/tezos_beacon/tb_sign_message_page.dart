@@ -60,7 +60,7 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
         },
       ),
       body: Container(
-        margin: EdgeInsets.all(16.0),
+        margin: pageEdgeInsetsWithSubmitButton,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
