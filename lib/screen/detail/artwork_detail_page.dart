@@ -43,6 +43,9 @@ class ArtworkDetailPage extends StatelessWidget {
           builder: (context, state) {
         if (state.asset != null) {
           final asset = state.asset!;
+          context
+              .read<IdentityBloc>()
+              .add(GetIdentityEvent(state.provenances.map((e) => e.owner)));
           return Container(
             child: SingleChildScrollView(
               child: Column(
@@ -325,10 +328,6 @@ class ArtworkDetailPage extends StatelessWidget {
   }
 
   Widget _provenanceView(BuildContext context, List<Provenance> provenances) {
-    context
-        .read<IdentityBloc>()
-        .add(GetIdentityEvent(provenances.map((e) => e.owner)));
-
     return BlocBuilder<IdentityBloc, IdentityState>(
         builder: (context, state) => Column(
               crossAxisAlignment: CrossAxisAlignment.start,
