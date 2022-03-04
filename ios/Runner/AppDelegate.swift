@@ -15,7 +15,8 @@ import Combine
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
-        LibAuk.create(keyChainGroup: "Z5CE7A3A7N.com.bitmark.autonomywallet.keychain")
+
+        LibAuk.create(keyChainGroup: Constant.keychainGroup)
         
         let controller : FlutterViewController = window?.rootViewController as! FlutterViewController
         let libaukChannel = FlutterMethodChannel(name: "libauk_dart",
