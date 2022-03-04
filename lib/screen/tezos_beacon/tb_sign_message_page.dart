@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/common/network_config_injector.dart';
-import 'package:autonomy_flutter/database/app_database.dart';
+import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -24,7 +24,6 @@ class TBSignMessagePage extends StatefulWidget {
 }
 
 class _TBSignMessagePageState extends State<TBSignMessagePage> {
-
   WalletStorage? _currentPersona;
 
   @override
@@ -35,10 +34,13 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
 
   Future fetchPersona() async {
     final personas = await injector<CloudDatabase>().personaDao.getPersonas();
-    final wallets = await Future.wait(personas.map((e) => LibAukDart.getWallet(e.uuid).getTezosWallet()));
+    final wallets = await Future.wait(
+        personas.map((e) => LibAukDart.getWallet(e.uuid).getTezosWallet()));
 
-    final currentWallet = wallets.firstWhere((element) => element.address == widget.request.sourceAddress);
-    final currentPersona = LibAukDart.getWallet(personas[wallets.indexOf(currentWallet)].uuid);
+    final currentWallet = wallets.firstWhere(
+        (element) => element.address == widget.request.sourceAddress);
+    final currentPersona =
+        LibAukDart.getWallet(personas[wallets.indexOf(currentWallet)].uuid);
     setState(() {
       _currentPersona = currentPersona;
     });
@@ -103,14 +105,16 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
                 Expanded(
                   child: AuFilledButton(
                     text: "Sign".toUpperCase(),
-                    onPress: _currentPersona != null ? () async {
-                      final signature = await networkInjector
-                          .I<EthereumService>()
-                          .signPersonalMessage(_currentPersona!, message);
-                      injector<TezosBeaconService>()
-                          .signResponse(widget.request.id, signature);
-                      Navigator.of(context).pop();
-                    } : null,
+                    onPress: _currentPersona != null
+                        ? () async {
+                            final signature = await networkInjector
+                                .I<EthereumService>()
+                                .signPersonalMessage(_currentPersona!, message);
+                            injector<TezosBeaconService>()
+                                .signResponse(widget.request.id, signature);
+                            Navigator.of(context).pop();
+                          }
+                        : null,
                   ),
                 )
               ],

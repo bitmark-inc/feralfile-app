@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:autonomy_flutter/database/app_database.dart';
+import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/migration/migration_util.dart';
 import 'package:bloc/bloc.dart';

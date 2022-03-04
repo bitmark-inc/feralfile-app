@@ -1,6 +1,6 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/common/network_config_injector.dart';
-import 'package:autonomy_flutter/database/app_database.dart';
+import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
@@ -41,9 +41,11 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
 
   Future fetchPersona() async {
     final personas = await injector<CloudDatabase>().personaDao.getPersonas();
-    final wallets = await Future.wait(personas.map((e) => LibAukDart.getWallet(e.uuid).getTezosWallet()));
+    final wallets = await Future.wait(
+        personas.map((e) => LibAukDart.getWallet(e.uuid).getTezosWallet()));
 
-    final currentWallet = wallets.firstWhere((element) => element.address == widget.request.sourceAddress);
+    final currentWallet = wallets.firstWhere(
+        (element) => element.address == widget.request.sourceAddress);
 
     _estimateFee(currentWallet);
 
@@ -177,42 +179,50 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                     Expanded(
                       child: AuFilledButton(
                         text: "Send".toUpperCase(),
-                        onPress: (_currentWallet != null && _fee != null && !_isSending) ? () async {
-                          setState(() {
-                            _isSending = true;
-                          });
+                        onPress: (_currentWallet != null &&
+                                _fee != null &&
+                                !_isSending)
+                            ? () async {
+                                setState(() {
+                                  _isSending = true;
+                                });
 
-                          final configurationService =
-                          injector<ConfigurationService>();
+                                final configurationService =
+                                    injector<ConfigurationService>();
 
-                          if (configurationService
-                              .isDevicePasscodeEnabled() &&
-                              await authenticateIsAvailable()) {
-                            final localAuth = LocalAuthentication();
-                            final didAuthenticate =
-                            await localAuth.authenticate(
-                                localizedReason:
-                                'Authentication for "Autonomy"');
-                            if (!didAuthenticate) {
-                              setState(() {
-                                _isSending = false;
-                              });
-                              return;
-                            }
-                          }
+                                if (configurationService
+                                        .isDevicePasscodeEnabled() &&
+                                    await authenticateIsAvailable()) {
+                                  final localAuth = LocalAuthentication();
+                                  final didAuthenticate =
+                                      await localAuth.authenticate(
+                                          localizedReason:
+                                              'Authentication for "Autonomy"');
+                                  if (!didAuthenticate) {
+                                    setState(() {
+                                      _isSending = false;
+                                    });
+                                    return;
+                                  }
+                                }
 
-                          final txHash = await injector<NetworkConfigInjector>()
-                              .I<TezosService>()
-                              .sendOperationTransaction(_currentWallet!, widget.request.operations!);
+                                final txHash =
+                                    await injector<NetworkConfigInjector>()
+                                        .I<TezosService>()
+                                        .sendOperationTransaction(
+                                            _currentWallet!,
+                                            widget.request.operations!);
 
-                          injector<TezosBeaconService>()
-                              .operationResponse(widget.request.id, txHash);
-                          Navigator.of(context).pop();
+                                injector<TezosBeaconService>()
+                                    .operationResponse(
+                                        widget.request.id, txHash);
+                                Navigator.of(context).pop();
 
-                          setState(() {
-                            _isSending = false;
-                          });
-                        } : null,
+                                setState(() {
+                                  _isSending = false;
+                                });
+                              }
+                            : null,
                       ),
                     )
                   ],

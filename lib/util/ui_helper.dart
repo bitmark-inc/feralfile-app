@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:share/share.dart';
 
 enum ActionState { notRequested, loading, error, done }
 
@@ -43,15 +44,15 @@ class UIHelper {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
                 child: SingleChildScrollView(
-                 child: Column(
-                   mainAxisSize: MainAxisSize.min,
-                   crossAxisAlignment: CrossAxisAlignment.start,
-                   children: [
-                     Text(title, style: theme.textTheme.headline1),
-                     SizedBox(height: 40),
-                     content,
-                   ],
-                 ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(title, style: theme.textTheme.headline1),
+                      SizedBox(height: 40),
+                      content,
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -213,6 +214,60 @@ class UIHelper {
             SizedBox(height: 15),
           ],
         ),
+        isDismissible: false);
+  }
+
+  static showIdentityDetailDialog(BuildContext context,
+      {required String name, required String address}) {
+    final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
+
+    showDialog(
+        context,
+        "Identity",
+        Flexible(
+            child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text('ALIAS', style: theme.textTheme.headline5),
+            SizedBox(height: 16),
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+              Expanded(
+                  child: Text(
+                name,
+                style: theme.textTheme.headline4,
+                overflow: TextOverflow.ellipsis,
+              )),
+              GestureDetector(
+                child: Text("Share", style: theme.textTheme.headline4),
+                onTap: () => Share.share(address),
+              )
+            ]),
+            SizedBox(height: 16),
+            Text(
+              address,
+              style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w400,
+                  fontFamily: "IBMPlexMono"),
+            ),
+            SizedBox(height: 56),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text(
+                "CLOSE",
+                style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    fontFamily: "IBMPlexMono"),
+              ),
+            ),
+            SizedBox(height: 15),
+          ],
+        )),
         isDismissible: false);
   }
 }

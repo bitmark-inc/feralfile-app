@@ -1,12 +1,14 @@
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/model/asset_price.dart';
 import 'package:autonomy_flutter/model/bitmark.dart';
+import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_page.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_outlined_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -37,101 +39,111 @@ class ArtworkDetailPage extends StatelessWidget {
           Navigator.of(context).pop();
         },
       ),
-      body: BlocBuilder<ArtworkDetailBloc, ArtworkDetailState>(
+      body: BlocConsumer<ArtworkDetailBloc, ArtworkDetailState>(
+          listener: (context, state) => context
+              .read<IdentityBloc>()
+              .add(GetIdentityEvent(state.provenances.map((e) => e.owner))),
           builder: (context, state) {
-        if (state.asset != null) {
-          final asset = state.asset!;
-          return Container(
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(height: 16.0),
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Text(
-                      asset.title,
-                      style: appTextTheme.headline1,
-                    ),
-                  ),
-                  SizedBox(height: 8.0),
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Text(
-                      "by ${asset.artistName} (${asset.edition}/${asset.maxEdition})",
-                      style: appTextTheme.headline3,
-                    ),
-                  ),
-                  SizedBox(height: 16.0),
-                  CachedNetworkImage(
-                    imageUrl: asset.thumbnailURL!,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    errorWidget: (context, url, error) => SizedBox(height: 100),
-                  ),
-                  SizedBox(height: 16.0),
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          width: 165,
-                          height: 48,
-                          child: AuOutlinedButton(
-                              text: "VIEW ARTWORK ‣",
-                              onPress: () {
-                                Navigator.of(context).pushNamed(
-                                    ArtworkPreviewPage.tag,
-                                    arguments: payload);
-                              }),
+            if (state.asset != null) {
+              final asset = state.asset!;
+
+              return Container(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(height: 16.0),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Text(
+                          asset.title,
+                          style: appTextTheme.headline1,
                         ),
-                        SizedBox(height: 40.0),
-                        Text(
-                          unescape.convert(asset.desc ?? ""),
-                          style: appTextTheme.bodyText1,
+                      ),
+                      SizedBox(height: 8.0),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Text(
+                          "by ${asset.artistName} (${asset.edition}/${asset.maxEdition})",
+                          style: appTextTheme.headline3,
                         ),
-                        asset.source == "feralfile"
-                            ? Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  SizedBox(height: 40.0),
-                                  _artworkRightView(context),
-                                ],
-                              )
-                            : SizedBox(),
-                        state.assetPrice != null
-                            ? Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  SizedBox(height: 40.0),
-                                  _valueView(context, asset, state.assetPrice),
-                                ],
-                              )
-                            : SizedBox(),
-                        SizedBox(height: 40.0),
-                        _metadataView(context, asset),
-                        asset.blockchain == "bitmark"
-                            ? Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  SizedBox(height: 40.0),
-                                  _provenanceView(context, state.provenances),
-                                ],
-                              )
-                            : SizedBox(),
-                        SizedBox(height: 40.0),
-                      ],
-                    ),
-                  )
-                ],
-              ),
-            ),
-          );
-        } else {
-          return SizedBox();
-        }
-      }),
+                      ),
+                      SizedBox(height: 16.0),
+                      CachedNetworkImage(
+                        imageUrl: asset.thumbnailURL!,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        errorWidget: (context, url, error) =>
+                            SizedBox(height: 100),
+                      ),
+                      SizedBox(height: 16.0),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              width: 165,
+                              height: 48,
+                              child: AuOutlinedButton(
+                                  text: "VIEW ARTWORK ‣",
+                                  onPress: () {
+                                    Navigator.of(context).pushNamed(
+                                        ArtworkPreviewPage.tag,
+                                        arguments: payload);
+                                  }),
+                            ),
+                            SizedBox(height: 40.0),
+                            Text(
+                              unescape.convert(asset.desc ?? ""),
+                              style: appTextTheme.bodyText1,
+                            ),
+                            asset.source == "feralfile"
+                                ? Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      SizedBox(height: 40.0),
+                                      _artworkRightView(context),
+                                    ],
+                                  )
+                                : SizedBox(),
+                            state.assetPrice != null
+                                ? Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      SizedBox(height: 40.0),
+                                      _valueView(
+                                          context, asset, state.assetPrice),
+                                    ],
+                                  )
+                                : SizedBox(),
+                            SizedBox(height: 40.0),
+                            _metadataView(context, asset),
+                            asset.blockchain == "bitmark"
+                                ? Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      SizedBox(height: 40.0),
+                                      _provenanceView(
+                                          context, state.provenances),
+                                    ],
+                                  )
+                                : SizedBox(),
+                            SizedBox(height: 40.0),
+                          ],
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+              );
+            } else {
+              return SizedBox();
+            }
+          }),
     );
   }
 
@@ -323,38 +335,51 @@ class ArtworkDetailPage extends StatelessWidget {
   }
 
   Widget _provenanceView(BuildContext context, List<Provenance> provenances) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          "Provenance",
-          style: appTextTheme.headline2,
-        ),
-        SizedBox(height: 16.0),
-        ...provenances
-            .map((el) => Column(
-                  children: [
-                    _rowItem(context, el.owner.mask(4),
-                        localTimeString(el.createdAt)),
-                    Divider(height: 32.0),
-                  ],
-                ))
-            .toList()
-      ],
-    );
+    return BlocBuilder<IdentityBloc, IdentityState>(
+        builder: (context, state) => Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Provenance",
+                  style: appTextTheme.headline2,
+                ),
+                SizedBox(height: 16.0),
+                ...provenances.map((el) {
+                  final identity = state.identityMap[el.owner];
+                  final onNameTap = () => identity != null
+                      ? UIHelper.showIdentityDetailDialog(context,
+                          name: identity, address: el.owner)
+                      : null;
+                  return Column(
+                    children: [
+                      _rowItem(context, identity ?? el.owner.mask(4),
+                          localTimeString(el.createdAt),
+                          onNameTap: onNameTap),
+                      Divider(height: 32.0),
+                    ],
+                  );
+                }).toList()
+              ],
+            ));
   }
 
-  Widget _rowItem(BuildContext context, String name, String? value) {
+  Widget _rowItem(BuildContext context, String name, String? value,
+      {Function()? onNameTap, Function()? onValueTap}) {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
-          child: Text(name, style: appTextTheme.headline4),
+          child: GestureDetector(
+            child: Text(name, style: appTextTheme.headline4),
+            onTap: onNameTap,
+          ),
         ),
         Expanded(
           child: Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               Expanded(
+                  child: GestureDetector(
                 child: Text(
                   value ?? "",
                   textAlign: TextAlign.end,
@@ -364,7 +389,8 @@ class ArtworkDetailPage extends StatelessWidget {
                       fontWeight: FontWeight.w300,
                       fontFamily: "IBMPlexMono"),
                 ),
-              ),
+                onTap: onValueTap,
+              )),
               // SizedBox(width: 8.0),
               // Icon(CupertinoIcons.forward)
             ],
