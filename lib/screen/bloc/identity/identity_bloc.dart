@@ -56,6 +56,7 @@ class IdentityBloc extends Bloc<IdentityEvent, IdentityState> {
             _appDB.identityDao.insertIdentity(Identity(
                 identity.accountNumber, identity.blockchain, identity.name));
           } catch (_) {
+            // Ignore bad API responses
             return;
           }
         });
@@ -70,6 +71,20 @@ class IdentityBloc extends Bloc<IdentityEvent, IdentityState> {
         log.warning("Error during getting the identities: $error");
         emit(state);
       }
+    });
+
+    on<FetchIdentityEvent>((event, emit) async {
+      // Get from the API
+      await Future.forEach(event.addresses, (address) async {
+        try {
+          final identity = await _indexerApi.getIdentity(address as String);
+          _appDB.identityDao.insertIdentity(Identity(
+              identity.accountNumber, identity.blockchain, identity.name));
+        } catch (_) {
+          // Ignore bad API responses
+          return;
+        }
+      });
     });
   }
 }
