@@ -58,6 +58,10 @@ Divider addDivider() {
   return const Divider(height: 32.0);
 }
 
+const pageEdgeInsets =
+    EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0, bottom: 20.0);
+const pageEdgeInsetsWithSubmitButton = EdgeInsets.fromLTRB(16, 16, 16, 40);
+
 class AppColorTheme {
   static const scaffoldBackgroundColor = Colors.white;
   static const secondaryHeaderColor = Color(0xFF6D6B6B);

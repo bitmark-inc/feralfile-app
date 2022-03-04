@@ -3,8 +3,6 @@ import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/global_receive/receive_page.dart';
-import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/screen/settings/connection/accounts_view.dart';
 import 'package:autonomy_flutter/screen/settings/networks/select_network_page.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_bloc.dart';
@@ -17,6 +15,7 @@ import 'package:autonomy_flutter/service/cloud_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/eula_privacy.dart';
+import 'package:autonomy_flutter/view/penrose_scrolling_container.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -64,134 +63,87 @@ class _SettingsPageState extends State<SettingsPage>
     final networkInjector = injector<NetworkConfigInjector>();
 
     return Scaffold(
-      body: Container(
-        margin: EdgeInsets.only(
-            top: MediaQuery.of(context).padding.top,
-            left: 16.0,
-            right: 16.0,
-            bottom: 20.0),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Expanded(
-            child: SingleChildScrollView(
-              child: Stack(
+      body: PenroseScrollingContainer(
+        page: AppRouter.settingsPage,
+        content: Container(
+          padding: EdgeInsets.symmetric(horizontal: 15),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    padding: EdgeInsets.symmetric(vertical: 12),
-                    child: Row(
-                      children: [
-                        IconButton(
-                          constraints: BoxConstraints(),
-                          icon: SvgPicture.asset("assets/images/iconQr.svg"),
-                          onPressed: () {
-                            Navigator.of(context).pushNamed(ScanQRPage.tag,
-                                arguments: ScannerItem.GLOBAL);
-                          },
-                        ),
-                        Spacer(),
-                        GestureDetector(
-                          child:
-                              SvgPicture.asset("assets/images/iconReceive.svg"),
-                          onTap: () => Navigator.of(context)
-                              .pushNamed(GlobalReceivePage.tag),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      SizedBox(height: 24),
-                      GestureDetector(
-                        child: Center(
-                          child: Image.asset("assets/images/penrose.png"),
-                        ),
-                        onTap: () {
-                          Navigator.of(context).pop();
-                        },
-                      ),
-                      SizedBox(height: 24.0),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "Accounts",
-                                style: appTextTheme.headline1,
-                              ),
-                              _cloudAvailabilityWidget(),
-                            ],
-                          ),
-                          SizedBox(height: 24),
-                          Text(
-                              'Autonomy accounts are full, multi-chain accounts. Linked accounts link to single-chain accounts from other wallets.',
-                              style: appTextTheme.bodyText1),
-                          SizedBox(height: 10),
-                          AccountsView(),
-                        ],
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          TextButton(
-                              onPressed: () => Navigator.of(context)
-                                  .pushNamed(AppRouter.addAccountPage),
-                              child: Text('+ Add',
-                                  style: appTextTheme.bodyText2
-                                      ?.copyWith(color: Colors.black))),
-                          SizedBox(width: 20),
-                        ],
-                      ),
-                      SizedBox(height: 40),
-                      BlocProvider(
-                        create: (_) => PreferencesBloc(injector()),
-                        child: PreferenceView(),
-                      ),
-                      SizedBox(height: 40.0),
-                      BlocProvider(
-                        create: (_) =>
-                            UpgradesBloc(networkInjector.I(), injector()),
-                        child: UpgradesView(),
-                      ),
-                      SizedBox(height: 40),
                       Text(
-                        "Networks",
+                        "Accounts",
                         style: appTextTheme.headline1,
                       ),
-                      SizedBox(height: 24.0),
-                      _settingItem(
-                          context,
-                          "Select network",
-                          injector<ConfigurationService>().getNetwork() ==
-                                  Network.TESTNET
-                              ? "Test network"
-                              : "Main network", () async {
-                        await Navigator.of(context)
-                            .pushNamed(SelectNetworkPage.tag);
-                      }),
-                      SizedBox(height: 40),
-                      SupportView(),
-                      SizedBox(height: 56),
-                      Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            if (_packageInfo != null)
-                              Text(
-                                "Version ${_packageInfo!.version}(${_packageInfo!.buildNumber})",
-                                style: appTextTheme.headline5,
-                              ),
-                            SizedBox(height: 5),
-                            eulaAndPrivacyView(),
-                          ]),
-                      SizedBox(height: 17),
+                      _cloudAvailabilityWidget(),
                     ],
                   ),
+                  SizedBox(height: 24),
+                  Text(
+                      'Autonomy accounts are full, multi-chain accounts. Linked accounts link to single-chain accounts from other wallets.',
+                      style: appTextTheme.bodyText1),
+                  SizedBox(height: 10),
+                  AccountsView(),
                 ],
               ),
-            ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                      onPressed: () => Navigator.of(context)
+                          .pushNamed(AppRouter.addAccountPage),
+                      child: Text('+ Add',
+                          style: appTextTheme.bodyText2
+                              ?.copyWith(color: Colors.black))),
+                  SizedBox(width: 13),
+                ],
+              ),
+              SizedBox(height: 40),
+              BlocProvider(
+                create: (_) => PreferencesBloc(injector()),
+                child: PreferenceView(),
+              ),
+              SizedBox(height: 40.0),
+              BlocProvider(
+                create: (_) => UpgradesBloc(networkInjector.I(), injector()),
+                child: UpgradesView(),
+              ),
+              SizedBox(height: 40),
+              Text(
+                "Networks",
+                style: appTextTheme.headline1,
+              ),
+              SizedBox(height: 24.0),
+              _settingItem(
+                  context,
+                  "Select network",
+                  injector<ConfigurationService>().getNetwork() ==
+                          Network.TESTNET
+                      ? "Test network"
+                      : "Main network", () async {
+                await Navigator.of(context).pushNamed(SelectNetworkPage.tag);
+              }),
+              SizedBox(height: 40),
+              SupportView(),
+              SizedBox(height: 56),
+              Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
+                if (_packageInfo != null)
+                  Text(
+                    "Version ${_packageInfo!.version}(${_packageInfo!.buildNumber})",
+                    style: appTextTheme.headline5,
+                  ),
+                SizedBox(height: 5),
+                eulaAndPrivacyView(),
+              ]),
+              SizedBox(height: 60),
+            ],
           ),
-        ]),
+        ),
       ),
     );
   }

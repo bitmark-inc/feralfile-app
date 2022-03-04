@@ -82,11 +82,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
       body: Stack(
         children: [
           Container(
-            margin: EdgeInsets.only(
-                top: 16.0,
-                left: 16.0,
-                right: 16.0,
-                bottom: MediaQuery.of(context).padding.bottom),
+            margin: pageEdgeInsetsWithSubmitButton,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
