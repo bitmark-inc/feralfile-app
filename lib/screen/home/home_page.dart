@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/penrose_scrolling_container.dart';
+import 'package:autonomy_flutter/view/penrose_top_bar_view.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import "package:collection/collection.dart";
 import 'package:flutter/cupertino.dart';
@@ -33,6 +34,7 @@ class _HomePageState extends State<HomePage>
     with RouteAware, WidgetsBindingObserver {
   StreamSubscription? _deeplinkSubscription;
   StreamSubscription<FGBGType>? _fgbgSubscription;
+  late ScrollController _controller;
 
   @override
   void initState() {
@@ -40,6 +42,7 @@ class _HomePageState extends State<HomePage>
     _initUniLinks();
     WidgetsBinding.instance?.addObserver(this);
     _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
+    _controller = ScrollController();
   }
 
   @override
@@ -70,26 +73,15 @@ class _HomePageState extends State<HomePage>
     context.read<HomeBloc>().add(RefreshTokensEvent());
 
     return Scaffold(
-      body: Stack(fit: StackFit.loose, children: [
-        PenroseScrollingContainer(
-          page: AppRouter.homePage,
-          content: BlocBuilder<HomeBloc, HomeState>(
-            builder: (context, state) {
-              final tokens = state.tokens;
+        body: BlocBuilder<HomeBloc, HomeState>(builder: (context, state) {
+      final tokens = state.tokens;
+      final shouldShowMainView = tokens != null && tokens.isNotEmpty;
+      final ListView assetsWidget =
+          shouldShowMainView ? _assetsWidget(tokens!) : _emptyGallery();
 
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (tokens == null || tokens.isEmpty) ...[
-                    _emptyGallery(),
-                  ] else ...[
-                    _assetsWidget(tokens),
-                  ]
-                ],
-              );
-            },
-          ),
-        ),
+      return Stack(fit: StackFit.loose, children: [
+        shouldShowMainView ? assetsWidget : _emptyGallery(),
+        PenroseTopBarView(true, _controller),
         BlocBuilder<HomeBloc, HomeState>(
           builder: (context, state) {
             if (state.fetchTokenState == ActionState.loading) {
@@ -106,41 +98,86 @@ class _HomePageState extends State<HomePage>
             }
           },
         ),
-      ]),
+      ]);
+    }));
+  }
+
+  ListView _emptyGallery() {
+    return ListView(
+      padding: EdgeInsets.symmetric(horizontal: 16.0),
+      controller: _controller,
+      children: [
+        SizedBox(height: 120),
+        Text(
+          "Gallery",
+          style: appTextTheme.headline1,
+        ),
+        SizedBox(height: 24.0),
+        Text(
+          "Your gallery is empty for now.",
+          style: appTextTheme.bodyText1,
+        ),
+      ],
     );
   }
 
-  Widget _emptyGallery() {
-    return Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Gallery",
-              style: appTextTheme.headline1,
-            ),
-            SizedBox(height: 24.0),
-            Text(
-              "Your gallery is empty for now.",
-              style: appTextTheme.bodyText1,
-            ),
-          ],
-        ));
-  }
-
-  Widget _assetsWidget(List<AssetToken> tokens) {
+  ListView _assetsWidget(List<AssetToken> tokens) {
     final groupBySource = groupBy(tokens, (AssetToken obj) => obj.source);
-    final sources = groupBySource.keys.toList();
+    var sources = groupBySource.keys.map((source) {
+      final assets = groupBySource[source] ?? [];
+      return <Widget>[
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 15.0),
+          child: Text(
+            _polishSource(source ?? ""),
+            style: appTextTheme.headline1,
+          ),
+        ),
+        GridView.builder(
+            physics: const NeverScrollableScrollPhysics(),
+            shrinkWrap: true,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              crossAxisSpacing: 3.0,
+              mainAxisSpacing: 3.0,
+              childAspectRatio: 1.0,
+            ),
+            addAutomaticKeepAlives: false,
+            addRepaintBoundaries: false,
+            padding: EdgeInsets.symmetric(vertical: 24),
+            itemCount: assets.length,
+            itemBuilder: (BuildContext context, int index) {
+              final asset = assets[index];
+              return GestureDetector(
+                child: Container(
+                  child: CachedNetworkImage(
+                    imageUrl: asset.thumbnailURL!,
+                    fit: BoxFit.cover,
+                    maxHeightDiskCache: 300,
+                    maxWidthDiskCache: 300,
+                    memCacheHeight: 300,
+                    memCacheWidth: 300,
+                    errorWidget: (context, url, error) => SizedBox(height: 100),
+                  ),
+                ),
+                onTap: () {
+                  Navigator.of(context).pushNamed(ArtworkDetailPage.tag,
+                      arguments: ArtworkDetailPayload(
+                          assets.map((e) => e.id).toList(), index));
+                },
+              );
+            }),
+        SizedBox(height: 32.0),
+      ];
+    }).reduce((value, element) => value += element);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ...sources
-            .map((source) => _assetsSection(
-                _polishSource(source ?? ""), groupBySource[source] ?? []))
-            .toList(),
-      ],
+    sources.insert(0, SizedBox(height: 108));
+
+    return ListView(
+      children: sources,
+      controller: _controller,
+      addAutomaticKeepAlives: false,
+      addRepaintBoundaries: false,
     );
   }
 
@@ -153,48 +190,6 @@ class _HomePageState extends State<HomePage>
       default:
         return source;
     }
-  }
-
-  Widget _assetsSection(String name, List<AssetToken> assets) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: 15.0),
-          child: Text(
-            name,
-            style: appTextTheme.headline1,
-          ),
-        ),
-        GridView.count(
-          physics: const NeverScrollableScrollPhysics(),
-          shrinkWrap: true,
-          crossAxisCount: 3,
-          crossAxisSpacing: 3.0,
-          mainAxisSpacing: 3.0,
-          childAspectRatio: 1.0,
-          padding: EdgeInsets.symmetric(vertical: 24),
-          children: List.generate(assets.length, (index) {
-            final asset = assets[index];
-            return GestureDetector(
-              child: Container(
-                child: CachedNetworkImage(
-                  imageUrl: asset.thumbnailURL!,
-                  fit: BoxFit.cover,
-                  errorWidget: (context, url, error) => SizedBox(height: 100),
-                ),
-              ),
-              onTap: () {
-                Navigator.of(context).pushNamed(ArtworkDetailPage.tag,
-                    arguments: ArtworkDetailPayload(
-                        assets.map((e) => e.id).toList(), index));
-              },
-            );
-          }),
-        ),
-        SizedBox(height: 32.0),
-      ],
-    );
   }
 
   Future<void> _initUniLinks() async {
