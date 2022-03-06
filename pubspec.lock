@@ -983,14 +983,14 @@ packages:
       name: sentry
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "6.2.2"
+    version: "6.3.0"
   sentry_flutter:
     dependency: "direct main"
     description:
       name: sentry_flutter
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "6.2.2"
+    version: "6.3.0"
   shake:
     dependency: "direct main"
     description:

@@ -11,7 +11,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:tezart/tezart.dart';
 
 import '../screen/report/sentry_report_page.dart';
@@ -40,9 +39,7 @@ PlatformException? lastException;
 
 ErrorEvent? translateError(Object exception) {
   if (exception is DioError) {
-    if (exception.type == DioErrorType.sendTimeout ||
-        exception.type == DioErrorType.connectTimeout ||
-        exception.type == DioErrorType.receiveTimeout) {
+    if (exception.type != DioErrorType.response) {
       return ErrorEvent(null, "Network error",
           "Check your connection and try again.", ErrorItemState.tryAgain);
     }
@@ -189,7 +186,7 @@ void showErrorDiablog(
       defaultAction, cancelButton, cancelAction);
 }
 
-void showErrorDialogFromException(Object exception) {
+void showErrorDialogFromException(Object exception, {StackTrace? stackTrace}) {
   if (exception is PlatformException) {
     if (lastException != null && lastException?.message == exception.message) {
       return;
@@ -206,8 +203,8 @@ void showErrorDialogFromException(Object exception) {
     showErrorDiablog(
       context,
       event,
-      defaultAction: () => Navigator.of(context)
-          .pushNamed(SentryReportPage.tag, arguments: exception),
+      defaultAction: () => Navigator.of(context).pushNamed(SentryReportPage.tag,
+          arguments: {"exception": exception, "stackTrace": stackTrace}),
     );
   }
 }

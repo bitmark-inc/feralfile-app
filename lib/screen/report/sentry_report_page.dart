@@ -16,11 +16,12 @@ class SentryReportPage extends StatefulWidget {
 
   const SentryReportPage({Key? key, required this.payload}) : super(key: key);
   @override
-  State<SentryReportPage> createState() => _SentryReportPageState(this.payload);
+  State<SentryReportPage> createState() =>
+      _SentryReportPageState(this.payload as Map);
 }
 
 class _SentryReportPageState extends State<SentryReportPage> {
-  final Object? payload;
+  final Map payload;
   TextEditingController _feedbackTextController = TextEditingController();
 
   _SentryReportPageState(this.payload);
@@ -85,9 +86,10 @@ class _SentryReportPageState extends State<SentryReportPage> {
 
   void _reportSentry() async {
     SentryId sentryId;
-    if (payload != null) {
+    if (payload["exception"] != null) {
       sentryId = await Sentry.captureException(
         payload,
+        stackTrace: payload["stackTrace"],
         withScope: _addAttachment,
       );
     } else {
