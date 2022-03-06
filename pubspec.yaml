@@ -72,6 +72,7 @@ dependencies:
   wallet_connect:
     git: https://github.com/autonomy-system/wallet-connect-dart.git
   collection: ^1.15.0
+  after_layout: ^1.1.0
 
 dev_dependencies:
   flutter_test:
