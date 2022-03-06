@@ -46,7 +46,7 @@ dependencies:
   tezart:
     git: https://github.com/autonomy-system/tezart.git
   local_auth: ^1.1.10
-  sentry_flutter: ^6.2.2
+  sentry_flutter: ^6.3.0
   video_player: ^2.2.19
   webview_flutter: ^3.0.0
   shake: ^2.0.0

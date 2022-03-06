@@ -1,15 +1,17 @@
-import 'dart:convert';
 import 'dart:core';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:logging/logging.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:synchronized/synchronized.dart' as synchronization;
+import 'package:sentry/sentry.dart';
 
 import 'package:autonomy_flutter/util/device.dart';
 
-final log = Logger('AutonomyLogs');
+final log = Logger('App');
+final apiLog = Logger('API');
 
 enum APIErrorCode {
   invalidToken,
@@ -77,8 +79,8 @@ class FileLogger {
     return _logFile.writeAsString(text, mode: FileMode.write, flush: true);
   }
 
-  static Future log(String s) async {
-    final text = '$s\n';
+  static Future log(LogRecord record) async {
+    final text = '${record.toString()}\n';
     return _lock.synchronized(() async {
       await _logFile.writeAsString(text, mode: FileMode.append, flush: true);
     });
@@ -88,51 +90,21 @@ class FileLogger {
       File(canonicalLogFileName).create(recursive: true);
 }
 
-class LoggingInterceptor extends Interceptor {
-  LoggingInterceptor();
-
-  @override
-  void onError(DioError err, ErrorInterceptorHandler handler) {
-    final curl = cURLRepresentation(err.requestOptions);
-    final message = err.message;
-    log.info("API Request: $curl");
-    log.warning("Respond error: $message");
-    return handler.next(err);
-  }
-
-  @override
-  Future onResponse(
-      Response response, ResponseInterceptorHandler handler) async {
-    final curl = cURLRepresentation(response.requestOptions);
-    final message = response.toString();
-    log.info("API Request: $curl");
-    log.info("API Response: $message");
-
-    return handler.next(response);
-  }
-
-  String cURLRepresentation(RequestOptions options) {
-    List<String> components = ["\$ curl -i"];
-    if (options.method != null && options.method.toUpperCase() == "GET") {
-      components.add("-X ${options.method}");
+class SentryBreadcrumbLogger {
+  static Future log(LogRecord record) async {
+    if (record.loggerName == apiLog.name) {
+      // do not send api breadcrumb here.
+      return;
     }
-
-    if (options.headers != null) {
-      options.headers.forEach((k, v) {
-        if (k != "Cookie") {
-          components.add("-H \"$k: $v\"");
-        }
-      });
+    String? type;
+    SentryLevel? level;
+    if (record.level == Level.WARNING) {
+      type = 'error';
+      level = SentryLevel.warning;
     }
-
-    var data = json.encode(options.data);
-    if (data != null) {
-      data = data.replaceAll('\"', '\\\"');
-      components.add("-d \"$data\"");
-    }
-
-    components.add("\"${options.uri.toString()}\"");
-
-    return components.join('\\\n\t');
+    Sentry.addBreadcrumb(Breadcrumb(
+        message: '[${record.level}] ${record.message}',
+        level: level,
+        type: type));
   }
 }

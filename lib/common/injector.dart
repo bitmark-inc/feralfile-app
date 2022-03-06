@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_dapp_service/wallet_connect_dapp_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
+import 'package:autonomy_flutter/util/dio_interceptors.dart';
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart';
@@ -27,7 +28,8 @@ Future<void> setup() async {
   Logger.root.level = Level.ALL; // defaults to Level.INFO
   Logger.root.onRecord.listen((record) {
     print('${record.level.name}: ${record.time}: ${record.message}');
-    FileLogger.log(record.toString());
+    FileLogger.log(record);
+    SentryBreadcrumbLogger.log(record);
   });
 
   final sharedPreferences = await SharedPreferences.getInstance();
@@ -46,6 +48,7 @@ Future<void> setup() async {
 
   final dio = Dio(); // Provide a dio instance
   dio.interceptors.add(LoggingInterceptor());
+  dio.interceptors.add(SentryInterceptor());
 
   injector.registerSingleton<ConfigurationService>(
       ConfigurationServiceImpl(sharedPreferences));
