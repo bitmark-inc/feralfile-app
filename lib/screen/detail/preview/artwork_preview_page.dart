@@ -11,6 +11,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shake/shake.dart';
 import 'package:video_player/video_player.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:after_layout/after_layout.dart';
 
 class ArtworkPreviewPage extends StatefulWidget {
   static const tag = "artwork_preview";
@@ -24,7 +25,7 @@ class ArtworkPreviewPage extends StatefulWidget {
 }
 
 class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
-    with WidgetsBindingObserver {
+    with WidgetsBindingObserver, AfterLayoutMixin<ArtworkPreviewPage> {
   VideoPlayerController? _controller;
   bool isFullscreen = false;
   late int currentIndex;
@@ -33,18 +34,8 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   ShakeDetector? _detector;
 
   @override
-  void initState() {
-    super.initState();
-    Future.delayed(Duration(milliseconds: 500),
-        (() => WidgetsBinding.instance?.addObserver(this)));
-
-    currentIndex = widget.payload.currentIndex;
-    final id = widget.payload.ids[currentIndex];
-
-    context
-        .read<ArtworkPreviewBloc>()
-        .add(ArtworkPreviewGetAssetTokenEvent(id));
-
+  void afterFirstLayout(BuildContext context) {
+    // Calling the same function "after layout" to resolve the issue.
     _detector = ShakeDetector.autoStart(onPhoneShake: () {
       if (isFullscreen) {
         setState(() {
@@ -54,6 +45,20 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     });
 
     _detector?.startListening();
+
+    WidgetsBinding.instance?.addObserver(this);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    currentIndex = widget.payload.currentIndex;
+    final id = widget.payload.ids[currentIndex];
+
+    context
+        .read<ArtworkPreviewBloc>()
+        .add(ArtworkPreviewGetAssetTokenEvent(id));
   }
 
   @override
@@ -86,9 +91,8 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
           }
 
           return Container(
-              padding: MediaQuery.of(context)
-                  .padding
-                  .copyWith(bottom: 0, top: isFullscreen ? 0 : null),
+              padding: MediaQuery.of(context).padding.copyWith(
+                  bottom: 0, top: isFullscreen ? 0 : null, left: 0, right: 0),
               child: Column(
                 children: [
                   !isFullscreen
