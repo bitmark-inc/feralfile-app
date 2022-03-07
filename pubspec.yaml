@@ -64,6 +64,7 @@ dependencies:
   modal_bottom_sheet: ^2.0.0
   flutter_native_splash: ^2.0.5
   html_unescape: ^2.0.0
+  roundcheckbox: ^2.0.4+1
   flutter_fgbg: ^0.1.0
   libauk_dart:
     git:
@@ -106,6 +107,7 @@ flutter:
     - assets/images/iconReceive.svg
     - assets/images/iconCloudOff.svg
     - assets/images/iconForward.svg
+    - assets/images/iconSharpFeedback.svg
     - assets/images/cil_external-link.svg
     - assets/images/tezos_social_icon.svg
     - assets/images/feralfileAppIcon.svg
