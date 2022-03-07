@@ -10,6 +10,7 @@ import 'package:autonomy_flutter/util/theme_manager.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:share/share.dart';
 
@@ -30,10 +31,11 @@ class UIHelper {
     log.info("[UIHelper] showInfoDialog: $title");
     final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
 
-    showModalBottomSheet(
+    showModalBottomSheet<dynamic>(
         context: context,
         isDismissible: isDismissible,
         enableDrag: false,
+        isScrollControlled: true,
         builder: (context) {
           return Container(
             color: Color(0xFF737373),
@@ -42,7 +44,7 @@ class UIHelper {
               child: Container(
                 color: theme.backgroundColor,
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 32),
                 child: SingleChildScrollView(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
