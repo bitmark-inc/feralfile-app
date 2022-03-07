@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class PenroseTopBarView extends StatelessWidget {
-  bool pushToSettings;
+  final bool pushToSettings;
   final ScrollController scrollController;
 
   PenroseTopBarView(this.pushToSettings, this.scrollController);
