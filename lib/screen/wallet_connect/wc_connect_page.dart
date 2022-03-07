@@ -338,15 +338,18 @@ class _WCConnectPageState extends State<WCConnectPage>
                             ),
                             contentPadding: EdgeInsets.zero,
                             trailing: (hasRadio
-                                ? Radio(
-                                    activeColor: Colors.black,
-                                    value: persona,
-                                    groupValue: selectedPersona,
-                                    onChanged: (Persona? value) {
-                                      setState(() {
-                                        selectedPersona = value;
-                                      });
-                                    },
+                                ? Transform.scale(
+                                    scale: 1.2,
+                                    child: Radio(
+                                      activeColor: Colors.black,
+                                      value: persona,
+                                      groupValue: selectedPersona,
+                                      onChanged: (Persona? value) {
+                                        setState(() {
+                                          selectedPersona = value;
+                                        });
+                                      },
+                                    ),
                                   )
                                 : null),
                           ),
