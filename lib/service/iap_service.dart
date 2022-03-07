@@ -11,8 +11,12 @@ import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:in_app_purchase_storekit/in_app_purchase_storekit.dart';
 import 'package:in_app_purchase_storekit/store_kit_wrappers.dart';
 
-const List<String> _kProductIds = <String>[
+const List<String> _kAppleProductIds = <String>[
   'Au_IntroSub',
+];
+
+const List<String> _kGoogleProductIds = <String>[
+  'com.bitmark.autonomy_client.subscribe',
 ];
 
 enum IAPProductStatus {
@@ -59,20 +63,28 @@ class IAPServiceImpl implements IAPService {
       log.severe(error);
     });
 
+    final productIds;
+
     if (Platform.isIOS) {
+      productIds = _kAppleProductIds;
+
       var iosPlatformAddition = _inAppPurchase
           .getPlatformAddition<InAppPurchaseStoreKitPlatformAddition>();
       await iosPlatformAddition.setDelegate(PaymentQueueDelegate());
+    } else {
+      productIds = _kGoogleProductIds;
     }
 
     ProductDetailsResponse productDetailResponse =
-        await _inAppPurchase.queryProductDetails(_kProductIds.toSet());
+        await _inAppPurchase.queryProductDetails(productIds.toSet());
     if (productDetailResponse.error != null) {
       return;
     }
 
     products.value = Map.fromIterable(productDetailResponse.productDetails,
         key: (e) => e.id, value: (e) => e);
+
+    restore();
   }
 
   Future<bool> renewJWT() async {
@@ -108,9 +120,15 @@ class IAPServiceImpl implements IAPService {
   }
 
   Future<JWT?> _verifyPurchase(String receiptData) async {
+    final platform;
+    if (Platform.isIOS) {
+      platform = 'apple';
+    } else {
+      platform = 'google';
+    }
     try {
       final jwt = await _iapApi
-          .verifyIAP({'platform': 'apple', 'receipt_data': receiptData});
+          .verifyIAP({'platform': platform, 'receipt_data': receiptData});
       return jwt;
     } catch (error) {
       log.info("error when verifying receipt", error);
