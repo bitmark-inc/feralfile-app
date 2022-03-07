@@ -5,9 +5,11 @@ import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_page.dart';
+import 'package:autonomy_flutter/screen/detail/report_rendering_issue_widget.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/theme_manager.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_outlined_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -15,10 +17,11 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:html_unescape/html_unescape.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class ArtworkDetailPage extends StatelessWidget {
+class ArtworkDetailPage extends StatefulWidget {
   static const tag = "artwork_detail";
 
   final ArtworkDetailPayload payload;
@@ -26,24 +29,68 @@ class ArtworkDetailPage extends StatelessWidget {
   const ArtworkDetailPage({Key? key, required this.payload}) : super(key: key);
 
   @override
+  State<ArtworkDetailPage> createState() => _ArtworkDetailPageState();
+}
+
+class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
+  late ScrollController _scrollController;
+  bool _showArtwortReportProblemContainer = true;
+
+  @override
+  void initState() {
+    _scrollController = ScrollController();
+    _scrollController.addListener(_scrollListener);
+    super.initState();
+
+    context.read<ArtworkDetailBloc>().add(ArtworkDetailGetInfoEvent(
+        widget.payload.ids[widget.payload.currentIndex]));
+  }
+
+  _scrollListener() {
+    /*
+    So we see it like that when we are at the top of the page. 
+    When we start scrolling down it disappears and we see it again attached at the bottom of the page.
+    And if we scroll all the way up again, we would display again it attached down the screen
+    https://www.figma.com/file/Ze71GH9ZmZlJwtPjeHYZpc?node-id=51:5175#159199971
+    */
+    if (_scrollController.offset > 80) {
+      setState(() {
+        _showArtwortReportProblemContainer = false;
+      });
+    } else {
+      setState(() {
+        _showArtwortReportProblemContainer = true;
+      });
+    }
+
+    if (_scrollController.position.pixels + 100 >=
+        _scrollController.position.maxScrollExtent) {
+      setState(() {
+        _showArtwortReportProblemContainer = true;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final unescape = HtmlUnescape();
-    context
-        .read<ArtworkDetailBloc>()
-        .add(ArtworkDetailGetInfoEvent(payload.ids[payload.currentIndex]));
 
-    return Scaffold(
-      appBar: getBackAppBar(
-        context,
-        onBack: () {
-          Navigator.of(context).pop();
-        },
-      ),
-      body: BlocConsumer<ArtworkDetailBloc, ArtworkDetailState>(
-          listener: (context, state) => context
-              .read<IdentityBloc>()
-              .add(GetIdentityEvent(state.provenances.map((e) => e.owner))),
-          builder: (context, state) {
+    return Stack(
+      fit: StackFit.loose,
+      children: [
+        Scaffold(
+          appBar: getBackAppBar(
+            context,
+            onBack: () {
+              Navigator.of(context).pop();
+            },
+          ),
+          body: BlocConsumer<ArtworkDetailBloc, ArtworkDetailState>(
+              listener: (context, state) {
+            context
+                .read<IdentityBloc>()
+                .add(GetIdentityEvent(state.provenances.map((e) => e.owner)));
+          }, builder: (context, state) {
             if (state.asset != null) {
               final asset = state.asset!;
 
@@ -61,6 +108,7 @@ class ArtworkDetailPage extends StatelessWidget {
 
               return Container(
                 child: SingleChildScrollView(
+                  controller: _scrollController,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -104,7 +152,7 @@ class ArtworkDetailPage extends StatelessWidget {
                                   onPress: () {
                                     Navigator.of(context).pushNamed(
                                         ArtworkPreviewPage.tag,
-                                        arguments: payload);
+                                        arguments: widget.payload);
                                   }),
                             ),
                             SizedBox(height: 40.0),
@@ -158,6 +206,16 @@ class ArtworkDetailPage extends StatelessWidget {
               return SizedBox();
             }
           }),
+        ),
+        if (_showArtwortReportProblemContainer) ...[
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: _reportNFTProblemContainer(),
+          ),
+        ],
+      ],
     );
   }
 
@@ -414,6 +472,60 @@ class ArtworkDetailPage extends StatelessWidget {
         )
       ],
     );
+  }
+
+  Widget _reportNFTProblemContainer() {
+    return GestureDetector(
+      onTap: () => _showReportIssueDialog(),
+      child: Container(
+        alignment: Alignment.bottomCenter,
+        padding: EdgeInsets.fromLTRB(0, 15, 0, 18),
+        color: Color(0xFFEDEDED),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('ANY PROBLEMS WITH THIS NFT?', style: appTextTheme.caption),
+            SizedBox(
+              width: 4,
+            ),
+            SvgPicture.asset("assets/images/iconSharpFeedback.svg"),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // MARK: REPORT RENDERING ISSUE
+  void _showReportIssueDialog() {
+    final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
+    final tokenID = widget.payload.ids[widget.payload.currentIndex];
+
+    UIHelper.showDialog(
+        context,
+        "Report issue?",
+        ReportRenderingIssueWidget(
+          tokenID: tokenID,
+          onReported: () {
+            UIHelper.showDialog(
+                context,
+                "Issue reported",
+                Column(
+                  children: [
+                    Text(
+                        'Thank you for helping make Autonomy better. Our support team will examine your report attentively and work to fix it.',
+                        style: theme.textTheme.bodyText1),
+                    SizedBox(height: 35),
+                    TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: Text("CLOSE",
+                            style: appTextTheme.button
+                                ?.copyWith(color: Colors.white))),
+                  ],
+                ),
+                isDismissible: true);
+          },
+        ),
+        isDismissible: true);
   }
 }
 
