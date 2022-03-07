@@ -1,13 +1,9 @@
-import 'package:autonomy_flutter/util/device.dart';
-import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/screen/report/sentry_report.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/material.dart';
-import 'package:sentry/sentry_io.dart';
-
-import 'package:path/path.dart';
 
 class SentryReportPage extends StatefulWidget {
   static const String tag = 'sentry_report';
@@ -56,7 +52,7 @@ class _SentryReportPageState extends State<SentryReportPage> {
             AuFilledButton(
               text: "SUBMIT",
               onPress: () {
-                _reportSentry();
+                reportSentry(payload, _feedbackTextController.text);
                 Navigator.of(context).pop();
               },
               textStyle: TextStyle(
@@ -82,33 +78,5 @@ class _SentryReportPageState extends State<SentryReportPage> {
         ),
       ),
     );
-  }
-
-  void _reportSentry() async {
-    SentryId sentryId;
-    if (payload["exception"] != null) {
-      sentryId = await Sentry.captureException(
-        payload,
-        stackTrace: payload["stackTrace"],
-        withScope: _addAttachment,
-      );
-    } else {
-      final deviceID = await getDeviceID();
-      sentryId = await Sentry.captureMessage(deviceID ?? "",
-          withScope: _addAttachment);
-    }
-
-    final feedback = SentryUserFeedback(
-      eventId: sentryId,
-      comments: _feedbackTextController.text,
-    );
-    Sentry.captureUserFeedback(feedback);
-  }
-
-  void _addAttachment(Scope scope) async {
-    final logFilePath = await getLatestLogFile();
-    final attachment = IoSentryAttachment.fromPath(logFilePath,
-        filename: basename(logFilePath));
-    scope.addAttachment(attachment);
   }
 }
