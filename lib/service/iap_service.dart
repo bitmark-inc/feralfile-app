@@ -48,6 +48,7 @@ class IAPServiceImpl implements IAPService {
   ValueNotifier<Map<String, IAPProductStatus>> purchases = ValueNotifier({});
 
   IAPServiceImpl(this._configurationService, this._iapApi);
+  String? _receiptData;
 
   Future<void> setup() async {
     final jwt = _configurationService.getIAPJWT();
@@ -147,6 +148,12 @@ class IAPServiceImpl implements IAPService {
             purchaseDetails.status == PurchaseStatus.restored) {
           final receiptData =
               purchaseDetails.verificationData.serverVerificationData;
+          if (_receiptData == receiptData) {
+            // Prevent duplicated events.
+            return;
+          }
+
+          _receiptData = receiptData;
           final jwt = await _verifyPurchase(receiptData);
           if (jwt != null && jwt.isValid()) {
             purchases.value[purchaseDetails.productID] =
