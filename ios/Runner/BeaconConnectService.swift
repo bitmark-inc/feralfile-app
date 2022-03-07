@@ -22,6 +22,7 @@ class BeaconConnectService {
     static var shared = BeaconConnectService()
     private var beaconClient: Beacon.WalletClient?
     fileprivate let requestSubject = PassthroughSubject<TezosBeaconRequest, Never>()
+    private var backgroundTaskID: UIBackgroundTaskIdentifier?
     
     var beaconDappClient: Beacon.DAppClient?
     let eventsSubject = PassthroughSubject<WalletConnectionEvent, Never>()
@@ -199,6 +200,11 @@ extension BeaconConnectService {
                 switch result {
                 case let .success(data):
                     promise(.success("?type=tzip10&data=\(data)"))
+                    self.backgroundTaskID = UIApplication.shared.beginBackgroundTask (withName: data) {
+                        // End the task if time expires.
+                        UIApplication.shared.endBackgroundTask(self.backgroundTaskID!)
+                            self.backgroundTaskID = UIBackgroundTaskIdentifier.invalid
+                    }
 
                 case let .failure(error):
                     promise(.failure(error))
