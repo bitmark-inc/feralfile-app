@@ -84,11 +84,7 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
       final personas = await _cloudDB.personaDao.getPersonas();
       final connections = await _cloudDB.connectionDao.getLinkedAccounts();
 
-      List<CategorizedAccounts> categorizedAccounts = [
-        CategorizedAccounts("Bitmark", []),
-        CategorizedAccounts("Ethereum", []),
-        CategorizedAccounts("Tezos", [])
-      ];
+      List<CategorizedAccounts> categorizedAccounts = [];
 
       for (var persona in personas) {
         final ethAddress = await persona.wallet().getETHAddress();
@@ -105,7 +101,6 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
             blockchain: "Ethereum",
             accountNumber: ethAddress,
             createdAt: persona.createdAt);
-        categorizedAccounts[1].accounts.add(ethAccount);
 
         final xtzAccount = Account(
             persona: persona,
@@ -113,28 +108,34 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
             blockchain: "Tezos",
             accountNumber: xtzAddress,
             createdAt: persona.createdAt);
-        categorizedAccounts[2].accounts.add(xtzAccount);
+
+        categorizedAccounts
+            .add(CategorizedAccounts(name, [ethAccount, xtzAccount]));
       }
 
       for (var connection in connections) {
         switch (connection.connectionType) {
           case "walletConnect":
-            categorizedAccounts[1].accounts.add(Account(
-                  blockchain: "Ethereum",
-                  accountNumber: connection.accountNumber,
-                  connections: [connection],
-                  name: connection.name,
-                  createdAt: connection.createdAt,
-                ));
+            categorizedAccounts.add(CategorizedAccounts(connection.name, [
+              Account(
+                blockchain: "Ethereum",
+                accountNumber: connection.accountNumber,
+                connections: [connection],
+                name: connection.name,
+                createdAt: connection.createdAt,
+              )
+            ]));
             break;
           case "walletBeacon":
-            categorizedAccounts[2].accounts.add(Account(
-                  blockchain: "Tezos",
-                  accountNumber: connection.accountNumber,
-                  connections: [connection],
-                  name: connection.name,
-                  createdAt: connection.createdAt,
-                ));
+            categorizedAccounts.add(CategorizedAccounts(connection.name, [
+              Account(
+                blockchain: "Tezos",
+                accountNumber: connection.accountNumber,
+                connections: [connection],
+                name: connection.name,
+                createdAt: connection.createdAt,
+              )
+            ]));
             break;
           default:
             break;

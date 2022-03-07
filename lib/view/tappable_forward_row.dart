@@ -37,15 +37,15 @@ class TappableForwardRow extends StatelessWidget {
 
   Widget _contentRow() {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Expanded(child: leftWidget ?? SizedBox()),
+        leftWidget ?? SizedBox(),
         Row(
           children: [
             rightWidget ?? SizedBox(),
+            SizedBox(width: 8.0),
             if (onTap != null) ...[
-              SizedBox(width: 8.0),
               SvgPicture.asset('assets/images/iconForward.svg'),
             ],
           ],
