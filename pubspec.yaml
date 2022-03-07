@@ -46,7 +46,7 @@ dependencies:
   tezart:
     git: https://github.com/autonomy-system/tezart.git
   local_auth: ^1.1.10
-  sentry_flutter: ^6.2.2
+  sentry_flutter: ^6.3.0
   video_player: ^2.2.19
   webview_flutter: ^3.0.0
   shake: ^2.0.0
@@ -73,6 +73,8 @@ dependencies:
   wallet_connect:
     git: https://github.com/autonomy-system/wallet-connect-dart.git
   collection: ^1.15.0
+  after_layout: ^1.1.0
+  photo_view: ^0.13.0
 
 dev_dependencies:
   flutter_test:

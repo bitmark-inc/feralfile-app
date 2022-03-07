@@ -12,11 +12,12 @@ class SentryReportPage extends StatefulWidget {
 
   const SentryReportPage({Key? key, required this.payload}) : super(key: key);
   @override
-  State<SentryReportPage> createState() => _SentryReportPageState(this.payload);
+  State<SentryReportPage> createState() =>
+      _SentryReportPageState(this.payload as Map);
 }
 
 class _SentryReportPageState extends State<SentryReportPage> {
-  final Object? payload;
+  final Map payload;
   TextEditingController _feedbackTextController = TextEditingController();
 
   _SentryReportPageState(this.payload);

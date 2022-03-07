@@ -4,6 +4,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/screen/connection/persona_connections_page.dart';
@@ -21,6 +22,7 @@ void main() async {
     // Set tracesSampleRate to 1.0 to capture 100% of transactions for performance monitoring.
     // We recommend adjusting this value in production.
     options.tracesSampleRate = 1.0;
+    options.attachStacktrace = true;
   });
 
   runZonedGuarded(() async {
@@ -36,7 +38,8 @@ void main() async {
 
     FlutterError.onError = (FlutterErrorDetails details) {
       FlutterError.presentError(details);
-      showErrorDialogFromException(details.exception);
+      showErrorDialogFromException(details.exception,
+          stackTrace: details.stack);
     };
     await injector<AWSService>().initServices();
 
@@ -44,9 +47,16 @@ void main() async {
       () => runApp(AutonomyApp()),
       blocObserver: AppBlocObserver(),
     );
+
+    Sentry.configureScope((scope) async {
+      final deviceID = await getDeviceID();
+      if (deviceID != null) {
+        scope.user = SentryUser(id: deviceID);
+      }
+    });
     FlutterNativeSplash.remove();
   }, (Object error, StackTrace stackTrace) {
-    showErrorDialogFromException(error);
+    showErrorDialogFromException(error, stackTrace: stackTrace);
   });
 }
 
@@ -71,7 +81,7 @@ class AutonomyApp extends StatelessWidget {
       ],
       debugShowCheckedModeBanner: false,
       navigatorKey: injector<NavigationService>().navigatorKey,
-      navigatorObservers: [routeObserver],
+      navigatorObservers: [routeObserver, SentryNavigatorObserver()],
       initialRoute: AppRouter.onboardingPage,
       onGenerateRoute: AppRouter.onGenerateRoute,
     );

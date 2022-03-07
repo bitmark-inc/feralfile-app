@@ -3,11 +3,12 @@ import 'package:sentry/sentry_io.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:path/path.dart';
 
-Future reportSentry(Object? payload, String comments) async {
+Future reportSentry(Map payload, String comments) async {
   SentryId sentryId;
-  if (payload != null) {
+  if (payload["exception"] != null) {
     sentryId = await Sentry.captureException(
       payload,
+      stackTrace: payload["stackTrace"],
       withScope: _addAttachment,
     );
   } else {
