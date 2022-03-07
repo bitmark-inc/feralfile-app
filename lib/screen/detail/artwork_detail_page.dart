@@ -49,6 +49,18 @@ class ArtworkDetailPage extends StatelessWidget {
               final screenWidth = MediaQuery.of(context).size.width;
               final screenHeight = MediaQuery.of(context).size.height;
 
+              var subTitle = "";
+              if (asset.artistName != null && asset.artistName!.isNotEmpty) {
+                if (asset.artistName!.length > 20) {
+                  subTitle = "by ${asset.artistName!.mask(4)}";
+                } else {
+                  subTitle = "by ${asset.artistName}";
+                }
+              }
+
+              if (asset.edition != 0)
+                subTitle += " (${asset.edition}/${asset.maxEdition})";
+
               return Container(
                 child: SingleChildScrollView(
                   child: Column(
@@ -63,13 +75,15 @@ class ArtworkDetailPage extends StatelessWidget {
                         ),
                       ),
                       SizedBox(height: 8.0),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Text(
-                          "by ${asset.artistName} (${asset.edition}/${asset.maxEdition})",
-                          style: appTextTheme.headline3,
+                      if (subTitle.isNotEmpty) ...[
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 16.0),
+                          child: Text(
+                            subTitle,
+                            style: appTextTheme.headline3,
+                          ),
                         ),
-                      ),
+                      ],
                       SizedBox(height: 16.0),
                       CachedNetworkImage(
                         imageUrl: asset.thumbnailURL!,
@@ -235,8 +249,20 @@ class ArtworkDetailPage extends StatelessWidget {
 
   Widget _valueView(
       BuildContext context, AssetToken asset, AssetPrice? assetPrice) {
-    final changedPrice =
-        (assetPrice?.minPrice ?? 0) - (assetPrice?.purchasedPrice ?? 0);
+    var changedPriceText = "";
+    var roiText = "";
+    if (assetPrice != null && assetPrice.minPrice != 0) {
+      final changedPrice = assetPrice.minPrice - assetPrice.purchasedPrice;
+      changedPriceText =
+          "${changedPrice >= 0 ? "+" : ""}$changedPrice ${assetPrice.currency.toUpperCase()}";
+
+      if (assetPrice.purchasedPrice == 0) {
+        roiText = "+100%";
+      } else {
+        final roi = (changedPrice / assetPrice.purchasedPrice) * 100;
+        roiText = "${roi >= 0 ? "+" : ""}${roi.toStringAsFixed(2)}%";
+      }
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -252,41 +278,31 @@ class ArtworkDetailPage extends StatelessWidget {
             asset.basePrice != null
                 ? "${asset.basePrice} ${asset.baseCurrency?.toUpperCase()}"
                 : "N/A"),
-        Divider(height: 32.0),
-        _rowItem(
-            context,
-            "Purchase price",
-            assetPrice != null
-                ? "${assetPrice.purchasedPrice} ${assetPrice.currency.toUpperCase()}"
-                : ""),
-        Divider(height: 32.0),
-        _rowItem(
-            context,
-            "Listed for resale",
-            assetPrice != null && assetPrice.onSale == true
-                ? "${assetPrice.listingPrice} ${assetPrice.currency.toUpperCase()}"
-                : "N/A"),
-        Divider(height: 32.0),
-        _rowItem(
-            context,
-            "Estimated value\n(floor price)",
-            assetPrice != null
-                ? "${assetPrice.minPrice} ${assetPrice.currency.toUpperCase()}"
-                : ""),
-        Divider(height: 32.0),
-        _rowItem(
-            context,
-            "Change (\$)",
-            assetPrice?.minPrice == null
-                ? "${changedPrice >= 0 ? "+" : ""}$changedPrice ${assetPrice?.currency.toUpperCase()}"
-                : "N/A"),
-        Divider(height: 32.0),
-        _rowItem(
-            context,
-            "Change (%)",
-            assetPrice?.minPrice == null
-                ? "${changedPrice >= 0 ? "+" : ""}${changedPrice * 100 / (assetPrice?.purchasedPrice ?? 1)}%"
-                : "N/A"),
+        if (assetPrice != null) ...[
+          Divider(height: 32.0),
+          _rowItem(context, "Purchase price",
+              "${assetPrice.purchasedPrice} ${assetPrice.currency.toUpperCase()}")
+        ],
+        if (assetPrice != null &&
+            assetPrice.listingPrice > 0 &&
+            assetPrice.onSale == true) ...[
+          Divider(height: 32.0),
+          _rowItem(context, "Listed for resale",
+              "${assetPrice.listingPrice} ${assetPrice.currency.toUpperCase()}"),
+        ],
+        if (assetPrice != null && assetPrice.minPrice != 0) ...[
+          Divider(height: 32.0),
+          _rowItem(context, "Estimated value\n(floor price)",
+              "${assetPrice.minPrice} ${assetPrice.currency.toUpperCase()}"),
+        ],
+        if (changedPriceText.isNotEmpty) ...[
+          Divider(height: 32.0),
+          _rowItem(context, "Change (\$)", changedPriceText),
+        ],
+        if (roiText.isNotEmpty) ...[
+          Divider(height: 32.0),
+          _rowItem(context, "ROI (Return on Investment)", roiText),
+        ],
       ],
     );
   }

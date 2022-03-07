@@ -19,57 +19,58 @@ class SelectNetworkPage extends StatelessWidget {
       ),
       body: BlocBuilder<SelectNetworkBloc, Network>(builder: (context, state) {
         return Container(
-          margin: EdgeInsets.symmetric(vertical: 16.0),
+          margin: pageEdgeInsets,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.0),
-                child: Text(
-                  "Network",
-                  style: appTextTheme.headline1,
-                ),
+              Text(
+                "Networks",
+                style: appTextTheme.headline1,
               ),
-              SizedBox(height: 30),
+              SizedBox(height: 22),
               ListTile(
+                contentPadding: EdgeInsets.zero,
                 title: Text(
                   "Main Network",
                   style: appTextTheme.headline4,
                 ),
-                trailing: Radio(
-                  activeColor: Colors.black,
-                  value: Network.MAINNET,
-                  groupValue: state,
-                  onChanged: (Network? value) {
-                    if (value != null) {
-                      context
-                          .read<SelectNetworkBloc>()
-                          .add(SelectNetworkEvent(value));
-                    }
-                  },
+                trailing: Transform.scale(
+                  scale: 1.25,
+                  child: Radio(
+                    activeColor: Colors.black,
+                    value: Network.MAINNET,
+                    groupValue: state,
+                    onChanged: (Network? value) {
+                      if (value != null) {
+                        context
+                            .read<SelectNetworkBloc>()
+                            .add(SelectNetworkEvent(value));
+                      }
+                    },
+                  ),
                 ),
               ),
-              Divider(
-                height: 1,
-                indent: 16.0,
-                endIndent: 16.0,
-              ),
+              Divider(height: 1),
               ListTile(
+                contentPadding: EdgeInsets.zero,
                 title: Text(
                   'Test Network',
                   style: appTextTheme.headline4,
                 ),
-                trailing: Radio(
-                  activeColor: Colors.black,
-                  value: Network.TESTNET,
-                  groupValue: state,
-                  onChanged: (Network? value) {
-                    if (value != null) {
-                      context
-                          .read<SelectNetworkBloc>()
-                          .add(SelectNetworkEvent(value));
-                    }
-                  },
+                trailing: Transform.scale(
+                  scale: 1.25,
+                  child: Radio(
+                    activeColor: Colors.black,
+                    value: Network.TESTNET,
+                    groupValue: state,
+                    onChanged: (Network? value) {
+                      if (value != null) {
+                        context
+                            .read<SelectNetworkBloc>()
+                            .add(SelectNetworkEvent(value));
+                      }
+                    },
+                  ),
                 ),
               ),
             ],
