@@ -96,7 +96,7 @@ Future showErrorDialog(BuildContext context, String title, String description,
             clipper: AutonomyTopRightRectangleClipper(),
             child: Container(
               color: theme.backgroundColor,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 32),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
