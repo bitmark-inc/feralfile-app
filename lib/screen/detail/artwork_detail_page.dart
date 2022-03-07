@@ -93,6 +93,8 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
           }, builder: (context, state) {
             if (state.asset != null) {
               final asset = state.asset!;
+              final screenWidth = MediaQuery.of(context).size.width;
+              final screenHeight = MediaQuery.of(context).size.height;
 
               var subTitle = "";
               if (asset.artistName != null && asset.artistName!.isNotEmpty) {
@@ -134,6 +136,9 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
                       CachedNetworkImage(
                         imageUrl: asset.thumbnailURL!,
                         width: double.infinity,
+                        maxWidthDiskCache: (screenHeight * 3).floor(),
+                        memCacheWidth: (screenWidth * 3).floor(),
+                        placeholderFadeInDuration: Duration(milliseconds: 300),
                         fit: BoxFit.cover,
                         errorWidget: (context, url, error) =>
                             SizedBox(height: 100),
