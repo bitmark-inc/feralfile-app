@@ -43,6 +43,12 @@ class _PenroseScrollingContainerState extends State<PenroseScrollingContainer> {
   }
 
   @override
+  void dispose() {
+    _controller.removeListener(() {});
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Stack(fit: StackFit.loose, children: [
       Column(
