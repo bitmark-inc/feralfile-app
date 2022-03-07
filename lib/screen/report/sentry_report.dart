@@ -28,8 +28,16 @@ Future reportRenderingIssue(String tokenID, List<String> issuedTopics) async {
   final title = "[RenderingIssue] Token $tokenID";
 
   final deviceID = await getDeviceID();
-  SentryId sentryId = await Sentry.captureMessage(title + " $deviceID",
-      withScope: _addAttachment);
+
+  SentryId sentryId =
+      await Sentry.captureMessage(title + " $deviceID", withScope: (scope) {
+    _addAttachment(scope);
+    scope.fingerprint = [tokenID + issuedTopics.join(",")];
+    scope.setTag("issuedToken", tokenID);
+    for (var topic in issuedTopics) {
+      scope.setTag("issuedTopics-$topic", 'true');
+    }
+  });
 
   final message =
       "Issues Token: $tokenID \n Issued Topics: ${issuedTopics.join(', ')}";
