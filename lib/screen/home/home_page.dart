@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/main.dart';
@@ -63,7 +64,7 @@ class _HomePageState extends State<HomePage>
   @override
   void didPopNext() {
     super.didPopNext();
-    Future.delayed(const Duration(milliseconds: 3500), () {
+    Future.delayed(const Duration(milliseconds: 1000), () {
       context.read<HomeBloc>().add(RefreshTokensEvent());
     });
   }
@@ -107,7 +108,7 @@ class _HomePageState extends State<HomePage>
       padding: EdgeInsets.symmetric(horizontal: 16.0),
       controller: _controller,
       children: [
-        SizedBox(height: 120),
+        SizedBox(height: 160),
         Text(
           "Gallery",
           style: appTextTheme.headline1,
@@ -125,6 +126,12 @@ class _HomePageState extends State<HomePage>
     final groupBySource = groupBy(tokens, (AssetToken obj) => obj.source);
     var sources = groupBySource.keys.map((source) {
       final assets = groupBySource[source] ?? [];
+      const int cellPerRow = 3;
+      const double cellSpacing = 3.0;
+      final estimatedCellWidth =
+          MediaQuery.of(context).size.width / cellPerRow -
+              cellSpacing * (cellPerRow - 1);
+      final maxCachedImageSize = (estimatedCellWidth * 3).ceil();
       return <Widget>[
         Padding(
           padding: EdgeInsets.symmetric(horizontal: 15.0),
@@ -137,9 +144,9 @@ class _HomePageState extends State<HomePage>
             physics: const NeverScrollableScrollPhysics(),
             shrinkWrap: true,
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3,
-              crossAxisSpacing: 3.0,
-              mainAxisSpacing: 3.0,
+              crossAxisCount: cellPerRow,
+              crossAxisSpacing: cellSpacing,
+              mainAxisSpacing: cellSpacing,
               childAspectRatio: 1.0,
             ),
             addAutomaticKeepAlives: false,
@@ -148,15 +155,17 @@ class _HomePageState extends State<HomePage>
             itemCount: assets.length,
             itemBuilder: (BuildContext context, int index) {
               final asset = assets[index];
+
               return GestureDetector(
                 child: Container(
                   child: CachedNetworkImage(
                     imageUrl: asset.thumbnailURL!,
                     fit: BoxFit.cover,
-                    maxHeightDiskCache: 300,
-                    maxWidthDiskCache: 300,
-                    memCacheHeight: 300,
-                    memCacheWidth: 300,
+                    maxHeightDiskCache: maxCachedImageSize,
+                    maxWidthDiskCache: maxCachedImageSize,
+                    memCacheHeight: maxCachedImageSize,
+                    memCacheWidth: maxCachedImageSize,
+                    placeholderFadeInDuration: Duration(milliseconds: 300),
                     errorWidget: (context, url, error) => SizedBox(height: 100),
                   ),
                 ),
