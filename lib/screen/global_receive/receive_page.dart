@@ -67,30 +67,20 @@ class _GlobalReceivePageState extends State<GlobalReceivePage> {
                 ),
                 SizedBox(height: 40.0),
                 Text(
-                  "Select an account on the appropriate blockchain to receive the NFT:",
+                  "Select an account to receive the NFT:",
                   style: appTextTheme.bodyText1,
                 ),
                 SizedBox(height: 24),
-                ...categorizedAccounts.map((e) => e.accounts.length > 0
-                    ? Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(e.category.toUpperCase(),
-                              style: appTextTheme.headline4),
-                          ...e.accounts
-                              .map((account) => Container(
-                                  padding: EdgeInsets.only(top: 16, bottom: 16),
-                                  child: accountWithConnectionItem(
-                                      context, account,
-                                      onTap: () => Navigator.of(context)
-                                          .pushNamed(
-                                              GlobalReceiveDetailPage.tag,
-                                              arguments: account))))
-                              .toList(),
-                          SizedBox(height: 40)
-                        ],
-                      )
-                    : Container()),
+                ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemBuilder: ((context, index) => Container(
+                          padding: EdgeInsets.only(top: 16, bottom: 16),
+                          child: accountWithConnectionItem(
+                              context, categorizedAccounts[index]),
+                        )),
+                    separatorBuilder: ((context, index) => Divider()),
+                    itemCount: categorizedAccounts.length)
               ],
             ),
           ),
