@@ -33,6 +33,7 @@ class _HomePageState extends State<HomePage>
   StreamSubscription? _deeplinkSubscription;
   StreamSubscription<FGBGType>? _fgbgSubscription;
   late ScrollController _controller;
+  int _cachedImageSize = 0;
 
   @override
   void initState() {
@@ -41,6 +42,7 @@ class _HomePageState extends State<HomePage>
     WidgetsBinding.instance?.addObserver(this);
     _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
     _controller = ScrollController();
+    context.read<HomeBloc>().add(RefreshTokensEvent());
   }
 
   @override
@@ -68,8 +70,6 @@ class _HomePageState extends State<HomePage>
 
   @override
   Widget build(BuildContext context) {
-    context.read<HomeBloc>().add(RefreshTokensEvent());
-
     return Scaffold(
         body: BlocBuilder<HomeBloc, HomeState>(builder: (context, state) {
       final tokens = state.tokens;
@@ -125,10 +125,12 @@ class _HomePageState extends State<HomePage>
       final assets = groupBySource[source] ?? [];
       const int cellPerRow = 3;
       const double cellSpacing = 3.0;
-      final estimatedCellWidth =
-          MediaQuery.of(context).size.width / cellPerRow -
-              cellSpacing * (cellPerRow - 1);
-      final maxCachedImageSize = (estimatedCellWidth * 3).ceil();
+      if (_cachedImageSize == 0) {
+        final estimatedCellWidth =
+            MediaQuery.of(context).size.width / cellPerRow -
+                cellSpacing * (cellPerRow - 1);
+        _cachedImageSize = (estimatedCellWidth * 3).ceil();
+      }
       return <Widget>[
         Padding(
           padding: EdgeInsets.symmetric(horizontal: 15.0),
@@ -158,10 +160,10 @@ class _HomePageState extends State<HomePage>
                   child: CachedNetworkImage(
                     imageUrl: asset.thumbnailURL!,
                     fit: BoxFit.cover,
-                    maxHeightDiskCache: maxCachedImageSize,
-                    maxWidthDiskCache: maxCachedImageSize,
-                    memCacheHeight: maxCachedImageSize,
-                    memCacheWidth: maxCachedImageSize,
+                    maxHeightDiskCache: _cachedImageSize,
+                    maxWidthDiskCache: _cachedImageSize,
+                    memCacheHeight: _cachedImageSize,
+                    memCacheWidth: _cachedImageSize,
                     placeholderFadeInDuration: Duration(milliseconds: 300),
                     errorWidget: (context, url, error) => SizedBox(height: 100),
                   ),
