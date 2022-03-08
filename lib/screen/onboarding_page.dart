@@ -92,6 +92,19 @@ class _OnboardingPageState extends State<OnboardingPage> {
                       )
                     ],
                   );
+                case OnboardingStep.restore:
+                  return Row(
+                    children: [
+                      Expanded(
+                        child: AuFilledButton(
+                          text: "Restore".toUpperCase(),
+                          onPress: !state.isLoading ? () {
+                            context.read<RouterBloc>().add(RestoreCloudDatabaseRoutingEvent(state.backupVersion));
+                          } : null,
+                        ),
+                      )
+                    ],
+                  );
 
                 default:
                   return SizedBox();
