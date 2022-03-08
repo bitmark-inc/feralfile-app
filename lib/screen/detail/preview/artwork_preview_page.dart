@@ -14,6 +14,7 @@ import 'package:shake/shake.dart';
 import 'package:video_player/video_player.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:after_layout/after_layout.dart';
+import 'package:easy_debounce/easy_debounce.dart';
 
 class ArtworkPreviewPage extends StatefulWidget {
   static const tag = "artwork_preview";
@@ -227,7 +228,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
         }
       default:
         return WebView(
-            key: UniqueKey(),
+            key: Key(asset.assetID ?? asset.id),
             initialUrl: asset.previewURL,
             zoomEnabled: false,
             onWebViewCreated: (WebViewController webViewController) {
@@ -329,10 +330,12 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
 
   _updateWebviewSize() {
     if (_webViewController != null) {
-      Future.delayed(
-          Duration(milliseconds: 100),
-          (() => _webViewController
-              ?.runJavascript("window.dispatchEvent(new Event('resize'));")));
+      EasyDebounce.debounce(
+          'screen_rotate', // <-- An ID for this particular debouncer
+          Duration(milliseconds: 100), // <-- The debounce duration
+          () => _webViewController?.runJavascript(
+              "window.dispatchEvent(new Event('resize'));") // <-- The target method
+          );
     }
   }
 
