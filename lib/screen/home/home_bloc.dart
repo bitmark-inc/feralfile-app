@@ -6,6 +6,7 @@ import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/gateway/indexer_api.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
@@ -21,6 +22,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   AssetTokenDao _assetTokenDao;
   IndexerApi _indexerApi;
   CloudDatabase _cloudDB;
+  ConfigurationService _configurationService;
 
   HomeBloc(
       this._feralFileService,
@@ -28,7 +30,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       this._tezosBeaconService,
       this._assetTokenDao,
       this._indexerApi,
-      this._cloudDB)
+      this._cloudDB,
+      this._configurationService)
       : super(HomeState()) {
     on<HomeConnectWCEvent>((event, emit) {
       _walletConnectService.connect(event.uri);
@@ -86,17 +89,22 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         List<String> ethAddresses = [];
         List<String> tezosAddresses = [];
 
-        for (var persona in personas) {
-          final ethAddress = await persona.wallet().getETHAddress();
-          final tezosWallet = await persona.wallet().getTezosWallet();
-          final tezosAddress = tezosWallet.address;
+        late List allAccountNumbers;
+        if (_configurationService.isDemoArtworksMode()) {
+          allAccountNumbers = ["demo"];
+        } else {
+          for (var persona in personas) {
+            final ethAddress = await persona.wallet().getETHAddress();
+            final tezosWallet = await persona.wallet().getTezosWallet();
+            final tezosAddress = tezosWallet.address;
 
-          ethAddresses += [ethAddress];
-          tezosAddresses += [tezosAddress];
+            ethAddresses += [ethAddress];
+            tezosAddresses += [tezosAddress];
+          }
+          allAccountNumbers = List.from(accountNumbers)
+            ..addAll(ethAddresses)
+            ..addAll(tezosAddresses);
         }
-        List allAccountNumbers = List.from(accountNumbers)
-          ..addAll(ethAddresses)
-          ..addAll(tezosAddresses);
 
         List<AssetToken> allTokens = [];
 

@@ -115,7 +115,8 @@ class AppRouter {
                       injector(),
                       networkInjector.I<AppDatabase>().assetDao,
                       networkInjector.I(),
-                      injector<CloudDatabase>()),
+                      injector<CloudDatabase>(),
+                      injector()),
                   child: HomePage(),
                 ),
             transitionDuration: Duration(seconds: 0));
@@ -130,7 +131,8 @@ class AppRouter {
                       injector(),
                       networkInjector.I<AppDatabase>().assetDao,
                       networkInjector.I(),
-                      injector<CloudDatabase>()),
+                      injector<CloudDatabase>(),
+                      injector()),
                   child: HomePage(),
                 ));
       case beOwnGalleryPage:

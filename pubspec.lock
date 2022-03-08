@@ -316,6 +316,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "4.0.4"
+  dio_http2_adapter:
+    dependency: "direct main"
+    description:
+      name: dio_http2_adapter
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.0.0"
   easy_debounce:
     dependency: "direct main"
     description:
@@ -513,6 +520,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.13.3"
+  http2:
+    dependency: transitive
+    description:
+      name: http2
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.0.0"
   http_multi_server:
     dependency: transitive
     description:
