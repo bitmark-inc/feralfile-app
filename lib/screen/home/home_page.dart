@@ -164,6 +164,8 @@ class _HomePageState extends State<HomePage>
                     maxWidthDiskCache: _cachedImageSize,
                     memCacheHeight: _cachedImageSize,
                     memCacheWidth: _cachedImageSize,
+                    placeholder: (context, index) =>
+                        Container(color: Color.fromRGBO(227, 227, 227, 1)),
                     placeholderFadeInDuration: Duration(milliseconds: 300),
                     errorWidget: (context, url, error) => SizedBox(height: 100),
                   ),
