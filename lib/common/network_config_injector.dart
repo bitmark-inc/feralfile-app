@@ -5,6 +5,7 @@ import 'package:autonomy_flutter/gateway/feralfile_api.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/gateway/indexer_api.dart';
 import 'package:autonomy_flutter/model/network.dart';
+import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
@@ -44,6 +45,8 @@ class NetworkConfigInjector {
         _dioHTTP2,
         baseUrl: AppConfig.testNetworkConfig.indexerApiUrl));
 
+    testnetInjector.registerLazySingleton<BackupService>(
+        () => BackupService(testnetInjector(), _configurationService));
     testnetInjector.registerLazySingleton<EthereumService>(
         () => EthereumServiceImpl(testnetInjector()));
     testnetInjector.registerLazySingleton<TezosService>(
@@ -76,6 +79,8 @@ class NetworkConfigInjector {
         _dioHTTP2,
         baseUrl: AppConfig.mainNetworkConfig.indexerApiUrl));
 
+    mainnetInjector.registerLazySingleton<BackupService>(
+        () => BackupService(mainnetInjector(), _configurationService));
     mainnetInjector.registerLazySingleton<EthereumService>(
         () => EthereumServiceImpl(mainnetInjector()));
     mainnetInjector.registerLazySingleton<TezosService>(
