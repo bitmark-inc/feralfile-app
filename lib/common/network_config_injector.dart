@@ -23,8 +23,9 @@ class NetworkConfigInjector {
 
   final ConfigurationService _configurationService;
   final Dio _dio;
+  final Dio _dioHTTP2;
 
-  NetworkConfigInjector(this._configurationService, this._dio,
+  NetworkConfigInjector(this._configurationService, this._dio, this._dioHTTP2,
       AppDatabase testnetDB, AppDatabase mainnetDB) {
     //Test network
     testnetInjector.registerLazySingleton(
@@ -39,8 +40,9 @@ class NetworkConfigInjector {
         IAPApi(_dio, baseUrl: AppConfig.testNetworkConfig.autonomyAuthUrl));
     testnetInjector.registerLazySingleton<IAPService>(
         () => IAPServiceImpl(injector(), testnetInjector()));
-    testnetInjector.registerLazySingleton<IndexerApi>(() =>
-        IndexerApi(_dio, baseUrl: AppConfig.testNetworkConfig.indexerApiUrl));
+    testnetInjector.registerLazySingleton<IndexerApi>(() => IndexerApi(
+        _dioHTTP2,
+        baseUrl: AppConfig.testNetworkConfig.indexerApiUrl));
 
     testnetInjector.registerLazySingleton<EthereumService>(
         () => EthereumServiceImpl(testnetInjector()));
@@ -70,8 +72,9 @@ class NetworkConfigInjector {
         IAPApi(_dio, baseUrl: AppConfig.mainNetworkConfig.autonomyAuthUrl));
     mainnetInjector.registerLazySingleton<IAPService>(
         () => IAPServiceImpl(injector(), mainnetInjector()));
-    mainnetInjector.registerLazySingleton<IndexerApi>(() =>
-        IndexerApi(_dio, baseUrl: AppConfig.mainNetworkConfig.indexerApiUrl));
+    mainnetInjector.registerLazySingleton<IndexerApi>(() => IndexerApi(
+        _dioHTTP2,
+        baseUrl: AppConfig.mainNetworkConfig.indexerApiUrl));
 
     mainnetInjector.registerLazySingleton<EthereumService>(
         () => EthereumServiceImpl(mainnetInjector()));

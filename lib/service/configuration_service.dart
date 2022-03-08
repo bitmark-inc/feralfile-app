@@ -30,6 +30,9 @@ abstract class ConfigurationService {
   String? getWCDappSession();
   Future<void> setWCDappAccounts(List<String>? value);
   List<String>? getWCDappAccounts();
+
+  // ----- App Setting -----
+  bool isDemoArtworksMode();
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
@@ -46,6 +49,10 @@ class ConfigurationServiceImpl implements ConfigurationService {
   // keys for WalletConnect dapp side
   static const String KEY_WC_DAPP_SESSION = "wc_dapp_store";
   static const String KEY_WC_DAPP_ACCOUNTS = "wc_dapp_accounts";
+
+  // ----- App Setting -----
+  static const String KEY_APP_SETTING_DEMO_ARTWORKS =
+      "show_demo_artworks_preference";
 
   SharedPreferences _preferences;
 
@@ -209,5 +216,10 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   List<String>? getWCDappAccounts() {
     return _preferences.getStringList(KEY_WC_DAPP_ACCOUNTS);
+  }
+
+  @override
+  bool isDemoArtworksMode() {
+    return _preferences.getBool(KEY_APP_SETTING_DEMO_ARTWORKS) ?? false;
   }
 }
