@@ -41,6 +41,7 @@
 		76F328A127D1EC1C00C3B9FA /* BeaconTransportP2PMatrix in Frameworks */ = {isa = PBXBuildFile; productRef = 76F3289027D1EC1C00C3B9FA /* BeaconTransportP2PMatrix */; };
 		76F328A227D1EC1C00C3B9FA /* BeaconClientWallet in Frameworks */ = {isa = PBXBuildFile; productRef = 76F3288E27D1EC1C00C3B9FA /* BeaconClientWallet */; };
 		76F328A327D1EC1C00C3B9FA /* BeaconCore in Frameworks */ = {isa = PBXBuildFile; productRef = 76F3288F27D1EC1C00C3B9FA /* BeaconCore */; };
+		76F328A427D1EC1C00C3B9FA /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A451CD8AF50E41359BCF628F /* Pods_Runner.framework */; };
 		76F328A627D1EC1C00C3B9FA /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
 		76F328A727D1EC1C00C3B9FA /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
 		76F328A827D1EC1C00C3B9FA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
@@ -121,6 +122,7 @@
 				76F328A127D1EC1C00C3B9FA /* BeaconTransportP2PMatrix in Frameworks */,
 				76F328A227D1EC1C00C3B9FA /* BeaconClientWallet in Frameworks */,
 				76F328A327D1EC1C00C3B9FA /* BeaconCore in Frameworks */,
+				76F328A427D1EC1C00C3B9FA /* Pods_Runner.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -135,7 +137,6 @@
 				63F1664D27B2509F00451AAA /* BeaconClientWallet in Frameworks */,
 				63F1664F27B2509F00451AAA /* BeaconCore in Frameworks */,
 				C577A25E2C1FF997DB2CF183 /* Pods_Runner.framework in Frameworks */,
-				3D99339ED1473BFB3B04FFF3 /* Pods_Runner.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -226,12 +227,14 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 76F328AD27D1EC1C00C3B9FA /* Build configuration list for PBXNativeTarget "Runner Inhouse" */;
 			buildPhases = (
+				76F3289127D1EC1C00C3B9FA /* [CP] Check Pods Manifest.lock */,
 				76F3289227D1EC1C00C3B9FA /* Run Script */,
 				76F3289327D1EC1C00C3B9FA /* Sources */,
 				76F3289D27D1EC1C00C3B9FA /* Frameworks */,
 				76F328A527D1EC1C00C3B9FA /* Resources */,
 				76F328AA27D1EC1C00C3B9FA /* Embed Frameworks */,
 				76F328AB27D1EC1C00C3B9FA /* Thin Binary */,
+				76F328AC27D1EC1C00C3B9FA /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -380,6 +383,28 @@
 			shellPath = /bin/sh;
 			shellScript = "/bin/sh \"$FLUTTER_ROOT/packages/flutter_tools/bin/xcode_backend.sh\" embed_and_thin\n";
 		};
+		76F3289127D1EC1C00C3B9FA /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-Runner-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
 		76F3289227D1EC1C00C3B9FA /* Run Script */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -407,6 +432,23 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "/bin/sh \"$FLUTTER_ROOT/packages/flutter_tools/bin/xcode_backend.sh\" embed_and_thin\n";
+		};
+		76F328AC27D1EC1C00C3B9FA /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
 		};
 		9740EEB61CF901F6004384FC /* Run Script */ = {
 			isa = PBXShellScriptBuildPhase;
