@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/service/wallet_connect_dapp_service/wallet_conn
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
 import 'package:dio/dio.dart';
+import 'package:dio_http2_adapter/dio_http2_adapter.dart';
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -50,6 +51,12 @@ Future<void> setup() async {
   dio.interceptors.add(LoggingInterceptor());
   dio.interceptors.add(SentryInterceptor());
 
+  final dioHTTP2 = Dio(); // Provide a dio instance
+  dioHTTP2.interceptors.add(LoggingInterceptor());
+  dioHTTP2.interceptors.add(SentryInterceptor());
+  dioHTTP2.httpClientAdapter =
+      Http2Adapter(ConnectionManager(idleTimeout: 10000));
+
   injector.registerSingleton<ConfigurationService>(
       ConfigurationServiceImpl(sharedPreferences));
 
@@ -71,6 +78,6 @@ Future<void> setup() async {
   final cloudService = CloudService();
   injector.registerLazySingleton(() => cloudService);
 
-  injector.registerLazySingleton(
-      () => NetworkConfigInjector(injector(), dio, testnetDB, mainnetDB));
+  injector.registerLazySingleton(() =>
+      NetworkConfigInjector(injector(), dio, dioHTTP2, testnetDB, mainnetDB));
 }
