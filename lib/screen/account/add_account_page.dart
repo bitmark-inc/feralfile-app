@@ -49,28 +49,21 @@ class AddAccountPage extends StatelessWidget {
   }
 
   Widget _linkAccountOption(BuildContext context) {
-    return TappableForwardRow(
-      leftWidget: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Link account', style: appTextTheme.headline4),
-          SizedBox(height: 16),
-          Text(
-              'I already have NFTs in other wallets that I want to view with Autonomy.',
-              style: appTextTheme.bodyText1),
-        ],
-      ),
+    return TappableForwardRowWithContent(
+      leftWidget: Text('Link account', style: appTextTheme.headline4),
+      bottomWidget: Text(
+          'I already have NFTs in other wallets that I want to view with Autonomy.',
+          style: appTextTheme.bodyText1),
       onTap: () => Navigator.of(context).pushNamed(AppRouter.linkAccountpage),
     );
   }
 
   Widget _importAccountOption(BuildContext context) {
-    return TappableForwardRow(
-      leftWidget: Column(
+    return TappableForwardRowWithContent(
+      leftWidget: Text('Import account', style: appTextTheme.headline4),
+      bottomWidget: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Import account', style: appTextTheme.headline4),
-          SizedBox(height: 16),
           Text(
               'Enter a recovery phrase from another wallet to control your NFTs, sign authorizations, and connect to other platforms.',
               style: appTextTheme.bodyText1),
@@ -107,17 +100,11 @@ class AddAccountPage extends StatelessWidget {
         }
       },
       builder: (context, state) {
-        return TappableForwardRow(
-          leftWidget: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Create account', style: appTextTheme.headline4),
-              SizedBox(height: 16),
-              Text(
-                  'Make a new account with addresses you can use to collect or receive NFTs on Ethereum, Feral File, and Tezos.',
-                  style: appTextTheme.bodyText1),
-            ],
-          ),
+        return TappableForwardRowWithContent(
+          leftWidget: Text('Create account', style: appTextTheme.headline4),
+          bottomWidget: Text(
+              'Make a new account with addresses you can use to collect or receive NFTs on Ethereum, Feral File, and Tezos.',
+              style: appTextTheme.bodyText1),
           onTap: () {
             context.read<PersonaBloc>().add(CreatePersonaEvent());
           },

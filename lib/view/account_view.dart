@@ -42,7 +42,7 @@ Widget accountWithConnectionItem(
 
   final connection = categorizedAccounts.accounts.first.connections?.first;
   if (connection != null) {
-    return TappableForwardRow(
+    return TappableForwardRowWithContent(
         leftWidget: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.start,

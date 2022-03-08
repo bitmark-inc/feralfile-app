@@ -187,7 +187,7 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
 
   Widget _emptyConnectionsWidget() {
     return Column(children: [
-      TappableForwardRow(
+      TappableForwardRowWithContent(
           leftWidget: Row(children: [
             SvgPicture.asset("assets/images/iconQr.svg"),
             SizedBox(width: 17.5),
