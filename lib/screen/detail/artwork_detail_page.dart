@@ -47,7 +47,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
 
     context.read<ArtworkDetailBloc>().add(ArtworkDetailGetInfoEvent(
         widget.payload.ids[widget.payload.currentIndex]));
-    context.read<AccountsBloc>().add(GetAccountsEvent());
+    context.read<AccountsBloc>().add(FetchAllAddressesEvent());
   }
 
   _scrollListener() {
@@ -427,9 +427,9 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
             BlocBuilder<AccountsBloc, AccountsState>(
                 builder: (context, accountsState) {
               late HashSet<String> accountNumberHash;
-              if (accountsState.accounts != null) {
-                accountNumberHash = HashSet.of(
-                    accountsState.accounts!.map((e) => e.accountNumber));
+              final event = accountsState.event;
+              if (event != null && event is FetchAllAddressesSuccessEvent) {
+                accountNumberHash = HashSet.of(event.addresses);
               } else {
                 accountNumberHash = HashSet.identity();
               }
