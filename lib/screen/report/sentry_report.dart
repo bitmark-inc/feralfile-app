@@ -7,7 +7,7 @@ Future reportSentry(Map payload, String comments) async {
   SentryId sentryId;
   if (payload["exception"] != null) {
     sentryId = await Sentry.captureException(
-      payload,
+      payload["exception"],
       stackTrace: payload["stackTrace"],
       withScope: _addAttachment,
     );
