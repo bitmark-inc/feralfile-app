@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/screen/account/add_account_page.dart';
 import 'package:autonomy_flutter/screen/account/import_account_page.dart';
 import 'package:autonomy_flutter/screen/account/link_account_page.dart';
 import 'package:autonomy_flutter/screen/account/link_feralfile_page.dart';
+import 'package:autonomy_flutter/screen/account/link_tezos_kukai_page.dart';
 import 'package:autonomy_flutter/screen/account/link_wallet_connect_page.dart';
 import 'package:autonomy_flutter/screen/account/linked_account_details_page.dart';
 import 'package:autonomy_flutter/screen/account/name_linked_account_page.dart';
@@ -72,11 +73,13 @@ class AppRouter {
   static const linkBeaconConnectPage = "link_beacon_connect";
   static const accountsPreviewPage = 'accounts_preview';
   static const linkFeralFilePage = "link_feralfile";
+  static const linkTezosKukaiPage = 'link_tezos_kukai_page';
   static const namePersonaPage = "name_persona_page";
   static const nameLinkedAccountPage = 'name_linked_account';
   static const importAccountPage = 'import_account';
   static const homePage = "home_page";
   static const homePageNoTransition = 'home_page_NoTransition';
+  static const newAccountPageNoTransition = 'new_account_page_NoTransition';
   static const settingsPage = "settings";
   static const personaDetailsPage = "persona_details";
   static const personaConnectionsPage = "persona_connections";
@@ -110,7 +113,6 @@ class AppRouter {
             settings: settings,
             pageBuilder: (context, animetion1, animation2) => BlocProvider(
                   create: (_) => HomeBloc(
-                      networkInjector.I(),
                       injector(),
                       injector(),
                       networkInjector.I<AppDatabase>().assetDao,
@@ -126,7 +128,6 @@ class AppRouter {
             settings: settings,
             builder: (context) => BlocProvider(
                   create: (_) => HomeBloc(
-                      networkInjector.I(),
                       injector(),
                       injector(),
                       networkInjector.I<AppDatabase>().assetDao,
@@ -140,7 +141,7 @@ class AppRouter {
           settings: settings,
           builder: (context) => BeOwnGalleryPage(),
         );
-      case AppRouter.newAccountPage:
+      case newAccountPage:
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider(
@@ -150,6 +151,18 @@ class AppRouter {
                       injector(),
                     ),
                 child: NewAccountPage()));
+
+      case newAccountPageNoTransition:
+        return PageRouteBuilder(
+            settings: settings,
+            pageBuilder: (context, animetion1, animation2) => BlocProvider(
+                create: (_) => PersonaBloc(
+                      injector<CloudDatabase>(),
+                      injector(),
+                      injector(),
+                    ),
+                child: NewAccountPage()),
+            transitionDuration: Duration(seconds: 0));
 
       case addAccountPage:
         return CupertinoPageRoute(
@@ -188,6 +201,10 @@ class AppRouter {
                 create: (_) => FeralfileBloc(
                     injector(), networkInjector.I(), injector<CloudDatabase>()),
                 child: LinkFeralFilePage()));
+
+      case linkTezosKukaiPage:
+        return CupertinoPageRoute(
+            settings: settings, builder: (context) => LinkTezosKukaiPage());
 
       case linkBeaconConnectPage:
         return CupertinoPageRoute(

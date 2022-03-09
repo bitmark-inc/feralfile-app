@@ -61,19 +61,23 @@ ErrorEvent? translateError(Object exception) {
       ErrorItemState.suggestReportIssue);
 }
 
-bool isShowErrorDialogWorking = false;
+DateTime? isShowErrorDialogWorking = null;
 
 Future showErrorDialog(BuildContext context, String title, String description,
     String defaultButton,
     [Function()? defaultButtonOnPress,
     String? cancelButton,
     Function()? cancelButtonOnPress]) async {
-  if (isShowErrorDialogWorking) {
+  if (isShowErrorDialogWorking != null &&
+      isShowErrorDialogWorking!
+              .add(const Duration(seconds: 2))
+              .compareTo(DateTime.now()) >
+          0) {
     log.info("showErrorDialog is working");
     return;
   }
 
-  isShowErrorDialogWorking = true;
+  isShowErrorDialogWorking = DateTime.now();
   final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
 
   var cuttedColor = Color(0xFF737373);
@@ -145,7 +149,7 @@ Future showErrorDialog(BuildContext context, String title, String description,
       });
 
   await Future.delayed(Duration(seconds: 1), () {
-    isShowErrorDialogWorking = false;
+    isShowErrorDialogWorking = null;
   });
 }
 

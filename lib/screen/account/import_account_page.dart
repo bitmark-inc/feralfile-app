@@ -73,9 +73,7 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
                           style: appTextTheme.bodyText1,
                         ),
                         SizedBox(height: 16),
-                        Text('Learn why this is safe...',
-                            style: appTextTheme.bodyText1
-                                ?.copyWith(fontWeight: FontWeight.bold)),
+                        Text('Learn why this is safe...', style: linkStyle),
                         SizedBox(height: 40),
                         Container(
                           height: 120,
