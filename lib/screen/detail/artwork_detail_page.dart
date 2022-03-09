@@ -1,6 +1,9 @@
+import 'dart:collection';
+
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/model/asset_price.dart';
 import 'package:autonomy_flutter/model/bitmark.dart';
+import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
@@ -44,6 +47,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
 
     context.read<ArtworkDetailBloc>().add(ArtworkDetailGetInfoEvent(
         widget.payload.ids[widget.payload.currentIndex]));
+    context.read<AccountsBloc>().add(GetAccountsEvent());
   }
 
   _scrollListener() {
@@ -419,31 +423,46 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
 
   Widget _provenanceView(BuildContext context, List<Provenance> provenances) {
     return BlocBuilder<IdentityBloc, IdentityState>(
-        builder: (context, state) => Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Provenance",
-                  style: appTextTheme.headline2,
-                ),
-                SizedBox(height: 16.0),
-                ...provenances.map((el) {
-                  final identity = state.identityMap[el.owner];
-                  final onNameTap = () => identity != null
-                      ? UIHelper.showIdentityDetailDialog(context,
-                          name: identity, address: el.owner)
-                      : null;
-                  return Column(
-                    children: [
-                      _rowItem(context, identity ?? el.owner.mask(4),
-                          localTimeString(el.createdAt),
-                          onNameTap: onNameTap),
-                      Divider(height: 32.0),
-                    ],
-                  );
-                }).toList()
-              ],
-            ));
+        builder: (context, identityState) =>
+            BlocBuilder<AccountsBloc, AccountsState>(
+                builder: (context, accountsState) {
+              late HashSet<String> accountNumberHash;
+              if (accountsState.accounts != null) {
+                accountNumberHash = HashSet.of(
+                    accountsState.accounts!.map((e) => e.accountNumber));
+              } else {
+                accountNumberHash = HashSet.identity();
+              }
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Provenance",
+                    style: appTextTheme.headline2,
+                  ),
+                  SizedBox(height: 16.0),
+                  ...provenances.map((el) {
+                    final identity = identityState.identityMap[el.owner];
+                    final identityTitle = identity ?? el.owner;
+                    final youTitle =
+                        accountNumberHash.contains(el.owner) ? " (You)" : "";
+                    final provenanceTitle = identityTitle + youTitle;
+                    final onNameTap = () => identity != null
+                        ? UIHelper.showIdentityDetailDialog(context,
+                            name: identity, address: el.owner)
+                        : null;
+                    return Column(
+                      children: [
+                        _rowItem(context, provenanceTitle,
+                            localTimeString(el.createdAt),
+                            onNameTap: onNameTap),
+                        Divider(height: 32.0),
+                      ],
+                    );
+                  }).toList()
+                ],
+              );
+            }));
   }
 
   Widget _rowItem(BuildContext context, String name, String? value,
