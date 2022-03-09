@@ -87,6 +87,7 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
       List<CategorizedAccounts> categorizedAccounts = [];
 
       for (var persona in personas) {
+        final bitmarkAddress = await persona.wallet().getBitmarkAddress();
         final ethAddress = await persona.wallet().getETHAddress();
         final xtzAddress = (await persona.wallet().getTezosWallet()).address;
         var name = await persona.wallet().getName();
@@ -94,6 +95,13 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
         if (name.isEmpty) {
           name = persona.name;
         }
+
+        final bitmarkAccount = Account(
+            persona: persona,
+            name: name,
+            blockchain: "Bitmark",
+            accountNumber: bitmarkAddress,
+            createdAt: persona.createdAt);
 
         final ethAccount = Account(
             persona: persona,
@@ -110,7 +118,7 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
             createdAt: persona.createdAt);
 
         categorizedAccounts
-            .add(CategorizedAccounts(name, [ethAccount, xtzAccount]));
+            .add(CategorizedAccounts(name, [bitmarkAccount, ethAccount, xtzAccount]));
       }
 
       for (var connection in connections) {

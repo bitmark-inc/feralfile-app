@@ -53,6 +53,8 @@ class SendCryptoBloc extends Bloc<SendCryptoEvent, SendCryptoState> {
           }
 
           break;
+        default:
+          break;
       }
 
       emit(newState);
@@ -86,6 +88,8 @@ class SendCryptoBloc extends Bloc<SendCryptoEvent, SendCryptoState> {
               newState.isAddressError = true;
             }
             break;
+          default:
+           break;
         }
       }
 
@@ -104,6 +108,8 @@ class SendCryptoBloc extends Bloc<SendCryptoEvent, SendCryptoState> {
               break;
             case CryptoType.XTZ:
               value *= double.parse(state.exchangeRate.xtz);
+              break;
+            default:
               break;
           }
         }
@@ -155,6 +161,8 @@ class SendCryptoBloc extends Bloc<SendCryptoEvent, SendCryptoState> {
               tezosWallet, event.address, event.amount.toInt());
           fee = BigInt.from(tezosFee);
           break;
+        default:
+          fee = BigInt.zero;
       }
 
       newState.fee = fee;
