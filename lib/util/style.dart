@@ -50,6 +50,24 @@ const copiedTextStyle = TextStyle(
   fontWeight: FontWeight.bold,
 );
 
+const bodySmall = TextStyle(
+    color: Colors.black,
+    fontSize: 14,
+    fontFamily: "AtlasGrotesk",
+    height: 1.377);
+
+const linkStyle = TextStyle(
+  color: Colors.transparent,
+  fontSize: 14,
+  fontFamily: "AtlasGrotesk",
+  height: 1.377,
+  shadows: [Shadow(color: Colors.black, offset: Offset(0, -3))],
+  decoration: TextDecoration.underline,
+  decorationStyle: TextDecorationStyle.solid,
+  decorationColor: Colors.black,
+  decorationThickness: 1.2,
+);
+
 SizedBox addTitleSpace() {
   return const SizedBox(height: 40);
 }
@@ -69,9 +87,22 @@ class AppColorTheme {
   static const barBackgroundColor = Color(0xFF6D6B6B);
   static const errorColor = Color(0xFFA1200A);
   static const textColor = Colors.grey;
+  static const secondaryDimGrey = Color(0xFF6D6B6B);
+  static const secondaryDimGreyBackground = Color(0xFFEDEDED);
 }
 
 final grantPermissions = const [
   'View account balance and NFTs',
   'Request approval for transactions',
 ];
+
+String polishSource(String source) {
+  switch (source) {
+    case 'feralfile':
+      return 'Feral File';
+    case 'ArtBlocks':
+      return 'Art Blocks';
+    default:
+      return source;
+  }
+}

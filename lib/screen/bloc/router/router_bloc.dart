@@ -23,16 +23,20 @@ class RouterBloc extends Bloc<RouterEvent, RouterState> {
       final personas = await _cloudDB.personaDao.getPersonas();
       final connections = await _cloudDB.connectionDao.getLinkedAccounts();
       if (personas.isEmpty && connections.isEmpty) {
-        _configurationService.setDoneOnboarding(false);
-
-        //restore backup database
         final backupVersion = await _backupService.fetchBackupVersion();
         if (backupVersion.isNotEmpty) {
+          //restore backup database
           emit(RouterState(
               onboardingStep: OnboardingStep.restore,
               backupVersion: backupVersion));
         } else {
-          emit(RouterState(onboardingStep: OnboardingStep.startScreen));
+          _configurationService.setDoneOnboarding(false);
+
+          if (_configurationService.isDoneOnboardingOnce()) {
+            emit(RouterState(onboardingStep: OnboardingStep.newAccountPage));
+          } else {
+            emit(RouterState(onboardingStep: OnboardingStep.startScreen));
+          }
         }
       } else {
         _configurationService.setDoneOnboarding(true);

@@ -10,12 +10,16 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 class NewAccountPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final canPop = Navigator.of(context).canPop();
+
     return Scaffold(
       appBar: getBackAppBar(
         context,
-        onBack: () {
-          Navigator.of(context).pop();
-        },
+        onBack: canPop == true
+            ? () {
+                Navigator.of(context).pop();
+              }
+            : null,
       ),
       body: Container(
         margin:

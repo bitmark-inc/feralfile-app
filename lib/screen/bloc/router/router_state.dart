@@ -13,6 +13,7 @@ class RestoreCloudDatabaseRoutingEvent extends RouterEvent {
 enum OnboardingStep {
   undefined,
   startScreen,
+  newAccountPage,
   restore,
   iCloud,
   security,

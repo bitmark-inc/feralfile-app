@@ -91,7 +91,7 @@ class _LinkFeralFilePageState extends State<LinkFeralFilePage> {
                         SizedBox(height: 40),
                         AuTextField(
                           title: "",
-                          placeholder: "Paste token from your account",
+                          placeholder: "Paste link code from your account",
                           controller: _tokenController,
                           isError: state.isError,
                           suffix: IconButton(

@@ -1,19 +1,17 @@
-import 'package:autonomy_flutter/database/entity/connection.dart';
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/theme_manager.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/account_view.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
-import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/cupertino.dart';
 
 class AccountsView extends StatefulWidget {
@@ -39,10 +37,22 @@ class _AccountsViewState extends State<AccountsView> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<AccountsBloc, AccountsState>(
+    return BlocConsumer<AccountsBloc, AccountsState>(
+      listener: (context, state) {
+        final accounts = state.accounts;
+        if (accounts == null) return;
+
+        // move back to onboarding
+        if (accounts.isEmpty) {
+          injector<ConfigurationService>().setDoneOnboardingOnce(true);
+          injector<ConfigurationService>().setDoneOnboarding(false);
+          Navigator.of(context).pushNamedAndRemoveUntil(
+              AppRouter.newAccountPage, (route) => false);
+        }
+      },
       builder: (context, state) {
         final accounts = state.accounts;
-        if (accounts == null) return SizedBox();
+        if (accounts == null) return CupertinoActivityIndicator();
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,

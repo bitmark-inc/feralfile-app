@@ -46,6 +46,7 @@ class _HomePageState extends State<HomePage>
     _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
     _controller = ScrollController();
     context.read<HomeBloc>().add(RefreshTokensEvent());
+    context.read<HomeBloc>().add(ReindexIndexerEvent());
   }
 
   @override
@@ -75,6 +76,7 @@ class _HomePageState extends State<HomePage>
     super.didPopNext();
     Future.delayed(const Duration(milliseconds: 1000), () {
       context.read<HomeBloc>().add(RefreshTokensEvent());
+      context.read<HomeBloc>().add(ReindexIndexerEvent());
     });
   }
 
@@ -145,7 +147,7 @@ class _HomePageState extends State<HomePage>
         Padding(
           padding: EdgeInsets.symmetric(horizontal: 15.0),
           child: Text(
-            _polishSource(source ?? ""),
+            polishSource(source ?? ""),
             style: appTextTheme.headline1,
           ),
         ),
@@ -201,17 +203,6 @@ class _HomePageState extends State<HomePage>
     );
   }
 
-  String _polishSource(String source) {
-    switch (source) {
-      case 'feralfile':
-        return 'Feral File';
-      case 'ArtBlocks':
-        return 'Art Blocks';
-      default:
-        return source;
-    }
-  }
-
   Future<void> _cloudBackup() async {
     final backup = injector<NetworkConfigInjector>().I<BackupService>();
     await backup.backupCloudDatabase();
@@ -250,6 +241,7 @@ class _HomePageState extends State<HomePage>
         }
         Future.delayed(const Duration(milliseconds: 3500), () async {
           context.read<HomeBloc>().add(RefreshTokensEvent());
+          context.read<HomeBloc>().add(ReindexIndexerEvent());
           await injector<AWSService>()
               .storeEventWithDeviceData("device_foreground");
         });

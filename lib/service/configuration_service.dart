@@ -23,6 +23,8 @@ abstract class ConfigurationService {
   bool isAnalyticsEnabled();
   Future<void> setDoneOnboarding(bool value);
   bool isDoneOnboarding();
+  Future<void> setDoneOnboardingOnce(bool value);
+  bool isDoneOnboardingOnce();
   Future<void> setFullscreenIntroEnable(bool value);
   bool isFullscreenIntroEnabled();
   bool matchFeralFileSourceInNetwork(String source);
@@ -45,6 +47,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_ANALYTICS = "analytics";
   static const String KEY_FULLSCREEN_INTRO = "fullscreen_intro";
   static const String KEY_DONE_ONBOARING = "done_onboarding";
+  static const String KEY_DONE_ONBOARING_ONCE = "done_onboarding_once";
 
   // keys for WalletConnect dapp side
   static const String KEY_WC_DAPP_SESSION = "wc_dapp_store";
@@ -149,6 +152,10 @@ class ConfigurationServiceImpl implements ConfigurationService {
     return _preferences.getBool(KEY_DONE_ONBOARING) ?? false;
   }
 
+  bool isDoneOnboardingOnce() {
+    return _preferences.getBool(KEY_DONE_ONBOARING_ONCE) ?? false;
+  }
+
   @override
   Future<void> setAnalyticEnabled(bool value) async {
     log.info("setAnalyticEnabled: $value");
@@ -159,6 +166,12 @@ class ConfigurationServiceImpl implements ConfigurationService {
   Future<void> setDoneOnboarding(bool value) async {
     log.info("setDoneOnboarding: $value");
     await _preferences.setBool(KEY_DONE_ONBOARING, value);
+  }
+
+  @override
+  Future<void> setDoneOnboardingOnce(bool value) async {
+    log.info("setDoneOnboardingOnce: $value");
+    await _preferences.setBool(KEY_DONE_ONBOARING_ONCE, value);
   }
 
   @override
