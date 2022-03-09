@@ -239,6 +239,7 @@ class _HomePageState extends State<HomePage>
         if (injector<ConfigurationService>().isDevicePasscodeEnabled()) {
           injector<NavigationService>().lockScreen();
         }
+        injector<ConfigurationService>().reload();
         Future.delayed(const Duration(milliseconds: 3500), () async {
           context.read<HomeBloc>().add(RefreshTokensEvent());
           context.read<HomeBloc>().add(ReindexIndexerEvent());

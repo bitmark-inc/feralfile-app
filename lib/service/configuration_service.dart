@@ -35,6 +35,10 @@ abstract class ConfigurationService {
 
   // ----- App Setting -----
   bool isDemoArtworksMode();
+  Future<bool> toggleDemoArtworksMode();
+
+  // Reload
+  Future<void> reload();
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
@@ -234,5 +238,17 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   bool isDemoArtworksMode() {
     return _preferences.getBool(KEY_APP_SETTING_DEMO_ARTWORKS) ?? false;
+  }
+
+  @override
+  Future<bool> toggleDemoArtworksMode() async {
+    final newValue = !isDemoArtworksMode();
+    await _preferences.setBool(KEY_APP_SETTING_DEMO_ARTWORKS, newValue);
+    return newValue;
+  }
+
+  @override
+  Future<void> reload() {
+    return _preferences.reload();
   }
 }
