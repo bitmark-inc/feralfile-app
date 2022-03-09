@@ -42,10 +42,14 @@ class LoggingInterceptor extends Interceptor {
       });
     }
 
-    var data = json.encode(options.data);
-    if (data != null) {
-      data = data.replaceAll('\"', '\\\"');
-      components.add("-d \"$data\"");
+    try {
+      var data = json.encode(options.data);
+      if (data != null) {
+        data = data.replaceAll('\"', '\\\"');
+        components.add("-d \"$data\"");
+      }
+    } catch (err) {
+      //ignore
     }
 
     components.add("\"${options.uri.toString()}\"");
