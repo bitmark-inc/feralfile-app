@@ -441,6 +441,7 @@ class AppRouter {
             settings: settings,
             builder: (context) => MultiBlocProvider(
                     providers: [
+                      BlocProvider.value(value: accountsBloc),
                       BlocProvider(
                           create: (_) => IdentityBloc(
                               networkInjector.I<AppDatabase>(),
