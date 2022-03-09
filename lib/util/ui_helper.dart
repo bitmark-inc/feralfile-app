@@ -26,12 +26,13 @@ void doneOnboarding(BuildContext context) {
 }
 
 class UIHelper {
-  static showDialog(BuildContext context, String title, Widget content,
-      {bool isDismissible = false}) {
+  static Future<void> showDialog(
+      BuildContext context, String title, Widget content,
+      {bool isDismissible = false}) async {
     log.info("[UIHelper] showInfoDialog: $title");
     final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
 
-    showModalBottomSheet<dynamic>(
+    await showModalBottomSheet<dynamic>(
         context: context,
         isDismissible: isDismissible,
         enableDrag: false,
@@ -62,16 +63,22 @@ class UIHelper {
         });
   }
 
-  static showInfoDialog(
+  static Future<void> showInfoDialog(
     BuildContext context,
     String title,
     String description, {
     bool isDismissible = false,
-  }) {
+    int autoDismissAfter = 0,
+  }) async {
     log.info("[UIHelper] showInfoDialog: $title, $description");
     final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
 
-    showDialog(
+    if (autoDismissAfter > 0) {
+      Future.delayed(
+          Duration(seconds: autoDismissAfter), () => hideInfoDialog(context));
+    }
+
+    await showDialog(
         context,
         title,
         Column(
