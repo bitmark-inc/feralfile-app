@@ -87,9 +87,13 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
           ),
           body: BlocConsumer<ArtworkDetailBloc, ArtworkDetailState>(
               listener: (context, state) {
-            context
-                .read<IdentityBloc>()
-                .add(GetIdentityEvent(state.provenances.map((e) => e.owner)));
+            final identitiesList =
+                state.provenances.map((e) => e.owner).toList();
+            if (state.asset?.artistName != null &&
+                state.asset!.artistName!.length > 20) {
+              identitiesList.add(state.asset!.artistName!);
+            }
+            context.read<IdentityBloc>().add(GetIdentityEvent(identitiesList));
           }, builder: (context, state) {
             if (state.asset != null) {
               final asset = state.asset!;
