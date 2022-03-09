@@ -1,6 +1,6 @@
 import 'package:intl/intl.dart';
 
-final DateFormat _localtimeFormatter = DateFormat('yyyy-MM-dd hh:mm:ss');
+final DateFormat _localtimeFormatter = DateFormat('yyyy-MM-dd\nhh:mm:ss');
 
 String localTimeString(DateTime date) {
   return _localtimeFormatter.format(date.toLocal());
