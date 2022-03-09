@@ -70,8 +70,7 @@ class AddAccountPage extends StatelessWidget {
           SizedBox(height: 16),
           Text(
             'Learn more about Autonomy security...',
-            style:
-                appTextTheme.bodyText1?.copyWith(fontWeight: FontWeight.bold),
+            style: linkStyle,
           )
         ],
       ),

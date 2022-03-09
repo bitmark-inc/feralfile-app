@@ -98,7 +98,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
 
               var subTitle = "";
               if (asset.artistName != null && asset.artistName!.isNotEmpty) {
-                if (asset.artistName!.length > 20) {
+                if (_shouldShortenArtistName(asset.artistName!)) {
                   subTitle = "by ${asset.artistName!.mask(4)}";
                 } else {
                   subTitle = "by ${asset.artistName}";
@@ -218,14 +218,12 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
             }
           }),
         ),
-        if (_showArtwortReportProblemContainer) ...[
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: _reportNFTProblemContainer(),
-          ),
-        ],
+        Positioned(
+          bottom: 0,
+          left: 0,
+          right: 0,
+          child: _reportNFTProblemContainer(),
+        ),
       ],
     );
   }
@@ -395,7 +393,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
               )
             : SizedBox(),
         Divider(height: 32.0),
-        _rowItem(context, "Source", asset.source?.capitalize()),
+        _rowItem(context, "Source", polishSource(asset.source ?? "")),
         Divider(height: 32.0),
         _rowItem(context, "Blockchain", asset.blockchain.capitalize()),
         Divider(height: 32.0),
@@ -488,19 +486,23 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
   Widget _reportNFTProblemContainer() {
     return GestureDetector(
       onTap: () => _showReportIssueDialog(),
-      child: Container(
-        alignment: Alignment.bottomCenter,
-        padding: EdgeInsets.fromLTRB(0, 15, 0, 18),
-        color: Color(0xFFEDEDED),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text('ANY PROBLEMS WITH THIS NFT?', style: appTextTheme.caption),
-            SizedBox(
-              width: 4,
-            ),
-            SvgPicture.asset("assets/images/iconSharpFeedback.svg"),
-          ],
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        height: _showArtwortReportProblemContainer ? 50 : 0,
+        child: Container(
+          alignment: Alignment.bottomCenter,
+          padding: EdgeInsets.fromLTRB(0, 15, 0, 18),
+          color: Color(0xFFEDEDED),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('ANY PROBLEMS WITH THIS NFT?', style: appTextTheme.caption),
+              SizedBox(
+                width: 4,
+              ),
+              SvgPicture.asset("assets/images/iconSharpFeedback.svg"),
+            ],
+          ),
         ),
       ),
     );
@@ -537,6 +539,11 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
           },
         ),
         isDismissible: true);
+  }
+
+  bool _shouldShortenArtistName(String name) {
+    if (name.contains(' ')) return false;
+    return name.length >= 36;
   }
 }
 

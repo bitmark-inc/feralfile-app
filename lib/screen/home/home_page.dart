@@ -137,7 +137,7 @@ class _HomePageState extends State<HomePage>
         Padding(
           padding: EdgeInsets.symmetric(horizontal: 15.0),
           child: Text(
-            _polishSource(source ?? ""),
+            polishSource(source ?? ""),
             style: appTextTheme.headline1,
           ),
         ),
@@ -191,17 +191,6 @@ class _HomePageState extends State<HomePage>
       addAutomaticKeepAlives: false,
       addRepaintBoundaries: false,
     );
-  }
-
-  String _polishSource(String source) {
-    switch (source) {
-      case 'feralfile':
-        return 'Feral File';
-      case 'ArtBlocks':
-        return 'Art Blocks';
-      default:
-        return source;
-    }
   }
 
   Future<void> _initUniLinks() async {
