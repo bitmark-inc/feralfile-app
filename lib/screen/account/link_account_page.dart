@@ -301,10 +301,8 @@ class _LinkAccountPageState extends State<LinkAccountPage>
                 Text("Kukai", style: appTextTheme.headline4),
               ],
             ),
-            onTap: () async {
-              final uri = await tezosBeaconService.getConnectionURI();
-              Share.share("https://wallet.kukai.app/tezos$uri");
-            }),
+            onTap: () =>
+                Navigator.of(context).pushNamed(AppRouter.linkTezosKukaiPage)),
         addDivider(),
         TappableForwardRow(
             leftWidget: Row(
