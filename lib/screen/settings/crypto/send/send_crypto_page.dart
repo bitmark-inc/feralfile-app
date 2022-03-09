@@ -230,6 +230,8 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
             ? "${XtzAmountFormatter(max.toInt()).format()} XTZ"
             : "${state.exchangeRate.xtzToUsd(max.toInt())} USD";
         break;
+      default:
+        break;
     }
     return text;
   }
@@ -247,6 +249,8 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
         return state.isCrypto
             ? XtzAmountFormatter(max.toInt()).format()
             : state.exchangeRate.xtzToUsd(max.toInt());
+      default:
+        return "";
     }
   }
 

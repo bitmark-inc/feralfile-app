@@ -43,9 +43,10 @@ import Combine
                 LibAukChannelHandler.shared.signTransaction(call: call, result: result)
             case "getTezosWallet":
                 LibAukChannelHandler.shared.getTezosWallet(call: call, result: result)
+            case "getBitmarkAddress":
+                LibAukChannelHandler.shared.getBitmarkAddress(call: call, result: result)
             case "removeKeys":
                 LibAukChannelHandler.shared.getTezosWallet(call: call, result: result)
-
             default:
                 result(FlutterMethodNotImplemented)
             }

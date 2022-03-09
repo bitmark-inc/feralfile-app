@@ -1,10 +1,10 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/model/network.dart';
-import 'package:autonomy_flutter/screen/connection/persona_connections_page.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/ethereum/ethereum_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
+import 'package:autonomy_flutter/screen/connection/persona_connections_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/biometrics_util.dart';
@@ -17,7 +17,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:local_auth/local_auth.dart';
-import 'package:uuid/uuid.dart';
 
 class PersonaDetailsPage extends StatefulWidget {
   final Persona persona;
@@ -104,6 +103,20 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
             type: CryptoType.XTZ,
           );
         }),
+        addDivider(),
+        FutureBuilder<String>(
+            future: Persona.newPersona(uuid: uuid).wallet().getBitmarkAddress(),
+            builder: (context, snapshot) {
+              print(snapshot.connectionState);
+              if (snapshot.hasData) {
+                return _addressRow(
+                  address: snapshot.data ?? "",
+                  type: CryptoType.BITMARK,
+                );
+              } else {
+                return SizedBox();
+              }
+            }),
       ],
     );
   }
@@ -117,19 +130,23 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
       case CryptoType.XTZ:
         typeText = "Tezos";
         break;
+      case CryptoType.BITMARK:
+        typeText = "Bitmark";
     }
 
     return GestureDetector(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(typeText, style: appTextTheme.headline4),
-              SvgPicture.asset('assets/images/iconForward.svg'),
-            ],
-          ),
+          type == CryptoType.BITMARK
+              ? Text(typeText, style: appTextTheme.headline4)
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(typeText, style: appTextTheme.headline4),
+                    SvgPicture.asset('assets/images/iconForward.svg'),
+                  ],
+                ),
           SizedBox(height: 16),
           Row(
             children: [
@@ -143,7 +160,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
           ),
         ],
       ),
-      onTap: () {
+      onTap: type == CryptoType.BITMARK ? null : () {
         final payload = PersonaConnectionsPayload(
           personaUUID: widget.persona.uuid,
           address: address,
