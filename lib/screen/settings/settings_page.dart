@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/screen/settings/support/support_view.dart';
 import 'package:autonomy_flutter/service/cloud_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/eula_privacy.dart';
 import 'package:autonomy_flutter/view/penrose_top_bar_view.dart';
 import 'package:flutter/cupertino.dart';
@@ -31,6 +32,8 @@ class _SettingsPageState extends State<SettingsPage>
     with RouteAware, WidgetsBindingObserver {
   PackageInfo? _packageInfo;
   late ScrollController _controller;
+  int _lastTap = 0;
+  int _consecutiveTaps = 0;
 
   @override
   void initState() {
@@ -135,10 +138,30 @@ class _SettingsPageState extends State<SettingsPage>
             SizedBox(height: 56),
             Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
               if (_packageInfo != null)
-                Text(
-                  "Version ${_packageInfo!.version}(${_packageInfo!.buildNumber})",
-                  style: appTextTheme.headline5,
-                ),
+                GestureDetector(
+                    child: Text(
+                      "Version ${_packageInfo!.version}(${_packageInfo!.buildNumber})",
+                      style: appTextTheme.headline5,
+                    ),
+                    onTap: () async {
+                      int now = DateTime.now().millisecondsSinceEpoch;
+                      if (now - _lastTap < 1000) {
+                        print("Consecutive tap");
+                        _consecutiveTaps++;
+                        print("taps = " + _consecutiveTaps.toString());
+                        if (_consecutiveTaps == 3) {
+                          final newValue =
+                              await injector<ConfigurationService>()
+                                  .toggleDemoArtworksMode();
+                          await UIHelper.showInfoDialog(context, "Demo mode",
+                              "Demo mode ${newValue ? 'enabled' : 'disabled'}!",
+                              autoDismissAfter: 1);
+                        }
+                      } else {
+                        _consecutiveTaps = 0;
+                      }
+                      _lastTap = now;
+                    }),
               SizedBox(height: 5),
               eulaAndPrivacyView(),
             ]),
