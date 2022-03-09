@@ -359,7 +359,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
         ],
         if (roiText.isNotEmpty) ...[
           Divider(height: 32.0),
-          _rowItem(context, "ROI (Return on Investment)", roiText),
+          _rowItem(context, "Return on investment (ROI)", roiText),
         ],
       ],
     );
