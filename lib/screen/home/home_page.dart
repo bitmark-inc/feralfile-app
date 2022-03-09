@@ -1,12 +1,14 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/service/aws_service.dart';
+import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -39,6 +41,7 @@ class _HomePageState extends State<HomePage>
   void initState() {
     super.initState();
     _initUniLinks();
+    _cloudBackup();
     WidgetsBinding.instance?.addObserver(this);
     _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
     _controller = ScrollController();
@@ -50,6 +53,13 @@ class _HomePageState extends State<HomePage>
   void didChangeDependencies() {
     super.didChangeDependencies();
     routeObserver.subscribe(this, ModalRoute.of(context)!);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.inactive) {
+      _cloudBackup();
+    }
   }
 
   @override
@@ -191,6 +201,11 @@ class _HomePageState extends State<HomePage>
       addAutomaticKeepAlives: false,
       addRepaintBoundaries: false,
     );
+  }
+
+  Future<void> _cloudBackup() async {
+    final backup = injector<NetworkConfigInjector>().I<BackupService>();
+    await backup.backupCloudDatabase();
   }
 
   Future<void> _initUniLinks() async {

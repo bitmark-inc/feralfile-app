@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/gateway/currency_exchange_api.dart';
@@ -12,6 +14,7 @@ import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
 import 'package:dio/dio.dart';
 import 'package:dio_http2_adapter/dio_http2_adapter.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -50,6 +53,7 @@ Future<void> setup() async {
   final dio = Dio(); // Provide a dio instance
   dio.interceptors.add(LoggingInterceptor());
   dio.interceptors.add(SentryInterceptor());
+  (dio.transformer as DefaultTransformer).jsonDecodeCallback = parseJson;
 
   final dioHTTP2 = Dio(); // Provide a dio instance
   dioHTTP2.interceptors.add(LoggingInterceptor());
@@ -80,4 +84,13 @@ Future<void> setup() async {
 
   injector.registerLazySingleton(() =>
       NetworkConfigInjector(injector(), dio, dioHTTP2, testnetDB, mainnetDB));
+}
+
+// Must be top-level function
+_parseAndDecode(String response) {
+  return jsonDecode(response);
+}
+
+parseJson(String text) {
+  return compute(_parseAndDecode, text);
 }
