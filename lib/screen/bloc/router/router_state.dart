@@ -7,6 +7,7 @@ class DefineViewRoutingEvent extends RouterEvent {}
 enum OnboardingStep {
   undefined,
   startScreen,
+  newAccountPage,
   iCloud,
   security,
   dashboard,
