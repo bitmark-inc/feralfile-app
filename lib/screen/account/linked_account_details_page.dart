@@ -119,7 +119,9 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
                       break;
 
                     case "walletConnect":
-                      source = "Ethereum Wallet";
+                      source = widget.connection.wcConnectedSession
+                              ?.sessionStore.remotePeerMeta.name ??
+                          "Ethereum Wallet";
                       coinType = "Ethereum (ETH)";
                       balanceString = _balance ?? "-- ETH";
                       addressType = 'Ethereum';
@@ -199,9 +201,15 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
                           style: appTextTheme.headline1,
                         ),
                         SizedBox(height: 24),
-                        Text(
-                            "The keys for this account are in $source. You should manage your key backups there.",
-                            style: appTextTheme.bodyText1),
+                        if (source == 'FeralFile') ...[
+                          Text(
+                              'The keys for this account are either automically backed up by Feral File or managed by your web3 wallet (if you connected one).',
+                              style: appTextTheme.bodyText1),
+                        ] else ...[
+                          Text(
+                              "The keys for this account are in $source. You should manage your key backups there.",
+                              style: appTextTheme.bodyText1),
+                        ],
                       ]);
                 },
               ),
