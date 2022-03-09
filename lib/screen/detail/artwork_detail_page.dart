@@ -133,15 +133,21 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
                         ),
                       ],
                       SizedBox(height: 16.0),
-                      CachedNetworkImage(
-                        imageUrl: asset.thumbnailURL!,
-                        width: double.infinity,
-                        maxWidthDiskCache: (screenHeight * 3).floor(),
-                        memCacheWidth: (screenWidth * 3).floor(),
-                        placeholderFadeInDuration: Duration(milliseconds: 300),
-                        fit: BoxFit.cover,
-                        errorWidget: (context, url, error) =>
-                            SizedBox(height: 100),
+                      GestureDetector(
+                        child: CachedNetworkImage(
+                          imageUrl: asset.thumbnailURL!,
+                          width: double.infinity,
+                          maxWidthDiskCache: (screenHeight * 3).floor(),
+                          memCacheWidth: (screenWidth * 3).floor(),
+                          placeholderFadeInDuration:
+                              Duration(milliseconds: 300),
+                          fit: BoxFit.cover,
+                          errorWidget: (context, url, error) =>
+                              SizedBox(height: 100),
+                        ),
+                        onTap: () => Navigator.of(context).pushNamed(
+                            ArtworkPreviewPage.tag,
+                            arguments: widget.payload),
                       ),
                       SizedBox(height: 16.0),
                       Padding(
