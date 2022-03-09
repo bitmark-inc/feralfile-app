@@ -43,6 +43,7 @@ class _HomePageState extends State<HomePage>
     _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
     _controller = ScrollController();
     context.read<HomeBloc>().add(RefreshTokensEvent());
+    context.read<HomeBloc>().add(ReindexIndexerEvent());
   }
 
   @override
@@ -65,6 +66,7 @@ class _HomePageState extends State<HomePage>
     super.didPopNext();
     Future.delayed(const Duration(milliseconds: 1000), () {
       context.read<HomeBloc>().add(RefreshTokensEvent());
+      context.read<HomeBloc>().add(ReindexIndexerEvent());
     });
   }
 
@@ -235,6 +237,7 @@ class _HomePageState extends State<HomePage>
         }
         Future.delayed(const Duration(milliseconds: 3500), () async {
           context.read<HomeBloc>().add(RefreshTokensEvent());
+          context.read<HomeBloc>().add(ReindexIndexerEvent());
           await injector<AWSService>()
               .storeEventWithDeviceData("device_foreground");
         });
