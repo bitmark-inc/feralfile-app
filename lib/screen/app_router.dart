@@ -110,7 +110,6 @@ class AppRouter {
             settings: settings,
             pageBuilder: (context, animetion1, animation2) => BlocProvider(
                   create: (_) => HomeBloc(
-                      networkInjector.I(),
                       injector(),
                       injector(),
                       networkInjector.I<AppDatabase>().assetDao,
@@ -126,7 +125,6 @@ class AppRouter {
             settings: settings,
             builder: (context) => BlocProvider(
                   create: (_) => HomeBloc(
-                      networkInjector.I(),
                       injector(),
                       injector(),
                       networkInjector.I<AppDatabase>().assetDao,
