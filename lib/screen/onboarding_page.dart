@@ -72,6 +72,11 @@ class _OnboardingPageState extends State<OnboardingPage> {
                       .pushReplacementNamed(AppRouter.homePageNoTransition);
                   break;
 
+                case OnboardingStep.newAccountPage:
+                  Navigator.of(context).pushReplacementNamed(
+                      AppRouter.newAccountPageNoTransition);
+                  break;
+
                 default:
                   break;
               }

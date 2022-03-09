@@ -77,6 +77,7 @@ class AppRouter {
   static const importAccountPage = 'import_account';
   static const homePage = "home_page";
   static const homePageNoTransition = 'home_page_NoTransition';
+  static const newAccountPageNoTransition = 'new_account_page_NoTransition';
   static const settingsPage = "settings";
   static const personaDetailsPage = "persona_details";
   static const personaConnectionsPage = "persona_connections";
@@ -138,7 +139,7 @@ class AppRouter {
           settings: settings,
           builder: (context) => BeOwnGalleryPage(),
         );
-      case AppRouter.newAccountPage:
+      case newAccountPage:
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider(
@@ -148,6 +149,18 @@ class AppRouter {
                       injector(),
                     ),
                 child: NewAccountPage()));
+
+      case newAccountPageNoTransition:
+        return PageRouteBuilder(
+            settings: settings,
+            pageBuilder: (context, animetion1, animation2) => BlocProvider(
+                create: (_) => PersonaBloc(
+                      injector<CloudDatabase>(),
+                      injector(),
+                      injector(),
+                    ),
+                child: NewAccountPage()),
+            transitionDuration: Duration(seconds: 0));
 
       case addAccountPage:
         return CupertinoPageRoute(

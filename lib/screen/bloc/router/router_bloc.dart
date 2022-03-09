@@ -22,7 +22,12 @@ class RouterBloc extends Bloc<RouterEvent, RouterState> {
       final connections = await _cloudDB.connectionDao.getLinkedAccounts();
       if (personas.isEmpty && connections.isEmpty) {
         _configurationService.setDoneOnboarding(false);
-        emit(RouterState(onboardingStep: OnboardingStep.startScreen));
+
+        if (_configurationService.isDoneOnboardingOnce()) {
+          emit(RouterState(onboardingStep: OnboardingStep.newAccountPage));
+        } else {
+          emit(RouterState(onboardingStep: OnboardingStep.startScreen));
+        }
       } else {
         _configurationService.setDoneOnboarding(true);
         emit(RouterState(onboardingStep: OnboardingStep.dashboard));
