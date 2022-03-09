@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/screen/account/add_account_page.dart';
 import 'package:autonomy_flutter/screen/account/import_account_page.dart';
 import 'package:autonomy_flutter/screen/account/link_account_page.dart';
 import 'package:autonomy_flutter/screen/account/link_feralfile_page.dart';
+import 'package:autonomy_flutter/screen/account/link_tezos_kukai_page.dart';
 import 'package:autonomy_flutter/screen/account/link_wallet_connect_page.dart';
 import 'package:autonomy_flutter/screen/account/linked_account_details_page.dart';
 import 'package:autonomy_flutter/screen/account/name_linked_account_page.dart';
@@ -72,6 +73,7 @@ class AppRouter {
   static const linkBeaconConnectPage = "link_beacon_connect";
   static const accountsPreviewPage = 'accounts_preview';
   static const linkFeralFilePage = "link_feralfile";
+  static const linkTezosKukaiPage = 'link_tezos_kukai_page';
   static const namePersonaPage = "name_persona_page";
   static const nameLinkedAccountPage = 'name_linked_account';
   static const importAccountPage = 'import_account';
@@ -199,6 +201,10 @@ class AppRouter {
                 create: (_) => FeralfileBloc(
                     injector(), networkInjector.I(), injector<CloudDatabase>()),
                 child: LinkFeralFilePage()));
+
+      case linkTezosKukaiPage:
+        return CupertinoPageRoute(
+            settings: settings, builder: (context) => LinkTezosKukaiPage());
 
       case linkBeaconConnectPage:
         return CupertinoPageRoute(
