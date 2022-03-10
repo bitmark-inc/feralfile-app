@@ -47,10 +47,12 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
             ),
             SizedBox(height: 96.0),
             Center(
-              child: QrImage(
-                data: _account.accountNumber,
-                size: 180.0,
-              ),
+              child: GestureDetector(
+                  child: QrImage(
+                    data: _account.accountNumber,
+                    size: 180.0,
+                  ),
+                  onTap: copy),
             ),
             SizedBox(height: 24.0),
             Text((_account.blockchain ?? "Unknown").toUpperCase(),
@@ -85,13 +87,7 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
                         )
                       ]),
                 ),
-                onTap: () {
-                  Clipboard.setData(
-                      ClipboardData(text: _account.accountNumber));
-                  setState(() {
-                    _copied = true;
-                  });
-                }),
+                onTap: copy),
             if (_copied) ...[
               SizedBox(height: 24),
               Center(child: Text("Copied", style: copiedTextStyle)),
@@ -106,5 +102,12 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
         ),
       ),
     );
+  }
+
+  copy() {
+    Clipboard.setData(ClipboardData(text: _account.accountNumber));
+    setState(() {
+      _copied = true;
+    });
   }
 }
