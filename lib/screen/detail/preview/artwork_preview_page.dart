@@ -1,13 +1,17 @@
+import 'dart:io';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:shake/shake.dart';
@@ -43,6 +47,9 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
       if (isFullscreen) {
         setState(() {
           isFullscreen = false;
+          if (Platform.isAndroid) {
+            SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+          }
         });
       }
     });
@@ -71,6 +78,9 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     _controller = null;
     _webViewController = null;
     _detector?.stopListening();
+    if (Platform.isAndroid) {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    }
     super.dispose();
   }
 
@@ -126,7 +136,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                                     ),
                                     SizedBox(height: 4.0),
                                     Text(
-                                      "by ${asset.artistName}",
+                                      "by ${asset.artistName?.maskIfNeeded()}",
                                       overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
                                           color: Colors.white,
@@ -172,6 +182,11 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                                     isFullscreen = true;
                                   });
 
+                                  if (Platform.isAndroid) {
+                                    SystemChrome.setEnabledSystemUIMode(
+                                        SystemUiMode.immersive);
+                                  }
+
                                   if (injector<ConfigurationService>()
                                       .isFullscreenIntroEnabled()) {
                                     showModalBottomSheet<void>(
@@ -215,6 +230,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
           ),
           placeholder: (context, url) => Container(),
           placeholderFadeInDuration: Duration(milliseconds: 300),
+          errorWidget: (context, url, error) => Container(),
           fit: BoxFit.cover,
         );
       case "video":
