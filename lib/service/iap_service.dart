@@ -85,7 +85,7 @@ class IAPServiceImpl implements IAPService {
     products.value = Map.fromIterable(productDetailResponse.productDetails,
         key: (e) => e.id, value: (e) => e);
 
-    restore();
+    // restore();
   }
 
   Future<bool> renewJWT() async {
