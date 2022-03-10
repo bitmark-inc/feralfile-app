@@ -54,6 +54,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
               linkedAccounts.map((e) => e.accountNumber).toList();
 
           allAccountNumbers = List.from(linkedAccountNumbers)
+            ..addAll(allAddresses['personaBitmark'] ?? [])
             ..addAll(allAddresses['personaEthereum'] ?? [])
             ..addAll(allAddresses['personaTezos'] ?? []);
         }
@@ -144,6 +145,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   Future<Map<String, List<String>>> _getPersonaAddresses() async {
     final personas = await _cloudDB.personaDao.getPersonas();
 
+    List<String> bitmarkAddresses = [];
     List<String> ethAddresses = [];
     List<String> tezosAddresses = [];
 
@@ -151,12 +153,15 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       final ethAddress = await persona.wallet().getETHAddress();
       final tezosWallet = await persona.wallet().getTezosWallet();
       final tezosAddress = tezosWallet.address;
+      final bitmarkAddress = await persona.wallet().getBitmarkAddress();
 
+      bitmarkAddresses += [bitmarkAddress];
       ethAddresses += [ethAddress];
       tezosAddresses += [tezosAddress];
     }
 
     return {
+      'personaBitmark': bitmarkAddresses,
       'personaEthereum': ethAddresses,
       'personaTezos': tezosAddresses,
     };

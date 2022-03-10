@@ -120,4 +120,5 @@ class WalletDetailsPayload {
 enum CryptoType {
   ETH,
   XTZ,
+  BITMARK,
 }
