@@ -6,6 +6,7 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
@@ -135,7 +136,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                                     ),
                                     SizedBox(height: 4.0),
                                     Text(
-                                      "by ${asset.artistName}",
+                                      "by ${asset.artistName?.maskIfNeeded()}",
                                       overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
                                           color: Colors.white,

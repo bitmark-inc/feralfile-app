@@ -4,6 +4,13 @@ extension StringExtension on String {
   }
 
   String mask(int number) {
-  return "[${this.substring(0, number)}...${this.substring(this.length - number, this.length)}]";
+    return "[${this.substring(0, number)}...${this.substring(this.length - number, this.length)}]";
+  }
+
+  String maskIfNeeded() {
+    if (this.length > 30) {
+      return this.mask(4);
+    }
+    return this;
   }
 }
