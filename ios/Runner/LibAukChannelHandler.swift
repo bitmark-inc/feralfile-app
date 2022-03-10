@@ -199,6 +199,23 @@ class LibAukChannelHandler {
             })
             .store(in: &cancelBag)
     }
+    
+    func getBitmarkAddress(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args: NSDictionary = call.arguments as! NSDictionary
+        let uuid: String = args["uuid"] as! String
+
+        LibAuk.shared.storage(for: UUID(uuidString: uuid)!).getBitmarkAddress()
+            .sink(receiveCompletion: { _ in }, receiveValue: { address in
+                result([
+                    "error": 0,
+                    "msg": "getBitmarkAddress success",
+                    "data": address,
+                ])
+            })
+            .store(in: &cancelBag)
+    }
+    
+    
 
     func removeKeys(call: FlutterMethodCall, result: @escaping FlutterResult) {
         let args: NSDictionary = call.arguments as! NSDictionary
