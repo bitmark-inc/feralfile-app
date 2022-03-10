@@ -150,10 +150,10 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     List<String> tezosAddresses = [];
 
     for (var persona in personas) {
-      final bitmarkAddress = await persona.wallet().getBitmarkAddress();
       final ethAddress = await persona.wallet().getETHAddress();
       final tezosWallet = await persona.wallet().getTezosWallet();
       final tezosAddress = tezosWallet.address;
+      final bitmarkAddress = await persona.wallet().getBitmarkAddress();
 
       bitmarkAddresses += [bitmarkAddress];
       ethAddresses += [ethAddress];
