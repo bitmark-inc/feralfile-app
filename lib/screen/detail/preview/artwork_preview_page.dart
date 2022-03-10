@@ -230,6 +230,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
           ),
           placeholder: (context, url) => Container(),
           placeholderFadeInDuration: Duration(milliseconds: 300),
+          errorWidget: (context, url, error) => Container(),
           fit: BoxFit.cover,
         );
       case "video":
