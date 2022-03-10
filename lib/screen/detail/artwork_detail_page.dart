@@ -38,6 +38,7 @@ class ArtworkDetailPage extends StatefulWidget {
 class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
   late ScrollController _scrollController;
   bool _showArtwortReportProblemContainer = true;
+  HashSet<String> _accountNumberHash = HashSet.identity();
 
   @override
   void initState() {
@@ -430,12 +431,9 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
         builder: (context, identityState) =>
             BlocBuilder<AccountsBloc, AccountsState>(
                 builder: (context, accountsState) {
-              late HashSet<String> accountNumberHash;
               final event = accountsState.event;
               if (event != null && event is FetchAllAddressesSuccessEvent) {
-                accountNumberHash = HashSet.of(event.addresses);
-              } else {
-                accountNumberHash = HashSet.identity();
+                _accountNumberHash = HashSet.of(event.addresses);
               }
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -449,7 +447,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
                     final identity = identityState.identityMap[el.owner];
                     final identityTitle = identity ?? el.owner;
                     final youTitle =
-                        accountNumberHash.contains(el.owner) ? " (You)" : "";
+                        _accountNumberHash.contains(el.owner) ? " (You)" : "";
                     final provenanceTitle = identityTitle + youTitle;
                     final onNameTap = () => identity != null
                         ? UIHelper.showIdentityDetailDialog(context,
