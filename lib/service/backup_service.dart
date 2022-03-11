@@ -6,6 +6,7 @@ import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/migration/migration_util.dart';
 import 'package:floor/floor.dart';
 import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
@@ -110,7 +111,7 @@ class BackupService {
 
   Future<String> getBackupId() async {
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
-    String? deviceId = await getDeviceID();
+    String? deviceId = await MigrationUtil.getBackupDeviceID();
 
     return "$deviceId\_${packageInfo.packageName}";
   }

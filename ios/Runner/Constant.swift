@@ -23,4 +23,6 @@ struct Constant {
         return "Z5CE7A3A7N.com.bitmark.autonomywallet.keychain"
         #endif
     }()
+    
+    static let deviceIDKey: String = "device_id_key"
 }

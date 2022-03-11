@@ -50,6 +50,10 @@ android {
             signingConfig signingConfigs.debug
         }
     }
+
+    packagingOptions {
+        exclude '**/lib/libsodiumjni.dylib'
+    }
 }
 
 flutter {

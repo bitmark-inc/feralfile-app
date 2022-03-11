@@ -622,8 +622,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: main
-      resolved-ref: be1c627b643fe450ba75507f5a1382b318793c43
+      ref: "5e3975750dcfa636b6c7d9436ce7445b952c75f1"
+      resolved-ref: "5e3975750dcfa636b6c7d9436ce7445b952c75f1"
       url: "https://github.com/autonomy-system/libauk-dart.git"
     source: git
     version: "0.0.1"
@@ -655,13 +655,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.12.11"
-  material_color_utilities:
-    dependency: transitive
-    description:
-      name: material_color_utilities
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.1.3"
   memoize:
     dependency: transitive
     description:
@@ -1212,7 +1205,7 @@ packages:
       name: test_api
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.4.8"
+    version: "0.4.3"
   tezart:
     dependency: "direct main"
     description:
