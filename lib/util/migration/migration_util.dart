@@ -21,6 +21,13 @@ class MigrationUtil {
     }
   }
 
+  Future<void> migrationFromKeychain(bool isIOS) async {
+    if (isIOS) {
+      await _migrationFromKeychain();
+    }
+    // TODO: support scan keys in Android when it's doable
+  }
+
   Future _migrationiOS() async {
     log.info('[_migrationiOS] start');
     final String jsonString =
@@ -131,6 +138,22 @@ class MigrationUtil {
 
         await _cloudDB.personaDao.insertPersona(persona);
       }
+    }
+  }
+
+  Future _migrationFromKeychain() async {
+    final List personaUUIDs =
+        await _channel.invokeMethod('getWalletUUIDsFromKeychain', {});
+
+    log.info(
+        "[_migrationFromKeychain] personaUUIDs from Keychain: $personaUUIDs");
+    for (var uuid in personaUUIDs) {
+      final wallet = Persona.newPersona(uuid: uuid).wallet();
+      final name = await wallet.getName();
+      final persona =
+          Persona(uuid: uuid, name: name, createdAt: DateTime.now());
+
+      await _cloudDB.personaDao.insertPersona(persona);
     }
   }
 }

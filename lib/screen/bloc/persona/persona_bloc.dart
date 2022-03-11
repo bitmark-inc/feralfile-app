@@ -102,8 +102,8 @@ class PersonaBloc extends Bloc<PersonaEvent, PersonaState> {
       emit(state.copyWith(deletePersonaState: ActionState.loading));
 
       final deletedPersona = event.persona;
-      _cloudDB.personaDao.deletePersona(deletedPersona);
-      LibAukDart.getWallet(deletedPersona.uuid).removeKeys();
+      await _cloudDB.personaDao.deletePersona(deletedPersona);
+      await LibAukDart.getWallet(deletedPersona.uuid).removeKeys();
 
       final connections = await _cloudDB.connectionDao.getConnections();
       Set<WCPeerMeta> wcPeers = {};
@@ -136,11 +136,11 @@ class PersonaBloc extends Bloc<PersonaEvent, PersonaState> {
 
       try {
         for (var peer in wcPeers) {
-          _walletConnectService.disconnect(peer);
+          await _walletConnectService.disconnect(peer);
         }
 
         for (var peer in bcPeers) {
-          _tezosBeaconService.removePeer(peer);
+          await _tezosBeaconService.removePeer(peer);
         }
       } catch (exception) {
         Sentry.captureException(exception);

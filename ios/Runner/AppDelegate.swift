@@ -46,7 +46,7 @@ import Combine
             case "getBitmarkAddress":
                 LibAukChannelHandler.shared.getBitmarkAddress(call: call, result: result)
             case "removeKeys":
-                LibAukChannelHandler.shared.getTezosWallet(call: call, result: result)
+                LibAukChannelHandler.shared.removeKeys(call: call, result: result)
             default:
                 result(FlutterMethodNotImplemented)
             }
@@ -61,6 +61,9 @@ import Combine
 
             case "cleariOSMigrationData":
                 SystemChannelHandler.shared.cleariOSMigrationData(call: call, result: result)
+
+            case "getWalletUUIDsFromKeychain":
+                SystemChannelHandler.shared.getWalletUUIDsFromKeychain(call: call, result: result)
 
             default:
                 result(FlutterMethodNotImplemented)

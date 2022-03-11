@@ -1,3 +1,5 @@
+import 'package:autonomy_flutter/model/network.dart';
+
 class AppConfig {
   static const String ffAuthorizationPrefix =
       "FERAL FILE AUTHORIZATION\n\nTimestamp: ";
@@ -19,9 +21,27 @@ class AppConfig {
     "https://indexer.autonomy.io",
     "https://accounts.test.autonomy.io",
     "https://feralfile.com",
-    "https://connect.test.autonomy.io",
-    "wss://connect.test.autonomy.io/ws",
+    "https://connect.autonomy.io",
+    "wss://connect.autonomy.io/ws",
   );
+
+  static String networkedWebsocketURL(Network network) {
+    switch (network) {
+      case Network.MAINNET:
+        return mainNetworkConfig.websocketUrl;
+      case Network.TESTNET:
+        return testNetworkConfig.websocketUrl;
+    }
+  }
+
+  static String networkedExtensionSupportURL(Network network) {
+    switch (network) {
+      case Network.MAINNET:
+        return mainNetworkConfig.extensionSupportUrl;
+      case Network.TESTNET:
+        return testNetworkConfig.extensionSupportUrl;
+    }
+  }
 }
 
 class AppConfigNetwork {
