@@ -10,6 +10,7 @@ import 'package:autonomy_flutter/screen/account/import_account_page.dart';
 import 'package:autonomy_flutter/screen/account/link_account_page.dart';
 import 'package:autonomy_flutter/screen/account/link_feralfile_page.dart';
 import 'package:autonomy_flutter/screen/account/link_tezos_kukai_page.dart';
+import 'package:autonomy_flutter/screen/account/link_tezos_temple_page.dart';
 import 'package:autonomy_flutter/screen/account/link_wallet_connect_page.dart';
 import 'package:autonomy_flutter/screen/account/linked_account_details_page.dart';
 import 'package:autonomy_flutter/screen/account/name_linked_account_page.dart';
@@ -74,6 +75,7 @@ class AppRouter {
   static const accountsPreviewPage = 'accounts_preview';
   static const linkFeralFilePage = "link_feralfile";
   static const linkTezosKukaiPage = 'link_tezos_kukai_page';
+  static const linkTezosTemplePage = 'link_tezos_temple_page';
   static const namePersonaPage = "name_persona_page";
   static const nameLinkedAccountPage = 'name_linked_account';
   static const importAccountPage = 'import_account';
@@ -104,8 +106,8 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider(
-                create: (_) =>
-                    RouterBloc(injector(), networkInjector.I(), injector<CloudDatabase>()),
+                create: (_) => RouterBloc(
+                    injector(), networkInjector.I(), injector<CloudDatabase>()),
                 child: OnboardingPage()));
 
       case homePageNoTransition:
@@ -205,6 +207,10 @@ class AppRouter {
       case linkTezosKukaiPage:
         return CupertinoPageRoute(
             settings: settings, builder: (context) => LinkTezosKukaiPage());
+
+      case linkTezosTemplePage:
+        return CupertinoPageRoute(
+            settings: settings, builder: (context) => LinkTezosTemplePage());
 
       case linkBeaconConnectPage:
         return CupertinoPageRoute(

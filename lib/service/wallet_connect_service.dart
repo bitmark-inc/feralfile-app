@@ -61,8 +61,8 @@ class WalletConnectService {
     wcClients.remove(wcClient);
   }
 
-  approveSession(
-      String uuid, WCPeerMeta peerMeta, List<String> accounts, int chainId) {
+  approveSession(String uuid, WCPeerMeta peerMeta, List<String> accounts,
+      int chainId) async {
     log.info(
         "WalletConnectService.approveSession: $peerMeta, $accounts, $chainId");
     final wcClient =
@@ -82,7 +82,7 @@ class WalletConnectService {
       accountNumber: "",
       createdAt: DateTime.now(),
     );
-    _cloudDB.connectionDao.insertConnection(connection);
+    await _cloudDB.connectionDao.insertConnection(connection);
   }
 
   rejectSession(WCPeerMeta peerMeta) {

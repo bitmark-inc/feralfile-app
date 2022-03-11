@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:autonomy_flutter/model/p2p_peer.dart';
 import 'package:autonomy_flutter/model/tezos_connection.dart';
+import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:flutter/services.dart';
 import 'package:tezart/tezart.dart';
 
@@ -47,7 +48,46 @@ class TezosBeaconChannel {
   Future<String> getConnectionURI() async {
     Map res = await _channel.invokeMethod('getConnectionURI', {});
 
-    return res["uri"];
+    if (res['error'] == 0) {
+      return res["uri"];
+    } else {
+      throw SystemException(res['reason']);
+    }
+  }
+
+  Future<String> getPostMessageConnectionURI() async {
+    Map res = await _channel.invokeMethod('getPostMessageConnectionURI', {});
+    if (res['error'] == 0) {
+      return res["uri"];
+    } else {
+      throw SystemException(res['reason']);
+    }
+  }
+
+  Future<List> handlePostMessageOpenChannel(String payload) async {
+    Map res = await _channel
+        .invokeMethod('handlePostMessageOpenChannel', {"payload": payload});
+
+    final peerData = json.decode(res['peer']);
+    return [Peer.fromJson(peerData), res['permissionRequestMessage']];
+  }
+
+  Future<List> handlePostMessageMessage(
+      String extensionPublicKey, String payload) async {
+    Map res = await _channel.invokeMethod('handlePostMessageMessage',
+        {"extensionPublicKey": extensionPublicKey, "payload": payload});
+
+    if (res['error'] == 0) {
+      final response = json.decode(res['response']);
+      return [res['tzAddress'], PermissionResponse.fromJson(response)];
+    } else {
+      switch (res['reason']) {
+        case "aborted":
+          throw AbortedException();
+        default:
+          throw SystemException(res['reason']);
+      }
+    }
   }
 
   void listen() async {

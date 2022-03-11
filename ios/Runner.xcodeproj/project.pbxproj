@@ -22,6 +22,10 @@
 		63F1665127B2509F00451AAA /* BeaconTransportP2PMatrix in Frameworks */ = {isa = PBXBuildFile; productRef = 63F1665027B2509F00451AAA /* BeaconTransportP2PMatrix */; };
 		63F1665327B250D600451AAA /* BeaconConnectService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63F1665227B250D600451AAA /* BeaconConnectService.swift */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
+		764F859927D7348000B67672 /* BeaconConnectService+PostMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764F859827D7348000B67672 /* BeaconConnectService+PostMessage.swift */; };
+		764F859B27D810EB00B67672 /* Result+Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764F859A27D810EB00B67672 /* Result+Helpers.swift */; };
+		764F859C27D810EB00B67672 /* Result+Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764F859A27D810EB00B67672 /* Result+Helpers.swift */; };
+		764F859E27D9E19400B67672 /* ErrorHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764F859D27D9E19400B67672 /* ErrorHandler.swift */; };
 		768E7EE927C770D000585D12 /* SystemChannelHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 768E7EE827C770D000585D12 /* SystemChannelHandler.swift */; };
 		768E7EEB27CE4C5D00585D12 /* CloudKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 768E7EEA27CE4C5D00585D12 /* CloudKitManager.swift */; };
 		768E7EED27CE506600585D12 /* CloudChannelHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 768E7EEC27CE506600585D12 /* CloudChannelHandler.swift */; };
@@ -89,6 +93,9 @@
 		63F1665227B250D600451AAA /* BeaconConnectService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeaconConnectService.swift; sourceTree = "<group>"; };
 		74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Runner-Bridging-Header.h"; sourceTree = "<group>"; };
 		74858FAE1ED2DC5600515810 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		764F859827D7348000B67672 /* BeaconConnectService+PostMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BeaconConnectService+PostMessage.swift"; sourceTree = "<group>"; };
+		764F859A27D810EB00B67672 /* Result+Helpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Result+Helpers.swift"; sourceTree = "<group>"; };
+		764F859D27D9E19400B67672 /* ErrorHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorHandler.swift; sourceTree = "<group>"; };
 		768E7EE827C770D000585D12 /* SystemChannelHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemChannelHandler.swift; sourceTree = "<group>"; };
 		768E7EEA27CE4C5D00585D12 /* CloudKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudKitManager.swift; sourceTree = "<group>"; };
 		768E7EEC27CE506600585D12 /* CloudChannelHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudChannelHandler.swift; sourceTree = "<group>"; };
@@ -216,6 +223,9 @@
 				768E7EEA27CE4C5D00585D12 /* CloudKitManager.swift */,
 				768E7EEC27CE506600585D12 /* CloudChannelHandler.swift */,
 				76F328B327D1EEAA00C3B9FA /* Constant.swift */,
+				764F859827D7348000B67672 /* BeaconConnectService+PostMessage.swift */,
+				764F859A27D810EB00B67672 /* Result+Helpers.swift */,
+				764F859D27D9E19400B67672 /* ErrorHandler.swift */,
 			);
 			path = Runner;
 			sourceTree = "<group>";
@@ -498,6 +508,7 @@
 				76F328B527D1EEAE00C3B9FA /* Constant.swift in Sources */,
 				76F3289B27D1EC1C00C3B9FA /* SystemChannelHandler.swift in Sources */,
 				76F3289C27D1EC1C00C3B9FA /* GeneratedPluginRegistrant.m in Sources */,
+				764F859C27D810EB00B67672 /* Result+Helpers.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -507,11 +518,14 @@
 			files = (
 				6399594227B2C2FA002653E7 /* BeaconChannelHandler.swift in Sources */,
 				74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */,
+				764F859927D7348000B67672 /* BeaconConnectService+PostMessage.swift in Sources */,
 				768E7EEB27CE4C5D00585D12 /* CloudKitManager.swift in Sources */,
 				768E7EED27CE506600585D12 /* CloudChannelHandler.swift in Sources */,
+				764F859E27D9E19400B67672 /* ErrorHandler.swift in Sources */,
 				632FC2F627B4F51E00336DCE /* BeaconConnectService+Helpers.swift in Sources */,
 				63F1665327B250D600451AAA /* BeaconConnectService.swift in Sources */,
 				6399594427B2C36B002653E7 /* LibAukChannelHandler.swift in Sources */,
+				764F859B27D810EB00B67672 /* Result+Helpers.swift in Sources */,
 				76F328B427D1EEAA00C3B9FA /* Constant.swift in Sources */,
 				768E7EE927C770D000585D12 /* SystemChannelHandler.swift in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
@@ -920,7 +934,7 @@
 			repositoryURL = "https://github.com/autonomy-system/beacon-ios-sdk";
 			requirement = {
 				kind = revision;
-				revision = d83c03a6d9850c0d3daa8402acad1934f4427a0e;
+				revision = 94afdd7dffa67cd2f86d6334e981aafa22546f35;
 			};
 		};
 		76F3288B27D1EC1C00C3B9FA /* XCRemoteSwiftPackageReference "libauk-swift" */ = {
