@@ -65,6 +65,9 @@ import Combine
             case "getWalletUUIDsFromKeychain":
                 SystemChannelHandler.shared.getWalletUUIDsFromKeychain(call: call, result: result)
 
+            case "getDeviceID":
+                SystemChannelHandler.shared.getDeviceUniqueID(call: call, result: result)
+                
             default:
                 result(FlutterMethodNotImplemented)
             }
