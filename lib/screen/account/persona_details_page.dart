@@ -74,6 +74,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
               _cryptoSection(uuid, network),
               SizedBox(height: 40),
               _backupSection(),
+              SizedBox(height: 40),
             ],
           ),
         ),

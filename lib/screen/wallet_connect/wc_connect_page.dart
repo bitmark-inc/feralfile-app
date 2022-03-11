@@ -112,8 +112,11 @@ class _WCConnectPageState extends State<WCConnectPage>
       final approvedAddresses = addresses ?? [address];
       log.info(
           "[WCConnectPage] approve WCConnect with addreses ${approvedAddresses}");
-      injector<WalletConnectService>().approveSession(selectedPersona!.uuid,
-          wcConnectArgs.peerMeta, approvedAddresses, chainId);
+      await injector<WalletConnectService>().approveSession(
+          selectedPersona!.uuid,
+          wcConnectArgs.peerMeta,
+          approvedAddresses,
+          chainId);
 
       payloadAddress = address;
       payloadType = CryptoType.ETH;
