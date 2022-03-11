@@ -86,4 +86,19 @@ class SystemChannelHandler: NSObject {
 
         return personaUUIDs
     }
+        
+    func getDeviceUniqueID(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let keychain = Keychain()
+        
+        guard let data = keychain.getData(Constant.deviceIDKey, isSync: true),
+              let id = String(data: data, encoding: .utf8) else {
+                  let deviceId = UIDevice.current.identifierForVendor?.uuidString ?? UUID().uuidString
+                  keychain.set(deviceId.data(using: .utf8)!, forKey: Constant.deviceIDKey, isSync: true)
+
+                  result(deviceId)
+                  return
+              }
+
+        result(id)
+    }
 }
