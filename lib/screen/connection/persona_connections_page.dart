@@ -105,6 +105,8 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
       case CryptoType.XTZ:
         typeText = "Tezos";
         break;
+      default:
+        break;
     }
 
     var address = widget.payload.address;
@@ -219,12 +221,14 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
     final connection = connectionItem.representative;
 
     return TappableForwardRow(
-        leftWidget: Row(children: [
-          UIHelper.buildConnectionAppWidget(connection, 24),
-          SizedBox(width: 16),
-          Expanded(
-              child: Text(connection.appName, style: appTextTheme.headline4)),
-        ]),
+        leftWidget: Expanded(
+          child: Row(children: [
+            UIHelper.buildConnectionAppWidget(connection, 24),
+            SizedBox(width: 16),
+            Expanded(
+                child: Text(connection.appName, style: appTextTheme.headline4)),
+          ]),
+        ),
         onTap: () => Navigator.of(context).pushNamed(
             AppRouter.connectionDetailsPage,
             arguments: connectionItem));

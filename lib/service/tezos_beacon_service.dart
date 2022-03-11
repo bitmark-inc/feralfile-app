@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/screen/tezos_beacon/tb_send_transaction_page.da
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_sign_message_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -30,6 +31,19 @@ class TezosBeaconService implements BeaconHandler {
 
   Future<String> getConnectionURI() {
     return _beaconChannel.getConnectionURI();
+  }
+
+  Future<String> getPostMessageConnectiopnURI() {
+    return _beaconChannel.getPostMessageConnectionURI();
+  }
+
+  Future<List> handlePostMessageOpenChannel(String payload) {
+    return _beaconChannel.handlePostMessageOpenChannel(payload);
+  }
+
+  Future<List> handlePostMessageMessage(
+      String extensionPublicKey, String payload) {
+    return _beaconChannel.handlePostMessageMessage(extensionPublicKey, payload);
   }
 
   Future addPeer(String link) async {
@@ -114,5 +128,36 @@ class TezosBeaconService implements BeaconHandler {
         _navigationService.navigatorKey.currentContext!,
         "Link requested",
         "Autonomy has sent a request to ${peer.name} to link to your account. Please open the wallet and authorize the request. ");
+  }
+
+  Future<Connection> onPostMessageLinked(
+      String tzAddress, Peer peer, PermissionResponse response) async {
+    final alreadyLinkedAccount = await getExistingAccount(tzAddress);
+    if (alreadyLinkedAccount != null) {
+      throw AlreadyLinkedException(alreadyLinkedAccount);
+    }
+
+    final tezosConnection = TezosConnection(
+        address: tzAddress, peer: peer, permissionResponse: response);
+
+    final connection = Connection(
+      key: tzAddress,
+      name: "",
+      data: json.encode(tezosConnection),
+      connectionType: ConnectionType.walletBeacon.rawValue,
+      accountNumber: tzAddress,
+      createdAt: DateTime.now(),
+    );
+
+    await _cloudDB.connectionDao.insertConnection(connection);
+    return connection;
+  }
+
+  Future<Connection?> getExistingAccount(String accountNumber) async {
+    final existingConnections = await _cloudDB.connectionDao
+        .getConnectionsByAccountNumber(accountNumber);
+
+    if (existingConnections.isEmpty) return null;
+    return existingConnections.first;
   }
 }
