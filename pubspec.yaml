@@ -78,6 +78,7 @@ dependencies:
   photo_view: ^0.13.0
   easy_debounce: ^2.0.2+1
   flutter_blue: ^0.8.0
+  flutter_vibrate: ^1.3.0
 
 dev_dependencies:
   flutter_test:
@@ -118,6 +119,7 @@ flutter:
     - assets/images/feralfileAppIcon.svg
     - assets/images/autonomyIcon.png
     - assets/images/rainbow.png
+    - assets/images/iconLedger.png
     - assets/images/trust-alternative.png
     - assets/images/metamask-alternative.png
     - assets/images/walletconnect-alternative.png

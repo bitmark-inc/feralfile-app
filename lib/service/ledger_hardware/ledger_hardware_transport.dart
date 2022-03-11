@@ -21,17 +21,19 @@ class SWCode {
 class LedgerHardwareWallet {
   final String name;
   final BluetoothDevice device;
+  bool isConnected = false;
   BluetoothCharacteristic? writeCharacteristic;
   BluetoothCharacteristic? writeCMDCharacteristic;
   BluetoothCharacteristic? notifyCharacteristic;
   List<String> errors = List.empty();
+  int _currentCounter = 0;
 
   LedgerHardwareWallet(this.name, this.device);
 
   static const int _TAG_APDU = 0x05;
   static const int _MTU = 128;
 
-  List<int> _wrapCommandAPDUInternal(
+  List<int> _wrapCommandAPDU(
       {required int channel,
       required List<int> command,
       int packetSize = _MTU,
@@ -74,7 +76,7 @@ class LedgerHardwareWallet {
     return buffer;
   }
 
-  List<int> _unwrapResponseAPDUInternal(
+  List<int> _unwrapResponseAPDU(
       int channel, List<int> data, int packetSize, bool hasChannel) {
     List<int> buffer = List.empty();
     int offset = 0;
@@ -150,18 +152,22 @@ class LedgerHardwareWallet {
     if (writeCharacteristic == null) {
       throw ("writeCharacteristic is null");
     }
-
-    await writeCharacteristic!.write(_wrapCommandAPDUInternal(
+    print("=> Before wrapping: " + hex.encode(data));
+    final buf = _wrapCommandAPDU(
       channel: 0,
       command: data,
       packetSize: _MTU,
       hasChannel: false,
-    ));
+    );
+    print("=> After wrapping: " + hex.encode(buf));
+
+    await writeCharacteristic!.write(buf);
   }
 
-  List<int> _response(List<int> data) {
-    final res = _unwrapResponseAPDUInternal(0, data, data.length, false);
-    print("<= " + hex.encode(res));
+  Future<List<int>> _response(List<int> data) async {
+    print("<= Before unwrap: " + hex.encode(data));
+    final res = _unwrapResponseAPDU(0, data, data.length, false);
+    print("<= After unwrap" + hex.encode(res));
     final command = res.sublist(0, res.length - 2);
     final lastSW = (res[res.length - 2] << 8) + res[res.length - 1];
     if (lastSW != SWCode.OK) {
@@ -171,23 +177,22 @@ class LedgerHardwareWallet {
   }
 
   Future<List<int>> _exchange(List<int> data) async {
-    print("=> " + hex.encode(data));
     await _send(data);
     if (notifyCharacteristic == null) {
       throw ("notifyCharacteristic is null");
     }
-    final result = await notifyCharacteristic!.value.first;
-    return _response(result);
+    final result = await notifyCharacteristic!.read();
+    _currentCounter++;
+    return await _response(result);
   }
 
-  Future<List<int>> exchangeADPU(ADPU adpu) {
-    var buffer = List<int>.from(
-        [adpu.cla, adpu.ins, adpu.p1, adpu.p2, adpu.payload?.length ?? 0]);
+  Future<List<int>> exchangeADPU(ADPU adpu) async {
+    var buffer = List<int>.from([adpu.cla, adpu.ins, adpu.p1, adpu.p2]);
     if (adpu.payload != null) {
-      buffer += adpu.payload!;
+      buffer += [adpu.payload!.length] + adpu.payload!;
     }
 
-    return _exchange(buffer);
+    return await _exchange(buffer);
   }
 }
 
@@ -207,36 +212,29 @@ class ADPU {
       this.payload});
 }
 
-String getLabelFromCode(List<int> data) {
+String getLabelFromCode(int code) {
   String labelResponse = '';
-  String blockParsedHex = hex.encode(data);
-  if (kDebugMode) {
-    print(blockParsedHex);
-  }
-
-  if (blockParsedHex.length >= 4) {
-    switch (blockParsedHex.substring(blockParsedHex.length - 4)) {
-      case '6d00':
-        labelResponse = 'Invalid parameter received';
-        break;
-      case '670A':
-        labelResponse = 'Lc is 0x00 whereas an application name is required';
-        break;
-      case '6807':
-        labelResponse = 'The requested application is not present';
-        break;
-      case '6985':
-        labelResponse = 'Cancel the operation';
-        break;
-      case '9000':
-        labelResponse = 'Success of the operation';
-        break;
-      case '0000':
-        labelResponse = 'Success of the operation';
-        break;
-      default:
-        labelResponse = blockParsedHex.substring(blockParsedHex.length - 4);
-    }
+  switch (code) {
+    case 0x6d00:
+      labelResponse = 'Invalid parameter received';
+      break;
+    case 0x670A:
+      labelResponse = 'Lc is 0x00 whereas an application name is required';
+      break;
+    case 0x6807:
+      labelResponse = 'The requested application is not present';
+      break;
+    case 0x6985:
+      labelResponse = 'Cancel the operation';
+      break;
+    case 0x9000:
+      labelResponse = 'Success of the operation';
+      break;
+    case 0x0000:
+      labelResponse = 'Success of the operation';
+      break;
+    default:
+      labelResponse = 'Other error';
   }
   return labelResponse;
 }
@@ -263,9 +261,9 @@ class LedgerCommand {
   static const int INS_EXIT = 0xA7;
 
   static Future<Map<String, dynamic>> version(
-      LedgerHardwareWallet wallet) async {
+      LedgerHardwareWallet ledger) async {
     final adpu = ADPU(cla: CLA_BOLOS, ins: INS_GET_VERSION, p1: 0, p2: 0);
-    final buffer = await wallet.exchangeADPU(adpu);
+    final buffer = await ledger.exchangeADPU(adpu);
     final targetID = buffer.sublist(0, 4);
     final versionSize = buffer[4];
     final version = utf8.decode(buffer.sublist(5, 5 + versionSize));
@@ -283,11 +281,11 @@ class LedgerCommand {
   }
 
   static Future<Map<String, dynamic>> application(
-      LedgerHardwareWallet wallet) async {
+      LedgerHardwareWallet ledger) async {
     const APP_DETAILS_FORMAT_VERSION = 1;
     final adpu = ADPU(
         cla: CLA_COMMON_SDK, ins: INS_GET_APP_NAME_AND_VERSION, p1: 0, p2: 0);
-    final buffer = await wallet.exchangeADPU(adpu);
+    final buffer = await ledger.exchangeADPU(adpu);
     if (buffer[0] != APP_DETAILS_FORMAT_VERSION) {
       throw SWCode.INVALID_STATUS;
     }
@@ -315,7 +313,7 @@ class LedgerCommand {
   }
 
   static Future<Map<String, dynamic>> pubKey(
-      LedgerHardwareWallet wallet, List<int> paths) async {
+      LedgerHardwareWallet ledger, List<int> paths) async {
     final pathData = pathToData(paths);
     final adpu = ADPU(
         cla: CLA_BOLOS,
@@ -323,12 +321,12 @@ class LedgerCommand {
         p1: 0,
         p2: 0,
         payload: pathData);
-    final buffer = await wallet.exchangeADPU(adpu);
+    final buffer = await ledger.exchangeADPU(adpu);
     int offset = 0;
     final publicKey = buffer.sublist(1, (buffer[offset] & 0xff) + 1);
     offset += publicKey.length + 1;
-    final address =
-        buffer.sublist(offset + 1, offset + (buffer[offset] & 0xff) + 1);
+    final address = hex.encode(
+        buffer.sublist(offset + 1, offset + (buffer[offset] & 0xff) + 1));
     offset += address.length + 1;
     final chainCode = buffer.sublist(offset, offset + 32);
     return {
@@ -340,11 +338,11 @@ class LedgerCommand {
   }
 
   static Future<Map<String, dynamic>> getEthAddress(
-      LedgerHardwareWallet wallet, List<int> paths) async {
+      LedgerHardwareWallet ledger, List<int> paths) async {
     final pathData = pathToData(paths);
     final adpu =
         ADPU(cla: CLA_BOLOS, ins: 0x02, p1: 0, p2: 0, payload: pathData);
-    final buffer = await wallet.exchangeADPU(adpu);
+    final buffer = await ledger.exchangeADPU(adpu);
     int offset = 0;
     final publicKey = buffer.sublist(1, (buffer[offset] & 0xff) + 1);
     offset += publicKey.length + 1;

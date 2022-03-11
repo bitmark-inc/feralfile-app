@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 import 'package:autonomy_flutter/service/ledger_hardware/ledger_hardware_transport.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 
 enum DeviceModelId {
@@ -15,44 +16,64 @@ class LedgerHardwareService {
   static const String writeUuid = "13d63400-2c97-0004-0002-4c6564676572";
   static const String writeCmdUuid = "13d63400-2c97-0004-0003-4c6564676572";
 
-  // ADPUs
-  // final getAppVersion = transport(0xe0, 0x01, 0x00, 0x00);
-  // final getAppAndVersion = transport(0xb0, 0x01, 0x00, 0x00);
-
   final FlutterBlue flutterBlue = FlutterBlue.instance;
+  Map<String, LedgerHardwareWallet> _connectedLedgers =
+      Map<String, LedgerHardwareWallet>();
 
   Stream<Iterable<LedgerHardwareWallet>> scanForLedgerWallet() {
     FlutterBlue.instance.startScan(
         withServices: [Guid(serviceUuid)], timeout: Duration(seconds: 4));
-
-    return FlutterBlue.instance.scanResults.map((event) => event
+    log.info("Start scanning for ledgers");
+    final readyDevices = FlutterBlue.instance.scanResults.map((event) => event
         .map((e) => LedgerHardwareWallet(e.device.name, e.device))
         .toList());
+    return readyDevices
+        .map((event) => event + _connectedLedgers.values.toList());
   }
 
-  Future<LedgerHardwareWallet> connect(LedgerHardwareWallet d) async {
-    await d.device.connect(autoConnect: true);
-    List<BluetoothService> services = await d.device.discoverServices();
+  Future<dynamic> stopScanning() {
+    log.info("Stop scanning for ledgers");
+    return FlutterBlue.instance.stopScan();
+  }
+
+  Future<bool> connect(LedgerHardwareWallet ledger) async {
+    await ledger.device.connect(autoConnect: true);
+    List<BluetoothService> services = await ledger.device.discoverServices();
     await Future.forEach(services, (s) async {
       final service = s as BluetoothService;
       if (service.uuid == Guid(serviceUuid)) {
         for (BluetoothCharacteristic characteristic
             in service.characteristics) {
           if (characteristic.uuid == Guid(notifyUuid)) {
-            d.notifyCharacteristic = characteristic;
-            await d.notifyCharacteristic!.setNotifyValue(true);
+            ledger.notifyCharacteristic = characteristic;
+            await ledger.notifyCharacteristic!.setNotifyValue(true);
           } else if (characteristic.uuid == Guid(writeUuid)) {
-            d.writeCharacteristic = characteristic;
+            ledger.writeCharacteristic = characteristic;
           } else if (characteristic.uuid == Guid(writeCmdUuid)) {
-            d.writeCMDCharacteristic = characteristic;
+            ledger.writeCMDCharacteristic = characteristic;
           }
         }
       }
     });
-    return d;
+    ledger.isConnected = (ledger.notifyCharacteristic != null &&
+        ledger.writeCMDCharacteristic != null &&
+        ledger.writeCharacteristic != null);
+    if (ledger.isConnected) {
+      _connectedLedgers[ledger.device.id.id] = ledger;
+    }
+
+    return ledger.isConnected;
   }
 
-  Future<void> disconnect(LedgerHardwareWallet d) async {
-    await d.device.disconnect();
+  Future<dynamic> disconnect([LedgerHardwareWallet? ledger]) async {
+    if (ledger != null) {
+      _connectedLedgers.remove(ledger.device.id.id);
+      ledger.isConnected = false;
+      return await ledger.device.disconnect();
+    } else {
+      await Future.forEach(_connectedLedgers.values,
+          (ledger) async => await disconnect(ledger as LedgerHardwareWallet));
+      _connectedLedgers.removeWhere((key, value) => true);
+    }
   }
 }
