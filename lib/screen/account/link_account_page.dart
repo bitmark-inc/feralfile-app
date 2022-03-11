@@ -14,7 +14,6 @@ import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:share/share.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class LinkAccountPage extends StatefulWidget {
@@ -263,6 +262,17 @@ class _LinkAccountPageState extends State<LinkAccountPage>
             onTap: () {
               _linkMetamask(context);
             }),
+        addDivider(),
+        TappableForwardRow(
+            leftWidget: Row(
+              children: [
+                Image.asset("assets/images/iconLedger.png"),
+                SizedBox(width: 16),
+                Text("Ledger", style: appTextTheme.headline4),
+              ],
+            ),
+            onTap: () => Navigator.of(context)
+                .pushNamed(AppRouter.linkLedgerWalletPage)),
         addDivider(),
         TappableForwardRow(
             leftWidget: Row(

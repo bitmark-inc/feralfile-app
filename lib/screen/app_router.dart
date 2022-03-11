@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/screen/account/add_account_page.dart';
 import 'package:autonomy_flutter/screen/account/import_account_page.dart';
 import 'package:autonomy_flutter/screen/account/link_account_page.dart';
 import 'package:autonomy_flutter/screen/account/link_feralfile_page.dart';
+import 'package:autonomy_flutter/screen/account/link_ledger_page.dart';
 import 'package:autonomy_flutter/screen/account/link_tezos_kukai_page.dart';
 import 'package:autonomy_flutter/screen/account/link_wallet_connect_page.dart';
 import 'package:autonomy_flutter/screen/account/linked_account_details_page.dart';
@@ -69,6 +70,7 @@ class AppRouter {
   static const newAccountPage = "new_account";
   static const addAccountPage = 'add_account';
   static const linkAccountpage = "link_account";
+  static const linkLedgerWalletPage = "link_ledger_wallet";
   static const linkWalletConnectPage = "link_wallet_connect";
   static const linkBeaconConnectPage = "link_beacon_connect";
   static const accountsPreviewPage = 'accounts_preview';
@@ -104,8 +106,8 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider(
-                create: (_) =>
-                    RouterBloc(injector(), networkInjector.I(), injector<CloudDatabase>()),
+                create: (_) => RouterBloc(
+                    injector(), networkInjector.I(), injector<CloudDatabase>()),
                 child: OnboardingPage()));
 
       case homePageNoTransition:
@@ -211,6 +213,10 @@ class AppRouter {
             settings: settings,
             builder: (context) =>
                 LinkBeaconConnectPage(uri: settings.arguments as String));
+
+      case linkLedgerWalletPage:
+        return CupertinoPageRoute(
+            settings: settings, builder: (context) => LinkLedgerPage());
 
       case linkWalletConnectPage:
         return CupertinoPageRoute(
