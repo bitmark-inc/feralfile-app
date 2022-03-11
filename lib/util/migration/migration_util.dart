@@ -25,6 +25,7 @@ class MigrationUtil {
     if (isIOS) {
       await _migrationFromKeychain();
     }
+    // TODO: support scan keys in Android when it's doable
   }
 
   Future _migrationiOS() async {
