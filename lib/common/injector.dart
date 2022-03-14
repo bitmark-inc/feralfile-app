@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/gateway/currency_exchange_api.dart';
+import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/cloud_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -71,6 +72,8 @@ Future<void> setup() async {
   injector.registerLazySingleton(
       () => WalletConnectService(injector(), injector()));
   injector.registerLazySingleton(() => WalletConnectDappService(injector()));
+  injector.registerLazySingleton(
+      () => AccountService(cloudDB, injector(), injector()));
 
   injector
       .registerLazySingleton(() => TezosBeaconService(injector(), injector()));
