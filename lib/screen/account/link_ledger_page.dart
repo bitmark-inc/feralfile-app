@@ -1,6 +1,11 @@
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/database/entity/connection.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/ledger_hardware/ledger_hardware_service.dart';
 import 'package:autonomy_flutter/service/ledger_hardware/ledger_hardware_transport.dart';
+import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -8,6 +13,7 @@ import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 
 class LinkLedgerPage extends StatefulWidget {
@@ -39,36 +45,82 @@ class _LinkLedgerPageState extends State<LinkLedgerPage> {
             Navigator.of(context).pop();
           },
         ),
-        body: StreamBuilder<Iterable<LedgerHardwareWallet>>(
-          builder: (context, snapshot) => Container(
-              margin: EdgeInsets.only(
-                  top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Ledger wallet",
-                    style: appTextTheme.headline1,
-                  ),
-                  SizedBox(height: 30),
-                  Text(
-                    "Select your ledger wallet to start:",
-                    style: appTextTheme.headline4,
-                  ),
-                  SizedBox(height: 30),
-                  if (snapshot.connectionState == ConnectionState.waiting) ...[
-                    Expanded(
-                        child: Center(
-                            child: CupertinoActivityIndicator(
-                      color: Colors.grey,
-                    )))
-                  ] else ...[
-                    _deviceList(context, snapshot.data),
-                  ],
-                ],
-              )),
-          stream: injector<LedgerHardwareService>().scanForLedgerWallet(),
-        ));
+        body: BlocListener<AccountsBloc, AccountsState>(
+            listener: (context, state) {
+              final event = state.event;
+              if (event == null) return;
+
+              if (event is LinkAccountSuccess) {
+                final linkedAccount = event.connection;
+                final walletName = linkedAccount.ledgerName;
+
+                UIHelper.showInfoDialog(context, "Account linked",
+                    "Autonomy has received autorization to link to your NFTs in $walletName.");
+
+                final delay = 3;
+
+                Future.delayed(Duration(seconds: delay), () {
+                  UIHelper.hideInfoDialog(context);
+
+                  if (injector<ConfigurationService>().isDoneOnboarding()) {
+                    Navigator.of(context).pushNamed(
+                        AppRouter.nameLinkedAccountPage,
+                        arguments: linkedAccount);
+                  } else {
+                    Navigator.of(context).pushNamedAndRemoveUntil(
+                        AppRouter.nameLinkedAccountPage, (route) => false,
+                        arguments: linkedAccount);
+                  }
+                });
+              }
+
+              if (event is AlreadyLinkedError) {
+                showErrorDiablog(
+                    context,
+                    ErrorEvent(
+                        null,
+                        "Already linked",
+                        "You’ve already linked this account to Autonomy.",
+                        ErrorItemState.seeAccount), defaultAction: () {
+                  Navigator.of(context).pushNamed(
+                      AppRouter.linkedAccountDetailsPage,
+                      arguments: event.connection);
+                });
+              }
+
+              context.read<AccountsBloc>().add(ResetEventEvent());
+            },
+            child: StreamBuilder<Iterable<LedgerHardwareWallet>>(
+              builder: (context, snapshot) => Container(
+                  margin: EdgeInsets.only(
+                      top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Ledger wallet",
+                        style: appTextTheme.headline1,
+                      ),
+                      SizedBox(height: 30),
+                      Text(
+                        "Select your ledger wallet to start:",
+                        style: appTextTheme.headline4,
+                      ),
+                      SizedBox(height: 30),
+                      if (snapshot.connectionState ==
+                          ConnectionState.waiting) ...[
+                        Expanded(
+                            child: Center(
+                                child: CupertinoActivityIndicator(
+                          color: Colors.grey,
+                        )))
+                      ] else ...[
+                        _deviceList(context, snapshot.data),
+                      ],
+                    ],
+                  )),
+              stream: injector<LedgerHardwareService>().scanForLedgerWallet(),
+            )));
   }
 
   Widget _deviceList(
@@ -111,19 +163,26 @@ class _LinkLedgerPageState extends State<LinkLedgerPage> {
     try {
       final openingApplication = await LedgerCommand.application(ledger);
       final name = openingApplication["name"];
-      if (name != "Bitcoin") {
+      if (name != "Ethereum") {
         return await _dismissAndShowError(context, ledger,
             "Please open the ETH app on your ledger.\nIf you haven't installed, please do it in the Ledger Live app.");
       }
 
-      await Future.delayed(Duration(seconds: 1));
+      final data = await LedgerCommand.getEthAddress(ledger, "44'/60'/0'/0/0",
+          verify: false);
 
-      final pubkey = await LedgerCommand.pubKey(ledger, []);
-      if (pubkey["address"] == null) {
+      if (data["address"] == null) {
         return await _dismissAndShowError(context, ledger,
             "Cannot get an address from your ETH app. Please make sure you have created an account in the Ledger wallet.");
       } else {
-        log.info("Catched an address: ${pubkey["address"]}");
+        final address = data["address"] as String;
+        log.info("Catched an address: $address");
+        UIHelper.hideInfoDialog(context);
+
+        context
+            .read<AccountsBloc>()
+            .add(LinkLedgerEthereumWalletEvent(address, ledger.name, data));
+
         Vibrate.feedback(FeedbackType.success);
       }
     } catch (error) {

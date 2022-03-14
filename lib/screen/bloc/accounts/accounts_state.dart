@@ -14,6 +14,14 @@ class LinkEthereumWalletEvent extends AccountsEvent {
   LinkEthereumWalletEvent(this.session);
 }
 
+class LinkLedgerEthereumWalletEvent extends AccountsEvent {
+  final String address;
+  final String ledgerName;
+  final Map<String, dynamic> data;
+
+  LinkLedgerEthereumWalletEvent(this.address, this.ledgerName, this.data);
+}
+
 class NameLinkedAccountEvent extends AccountsEvent {
   final Connection connection;
   final String name;

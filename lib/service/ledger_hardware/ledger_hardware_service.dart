@@ -68,11 +68,12 @@ class LedgerHardwareService {
   Future<dynamic> disconnect([LedgerHardwareWallet? ledger]) async {
     if (ledger != null) {
       _connectedLedgers.remove(ledger.device.id.id);
-      ledger.isConnected = false;
-      return await ledger.device.disconnect();
+      return await ledger.disconnect();
     } else {
-      await Future.forEach(_connectedLedgers.values,
-          (ledger) async => await disconnect(ledger as LedgerHardwareWallet));
+      await Future.forEach(
+          _connectedLedgers.values,
+          (ledger) async =>
+              await (ledger as LedgerHardwareWallet).disconnect());
       _connectedLedgers.removeWhere((key, value) => true);
     }
   }
