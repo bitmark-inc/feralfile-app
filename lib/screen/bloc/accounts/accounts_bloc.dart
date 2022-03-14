@@ -176,14 +176,6 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
       add(GetAccountsEvent());
     });
 
-    on<DeleteLinkedAccountEvent>((event, emit) {
-      final connection = event.connection;
-      _cloudDB.connectionDao
-          .deleteConnectionsByAccountNumber(connection.accountNumber);
-
-      add(GetAccountsEvent());
-    });
-
     on<FetchAllAddressesEvent>((event, emit) async {
       List<String> addresses = [];
       final personas = await _cloudDB.personaDao.getPersonas();
