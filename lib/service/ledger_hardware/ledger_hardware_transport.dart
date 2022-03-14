@@ -3,7 +3,7 @@ import 'dart:typed_data';
 
 import 'package:autonomy_flutter/util/endian_int_ext.dart';
 import 'package:convert/convert.dart';
-import 'package:flutter/foundation.dart';
+import 'package:tezart/tezart.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 
 class SWCode {
@@ -32,6 +32,11 @@ class LedgerHardwareWallet {
 
   static const int _TAG_APDU = 0x05;
   static const int _MTU = 128;
+
+  Future<dynamic> disconnect() {
+    isConnected = false;
+    return this.device.disconnect();
+  }
 
   List<int> _wrapCommandAPDU(
       {required int channel,
@@ -181,8 +186,9 @@ class LedgerHardwareWallet {
     if (notifyCharacteristic == null) {
       throw ("notifyCharacteristic is null");
     }
-    final result = await notifyCharacteristic!.read();
-    _currentCounter++;
+    final result =
+        await notifyCharacteristic!.value.elementAt(_currentCounter++);
+
     return await _response(result);
   }
 
@@ -298,50 +304,31 @@ class LedgerCommand {
     return {"name": name, "version": version};
   }
 
-  static List<int> pathToData(List<int> paths) {
-    if (paths.length == 0) {
-      return [0];
-    } else if (paths.length > 10) {
-      throw "GaError.GenericError";
-    }
-    var buffer = List<int>.empty(growable: true);
+  static List<int> pathToData(String path) {
+    final components = path.split("/");
 
-    for (int p in paths) {
-      buffer += p.uint32BE();
-    }
-    return buffer;
+    return components.fold([components.length],
+        (List<int> previousValue, element) {
+      var number = int.tryParse(element) ?? 0;
+      if (element.length > 1 && element[element.length - 1] == "'") {
+        number = int.parse(element.substring(0, element.length - 1));
+        number += 0x80000000;
+      }
+
+      return previousValue + number.uint32BE();
+    });
   }
 
   static Future<Map<String, dynamic>> pubKey(
-      LedgerHardwareWallet ledger, List<int> paths) async {
-    final pathData = pathToData(paths);
+      LedgerHardwareWallet ledger, String path,
+      {bool verify = false}) async {
+    final pathData = pathToData(path);
     final adpu = ADPU(
         cla: CLA_BOLOS,
         ins: INS_GET_WALLET_PUBLIC_KEY,
-        p1: 0,
+        p1: verify ? 0x01 : 0x00,
         p2: 0,
         payload: pathData);
-    final buffer = await ledger.exchangeADPU(adpu);
-    int offset = 0;
-    final publicKey = buffer.sublist(1, (buffer[offset] & 0xff) + 1);
-    offset += publicKey.length + 1;
-    final address = hex.encode(
-        buffer.sublist(offset + 1, offset + (buffer[offset] & 0xff) + 1));
-    offset += address.length + 1;
-    final chainCode = buffer.sublist(offset, offset + 32);
-    return {
-      "publicKey": publicKey,
-      "address": address,
-      "chainCode": chainCode,
-      "path": paths
-    };
-  }
-
-  static Future<Map<String, dynamic>> getEthAddress(
-      LedgerHardwareWallet ledger, List<int> paths) async {
-    final pathData = pathToData(paths);
-    final adpu =
-        ADPU(cla: CLA_BOLOS, ins: 0x02, p1: 0, p2: 0, payload: pathData);
     final buffer = await ledger.exchangeADPU(adpu);
     int offset = 0;
     final publicKey = buffer.sublist(1, (buffer[offset] & 0xff) + 1);
@@ -354,7 +341,50 @@ class LedgerCommand {
       "publicKey": publicKey,
       "address": address,
       "chainCode": chainCode,
-      "path": paths
+      "path": path,
+    };
+  }
+
+  static Future<Map<String, dynamic>> getEthAddress(
+      LedgerHardwareWallet ledger, String path,
+      {bool verify = false}) async {
+    final pathData = pathToData(path);
+    final adpu =
+        ADPU(cla: CLA_BOLOS, ins: 0x02, p1: 0x00, p2: 0x00, payload: pathData);
+    final buffer = await ledger.exchangeADPU(adpu);
+
+    final publicKeyLength = buffer[0];
+    final addressLength = buffer[1 + publicKeyLength];
+
+    final publicKey = buffer.sublist(1, publicKeyLength + 1);
+    final addressRawValue = buffer.sublist(
+        1 + publicKeyLength + 1, 1 + publicKeyLength + 1 + addressLength);
+    final address = "0x${ascii.decode(addressRawValue)}";
+    return {
+      "publicKey": hex.encode(publicKey),
+      "address": address,
+      "path": path,
+    };
+  }
+
+  static Future<Map<String, dynamic>> getTezosAddress(
+      LedgerHardwareWallet ledger, String path,
+      {bool verify = false}) async {
+    final pathData = pathToData(path);
+    final adpu = ADPU(
+        cla: 0x80,
+        ins: verify ? 0x03 : 0x02,
+        p1: 0x00,
+        p2: 0,
+        payload: pathData);
+    final buffer = await ledger.exchangeADPU(adpu);
+
+    final publicKeyLength = buffer[0];
+
+    final publicKey = buffer.sublist(1, publicKeyLength + 1);
+    return {
+      "publicKey": hex.encode(publicKey),
+      "path": path,
     };
   }
 }

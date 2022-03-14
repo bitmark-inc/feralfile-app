@@ -117,8 +117,8 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
             accountNumber: xtzAddress,
             createdAt: persona.createdAt);
 
-        categorizedAccounts
-            .add(CategorizedAccounts(name, [bitmarkAccount, ethAccount, xtzAccount]));
+        categorizedAccounts.add(CategorizedAccounts(
+            name, [bitmarkAccount, ethAccount, xtzAccount]));
       }
 
       for (var connection in connections) {
@@ -157,6 +157,23 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
       final connection = Connection.fromETHWallet(event.session);
       final alreadyLinkedAccount =
           await getExistingAccount(connection.accountNumber);
+      if (alreadyLinkedAccount != null) {
+        emit(state.setEvent(AlreadyLinkedError(alreadyLinkedAccount)));
+        return;
+      }
+
+      _cloudDB.connectionDao.insertConnection(connection);
+      emit(state.setEvent(LinkAccountSuccess(connection)));
+
+      add(GetAccountsEvent());
+    });
+
+    on<LinkLedgerEthereumWalletEvent>((event, emit) async {
+      final connection =
+          Connection.fromLedgerEthereumWallet(event.address, event.data);
+      final data = event.data;
+      data['ledger'] = event.ledgerName;
+      final alreadyLinkedAccount = await getExistingAccount(event.address);
       if (alreadyLinkedAccount != null) {
         emit(state.setEvent(AlreadyLinkedError(alreadyLinkedAccount)));
         return;
