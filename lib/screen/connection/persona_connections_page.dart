@@ -59,6 +59,9 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
       case CryptoType.XTZ:
         context.read<ConnectionsBloc>().add(GetXTZConnectionsEvent(personUUID));
         break;
+      case CryptoType.BITMARK:
+        // do nothing
+        break;
     }
   }
 
@@ -84,8 +87,10 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _addressSection(),
-                    SizedBox(height: 40),
-                    _connectionsSection(),
+                    if (widget.payload.type != CryptoType.BITMARK) ...[
+                      SizedBox(height: 40),
+                      _connectionsSection(),
+                    ],
                   ],
                 ),
               ),
@@ -104,6 +109,9 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
         break;
       case CryptoType.XTZ:
         typeText = "Tezos";
+        break;
+      case CryptoType.BITMARK:
+        typeText = "Bitmark";
         break;
       default:
         break;
