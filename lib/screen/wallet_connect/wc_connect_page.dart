@@ -10,6 +10,7 @@ import 'package:autonomy_flutter/screen/connection/persona_connections_page.dart
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
@@ -54,6 +55,7 @@ class _WCConnectPageState extends State<WCConnectPage>
   void initState() {
     super.initState();
     context.read<PersonaBloc>().add(GetListPersonaEvent());
+    injector<NavigationService>().setIsWCConnectInShow(true);
   }
 
   @override
@@ -73,6 +75,7 @@ class _WCConnectPageState extends State<WCConnectPage>
   void dispose() {
     super.dispose();
     routeObserver.unsubscribe(this);
+    injector<NavigationService>().setIsWCConnectInShow(false);
   }
 
   void _reject() {
@@ -112,8 +115,11 @@ class _WCConnectPageState extends State<WCConnectPage>
       final approvedAddresses = addresses ?? [address];
       log.info(
           "[WCConnectPage] approve WCConnect with addreses ${approvedAddresses}");
-      injector<WalletConnectService>().approveSession(selectedPersona!.uuid,
-          wcConnectArgs.peerMeta, approvedAddresses, chainId);
+      await injector<WalletConnectService>().approveSession(
+          selectedPersona!.uuid,
+          wcConnectArgs.peerMeta,
+          approvedAddresses,
+          chainId);
 
       payloadAddress = address;
       payloadType = CryptoType.ETH;

@@ -1,8 +1,10 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/model/connection_supports.dart';
+import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/migration/migration_data.dart';
 import 'package:flutter/services.dart';
@@ -18,6 +20,23 @@ class MigrationUtil {
       await _migrationiOS();
     } else {
       await _migrationAndroid();
+    }
+  }
+
+  Future<void> migrationFromKeychain(bool isIOS) async {
+    if (isIOS) {
+      await _migrationFromKeychain();
+    }
+    // TODO: support scan keys in Android when it's doable
+  }
+
+  static Future<String?> getBackupDeviceID() async {
+    if (Platform.isIOS) {
+      final String? deviceId = await _channel.invokeMethod("getDeviceID", {});
+
+      return deviceId ?? await getDeviceID();
+    } else {
+      return await getDeviceID();
     }
   }
 
@@ -131,6 +150,22 @@ class MigrationUtil {
 
         await _cloudDB.personaDao.insertPersona(persona);
       }
+    }
+  }
+
+  Future _migrationFromKeychain() async {
+    final List personaUUIDs =
+        await _channel.invokeMethod('getWalletUUIDsFromKeychain', {});
+
+    log.info(
+        "[_migrationFromKeychain] personaUUIDs from Keychain: $personaUUIDs");
+    for (var uuid in personaUUIDs) {
+      final wallet = Persona.newPersona(uuid: uuid).wallet();
+      final name = await wallet.getName();
+      final persona =
+          Persona(uuid: uuid, name: name, createdAt: DateTime.now());
+
+      await _cloudDB.personaDao.insertPersona(persona);
     }
   }
 }

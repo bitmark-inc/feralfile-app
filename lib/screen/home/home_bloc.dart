@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:autonomy_flutter/util/log.dart';
 
 class HomeBloc extends Bloc<HomeEvent, HomeState> {
   WalletConnectService _walletConnectService;
@@ -30,10 +31,12 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       this._configurationService)
       : super(HomeState()) {
     on<HomeConnectWCEvent>((event, emit) {
+      log.info('[HomeConnectWCEvent] connect ${event.uri}');
       _walletConnectService.connect(event.uri);
     });
 
     on<HomeConnectTZEvent>((event, emit) {
+      log.info('[HomeConnectTZEvent] addPeer ${event.uri}');
       _tezosBeaconService.addPeer(event.uri);
     });
 
@@ -104,12 +107,12 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         final addresses = await _getPersonaAddresses();
 
         for (var ethAddress in addresses['personaEthereum'] ?? []) {
-          log("[HomeBloc] RequestIndex for $ethAddress");
+          log.info("[HomeBloc] RequestIndex for $ethAddress");
           _indexerApi.requestIndex({"owner": ethAddress});
         }
 
         for (var tezosAddress in addresses['personaTezos'] ?? []) {
-          log("[HomeBloc] RequestIndex for $tezosAddress");
+          log.info("[HomeBloc] RequestIndex for $tezosAddress");
           _indexerApi
               .requestIndex({"owner": tezosAddress, "blockchain": "tezos"});
         }
@@ -120,15 +123,28 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           switch (linkAccount.connectionType) {
             case 'walletConnect':
               final ethAddress = linkAccount.accountNumber;
-              log("[HomeBloc] RequestIndex for linked $ethAddress");
+              log.info("[HomeBloc] RequestIndex for linked $ethAddress");
               _indexerApi.requestIndex({"owner": ethAddress});
               break;
 
             case 'walletBeacon':
               final tezosAddress = linkAccount.accountNumber;
-              log("[HomeBloc] RequestIndex for linked $tezosAddress");
+              log.info("[HomeBloc] RequestIndex for linked $tezosAddress");
               _indexerApi
                   .requestIndex({"owner": tezosAddress, "blockchain": "tezos"});
+              break;
+
+            case 'manuallyAddress':
+              final address = linkAccount.accountNumber;
+              final isTezosAddress = address.startsWith("tz");
+              log.info(
+                  "[HomeBloc] RequestIndex for linked $address - isTezosAddress: $isTezosAddress");
+              if (isTezosAddress) {
+                _indexerApi
+                    .requestIndex({"owner": address, "blockchain": "tezos"});
+              } else {
+                _indexerApi.requestIndex({"owner": address});
+              }
               break;
 
             default:
@@ -136,7 +152,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           }
         }
       } catch (exception) {
-        log("[HomeBloc] error when request index");
+        log.info("[HomeBloc] error when request index");
         Sentry.captureException(exception);
       }
     });

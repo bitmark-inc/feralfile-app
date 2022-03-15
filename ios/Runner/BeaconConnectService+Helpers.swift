@@ -115,7 +115,3 @@ extension Beacon.DAppClient {
         }
     }
 }
-
-enum AppError: Error {
-    case pendingBeaconClient
-}

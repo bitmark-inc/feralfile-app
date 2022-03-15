@@ -8,6 +8,7 @@
 import Foundation
 import Flutter
 import Combine
+import LibAuk
 
 class SystemChannelHandler: NSObject {
 
@@ -17,7 +18,7 @@ class SystemChannelHandler: NSObject {
 
     func getiOSMigrationData(call: FlutterMethodCall, result: @escaping FlutterResult) {
         let url = FileManager.default.urls(for: .documentDirectory,
-                                            in: .userDomainMask)[0].appendingPathComponent("migration-db.json")
+                                              in: .userDomainMask)[0].appendingPathComponent("migration-db.json")
 
         guard let data = try? Data(contentsOf: url) else {
             result("")
@@ -30,12 +31,74 @@ class SystemChannelHandler: NSObject {
 
     func cleariOSMigrationData(call: FlutterMethodCall, result: @escaping FlutterResult) {
         let url = FileManager.default.urls(for: .documentDirectory,
-                                            in: .userDomainMask)[0].appendingPathComponent("migration-db.json")
+                                              in: .userDomainMask)[0].appendingPathComponent("migration-db.json")
 
         try? FileManager.default.removeItem(at: url)
         result([
             "error": 0,
             "msg": "cleariOSMigrationData success",
         ])
+    }
+
+    func getWalletUUIDsFromKeychain(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let personaUUIDs = scanKeychainPersonaUUIDs()
+        result(personaUUIDs)
+    }
+
+    func scanKeychainPersonaUUIDs() -> [String] {
+        var personaUUIDs = [String]()
+        let query: NSDictionary = [
+            kSecClass: kSecClassGenericPassword,
+            kSecAttrSynchronizable: kCFBooleanTrue,
+            kSecReturnData: kCFBooleanTrue,
+            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
+            kSecReturnAttributes as String : kCFBooleanTrue,
+            kSecMatchLimit as String: kSecMatchLimitAll,
+            kSecAttrAccessGroup as String: Constant.keychainGroup,
+        ]
+
+        var dataTypeRef: AnyObject?
+        let lastResultCode = withUnsafeMutablePointer(to: &dataTypeRef) {
+            SecItemCopyMatching(query as CFDictionary, UnsafeMutablePointer($0))
+        }
+
+        if lastResultCode == noErr {
+            guard let array = dataTypeRef as? Array<Dictionary<String, Any>> else {
+                return []
+            }
+
+            for item in array {
+                if let key = item[kSecAttrAccount as String] as? String, key.contains("seed") {
+                    let personaUUIDString = key.replacingOccurrences(of: "persona.", with: "")
+                        .replacingOccurrences(of: "_seed", with: "")
+
+                    guard let personaUUID = UUID(uuidString: personaUUIDString) else {
+                        continue
+                    }
+
+                    if (LibAuk.shared.storage(for: personaUUID).getETHAddress() != nil) {
+                        personaUUIDs.append(personaUUIDString)
+                    }
+
+                }
+            }
+        }
+
+        return personaUUIDs
+    }
+        
+    func getDeviceUniqueID(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let keychain = Keychain()
+        
+        guard let data = keychain.getData(Constant.deviceIDKey, isSync: true),
+              let id = String(data: data, encoding: .utf8) else {
+                  let deviceId = UIDevice.current.identifierForVendor?.uuidString ?? UUID().uuidString
+                  keychain.set(deviceId.data(using: .utf8)!, forKey: Constant.deviceIDKey, isSync: true)
+
+                  result(deviceId)
+                  return
+              }
+
+        result(id)
     }
 }

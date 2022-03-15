@@ -2,8 +2,10 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/theme_manager.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:dio/dio.dart';
@@ -61,7 +63,7 @@ ErrorEvent? translateError(Object exception) {
       ErrorItemState.suggestReportIssue);
 }
 
-DateTime? isShowErrorDialogWorking = null;
+DateTime? isShowErrorDialogWorking;
 
 Future showErrorDialog(BuildContext context, String title, String description,
     String defaultButton,
@@ -191,18 +193,24 @@ void showErrorDiablog(
 }
 
 void showErrorDialogFromException(Object exception, {StackTrace? stackTrace}) {
+  final context = injector<NavigationService>().navigatorKey.currentContext;
+
   if (exception is PlatformException) {
     if (lastException != null && lastException?.message == exception.message) {
       return;
     }
     lastException = exception;
+  } else if (context != null && exception is AbortedException) {
+    UIHelper.showInfoDialog(
+        context, "Aborted", "The action was aborted by the user.",
+        isDismissible: true, autoDismissAfter: 3);
+    return;
   }
-
   log.warning("Unhandled error: $exception", exception);
   injector<AWSService>().storeEventWithDeviceData("unhandled_error",
       data: {"message": exception.toString()});
   final event = translateError(exception);
-  final context = injector<NavigationService>().navigatorKey.currentContext;
+
   if (context != null && event != null) {
     showErrorDiablog(
       context,

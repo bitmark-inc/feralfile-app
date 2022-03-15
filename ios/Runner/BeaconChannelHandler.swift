@@ -12,6 +12,7 @@ import BeaconClientWallet
 import BeaconTransportP2PMatrix
 import BeaconCore
 import Base58Swift
+import SwiftUI
 
 class BeaconChannelHandler: NSObject {
     
@@ -138,7 +139,12 @@ class BeaconChannelHandler: NSObject {
     
     func getConnectionURI(call: FlutterMethodCall, result: @escaping FlutterResult) {
         BeaconConnectService.shared.getConnectionURI()
-            .sink(receiveCompletion: { _ in }, receiveValue: { uri in
+            .sink(receiveCompletion: { (completion) in
+                if let error = completion.error {
+                    result(ErrorHandler.handle(error: error))
+                }
+
+            }, receiveValue: { uri in
                 result([
                     "error": 0,
                     "uri": uri,
@@ -146,6 +152,80 @@ class BeaconChannelHandler: NSObject {
             })
             .store(in: &cancelBag)
     }
+
+    func getPostMessageConnectionURI(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        BeaconConnectService.shared.getPostMessageConnectionURI()
+            .sink(receiveCompletion: { (completion) in
+                if let error = completion.error {
+                    result(ErrorHandler.handle(error: error))
+                }
+
+            }, receiveValue: { (uri) in
+                result([
+                    "error": 0,
+                    "uri": uri,
+                ])
+            })
+            .store(in: &cancelBag)
+    }
+
+    func handlePostMessageOpenChannel(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args: NSDictionary = call.arguments as! NSDictionary
+        let payload: String = args["payload"] as! String
+
+        BeaconConnectService.shared.handlePostMessageOpenChannel(payload: payload)
+            .tryMap { (peer, permissionRequestMessage) -> (String, String) in
+                guard let serializedPeer = String(data: try JSONEncoder().encode(peer), encoding: .utf8) else {
+                    throw AppError.incorrectData
+                }
+
+                return (serializedPeer, permissionRequestMessage)
+            }
+            .sink(receiveCompletion: { (completion) in
+                if let error = completion.error {
+                    result(ErrorHandler.handle(error: error))
+                }
+
+            }, receiveValue: { (response) in
+                result([
+                    "error": 0,
+                    "peer": response.0,
+                    "permissionRequestMessage": response.1,
+                ])
+            })
+            .store(in: &cancelBag)
+    }
+
+    func handlePostMessageMessage(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args: NSDictionary = call.arguments as! NSDictionary
+        let extensionPublicKey: String = args["extensionPublicKey"] as! String
+        let payload: String = args["payload"] as! String
+
+        BeaconConnectService.shared.handlePostMessageMessage(
+            extensionPublicKey: extensionPublicKey,
+            payload: payload)
+            .tryMap { (tzAddress, tezosResponse) -> (String, String) in
+                guard let serializedTezosResponse = String(data: try JSONEncoder().encode(tezosResponse), encoding: .utf8) else {
+                    throw AppError.incorrectData
+                }
+
+                return (tzAddress, serializedTezosResponse)
+            }
+            .sink(receiveCompletion: { (completion) in
+                if let error = completion.error {
+                    result(ErrorHandler.handle(error: error))
+                }
+
+            }, receiveValue: { (response) in
+                result([
+                    "error": 0,
+                    "tzAddress": response.0,
+                    "response": response.1,
+                ])
+            })
+            .store(in: &cancelBag)
+    }
+
 }
 
 extension BeaconChannelHandler: FlutterStreamHandler {

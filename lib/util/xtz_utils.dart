@@ -25,5 +25,3 @@ String xtzAddress(List<int> publicKey) => crypto.catchUnhandledErrors(() {
         bytes: hash,
       );
     });
-
-List<int> _compressPublicKey(List<int> publicKey) {}

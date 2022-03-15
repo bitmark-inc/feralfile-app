@@ -74,6 +74,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
               _cryptoSection(uuid, network),
               SizedBox(height: 40),
               _backupSection(),
+              SizedBox(height: 40),
             ],
           ),
         ),
@@ -107,7 +108,6 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
         FutureBuilder<String>(
             future: Persona.newPersona(uuid: uuid).wallet().getBitmarkAddress(),
             builder: (context, snapshot) {
-              print(snapshot.connectionState);
               if (snapshot.hasData) {
                 return _addressRow(
                   address: snapshot.data ?? "",
@@ -138,15 +138,13 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          type == CryptoType.BITMARK
-              ? Text(typeText, style: appTextTheme.headline4)
-              : Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(typeText, style: appTextTheme.headline4),
-                    SvgPicture.asset('assets/images/iconForward.svg'),
-                  ],
-                ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(typeText, style: appTextTheme.headline4),
+              SvgPicture.asset('assets/images/iconForward.svg'),
+            ],
+          ),
           SizedBox(height: 16),
           Row(
             children: [
@@ -160,18 +158,15 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
           ),
         ],
       ),
-      onTap: type == CryptoType.BITMARK
-          ? null
-          : () {
-              final payload = PersonaConnectionsPayload(
-                personaUUID: widget.persona.uuid,
-                address: address,
-                type: type,
-              );
-
-              Navigator.of(context).pushNamed(AppRouter.personaConnectionsPage,
-                  arguments: payload);
-            },
+      onTap: () {
+        final payload = PersonaConnectionsPayload(
+          personaUUID: widget.persona.uuid,
+          address: address,
+          type: type,
+        );
+        Navigator.of(context)
+            .pushNamed(AppRouter.personaConnectionsPage, arguments: payload);
+      },
     );
   }
 

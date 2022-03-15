@@ -35,12 +35,6 @@ class NameLinkedAccountEvent extends AccountsEvent {
   );
 }
 
-class DeleteLinkedAccountEvent extends AccountsEvent {
-  final Connection connection;
-
-  DeleteLinkedAccountEvent(this.connection);
-}
-
 class FetchAllAddressesEvent extends AccountsEvent {}
 
 class Account {

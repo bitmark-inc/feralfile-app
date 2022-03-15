@@ -35,7 +35,10 @@ Future reportRenderingIssue(String tokenID, List<String> issuedTopics) async {
     scope.fingerprint = [tokenID + issuedTopics.join(",")];
     scope.setTag("issuedToken", tokenID);
     for (var topic in issuedTopics) {
-      scope.setTag("issuedTopics-$topic", 'true');
+      var topicTag = topic
+          .replaceAll("(", "")
+          .replaceAll(')', ""); // invalid character in tag
+      scope.setTag("issuedTopics-$topicTag", 'true');
     }
   });
 
