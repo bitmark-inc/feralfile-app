@@ -44,7 +44,7 @@ packages:
     source: hosted
     version: "2.3.0"
   async:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: async
       url: "https://pub.dartlang.org"
@@ -401,9 +401,11 @@ packages:
   flutter_blue:
     dependency: "direct main"
     description:
-      name: flutter_blue
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "."
+      ref: HEAD
+      resolved-ref: "0a26a70dabe3dbe6a7dbc8dee8e754b0c515e583"
+      url: "https://github.com/autonomy-system/flutter_blue.git"
+    source: git
     version: "0.8.0"
   flutter_blurhash:
     dependency: transitive

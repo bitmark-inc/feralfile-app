@@ -32,7 +32,7 @@ class LedgerHardwareWallet {
   BluetoothCharacteristic? writeCharacteristic;
   BluetoothCharacteristic? writeCMDCharacteristic;
   BluetoothCharacteristic? notifyCharacteristic;
-  StreamQueue<List<int>>? _notifyCharacteristicData;
+  int _currentCounter = 0;
 
   LedgerHardwareWallet(this.name, this.device);
 
@@ -44,8 +44,6 @@ class LedgerHardwareWallet {
       if (characteristic.uuid == Guid(notifyUuid)) {
         this.notifyCharacteristic = characteristic;
         await this.notifyCharacteristic!.setNotifyValue(true);
-        _notifyCharacteristicData =
-            new StreamQueue<List<int>>(notifyCharacteristic!.value);
       } else if (characteristic.uuid == Guid(writeUuid)) {
         this.writeCharacteristic = characteristic;
       } else if (characteristic.uuid == Guid(writeCmdUuid)) {
@@ -203,10 +201,10 @@ class LedgerHardwareWallet {
   }
 
   Future<List<int>> _exchange(List<int> data) async {
-    if (_notifyCharacteristicData == null) {
+    if (notifyCharacteristic == null) {
       throw ("notifyCharacteristic is null");
     }
-    final f = _notifyCharacteristicData!.next;
+    final f = notifyCharacteristic!.nextValue();
     await _send(data);
 
     final result = await f;
