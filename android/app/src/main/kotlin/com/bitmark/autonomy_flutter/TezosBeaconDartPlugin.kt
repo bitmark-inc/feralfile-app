@@ -28,6 +28,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.onEach
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import java.util.*
@@ -57,6 +58,12 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
             }
             "getConnectionURI" ->
                 getConnectionURI(call, result)
+            "getPostMessageConnectionURI" ->
+                getPostMessageConnectionURI(call, result)
+            "handlePostMessageOpenChannel" ->
+                handlePostMessageOpenChannel(call, result)
+            "handlePostMessageMessage" ->
+                handlePostMessageMessage(call, result)
             "addPeer" -> {
                 val link: String = call.argument("link") ?: ""
                 addPeer(link)
@@ -320,6 +327,125 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
         result.success(rev)
     }
 
+    private fun getPostMessageConnectionURI(call: MethodCall, result: Result) {
+        val rev: HashMap<String, Any> = HashMap()
+        rev["error"] = 0
+
+        val peer = PostMessagePairingRequest(
+            id = UUID.randomUUID().toString().lowercase(),
+            name = beaconSdk.app.name,
+            icon = null,
+            appUrl = null,
+            publicKey = beaconSdk.beaconId,
+            type = "postmessage-pairing-request"
+        )
+
+        val json = jsonKT.encodeToString(PostMessagePairingRequest.serializer(), peer)
+        val encodedData = dependencyRegistry.base58Check.encode(json.toByteArray(Charsets.UTF_8)).getOrNull() ?: ""
+        rev["uri"] = encodedData
+
+        result.success(rev)
+    }
+
+    private fun handlePostMessageOpenChannel(call: MethodCall, result: Result) {
+        val client = beaconClient ?: return
+
+        val payload: String = call.argument("payload") ?: ""
+        val decryptedResult = dependencyRegistry.crypto.decryptMessageWithKeyPair(
+            payload.asHexString().toByteArray(),
+            beaconSdk.app.keyPair.publicKey,
+            beaconSdk.app.keyPair.privateKey
+        )
+
+        decryptedResult.getOrNull()?.let {
+            val pairingResponse =
+                jsonKT.decodeFromString<ExtendedPostMessagePairingResponse>(it.toString(Charsets.UTF_8))
+            val extensionPublicKey = pairingResponse.publicKey.asHexString().toByteArray()
+            val pairingPeer = pairingResponse.extractPeer()
+
+            val metadata = client.getOwnAppMetadata()
+            val request = PostMessagePermissionRequest(
+                id = UUID.randomUUID().toString().lowercase(),
+                version = "2",
+                blockchainIdentifier = "tezos",
+                appMetadata = metadata,
+                network = TezosNetwork.Mainnet(),
+                scopes = listOf(
+                    TezosPermission.Scope.OperationRequest,
+                    TezosPermission.Scope.Sign
+                ),
+                senderID = metadata.senderId,
+                type = "permission_request"
+            )
+
+            val json = jsonKT.encodeToString(PostMessagePermissionRequest.serializer(), request)
+            val message =
+                dependencyRegistry.base58Check.encode(json.toByteArray(Charsets.UTF_8)).getOrNull()
+                    ?: return
+
+            val sharedKey = dependencyRegistry.crypto.createClientSessionKeyPair(
+                extensionPublicKey,
+                beaconSdk.app.keyPair.privateKey
+            ).getOrNull() ?: return
+
+            val encryptedResult =
+                dependencyRegistry.crypto.encryptMessageWithSharedKey(message, sharedKey.tx)
+            val encryptedData = encryptedResult.getOrNull()?.toHexString()?.asString() ?: return
+
+            val rev: HashMap<String, Any> = HashMap()
+            rev["error"] = 0
+            rev["peer"] = jsonKT.encodeToString(P2pPeer.serializer(), pairingPeer)
+            rev["permissionRequestMessage"] = encryptedData
+
+            result.success(rev)
+        }
+    }
+
+    private fun handlePostMessageMessage(call: MethodCall, result: Result) {
+        val extensionPublicKey: String = call.argument("extensionPublicKey") ?: ""
+        val payload: String = call.argument("payload") ?: ""
+
+        val sharedKey = dependencyRegistry.crypto.createServerSessionKeyPair(
+            extensionPublicKey.asHexString().toByteArray(),
+            beaconSdk.app.keyPair.privateKey
+        ).getOrNull() ?: return
+
+        val decryptedResult = dependencyRegistry.crypto.decryptMessageWithSharedKey(
+            payload.asHexString(),
+            sharedKey.rx
+        )
+
+        decryptedResult.getOrNull()?.let {
+            try {
+                val decodedMessage =
+                    dependencyRegistry.base58Check.decode(it.toString(Charsets.UTF_8)).getOrNull()
+                        ?: return
+                val postMessageResponse = jsonKT.decodeFromString(
+                    PostMessageResponse.serializer(),
+                    decodedMessage.toString(Charsets.UTF_8)
+                )
+
+                val permissionTezosResponse = postMessageResponse.convertToPermissionResponse()
+
+                val tzAddress = TezosWallet(
+                    dependencyRegistry.crypto,
+                    dependencyRegistry.base58Check
+                ).address(permissionTezosResponse.publicKey).getOrDefault("")
+
+                val rev: HashMap<String, Any> = HashMap()
+                rev["error"] = 0
+                rev["tzAddress"] = tzAddress
+                rev["response"] = jsonKT.encodeToString(PermissionTezosResponse.serializer(), permissionTezosResponse)
+
+                result.success(rev)
+            } catch (e: SerializationException) {
+                val rev: HashMap<String, Any> = HashMap()
+                rev["error"] = 1
+                rev["reason"] = "aborted"
+            }
+        }
+    }
+
     private fun respond(call: MethodCall, result: Result) {
         val id: String? = call.argument("id")
         val request = awaitingRequest ?: return
@@ -435,3 +561,76 @@ data class TezosWalletConnection(
     val peer: Peer?,
     val permissionResponse: PermissionTezosResponse
 )
+
+
+@Serializable
+data class PostMessagePairingRequest(
+    val id: String,
+    val name: String,
+    val icon: String?,
+    val appUrl: String?,
+    val publicKey: String,
+    val type: String
+)
+
+@Serializable
+data class ExtendedPostMessagePairingResponse(
+    val id: String,
+    val type: String,
+    val name: String,
+    val publicKey: String,
+    val icon: String?,
+    val appUrl: String?,
+    val senderId: String,
+) {
+    fun extractPeer(): P2pPeer { // should be postMessagePeer; but we use that just for field values
+        return P2pPeer(
+            id = id,
+            name = name,
+            publicKey = publicKey,
+            relayServer = "",
+            version = "",
+            icon = icon,
+            appUrl = appUrl
+        )
+    }
+}
+
+@Serializable
+data class PostMessagePermissionRequest(
+    val type: String,
+    val id: String,
+    val blockchainIdentifier: String,
+    val senderID: String,
+    val appMetadata: AppMetadata,
+    val network: Network,
+    val scopes: List<TezosPermission.Scope>,
+    val version: String
+)
+
+@Serializable
+data class PostMessageResponse(
+    val id: String,
+    val publicKey: String,
+    val network: TezosNetwork,
+    val scopes: List<TezosPermission.Scope>,
+    val version: String,
+    val senderId: String,
+    val type: String
+) {
+    fun convertToPermissionResponse(): PermissionTezosResponse {
+        val request = PermissionTezosRequest(
+            id = id,
+            blockchainIdentifier = "tezos",
+            network = network,
+            scopes = scopes,
+            version = version,
+            appMetadata = TezosAppMetadata(senderId, ""),
+            origin = Origin.P2P(senderId),
+            senderId = senderId
+        )
+        return PermissionTezosResponse.from(
+            request, publicKey, network, scopes
+        )
+    }
+}
