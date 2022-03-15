@@ -77,6 +77,10 @@ dependencies:
   after_layout: ^1.1.0
   photo_view: ^0.13.0
   easy_debounce: ^2.0.2+1
+  flutter_blue:
+    git: https://github.com/autonomy-system/flutter_blue.git
+  flutter_vibrate: ^1.3.0
+  async: ^2.8.2
   web_socket_channel: ^2.1.0
 
 dev_dependencies:
@@ -118,6 +122,7 @@ flutter:
     - assets/images/feralfileAppIcon.svg
     - assets/images/autonomyIcon.png
     - assets/images/rainbow.png
+    - assets/images/iconLedger.png
     - assets/images/trust-alternative.png
     - assets/images/metamask-alternative.png
     - assets/images/walletconnect-alternative.png

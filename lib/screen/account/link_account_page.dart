@@ -5,6 +5,7 @@ import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_dapp_service/wallet_connect_dapp_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -262,6 +263,7 @@ class _LinkAccountPageState extends State<LinkAccountPage>
             onTap: () {
               _linkMetamask(context);
             }),
+        _linkLedger("Ethereum"),
         addDivider(),
         TappableForwardRow(
             leftWidget: Row(
@@ -313,6 +315,7 @@ class _LinkAccountPageState extends State<LinkAccountPage>
             ),
             onTap: () =>
                 Navigator.of(context).pushNamed(AppRouter.linkTezosTemplePage)),
+        _linkLedger("Tezos"),
         addDivider(),
         TappableForwardRow(
             leftWidget: Row(
@@ -334,5 +337,32 @@ class _LinkAccountPageState extends State<LinkAccountPage>
   Future _linkMetamask(BuildContext context) async {
     injector<WalletConnectDappService>().start();
     injector<WalletConnectDappService>().connect();
+  }
+
+  Widget _linkLedger(String blockchain) {
+    return FutureBuilder<bool>(
+        future: isAppCenterBuild(),
+        builder: (context, snapshot) {
+          if (snapshot.data == true) {
+            return Column(
+              children: [
+                addDivider(),
+                TappableForwardRow(
+                    leftWidget: Row(
+                      children: [
+                        Image.asset("assets/images/iconLedger.png"),
+                        SizedBox(width: 16),
+                        Text("Ledger", style: appTextTheme.headline4),
+                      ],
+                    ),
+                    onTap: () => Navigator.of(context).pushNamed(
+                        AppRouter.linkLedgerWalletPage,
+                        arguments: blockchain)),
+              ],
+            );
+          }
+
+          return SizedBox();
+        });
   }
 }

@@ -90,5 +90,9 @@
 		<false/>
 		<key>UIStatusBarHidden</key>
 		<false/>
+		<key>NSBluetoothAlwaysUsageDescription</key>  
+	    <string>Scan for your Ledger hardware wallets.</string>  
+	    <key>NSBluetoothPeripheralUsageDescription</key>  
+	    <string>Scan for your Ledger hardware wallets.</string>
 	</dict>
 </plist>

@@ -117,13 +117,14 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
             accountNumber: xtzAddress,
             createdAt: persona.createdAt);
 
-        categorizedAccounts
-            .add(CategorizedAccounts(name, [bitmarkAccount, ethAccount, xtzAccount]));
+        categorizedAccounts.add(CategorizedAccounts(
+            name, [bitmarkAccount, ethAccount, xtzAccount]));
       }
 
       for (var connection in connections) {
         switch (connection.connectionType) {
           case "walletConnect":
+          case "ledgerEthereum":
             categorizedAccounts.add(CategorizedAccounts(connection.name, [
               Account(
                 blockchain: "Ethereum",
@@ -135,6 +136,7 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
             ]));
             break;
           case "walletBeacon":
+          case "ledgerTezos":
             categorizedAccounts.add(CategorizedAccounts(connection.name, [
               Account(
                 blockchain: "Tezos",
@@ -157,6 +159,34 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
       final connection = Connection.fromETHWallet(event.session);
       final alreadyLinkedAccount =
           await getExistingAccount(connection.accountNumber);
+      if (alreadyLinkedAccount != null) {
+        emit(state.setEvent(AlreadyLinkedError(alreadyLinkedAccount)));
+        return;
+      }
+
+      _cloudDB.connectionDao.insertConnection(connection);
+      emit(state.setEvent(LinkAccountSuccess(connection)));
+
+      add(GetAccountsEvent());
+    });
+
+    on<LinkLedgerWalletEvent>((event, emit) async {
+      final data = event.data;
+      data["ledger"] = event.ledgerName;
+      data["ledger_uuid"] = event.ledgerBLEUUID;
+
+      late Connection connection;
+      switch (event.blockchain) {
+        case "Ethereum":
+          connection = Connection.fromLedgerEthereumWallet(event.address, data);
+          break;
+        case "Tezos":
+          connection = Connection.fromLedgerTezosWallet(event.address, data);
+          break;
+        default:
+          throw "Unhandled blockchain ${event.blockchain}";
+      }
+      final alreadyLinkedAccount = await getExistingAccount(event.address);
       if (alreadyLinkedAccount != null) {
         emit(state.setEvent(AlreadyLinkedError(alreadyLinkedAccount)));
         return;

@@ -52,31 +52,27 @@ class AddAccountPage extends StatelessWidget {
   }
 
   Widget _linkAddressWidget() {
-    if (Platform.isIOS) {
-      return FutureBuilder<bool>(
-          future: isAppCenterBuild(),
-          builder: (context, snapshot) {
-            if (snapshot.data == true) {
-              return Column(
-                children: [
-                  addDivider(),
-                  TappableForwardRowWithContent(
-                    leftWidget:
-                        Text('Link address', style: appTextTheme.headline4),
-                    bottomWidget: Text('Manually input an address (Debug only)',
-                        style: appTextTheme.bodyText1),
-                    onTap: () => Navigator.of(context)
-                        .pushNamed(AppRouter.linkManuallyAddress),
-                  ),
-                ],
-              );
-            }
+    return FutureBuilder<bool>(
+        future: isAppCenterBuild(),
+        builder: (context, snapshot) {
+          if (snapshot.data == true) {
+            return Column(
+              children: [
+                addDivider(),
+                TappableForwardRowWithContent(
+                  leftWidget:
+                      Text('Link address', style: appTextTheme.headline4),
+                  bottomWidget: Text('Manually input an address (Debug only)',
+                      style: appTextTheme.bodyText1),
+                  onTap: () => Navigator.of(context)
+                      .pushNamed(AppRouter.linkManuallyAddress),
+                ),
+              ],
+            );
+          }
 
-            return SizedBox();
-          });
-    } else {
-      return SizedBox();
-    }
+          return SizedBox();
+        });
   }
 
   Widget _linkAccountOption(BuildContext context) {

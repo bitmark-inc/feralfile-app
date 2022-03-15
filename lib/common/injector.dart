@@ -8,6 +8,7 @@ import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/cloud_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/currency_service.dart';
+import 'package:autonomy_flutter/service/ledger_hardware/ledger_hardware_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_dapp_service/wallet_connect_dapp_service.dart';
@@ -68,6 +69,7 @@ Future<void> setup() async {
   injector.registerLazySingleton(() => Client());
   injector.registerLazySingleton(() => NavigationService());
   injector.registerLazySingleton(() => AWSService(injector()));
+  injector.registerLazySingleton(() => LedgerHardwareService());
 
   injector.registerLazySingleton(
       () => WalletConnectService(injector(), injector()));
