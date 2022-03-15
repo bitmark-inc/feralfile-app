@@ -4,7 +4,10 @@ import 'dart:typed_data';
 import 'package:autonomy_flutter/util/endian_int_ext.dart';
 import 'package:convert/convert.dart';
 import 'package:tezart/tezart.dart';
+import 'package:async/async.dart';
 import 'package:flutter_blue/flutter_blue.dart';
+
+// Ref: https://blog.ledger.com/btchip-doc/bitcoin-technical.html
 
 class SWCode {
   static int OK = 0x9000;
@@ -19,19 +22,37 @@ class SWCode {
 }
 
 class LedgerHardwareWallet {
+  static const String notifyUuid = "13d63400-2c97-0004-0001-4c6564676572";
+  static const String writeUuid = "13d63400-2c97-0004-0002-4c6564676572";
+  static const String writeCmdUuid = "13d63400-2c97-0004-0003-4c6564676572";
+
   final String name;
   final BluetoothDevice device;
   bool isConnected = false;
   BluetoothCharacteristic? writeCharacteristic;
   BluetoothCharacteristic? writeCMDCharacteristic;
   BluetoothCharacteristic? notifyCharacteristic;
-  List<String> errors = List.empty();
-  int _currentCounter = 0;
+  StreamQueue<List<int>>? _notifyCharacteristicData;
 
   LedgerHardwareWallet(this.name, this.device);
 
   static const int _TAG_APDU = 0x05;
   static const int _MTU = 128;
+
+  Future<dynamic> connect(BluetoothService service) async {
+    for (BluetoothCharacteristic characteristic in service.characteristics) {
+      if (characteristic.uuid == Guid(notifyUuid)) {
+        this.notifyCharacteristic = characteristic;
+        await this.notifyCharacteristic!.setNotifyValue(true);
+        _notifyCharacteristicData =
+            new StreamQueue<List<int>>(notifyCharacteristic!.value);
+      } else if (characteristic.uuid == Guid(writeUuid)) {
+        this.writeCharacteristic = characteristic;
+      } else if (characteristic.uuid == Guid(writeCmdUuid)) {
+        this.writeCMDCharacteristic = characteristic;
+      }
+    }
+  }
 
   Future<dynamic> disconnect() {
     isConnected = false;
@@ -182,13 +203,13 @@ class LedgerHardwareWallet {
   }
 
   Future<List<int>> _exchange(List<int> data) async {
-    await _send(data);
-    if (notifyCharacteristic == null) {
+    if (_notifyCharacteristicData == null) {
       throw ("notifyCharacteristic is null");
     }
-    final result =
-        await notifyCharacteristic!.value.elementAt(_currentCounter++);
+    final f = _notifyCharacteristicData!.next;
+    await _send(data);
 
+    final result = await f;
     return await _response(result);
   }
 
@@ -218,6 +239,7 @@ class ADPU {
       this.payload});
 }
 
+/// Parse the response into meaningful message from a [code]
 String getLabelFromCode(int code) {
   String labelResponse = '';
   switch (code) {
@@ -245,14 +267,13 @@ String getLabelFromCode(int code) {
   return labelResponse;
 }
 
-class LedgerTransportResult {
-  int statusWord;
-  Uint8List data;
-  LedgerTransportResult({required this.statusWord, required this.data});
-}
-
 class LedgerCommand {
   static const int CLA_BOLOS = 0xE0;
+
+  // Ref: https://github.com/LedgerHQ/app-tezos/blob/develop/src/apdu.c#L37
+  static const int CLA_TEZOS = 0x80;
+
+  // Ref: https://github.com/LedgerHQ/app-ethereum/blob/develop/src/apdu_constants.h
   static const int INS_GET_VERSION = 0x01;
   static const int INS_RUN_APP = 0xD8;
   static const int INS_QUIT_APP = 0xA7;
@@ -266,6 +287,7 @@ class LedgerCommand {
   static const int INS_HASH_INPUT_FINALIZE_FULL = 0x4a;
   static const int INS_EXIT = 0xA7;
 
+  /// Get the current ledger version.
   static Future<Map<String, dynamic>> version(
       LedgerHardwareWallet ledger) async {
     final adpu = ADPU(cla: CLA_BOLOS, ins: INS_GET_VERSION, p1: 0, p2: 0);
@@ -286,6 +308,9 @@ class LedgerCommand {
     };
   }
 
+  /// Get the current app that the user is in.
+  ///
+  /// Returns a map with `name` and `version` of the app.
   static Future<Map<String, dynamic>> application(
       LedgerHardwareWallet ledger) async {
     const APP_DETAILS_FORMAT_VERSION = 1;
@@ -319,7 +344,12 @@ class LedgerCommand {
     });
   }
 
-  static Future<Map<String, dynamic>> pubKey(
+  /// Get an Bitcoin address from a [ledger] with a specific [path]
+  ///
+  /// Require users to be in the Bitcoin app in the [ledger] first.
+  /// Throws IOError as String if there is a connection problem.
+  /// Returns a map of `public_key` in String with hex format and an `address` in String
+  static Future<Map<String, dynamic>> getBitcoinAddress(
       LedgerHardwareWallet ledger, String path,
       {bool verify = false}) async {
     final pathData = pathToData(path);
@@ -345,10 +375,17 @@ class LedgerCommand {
     };
   }
 
+  /// Get an Ethereum address from a [ledger] with a specific [path]
+  ///
+  /// Require users to be in the Ethereum app in the [ledger] first.
+  /// Throws IOError as String if there is a connection problem.
+  /// Returns a map of `public_key` in String with hex format and an `address` in String
   static Future<Map<String, dynamic>> getEthAddress(
       LedgerHardwareWallet ledger, String path,
       {bool verify = false}) async {
     final pathData = pathToData(path);
+
+    // Ref: https://github.com/LedgerHQ/app-ethereum/blob/develop/src/apdu_constants.h
     final adpu =
         ADPU(cla: CLA_BOLOS, ins: 0x02, p1: 0x00, p2: 0x00, payload: pathData);
     final buffer = await ledger.exchangeADPU(adpu);
@@ -367,18 +404,25 @@ class LedgerCommand {
     };
   }
 
+  /// Get a Tezos address from a [ledger] with a specific [path]
+  ///
+  /// Require users to be in the Tezos app in the [ledger] first.
+  /// Throws IOError as String if there is a connection problem.
+  /// Returns a map of `public_key` in String with hex format and an `address` in String
   static Future<Map<String, dynamic>> getTezosAddress(
       LedgerHardwareWallet ledger, String path,
       {bool verify = false}) async {
     final pathData = pathToData(path);
     final adpu = ADPU(
-        cla: 0x80,
+        cla: CLA_TEZOS,
         ins: verify ? 0x03 : 0x02,
         p1: 0x00,
         p2: 0,
         payload: pathData);
     final buffer = await ledger.exchangeADPU(adpu);
 
+    // Parse the pubkey
+    // Ref: https://github.com/LedgerHQ/app-tezos/blob/develop/src/apdu.c#L10
     final publicKeyLength = buffer[0];
 
     final publicKey = buffer.sublist(1, publicKeyLength + 1);
