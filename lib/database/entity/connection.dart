@@ -15,6 +15,7 @@ enum ConnectionType {
   feralFileWeb3,
   ledgerEthereum,
   ledgerTezos,
+  manuallyAddress,
 }
 
 extension RawValue on ConnectionType {

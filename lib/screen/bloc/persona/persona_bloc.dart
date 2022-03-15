@@ -96,57 +96,5 @@ class PersonaBloc extends Bloc<PersonaEvent, PersonaState> {
         emit(state.copyWith(importPersonaState: ActionState.error));
       }
     });
-
-    on<DeletePersonaEvent>((event, emit) async {
-      log.info('[PersonaBloc] DeletePersonaEvent');
-      emit(state.copyWith(deletePersonaState: ActionState.loading));
-
-      final deletedPersona = event.persona;
-      _cloudDB.personaDao.deletePersona(deletedPersona);
-      LibAukDart.getWallet(deletedPersona.uuid).removeKeys();
-
-      final connections = await _cloudDB.connectionDao.getConnections();
-      Set<WCPeerMeta> wcPeers = {};
-      Set<P2PPeer> bcPeers = {};
-
-      for (var connection in connections) {
-        switch (connection.connectionType) {
-          case 'dappConnect':
-            if (deletedPersona.uuid == connection.wcConnection?.personaUuid) {
-              await _cloudDB.connectionDao.deleteConnection(connection);
-
-              final wcPeer = connection.wcConnection?.sessionStore.peerMeta;
-              if (wcPeer != null) wcPeers.add(wcPeer);
-            }
-            break;
-
-          case 'beaconP2PPeer':
-            if (deletedPersona.uuid ==
-                connection.beaconConnectConnection?.personaUuid) {
-              await _cloudDB.connectionDao.deleteConnection(connection);
-
-              final bcPeer = connection.beaconConnectConnection?.peer;
-              if (bcPeer != null) bcPeers.add(bcPeer);
-            }
-            break;
-
-          // Note: Should app delete feralFileWeb3 too ??
-        }
-      }
-
-      try {
-        for (var peer in wcPeers) {
-          _walletConnectService.disconnect(peer);
-        }
-
-        for (var peer in bcPeers) {
-          _tezosBeaconService.removePeer(peer);
-        }
-      } catch (exception) {
-        Sentry.captureException(exception);
-      }
-
-      emit(state.copyWith(deletePersonaState: ActionState.done));
-    });
   }
 }

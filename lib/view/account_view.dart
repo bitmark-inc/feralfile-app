@@ -211,11 +211,15 @@ Widget _appLogo(Connection connection) {
       switch (walletName) {
         case "Kukai Wallet":
           return Image.asset("assets/images/kukai_wallet.png");
+        case "Temple - Tezos Wallet (ex. Thanos)":
+          return Image.asset("assets/images/temple_wallet.png");
         default:
           return Image.asset("assets/images/tezos_wallet.png");
       }
 
     default:
-      return SizedBox();
+      return SizedBox(
+        width: 24,
+      );
   }
 }

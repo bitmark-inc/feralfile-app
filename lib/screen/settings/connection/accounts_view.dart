@@ -2,6 +2,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
+import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/theme_manager.dart';
@@ -20,21 +21,6 @@ class AccountsView extends StatefulWidget {
 }
 
 class _AccountsViewState extends State<AccountsView> {
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-
-    final personaState = context.watch<PersonaBloc>().state;
-    switch (personaState.deletePersonaState) {
-      case ActionState.done:
-        context.read<AccountsBloc>().add(GetAccountsEvent());
-        break;
-
-      default:
-        break;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<AccountsBloc, AccountsState>(
@@ -201,16 +187,16 @@ class _AccountsViewState extends State<AccountsView> {
         });
   }
 
-  void _deleteAccount(BuildContext context, Account account) {
+  void _deleteAccount(BuildContext context, Account account) async {
     final persona = account.persona;
     if (persona != null) {
-      context.read<PersonaBloc>().add(DeletePersonaEvent(persona));
+      await injector<AccountService>().deletePersona(persona);
     }
 
     final connection = account.connections?.first;
 
     if (connection != null) {
-      context.read<AccountsBloc>().add(DeleteLinkedAccountEvent(connection));
+      await injector<AccountService>().deleteLinkedAccount(connection);
     }
   }
 }

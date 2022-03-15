@@ -318,6 +318,17 @@ class _LinkAccountPageState extends State<LinkAccountPage>
         TappableForwardRow(
             leftWidget: Row(
               children: [
+                Image.asset("assets/images/temple_wallet.png"),
+                SizedBox(width: 16),
+                Text("Temple", style: appTextTheme.headline4),
+              ],
+            ),
+            onTap: () =>
+                Navigator.of(context).pushNamed(AppRouter.linkTezosTemplePage)),
+        addDivider(),
+        TappableForwardRow(
+            leftWidget: Row(
+              children: [
                 Image.asset("assets/images/iconLedger.png"),
                 SizedBox(width: 16),
                 Text("Ledger", style: appTextTheme.headline4),

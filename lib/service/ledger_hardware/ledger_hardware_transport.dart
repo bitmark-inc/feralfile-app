@@ -385,8 +385,12 @@ class LedgerCommand {
     final pathData = pathToData(path);
 
     // Ref: https://github.com/LedgerHQ/app-ethereum/blob/develop/src/apdu_constants.h
-    final adpu =
-        ADPU(cla: CLA_BOLOS, ins: 0x02, p1: 0x00, p2: 0x00, payload: pathData);
+    final adpu = ADPU(
+        cla: CLA_BOLOS,
+        ins: 0x02,
+        p1: verify ? 0x01 : 0x00,
+        p2: 0x00,
+        payload: pathData);
     final buffer = await ledger.exchangeADPU(adpu);
 
     final publicKeyLength = buffer[0];

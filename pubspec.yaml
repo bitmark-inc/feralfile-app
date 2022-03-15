@@ -81,6 +81,7 @@ dependencies:
     git: https://github.com/autonomy-system/flutter_blue.git
   flutter_vibrate: ^1.3.0
   async: ^2.8.2
+  web_socket_channel: ^2.1.0
 
 dev_dependencies:
   flutter_test:
@@ -126,6 +127,7 @@ flutter:
     - assets/images/metamask-alternative.png
     - assets/images/walletconnect-alternative.png
     - assets/images/kukai_wallet.png
+    - assets/images/temple_wallet.png
     - assets/images/tezos_wallet.png
     - assets/images/premium_comparation.svg
     - assets/images/face_id.svg

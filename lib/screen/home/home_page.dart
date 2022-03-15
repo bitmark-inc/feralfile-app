@@ -221,15 +221,45 @@ class _HomePageState extends State<HomePage>
 
   void _handleDeeplink(String? link) {
     if (link == null) return;
-    final wcPrefix = "https://au.bitmark.com/apps/wc?uri=";
+
+    final wcPrefix1 = "https://au.bitmark.com/apps/wc?uri=";
+    final wcPrefix2 =
+        "https://au.bitmark.com/apps/wc/wc?uri="; // maybe something wrong with WC register; fix by this for now
     final tzPrefix = "https://au.bitmark.com/apps/tezos?uri=";
 
-    if (link.startsWith(wcPrefix)) {
-      final wcUri = link.substring(wcPrefix.length);
-      context.read<HomeBloc>().add(HomeConnectWCEvent(wcUri));
+    // Check Universal Link
+    if (link.startsWith(wcPrefix1)) {
+      final wcUri = link.substring(wcPrefix1.length);
+      final decodedWcUri = Uri.decodeFull(wcUri);
+      context.read<HomeBloc>().add(HomeConnectWCEvent(decodedWcUri));
+    } else if (link.startsWith(wcPrefix2)) {
+      final wcUri = link.substring(wcPrefix2.length);
+      final decodedWcUri = Uri.decodeFull(wcUri);
+      context.read<HomeBloc>().add(HomeConnectWCEvent(decodedWcUri));
     } else if (link.startsWith(tzPrefix)) {
-      final tzUri = link.substring(wcPrefix.length);
+      final tzUri = link.substring(tzPrefix.length);
       context.read<HomeBloc>().add(HomeConnectTZEvent(tzUri));
+    } else {
+      // Check Deeplink
+      final wcDeeplinkPrefixes = ['wc:', 'autonomy-wc:'];
+      final tbDeeplinkPrefixes = [
+        "tezos://",
+        "autonomy-tezos://",
+      ];
+
+      final callingWCPrefix = wcDeeplinkPrefixes
+          .firstWhereOrNull((prefix) => link.startsWith(prefix));
+      if (callingWCPrefix != null) {
+        context.read<HomeBloc>().add(HomeConnectWCEvent(link));
+        return;
+      }
+
+      final callingTBPrefix = tbDeeplinkPrefixes
+          .firstWhereOrNull((prefix) => link.startsWith(prefix));
+      if (callingTBPrefix != null) {
+        context.read<HomeBloc>().add(HomeConnectTZEvent(link));
+        return;
+      }
     }
   }
 
