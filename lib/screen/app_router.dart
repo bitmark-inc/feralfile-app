@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/screen/account/add_account_page.dart';
 import 'package:autonomy_flutter/screen/account/import_account_page.dart';
 import 'package:autonomy_flutter/screen/account/link_account_page.dart';
 import 'package:autonomy_flutter/screen/account/link_feralfile_page.dart';
+import 'package:autonomy_flutter/screen/account/link_manually_address_page.dart';
 import 'package:autonomy_flutter/screen/account/link_tezos_kukai_page.dart';
 import 'package:autonomy_flutter/screen/account/link_tezos_temple_page.dart';
 import 'package:autonomy_flutter/screen/account/link_wallet_connect_page.dart';
@@ -93,6 +94,7 @@ class AppRouter {
   static const recoveryPhrasePage = 'recovery_phrase';
   static const wcConnectPage = 'wc_connect';
   static const cloudPage = 'cloud_page';
+  static const linkManuallyAddress = 'link_manually_address';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final networkInjector = injector<NetworkConfigInjector>();
@@ -520,6 +522,12 @@ class AppRouter {
             builder: (context) => GlobalReceiveDetailPage(
                   payload: settings.arguments,
                 ));
+
+      case linkManuallyAddress:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => LinkManuallyAddressPage());
+
       default:
         throw Exception('Invalid route: ${settings.name}');
     }

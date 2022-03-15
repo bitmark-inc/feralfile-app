@@ -13,6 +13,7 @@ enum ConnectionType {
   walletBeacon,
   feralFileToken,
   feralFileWeb3,
+  manuallyAddress,
 }
 
 extension RawValue on ConnectionType {
