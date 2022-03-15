@@ -54,6 +54,10 @@ android {
     packagingOptions {
         exclude '**/lib/libsodiumjni.dylib'
     }
+
+    defaultConfig {
+        resConfigs "en", "US"
+    }
 }
 
 flutter {
