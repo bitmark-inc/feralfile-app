@@ -14,10 +14,10 @@ class XtzAmountFormatter {
 const crypto.Prefixes _addressPrefix = crypto.Prefixes.tz1;
 
 String xtzAddress(List<int> publicKey) => crypto.catchUnhandledErrors(() {
-      final publicKeyBytes = Uint8List.fromList(publicKey);
+      final publicKeyBytes = Uint8List.fromList(_compressPublicKey(publicKey));
       final hash = crypto.hashWithDigestSize(
         size: 160,
-        bytes: publicKeyBytes,
+        bytes: publicKeyBytes.sublist(1),
       );
 
       return crypto.encodeWithPrefix(
@@ -25,3 +25,8 @@ String xtzAddress(List<int> publicKey) => crypto.catchUnhandledErrors(() {
         bytes: hash,
       );
     });
+
+List<int> _compressPublicKey(List<int> publicKey) {
+  publicKey[0] = 0x00;
+  return publicKey;
+}
