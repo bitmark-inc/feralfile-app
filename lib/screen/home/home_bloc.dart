@@ -134,6 +134,19 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
                   .requestIndex({"owner": tezosAddress, "blockchain": "tezos"});
               break;
 
+            case 'manuallyAddress':
+              final address = linkAccount.accountNumber;
+              final isTezosAddress = address.startsWith("tz");
+              log.info(
+                  "[HomeBloc] RequestIndex for linked $address - isTezosAddress: $isTezosAddress");
+              if (isTezosAddress) {
+                _indexerApi
+                    .requestIndex({"owner": address, "blockchain": "tezos"});
+              } else {
+                _indexerApi.requestIndex({"owner": address});
+              }
+              break;
+
             default:
               break;
           }
