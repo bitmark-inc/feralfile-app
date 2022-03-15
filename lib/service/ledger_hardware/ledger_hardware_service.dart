@@ -12,9 +12,6 @@ enum DeviceModelId {
 
 class LedgerHardwareService {
   static const String serviceUuid = "13d63400-2c97-0004-0000-4c6564676572";
-  static const String notifyUuid = "13d63400-2c97-0004-0001-4c6564676572";
-  static const String writeUuid = "13d63400-2c97-0004-0002-4c6564676572";
-  static const String writeCmdUuid = "13d63400-2c97-0004-0003-4c6564676572";
 
   final FlutterBlue flutterBlue = FlutterBlue.instance;
   Map<String, LedgerHardwareWallet> _connectedLedgers =
@@ -42,17 +39,7 @@ class LedgerHardwareService {
     await Future.forEach(services, (s) async {
       final service = s as BluetoothService;
       if (service.uuid == Guid(serviceUuid)) {
-        for (BluetoothCharacteristic characteristic
-            in service.characteristics) {
-          if (characteristic.uuid == Guid(notifyUuid)) {
-            ledger.notifyCharacteristic = characteristic;
-            await ledger.notifyCharacteristic!.setNotifyValue(true);
-          } else if (characteristic.uuid == Guid(writeUuid)) {
-            ledger.writeCharacteristic = characteristic;
-          } else if (characteristic.uuid == Guid(writeCmdUuid)) {
-            ledger.writeCMDCharacteristic = characteristic;
-          }
-        }
+        await ledger.connect(service);
       }
     });
     ledger.isConnected = (ledger.notifyCharacteristic != null &&

@@ -79,6 +79,7 @@ dependencies:
   easy_debounce: ^2.0.2+1
   flutter_blue: ^0.8.0
   flutter_vibrate: ^1.3.0
+  async: ^2.8.2
 
 dev_dependencies:
   flutter_test:
