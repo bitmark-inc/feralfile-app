@@ -416,10 +416,11 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
         )
 
         decryptedResult.getOrNull()?.let {
+            val decodedMessage =
+                dependencyRegistry.base58Check.decode(it.toString(Charsets.UTF_8)).getOrNull()
+                    ?: return
+
             try {
-                val decodedMessage =
-                    dependencyRegistry.base58Check.decode(it.toString(Charsets.UTF_8)).getOrNull()
-                        ?: return
                 val postMessageResponse = jsonKT.decodeFromString(
                     PostMessageResponse.serializer(),
                     decodedMessage.toString(Charsets.UTF_8)
@@ -441,7 +442,22 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
             } catch (e: SerializationException) {
                 val rev: HashMap<String, Any> = HashMap()
                 rev["error"] = 1
-                rev["reason"] = "aborted"
+
+                try {
+                    val errorResponse = jsonKT.decodeFromString(
+                        PostMessageErrorResponse.serializer(),
+                        decodedMessage.toString(Charsets.UTF_8)
+                    )
+                    if (errorResponse.errorType == "ABORTED_ERROR") {
+                        rev["reason"] = "aborted"
+                    } else {
+                        rev["reason"] = "incorrectData"
+                    }
+                } catch (e: SerializationException) {
+                    rev["reason"] = "incorrectData"
+                }
+
+                result.success(rev)
             }
         }
     }
@@ -634,3 +650,12 @@ data class PostMessageResponse(
         )
     }
 }
+
+@Serializable
+data class PostMessageErrorResponse(
+    val id: String,
+    val version: String,
+    val senderId: String,
+    val type: String,
+    val errorType : String
+)
