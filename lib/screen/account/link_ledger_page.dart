@@ -7,6 +7,7 @@ import 'package:autonomy_flutter/service/ledger_hardware/ledger_hardware_service
 import 'package:autonomy_flutter/service/ledger_hardware/ledger_hardware_transport.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -17,13 +18,17 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 
 class LinkLedgerPage extends StatefulWidget {
-  const LinkLedgerPage({Key? key}) : super(key: key);
+  final String payload;
+  const LinkLedgerPage({Key? key, required this.payload}) : super(key: key);
 
   @override
-  State<LinkLedgerPage> createState() => _LinkLedgerPageState();
+  State<LinkLedgerPage> createState() => _LinkLedgerPageState(payload);
 }
 
 class _LinkLedgerPageState extends State<LinkLedgerPage> {
+  final String blockchain;
+  _LinkLedgerPageState(this.blockchain);
+
   @override
   void initState() {
     super.initState();
@@ -55,7 +60,7 @@ class _LinkLedgerPageState extends State<LinkLedgerPage> {
                 final walletName = linkedAccount.ledgerName;
 
                 UIHelper.showInfoDialog(context, "Account linked",
-                    "Autonomy has received autorization to link to your NFTs in $walletName.");
+                    "Autonomy has received autorization to link to your account ${linkedAccount.accountNumber.mask(4)} in $walletName.");
 
                 final delay = 3;
 
@@ -102,21 +107,20 @@ class _LinkLedgerPageState extends State<LinkLedgerPage> {
                         style: appTextTheme.headline1,
                       ),
                       SizedBox(height: 30),
-                      Text(
-                        "Select your ledger wallet to start:",
-                        style: appTextTheme.headline4,
+                      Row(
+                        children: [
+                          Text(
+                            "Select your ledger wallet:",
+                            style: appTextTheme.headline4,
+                          ),
+                          Spacer(),
+                          snapshot.connectionState != ConnectionState.done
+                              ? CupertinoActivityIndicator()
+                              : Container(),
+                        ],
                       ),
                       SizedBox(height: 30),
-                      if (snapshot.connectionState ==
-                          ConnectionState.waiting) ...[
-                        Expanded(
-                            child: Center(
-                                child: CupertinoActivityIndicator(
-                          color: Colors.grey,
-                        )))
-                      ] else ...[
-                        _deviceList(context, snapshot.data),
-                      ],
+                      _deviceList(context, snapshot.data),
                     ],
                   )),
               stream: injector<LedgerHardwareService>().scanForLedgerWallet(),
@@ -163,24 +167,48 @@ class _LinkLedgerPageState extends State<LinkLedgerPage> {
     try {
       final openingApplication = await LedgerCommand.application(ledger);
       final name = openingApplication["name"];
-      if (name != "Ethereum") {
+      late String ledgerAppname;
+      switch (blockchain) {
+        case "Tezos":
+          ledgerAppname = "Tezos Wallet";
+          break;
+        default:
+          ledgerAppname = blockchain;
+          break;
+      }
+      if (name != ledgerAppname) {
         return await _dismissAndShowError(context, ledger,
-            "Please open the ETH app on your ledger.\nIf you haven't installed, please do it in the Ledger Live app.");
+            "Please open the $blockchain app on your ledger.\nIf you haven't installed, please do it in the Ledger Live app.");
       }
 
-      final data = await LedgerCommand.getEthAddress(ledger, "44'/60'/0'/0/0",
-          verify: false);
+      UIHelper.hideInfoDialog(context);
+      UIHelper.showInfoDialog(context, ledger.name,
+          "Verify and approve the address sharing on your wallet.");
+
+      late Map<String, dynamic> data;
+      switch (blockchain) {
+        case "Ethereum":
+          data = await LedgerCommand.getEthAddress(ledger, "44'/60'/0'/0/0",
+              verify: true);
+          break;
+        case "Tezos":
+          data = await LedgerCommand.getTezosAddress(ledger, "44'/1729'/0'/0'",
+              verify: true);
+          break;
+        default:
+          throw "Unknown blockchain";
+      }
 
       if (data["address"] == null) {
         return await _dismissAndShowError(context, ledger,
-            "Cannot get an address from your ETH app. Please make sure you have created an account in the Ledger wallet.");
+            "Cannot get an address from your ETH app.\nMake sure you have created an account in the Ledger wallet.");
       } else {
         final address = data["address"] as String;
         log.info("Catched an address: $address");
         UIHelper.hideInfoDialog(context);
 
-        context.read<AccountsBloc>().add(LinkLedgerEthereumWalletEvent(
-            address, ledger.name, ledger.device.id.id, data));
+        context.read<AccountsBloc>().add(LinkLedgerWalletEvent(
+            address, blockchain, ledger.name, ledger.device.id.id, data));
 
         Vibrate.feedback(FeedbackType.success);
       }
@@ -188,7 +216,7 @@ class _LinkLedgerPageState extends State<LinkLedgerPage> {
       log.warning("Error when connecting to ledger: $error");
       await injector<LedgerHardwareService>().disconnect(ledger);
       return await _dismissAndShowError(context, ledger,
-          "Failed to send message to ledger.\n Make sure your ledger is unlocked.");
+          "Failed to send message to ledger.\nMake sure your ledger is unlocked.");
     }
   }
 

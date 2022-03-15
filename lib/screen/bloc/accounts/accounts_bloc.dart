@@ -170,11 +170,24 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
       add(GetAccountsEvent());
     });
 
-    on<LinkLedgerEthereumWalletEvent>((event, emit) async {
-      final connection =
-          Connection.fromLedgerEthereumWallet(event.address, event.data);
+    on<LinkLedgerWalletEvent>((event, emit) async {
+      late Connection connection;
+      switch (event.blockchain) {
+        case "Ethereum":
+          connection =
+              Connection.fromLedgerEthereumWallet(event.address, event.data);
+          break;
+        case "Tezos":
+          connection =
+              Connection.fromLedgerTezosWallet(event.address, event.data);
+          break;
+        default:
+          throw "Unhandled blockchain ${event.blockchain}";
+      }
+
       final data = event.data;
-      data['ledger'] = event.ledgerName;
+      data["ledger"] = event.ledgerName;
+      data["ledger_uuid"] = event.ledgerBLEUUID;
       final alreadyLinkedAccount = await getExistingAccount(event.address);
       if (alreadyLinkedAccount != null) {
         emit(state.setEvent(AlreadyLinkedError(alreadyLinkedAccount)));

@@ -218,7 +218,8 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider.value(
-                value: accountsBloc, child: LinkLedgerPage()));
+                value: accountsBloc,
+                child: LinkLedgerPage(payload: settings.arguments as String)));
 
       case linkWalletConnectPage:
         return CupertinoPageRoute(

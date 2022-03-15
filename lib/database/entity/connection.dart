@@ -105,7 +105,7 @@ class Connection {
   }
 
   factory Connection.fromLedgerTezosWallet(
-      String address, String blockchain, Map<String, dynamic> data) {
+      String address, Map<String, dynamic> data) {
     return Connection(
       key: address,
       name: "",

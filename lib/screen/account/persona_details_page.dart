@@ -10,7 +10,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/biometrics_util.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/xtz_amount_formatter.dart';
+import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:flutter/material.dart';
@@ -160,16 +160,18 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
           ),
         ],
       ),
-      onTap: type == CryptoType.BITMARK ? null : () {
-        final payload = PersonaConnectionsPayload(
-          personaUUID: widget.persona.uuid,
-          address: address,
-          type: type,
-        );
+      onTap: type == CryptoType.BITMARK
+          ? null
+          : () {
+              final payload = PersonaConnectionsPayload(
+                personaUUID: widget.persona.uuid,
+                address: address,
+                type: type,
+              );
 
-        Navigator.of(context)
-            .pushNamed(AppRouter.personaConnectionsPage, arguments: payload);
-      },
+              Navigator.of(context).pushNamed(AppRouter.personaConnectionsPage,
+                  arguments: payload);
+            },
     );
   }
 

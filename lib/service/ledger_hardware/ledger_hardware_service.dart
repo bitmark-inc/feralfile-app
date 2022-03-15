@@ -19,7 +19,7 @@ class LedgerHardwareService {
 
   Stream<Iterable<LedgerHardwareWallet>> scanForLedgerWallet() {
     FlutterBlue.instance.startScan(
-        withServices: [Guid(serviceUuid)], timeout: Duration(seconds: 4));
+        withServices: [Guid(serviceUuid)], timeout: Duration(seconds: 10));
     log.info("Start scanning for ledgers");
     final readyDevices = FlutterBlue.instance.scanResults.map((event) => event
         .map((e) => LedgerHardwareWallet(e.device.name, e.device))
