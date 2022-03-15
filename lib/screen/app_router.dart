@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/screen/account/add_account_page.dart';
 import 'package:autonomy_flutter/screen/account/import_account_page.dart';
 import 'package:autonomy_flutter/screen/account/link_account_page.dart';
 import 'package:autonomy_flutter/screen/account/link_feralfile_page.dart';
+import 'package:autonomy_flutter/screen/account/link_ledger_page.dart';
 import 'package:autonomy_flutter/screen/account/link_manually_address_page.dart';
 import 'package:autonomy_flutter/screen/account/link_tezos_kukai_page.dart';
 import 'package:autonomy_flutter/screen/account/link_tezos_temple_page.dart';
@@ -71,6 +72,7 @@ class AppRouter {
   static const newAccountPage = "new_account";
   static const addAccountPage = 'add_account';
   static const linkAccountpage = "link_account";
+  static const linkLedgerWalletPage = "link_ledger_wallet";
   static const linkWalletConnectPage = "link_wallet_connect";
   static const linkBeaconConnectPage = "link_beacon_connect";
   static const accountsPreviewPage = 'accounts_preview';
@@ -219,6 +221,13 @@ class AppRouter {
             settings: settings,
             builder: (context) =>
                 LinkBeaconConnectPage(uri: settings.arguments as String));
+
+      case linkLedgerWalletPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => BlocProvider.value(
+                value: accountsBloc,
+                child: LinkLedgerPage(payload: settings.arguments as String)));
 
       case linkWalletConnectPage:
         return CupertinoPageRoute(

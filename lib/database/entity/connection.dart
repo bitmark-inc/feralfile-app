@@ -13,6 +13,8 @@ enum ConnectionType {
   walletBeacon,
   feralFileToken,
   feralFileWeb3,
+  ledgerEthereum,
+  ledgerTezos,
   manuallyAddress,
 }
 
@@ -87,6 +89,30 @@ class Connection {
       data: json.encode(ffWeb3Connection),
       connectionType: ConnectionType.feralFileWeb3.rawValue,
       accountNumber: ffAccount.accountNumber,
+      createdAt: DateTime.now(),
+    );
+  }
+
+  factory Connection.fromLedgerEthereumWallet(
+      String address, Map<String, dynamic> data) {
+    return Connection(
+      key: address,
+      name: "",
+      data: json.encode(data),
+      connectionType: ConnectionType.ledgerEthereum.rawValue,
+      accountNumber: address,
+      createdAt: DateTime.now(),
+    );
+  }
+
+  factory Connection.fromLedgerTezosWallet(
+      String address, Map<String, dynamic> data) {
+    return Connection(
+      key: address,
+      name: "",
+      data: json.encode(data),
+      connectionType: ConnectionType.ledgerTezos.rawValue,
+      accountNumber: address,
       createdAt: DateTime.now(),
     );
   }
@@ -184,5 +210,14 @@ class Connection {
     }
 
     return "";
+  }
+
+  String get ledgerName {
+    final jsonData = json.decode(this.data) as Map<String, dynamic>;
+    if (jsonData["ledger"] != null) {
+      return jsonData["ledger"] as String;
+    } else {
+      return "unknown";
+    }
   }
 }

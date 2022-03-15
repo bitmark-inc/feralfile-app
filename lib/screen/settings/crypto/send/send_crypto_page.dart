@@ -8,7 +8,7 @@ import 'package:autonomy_flutter/screen/settings/crypto/send_review_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/xtz_amount_formatter.dart';
+import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -138,8 +138,9 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                             : "assets/images/iconXtz.svg")
                         : "assets/images/iconUsd.svg"),
                     onPressed: () {
-                      double amount =
-                          double.tryParse(_amountController.text.replaceAll(",", ".")) ?? 0;
+                      double amount = double.tryParse(
+                              _amountController.text.replaceAll(",", ".")) ??
+                          0;
                       if (state.isCrypto) {
                         if (type == CryptoType.ETH) {
                           _amountController.text = state.exchangeRate
@@ -166,9 +167,8 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                     },
                   ),
                   onChanged: (value) {
-                    context
-                        .read<SendCryptoBloc>()
-                        .add(AmountChangedEvent(_amountController.text.replaceAll(",", ".")));
+                    context.read<SendCryptoBloc>().add(AmountChangedEvent(
+                        _amountController.text.replaceAll(",", ".")));
                   },
                 ),
                 SizedBox(height: 8.0),
