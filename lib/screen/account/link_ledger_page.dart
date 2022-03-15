@@ -179,17 +179,16 @@ class _LinkLedgerPageState extends State<LinkLedgerPage> {
         log.info("Catched an address: $address");
         UIHelper.hideInfoDialog(context);
 
-        context
-            .read<AccountsBloc>()
-            .add(LinkLedgerEthereumWalletEvent(address, ledger.name, data));
+        context.read<AccountsBloc>().add(LinkLedgerEthereumWalletEvent(
+            address, ledger.name, ledger.device.id.id, data));
 
         Vibrate.feedback(FeedbackType.success);
       }
     } catch (error) {
       log.warning("Error when connecting to ledger: $error");
       await injector<LedgerHardwareService>().disconnect(ledger);
-      return await _dismissAndShowError(
-          context, ledger, "Failed to send message to ledger.");
+      return await _dismissAndShowError(context, ledger,
+          "Failed to send message to ledger.\n Make sure your ledger is unlocked.");
     }
   }
 

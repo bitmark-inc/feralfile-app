@@ -213,8 +213,8 @@ class Connection {
 
   String get ledgerName {
     final jsonData = json.decode(this.data) as Map<String, dynamic>;
-    if (jsonData["ledgerName"] != null) {
-      return jsonData["ledgerName"] as String;
+    if (jsonData["ledger"] != null) {
+      return jsonData["ledger"] as String;
     } else {
       return "unknown";
     }

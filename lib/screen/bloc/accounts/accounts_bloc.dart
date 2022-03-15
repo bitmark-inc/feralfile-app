@@ -124,6 +124,7 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
       for (var connection in connections) {
         switch (connection.connectionType) {
           case "walletConnect":
+          case "ledgerEthereum":
             categorizedAccounts.add(CategorizedAccounts(connection.name, [
               Account(
                 blockchain: "Ethereum",
@@ -135,6 +136,7 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
             ]));
             break;
           case "walletBeacon":
+          case "ledgerTezos":
             categorizedAccounts.add(CategorizedAccounts(connection.name, [
               Account(
                 blockchain: "Tezos",
