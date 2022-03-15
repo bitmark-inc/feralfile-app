@@ -23,21 +23,6 @@ class _GlobalReceivePageState extends State<GlobalReceivePage> {
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-
-    final personaState = context.watch<PersonaBloc>().state;
-    switch (personaState.deletePersonaState) {
-      case ActionState.done:
-        context.read<AccountsBloc>().add(GetCategorizedAccountsEvent());
-        break;
-
-      default:
-        break;
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: getBackAppBar(

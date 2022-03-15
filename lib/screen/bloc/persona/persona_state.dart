@@ -24,17 +24,10 @@ class NamePersonaEvent extends PersonaEvent {
   NamePersonaEvent(this.name);
 }
 
-class DeletePersonaEvent extends PersonaEvent {
-  final Persona persona;
-
-  DeletePersonaEvent(this.persona);
-}
-
 class PersonaState {
   ActionState createAccountState = ActionState.notRequested;
   ActionState namePersonaState = ActionState.notRequested;
   ActionState importPersonaState = ActionState.notRequested;
-  ActionState deletePersonaState = ActionState.notRequested;
 
   Persona? persona;
   List<Persona>? personas;
@@ -43,7 +36,6 @@ class PersonaState {
       {this.createAccountState = ActionState.notRequested,
       this.namePersonaState = ActionState.notRequested,
       this.importPersonaState = ActionState.notRequested,
-      this.deletePersonaState = ActionState.notRequested,
       this.persona,
       this.personas});
 
@@ -51,7 +43,6 @@ class PersonaState {
     ActionState? createAccountState,
     ActionState? namePersonaState,
     ActionState? importPersonaState,
-    ActionState? deletePersonaState,
     Persona? persona,
     List<Persona>? personas,
   }) {
@@ -59,7 +50,6 @@ class PersonaState {
       createAccountState: createAccountState ?? this.createAccountState,
       namePersonaState: namePersonaState ?? this.namePersonaState,
       importPersonaState: importPersonaState ?? this.importPersonaState,
-      deletePersonaState: deletePersonaState ?? this.deletePersonaState,
       persona: persona ?? this.persona,
       personas: personas ?? this.personas,
     );
