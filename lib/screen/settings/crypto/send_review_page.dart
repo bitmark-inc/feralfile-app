@@ -8,7 +8,7 @@ import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/biometrics_util.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/xtz_amount_formatter.dart';
+import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/cupertino.dart';

@@ -6,7 +6,7 @@ import 'package:autonomy_flutter/service/currency_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
-import 'package:autonomy_flutter/util/xtz_amount_formatter.dart';
+import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:autonomy_flutter/util/endian_int_ext.dart';
+import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:convert/convert.dart';
 import 'package:tezart/tezart.dart';
 import 'package:async/async.dart';
@@ -424,8 +425,10 @@ class LedgerCommand {
     final publicKeyLength = buffer[0];
 
     final publicKey = buffer.sublist(1, publicKeyLength + 1);
+    final address = xtzAddress(publicKey);
     return {
       "publicKey": hex.encode(publicKey),
+      "address": address,
       "path": path,
     };
   }

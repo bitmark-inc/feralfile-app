@@ -271,8 +271,9 @@ class _LinkAccountPageState extends State<LinkAccountPage>
                 Text("Ledger", style: appTextTheme.headline4),
               ],
             ),
-            onTap: () => Navigator.of(context)
-                .pushNamed(AppRouter.linkLedgerWalletPage)),
+            onTap: () => Navigator.of(context).pushNamed(
+                AppRouter.linkLedgerWalletPage,
+                arguments: "Ethereum")),
         addDivider(),
         TappableForwardRow(
             leftWidget: Row(
@@ -313,6 +314,17 @@ class _LinkAccountPageState extends State<LinkAccountPage>
             ),
             onTap: () =>
                 Navigator.of(context).pushNamed(AppRouter.linkTezosKukaiPage)),
+        addDivider(),
+        TappableForwardRow(
+            leftWidget: Row(
+              children: [
+                Image.asset("assets/images/iconLedger.png"),
+                SizedBox(width: 16),
+                Text("Ledger", style: appTextTheme.headline4),
+              ],
+            ),
+            onTap: () => Navigator.of(context)
+                .pushNamed(AppRouter.linkLedgerWalletPage, arguments: "Tezos")),
         addDivider(),
         TappableForwardRow(
             leftWidget: Row(
