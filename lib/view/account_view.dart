@@ -214,6 +214,8 @@ Widget _appLogo(Connection connection) {
       }
 
     default:
-      return SizedBox();
+      return SizedBox(
+        width: 24,
+      );
   }
 }

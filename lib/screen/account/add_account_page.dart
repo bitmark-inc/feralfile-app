@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -38,6 +40,7 @@ class AddAccountPage extends StatelessWidget {
                     _importAccountOption(context),
                     addDivider(),
                     _createAccountOption(context),
+                    _linkAddressWidget()
                   ],
                 ),
               ),
@@ -46,6 +49,34 @@ class AddAccountPage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Widget _linkAddressWidget() {
+    if (Platform.isIOS) {
+      return FutureBuilder<bool>(
+          future: isAppCenterBuild(),
+          builder: (context, snapshot) {
+            if (snapshot.data == true) {
+              return Column(
+                children: [
+                  addDivider(),
+                  TappableForwardRowWithContent(
+                    leftWidget:
+                        Text('Link address', style: appTextTheme.headline4),
+                    bottomWidget: Text('Manually input an address (Debug only)',
+                        style: appTextTheme.bodyText1),
+                    onTap: () => Navigator.of(context)
+                        .pushNamed(AppRouter.linkManuallyAddress),
+                  ),
+                ],
+              );
+            }
+
+            return SizedBox();
+          });
+    } else {
+      return SizedBox();
+    }
   }
 
   Widget _linkAccountOption(BuildContext context) {
