@@ -65,4 +65,17 @@ class AccountService {
     await _cloudDB.connectionDao
         .deleteConnectionsByAccountNumber(connection.accountNumber);
   }
+
+  Future linkManuallyAddress(String address) async {
+    final connection = Connection(
+      key: address,
+      name: '',
+      data: '',
+      connectionType: ConnectionType.manuallyAddress.rawValue,
+      accountNumber: address,
+      createdAt: DateTime.now(),
+    );
+
+    await _cloudDB.connectionDao.insertConnection(connection);
+  }
 }
