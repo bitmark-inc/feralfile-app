@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:autonomy_flutter/model/backup_versions.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
@@ -28,5 +27,10 @@ abstract class IAPApi {
   Future<BackupVersions> getProfileVersions(
     @Header("requester") String requester,
     @Query("filename") String filename,
+  );
+
+  @DELETE("/apis/v1/premium/profile-data")
+  Future deleteAllProfiles(
+    @Header("requester") String requester,
   );
 }

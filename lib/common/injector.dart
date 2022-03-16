@@ -1,13 +1,17 @@
 import 'dart:convert';
 
+import 'package:autonomy_flutter/common/app_config.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/gateway/currency_exchange_api.dart';
+import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/aws_service.dart';
+import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/cloud_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/currency_service.dart';
+import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/ledger_hardware/ledger_hardware_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
@@ -76,6 +80,11 @@ Future<void> setup() async {
   injector.registerLazySingleton(() => WalletConnectDappService(injector()));
   injector.registerLazySingleton(
       () => AccountService(cloudDB, injector(), injector()));
+  injector.registerLazySingleton(
+      () => IAPApi(dio, baseUrl: AppConfig.mainNetworkConfig.autonomyAuthUrl));
+  injector.registerLazySingleton(() => BackupService(injector(), injector()));
+  injector.registerLazySingleton<IAPService>(
+      () => IAPServiceImpl(injector(), injector()));
 
   injector
       .registerLazySingleton(() => TezosBeaconService(injector(), injector()));

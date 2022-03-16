@@ -70,6 +70,22 @@ class _IAPApi implements IAPApi {
     return value;
   }
 
+  @override
+  Future<dynamic> deleteAllProfiles(requester) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{r'requester': requester};
+    _headers.removeWhere((k, v) => v == null);
+    final _data = <String, dynamic>{};
+    final _result = await _dio.fetch(_setStreamType<dynamic>(
+        Options(method: 'DELETE', headers: _headers, extra: _extra)
+            .compose(_dio.options, '/apis/v1/premium/profile-data',
+                queryParameters: queryParameters, data: _data)
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+    final value = _result.data;
+    return value;
+  }
+
   RequestOptions _setStreamType<T>(RequestOptions requestOptions) {
     if (T != dynamic &&
         !(requestOptions.responseType == ResponseType.bytes ||
