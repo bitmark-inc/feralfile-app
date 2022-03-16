@@ -13,12 +13,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:shake/shake.dart';
 import 'package:video_player/video_player.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:after_layout/after_layout.dart';
 import 'package:easy_debounce/easy_debounce.dart';
+import 'package:path/path.dart' as p;
 
 class ArtworkPreviewPage extends StatefulWidget {
   static const tag = "artwork_preview";
@@ -223,16 +225,19 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   Widget _getArtworkView(AssetToken asset) {
     switch (asset.medium) {
       case "image":
-        return CachedNetworkImage(
-          imageUrl: asset.previewURL!,
-          imageBuilder: (context, imageProvider) => PhotoView(
-            imageProvider: imageProvider,
-          ),
-          placeholder: (context, url) => Container(),
-          placeholderFadeInDuration: Duration(milliseconds: 300),
-          errorWidget: (context, url, error) => Container(),
-          fit: BoxFit.cover,
-        );
+        final ext = p.extension(asset.thumbnailURL!);
+        return ext == ".svg"
+            ? SvgPicture.network(asset.thumbnailURL!)
+            : CachedNetworkImage(
+                imageUrl: asset.previewURL!,
+                imageBuilder: (context, imageProvider) => PhotoView(
+                  imageProvider: imageProvider,
+                ),
+                placeholder: (context, url) => Container(),
+                placeholderFadeInDuration: Duration(milliseconds: 300),
+                errorWidget: (context, url, error) => Container(),
+                fit: BoxFit.cover,
+              );
       case "video":
         if (_controller != null) {
           return AspectRatio(
