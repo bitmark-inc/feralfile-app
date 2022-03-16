@@ -402,8 +402,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: HEAD
-      resolved-ref: "0a26a70dabe3dbe6a7dbc8dee8e754b0c515e583"
+      ref: "3ead4e6a3291d9e69e9eea4549b6d5611776db51"
+      resolved-ref: "3ead4e6a3291d9e69e9eea4549b6d5611776db51"
       url: "https://github.com/autonomy-system/flutter_blue.git"
     source: git
     version: "0.8.0"
