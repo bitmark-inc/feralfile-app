@@ -319,7 +319,7 @@ class _WCConnectPageState extends State<WCConnectPage>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "Under the account: ",
+          "Select an account to grant access:",
           style: appTextTheme.headline4,
         ),
         SizedBox(height: 16.0),
