@@ -103,7 +103,8 @@ class AppRouter {
 
     final ethereumBloc = EthereumBloc(injector(), networkInjector.I());
     final tezosBloc = TezosBloc(injector(), networkInjector.I());
-    final accountsBloc = AccountsBloc(injector(), injector<CloudDatabase>());
+    final accountsBloc =
+        AccountsBloc(injector(), injector<CloudDatabase>(), injector());
 
     switch (settings.name) {
       case onboardingPage:
@@ -111,7 +112,7 @@ class AppRouter {
             settings: settings,
             builder: (context) => BlocProvider(
                 create: (_) => RouterBloc(
-                    injector(), networkInjector.I(), injector<CloudDatabase>()),
+                    injector(), injector(), injector<CloudDatabase>()),
                 child: OnboardingPage()));
 
       case homePageNoTransition:

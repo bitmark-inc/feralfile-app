@@ -210,7 +210,7 @@ class _HomePageState extends State<HomePage>
   }
 
   Future<void> _cloudBackup() async {
-    final backup = injector<NetworkConfigInjector>().I<BackupService>();
+    final backup = injector<BackupService>();
     await backup.backupCloudDatabase();
   }
 
