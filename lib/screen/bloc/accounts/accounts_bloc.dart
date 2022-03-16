@@ -2,6 +2,7 @@ import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/model/network.dart';
+import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_dapp_service/wc_connected_session.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -11,8 +12,9 @@ part 'accounts_state.dart';
 class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
   ConfigurationService _configurationService;
   CloudDatabase _cloudDB;
+  BackupService _backupService;
 
-  AccountsBloc(this._configurationService, this._cloudDB)
+  AccountsBloc(this._configurationService, this._cloudDB, this._backupService)
       : super(AccountsState()) {
     on<ResetEventEvent>((event, emit) async {
       emit(state.setEvent(null));
@@ -26,6 +28,7 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
 
       for (var persona in personas) {
         final ethAddress = await persona.wallet().getETHAddress();
+        if (ethAddress.isEmpty) continue;
         var name = await persona.wallet().getName();
 
         if (name.isEmpty) {
@@ -73,6 +76,12 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
             ));
             break;
         }
+      }
+
+      if (accounts.isEmpty) {
+        await _backupService.deleteAllProfiles();
+        await _cloudDB.personaDao.removeAll();
+        await _cloudDB.connectionDao.removeAll();
       }
 
       accounts.sort((a, b) => a.createdAt.compareTo(b.createdAt));

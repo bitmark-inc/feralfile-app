@@ -1,12 +1,10 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
-import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/theme_manager.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/account_view.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
@@ -39,6 +37,7 @@ class _AccountsViewState extends State<AccountsView> {
       builder: (context, state) {
         final accounts = state.accounts;
         if (accounts == null) return CupertinoActivityIndicator();
+        if (accounts.isEmpty) return SizedBox();
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,

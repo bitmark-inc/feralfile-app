@@ -116,7 +116,7 @@ class _SettingsPageState extends State<SettingsPage>
             ),
             SizedBox(height: 40.0),
             BlocProvider(
-              create: (_) => UpgradesBloc(networkInjector.I(), injector()),
+              create: (_) => UpgradesBloc(injector(), injector()),
               child: UpgradesView(),
             ),
             SizedBox(height: 40),

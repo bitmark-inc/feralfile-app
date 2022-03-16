@@ -172,6 +172,11 @@ class _$PersonaDao extends PersonaDao {
   }
 
   @override
+  Future<void> removeAll() async {
+    await _queryAdapter.queryNoReturn('DELETE FROM Persona');
+  }
+
+  @override
   Future<void> insertPersona(Persona persona) async {
     await _personaInsertionAdapter.insert(persona, OnConflictStrategy.replace);
   }
