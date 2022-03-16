@@ -20,4 +20,7 @@ abstract class PersonaDao {
 
   @delete
   Future<void> deletePersona(Persona persona);
+
+  @Query('DELETE FROM Persona')
+  Future<void> removeAll();
 }

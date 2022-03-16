@@ -14,17 +14,10 @@ class RouterBloc extends Bloc<RouterEvent, RouterState> {
   BackupService _backupService;
   CloudDatabase _cloudDB;
 
-  Future _executeMigrationIfNeeded() async {
-    log.info("[_executeMigrationIfNeeded][start]");
+  Future<bool> hasAccounts() async {
     final personas = await _cloudDB.personaDao.getPersonas();
     final connections = await _cloudDB.connectionDao.getLinkedAccounts();
-
-    if (personas.isNotEmpty || connections.isNotEmpty) return;
-
-    log.info("[_executeMigrationIfNeeded] run migrationIfNeeded");
-    await MigrationUtil(_cloudDB).migrationFromKeychain(Platform.isIOS);
-    await MigrationUtil(_cloudDB).migrateIfNeeded(Platform.isIOS);
-    log.info("[_executeMigrationIfNeeded][done] migrationIfNeeded");
+    return personas.isNotEmpty || connections.isNotEmpty;
   }
 
   RouterBloc(this._configurationService, this._backupService, this._cloudDB)
@@ -32,12 +25,12 @@ class RouterBloc extends Bloc<RouterEvent, RouterState> {
     on<DefineViewRoutingEvent>((event, emit) async {
       if (state.onboardingStep != OnboardingStep.undefined) return;
 
-      await _executeMigrationIfNeeded();
+      await MigrationUtil(_cloudDB).migrateIfNeeded(Platform.isIOS);
 
-      final personas = await _cloudDB.personaDao.getPersonas();
-      final connections = await _cloudDB.connectionDao.getLinkedAccounts();
-
-      if (personas.isEmpty && connections.isEmpty) {
+      if (await hasAccounts()) {
+        _configurationService.setDoneOnboarding(true);
+        emit(RouterState(onboardingStep: OnboardingStep.dashboard));
+      } else {
         if (Platform.isIOS) {
           final backupVersion = await _backupService.fetchBackupVersion();
           if (backupVersion.isNotEmpty) {
@@ -47,6 +40,15 @@ class RouterBloc extends Bloc<RouterEvent, RouterState> {
                 onboardingStep: OnboardingStep.restore,
                 backupVersion: backupVersion));
             return;
+          } else {
+            // has no backup file; try to migration from Keychain
+            await MigrationUtil(_cloudDB).migrationFromKeychain(Platform.isIOS);
+
+            if (await hasAccounts()) {
+              _configurationService.setDoneOnboarding(true);
+              emit(RouterState(onboardingStep: OnboardingStep.dashboard));
+              return;
+            }
           }
         }
 
@@ -57,9 +59,6 @@ class RouterBloc extends Bloc<RouterEvent, RouterState> {
         } else {
           emit(RouterState(onboardingStep: OnboardingStep.startScreen));
         }
-      } else {
-        _configurationService.setDoneOnboarding(true);
-        emit(RouterState(onboardingStep: OnboardingStep.dashboard));
       }
     });
 

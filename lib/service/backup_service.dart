@@ -61,6 +61,15 @@ class BackupService {
     return backupVersion;
   }
 
+  Future deleteAllProfiles() async {
+    log.info("[BackupService][start] deleteAllProfiles");
+
+    PackageInfo packageInfo = await PackageInfo.fromPlatform();
+    String? deviceId = await getBackupId();
+
+    await _iapApi.deleteAllProfiles(deviceId);
+  }
+
   Future restoreCloudDatabase(String version) async {
     log.info("[BackupService] start database restore");
     final filename = 'cloud_database.db';
