@@ -20,8 +20,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:uni_links/uni_links.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
+import 'package:uni_links/uni_links.dart';
 
 class HomePage extends StatefulWidget {
   static const tag = "home";
@@ -222,44 +222,58 @@ class _HomePageState extends State<HomePage>
   void _handleDeeplink(String? link) {
     if (link == null) return;
 
-    final wcPrefix1 = "https://au.bitmark.com/apps/wc?uri=";
-    final wcPrefix2 =
-        "https://au.bitmark.com/apps/wc/wc?uri="; // maybe something wrong with WC register; fix by this for now
-    final tzPrefix = "https://au.bitmark.com/apps/tezos?uri=";
+    final wcPrefixes = [
+      "https://au.bitmark.com/apps/wc?uri=",
+      "https://au.bitmark.com/apps/wc/wc?uri=", // maybe something wrong with WC register; fix by this for now
+      "https://autonomy.io/apps/wc?uri=",
+      "https://autonomy.io/apps/wc/wc?uri=",
+    ];
+
+    final tzPrefixes = [
+      "https://au.bitmark.com/apps/tezos?uri=",
+      "https://autonomy.io/apps/tezos?uri=",
+    ];
+
+    final wcDeeplinkPrefixes = [
+      'wc:',
+      'autonomy-wc:',
+    ];
+
+    final tbDeeplinkPrefixes = [
+      "tezos://",
+      "autonomy-tezos://",
+    ];
 
     // Check Universal Link
-    if (link.startsWith(wcPrefix1)) {
-      final wcUri = link.substring(wcPrefix1.length);
+    final callingWCPrefix =
+        wcPrefixes.firstWhereOrNull((prefix) => link.startsWith(prefix));
+    if (callingWCPrefix != null) {
+      final wcUri = link.substring(callingWCPrefix.length);
       final decodedWcUri = Uri.decodeFull(wcUri);
       context.read<HomeBloc>().add(HomeConnectWCEvent(decodedWcUri));
-    } else if (link.startsWith(wcPrefix2)) {
-      final wcUri = link.substring(wcPrefix2.length);
-      final decodedWcUri = Uri.decodeFull(wcUri);
-      context.read<HomeBloc>().add(HomeConnectWCEvent(decodedWcUri));
-    } else if (link.startsWith(tzPrefix)) {
-      final tzUri = link.substring(tzPrefix.length);
+      return;
+    }
+
+    final callingTBPrefix =
+        tzPrefixes.firstWhereOrNull((prefix) => link.startsWith(prefix));
+    if (callingTBPrefix != null) {
+      final tzUri = link.substring(callingTBPrefix.length);
       context.read<HomeBloc>().add(HomeConnectTZEvent(tzUri));
-    } else {
-      // Check Deeplink
-      final wcDeeplinkPrefixes = ['wc:', 'autonomy-wc:'];
-      final tbDeeplinkPrefixes = [
-        "tezos://",
-        "autonomy-tezos://",
-      ];
+      return;
+    }
 
-      final callingWCPrefix = wcDeeplinkPrefixes
-          .firstWhereOrNull((prefix) => link.startsWith(prefix));
-      if (callingWCPrefix != null) {
-        context.read<HomeBloc>().add(HomeConnectWCEvent(link));
-        return;
-      }
+    final callingWCDeeplinkPrefix = wcDeeplinkPrefixes
+        .firstWhereOrNull((prefix) => link.startsWith(prefix));
+    if (callingWCDeeplinkPrefix != null) {
+      context.read<HomeBloc>().add(HomeConnectWCEvent(link));
+      return;
+    }
 
-      final callingTBPrefix = tbDeeplinkPrefixes
-          .firstWhereOrNull((prefix) => link.startsWith(prefix));
-      if (callingTBPrefix != null) {
-        context.read<HomeBloc>().add(HomeConnectTZEvent(link));
-        return;
-      }
+    final callingTBDeeplinkPrefix = tbDeeplinkPrefixes
+        .firstWhereOrNull((prefix) => link.startsWith(prefix));
+    if (callingTBDeeplinkPrefix != null) {
+      context.read<HomeBloc>().add(HomeConnectTZEvent(link));
+      return;
     }
   }
 
