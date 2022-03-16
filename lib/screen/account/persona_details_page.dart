@@ -58,7 +58,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
     return Scaffold(
       appBar: getBackAppBar(
         context,
-        title: widget.persona.name.toUpperCase(),
+        title: widget.persona.name,
         onBack: () {
           Navigator.of(context).pop();
         },
@@ -91,6 +91,19 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
           style: appTextTheme.headline1,
         ),
         SizedBox(height: 24),
+        FutureBuilder<String>(
+            future: Persona.newPersona(uuid: uuid).wallet().getBitmarkAddress(),
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                return _addressRow(
+                  address: snapshot.data ?? "",
+                  type: CryptoType.BITMARK,
+                );
+              } else {
+                return SizedBox();
+              }
+            }),
+        addDivider(),
         BlocBuilder<EthereumBloc, EthereumState>(builder: (context, state) {
           return _addressRow(
             address: state.personaAddresses?[uuid] ?? "",
@@ -104,19 +117,6 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
             type: CryptoType.XTZ,
           );
         }),
-        addDivider(),
-        FutureBuilder<String>(
-            future: Persona.newPersona(uuid: uuid).wallet().getBitmarkAddress(),
-            builder: (context, snapshot) {
-              if (snapshot.hasData) {
-                return _addressRow(
-                  address: snapshot.data ?? "",
-                  type: CryptoType.BITMARK,
-                );
-              } else {
-                return SizedBox();
-              }
-            }),
       ],
     );
   }

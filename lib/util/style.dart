@@ -54,6 +54,7 @@ const bodySmall = TextStyle(
     color: Colors.black,
     fontSize: 14,
     fontFamily: "AtlasGrotesk",
+    fontWeight: FontWeight.w300,
     height: 1.377);
 
 const linkStyle = TextStyle(

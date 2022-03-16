@@ -214,7 +214,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
                                     ],
                                   )
                                 : SizedBox(),
-                            SizedBox(height: 40.0),
+                            SizedBox(height: 80.0),
                           ],
                         ),
                       )

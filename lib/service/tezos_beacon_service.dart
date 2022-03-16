@@ -33,7 +33,7 @@ class TezosBeaconService implements BeaconHandler {
     return _beaconChannel.getConnectionURI();
   }
 
-  Future<String> getPostMessageConnectiopnURI() {
+  Future<String> getPostMessageConnectionURI() {
     return _beaconChannel.getPostMessageConnectionURI();
   }
 

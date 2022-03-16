@@ -121,8 +121,12 @@ class _LinkTezosTemplePageState extends State<LinkTezosTemplePage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Want more security and portability?',
-                style: appTextTheme.caption
-                    ?.copyWith(color: AppColorTheme.secondaryDimGrey)),
+                style: TextStyle(
+                    color: AppColorTheme.secondaryDimGrey,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: "AtlasGrotesk",
+                    height: 1.377)),
             SizedBox(height: 5),
             Text(
                 'You can get all the Tezos functionality of Temple in a mobile app by importing your account to Autonomy.',
@@ -145,7 +149,7 @@ class _LinkTezosTemplePageState extends State<LinkTezosTemplePage> {
 
     final tezosBeaconService = injector<TezosBeaconService>();
 
-    final payload = await tezosBeaconService.getPostMessageConnectiopnURI();
+    final payload = await tezosBeaconService.getPostMessageConnectionURI();
     final sessionID = Uuid().v4();
 
     final network = injector<ConfigurationService>().getNetwork();

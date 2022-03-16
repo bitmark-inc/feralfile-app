@@ -99,8 +99,12 @@ class LinkTezosKukaiPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Want more security and portability?',
-                style: appTextTheme.caption
-                    ?.copyWith(color: AppColorTheme.secondaryDimGrey)),
+                style: TextStyle(
+                    color: AppColorTheme.secondaryDimGrey,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: "AtlasGrotesk",
+                    height: 1.377)),
             SizedBox(height: 5),
             Text(
                 'You can get all the Tezos functionality of Kukai in a mobile app by importing your account to Autonomy.',
