@@ -21,7 +21,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:uni_links/uni_links.dart';
+import 'package:path/path.dart' as p;
 
 class HomePage extends StatefulWidget {
   static const tag = "home";
@@ -166,21 +168,25 @@ class _HomePageState extends State<HomePage>
             itemCount: assets.length,
             itemBuilder: (BuildContext context, int index) {
               final asset = assets[index];
-
+              final ext = p.extension(asset.thumbnailURL!);
               return GestureDetector(
                 child: Container(
-                  child: CachedNetworkImage(
-                    imageUrl: asset.thumbnailURL!,
-                    fit: BoxFit.cover,
-                    maxHeightDiskCache: _cachedImageSize,
-                    maxWidthDiskCache: _cachedImageSize,
-                    memCacheHeight: _cachedImageSize,
-                    memCacheWidth: _cachedImageSize,
-                    placeholder: (context, index) =>
-                        Container(color: Color.fromRGBO(227, 227, 227, 1)),
-                    placeholderFadeInDuration: Duration(milliseconds: 300),
-                    errorWidget: (context, url, error) => SizedBox(height: 100),
-                  ),
+                  child: ext == ".svg"
+                      ? SvgPicture.network(asset.thumbnailURL!)
+                      : CachedNetworkImage(
+                          imageUrl: asset.thumbnailURL!,
+                          fit: BoxFit.cover,
+                          maxHeightDiskCache: _cachedImageSize,
+                          maxWidthDiskCache: _cachedImageSize,
+                          memCacheHeight: _cachedImageSize,
+                          memCacheWidth: _cachedImageSize,
+                          placeholder: (context, index) => Container(
+                              color: Color.fromRGBO(227, 227, 227, 1)),
+                          placeholderFadeInDuration:
+                              Duration(milliseconds: 300),
+                          errorWidget: (context, url, error) =>
+                              SizedBox(height: 100),
+                        ),
                 ),
                 onTap: () {
                   Navigator.of(context).pushNamed(ArtworkDetailPage.tag,

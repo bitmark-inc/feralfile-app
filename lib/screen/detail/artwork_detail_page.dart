@@ -23,6 +23,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:html_unescape/html_unescape.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:path/path.dart' as p;
 
 class ArtworkDetailPage extends StatefulWidget {
   static const tag = "artwork_detail";
@@ -116,6 +117,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
 
               if (asset.edition != 0)
                 subTitle += " (${asset.edition}/${asset.maxEdition})";
+              final ext = p.extension(asset.thumbnailURL!);
 
               return Container(
                 child: SingleChildScrollView(
@@ -143,17 +145,19 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
                       ],
                       SizedBox(height: 16.0),
                       GestureDetector(
-                        child: CachedNetworkImage(
-                          imageUrl: asset.thumbnailURL!,
-                          width: double.infinity,
-                          maxWidthDiskCache: (screenHeight * 3).floor(),
-                          memCacheWidth: (screenWidth * 3).floor(),
-                          placeholderFadeInDuration:
-                              Duration(milliseconds: 300),
-                          fit: BoxFit.cover,
-                          errorWidget: (context, url, error) =>
-                              SizedBox(height: 100),
-                        ),
+                        child: ext == ".svg"
+                            ? SvgPicture.network(asset.thumbnailURL!)
+                            : CachedNetworkImage(
+                                imageUrl: asset.thumbnailURL!,
+                                width: double.infinity,
+                                maxWidthDiskCache: (screenHeight * 3).floor(),
+                                memCacheWidth: (screenWidth * 3).floor(),
+                                placeholderFadeInDuration:
+                                    Duration(milliseconds: 300),
+                                fit: BoxFit.cover,
+                                errorWidget: (context, url, error) =>
+                                    SizedBox(height: 100),
+                              ),
                         onTap: () => Navigator.of(context).pushNamed(
                             ArtworkPreviewPage.tag,
                             arguments: widget.payload),
