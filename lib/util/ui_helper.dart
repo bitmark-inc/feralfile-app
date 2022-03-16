@@ -154,7 +154,7 @@ class UIHelper {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('MULTII-CHAIN ACCOUNT GENERATED WITH:',
+            Text('MULTI-CHAIN ACCOUNT GENERATED WITH:',
                 style: theme.textTheme.headline5),
             SizedBox(height: 16),
             Text('• Bitmark address', style: theme.textTheme.headline4),
