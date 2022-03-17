@@ -28,6 +28,8 @@ void main() async {
   runZonedGuarded(() async {
     FlutterNativeSplash.preserve(
         widgetsBinding: WidgetsFlutterBinding.ensureInitialized());
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+
     await setup();
 
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
