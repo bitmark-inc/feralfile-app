@@ -22,6 +22,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:photo_view/photo_view.dart';
 import 'package:uni_links/uni_links.dart';
 import 'package:path/path.dart' as p;
 
@@ -88,11 +89,11 @@ class _HomePageState extends State<HomePage>
         body: BlocBuilder<HomeBloc, HomeState>(builder: (context, state) {
       final tokens = state.tokens;
       final shouldShowMainView = tokens != null && tokens.isNotEmpty;
-      final ListView assetsWidget =
+      final Widget assetsWidget =
           shouldShowMainView ? _assetsWidget(tokens!) : _emptyGallery();
 
       return Stack(fit: StackFit.loose, children: [
-        shouldShowMainView ? assetsWidget : _emptyGallery(),
+        assetsWidget,
         PenroseTopBarView(true, _controller),
         BlocBuilder<HomeBloc, HomeState>(
           builder: (context, state) {
@@ -114,10 +115,9 @@ class _HomePageState extends State<HomePage>
     }));
   }
 
-  ListView _emptyGallery() {
+  Widget _emptyGallery() {
     return ListView(
       padding: EdgeInsets.symmetric(horizontal: 16.0),
-      controller: _controller,
       children: [
         SizedBox(height: 160),
         Text(
@@ -133,7 +133,7 @@ class _HomePageState extends State<HomePage>
     );
   }
 
-  ListView _assetsWidget(List<AssetToken> tokens) {
+  Widget _assetsWidget(List<AssetToken> tokens) {
     final groupBySource = groupBy(tokens, (AssetToken obj) => obj.source);
     var sources = groupBySource.keys.map((source) {
       final assets = groupBySource[source] ?? [];
@@ -146,66 +146,56 @@ class _HomePageState extends State<HomePage>
         _cachedImageSize = (estimatedCellWidth * 3).ceil();
       }
       return <Widget>[
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: 15.0),
-          child: Text(
-            polishSource(source ?? ""),
-            style: appTextTheme.headline1,
-          ),
+        SliverPersistentHeader(
+          delegate: CategoryHeaderDelegate(source),
         ),
-        GridView.builder(
-            physics: const NeverScrollableScrollPhysics(),
-            shrinkWrap: true,
+        SliverGrid(
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: cellPerRow,
               crossAxisSpacing: cellSpacing,
               mainAxisSpacing: cellSpacing,
               childAspectRatio: 1.0,
             ),
-            addAutomaticKeepAlives: false,
-            addRepaintBoundaries: false,
-            padding: EdgeInsets.symmetric(vertical: 24),
-            itemCount: assets.length,
-            itemBuilder: (BuildContext context, int index) {
-              final asset = assets[index];
-              final ext = p.extension(asset.thumbnailURL!);
-              return GestureDetector(
-                child: Container(
-                  child: ext == ".svg"
-                      ? SvgPicture.network(asset.thumbnailURL!)
-                      : CachedNetworkImage(
-                          imageUrl: asset.thumbnailURL!,
-                          fit: BoxFit.cover,
-                          maxHeightDiskCache: _cachedImageSize,
-                          maxWidthDiskCache: _cachedImageSize,
-                          memCacheHeight: _cachedImageSize,
-                          memCacheWidth: _cachedImageSize,
-                          placeholder: (context, index) => Container(
-                              color: Color.fromRGBO(227, 227, 227, 1)),
-                          placeholderFadeInDuration:
-                              Duration(milliseconds: 300),
-                          errorWidget: (context, url, error) =>
-                              SizedBox(height: 100),
-                        ),
-                ),
-                onTap: () {
-                  Navigator.of(context).pushNamed(ArtworkDetailPage.tag,
-                      arguments: ArtworkDetailPayload(
-                          assets.map((e) => e.id).toList(), index));
-                },
-              );
-            }),
-        SizedBox(height: 32.0),
+            delegate: SliverChildBuilderDelegate(
+              (BuildContext context, int index) {
+                final asset = assets[index];
+                final ext = p.extension(asset.thumbnailURL!);
+                return GestureDetector(
+                  child: Container(
+                    child: ext == ".svg"
+                        ? SvgPicture.network(asset.thumbnailURL!)
+                        : CachedNetworkImage(
+                            imageUrl: asset.thumbnailURL!,
+                            fit: BoxFit.cover,
+                            maxHeightDiskCache: _cachedImageSize,
+                            maxWidthDiskCache: _cachedImageSize,
+                            memCacheHeight: _cachedImageSize,
+                            memCacheWidth: _cachedImageSize,
+                            placeholder: (context, index) => Container(
+                                color: Color.fromRGBO(227, 227, 227, 1)),
+                            placeholderFadeInDuration:
+                                Duration(milliseconds: 300),
+                            errorWidget: (context, url, error) =>
+                                SizedBox(height: 100),
+                          ),
+                  ),
+                  onTap: () {
+                    Navigator.of(context).pushNamed(ArtworkDetailPage.tag,
+                        arguments: ArtworkDetailPayload(
+                            assets.map((e) => e.id).toList(), index));
+                  },
+                );
+              },
+              childCount: assets.length,
+            )),
       ];
     }).reduce((value, element) => value += element);
 
-    sources.insert(0, SizedBox(height: 108));
+    sources.insert(0, SliverPadding(padding: EdgeInsets.only(top: 108)));
 
-    return ListView(
-      children: sources,
+    return CustomScrollView(
+      slivers: sources,
       controller: _controller,
-      addAutomaticKeepAlives: false,
-      addRepaintBoundaries: false,
     );
   }
 
@@ -302,4 +292,31 @@ class _HomePageState extends State<HomePage>
         break;
     }
   }
+}
+
+class CategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
+  final String? source;
+  CategoryHeaderDelegate(this.source);
+
+  @override
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return Container(
+      padding: EdgeInsets.fromLTRB(14, 32, 0, 14),
+      child: Text(
+        polishSource(source ?? ""),
+        style: appTextTheme.headline1,
+      ),
+    );
+  }
+
+  @override
+  double get maxExtent => 123;
+
+  @override
+  double get minExtent => 123;
+
+  @override
+  bool shouldRebuild(covariant CategoryHeaderDelegate oldDelegate) =>
+      oldDelegate.source != source;
 }

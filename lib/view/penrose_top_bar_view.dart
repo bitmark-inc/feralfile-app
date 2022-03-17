@@ -14,7 +14,9 @@ class PenroseTopBarView extends StatelessWidget {
     return AnimatedBuilder(
       builder: (context, value) => Stack(fit: StackFit.loose, children: [
         Opacity(
-          opacity: _opacityFromOffset(scrollController.offset),
+          opacity: scrollController.hasClients
+              ? _opacityFromOffset(scrollController.offset)
+              : 1,
           child: Container(
             alignment: Alignment.topCenter,
             padding: EdgeInsets.fromLTRB(7, 42, 12, 90),
