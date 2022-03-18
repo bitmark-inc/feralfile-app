@@ -13,6 +13,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_blue/gen/flutterblue.pbserver.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:shake/shake.dart';
@@ -71,10 +72,19 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     context
         .read<ArtworkPreviewBloc>()
         .add(ArtworkPreviewGetAssetTokenEvent(id));
+
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
   }
 
   @override
   void dispose() async {
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+    ]);
     WidgetsBinding.instance?.removeObserver(this);
     _controller?.dispose();
     _controller = null;
