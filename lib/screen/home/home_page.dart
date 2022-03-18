@@ -83,19 +83,23 @@ class _HomePageState extends State<HomePage>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        body: BlocBuilder<HomeBloc, HomeState>(builder: (context, state) {
-      final tokens = state.tokens;
-      final shouldShowMainView = tokens != null && tokens.isNotEmpty;
-      final ListView assetsWidget =
-          shouldShowMainView ? _assetsWidget(tokens!) : _emptyGallery();
+    return PrimaryScrollController(
+      controller: _controller,
+      child: Scaffold(
+          body: BlocBuilder<HomeBloc, HomeState>(builder: (context, state) {
+        final tokens = state.tokens;
+        final shouldShowMainView = tokens != null && tokens.isNotEmpty;
+        final ListView assetsWidget =
+            shouldShowMainView ? _assetsWidget(tokens!) : _emptyGallery();
 
-      return Stack(fit: StackFit.loose, children: [
-        shouldShowMainView ? assetsWidget : _emptyGallery(),
-        PenroseTopBarView(true, _controller),
-        BlocBuilder<HomeBloc, HomeState>(
-          builder: (context, state) {
-            if (state.fetchTokenState == ActionState.loading) {
+        return Stack(fit: StackFit.loose, children: [
+          shouldShowMainView ? assetsWidget : _emptyGallery(),
+          PenroseTopBarView(true, _controller),
+          BlocBuilder<HomeBloc, HomeState>(
+            builder: (context, state) {
+              if (state.fetchTokenState != ActionState.loading)
+                return SizedBox();
+
               return Align(
                 alignment: Alignment.topRight,
                 child: Padding(
@@ -104,13 +108,11 @@ class _HomePageState extends State<HomePage>
                   child: CupertinoActivityIndicator(),
                 ),
               );
-            } else {
-              return SizedBox();
-            }
-          },
-        ),
-      ]);
-    }));
+            },
+          ),
+        ]);
+      })),
+    );
   }
 
   ListView _emptyGallery() {
@@ -204,7 +206,6 @@ class _HomePageState extends State<HomePage>
 
     return ListView(
       children: sources,
-      controller: _controller,
       addAutomaticKeepAlives: false,
       addRepaintBoundaries: false,
     );
