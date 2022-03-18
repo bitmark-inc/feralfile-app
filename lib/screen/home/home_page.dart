@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
@@ -135,7 +134,9 @@ class _HomePageState extends State<HomePage>
 
   ListView _assetsWidget(List<AssetToken> tokens) {
     final groupBySource = groupBy(tokens, (AssetToken obj) => obj.source);
-    var sources = groupBySource.keys.map((source) {
+    var sortedKeys = groupBySource.keys.toList()..sort();
+
+    var sources = sortedKeys.map((source) {
       final assets = groupBySource[source] ?? [];
       const int cellPerRow = 3;
       const double cellSpacing = 3.0;
