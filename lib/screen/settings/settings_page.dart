@@ -1,5 +1,4 @@
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -65,112 +64,114 @@ class _SettingsPageState extends State<SettingsPage>
 
   @override
   Widget build(BuildContext context) {
-    final networkInjector = injector<NetworkConfigInjector>();
-
-    return Scaffold(
-        body: Stack(
-      fit: StackFit.loose,
-      children: [
-        ListView(
-          padding: EdgeInsets.symmetric(horizontal: 15),
-          controller: _controller,
-          children: [
-            SizedBox(height: 160),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "Accounts",
-                      style: appTextTheme.headline1,
-                    ),
-                    _cloudAvailabilityWidget(),
-                  ],
-                ),
-                SizedBox(height: 24),
-                Text(
-                    'Autonomy accounts are full, multi-chain accounts. Linked accounts link to single-chain accounts from other wallets.',
-                    style: appTextTheme.bodyText1),
-                SizedBox(height: 10),
-                AccountsView(),
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton(
-                    onPressed: () => Navigator.of(context)
-                        .pushNamed(AppRouter.addAccountPage),
-                    child: Text('+ Add',
-                        style: appTextTheme.bodyText2
-                            ?.copyWith(color: Colors.black))),
-                SizedBox(width: 13),
-              ],
-            ),
-            SizedBox(height: 40),
-            BlocProvider(
-              create: (_) => PreferencesBloc(injector()),
-              child: PreferenceView(),
-            ),
-            SizedBox(height: 40.0),
-            BlocProvider(
-              create: (_) => UpgradesBloc(injector(), injector()),
-              child: UpgradesView(),
-            ),
-            SizedBox(height: 40),
-            Text(
-              "Networks",
-              style: appTextTheme.headline1,
-            ),
-            SizedBox(height: 24.0),
-            _settingItem(
-                context,
-                "Select network",
-                injector<ConfigurationService>().getNetwork() == Network.TESTNET
-                    ? "Test network"
-                    : "Main network", () async {
-              await Navigator.of(context).pushNamed(SelectNetworkPage.tag);
-            }),
-            SizedBox(height: 40),
-            SupportView(),
-            SizedBox(height: 56),
-            Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
-              if (_packageInfo != null)
-                GestureDetector(
-                    child: Text(
-                      "Version ${_packageInfo!.version}(${_packageInfo!.buildNumber})",
-                      style: appTextTheme.headline5,
-                    ),
-                    onTap: () async {
-                      int now = DateTime.now().millisecondsSinceEpoch;
-                      if (now - _lastTap < 1000) {
-                        print("Consecutive tap");
-                        _consecutiveTaps++;
-                        print("taps = " + _consecutiveTaps.toString());
-                        if (_consecutiveTaps == 3) {
-                          final newValue =
-                              await injector<ConfigurationService>()
-                                  .toggleDemoArtworksMode();
-                          await UIHelper.showInfoDialog(context, "Demo mode",
-                              "Demo mode ${newValue ? 'enabled' : 'disabled'}!",
-                              autoDismissAfter: 1);
+    return PrimaryScrollController(
+      controller: _controller,
+      child: Scaffold(
+          body: Stack(
+        fit: StackFit.loose,
+        children: [
+          ListView(
+            padding: EdgeInsets.symmetric(horizontal: 15),
+            controller: _controller,
+            children: [
+              SizedBox(height: 160),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Accounts",
+                        style: appTextTheme.headline1,
+                      ),
+                      _cloudAvailabilityWidget(),
+                    ],
+                  ),
+                  SizedBox(height: 24),
+                  Text(
+                      'Autonomy accounts are full, multi-chain accounts. Linked accounts link to single-chain accounts from other wallets.',
+                      style: appTextTheme.bodyText1),
+                  SizedBox(height: 10),
+                  AccountsView(),
+                ],
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                      onPressed: () => Navigator.of(context)
+                          .pushNamed(AppRouter.addAccountPage),
+                      child: Text('+ Add',
+                          style: appTextTheme.bodyText2
+                              ?.copyWith(color: Colors.black))),
+                  SizedBox(width: 13),
+                ],
+              ),
+              SizedBox(height: 40),
+              BlocProvider(
+                create: (_) => PreferencesBloc(injector()),
+                child: PreferenceView(),
+              ),
+              SizedBox(height: 40.0),
+              BlocProvider(
+                create: (_) => UpgradesBloc(injector(), injector()),
+                child: UpgradesView(),
+              ),
+              SizedBox(height: 40),
+              Text(
+                "Networks",
+                style: appTextTheme.headline1,
+              ),
+              SizedBox(height: 24.0),
+              _settingItem(
+                  context,
+                  "Select network",
+                  injector<ConfigurationService>().getNetwork() ==
+                          Network.TESTNET
+                      ? "Test network"
+                      : "Main network", () async {
+                await Navigator.of(context).pushNamed(SelectNetworkPage.tag);
+              }),
+              SizedBox(height: 40),
+              SupportView(),
+              SizedBox(height: 56),
+              Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
+                if (_packageInfo != null)
+                  GestureDetector(
+                      child: Text(
+                        "Version ${_packageInfo!.version}(${_packageInfo!.buildNumber})",
+                        style: appTextTheme.headline5,
+                      ),
+                      onTap: () async {
+                        int now = DateTime.now().millisecondsSinceEpoch;
+                        if (now - _lastTap < 1000) {
+                          print("Consecutive tap");
+                          _consecutiveTaps++;
+                          print("taps = " + _consecutiveTaps.toString());
+                          if (_consecutiveTaps == 3) {
+                            final newValue =
+                                await injector<ConfigurationService>()
+                                    .toggleDemoArtworksMode();
+                            await UIHelper.showInfoDialog(context, "Demo mode",
+                                "Demo mode ${newValue ? 'enabled' : 'disabled'}!",
+                                autoDismissAfter: 1);
+                          }
+                        } else {
+                          _consecutiveTaps = 0;
                         }
-                      } else {
-                        _consecutiveTaps = 0;
-                      }
-                      _lastTap = now;
-                    }),
-              SizedBox(height: 5),
-              eulaAndPrivacyView(),
-            ]),
-            SizedBox(height: 60),
-          ],
-        ),
-        PenroseTopBarView(false, _controller),
-      ],
-    ));
+                        _lastTap = now;
+                      }),
+                SizedBox(height: 5),
+                eulaAndPrivacyView(),
+              ]),
+              SizedBox(height: 60),
+            ],
+          ),
+          PenroseTopBarView(false, _controller),
+        ],
+      )),
+    );
   }
 
   Widget _settingItem(
