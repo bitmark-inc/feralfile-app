@@ -29,7 +29,7 @@
 			<string>autonomy-deeplink</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>autonomy://</string>
+				<string>autonomy</string>
 			</array>
 		</dict>
 		<dict>
