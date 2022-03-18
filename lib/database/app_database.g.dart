@@ -68,7 +68,7 @@ class _$AppDatabase extends AppDatabase {
   Future<sqflite.Database> open(String path, List<Migration> migrations,
       [Callback? callback]) async {
     final databaseOptions = sqflite.OpenDatabaseOptions(
-      version: 1,
+      version: 2,
       onConfigure: (database) async {
         await database.execute('PRAGMA foreign_keys = ON');
         await callback?.onConfigure?.call(database);
@@ -84,7 +84,7 @@ class _$AppDatabase extends AppDatabase {
       },
       onCreate: (database, version) async {
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `AssetToken` (`artistName` TEXT, `artistURL` TEXT, `assetData` TEXT, `assetID` TEXT, `assetURL` TEXT, `basePrice` REAL, `baseCurrency` TEXT, `blockchain` TEXT NOT NULL, `contractType` TEXT, `desc` TEXT, `edition` INTEGER NOT NULL, `id` TEXT NOT NULL, `maxEdition` INTEGER, `medium` TEXT, `mintedAt` TEXT, `previewURL` TEXT, `source` TEXT, `sourceURL` TEXT, `thumbnailURL` TEXT, `galleryThumbnailURL` TEXT, `title` TEXT NOT NULL, `ownerAddress` TEXT, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `AssetToken` (`artistName` TEXT, `artistURL` TEXT, `assetData` TEXT, `assetID` TEXT, `assetURL` TEXT, `basePrice` REAL, `baseCurrency` TEXT, `blockchain` TEXT NOT NULL, `contractType` TEXT, `desc` TEXT, `edition` INTEGER NOT NULL, `id` TEXT NOT NULL, `maxEdition` INTEGER, `medium` TEXT, `mintedAt` TEXT, `previewURL` TEXT, `source` TEXT, `sourceURL` TEXT, `thumbnailURL` TEXT, `galleryThumbnailURL` TEXT, `title` TEXT NOT NULL, `ownerAddress` TEXT, `lastActivityTime` INTEGER NOT NULL, PRIMARY KEY (`id`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `Identity` (`accountNumber` TEXT NOT NULL, `blockchain` TEXT NOT NULL, `name` TEXT NOT NULL, `queriedAt` INTEGER NOT NULL, PRIMARY KEY (`accountNumber`))');
 
@@ -133,7 +133,9 @@ class _$AssetTokenDao extends AssetTokenDao {
                   'thumbnailURL': item.thumbnailURL,
                   'galleryThumbnailURL': item.galleryThumbnailURL,
                   'title': item.title,
-                  'ownerAddress': item.ownerAddress
+                  'ownerAddress': item.ownerAddress,
+                  'lastActivityTime':
+                      _dateTimeConverter.encode(item.lastActivityTime)
                 }),
         _assetTokenDeletionAdapter = DeletionAdapter(
             database,
@@ -161,7 +163,9 @@ class _$AssetTokenDao extends AssetTokenDao {
                   'thumbnailURL': item.thumbnailURL,
                   'galleryThumbnailURL': item.galleryThumbnailURL,
                   'title': item.title,
-                  'ownerAddress': item.ownerAddress
+                  'ownerAddress': item.ownerAddress,
+                  'lastActivityTime':
+                      _dateTimeConverter.encode(item.lastActivityTime)
                 });
 
   final sqflite.DatabaseExecutor database;
@@ -176,7 +180,8 @@ class _$AssetTokenDao extends AssetTokenDao {
 
   @override
   Future<List<AssetToken>> findAllAssetTokens() async {
-    return _queryAdapter.queryList('SELECT * FROM AssetToken',
+    return _queryAdapter.queryList(
+        'SELECT * FROM AssetToken ORDER BY lastActivityTime DESC',
         mapper: (Map<String, Object?> row) => AssetToken(
             artistName: row['artistName'] as String?,
             artistURL: row['artistURL'] as String?,
@@ -198,7 +203,9 @@ class _$AssetTokenDao extends AssetTokenDao {
             thumbnailURL: row['thumbnailURL'] as String?,
             galleryThumbnailURL: row['galleryThumbnailURL'] as String?,
             title: row['title'] as String,
-            ownerAddress: row['ownerAddress'] as String?));
+            ownerAddress: row['ownerAddress'] as String?,
+            lastActivityTime:
+                _dateTimeConverter.decode(row['lastActivityTime'] as int)));
   }
 
   @override
@@ -227,7 +234,9 @@ class _$AssetTokenDao extends AssetTokenDao {
             thumbnailURL: row['thumbnailURL'] as String?,
             galleryThumbnailURL: row['galleryThumbnailURL'] as String?,
             title: row['title'] as String,
-            ownerAddress: row['ownerAddress'] as String?),
+            ownerAddress: row['ownerAddress'] as String?,
+            lastActivityTime:
+                _dateTimeConverter.decode(row['lastActivityTime'] as int)),
         arguments: [blockchain]);
   }
 
@@ -255,7 +264,9 @@ class _$AssetTokenDao extends AssetTokenDao {
             thumbnailURL: row['thumbnailURL'] as String?,
             galleryThumbnailURL: row['galleryThumbnailURL'] as String?,
             title: row['title'] as String,
-            ownerAddress: row['ownerAddress'] as String?),
+            ownerAddress: row['ownerAddress'] as String?,
+            lastActivityTime:
+                _dateTimeConverter.decode(row['lastActivityTime'] as int)),
         arguments: [id]);
   }
 
