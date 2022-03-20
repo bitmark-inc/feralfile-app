@@ -12,6 +12,8 @@
 		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
 		581747E427D7131D0070EB48 /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 581747E327D7131D0070EB48 /* Settings.bundle */; };
 		581747E527D7131D0070EB48 /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 581747E327D7131D0070EB48 /* Settings.bundle */; };
+		58A4B4F627E33A99001F30D2 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 58A4B4F527E33A8B001F30D2 /* libsqlite3.tbd */; };
+		58A4B4F727E33AA0001F30D2 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 58A4B4F527E33A8B001F30D2 /* libsqlite3.tbd */; };
 		630DA1EE27DB5A4600586F70 /* Keychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 630DA1ED27DB5A4600586F70 /* Keychain.swift */; };
 		630DA1EF27DB616E00586F70 /* Keychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 630DA1ED27DB5A4600586F70 /* Keychain.swift */; };
 		632FC2F627B4F51E00336DCE /* BeaconConnectService+Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632FC2F527B4F51E00336DCE /* BeaconConnectService+Helpers.swift */; };
@@ -87,6 +89,7 @@
 		1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GeneratedPluginRegistrant.m; sourceTree = "<group>"; };
 		3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = AppFrameworkInfo.plist; path = Flutter/AppFrameworkInfo.plist; sourceTree = "<group>"; };
 		581747E327D7131D0070EB48 /* Settings.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Settings.bundle; sourceTree = "<group>"; };
+		58A4B4F527E33A8B001F30D2 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
 		630DA1ED27DB5A4600586F70 /* Keychain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Keychain.swift; sourceTree = "<group>"; };
 		632FC2F527B4F51E00336DCE /* BeaconConnectService+Helpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BeaconConnectService+Helpers.swift"; sourceTree = "<group>"; };
 		6399594127B2C2FA002653E7 /* BeaconChannelHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeaconChannelHandler.swift; sourceTree = "<group>"; };
@@ -127,6 +130,7 @@
 			files = (
 				76F3289E27D1EC1C00C3B9FA /* CloudKit.framework in Frameworks */,
 				76F3289F27D1EC1C00C3B9FA /* BeaconBlockchainTezos in Frameworks */,
+				58A4B4F727E33AA0001F30D2 /* libsqlite3.tbd in Frameworks */,
 				76F328A027D1EC1C00C3B9FA /* LibAuk in Frameworks */,
 				76F328A127D1EC1C00C3B9FA /* BeaconTransportP2PMatrix in Frameworks */,
 				76F328A227D1EC1C00C3B9FA /* BeaconClientWallet in Frameworks */,
@@ -141,6 +145,7 @@
 				76F3288827CE585F00C3B9FA /* CloudKit.framework in Frameworks */,
 				63F1664B27B2509F00451AAA /* BeaconBlockchainTezos in Frameworks */,
 				63CED4A827AE9DFC00699ED5 /* LibAuk in Frameworks */,
+				58A4B4F627E33A99001F30D2 /* libsqlite3.tbd in Frameworks */,
 				63F1665127B2509F00451AAA /* BeaconTransportP2PMatrix in Frameworks */,
 				63F1664D27B2509F00451AAA /* BeaconClientWallet in Frameworks */,
 				63F1664F27B2509F00451AAA /* BeaconCore in Frameworks */,
@@ -165,6 +170,7 @@
 		48A495939161E7A3DB3133FE /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				58A4B4F527E33A8B001F30D2 /* libsqlite3.tbd */,
 				76F3288727CE585F00C3B9FA /* CloudKit.framework */,
 				A451CD8AF50E41359BCF628F /* Pods_Runner.framework */,
 			);
@@ -317,7 +323,7 @@
 			);
 			mainGroup = 97C146E51CF9000F007C117D;
 			packageReferences = (
-				63CED4A627AE9DFC00699ED5 /* XCRemoteSwiftPackageReference "libauk-swift.git" */,
+				63CED4A627AE9DFC00699ED5 /* XCRemoteSwiftPackageReference "libauk-swift" */,
 				63F1664927B2509F00451AAA /* XCRemoteSwiftPackageReference "beacon-ios-sdk" */,
 			);
 			productRefGroup = 97C146EF1CF9000F007C117D /* Products */;
@@ -885,7 +891,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		63CED4A627AE9DFC00699ED5 /* XCRemoteSwiftPackageReference "libauk-swift.git" */ = {
+		63CED4A627AE9DFC00699ED5 /* XCRemoteSwiftPackageReference "libauk-swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/bitmark-inc/libauk-swift.git";
 			requirement = {
@@ -901,7 +907,7 @@
 				revision = 94afdd7dffa67cd2f86d6334e981aafa22546f35;
 			};
 		};
-		76F3288B27D1EC1C00C3B9FA /* XCRemoteSwiftPackageReference "libauk-swift.git" */ = {
+		76F3288B27D1EC1C00C3B9FA /* XCRemoteSwiftPackageReference "libauk-swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/bitmark-inc/libauk-swift.git";
 			requirement = {
@@ -922,7 +928,7 @@
 /* Begin XCSwiftPackageProductDependency section */
 		63CED4A727AE9DFC00699ED5 /* LibAuk */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 63CED4A627AE9DFC00699ED5 /* XCRemoteSwiftPackageReference "libauk-swift.git" */;
+			package = 63CED4A627AE9DFC00699ED5 /* XCRemoteSwiftPackageReference "libauk-swift" */;
 			productName = LibAuk;
 		};
 		63F1664A27B2509F00451AAA /* BeaconBlockchainTezos */ = {
@@ -947,7 +953,7 @@
 		};
 		76F3288A27D1EC1C00C3B9FA /* LibAuk */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 76F3288B27D1EC1C00C3B9FA /* XCRemoteSwiftPackageReference "libauk-swift.git" */;
+			package = 76F3288B27D1EC1C00C3B9FA /* XCRemoteSwiftPackageReference "libauk-swift" */;
 			productName = LibAuk;
 		};
 		76F3288C27D1EC1C00C3B9FA /* BeaconBlockchainTezos */ = {

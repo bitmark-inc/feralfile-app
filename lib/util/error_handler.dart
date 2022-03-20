@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:tezart/tezart.dart';
 
 import '../screen/report/sentry_report_page.dart';
@@ -192,7 +193,8 @@ void showErrorDiablog(
       defaultAction, cancelButton, cancelAction);
 }
 
-void showErrorDialogFromException(Object exception, {StackTrace? stackTrace}) {
+void showErrorDialogFromException(Object exception,
+    {StackTrace? stackTrace, String? library}) {
   final context = injector<NavigationService>().navigatorKey.currentContext;
 
   if (exception is PlatformException) {
@@ -209,6 +211,15 @@ void showErrorDialogFromException(Object exception, {StackTrace? stackTrace}) {
   log.warning("Unhandled error: $exception", exception);
   injector<AWSService>().storeEventWithDeviceData("unhandled_error",
       data: {"message": exception.toString()});
+
+  if (library != null) {
+    // Send error directly to Sentry if it comes from specific libraries
+    Sentry.captureException(exception,
+        stackTrace: stackTrace,
+        withScope: (Scope? scope) => scope?.setTag("library", library));
+    return;
+  }
+
   final event = translateError(exception);
 
   if (context != null && event != null) {
