@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/au_cached_manager.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/penrose_top_bar_view.dart';
@@ -167,10 +168,9 @@ class _HomePageState extends State<HomePage>
                         : CachedNetworkImage(
                             imageUrl: asset.thumbnailURL!,
                             fit: BoxFit.cover,
-                            maxHeightDiskCache: _cachedImageSize,
-                            maxWidthDiskCache: _cachedImageSize,
                             memCacheHeight: _cachedImageSize,
                             memCacheWidth: _cachedImageSize,
+                            cacheManager: AUCacheManager(),
                             placeholder: (context, index) => Container(
                                 color: Color.fromRGBO(227, 227, 227, 1)),
                             placeholderFadeInDuration:
@@ -191,7 +191,12 @@ class _HomePageState extends State<HomePage>
       ];
     }).reduce((value, element) => value += element);
 
-    sources.insert(0, SliverPadding(padding: EdgeInsets.only(top: 108)));
+    sources.insert(
+        0,
+        SliverToBoxAdapter(
+            child: Container(
+          height: 108.0,
+        )));
 
     return CustomScrollView(
       slivers: sources,

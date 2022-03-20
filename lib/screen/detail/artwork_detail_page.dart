@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_page.dart';
 import 'package:autonomy_flutter/screen/detail/report_rendering_issue_widget.dart';
+import 'package:autonomy_flutter/util/au_cached_manager.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -152,6 +153,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
                                 width: double.infinity,
                                 maxWidthDiskCache: (screenHeight * 3).floor(),
                                 memCacheWidth: (screenWidth * 3).floor(),
+                                cacheManager: AUCacheManager(),
                                 placeholderFadeInDuration:
                                     Duration(milliseconds: 300),
                                 fit: BoxFit.cover,
