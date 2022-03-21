@@ -1,19 +1,23 @@
 import 'dart:async';
+import 'dart:isolate';
+import 'dart:ui';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/au_cached_manager.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/screen/connection/persona_connections_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'package:flutter_downloader/flutter_downloader.dart';
 
 void main() async {
   await SentryFlutter.init((options) {
@@ -32,6 +36,11 @@ void main() async {
 
     await setup();
 
+    await FlutterDownloader.initialize();
+    await Hive.initFlutter();
+    FlutterDownloader.registerCallback(downloadCallback);
+    AUCacheManager().setup();
+
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
       statusBarColor: Colors.white,
       statusBarIconBrightness: Brightness.dark,
@@ -41,7 +50,7 @@ void main() async {
     FlutterError.onError = (FlutterErrorDetails details) {
       FlutterError.presentError(details);
       showErrorDialogFromException(details.exception,
-          stackTrace: details.stack);
+          stackTrace: details.stack, library: details.library);
     };
     await injector<AWSService>().initServices();
 
@@ -123,3 +132,12 @@ class MemoryValues {
     return MemoryValues(scopedPersona: scopedPersona ?? this.scopedPersona);
   }
 }
+
+@pragma('vm:entry-point')
+void downloadCallback(String id, DownloadTaskStatus status, int progress) {
+  final SendPort? send =
+      IsolateNameServer.lookupPortByName('downloader_send_port');
+  send?.send([id, status, progress]);
+}
+
+void imageError(Object exception, StackTrace? stackTrace) {}

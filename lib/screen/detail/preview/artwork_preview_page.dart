@@ -6,6 +6,7 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/util/au_cached_manager.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -243,6 +244,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                 imageBuilder: (context, imageProvider) => PhotoView(
                   imageProvider: imageProvider,
                 ),
+                cacheManager: AUCacheManager(),
                 placeholder: (context, url) => Container(),
                 placeholderFadeInDuration: Duration(milliseconds: 300),
                 errorWidget: (context, url, error) => Container(),

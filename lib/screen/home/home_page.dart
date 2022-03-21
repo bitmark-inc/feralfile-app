@@ -10,6 +10,7 @@ import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/au_cached_manager.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/penrose_top_bar_view.dart';
@@ -89,11 +90,11 @@ class _HomePageState extends State<HomePage>
           body: BlocBuilder<HomeBloc, HomeState>(builder: (context, state) {
         final tokens = state.tokens;
         final shouldShowMainView = tokens != null && tokens.isNotEmpty;
-        final ListView assetsWidget =
+        final Widget assetsWidget =
             shouldShowMainView ? _assetsWidget(tokens!) : _emptyGallery();
 
         return Stack(fit: StackFit.loose, children: [
-          shouldShowMainView ? assetsWidget : _emptyGallery(),
+          assetsWidget,
           PenroseTopBarView(true, _controller),
           BlocBuilder<HomeBloc, HomeState>(
             builder: (context, state) {
@@ -115,10 +116,9 @@ class _HomePageState extends State<HomePage>
     );
   }
 
-  ListView _emptyGallery() {
+  Widget _emptyGallery() {
     return ListView(
       padding: EdgeInsets.symmetric(horizontal: 16.0),
-      controller: _controller,
       children: [
         SizedBox(height: 160),
         Text(
@@ -134,7 +134,7 @@ class _HomePageState extends State<HomePage>
     );
   }
 
-  ListView _assetsWidget(List<AssetToken> tokens) {
+  Widget _assetsWidget(List<AssetToken> tokens) {
     final groupBySource = groupBy(tokens, (AssetToken obj) => obj.source);
     var sortedKeys = groupBySource.keys.toList()..sort();
 
@@ -149,65 +149,64 @@ class _HomePageState extends State<HomePage>
         _cachedImageSize = (estimatedCellWidth * 3).ceil();
       }
       return <Widget>[
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: 15.0),
-          child: Text(
-            polishSource(source ?? ""),
-            style: appTextTheme.headline1,
-          ),
+        SliverPersistentHeader(
+          delegate: CategoryHeaderDelegate(source),
         ),
-        GridView.builder(
-            physics: const NeverScrollableScrollPhysics(),
-            shrinkWrap: true,
+        SliverGrid(
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: cellPerRow,
               crossAxisSpacing: cellSpacing,
               mainAxisSpacing: cellSpacing,
               childAspectRatio: 1.0,
             ),
-            addAutomaticKeepAlives: false,
-            addRepaintBoundaries: false,
-            padding: EdgeInsets.symmetric(vertical: 24),
-            itemCount: assets.length,
-            itemBuilder: (BuildContext context, int index) {
-              final asset = assets[index];
-              final ext = p.extension(asset.thumbnailURL!);
-              return GestureDetector(
-                child: Container(
-                  child: ext == ".svg"
-                      ? SvgPicture.network(asset.thumbnailURL!)
-                      : CachedNetworkImage(
-                          imageUrl: asset.thumbnailURL!,
-                          fit: BoxFit.cover,
-                          maxHeightDiskCache: _cachedImageSize,
-                          maxWidthDiskCache: _cachedImageSize,
-                          memCacheHeight: _cachedImageSize,
-                          memCacheWidth: _cachedImageSize,
-                          placeholder: (context, index) => Container(
-                              color: Color.fromRGBO(227, 227, 227, 1)),
-                          placeholderFadeInDuration:
-                              Duration(milliseconds: 300),
-                          errorWidget: (context, url, error) =>
-                              SizedBox(height: 100),
-                        ),
-                ),
-                onTap: () {
-                  Navigator.of(context).pushNamed(ArtworkDetailPage.tag,
-                      arguments: ArtworkDetailPayload(
-                          assets.map((e) => e.id).toList(), index));
-                },
-              );
-            }),
-        SizedBox(height: 32.0),
+            delegate: SliverChildBuilderDelegate(
+              (BuildContext context, int index) {
+                final asset = assets[index];
+                final ext = p.extension(asset.thumbnailURL!);
+                return GestureDetector(
+                  child: Container(
+                    child: ext == ".svg"
+                        ? SvgPicture.network(asset.thumbnailURL!)
+                        : CachedNetworkImage(
+                            imageUrl: asset.thumbnailURL!,
+                            fit: BoxFit.cover,
+                            memCacheHeight: _cachedImageSize,
+                            memCacheWidth: _cachedImageSize,
+                            cacheManager: AUCacheManager(),
+                            placeholder: (context, index) => Container(
+                                color: Color.fromRGBO(227, 227, 227, 1)),
+                            placeholderFadeInDuration:
+                                Duration(milliseconds: 300),
+                            errorWidget: (context, url, error) => Container(
+                                color: Color.fromRGBO(227, 227, 227, 1)),
+                          ),
+                  ),
+                  onTap: () {
+                    Navigator.of(context).pushNamed(ArtworkDetailPage.tag,
+                        arguments: ArtworkDetailPayload(
+                            assets.map((e) => e.id).toList(), index));
+                  },
+                );
+              },
+              childCount: assets.length,
+            )),
+        SliverToBoxAdapter(
+            child: Container(
+          height: 56.0,
+        ))
       ];
     }).reduce((value, element) => value += element);
 
-    sources.insert(0, SizedBox(height: 108));
+    sources.insert(
+        0,
+        SliverToBoxAdapter(
+            child: Container(
+          height: 168.0,
+        )));
 
-    return ListView(
-      children: sources,
-      addAutomaticKeepAlives: false,
-      addRepaintBoundaries: false,
+    return CustomScrollView(
+      slivers: sources,
+      controller: _controller,
     );
   }
 
@@ -304,4 +303,31 @@ class _HomePageState extends State<HomePage>
         break;
     }
   }
+}
+
+class CategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
+  final String? source;
+  CategoryHeaderDelegate(this.source);
+
+  @override
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return Container(
+      padding: EdgeInsets.fromLTRB(14, 0, 24, 14),
+      child: Text(
+        polishSource(source ?? ""),
+        style: appTextTheme.headline1,
+      ),
+    );
+  }
+
+  @override
+  double get maxExtent => 67;
+
+  @override
+  double get minExtent => 67;
+
+  @override
+  bool shouldRebuild(covariant CategoryHeaderDelegate oldDelegate) =>
+      oldDelegate.source != source;
 }

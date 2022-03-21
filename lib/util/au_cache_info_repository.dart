@@ -1,0 +1,180 @@
+import 'dart:async';
+import 'dart:io';
+import 'dart:math';
+
+import 'package:collection/collection.dart';
+import 'package:flutter_cache_manager/src/storage/cache_object.dart';
+import 'package:flutter_cache_manager/src/storage/cache_info_repositories/cache_info_repository.dart';
+import 'package:flutter_cache_manager/src/storage/cache_info_repositories/helper_methods.dart';
+import 'package:hive/hive.dart';
+
+class AUCacheInfoRepository extends CacheInfoRepository
+    with CacheInfoRepositoryHelperMethods {
+  Directory? directory;
+  String? path;
+  String? databaseName;
+
+  /// Either the path or the database name should be provided.
+  /// If the path is provider it should end with '{databaseName}.json',
+  /// for example: /data/user/0/com.example.example/databases/imageCache.json
+  AUCacheInfoRepository({this.path, this.databaseName})
+      : assert(path == null || databaseName == null);
+
+  /// The directory and the databaseName should both the provided. The database
+  /// is stored as {databaseName}.json in the directory,
+  // AUCacheInfoRepository.withFile(File file) : _file = file;
+
+  final Map<int, Map<String, dynamic>> _AUCache = {};
+
+  late Box<Map> _box;
+
+  @override
+  Future<bool> open() async {
+    if (!shouldOpenOnNewConnection()) {
+      return openCompleter!.future;
+    }
+
+    _box = await Hive.openBox('au_image_cache');
+    return true;
+  }
+
+  @override
+  Future<CacheObject?> get(String key) async {
+    final value = _box.get(key);
+    return value != null
+        ? CacheObject.fromMap(value.cast<String, dynamic>())
+        : null;
+  }
+
+  @override
+  Future<List<CacheObject>> getAllObjects() async {
+    return _box.values
+        .map((e) => CacheObject.fromMap(e.cast<String, dynamic>()))
+        .toList();
+  }
+
+  @override
+  Future<CacheObject> insert(
+    CacheObject cacheObject, {
+    bool setTouchedToNow = true,
+  }) async {
+    if (cacheObject.id != null) {
+      throw ArgumentError("Inserted objects shouldn't have an existing id.");
+    }
+    var keys = _AUCache.keys;
+    var lastId = keys.isEmpty ? 0 : keys.reduce(max);
+    var id = lastId + 1;
+
+    cacheObject = cacheObject.copyWith(id: id);
+    return _put(cacheObject, setTouchedToNow);
+  }
+
+  @override
+  Future<int> update(
+    CacheObject cacheObject, {
+    bool setTouchedToNow = true,
+  }) async {
+    if (cacheObject.id == null) {
+      throw ArgumentError('Updated objects should have an existing id.');
+    }
+    _put(cacheObject, setTouchedToNow);
+    return 1;
+  }
+
+  @override
+  Future updateOrInsert(CacheObject cacheObject) {
+    return cacheObject.id == null ? insert(cacheObject) : update(cacheObject);
+  }
+
+  @override
+  Future<List<CacheObject>> getObjectsOverCapacity(int capacity) async {
+    var allSorted = _box.values
+        .map((e) => CacheObject.fromMap(e.cast<String, dynamic>()))
+        .toList()
+      ..sort((c1, c2) => c1.touched!.compareTo(c2.touched!));
+    if (allSorted.length <= capacity) return [];
+    return allSorted.getRange(0, allSorted.length - capacity).toList();
+  }
+
+  @override
+  Future<List<CacheObject>> getOldObjects(Duration maxAge) async {
+    var oldestTimestamp = DateTime.now().subtract(maxAge);
+    return _box.values
+        .map((e) => CacheObject.fromMap(e.cast<String, dynamic>()))
+        .where(
+          (element) => element.touched!.isBefore(oldestTimestamp),
+        )
+        .toList();
+  }
+
+  @override
+  Future<int> delete(int id) async {
+    var cacheObject = _box.values
+        .map((e) => CacheObject.fromMap(e.cast<String, dynamic>()))
+        .firstWhereOrNull(
+          (element) => element.id == id,
+        );
+    if (cacheObject == null) {
+      return 0;
+    }
+    _remove(cacheObject);
+    return 1;
+  }
+
+  @override
+  Future<int> deleteAll(Iterable<int> ids) async {
+    var deleted = 0;
+    for (var id in ids) {
+      deleted += await delete(id);
+    }
+    return deleted;
+  }
+
+  @override
+  Future<bool> close() async {
+    if (!shouldClose()) {
+      return false;
+    }
+    await _saveFile();
+    return true;
+  }
+
+  CacheObject _put(CacheObject cacheObject, bool setTouchedToNow) {
+    final map = cacheObject.toMap(setTouchedToNow: setTouchedToNow);
+    _AUCache[cacheObject.id!] = map;
+    var updatedCacheObject = CacheObject.fromMap(map);
+    _box.put(cacheObject.key, cacheObject.toMap());
+    _cacheUpdated();
+    return updatedCacheObject;
+  }
+
+  void _remove(CacheObject cacheObject) {
+    _box.delete(cacheObject.key);
+    _AUCache.remove(cacheObject.id);
+    _cacheUpdated();
+  }
+
+  void _cacheUpdated() {
+    timer?.cancel();
+    timer = Timer(timerDuration, _saveFile);
+  }
+
+  Timer? timer;
+  Duration timerDuration = const Duration(seconds: 3);
+
+  Future _saveFile() async {
+    timer?.cancel();
+    timer = null;
+    await _box.flush();
+  }
+
+  @override
+  Future deleteDataFile() async {
+    return await _box.deleteFromDisk();
+  }
+
+  @override
+  Future<bool> exists() async {
+    return _box.isNotEmpty;
+  }
+}
