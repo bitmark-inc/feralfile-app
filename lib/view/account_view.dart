@@ -19,22 +19,25 @@ Widget accountWithConnectionItem(
             height: 24,
             child: Image.asset("assets/images/autonomyIcon.png")),
         SizedBox(width: 16),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            Text(categorizedAccounts.category,
-                overflow: TextOverflow.ellipsis, style: appTextTheme.headline4),
-            SizedBox(height: 4),
-            ...categorizedAccounts.accounts
-                .map((a) => Container(
-                    padding: EdgeInsets.only(top: 16),
-                    child: _blockchainAddressView(a,
-                        onTap: () => Navigator.of(context).pushNamed(
-                            GlobalReceiveDetailPage.tag,
-                            arguments: a))))
-                .toList(),
-          ],
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Text(categorizedAccounts.category,
+                  overflow: TextOverflow.ellipsis,
+                  style: appTextTheme.headline4),
+              SizedBox(height: 4),
+              ...categorizedAccounts.accounts
+                  .map((a) => Container(
+                      padding: EdgeInsets.only(top: 16),
+                      child: _blockchainAddressView(a,
+                          onTap: () => Navigator.of(context).pushNamed(
+                              GlobalReceiveDetailPage.tag,
+                              arguments: a))))
+                  .toList(),
+            ],
+          ),
         ),
       ],
     );
@@ -54,18 +57,7 @@ Widget accountWithConnectionItem(
                 overflow: TextOverflow.ellipsis, style: appTextTheme.headline4),
           ],
         ),
-        rightWidget: Container(
-          padding: EdgeInsets.symmetric(vertical: 5, horizontal: 8),
-          decoration: BoxDecoration(
-              border: Border.all(color: Color(0x999999999), width: 1)),
-          child: Text(
-            "LINKED",
-            style: TextStyle(
-                color: Color(0x999999999),
-                fontSize: 12,
-                fontFamily: "IBMPlexMono"),
-          ),
-        ),
+        rightWidget: _linkedBox(),
         bottomWidget: Container(
             padding: EdgeInsets.only(left: 40),
             child: Row(children: [
@@ -128,18 +120,7 @@ Widget accountItem(BuildContext context, Account account,
                 style: appTextTheme.headline4),
           ],
         ),
-        rightWidget: Container(
-          padding: EdgeInsets.symmetric(vertical: 5, horizontal: 8),
-          decoration: BoxDecoration(
-              border: Border.all(color: Color(0xFF6D6B6B), width: 1)),
-          child: Text(
-            "LINKED",
-            style: TextStyle(
-                color: Color(0xFF6D6B6B),
-                fontSize: 12,
-                fontFamily: "IBMPlexMono"),
-          ),
-        ),
+        rightWidget: _linkedBox(),
         onTap: onConnectionTap);
   }
 
@@ -161,7 +142,7 @@ Widget _blockchainAddressView(Account account, {Function()? onTap}) {
               fontSize: 14,
               fontWeight: FontWeight.w400,
               fontFamily: "IBMPlexMono"),
-        )
+        ),
       ],
     ),
     onTap: onTap,
@@ -222,4 +203,17 @@ Widget _appLogo(Connection connection) {
         width: 24,
       );
   }
+}
+
+Widget _linkedBox() {
+  return Container(
+    padding: EdgeInsets.symmetric(vertical: 5, horizontal: 8),
+    decoration:
+        BoxDecoration(border: Border.all(color: Color(0xFF6D6B6B), width: 1)),
+    child: Text(
+      "LINKED",
+      style: TextStyle(
+          color: Color(0xFF6D6B6B), fontSize: 12, fontFamily: "IBMPlexMono"),
+    ),
+  );
 }
