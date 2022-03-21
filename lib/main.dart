@@ -12,7 +12,7 @@ import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/painting.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -35,6 +35,7 @@ void main() async {
     await setup();
 
     await FlutterDownloader.initialize();
+    await Hive.initFlutter();
     FlutterDownloader.registerCallback(downloadCallback);
     AUCacheManager().setup();
 

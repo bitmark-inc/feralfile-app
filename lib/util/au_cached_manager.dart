@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:collection';
 import 'dart:isolate';
 import 'dart:ui';
 
+import 'package:autonomy_flutter/util/au_cache_info_repository.dart';
 import 'package:autonomy_flutter/util/log.dart' as l;
 import 'package:flutter_cache_manager/src/storage/cache_object.dart';
 
@@ -38,12 +40,14 @@ class AUCacheManager extends CacheManager with ImageCacheManager {
 
   static late final AUCacheManager _instance = AUCacheManager._();
   final Map<String, FileDownloadInfo> _memCache = {};
+  HashMap<String, BehaviorSubject<FileResponse>> _requestedUrls =
+      HashMap.identity();
 
   factory AUCacheManager() {
     return _instance;
   }
 
-  AUCacheManager._() : super(Config(key));
+  AUCacheManager._() : super(Config(key, repo: AUCacheInfoRepository()));
 
   void setup() {
     FlutterImageCompress.validator.ignoreCheckExtName = true;
@@ -138,7 +142,11 @@ class AUCacheManager extends CacheManager with ImageCacheManager {
       Map<String, String>? authHeaders,
       bool ignoreMemCache = false}) async {
     key ??= url;
-    // var fileDownloadInfo = _memCache[key];
+
+    final oldCallback = _requestedUrls[url];
+    if (oldCallback != null) {
+      return oldCallback;
+    }
 
     final tempDir = await getTemporaryDirectory();
     String savedDir = tempDir.path;
@@ -160,6 +168,7 @@ class AUCacheManager extends CacheManager with ImageCacheManager {
     );
     if (taskId != null) {
       _memCache[taskId] = fileDownloadInfo;
+      _requestedUrls[url] = fileDownloadInfo.progress;
     }
 
     return fileDownloadInfo.progress;
