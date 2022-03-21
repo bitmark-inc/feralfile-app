@@ -172,7 +172,7 @@ class _HomePageState extends State<HomePage>
                             fit: BoxFit.cover,
                             memCacheHeight: _cachedImageSize,
                             memCacheWidth: _cachedImageSize,
-                            cacheManager: AUCacheManager(),
+                            cacheManager: injector<AUCacheManager>(),
                             placeholder: (context, index) => Container(
                                 color: Color.fromRGBO(227, 227, 227, 1)),
                             placeholderFadeInDuration:

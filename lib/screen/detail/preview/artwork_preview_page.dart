@@ -244,7 +244,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                 imageBuilder: (context, imageProvider) => PhotoView(
                   imageProvider: imageProvider,
                 ),
-                cacheManager: AUCacheManager(),
+                cacheManager: injector<AUCacheManager>(),
                 placeholder: (context, url) => Container(),
                 placeholderFadeInDuration: Duration(milliseconds: 300),
                 errorWidget: (context, url, error) => Container(),
@@ -278,6 +278,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
               await _webViewController?.runJavascript(javascriptString);
             },
             javascriptMode: JavascriptMode.unrestricted,
+            allowsInlineMediaPlayback: true,
             backgroundColor: Colors.black);
     }
   }
