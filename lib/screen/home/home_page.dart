@@ -98,9 +98,9 @@ class _HomePageState extends State<HomePage>
           PenroseTopBarView(true, _controller),
           BlocBuilder<HomeBloc, HomeState>(
             builder: (context, state) {
-              if (state.fetchTokenState == ActionState.loading) {
+              if (state.fetchTokenState != ActionState.loading)
                 return SizedBox();
-              }
+
               return Align(
                 alignment: Alignment.topRight,
                 child: Padding(
