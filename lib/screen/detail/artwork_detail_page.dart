@@ -1,5 +1,6 @@
 import 'dart:collection';
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/model/asset_price.dart';
 import 'package:autonomy_flutter/model/bitmark.dart';
@@ -153,7 +154,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
                                 width: double.infinity,
                                 maxWidthDiskCache: (screenHeight * 3).floor(),
                                 memCacheWidth: (screenWidth * 3).floor(),
-                                cacheManager: AUCacheManager(),
+                                cacheManager: injector<AUCacheManager>(),
                                 placeholderFadeInDuration:
                                     Duration(milliseconds: 300),
                                 fit: BoxFit.cover,

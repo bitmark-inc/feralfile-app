@@ -17,6 +17,7 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_dapp_service/wallet_connect_dapp_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
+import 'package:autonomy_flutter/util/au_cached_manager.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
 import 'package:dio/dio.dart';
 import 'package:dio_http2_adapter/dio_http2_adapter.dart';
@@ -78,6 +79,7 @@ Future<void> setup() async {
 
   injector.registerLazySingleton(
       () => WalletConnectService(injector(), injector()));
+  injector.registerLazySingleton(() => AUCacheManager());
   injector.registerLazySingleton(() => WalletConnectDappService(injector()));
   injector.registerLazySingleton(
       () => AccountService(cloudDB, injector(), injector()));
