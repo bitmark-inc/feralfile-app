@@ -340,29 +340,21 @@ class _LinkAccountPageState extends State<LinkAccountPage>
   }
 
   Widget _linkLedger(String blockchain) {
-    return FutureBuilder<bool>(
-        future: isAppCenterBuild(),
-        builder: (context, snapshot) {
-          if (snapshot.data == true) {
-            return Column(
+    return Column(
+      children: [
+        addDivider(),
+        TappableForwardRow(
+            leftWidget: Row(
               children: [
-                addDivider(),
-                TappableForwardRow(
-                    leftWidget: Row(
-                      children: [
-                        Image.asset("assets/images/iconLedger.png"),
-                        SizedBox(width: 16),
-                        Text("Ledger", style: appTextTheme.headline4),
-                      ],
-                    ),
-                    onTap: () => Navigator.of(context).pushNamed(
-                        AppRouter.linkLedgerWalletPage,
-                        arguments: blockchain)),
+                Image.asset("assets/images/iconLedger.png"),
+                SizedBox(width: 16),
+                Text("Ledger", style: appTextTheme.headline4),
               ],
-            );
-          }
-
-          return SizedBox();
-        });
+            ),
+            onTap: () => Navigator.of(context).pushNamed(
+                AppRouter.linkLedgerWalletPage,
+                arguments: blockchain)),
+      ],
+    );
   }
 }
