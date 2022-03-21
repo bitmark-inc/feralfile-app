@@ -78,7 +78,7 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
     return Scaffold(
       appBar: getBackAppBar(
         context,
-        title: widget.connection.name.toUpperCase(),
+        title: widget.connection.name,
         onBack: () {
           Navigator.of(context).pop();
         },

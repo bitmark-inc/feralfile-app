@@ -3,7 +3,7 @@ import 'package:floor/floor.dart';
 
 @dao
 abstract class AssetTokenDao {
-  @Query('SELECT * FROM AssetToken')
+  @Query('SELECT * FROM AssetToken ORDER BY lastActivityTime DESC')
   Future<List<AssetToken>> findAllAssetTokens();
 
   @Query('SELECT * FROM AssetToken WHERE blockchain = :blockchain')
