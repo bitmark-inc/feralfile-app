@@ -7,6 +7,7 @@ class Asset {
     required this.contractType,
     required this.owner,
     required this.projectMetadata,
+    required this.lastActivityTime,
   });
 
   String id;
@@ -16,16 +17,17 @@ class Asset {
   String contractType;
   String owner;
   ProjectMetadata projectMetadata;
+  DateTime lastActivityTime;
 
   factory Asset.fromJson(Map<String, dynamic> json) => Asset(
-        id: json["indexID"],
-        edition: json["edition"],
-        blockchain: json["blockchain"],
-        mintedAt: DateTime.parse(json["mintedAt"]),
-        contractType: json["contractType"],
-        owner: json["owner"],
-        projectMetadata: ProjectMetadata.fromJson(json["projectMetadata"]),
-      );
+      id: json["indexID"],
+      edition: json["edition"],
+      blockchain: json["blockchain"],
+      mintedAt: DateTime.parse(json["mintedAt"]),
+      contractType: json["contractType"],
+      owner: json["owner"],
+      projectMetadata: ProjectMetadata.fromJson(json["projectMetadata"]),
+      lastActivityTime: DateTime.parse(json['lastActivityTime']));
 
   Map<String, dynamic> toJson() => {
         "indexID": id,
@@ -35,6 +37,7 @@ class Asset {
         "contractType": contractType,
         "owner": owner,
         "projectMetadata": projectMetadata.toJson(),
+        "lastActivityTime": lastActivityTime.toIso8601String,
       };
 }
 

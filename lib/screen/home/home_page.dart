@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
@@ -23,7 +22,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:photo_view/photo_view.dart';
 import 'package:uni_links/uni_links.dart';
 import 'package:path/path.dart' as p;
 
@@ -86,19 +84,23 @@ class _HomePageState extends State<HomePage>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        body: BlocBuilder<HomeBloc, HomeState>(builder: (context, state) {
-      final tokens = state.tokens;
-      final shouldShowMainView = tokens != null && tokens.isNotEmpty;
-      final Widget assetsWidget =
-          shouldShowMainView ? _assetsWidget(tokens!) : _emptyGallery();
+    return PrimaryScrollController(
+      controller: _controller,
+      child: Scaffold(
+          body: BlocBuilder<HomeBloc, HomeState>(builder: (context, state) {
+        final tokens = state.tokens;
+        final shouldShowMainView = tokens != null && tokens.isNotEmpty;
+        final Widget assetsWidget =
+            shouldShowMainView ? _assetsWidget(tokens!) : _emptyGallery();
 
-      return Stack(fit: StackFit.loose, children: [
-        assetsWidget,
-        PenroseTopBarView(true, _controller),
-        BlocBuilder<HomeBloc, HomeState>(
-          builder: (context, state) {
-            if (state.fetchTokenState == ActionState.loading) {
+        return Stack(fit: StackFit.loose, children: [
+          assetsWidget,
+          PenroseTopBarView(true, _controller),
+          BlocBuilder<HomeBloc, HomeState>(
+            builder: (context, state) {
+              if (state.fetchTokenState == ActionState.loading) {
+                return SizedBox();
+              }
               return Align(
                 alignment: Alignment.topRight,
                 child: Padding(
@@ -107,13 +109,11 @@ class _HomePageState extends State<HomePage>
                   child: CupertinoActivityIndicator(),
                 ),
               );
-            } else {
-              return SizedBox();
-            }
-          },
-        ),
-      ]);
-    }));
+            },
+          ),
+        ]);
+      })),
+    );
   }
 
   Widget _emptyGallery() {
@@ -136,7 +136,9 @@ class _HomePageState extends State<HomePage>
 
   Widget _assetsWidget(List<AssetToken> tokens) {
     final groupBySource = groupBy(tokens, (AssetToken obj) => obj.source);
-    var sources = groupBySource.keys.map((source) {
+    var sortedKeys = groupBySource.keys.toList()..sort();
+
+    var sources = sortedKeys.map((source) {
       final assets = groupBySource[source] ?? [];
       const int cellPerRow = 3;
       const double cellSpacing = 3.0;
