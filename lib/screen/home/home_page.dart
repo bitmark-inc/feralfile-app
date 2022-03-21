@@ -177,8 +177,8 @@ class _HomePageState extends State<HomePage>
                                 color: Color.fromRGBO(227, 227, 227, 1)),
                             placeholderFadeInDuration:
                                 Duration(milliseconds: 300),
-                            errorWidget: (context, url, error) =>
-                                SizedBox(height: 100),
+                            errorWidget: (context, url, error) => Container(
+                                color: Color.fromRGBO(227, 227, 227, 1)),
                           ),
                   ),
                   onTap: () {
@@ -190,6 +190,10 @@ class _HomePageState extends State<HomePage>
               },
               childCount: assets.length,
             )),
+        SliverToBoxAdapter(
+            child: Container(
+          height: 56.0,
+        ))
       ];
     }).reduce((value, element) => value += element);
 
@@ -197,7 +201,7 @@ class _HomePageState extends State<HomePage>
         0,
         SliverToBoxAdapter(
             child: Container(
-          height: 108.0,
+          height: 168.0,
         )));
 
     return CustomScrollView(
@@ -309,7 +313,7 @@ class CategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
   Widget build(
       BuildContext context, double shrinkOffset, bool overlapsContent) {
     return Container(
-      padding: EdgeInsets.fromLTRB(14, 32, 0, 14),
+      padding: EdgeInsets.fromLTRB(14, 0, 24, 14),
       child: Text(
         polishSource(source ?? ""),
         style: appTextTheme.headline1,
@@ -318,10 +322,10 @@ class CategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
   }
 
   @override
-  double get maxExtent => 123;
+  double get maxExtent => 67;
 
   @override
-  double get minExtent => 123;
+  double get minExtent => 67;
 
   @override
   bool shouldRebuild(covariant CategoryHeaderDelegate oldDelegate) =>
