@@ -1,5 +1,6 @@
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -74,7 +75,7 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> {
             padding:
                 EdgeInsets.only(top: MediaQuery.of(context).padding.top + 12),
             child: GestureDetector(
-                child: Image.asset("assets/images/penrose.png"),
+                child: _logo(),
                 onTap: () => widget.pushToSettings
                     ? Navigator.of(context).pushNamed(AppRouter.settingsPage)
                     : Navigator.of(context).pop()),
@@ -83,5 +84,15 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> {
       ]),
       animation: widget.scrollController,
     );
+  }
+
+  Widget _logo() {
+    return FutureBuilder<bool>(
+        future: isAppCenterBuild(),
+        builder: (context, snapshot) {
+          return SvgPicture.asset(snapshot.data == true
+              ? "assets/images/penrose_appcenter.svg"
+              : "assets/images/penrose.svg");
+        });
   }
 }
