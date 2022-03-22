@@ -175,7 +175,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
                               width: 165,
                               height: 48,
                               child: AuOutlinedButton(
-                                  text: "VIEW ARTWORK ‣",
+                                  text: "VIEW ARTWORK",
                                   onPress: () {
                                     Navigator.of(context).pushNamed(
                                         ArtworkPreviewPage.tag,
