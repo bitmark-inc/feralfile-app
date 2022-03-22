@@ -22,9 +22,6 @@ class BeaconChannelHandler: NSObject {
     
     func connect() {
         BeaconConnectService.shared.startBeacon()
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            BeaconConnectService.shared.startDAppBeacon()
-        }
     }
     
     func addPeer(call: FlutterMethodCall, result: @escaping FlutterResult) {

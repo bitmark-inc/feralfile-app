@@ -80,10 +80,10 @@ extension Beacon.Peer {
     }
 }
 
-extension Beacon.DAppClient {
+extension Beacon.WalletClient {
 
     func newOwnSerializedPeer(completion: @escaping (Result<String, Beacon.Error>) -> Void) {
-        guard let beacon = Beacon.dappShared else {
+        guard let beacon = Beacon.shared else {
             completion(.failure(.uninitialized))
             return
         }
