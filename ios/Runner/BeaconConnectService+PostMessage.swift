@@ -15,8 +15,8 @@ extension BeaconConnectService {
     func getPostMessageConnectionURI() -> AnyPublisher<String, Error> {
         Future<String, Error> { [weak self] (promise) in
             guard let self = self,
-                  let beacon = Beacon.dappShared,
-                  let beaconDappClient = self.beaconDappClient else {
+                  let beacon = Beacon.shared,
+                  let beaconDappClient = self.beaconClient else {
                       promise(.failure(AppError.pendingBeaconClient))
                       return
                   }
@@ -46,7 +46,7 @@ extension BeaconConnectService {
     func handlePostMessageOpenChannel(payload: String) -> AnyPublisher<(Beacon.P2PPeer, String), Error> {
         Future<(Beacon.P2PPeer, String), Error> { [weak self] (promise) in
             guard let self = self,
-                  let beacon = Beacon.dappShared else {
+                  let beacon = Beacon.shared else {
                       promise(.failure(AppError.pendingBeaconClient))
                       return
                   }
@@ -91,8 +91,8 @@ extension BeaconConnectService {
     func handlePostMessageMessage(extensionPublicKey: String, payload: String) -> AnyPublisher<(String, PermissionTezosResponse), Error> {
         Future<(String, PermissionTezosResponse), Error> { [weak self] (promise) in
             guard let self = self,
-                  let beacon = Beacon.dappShared,
-                  let beaconDappClient = self.beaconDappClient else {
+                  let beacon = Beacon.shared,
+                  let beaconDappClient = self.beaconClient else {
                       promise(.failure(AppError.pendingBeaconClient))
                       return
                   }
@@ -141,7 +141,7 @@ extension BeaconConnectService {
 
 fileprivate extension BeaconConnectService {
     func generatePermissionTezosRequest(completion: @escaping (Result<PostMessagePermissionRequest, Error>) -> Void) {
-        guard let beaconClient = beaconDappClient else {
+        guard let beaconClient = beaconClient else {
             completion(.failure(AppError.pendingBeaconClient))
             return
         }

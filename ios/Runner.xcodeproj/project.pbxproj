@@ -17,6 +17,8 @@
 		630DA1EE27DB5A4600586F70 /* Keychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 630DA1ED27DB5A4600586F70 /* Keychain.swift */; };
 		630DA1EF27DB616E00586F70 /* Keychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 630DA1ED27DB5A4600586F70 /* Keychain.swift */; };
 		632FC2F627B4F51E00336DCE /* BeaconConnectService+Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632FC2F527B4F51E00336DCE /* BeaconConnectService+Helpers.swift */; };
+		636F522227E0A064006A9101 /* BeaconConnectService+PostMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764F859827D7348000B67672 /* BeaconConnectService+PostMessage.swift */; };
+		636F522327E0A06C006A9101 /* ErrorHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764F859D27D9E19400B67672 /* ErrorHandler.swift */; };
 		6399594227B2C2FA002653E7 /* BeaconChannelHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399594127B2C2FA002653E7 /* BeaconChannelHandler.swift */; };
 		6399594427B2C36B002653E7 /* LibAukChannelHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399594327B2C36B002653E7 /* LibAukChannelHandler.swift */; };
 		63CED4A827AE9DFC00699ED5 /* LibAuk in Frameworks */ = {isa = PBXBuildFile; productRef = 63CED4A727AE9DFC00699ED5 /* LibAuk */; };
@@ -252,6 +254,7 @@
 				76F328A527D1EC1C00C3B9FA /* Resources */,
 				76F328AA27D1EC1C00C3B9FA /* Embed Frameworks */,
 				76F328AB27D1EC1C00C3B9FA /* Thin Binary */,
+				638E4DF227E893C10049B2E8 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -400,6 +403,23 @@
 			shellPath = /bin/sh;
 			shellScript = "/bin/sh \"$FLUTTER_ROOT/packages/flutter_tools/bin/xcode_backend.sh\" embed_and_thin\n";
 		};
+		638E4DF227E893C10049B2E8 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
 		76F3289227D1EC1C00C3B9FA /* Run Script */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -467,12 +487,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				76F3289427D1EC1C00C3B9FA /* BeaconChannelHandler.swift in Sources */,
+				636F522327E0A06C006A9101 /* ErrorHandler.swift in Sources */,
 				76F3289527D1EC1C00C3B9FA /* AppDelegate.swift in Sources */,
 				76F3289627D1EC1C00C3B9FA /* CloudKitManager.swift in Sources */,
 				76F3289727D1EC1C00C3B9FA /* CloudChannelHandler.swift in Sources */,
 				76F3289827D1EC1C00C3B9FA /* BeaconConnectService+Helpers.swift in Sources */,
 				630DA1EF27DB616E00586F70 /* Keychain.swift in Sources */,
 				76F3289927D1EC1C00C3B9FA /* BeaconConnectService.swift in Sources */,
+				636F522227E0A064006A9101 /* BeaconConnectService+PostMessage.swift in Sources */,
 				76F3289A27D1EC1C00C3B9FA /* LibAukChannelHandler.swift in Sources */,
 				76F328B527D1EEAE00C3B9FA /* Constant.swift in Sources */,
 				76F3289B27D1EC1C00C3B9FA /* SystemChannelHandler.swift in Sources */,
@@ -904,7 +926,7 @@
 			repositoryURL = "https://github.com/autonomy-system/beacon-ios-sdk";
 			requirement = {
 				kind = revision;
-				revision = 94afdd7dffa67cd2f86d6334e981aafa22546f35;
+				revision = c05a0697ef891b7223103e362b70026e8b0e29b3;
 			};
 		};
 		76F3288B27D1EC1C00C3B9FA /* XCRemoteSwiftPackageReference "libauk-swift" */ = {
