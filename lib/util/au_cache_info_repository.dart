@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:collection/collection.dart';
+import 'package:easy_debounce/easy_debounce.dart';
 import 'package:flutter_cache_manager/src/storage/cache_object.dart';
 import 'package:flutter_cache_manager/src/storage/cache_info_repositories/cache_info_repository.dart';
 import 'package:flutter_cache_manager/src/storage/cache_info_repositories/helper_methods.dart';
@@ -10,15 +11,12 @@ import 'package:hive/hive.dart';
 
 class AUCacheInfoRepository extends CacheInfoRepository
     with CacheInfoRepositoryHelperMethods {
-  Directory? directory;
-  String? path;
-  String? databaseName;
+  String? name;
 
   /// Either the path or the database name should be provided.
   /// If the path is provider it should end with '{databaseName}.json',
   /// for example: /data/user/0/com.example.example/databases/imageCache.json
-  AUCacheInfoRepository({this.path, this.databaseName})
-      : assert(path == null || databaseName == null);
+  AUCacheInfoRepository({this.name});
 
   /// The directory and the databaseName should both the provided. The database
   /// is stored as {databaseName}.json in the directory,
@@ -27,6 +25,7 @@ class AUCacheInfoRepository extends CacheInfoRepository
   final Map<int, Map<String, dynamic>> _AUCache = {};
 
   late Box<Map> _box;
+  static const String defaultBoxName = 'au_image_cache';
 
   @override
   Future<bool> open() async {
@@ -34,7 +33,7 @@ class AUCacheInfoRepository extends CacheInfoRepository
       return openCompleter!.future;
     }
 
-    _box = await Hive.openBox('au_image_cache');
+    _box = await Hive.openBox(name ?? defaultBoxName);
     return true;
   }
 
@@ -155,16 +154,10 @@ class AUCacheInfoRepository extends CacheInfoRepository
   }
 
   void _cacheUpdated() {
-    timer?.cancel();
-    timer = Timer(timerDuration, _saveFile);
+    EasyDebounce.debounce('saveFile', Duration(seconds: 3), _saveFile);
   }
 
-  Timer? timer;
-  Duration timerDuration = const Duration(seconds: 3);
-
   Future _saveFile() async {
-    timer?.cancel();
-    timer = null;
     await _box.flush();
   }
 
@@ -174,7 +167,7 @@ class AUCacheInfoRepository extends CacheInfoRepository
   }
 
   @override
-  Future<bool> exists() async {
-    return _box.isNotEmpty;
+  Future<bool> exists() {
+    return Hive.boxExists(name ?? defaultBoxName);
   }
 }

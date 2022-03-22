@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:collection';
+import 'dart:io';
 import 'dart:isolate';
 import 'dart:ui';
 
@@ -43,13 +44,19 @@ class AUCacheManager extends CacheManager with ImageCacheManager {
   HashMap<String, BehaviorSubject<FileResponse>> _requestedUrls =
       HashMap.identity();
 
+  late String savedDir;
+
   factory AUCacheManager() {
     return _instance;
   }
 
   AUCacheManager._() : super(Config(key, repo: AUCacheInfoRepository()));
 
-  void setup() {
+  Future<dynamic> setup() async {
+    final docDir = await getApplicationDocumentsDirectory();
+    savedDir = docDir.path + "/cached_images";
+    await new Directory(savedDir).create();
+
     FlutterImageCompress.validator.ignoreCheckExtName = true;
     IsolateNameServer.registerPortWithName(
         _port.sendPort, 'downloader_send_port');
@@ -148,8 +155,8 @@ class AUCacheManager extends CacheManager with ImageCacheManager {
       return oldCallback;
     }
 
-    final tempDir = await getTemporaryDirectory();
-    String savedDir = tempDir.path;
+    final docDir = await getApplicationDocumentsDirectory();
+    String savedDir = docDir.path + "/cached_images";
     final ext = p.extension(url);
     String fileName = md5.convert(utf8.encode(url)).toString() + ext;
     String resizedFileName = reiszedPrefix + fileName;
@@ -191,15 +198,18 @@ class AUCacheManager extends CacheManager with ImageCacheManager {
         fileDownloadInfo.localCompressedFile,
         minWidth: 400,
         minHeight: 400,
-        quality: 80,
+        quality: 90,
       );
 
       await this.store.putFile(CacheObject(fileDownloadInfo.url,
-          key: reiszedPrefix + key,
+          key: key,
           relativePath: fileDownloadInfo.localCompressedFile,
           validTill: DateTime.now().add(Duration(days: 7))));
       final file = await this.store.getFile(fileDownloadInfo.url);
       fileDownloadInfo.progress.add(file!);
+
+      // delete the original file
+      File(fileDownloadInfo.localOriginalFile).delete();
 
       cacheLogger.log(
           'downloaded ${fileDownloadInfo.url}', CacheManagerLogLevel.debug);
