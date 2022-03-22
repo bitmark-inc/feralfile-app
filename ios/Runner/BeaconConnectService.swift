@@ -20,11 +20,10 @@ typealias Completion<T> = (Result<T, Error>) -> Void
 class BeaconConnectService {
     
     static var shared = BeaconConnectService()
-    private var beaconClient: Beacon.WalletClient?
+    var beaconClient: Beacon.WalletClient?
     fileprivate let requestSubject = PassthroughSubject<TezosBeaconRequest, Never>()
     private var backgroundTaskID: UIBackgroundTaskIdentifier?
     
-    var beaconDappClient: Beacon.DAppClient?
     let eventsSubject = PassthroughSubject<WalletConnectionEvent, Never>()
     
     func startBeacon() {
@@ -59,6 +58,17 @@ class BeaconConnectService {
     }
     
     func listenForRequests() {
+        startOpenChannelListener(completion: { result in
+            switch result {
+            case let .failure(error):
+                print("[TezosBeaconService] Error while startOpenChannelListener")
+                print("Error: \(error)")
+
+            default:
+                break
+            }
+        })
+        
         beaconClient?.connect { [weak self] result in
             guard let self = self else { return }
             switch result {
@@ -73,10 +83,53 @@ class BeaconConnectService {
         }
     }
     
-    func onBeaconRequest(result: Result<BeaconRequest<Tezos>, Beacon.Error>) {
+    func onBeaconRequest(result: Result<BeaconMessage<Tezos>, Beacon.Error>) {
         switch result {
-        case let .success(request):
-            requestSubject.send(request)
+        case let .success(message):
+            switch message {
+            case let .request(request):
+                requestSubject.send(request)
+            case let .response(response):
+                switch response {
+                case let .permission(permissionResponse):
+                    guard let beaconDappClient = beaconClient else { return }
+                    let publicKey = permissionResponse.publicKey
+                    let peerPublicKey = permissionResponse.requestOrigin.id
+
+                    beaconDappClient.storageManager.findPeers(where: { $0.publicKey == peerPublicKey }) { [weak self] result in
+                        guard let self = self else { return }
+                        switch result {
+                        case let .success(peer):
+                            guard let p2pPeer = peer?.toP2P(), let tzAddress = try? beaconDappClient.crypto.address(fromPublicKey: publicKey) else { return }
+                            self.eventsSubject
+                                .send(.beaconLinked(p2pPeer, tzAddress, permissionResponse))
+
+                        case let .failure(error):
+                            self.eventsSubject
+                                .send(.error(error))
+                        }
+
+                    }
+
+                case let .error(errorResponse):
+                    switch errorResponse.errorType {
+                    case .aborted:
+                        self.eventsSubject
+                            .send(.userAborted)
+
+                    default:
+                        // Ignore for now
+                        break
+                    }
+
+
+                default:
+                    // Ignore for now
+                    break
+                }
+            default:
+                break
+            }
 
         case let .failure(error):
             print("Error while processing incoming messages")
@@ -138,24 +191,6 @@ class BeaconConnectService {
         }
         .eraseToAnyPublisher()
     }
-    
-    func removePeerFromDApp(_ peer: Beacon.P2PPeer) -> AnyPublisher<Void, Error> {
-        print("[TezosBeaconService] removePeerFromDApp")
-
-        return Future<Void, Error> { [self] (promise) in
-            self.beaconDappClient?.remove([.p2p(peer)]) { result in
-                switch result {
-                case .success:
-                    print("[TezosBeaconService][Done] removePeerFromDApp")
-                    promise(.success(()))
-
-                case let .failure(error):
-                    promise(.failure(error))
-                }
-            }
-        }
-        .eraseToAnyPublisher()
-    }
 
     func response(_ content: TezosBeaconResponse, completion: @escaping Completion<Void>) {
         beaconClient?.respond(with: content, completion: { result in
@@ -191,7 +226,7 @@ extension BeaconConnectService {
     func getConnectionURI() -> AnyPublisher<String, Error> {
         Future<String, Error> { [weak self] (promise) in
             guard let self = self,
-                  let beaconDappClient = self.beaconDappClient else {
+                  let beaconDappClient = self.beaconClient else {
                 promise(.failure(AppError.pendingBeaconClient))
                 return
             }
@@ -214,68 +249,9 @@ extension BeaconConnectService {
         }
         .eraseToAnyPublisher()
     }
-    
-    func startDAppBeacon() {
-        guard beaconDappClient == nil else {
-            listenForDappRequests()
-            return
-        }
-
-        do {
-            let storage = UserDefaultsP2PMatrixStoragePlugin(userDefaults: (.init(suiteName: "DappClient") ?? .standard))
-
-            Beacon.DAppClient.create(
-                with: .init(
-                    name: Constant.appname,
-                    blockchains: [Tezos.factory],
-                    connections: [.p2p(.init(client: try Transport.P2P.Matrix.factory(storagePlugin: storage)))]
-                )
-            ) { result in
-                switch result {
-                case let .success(client):
-                    print("[TezosBeaconService][Done] Beacon.DAppClient.create")
-                    self.beaconDappClient = client
-                    self.listenForDappRequests()
-
-                case let .failure(error):
-                    print("[TezosBeaconService][Error] Beacon.DAppClient.create")
-                    print("Error: \(error)")
-                }
-            }
-        } catch {
-            print("[TezosBeaconService][Error] Beacon.DAppClient.create")
-            print("Error: \(error)")
-        }
-    }
-
-    private func listenForDappRequests() {
-        startOpenChannelListener(completion: { result in
-            switch result {
-            case let .failure(error):
-                print("[TezosBeaconService] Error while startOpenChannelListener")
-                print("Error: \(error)")
-
-            default:
-                break
-            }
-        })
-
-        beaconDappClient?.connect { [weak self] result in
-            guard let self = self else { return }
-            switch result {
-            case .success:
-                print("[TezosBeaconService] beaconDappClient connected")
-                self.beaconDappClient?.listen(onResponse: self.onBeaconResponse)
-
-            case let .failure(error):
-                print("[TezosBeaconService] Error while connecting beaconDappClient")
-                print("Error: \(error)")
-            }
-        }
-    }
 
     private func startOpenChannelListener(completion: @escaping (Result<(), Beacon.Error>) -> Void) {
-        guard let beaconClient = beaconDappClient else {
+        guard let beaconClient = beaconClient else {
             completion(.failure(.uninitialized))
             return
         }
@@ -315,53 +291,6 @@ extension BeaconConnectService {
 
                 completion(result)
             }
-        }
-    }
-
-    private func onBeaconResponse(result: Result<BeaconResponse<Tezos>, Beacon.Error>) {
-        switch result {
-        case let .success(response):
-            switch response {
-            case let .permission(permissionResponse):
-                guard let beaconDappClient = beaconDappClient else { return }
-                let publicKey = permissionResponse.publicKey
-                let peerPublicKey = permissionResponse.requestOrigin.id
-
-                beaconDappClient.storageManager.findPeers(where: { $0.publicKey == peerPublicKey }) { [weak self] result in
-                    guard let self = self else { return }
-                    switch result {
-                    case let .success(peer):
-                        guard let p2pPeer = peer?.toP2P(), let tzAddress = try? beaconDappClient.crypto.address(fromPublicKey: publicKey) else { return }
-                        self.eventsSubject
-                            .send(.beaconLinked(p2pPeer, tzAddress, permissionResponse))
-
-                    case let .failure(error):
-                        self.eventsSubject
-                            .send(.error(error))
-                    }
-
-                }
-
-            case let .error(errorResponse):
-                switch errorResponse.errorType {
-                case .aborted:
-                    self.eventsSubject
-                        .send(.userAborted)
-
-                default:
-                    // Ignore for now
-                    break
-                }
-
-
-            default:
-                // Ignore for now
-                break
-            }
-
-        case let .failure(error):
-            print("Error while processing incoming response")
-            print("Error: \(error)")
         }
     }
 }
