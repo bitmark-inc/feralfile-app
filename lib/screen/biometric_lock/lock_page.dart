@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:local_auth/local_auth.dart';
@@ -56,12 +57,7 @@ class LockingOverlay extends ModalRoute<void> {
       child: Stack(
         children: [
           Center(
-            child: Image.asset(
-              "assets/images/penrose.png",
-              width: 143,
-              height: 143,
-              fit: BoxFit.contain,
-            ),
+            child: _logo(),
           ),
           Column(
             mainAxisAlignment: MainAxisAlignment.end,
@@ -79,6 +75,25 @@ class LockingOverlay extends ModalRoute<void> {
         ],
       ),
     );
+  }
+
+  Widget _logo() {
+    return FutureBuilder<bool>(
+        future: isAppCenterBuild(),
+        builder: (context, snapshot) {
+          if (snapshot.data == true) {
+            return Image.asset(
+              "assets/images/lock_penrose_appcenter.png",
+              width: 165,
+              fit: BoxFit.contain,
+            );
+          } else {
+            return SvgPicture.asset(
+              "assets/images/lock_penrose.svg",
+              fit: BoxFit.contain,
+            );
+          }
+        });
   }
 
   Widget _authenticationView() {
