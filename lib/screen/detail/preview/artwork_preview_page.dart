@@ -17,6 +17,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue/gen/flutterblue.pbserver.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:photo_view/photo_view.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shake/shake.dart';
 import 'package:video_player/video_player.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -94,6 +95,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     if (Platform.isAndroid) {
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     }
+    Sentry.getSpan()?.finish(status: SpanStatus.ok());
     super.dispose();
   }
 
@@ -111,6 +113,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
           builder: (context, state) {
         if (state.asset != null) {
           final asset = state.asset!;
+          Sentry.startTransaction("view: " + asset.id, "load");
 
           if (asset.medium == "video" && loadedPath != asset.previewURL) {
             _startPlay(asset.previewURL!);
@@ -266,8 +269,14 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
             zoomEnabled: false,
             onWebViewCreated: (WebViewController webViewController) {
               _webViewController = webViewController;
+              Sentry.getSpan()?.setTag("url", asset.previewURL!);
+            },
+            onWebResourceError: (WebResourceError error) {
+              Sentry.getSpan()?.throwable = error;
+              Sentry.getSpan()?.finish(status: SpanStatus.internalError());
             },
             onPageFinished: (some) async {
+              Sentry.getSpan()?.finish(status: SpanStatus.ok());
               final javascriptString = '''
                 var meta = document.createElement('meta');
                             meta.setAttribute('name', 'viewport');
@@ -375,10 +384,12 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
 
   Future<void> _initializePlay(String videoPath) async {
     _controller = VideoPlayerController.network(videoPath);
+    Sentry.getSpan()?.setTag("url", videoPath);
     _controller!.initialize().then((_) {
       _controller?.play();
       _controller?.setLooping(true);
       setState(() {});
+      Sentry.getSpan()?.finish(status: SpanStatus.ok());
     });
   }
 

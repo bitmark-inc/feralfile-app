@@ -1071,14 +1071,21 @@ packages:
       name: sentry
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "6.3.0"
+    version: "6.4.0"
+  sentry_dio:
+    dependency: "direct main"
+    description:
+      name: sentry_dio
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "6.4.0"
   sentry_flutter:
     dependency: "direct main"
     description:
       name: sentry_flutter
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "6.3.0"
+    version: "6.4.0"
   shake:
     dependency: "direct main"
     description:
