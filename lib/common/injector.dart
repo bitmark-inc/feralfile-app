@@ -5,6 +5,7 @@ import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/gateway/currency_exchange_api.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
+import 'package:autonomy_flutter/gateway/pubdoc_api.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
@@ -16,6 +17,7 @@ import 'package:autonomy_flutter/service/ledger_hardware/ledger_hardware_service
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tokens_service.dart';
+import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_dapp_service/wallet_connect_dapp_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/au_cached_manager.dart';
@@ -99,6 +101,8 @@ Future<void> setup() async {
       () => CurrencyExchangeApi(dio));
   injector.registerLazySingleton<CurrencyService>(
       () => CurrencyServiceImpl(injector()));
+  injector.registerLazySingleton(
+      () => VersionService(PubdocAPI(dio), injector(), injector()));
 
   final cloudService = CloudService();
   injector.registerLazySingleton(() => cloudService);
