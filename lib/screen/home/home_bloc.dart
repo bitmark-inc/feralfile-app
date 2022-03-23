@@ -1,32 +1,34 @@
-import 'dart:developer';
-
+import 'package:autonomy_flutter/common/network_config_injector.dart';
+import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/dao/asset_token_dao.dart';
-import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/gateway/indexer_api.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
+import 'package:autonomy_flutter/service/tokens_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
-import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:autonomy_flutter/util/log.dart';
 
 class HomeBloc extends Bloc<HomeEvent, HomeState> {
+  TokensService _tokensService;
   WalletConnectService _walletConnectService;
   TezosBeaconService _tezosBeaconService;
-  AssetTokenDao _assetTokenDao;
-  IndexerApi _indexerApi;
+  NetworkConfigInjector _networkConfigInjector;
   CloudDatabase _cloudDB;
   ConfigurationService _configurationService;
 
+  AssetTokenDao get _assetTokenDao =>
+      _networkConfigInjector.I<AppDatabase>().assetDao;
+  IndexerApi get _indexerApi => _networkConfigInjector.I<IndexerApi>();
+
   HomeBloc(
+      this._tokensService,
       this._walletConnectService,
       this._tezosBeaconService,
-      this._assetTokenDao,
-      this._indexerApi,
+      this._networkConfigInjector,
       this._cloudDB,
       this._configurationService)
       : super(HomeState()) {
@@ -41,12 +43,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     });
 
     on<RefreshTokensEvent>((event, emit) async {
+      log.info("[HomeBloc] RefreshTokensEvent start");
       try {
-        final currentTokens = await _assetTokenDao.findAllAssetTokens();
-        emit(HomeState(
-            tokens: currentTokens, fetchTokenState: ActionState.loading));
-
-        late List allAccountNumbers;
+        late List<String> allAccountNumbers;
         if (_configurationService.isDemoArtworksMode()) {
           allAccountNumbers = ["demo"];
         } else {
@@ -62,37 +61,38 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
             ..addAll(allAddresses['personaTezos'] ?? []);
         }
 
-        List<AssetToken> allTokens = [];
+        await _assetTokenDao.deleteAssetsNotBelongs(allAccountNumbers);
+        final assetTokens = await _assetTokenDao.findAllAssetTokens();
+        emit(state.copyWith(tokens: assetTokens));
 
-        for (var accountNumber in allAccountNumbers) {
-          var offset = 0;
+        final firstTokensSize = assetTokens.isEmpty ? 20 : 50;
 
-          while (true) {
-            final tokens =
-                await _indexerApi.getNftTokensByOwner(accountNumber, offset);
-            allTokens += tokens.map((e) => AssetToken.fromAsset(e)).toList();
+        final latestNFTs = await _tokensService.fetchLatestTokens(
+            allAccountNumbers, firstTokensSize);
+        await _assetTokenDao.insertAssets(latestNFTs);
 
-            if (tokens.length < INDEXER_TOKENS_MAXIMUM) {
-              break;
-            } else {
-              offset += INDEXER_TOKENS_MAXIMUM;
-            }
+        log.info("[HomeBloc] fetch ${latestNFTs.length} latest NFTs");
+
+        if (latestNFTs.length < firstTokensSize) {
+          // Delete obsoleted assets
+          if (latestNFTs.isNotEmpty) {
+            await _assetTokenDao
+                .deleteAssetsNotIn(latestNFTs.map((e) => e.id).toList());
+          } else {
+            await _assetTokenDao.removeAll();
           }
-        }
 
-        // Insert with con
-        await _assetTokenDao.insertAssets(allTokens);
-        // Delete no longer own assets
-        if (allTokens.isNotEmpty) {
-          await _assetTokenDao
-              .deleteAssetsNotIn(allTokens.map((e) => e.id).toList());
+          emit(state.copyWith(
+              tokens: await _assetTokenDao.findAllAssetTokens()));
         } else {
-          await _assetTokenDao.removeAll();
-        }
+          emit(state.copyWith(
+              tokens: await _assetTokenDao.findAllAssetTokens()));
+          log.info("[HomeBloc] _tokensService.refreshTokensInIsolate");
 
-        // reload
-        final tokens = await _assetTokenDao.findAllAssetTokens();
-        emit(HomeState(tokens: tokens, fetchTokenState: ActionState.done));
+          await _tokensService.refreshTokensInIsolate(allAccountNumbers);
+          emit(state.copyWith(
+              tokens: await _assetTokenDao.findAllAssetTokens()));
+        }
       } catch (exception) {
         if ((state.tokens ?? []).isEmpty) {
           rethrow;

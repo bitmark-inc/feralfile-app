@@ -75,26 +75,5 @@ class PersonaBloc extends Bloc<PersonaEvent, PersonaState> {
       emit(state.copyWith(
           namePersonaState: ActionState.done, persona: updatedPersona));
     });
-
-    on<ImportPersonaEvent>((event, emit) async {
-      log.info('[PersonaBloc] ImportPersonaEvent');
-      try {
-        emit(state.copyWith(importPersonaState: ActionState.loading));
-        // await Future.delayed(SHOW_DIALOG_DURATION);
-
-        final uuid = Uuid().v4();
-        final walletStorage = LibAukDart.getWallet(uuid);
-        await walletStorage.importKey(
-            event.words, "", DateTime.now().microsecondsSinceEpoch);
-
-        final persona = Persona.newPersona(uuid: uuid, name: "");
-        await _cloudDB.personaDao.insertPersona(persona);
-
-        emit(state.copyWith(
-            importPersonaState: ActionState.done, persona: persona));
-      } catch (exception) {
-        emit(state.copyWith(importPersonaState: ActionState.error));
-      }
-    });
   }
 }

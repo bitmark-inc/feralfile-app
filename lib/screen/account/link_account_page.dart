@@ -4,6 +4,7 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
+import 'package:autonomy_flutter/service/tokens_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_dapp_service/wallet_connect_dapp_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
@@ -126,6 +127,10 @@ class _LinkAccountPageState extends State<LinkAccountPage>
 
           if (event is LinkAccountSuccess) {
             final linkedAccount = event.connection;
+            // SideEffect: pre-fetch tokens
+            injector<TokensService>()
+                .fetchTokensForAddresses([linkedAccount.accountNumber]);
+
             final walletName = linkedAccount
                     .wcConnectedSession?.sessionStore.remotePeerMeta.name ??
                 'your wallet';

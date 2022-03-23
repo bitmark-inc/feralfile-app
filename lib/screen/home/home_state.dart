@@ -27,4 +27,14 @@ class HomeState {
     this.tokens = null,
     this.fetchTokenState = ActionState.notRequested,
   });
+
+  HomeState copyWith({
+    List<AssetToken>? tokens,
+    ActionState? fetchTokenState,
+  }) {
+    return HomeState(
+      tokens: tokens ?? this.tokens,
+      fetchTokenState: fetchTokenState ?? this.fetchTokenState,
+    );
+  }
 }
