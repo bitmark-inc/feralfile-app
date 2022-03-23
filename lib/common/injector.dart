@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/ledger_hardware/ledger_hardware_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
+import 'package:autonomy_flutter/service/tokens_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_dapp_service/wallet_connect_dapp_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/au_cached_manager.dart';
@@ -104,6 +105,9 @@ Future<void> setup() async {
 
   injector.registerLazySingleton(() =>
       NetworkConfigInjector(injector(), dio, dioHTTP2, testnetDB, mainnetDB));
+
+  injector.registerLazySingleton(
+      () => TokensService(injector<NetworkConfigInjector>(), injector()));
 }
 
 // Must be top-level function

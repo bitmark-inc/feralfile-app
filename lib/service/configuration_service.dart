@@ -32,6 +32,8 @@ abstract class ConfigurationService {
   String? getWCDappSession();
   Future<void> setWCDappAccounts(List<String>? value);
   List<String>? getWCDappAccounts();
+  DateTime? getLatestRefreshTokens();
+  Future<bool> setLatestRefreshTokens(DateTime? value);
 
   // ----- App Setting -----
   bool isDemoArtworksMode();
@@ -60,6 +62,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
   // ----- App Setting -----
   static const String KEY_APP_SETTING_DEMO_ARTWORKS =
       "show_demo_artworks_preference";
+  static const String KEY_LASTEST_REFRESH_TOKENS = "latest_refresh_tokens";
 
   SharedPreferences _preferences;
 
@@ -250,5 +253,20 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   Future<void> reload() {
     return _preferences.reload();
+  }
+
+  @override
+  DateTime? getLatestRefreshTokens() {
+    final time = _preferences.getInt(KEY_LASTEST_REFRESH_TOKENS);
+    if (time == null) return null;
+    return DateTime.fromMillisecondsSinceEpoch(time);
+  }
+
+  Future<bool> setLatestRefreshTokens(DateTime? value) {
+    if (value == null) {
+      return _preferences.remove(KEY_LASTEST_REFRESH_TOKENS);
+    }
+    return _preferences.setInt(
+        KEY_LASTEST_REFRESH_TOKENS, value.millisecondsSinceEpoch);
   }
 }
