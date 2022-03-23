@@ -4,6 +4,7 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/feralfile/feralfile_bloc.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/tokens_service.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -41,6 +42,10 @@ class _LinkFeralFilePageState extends State<LinkFeralFilePage> {
             if (event == null) return;
 
             if (event is LinkAccountSuccess) {
+              // SideEffect: pre-fetch tokens
+              injector<TokensService>()
+                  .fetchTokensForAddresses([event.connection.accountNumber]);
+
               UIHelper.showInfoDialog(context, 'Account linked',
                   'Autonomy has linked your Feral File account.');
 

@@ -1,16 +1,12 @@
-import 'dart:ffi';
-
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/theme_manager.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:share/share.dart';
 
@@ -26,10 +22,13 @@ void doneOnboarding(BuildContext context) {
 }
 
 class UIHelper {
+  static String currentDialogTitle = '';
+
   static Future<void> showDialog(
       BuildContext context, String title, Widget content,
       {bool isDismissible = false}) async {
     log.info("[UIHelper] showInfoDialog: $title");
+    currentDialogTitle = title;
     final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
 
     await showModalBottomSheet<dynamic>(

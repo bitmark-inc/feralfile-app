@@ -1,13 +1,14 @@
 import 'dart:developer';
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/router/router_bloc.dart';
+import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/eula_privacy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/svg.dart';
 
 class OnboardingPage extends StatefulWidget {
   @override
@@ -15,6 +16,13 @@ class OnboardingPage extends StatefulWidget {
 }
 
 class _OnboardingPageState extends State<OnboardingPage> {
+  @override
+  void initState() {
+    super.initState();
+
+    injector<VersionService>().checkForUpdate();
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -102,9 +110,13 @@ class _OnboardingPageState extends State<OnboardingPage> {
                       Expanded(
                         child: AuFilledButton(
                           text: "Restore".toUpperCase(),
-                          onPress: !state.isLoading ? () {
-                            context.read<RouterBloc>().add(RestoreCloudDatabaseRoutingEvent(state.backupVersion));
-                          } : null,
+                          onPress: !state.isLoading
+                              ? () {
+                                  context.read<RouterBloc>().add(
+                                      RestoreCloudDatabaseRoutingEvent(
+                                          state.backupVersion));
+                                }
+                              : null,
                         ),
                       )
                     ],
