@@ -20,6 +20,7 @@ import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/au_cached_manager.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
 import 'package:dio/dio.dart';
+import 'package:sentry_dio/sentry_dio.dart';
 import 'package:dio_http2_adapter/dio_http2_adapter.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
@@ -60,14 +61,16 @@ Future<void> setup() async {
 
   final dio = Dio(); // Provide a dio instance
   dio.interceptors.add(LoggingInterceptor());
-  dio.interceptors.add(SentryInterceptor());
+  // dio.interceptors.add(SentryInterceptor());
   (dio.transformer as DefaultTransformer).jsonDecodeCallback = parseJson;
+  dio.addSentry(captureFailedRequests: true);
 
   final dioHTTP2 = Dio(); // Provide a dio instance
   dioHTTP2.interceptors.add(LoggingInterceptor());
   dioHTTP2.interceptors.add(SentryInterceptor());
   dioHTTP2.httpClientAdapter =
       Http2Adapter(ConnectionManager(idleTimeout: 10000));
+  dioHTTP2.addSentry(captureFailedRequests: true);
 
   injector.registerSingleton<ConfigurationService>(
       ConfigurationServiceImpl(sharedPreferences));
