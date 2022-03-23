@@ -1,3 +1,5 @@
+import 'package:autonomy_flutter/util/constants.dart';
+
 class Asset {
   Asset({
     required this.id,
@@ -6,6 +8,7 @@ class Asset {
     required this.mintedAt,
     required this.contractType,
     required this.owner,
+    required this.thumbnailID,
     required this.projectMetadata,
     required this.lastActivityTime,
   });
@@ -16,6 +19,7 @@ class Asset {
   DateTime mintedAt;
   String contractType;
   String owner;
+  String thumbnailID;
   ProjectMetadata projectMetadata;
   DateTime lastActivityTime;
 
@@ -26,7 +30,9 @@ class Asset {
       mintedAt: DateTime.parse(json["mintedAt"]),
       contractType: json["contractType"],
       owner: json["owner"],
-      projectMetadata: ProjectMetadata.fromJson(json["projectMetadata"]),
+      thumbnailID: json["thumbnailID"],
+      projectMetadata: ProjectMetadata.fromJsonModified(
+          json["projectMetadata"], json["thumbnailID"]),
       lastActivityTime: DateTime.parse(json['lastActivityTime']));
 
   Map<String, dynamic> toJson() => {
@@ -36,6 +42,7 @@ class Asset {
         "mintedAt": mintedAt.toIso8601String(),
         "contractType": contractType,
         "owner": owner,
+        "thumbnailID": thumbnailID,
         "projectMetadata": projectMetadata.toJson(),
         "lastActivityTime": lastActivityTime.toIso8601String,
       };
@@ -54,6 +61,14 @@ class ProjectMetadata {
       ProjectMetadata(
         origin: ProjectMetadataData.fromJson(json["origin"]),
         latest: ProjectMetadataData.fromJson(json["latest"]),
+      );
+
+  factory ProjectMetadata.fromJsonModified(
+          Map<String, dynamic> json, String thumnailID) =>
+      ProjectMetadata(
+        origin: ProjectMetadataData.fromJson(json["origin"]),
+        latest:
+            ProjectMetadataData.fromJsonModified(json["latest"], thumnailID),
       );
 
   Map<String, dynamic> toJson() => {
@@ -128,6 +143,31 @@ class ProjectMetadataData {
         firstMintedAt: DateTime.parse(json["firstMintedAt"]),
       );
 
+  factory ProjectMetadataData.fromJsonModified(
+          Map<String, dynamic> json, String thumbailID) =>
+      ProjectMetadataData(
+        artistName: json["artistName"],
+        artistUrl: json["artistURL"],
+        assetId: json["assetID"],
+        title: json["title"],
+        description: json["description"],
+        medium: json["medium"],
+        maxEdition: json["maxEdition"],
+        baseCurrency: json["baseCurrency"],
+        basePrice: json["basePrice"]?.toDouble(),
+        source: json["source"],
+        sourceUrl: json["sourceURL"],
+        previewUrl: _replaceIPFS(json["previewURL"]),
+        thumbnailUrl: _refineToCloudflareURL(
+            json["thumbnailURL"], thumbailID, "thumbnail"),
+        galleryThumbnailUrl: _replaceIPFS(json["galleryThumbnailURL"]),
+        assetData: json["assetData"],
+        assetUrl: json["assetURL"],
+        artistId: json["artistID"],
+        originalFileUrl: json["originalFileURL"],
+        firstMintedAt: DateTime.parse(json["firstMintedAt"]),
+      );
+
   Map<String, dynamic> toJson() => {
         "artistName": artistName,
         "artistURL": artistUrl,
@@ -149,4 +189,21 @@ class ProjectMetadataData {
         "originalFileURL": originalFileUrl,
         "firstMintedAt": firstMintedAt?.toIso8601String(),
       };
+}
+
+// TODO: see if it improve the speed, ask backend to replace the endpoint
+const _defaultIPFSPrefix = "https://ipfs.io";
+const _cloudflareIPFSPrexix = "https://cloudflare-ipfs.com";
+String _replaceIPFS(String url) {
+  if (url.startsWith(_defaultIPFSPrefix)) {
+    return url.replaceRange(
+        0, _defaultIPFSPrefix.length, _cloudflareIPFSPrexix);
+  }
+  return url;
+}
+
+String _refineToCloudflareURL(String url, String thumbnailID, String variant) {
+  return thumbnailID.isEmpty
+      ? _replaceIPFS(url)
+      : CLOUDFLAREIMAGEURLPREFIX + thumbnailID + "/" + variant;
 }
