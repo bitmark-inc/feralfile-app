@@ -2,10 +2,12 @@ import 'dart:developer';
 
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/router/router_bloc.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/eula_privacy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/svg.dart';
 
 class OnboardingPage extends StatefulWidget {
   @override
@@ -54,10 +56,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
       SafeArea(
         child: Center(
             child: Container(
-                width: penroseWidth,
-                height: penroseWidth,
-                margin: EdgeInsets.fromLTRB(0, 0, 0, 0),
-                child: Image.asset("assets/images/penrose_onboarding.png"))),
+                margin: EdgeInsets.fromLTRB(0, 0, 0, 0), child: _logo())),
       ),
       Container(
         margin: edgeInsets,
@@ -119,5 +118,15 @@ class _OnboardingPageState extends State<OnboardingPage> {
         ]),
       )
     ]));
+  }
+
+  Widget _logo() {
+    return FutureBuilder<bool>(
+        future: isAppCenterBuild(),
+        builder: (context, snapshot) {
+          return Image.asset(snapshot.data == true
+              ? "assets/images/penrose_onboarding_appcenter.png"
+              : "assets/images/penrose_onboarding.png");
+        });
   }
 }
