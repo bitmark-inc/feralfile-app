@@ -119,13 +119,8 @@ class AppRouter {
         return PageRouteBuilder(
             settings: settings,
             pageBuilder: (context, animetion1, animation2) => BlocProvider(
-                  create: (_) => HomeBloc(
-                      injector(),
-                      injector(),
-                      networkInjector.I<AppDatabase>().assetDao,
-                      networkInjector.I(),
-                      injector<CloudDatabase>(),
-                      injector()),
+                  create: (_) => HomeBloc(injector(), injector(), injector(),
+                      networkInjector, injector<CloudDatabase>(), injector()),
                   child: HomePage(),
                 ),
             transitionDuration: Duration(seconds: 0));
@@ -134,13 +129,8 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider(
-                  create: (_) => HomeBloc(
-                      injector(),
-                      injector(),
-                      networkInjector.I<AppDatabase>().assetDao,
-                      networkInjector.I(),
-                      injector<CloudDatabase>(),
-                      injector()),
+                  create: (_) => HomeBloc(injector(), injector(), injector(),
+                      networkInjector, injector<CloudDatabase>(), injector()),
                   child: HomePage(),
                 ));
       case beOwnGalleryPage:
@@ -261,14 +251,7 @@ class AppRouter {
 
       case importAccountPage:
         return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => BlocProvider(
-                create: (_) => PersonaBloc(
-                      injector<CloudDatabase>(),
-                      injector(),
-                      injector(),
-                    ),
-                child: ImportAccountPage()));
+            settings: settings, builder: (context) => ImportAccountPage());
 
       case wcConnectPage:
         final argument = settings.arguments;

@@ -271,6 +271,12 @@ class _$AssetTokenDao extends AssetTokenDao {
   }
 
   @override
+  Future<List<String>> findAllAssetTokenIDs() async {
+    return _queryAdapter.queryList('SELECT id FROM AssetToken',
+        mapper: (Map<String, Object?> row) => row['id'] as String);
+  }
+
+  @override
   Future<void> deleteAssetsNotIn(List<String> ids) async {
     const offset = 1;
     final _sqliteVariablesForIds =
@@ -281,6 +287,19 @@ class _$AssetTokenDao extends AssetTokenDao {
             _sqliteVariablesForIds +
             ')',
         arguments: [...ids]);
+  }
+
+  @override
+  Future<void> deleteAssetsNotBelongs(List<String> owners) async {
+    const offset = 1;
+    final _sqliteVariablesForOwners =
+        Iterable<String>.generate(owners.length, (i) => '?${i + offset}')
+            .join(',');
+    await _queryAdapter.queryNoReturn(
+        'DELETE FROM AssetToken WHERE ownerAddress NOT IN (' +
+            _sqliteVariablesForOwners +
+            ')',
+        arguments: [...owners]);
   }
 
   @override

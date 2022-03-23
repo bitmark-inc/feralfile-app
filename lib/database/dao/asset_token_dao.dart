@@ -12,6 +12,9 @@ abstract class AssetTokenDao {
   @Query('SELECT * FROM AssetToken WHERE id = :id')
   Future<AssetToken?> findAssetTokenById(String id);
 
+  @Query('SELECT id FROM AssetToken')
+  Future<List<String>> findAllAssetTokenIDs();
+
   @insert
   Future<void> insertAsset(AssetToken asset);
 
@@ -24,6 +27,19 @@ abstract class AssetTokenDao {
   @Query('DELETE FROM AssetToken WHERE id NOT IN (:ids)')
   Future<void> deleteAssetsNotIn(List<String> ids);
 
+  @Query('DELETE FROM AssetToken WHERE ownerAddress NOT IN (:owners)')
+  Future<void> deleteAssetsNotBelongs(List<String> owners);
+
   @Query('DELETE FROM AssetToken')
   Future<void> removeAll();
 }
+
+/** MARK: - Important!
+*** Because of limitation of Floor, please override this in auto-generated app_database.g.dart
+
+ @override
+Future<List<String>> findAllAssetTokenIDs() async {
+  return _queryAdapter.queryList('SELECT id FROM AssetToken',
+      mapper: (Map<String, Object?> row) => row['id'] as String);
+}
+ */

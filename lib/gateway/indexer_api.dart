@@ -21,6 +21,7 @@ abstract class IndexerApi {
   Future<List<Asset>> getNftTokensByOwner(
     @Query("owner") String owner,
     @Query("offset") int offset,
+    @Query("size") int size,
   );
 
   @POST("/nft/index")
@@ -29,5 +30,10 @@ abstract class IndexerApi {
   @GET("/identity/{accountNumber}")
   Future<BlockchainIdentity> getIdentity(
     @Path("accountNumber") String accountNumber,
+  );
+
+  @GET("/nft/owned")
+  Future<List<String>> getNftIDsByOwner(
+    @Query("owner") String owner,
   );
 }

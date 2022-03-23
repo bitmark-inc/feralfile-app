@@ -6,6 +6,7 @@ import 'package:autonomy_flutter/model/tezos_connection.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
+import 'package:autonomy_flutter/service/tokens_service.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -222,6 +223,9 @@ class _LinkTezosTemplePageState extends State<LinkTezosTemplePage> {
         _websocketChannel?.sink.add(json.encode({
           'type': 'success',
         }));
+
+        // SideEffect: pre-fetch tokens
+        injector<TokensService>().fetchTokensForAddresses([tzAddress]);
 
         log.info('[LinkTemple][Done] _handleMessageResponse');
         UIHelper.showInfoDialog(context, "Account linked",
