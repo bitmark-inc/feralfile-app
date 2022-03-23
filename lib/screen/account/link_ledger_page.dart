@@ -5,6 +5,7 @@ import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/ledger_hardware/ledger_hardware_service.dart';
 import 'package:autonomy_flutter/service/ledger_hardware/ledger_hardware_transport.dart';
+import 'package:autonomy_flutter/service/tokens_service.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -58,6 +59,10 @@ class _LinkLedgerPageState extends State<LinkLedgerPage> {
               if (event is LinkAccountSuccess) {
                 final linkedAccount = event.connection;
                 final walletName = linkedAccount.ledgerName;
+
+                // SideEffect: pre-fetch tokens
+                injector<TokensService>()
+                    .fetchTokensForAddresses([linkedAccount.accountNumber]);
 
                 UIHelper.showInfoDialog(context, "Account linked",
                     "Autonomy has received autorization to link to your account ${linkedAccount.accountNumber.mask(4)} in $walletName.");

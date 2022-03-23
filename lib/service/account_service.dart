@@ -6,6 +6,7 @@ import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:uuid/uuid.dart';
 import 'package:wallet_connect/wallet_connect.dart';
 
 class AccountService {
@@ -15,6 +16,18 @@ class AccountService {
 
   AccountService(
       this._cloudDB, this._walletConnectService, this._tezosBeaconService);
+
+  Future<Persona> importPersona(String words) async {
+    final uuid = Uuid().v4();
+    final walletStorage = LibAukDart.getWallet(uuid);
+    await walletStorage.importKey(
+        words, "", DateTime.now().microsecondsSinceEpoch);
+
+    final persona = Persona.newPersona(uuid: uuid, name: "");
+    await _cloudDB.personaDao.insertPersona(persona);
+
+    return persona;
+  }
 
   Future deletePersona(Persona persona) async {
     await _cloudDB.personaDao.deletePersona(persona);
