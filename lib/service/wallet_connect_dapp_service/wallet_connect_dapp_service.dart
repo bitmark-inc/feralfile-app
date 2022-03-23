@@ -5,6 +5,7 @@ import 'package:autonomy_flutter/service/wallet_connect_dapp_service/wc_connecte
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/rand.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:wallet_connect/models/session/wc_approve_session_response.dart';
 import 'package:wallet_connect/wallet_connect.dart';
 import 'package:uuid/uuid.dart';
@@ -64,6 +65,8 @@ class WalletConnectDappService {
   }
 
   connect() {
+    Sentry.startTransaction('WalletConnect_dapp', 'connect');
+    Sentry.getSpan()?.setTag("bridgeServer", _wcSession.bridge);
     _wcClient.connectNewSession(
         session: _wcSession, peerMeta: _dappPeerMeta, isWallet: false);
   }
@@ -83,11 +86,13 @@ class WalletConnectDappService {
       isConnected.value = true;
       // remotePeerAccount.value = accounts;
     }
+    Sentry.getSpan()?.finish(status: SpanStatus.ok());
   }
 
   _onDisconnect(code, reason) {
     log.info("WC disconnected, reason: $reason, code: $code");
     isConnected.value = false;
+    Sentry.getSpan()?.finish(status: SpanStatus.aborted());
     if (code == 1005) {
       _configurationService.setWCDappSession(null);
       _configurationService.setWCDappAccounts(null);
@@ -97,6 +102,7 @@ class WalletConnectDappService {
 
   _onFailure(error) {
     log.info("WC failed to connect: $error");
+    Sentry.getSpan()?.finish(status: SpanStatus.internalError());
   }
 
   _onSessionRequest(id, peerMeta) {
