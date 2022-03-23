@@ -77,8 +77,9 @@ class _HomePageState extends State<HomePage>
   @override
   void didPopNext() {
     super.didPopNext();
+    context.read<HomeBloc>().add(RefreshTokensEvent());
+
     Future.delayed(const Duration(milliseconds: 1000), () {
-      context.read<HomeBloc>().add(RefreshTokensEvent());
       context.read<HomeBloc>().add(ReindexIndexerEvent());
     });
   }
