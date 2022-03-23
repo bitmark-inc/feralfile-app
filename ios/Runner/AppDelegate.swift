@@ -6,7 +6,7 @@ import Web3
 import KukaiCoreSwift
 import Combine
 import flutter_downloader
-
+import Sentry
 
 @UIApplicationMain
 @objc class AppDelegate: FlutterAppDelegate {
@@ -17,6 +17,11 @@ import flutter_downloader
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
+        
+        // Start Sentry
+        SentrySDK.start { options in
+            options.dsn = "https://3327d497b7324d2e9824c88bec2235e2@o142150.ingest.sentry.io/6088804"
+        }
 
         LibAuk.create(keyChainGroup: Constant.keychainGroup)
         
