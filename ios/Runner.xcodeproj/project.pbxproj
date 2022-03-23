@@ -21,6 +21,8 @@
 		636F522327E0A06C006A9101 /* ErrorHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764F859D27D9E19400B67672 /* ErrorHandler.swift */; };
 		6399594227B2C2FA002653E7 /* BeaconChannelHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399594127B2C2FA002653E7 /* BeaconChannelHandler.swift */; };
 		6399594427B2C36B002653E7 /* LibAukChannelHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399594327B2C36B002653E7 /* LibAukChannelHandler.swift */; };
+		63A61E1B27EAD2B3005684DD /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63A61E1A27EAD2B3005684DD /* Logger.swift */; };
+		63A61E1C27EAD383005684DD /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63A61E1A27EAD2B3005684DD /* Logger.swift */; };
 		63CED4A827AE9DFC00699ED5 /* LibAuk in Frameworks */ = {isa = PBXBuildFile; productRef = 63CED4A727AE9DFC00699ED5 /* LibAuk */; };
 		63F1664B27B2509F00451AAA /* BeaconBlockchainTezos in Frameworks */ = {isa = PBXBuildFile; productRef = 63F1664A27B2509F00451AAA /* BeaconBlockchainTezos */; };
 		63F1664D27B2509F00451AAA /* BeaconClientWallet in Frameworks */ = {isa = PBXBuildFile; productRef = 63F1664C27B2509F00451AAA /* BeaconClientWallet */; };
@@ -96,6 +98,7 @@
 		632FC2F527B4F51E00336DCE /* BeaconConnectService+Helpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BeaconConnectService+Helpers.swift"; sourceTree = "<group>"; };
 		6399594127B2C2FA002653E7 /* BeaconChannelHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeaconChannelHandler.swift; sourceTree = "<group>"; };
 		6399594327B2C36B002653E7 /* LibAukChannelHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibAukChannelHandler.swift; sourceTree = "<group>"; };
+		63A61E1A27EAD2B3005684DD /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 		63BF0E5F27B0270E00E8B299 /* Runner.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Runner.entitlements; sourceTree = "<group>"; };
 		63F1665227B250D600451AAA /* BeaconConnectService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeaconConnectService.swift; sourceTree = "<group>"; };
 		74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Runner-Bridging-Header.h"; sourceTree = "<group>"; };
@@ -225,6 +228,7 @@
 				1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */,
 				74858FAE1ED2DC5600515810 /* AppDelegate.swift */,
 				768E7EE827C770D000585D12 /* SystemChannelHandler.swift */,
+				63A61E1A27EAD2B3005684DD /* Logger.swift */,
 				63F1665227B250D600451AAA /* BeaconConnectService.swift */,
 				632FC2F527B4F51E00336DCE /* BeaconConnectService+Helpers.swift */,
 				6399594127B2C2FA002653E7 /* BeaconChannelHandler.swift */,
@@ -496,6 +500,7 @@
 				76F3289927D1EC1C00C3B9FA /* BeaconConnectService.swift in Sources */,
 				636F522227E0A064006A9101 /* BeaconConnectService+PostMessage.swift in Sources */,
 				76F3289A27D1EC1C00C3B9FA /* LibAukChannelHandler.swift in Sources */,
+				63A61E1C27EAD383005684DD /* Logger.swift in Sources */,
 				76F328B527D1EEAE00C3B9FA /* Constant.swift in Sources */,
 				76F3289B27D1EC1C00C3B9FA /* SystemChannelHandler.swift in Sources */,
 				76F3289C27D1EC1C00C3B9FA /* GeneratedPluginRegistrant.m in Sources */,
@@ -517,6 +522,7 @@
 				630DA1EE27DB5A4600586F70 /* Keychain.swift in Sources */,
 				63F1665327B250D600451AAA /* BeaconConnectService.swift in Sources */,
 				6399594427B2C36B002653E7 /* LibAukChannelHandler.swift in Sources */,
+				63A61E1B27EAD2B3005684DD /* Logger.swift in Sources */,
 				764F859B27D810EB00B67672 /* Result+Helpers.swift in Sources */,
 				76F328B427D1EEAA00C3B9FA /* Constant.swift in Sources */,
 				768E7EE927C770D000585D12 /* SystemChannelHandler.swift in Sources */,
@@ -926,7 +932,7 @@
 			repositoryURL = "https://github.com/autonomy-system/beacon-ios-sdk";
 			requirement = {
 				kind = revision;
-				revision = b027ce082250071b8fe609b14c7516ef115bc99e;
+				revision = d095afb7ae5d121d2c9a2a6306d0a9cd0de8753f;
 			};
 		};
 		76F3288B27D1EC1C00C3B9FA /* XCRemoteSwiftPackageReference "libauk-swift" */ = {

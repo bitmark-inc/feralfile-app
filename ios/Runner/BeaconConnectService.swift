@@ -48,7 +48,7 @@ class BeaconConnectService {
 
                 case let .failure(error):
                     print("[TezosBeaconService] Could not create Beacon client")
-                    print("Error: \(error)")
+                    Logger.error("Error: \(error)")
                 }
             }
         } catch {
@@ -62,8 +62,7 @@ class BeaconConnectService {
             switch result {
             case let .failure(error):
                 print("[TezosBeaconService] Error while startOpenChannelListener")
-                print("Error: \(error)")
-
+                Logger.error("Error: \(error)")
             default:
                 break
             }
@@ -78,7 +77,7 @@ class BeaconConnectService {
 
             case let .failure(error):
                 print("[TezosBeaconService] Error while connecting for messages")
-                print("Error: \(error)")
+                Logger.error("Error: \(error)")
             }
         }
     }
@@ -133,7 +132,7 @@ class BeaconConnectService {
 
         case let .failure(error):
             print("Error while processing incoming messages")
-            print("Error: \(error)")
+            Logger.error("Error: \(error)")
         }
     }
     
@@ -167,6 +166,7 @@ class BeaconConnectService {
                             }
                         }
                     } catch {
+                        Logger.error("Error: \(error)")
                         promise(.failure(error))
                     }
                 }
@@ -201,6 +201,7 @@ class BeaconConnectService {
 
             case let .failure(error):
                 print("[TezosBeaconService] response error")
+                Logger.error("Error: \(error)")
                 completion(.failure(error))
             }
         })
@@ -242,6 +243,7 @@ extension BeaconConnectService {
                     }
 
                 case let .failure(error):
+                    Logger.error("Error: \(error)")
                     promise(.failure(error))
                 }
             }
@@ -284,6 +286,7 @@ extension BeaconConnectService {
                             self.eventsSubject.send(.beaconRequestedPermission(newPeer.toP2P()))
 
                         case let .failure(error):
+                            Logger.error("Error: \(error)")
                             completion(.failure(error))
                         }
                     }
