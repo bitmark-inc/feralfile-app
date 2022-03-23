@@ -5,6 +5,7 @@ import 'dart:isolate';
 import 'dart:ui';
 
 import 'package:autonomy_flutter/util/au_cache_info_repository.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart' as l;
 import 'package:flutter_cache_manager/src/storage/cache_object.dart';
 
@@ -186,30 +187,36 @@ class AUCacheManager extends CacheManager with ImageCacheManager {
     final fileDownloadInfo = _memCache[id];
     if (fileDownloadInfo != null && status == DownloadTaskStatus.complete) {
       final key = fileDownloadInfo.key ?? fileDownloadInfo.url;
-      // Store the original file
-      await this.store.putFile(CacheObject(fileDownloadInfo.url,
-          key: key,
-          relativePath: fileDownloadInfo.localOriginalFile,
-          validTill: DateTime.now().add(Duration(days: 7))));
 
-      // Store the resized file
-      await FlutterImageCompress.compressAndGetFile(
-        fileDownloadInfo.localOriginalFile,
-        fileDownloadInfo.localCompressedFile,
-        minWidth: 400,
-        minHeight: 400,
-        quality: 90,
-      );
+      // If the file is already in Cloudflare image service, not resize
+      if (fileDownloadInfo.url.startsWith(CLOUDFLAREIMAGEURLPREFIX)) {
+        // Store the original file
+        await this.store.putFile(CacheObject(fileDownloadInfo.url,
+            key: key,
+            relativePath: fileDownloadInfo.localOriginalFile,
+            validTill: DateTime.now().add(Duration(days: 7))));
+      } else {
+        // Store the resized file
+        await FlutterImageCompress.compressAndGetFile(
+          fileDownloadInfo.localOriginalFile,
+          fileDownloadInfo.localCompressedFile,
+          minWidth: 400,
+          minHeight: 400,
+          quality: 90,
+        );
 
-      await this.store.putFile(CacheObject(fileDownloadInfo.url,
-          key: key,
-          relativePath: fileDownloadInfo.localCompressedFile,
-          validTill: DateTime.now().add(Duration(days: 7))));
+        await this.store.putFile(CacheObject(fileDownloadInfo.url,
+            key: key,
+            relativePath: fileDownloadInfo.localCompressedFile,
+            validTill: DateTime.now().add(Duration(days: 7))));
+
+        // delete the original file
+        File(fileDownloadInfo.localOriginalFile).delete();
+      }
       final file = await this.store.getFile(fileDownloadInfo.url);
-      fileDownloadInfo.progress.add(file!);
-
-      // delete the original file
-      File(fileDownloadInfo.localOriginalFile).delete();
+      if (file != null) {
+        fileDownloadInfo.progress.add(file);
+      }
 
       cacheLogger.log(
           'downloaded ${fileDownloadInfo.url}', CacheManagerLogLevel.debug);
