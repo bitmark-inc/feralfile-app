@@ -222,9 +222,7 @@ class _HomePageState extends State<HomePage>
       final initialLink = await getInitialLink();
       _handleDeeplink(initialLink);
 
-      _deeplinkSubscription = linkStream.listen((String? link) {
-        _handleDeeplink(link);
-      }, onError: (err) {});
+      _deeplinkSubscription = linkStream.listen(_handleDeeplink);
     } on PlatformException {}
   }
 
@@ -286,11 +284,15 @@ class _HomePageState extends State<HomePage>
     }
   }
 
-  void _handleForeBackground(FGBGType event) {
+  void _handleForeBackground(FGBGType event) async {
     switch (event) {
       case FGBGType.foreground:
         if (injector<ConfigurationService>().isDevicePasscodeEnabled()) {
-          injector<NavigationService>().lockScreen();
+          injector<NavigationService>()
+              .lockScreen()
+              ?.then((_) => _deeplinkSubscription?.resume());
+        } else {
+          _deeplinkSubscription?.resume();
         }
         injector<ConfigurationService>().reload();
         Future.delayed(const Duration(milliseconds: 3500), () async {
@@ -303,6 +305,7 @@ class _HomePageState extends State<HomePage>
       case FGBGType.background:
         injector<AWSService>().storeEventWithDeviceData("device_background");
         injector<TokensService>().disposeIsolate();
+        _deeplinkSubscription?.pause();
         break;
     }
   }

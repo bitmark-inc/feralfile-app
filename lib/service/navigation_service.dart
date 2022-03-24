@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/biometric_lock/lock_page.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -11,6 +13,7 @@ class NavigationService {
   // to prevent showing duplicate ConnectPage
   // workaround solution for unknown reason ModalRoute(navigatorKey.currentContext) returns nil
   bool _isWCConnectInShow = false;
+  Completer<void>? _finishLocking;
 
   Future<dynamic>? navigateTo(String routeName, {Object? arguments}) {
     log.info("NavigationService.navigateTo: $routeName");
@@ -20,19 +23,24 @@ class NavigationService {
       return null;
     }
 
-    return navigatorKey.currentState
-        ?.pushNamed(routeName, arguments: arguments);
+    final f =
+        navigatorKey.currentState?.pushNamed(routeName, arguments: arguments);
+
+    return _finishLocking != null ? _finishLocking!.future.then((_) => f) : f;
   }
 
   Future<dynamic>? lockScreen() async {
     if (_isAppLocking) return;
     _isAppLocking = true;
-    return navigatorKey.currentState?.push(LockingOverlay());
+    await navigatorKey.currentState?.push(LockingOverlay());
+    _finishLocking = Completer();
+    return _finishLocking;
   }
 
-  Future<dynamic>? unlockScreen() async {
+  void unlockScreen() {
     _isAppLocking = false;
-    return navigatorKey.currentState?.pop();
+    navigatorKey.currentState?.pop();
+    _finishLocking?.complete();
   }
 
   void goBack() {
