@@ -11,17 +11,17 @@ VersionsInfo _$VersionsInfoFromJson(Map<String, dynamic> json) => VersionsInfo(
           VersionInfo.fromJson(json['productionIOS'] as Map<String, dynamic>),
       productionAndroid: VersionInfo.fromJson(
           json['productionAndroid'] as Map<String, dynamic>),
-      testIOS: VersionInfo.fromJson(json['testIOS'] as Map<String, dynamic>),
-      testAndroid:
-          VersionInfo.fromJson(json['testAndroid'] as Map<String, dynamic>),
+      devIOS: VersionInfo.fromJson(json['devIOS'] as Map<String, dynamic>),
+      devAndroid:
+          VersionInfo.fromJson(json['devAndroid'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$VersionsInfoToJson(VersionsInfo instance) =>
     <String, dynamic>{
       'productionIOS': instance.productionIOS,
       'productionAndroid': instance.productionAndroid,
-      'testIOS': instance.testIOS,
-      'testAndroid': instance.testAndroid,
+      'devIOS': instance.devIOS,
+      'devAndroid': instance.devAndroid,
     };
 
 VersionInfo _$VersionInfoFromJson(Map<String, dynamic> json) => VersionInfo(

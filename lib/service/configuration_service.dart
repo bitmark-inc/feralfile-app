@@ -42,6 +42,8 @@ abstract class ConfigurationService {
   List<String>? getWCDappAccounts();
   DateTime? getLatestRefreshTokens();
   Future<bool> setLatestRefreshTokens(DateTime? value);
+  Future<void> setReadReleaseNotesInVersion(String version);
+  String getReadReleaseNotesVersion();
 
   // ----- App Setting -----
   bool isDemoArtworksMode();
@@ -67,6 +69,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
       'hidden_personas_in_gallery';
   static const String KEY_HIDDEN_LINKED_ACCOUNTS_IN_GALLERY =
       'hidden_linked_accounts_in_gallery';
+  static const String KEY_READ_RELEASE_NOTES_VERSION =
+      'read_release_notes_version';
 
   // keys for WalletConnect dapp side
   static const String KEY_WC_DAPP_SESSION = "wc_dapp_store";
@@ -299,6 +303,14 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   List<String>? getWCDappAccounts() {
     return _preferences.getStringList(KEY_WC_DAPP_ACCOUNTS);
+  }
+
+  Future<void> setReadReleaseNotesInVersion(String version) async {
+    await _preferences.setString(KEY_READ_RELEASE_NOTES_VERSION, version);
+  }
+
+  String getReadReleaseNotesVersion() {
+    return _preferences.getString(KEY_READ_RELEASE_NOTES_VERSION) ?? '0.0.0';
   }
 
   @override

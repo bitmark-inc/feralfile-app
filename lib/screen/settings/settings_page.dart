@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/screen/settings/subscription/upgrade_view.dart'
 import 'package:autonomy_flutter/screen/settings/support/support_view.dart';
 import 'package:autonomy_flutter/service/cloud_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/eula_privacy.dart';
@@ -162,7 +163,11 @@ class _SettingsPageState extends State<SettingsPage>
                         }
                         _lastTap = now;
                       }),
-                SizedBox(height: 5),
+                TextButton(
+                    onPressed: () => injector<VersionService>()
+                        .showReleaseNotes(onlyWhenUnread: false),
+                    child: Text("Release notes", style: linkStyle)),
+                SizedBox(height: 10),
                 eulaAndPrivacyView(),
               ]),
               SizedBox(height: 60),
