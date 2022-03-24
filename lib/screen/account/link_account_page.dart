@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -268,7 +270,7 @@ class _LinkAccountPageState extends State<LinkAccountPage>
             onTap: () {
               _linkMetamask(context);
             }),
-        _linkLedger("Ethereum"),
+        if (Platform.isIOS) _linkLedger("Ethereum"),
         addDivider(),
         TappableForwardRow(
             leftWidget: Row(
@@ -320,7 +322,7 @@ class _LinkAccountPageState extends State<LinkAccountPage>
             ),
             onTap: () =>
                 Navigator.of(context).pushNamed(AppRouter.linkTezosTemplePage)),
-        _linkLedger("Tezos"),
+        if (Platform.isIOS) _linkLedger("Tezos"),
         addDivider(),
         TappableForwardRow(
             leftWidget: Row(
