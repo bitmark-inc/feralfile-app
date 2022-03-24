@@ -51,12 +51,15 @@ class AUCacheManager extends CacheManager with ImageCacheManager {
     return _instance;
   }
 
-  AUCacheManager._() : super(Config(key, repo: AUCacheInfoRepository()));
+  AUCacheManager._()
+      : super(Config(key,
+            stalePeriod: Duration(days: 30),
+            repo: AUCacheInfoRepository(),
+            maxNrOfCacheObjects: 10000));
 
   Future<dynamic> setup() async {
-    final docDir = await getApplicationDocumentsDirectory();
-    savedDir = docDir.path + "/cached_images";
-    await new Directory(savedDir).create();
+    String tempDir = (await getTemporaryDirectory()).path;
+    savedDir = tempDir + "/" + key + "/";
 
     FlutterImageCompress.validator.ignoreCheckExtName = true;
     IsolateNameServer.registerPortWithName(
@@ -104,8 +107,7 @@ class AUCacheManager extends CacheManager with ImageCacheManager {
           'CacheManager: Failed to load cached file for $url with error:\n$e',
           CacheManagerLogLevel.debug);
     }
-    if (cacheFile == null ||
-        cacheFile.validTill.isBefore(DateTime.now().add(Duration(days: 7)))) {
+    if (cacheFile == null || cacheFile.validTill.isBefore(DateTime.now())) {
       try {
         await for (var response
             in await _downloadFile(url, key: key, authHeaders: headers)) {
@@ -156,14 +158,12 @@ class AUCacheManager extends CacheManager with ImageCacheManager {
       return oldCallback;
     }
 
-    final docDir = await getApplicationDocumentsDirectory();
-    String savedDir = docDir.path + "/cached_images";
     final ext = p.extension(url);
     String fileName = md5.convert(utf8.encode(url)).toString() + ext;
     String resizedFileName = reiszedPrefix + fileName;
 
-    final fileDownloadInfo = FileDownloadInfo(url, savedDir + "/" + fileName,
-        savedDir + "/" + resizedFileName, BehaviorSubject<FileResponse>(),
+    final fileDownloadInfo = FileDownloadInfo(
+        url, fileName, resizedFileName, BehaviorSubject<FileResponse>(),
         key: key);
     final taskId = await FlutterDownloader.enqueue(
       url: url,
@@ -194,12 +194,12 @@ class AUCacheManager extends CacheManager with ImageCacheManager {
         await this.store.putFile(CacheObject(fileDownloadInfo.url,
             key: key,
             relativePath: fileDownloadInfo.localOriginalFile,
-            validTill: DateTime.now().add(Duration(days: 7))));
+            validTill: DateTime.now().add(Duration(days: 30))));
       } else {
         // Store the resized file
         await FlutterImageCompress.compressAndGetFile(
-          fileDownloadInfo.localOriginalFile,
-          fileDownloadInfo.localCompressedFile,
+          savedDir + fileDownloadInfo.localOriginalFile,
+          savedDir + fileDownloadInfo.localCompressedFile,
           minWidth: 400,
           minHeight: 400,
           quality: 90,
@@ -208,12 +208,15 @@ class AUCacheManager extends CacheManager with ImageCacheManager {
         await this.store.putFile(CacheObject(fileDownloadInfo.url,
             key: key,
             relativePath: fileDownloadInfo.localCompressedFile,
-            validTill: DateTime.now().add(Duration(days: 7))));
+            validTill: DateTime.now().add(Duration(days: 30))));
 
         // delete the original file
-        File(fileDownloadInfo.localOriginalFile).delete();
+        cacheLogger.log(
+            'deleted ${savedDir + fileDownloadInfo.localOriginalFile}',
+            CacheManagerLogLevel.debug);
+        File(savedDir + fileDownloadInfo.localOriginalFile).delete();
       }
-      final file = await this.store.getFile(fileDownloadInfo.url);
+      final file = await this.store.getFile(key);
       if (file != null) {
         fileDownloadInfo.progress.add(file);
       }
