@@ -97,6 +97,7 @@ class UIHelper {
   }
 
   static hideInfoDialog(BuildContext context) {
+    currentDialogTitle = '';
     Navigator.popUntil(context, (route) => route.settings.name != null);
   }
 

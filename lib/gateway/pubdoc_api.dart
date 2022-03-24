@@ -7,13 +7,18 @@ import 'package:retrofit/retrofit.dart';
 part 'pubdoc_api.g.dart';
 
 @RestApi(
-    baseUrl:
-        "https://raw.githubusercontent.com/thuyenBitmark/temp-release-notes/master")
+    baseUrl: "https://raw.githubusercontent.com/bitmark-inc/autonomy-apps/main")
 abstract class PubdocAPI {
   factory PubdocAPI(Dio dio, {String baseUrl}) = _PubdocAPI;
 
   @GET("/versions.json")
   Future<String> getVersionContent();
+
+  @GET("/release_notes/{app}/{name}.md")
+  Future<String> getReleaseNotesContent(
+    @Path("app") String app,
+    @Path("name") String name,
+  );
 }
 
 extension PubdocAPIHelpers on PubdocAPI {

@@ -8,14 +8,14 @@ part 'version_info.g.dart';
 class VersionsInfo {
   VersionInfo productionIOS;
   VersionInfo productionAndroid;
-  VersionInfo testIOS;
-  VersionInfo testAndroid;
+  VersionInfo devIOS;
+  VersionInfo devAndroid;
 
   VersionsInfo({
     required this.productionIOS,
     required this.productionAndroid,
-    required this.testIOS,
-    required this.testAndroid,
+    required this.devIOS,
+    required this.devAndroid,
   });
 
   factory VersionsInfo.fromJson(Map<String, dynamic> json) =>
