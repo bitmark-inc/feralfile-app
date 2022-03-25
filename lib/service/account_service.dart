@@ -2,6 +2,7 @@ import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/model/p2p_peer.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:libauk_dart/libauk_dart.dart';
@@ -13,9 +14,10 @@ class AccountService {
   final CloudDatabase _cloudDB;
   final WalletConnectService _walletConnectService;
   final TezosBeaconService _tezosBeaconService;
+  final ConfigurationService _configurationService;
 
-  AccountService(
-      this._cloudDB, this._walletConnectService, this._tezosBeaconService);
+  AccountService(this._cloudDB, this._walletConnectService,
+      this._tezosBeaconService, this._configurationService);
 
   Future<Persona> importPersona(String words) async {
     final uuid = Uuid().v4();
@@ -69,6 +71,8 @@ class AccountService {
       for (var peer in bcPeers) {
         await _tezosBeaconService.removePeer(peer);
       }
+
+      await setHidePersonaInGallery(persona.uuid, false);
     } catch (exception) {
       Sentry.captureException(exception);
     }
@@ -77,6 +81,7 @@ class AccountService {
   Future deleteLinkedAccount(Connection connection) async {
     await _cloudDB.connectionDao
         .deleteConnectionsByAccountNumber(connection.accountNumber);
+    await setHideLinkedAccountInGallery(connection.accountNumber, false);
   }
 
   Future linkManuallyAddress(String address) async {
@@ -90,5 +95,21 @@ class AccountService {
     );
 
     await _cloudDB.connectionDao.insertConnection(connection);
+  }
+
+  bool isPersonaHiddenInGallery(String personaUUID) {
+    return _configurationService.isPersonaHiddenInGallery(personaUUID);
+  }
+
+  bool isLinkedAccountHiddenInGallery(String address) {
+    return _configurationService.isLinkedAccountHiddenInGallery(address);
+  }
+
+  Future setHidePersonaInGallery(String personaUUID, bool isEnabled) async {
+    _configurationService.setHidePersonaInGallery(personaUUID, isEnabled);
+  }
+
+  Future setHideLinkedAccountInGallery(String address, bool isEnabled) async {
+    _configurationService.setHideLinkedAccountInGallery(address, isEnabled);
   }
 }

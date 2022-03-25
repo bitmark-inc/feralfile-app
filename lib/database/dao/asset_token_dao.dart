@@ -6,6 +6,10 @@ abstract class AssetTokenDao {
   @Query('SELECT * FROM AssetToken ORDER BY lastActivityTime DESC')
   Future<List<AssetToken>> findAllAssetTokens();
 
+  @Query(
+      'SELECT * FROM AssetToken WHERE ownerAddress NOT IN (:owners) ORDER BY lastActivityTime DESC')
+  Future<List<AssetToken>> findAllAssetTokensWhereNot(List<String> owners);
+
   @Query('SELECT * FROM AssetToken WHERE blockchain = :blockchain')
   Future<List<AssetToken>> findAssetTokensByBlockchain(String blockchain);
 

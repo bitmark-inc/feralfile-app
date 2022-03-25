@@ -209,6 +209,44 @@ class _$AssetTokenDao extends AssetTokenDao {
   }
 
   @override
+  Future<List<AssetToken>> findAllAssetTokensWhereNot(
+      List<String> owners) async {
+    const offset = 1;
+    final _sqliteVariablesForOwners =
+        Iterable<String>.generate(owners.length, (i) => '?${i + offset}')
+            .join(',');
+    return _queryAdapter.queryList(
+        'SELECT * FROM AssetToken WHERE ownerAddress NOT IN (' +
+            _sqliteVariablesForOwners +
+            ') ORDER BY lastActivityTime DESC',
+        mapper: (Map<String, Object?> row) => AssetToken(
+            artistName: row['artistName'] as String?,
+            artistURL: row['artistURL'] as String?,
+            assetData: row['assetData'] as String?,
+            assetID: row['assetID'] as String?,
+            assetURL: row['assetURL'] as String?,
+            basePrice: row['basePrice'] as double?,
+            baseCurrency: row['baseCurrency'] as String?,
+            blockchain: row['blockchain'] as String,
+            contractType: row['contractType'] as String?,
+            desc: row['desc'] as String?,
+            edition: row['edition'] as int,
+            id: row['id'] as String,
+            maxEdition: row['maxEdition'] as int?,
+            medium: row['medium'] as String?,
+            mintedAt: row['mintedAt'] as String?,
+            previewURL: row['previewURL'] as String?,
+            source: row['source'] as String?,
+            thumbnailURL: row['thumbnailURL'] as String?,
+            galleryThumbnailURL: row['galleryThumbnailURL'] as String?,
+            title: row['title'] as String,
+            ownerAddress: row['ownerAddress'] as String?,
+            lastActivityTime:
+                _dateTimeConverter.decode(row['lastActivityTime'] as int)),
+        arguments: [...owners]);
+  }
+
+  @override
   Future<List<AssetToken>> findAssetTokensByBlockchain(
       String blockchain) async {
     return _queryAdapter.queryList(
