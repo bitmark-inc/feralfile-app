@@ -2,6 +2,7 @@ import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/dao/asset_token_dao.dart';
+import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/gateway/indexer_api.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -62,7 +63,11 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         }
 
         await _assetTokenDao.deleteAssetsNotBelongs(allAccountNumbers);
-        final assetTokens = await _assetTokenDao.findAllAssetTokens();
+
+        final hiddenOwners = await _getHiddenAddressesInGallery();
+
+        final assetTokens =
+            await _assetTokenDao.findAllAssetTokensWhereNot(hiddenOwners);
         emit(state.copyWith(tokens: assetTokens));
 
         final firstTokensSize = assetTokens.isEmpty ? 20 : 50;
@@ -83,15 +88,18 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           }
 
           emit(state.copyWith(
-              tokens: await _assetTokenDao.findAllAssetTokens()));
+              tokens: await _assetTokenDao
+                  .findAllAssetTokensWhereNot(hiddenOwners)));
         } else {
           emit(state.copyWith(
-              tokens: await _assetTokenDao.findAllAssetTokens()));
+              tokens: await _assetTokenDao
+                  .findAllAssetTokensWhereNot(hiddenOwners)));
           log.info("[HomeBloc] _tokensService.refreshTokensInIsolate");
 
           await _tokensService.refreshTokensInIsolate(allAccountNumbers);
           emit(state.copyWith(
-              tokens: await _assetTokenDao.findAllAssetTokens()));
+              tokens: await _assetTokenDao
+                  .findAllAssetTokensWhereNot(hiddenOwners)));
         }
       } catch (exception) {
         if ((state.tokens ?? []).isEmpty) {
@@ -181,5 +189,25 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       'personaEthereum': ethAddresses,
       'personaTezos': tezosAddresses,
     };
+  }
+
+  Future<List<String>> _getHiddenAddressesInGallery() async {
+    List<String> hiddenAddresses = [];
+    final personaUUIDs = _configurationService.getPersonaUUIDsHiddenInGallery();
+    for (var personaUUID in personaUUIDs) {
+      final personaWallet = Persona.newPersona(uuid: personaUUID).wallet();
+      final ethAddress = await personaWallet.getETHAddress();
+
+      if (ethAddress.isEmpty) continue;
+      hiddenAddresses.add(ethAddress);
+      hiddenAddresses.add((await personaWallet.getTezosWallet()).address);
+      hiddenAddresses.add(await personaWallet.getBitmarkAddress());
+    }
+
+    final hiddenLinkedAccount =
+        _configurationService.getLinkedAccountsHiddenInGallery();
+    hiddenAddresses.addAll(hiddenLinkedAccount);
+
+    return hiddenAddresses;
   }
 }

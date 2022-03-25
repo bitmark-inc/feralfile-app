@@ -1,14 +1,15 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
-import 'package:autonomy_flutter/screen/bloc/ethereum/ethereum_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/feralfile/feralfile_bloc.dart';
+import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:share/share.dart';
@@ -26,6 +27,7 @@ class LinkedAccountDetailsPage extends StatefulWidget {
 
 class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
   String? _balance;
+  bool isHideGalleryEnabled = false;
 
   @override
   void initState() {
@@ -50,6 +52,9 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
       default:
         break;
     }
+
+    isHideGalleryEnabled = injector<AccountService>()
+        .isLinkedAccountHiddenInGallery(widget.connection.accountNumber);
   }
 
   Future fetchXtzBalance() async {
@@ -84,13 +89,12 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
         },
       ),
       body: Container(
-        margin:
-            EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SingleChildScrollView(
-              child: BlocBuilder<FeralfileBloc, FeralFileState>(
+        margin: pageEdgeInsets,
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              BlocBuilder<FeralfileBloc, FeralFileState>(
                 builder: (context, state) {
                   final wyreWallet =
                       state.connection?.ffConnection?.ffAccount.wyreWallet;
@@ -196,6 +200,8 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
                         ),
                         SizedBox(height: 16),
                         SizedBox(height: 40),
+                        _preferencesSection(),
+                        SizedBox(height: 40),
                         Text(
                           "Backup",
                           style: appTextTheme.headline1,
@@ -210,13 +216,54 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
                               "The keys for this account are in $source. You should manage your key backups there.",
                               style: appTextTheme.bodyText1),
                         ],
+                        SizedBox(height: 40),
                       ]);
                 },
-              ),
-            )
-          ],
+              )
+            ],
+          ),
         ),
       ),
     );
+  }
+
+  Widget _preferencesSection() {
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text(
+        "Preferences",
+        style: appTextTheme.headline1,
+      ),
+      SizedBox(
+        height: 14,
+      ),
+      Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Hide from gallery', style: appTextTheme.headline4),
+              CupertinoSwitch(
+                value: isHideGalleryEnabled,
+                onChanged: (value) async {
+                  await injector<AccountService>()
+                      .setHideLinkedAccountInGallery(
+                          widget.connection.accountNumber, value);
+                  setState(() {
+                    isHideGalleryEnabled = value;
+                  });
+                },
+                activeColor: Colors.black,
+              )
+            ],
+          ),
+          SizedBox(height: 14),
+          Text(
+            "Do not show this account's NFTs in the gallery view.",
+            style: appTextTheme.bodyText1,
+          ),
+        ],
+      ),
+      SizedBox(height: 12),
+    ]);
   }
 }
