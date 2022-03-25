@@ -15,6 +15,8 @@ abstract class ConfigurationService {
   List<WCSessionStore> getWCSessions();
   Future<void> setNetwork(Network value);
   Network getNetwork();
+  Future<void> setImmediatePlaybackEnabled(bool value);
+  bool isImmediatePlaybackEnabled();
   Future<void> setDevicePasscodeEnabled(bool value);
   bool isDevicePasscodeEnabled();
   Future<void> setNotificationEnabled(bool value);
@@ -27,6 +29,12 @@ abstract class ConfigurationService {
   bool isDoneOnboardingOnce();
   Future<void> setFullscreenIntroEnable(bool value);
   bool isFullscreenIntroEnabled();
+  Future<void> setHidePersonaInGallery(String personaUUID, bool isEnabled);
+  List<String> getPersonaUUIDsHiddenInGallery();
+  bool isPersonaHiddenInGallery(String value);
+  Future<void> setHideLinkedAccountInGallery(String address, bool isEnabled);
+  List<String> getLinkedAccountsHiddenInGallery();
+  bool isLinkedAccountHiddenInGallery(String value);
   bool matchFeralFileSourceInNetwork(String source);
   Future<void> setWCDappSession(String? value);
   String? getWCDappSession();
@@ -48,12 +56,17 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_IAP_JWT = "key_iap_jwt";
   static const String KEY_WC_SESSIONS = "key_wc_sessions";
   static const String KEY_NETWORK = "key_network";
+  static const String KEY_IMMEDIATE_PLAYBACK = 'immediate_playback';
   static const String KEY_DEVICE_PASSCODE = "device_passcode";
   static const String KEY_NOTIFICATION = "notifications";
   static const String KEY_ANALYTICS = "analytics";
   static const String KEY_FULLSCREEN_INTRO = "fullscreen_intro";
   static const String KEY_DONE_ONBOARING = "done_onboarding";
   static const String KEY_DONE_ONBOARING_ONCE = "done_onboarding_once";
+  static const String KEY_HIDDEN_PERSONAS_IN_GALLERY =
+      'hidden_personas_in_gallery';
+  static const String KEY_HIDDEN_LINKED_ACCOUNTS_IN_GALLERY =
+      'hidden_linked_accounts_in_gallery';
 
   // keys for WalletConnect dapp side
   static const String KEY_WC_DAPP_SESSION = "wc_dapp_store";
@@ -133,6 +146,15 @@ class ConfigurationServiceImpl implements ConfigurationService {
     }
   }
 
+  Future<void> setImmediatePlaybackEnabled(bool value) async {
+    log.info("setImmediatePlaybackEnabled: $value");
+    await _preferences.setBool(KEY_IMMEDIATE_PLAYBACK, value);
+  }
+
+  bool isImmediatePlaybackEnabled() {
+    return _preferences.getBool(KEY_IMMEDIATE_PLAYBACK) ?? false;
+  }
+
   @override
   bool isDevicePasscodeEnabled() {
     return _preferences.getBool(KEY_DEVICE_PASSCODE) ?? false;
@@ -196,6 +218,47 @@ class ConfigurationServiceImpl implements ConfigurationService {
   Future<void> setFullscreenIntroEnable(bool value) async {
     log.info("setFullscreenIntroEnable: $value");
     await _preferences.setBool(KEY_FULLSCREEN_INTRO, value);
+  }
+
+  Future<void> setHidePersonaInGallery(
+      String personaUUID, bool isEnabled) async {
+    var personaUUIDs =
+        _preferences.getStringList(KEY_HIDDEN_PERSONAS_IN_GALLERY) ?? [];
+
+    isEnabled
+        ? personaUUIDs.add(personaUUID)
+        : personaUUIDs.remove(personaUUID);
+    await _preferences.setStringList(
+        KEY_HIDDEN_PERSONAS_IN_GALLERY, personaUUIDs);
+  }
+
+  List<String> getPersonaUUIDsHiddenInGallery() {
+    return _preferences.getStringList(KEY_HIDDEN_PERSONAS_IN_GALLERY) ?? [];
+  }
+
+  bool isPersonaHiddenInGallery(String value) {
+    var personaUUIDs = getPersonaUUIDsHiddenInGallery();
+    return personaUUIDs.contains(value);
+  }
+
+  Future<void> setHideLinkedAccountInGallery(
+      String address, bool isEnabled) async {
+    var linkedAccounts =
+        _preferences.getStringList(KEY_HIDDEN_LINKED_ACCOUNTS_IN_GALLERY) ?? [];
+
+    isEnabled ? linkedAccounts.add(address) : linkedAccounts.remove(address);
+    await _preferences.setStringList(
+        KEY_HIDDEN_LINKED_ACCOUNTS_IN_GALLERY, linkedAccounts);
+  }
+
+  List<String> getLinkedAccountsHiddenInGallery() {
+    return _preferences.getStringList(KEY_HIDDEN_LINKED_ACCOUNTS_IN_GALLERY) ??
+        [];
+  }
+
+  bool isLinkedAccountHiddenInGallery(String value) {
+    var hiddenLinkedAccounts = getLinkedAccountsHiddenInGallery();
+    return hiddenLinkedAccounts.contains(value);
   }
 
   @override

@@ -2,19 +2,20 @@ import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/au_cached_manager.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_blue/gen/flutterblue.pbserver.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -26,8 +27,6 @@ import 'package:easy_debounce/easy_debounce.dart';
 import 'package:path/path.dart' as p;
 
 class ArtworkPreviewPage extends StatefulWidget {
-  static const tag = "artwork_preview";
-
   final ArtworkDetailPayload payload;
 
   const ArtworkPreviewPage({Key? key, required this.payload}) : super(key: key);
@@ -137,32 +136,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                                   color: Colors.white,
                                 ),
                               ),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      asset.title,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.w700,
-                                          fontSize: 12,
-                                          fontFamily: "AtlasGrotesk"),
-                                    ),
-                                    SizedBox(height: 4.0),
-                                    Text(
-                                      "by ${asset.artistName?.maskIfNeeded()}",
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.w300,
-                                          fontSize: 12,
-                                          fontFamily: "AtlasGrotesk"),
-                                    )
-                                  ],
-                                ),
-                              ),
+                              _titleAndArtistNameWidget(asset),
                               IconButton(
                                 onPressed: () {
                                   currentIndex = currentIndex <= 0
@@ -233,6 +207,56 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
           return SizedBox();
         }
       }),
+    );
+  }
+
+  Widget _titleAndArtistNameWidget(AssetToken asset) {
+    final isImmediatePlaybackEnabled =
+        injector<ConfigurationService>().isImmediatePlaybackEnabled();
+
+    var titleStyle = TextStyle(
+        color: Colors.white,
+        fontWeight: FontWeight.w700,
+        fontSize: 12,
+        fontFamily: "AtlasGrotesk");
+    var artistNameStyle = TextStyle(
+        color: Colors.white,
+        fontWeight: FontWeight.w300,
+        fontSize: 12,
+        fontFamily: "AtlasGrotesk");
+
+    if (isImmediatePlaybackEnabled) {
+      titleStyle = makeLinkStyle(titleStyle);
+      artistNameStyle = makeLinkStyle(artistNameStyle);
+    }
+
+    return Expanded(
+      child: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              asset.title,
+              overflow: TextOverflow.ellipsis,
+              style: titleStyle,
+            ),
+            SizedBox(height: 4.0),
+            Text(
+              "by ${asset.artistName?.maskIfNeeded()}",
+              overflow: TextOverflow.ellipsis,
+              style: artistNameStyle,
+            )
+          ],
+        ),
+        onTap: () {
+          if (!isImmediatePlaybackEnabled) return;
+          final currentIndex = widget.payload.ids.indexOf(asset.id);
+
+          Navigator.of(context).pushNamed(AppRouter.artworkDetailsPage,
+              arguments: widget.payload.copyWith(currentIndex: currentIndex));
+        },
+      ),
     );
   }
 

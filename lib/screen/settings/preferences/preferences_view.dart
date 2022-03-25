@@ -23,11 +23,30 @@ class PreferenceView extends StatelessWidget {
             SizedBox(height: 24),
             _preferenceItem(
               context,
+              'Immediate playback',
+              "Enable playback when tapping on a thumbnail.",
+              state.isImmediatePlaybackEnabled,
+              (value) {
+                final newState = PreferenceState(
+                    value,
+                    state.isDevicePasscodeEnabled,
+                    state.isNotificationEnabled,
+                    state.isAnalyticEnabled,
+                    state.authMethodName);
+                context
+                    .read<PreferencesBloc>()
+                    .add(PreferenceUpdateEvent(newState));
+              },
+            ),
+            Divider(),
+            _preferenceItem(
+              context,
               state.authMethodName,
               "Use ${state.authMethodName != 'Device Passcode' ? state.authMethodName : 'device passcode'} to unlock the app, transact, and authenticate.",
               state.isDevicePasscodeEnabled,
               (value) {
                 final newState = PreferenceState(
+                    state.isImmediatePlaybackEnabled,
                     value,
                     state.isNotificationEnabled,
                     state.isAnalyticEnabled,
@@ -44,8 +63,12 @@ class PreferenceView extends StatelessWidget {
               "Receive alerts about your transactions and other activities in your wallet.",
               state.isNotificationEnabled,
               (value) {
-                final newState = PreferenceState(state.isDevicePasscodeEnabled,
-                    value, state.isAnalyticEnabled, state.authMethodName);
+                final newState = PreferenceState(
+                    state.isImmediatePlaybackEnabled,
+                    state.isDevicePasscodeEnabled,
+                    value,
+                    state.isAnalyticEnabled,
+                    state.authMethodName);
                 context
                     .read<PreferencesBloc>()
                     .add(PreferenceUpdateEvent(newState));
@@ -58,8 +81,12 @@ class PreferenceView extends StatelessWidget {
               "Contribute anonymized, aggregate usage data to help improve Autonomy.",
               state.isAnalyticEnabled,
               (value) {
-                final newState = PreferenceState(state.isDevicePasscodeEnabled,
-                    state.isNotificationEnabled, value, state.authMethodName);
+                final newState = PreferenceState(
+                    state.isImmediatePlaybackEnabled,
+                    state.isDevicePasscodeEnabled,
+                    state.isNotificationEnabled,
+                    value,
+                    state.authMethodName);
                 context
                     .read<PreferencesBloc>()
                     .add(PreferenceUpdateEvent(newState));

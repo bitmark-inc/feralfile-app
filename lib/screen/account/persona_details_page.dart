@@ -6,6 +6,7 @@ import 'package:autonomy_flutter/screen/bloc/ethereum/ethereum_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
 import 'package:autonomy_flutter/screen/connection/persona_connections_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
+import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/biometrics_util.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
@@ -13,6 +14,7 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -28,6 +30,8 @@ class PersonaDetailsPage extends StatefulWidget {
 }
 
 class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
+  bool isHideGalleryEnabled = false;
+
   @override
   void initState() {
     super.initState();
@@ -45,6 +49,9 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
     context
         .read<TezosBloc>()
         .add(GetTezosBalanceWithUUIDEvent(widget.persona.uuid));
+
+    isHideGalleryEnabled = injector<AccountService>()
+        .isPersonaHiddenInGallery(widget.persona.uuid);
   }
 
   final addressStyle = appTextTheme.bodyText2?.copyWith(color: Colors.black);
@@ -72,6 +79,8 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
               _addressesSection(uuid),
               SizedBox(height: 40),
               _cryptoSection(uuid, network),
+              SizedBox(height: 40),
+              _preferencesSection(),
               SizedBox(height: 40),
               _backupSection(),
               SizedBox(height: 40),
@@ -228,8 +237,48 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
             ),
           ],
         ),
+        SizedBox(height: 16),
       ],
     );
+  }
+
+  Widget _preferencesSection() {
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text(
+        "Preferences",
+        style: appTextTheme.headline1,
+      ),
+      SizedBox(
+        height: 14,
+      ),
+      Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Hide from gallery', style: appTextTheme.headline4),
+              CupertinoSwitch(
+                value: isHideGalleryEnabled,
+                onChanged: (value) async {
+                  await injector<AccountService>()
+                      .setHidePersonaInGallery(widget.persona.uuid, value);
+                  setState(() {
+                    isHideGalleryEnabled = value;
+                  });
+                },
+                activeColor: Colors.black,
+              )
+            ],
+          ),
+          SizedBox(height: 14),
+          Text(
+            "Do not show this account's NFTs in the gallery view.",
+            style: appTextTheme.bodyText1,
+          ),
+        ],
+      ),
+      SizedBox(height: 12),
+    ]);
   }
 
   Widget _backupSection() {
