@@ -72,6 +72,15 @@ dependencies {
         exclude module: 'lazysodium-android'
         exclude group: 'net.java.dev.jna'
         exclude module: 'jna'
+        exclude group: 'com.google.protobuf'
+        exclude module: 'jetified-protobuf-java'
+    }
+    implementation 'com.google.android.gms:play-services-auth-blockstore:16.1.0'
+    implementation 'io.reactivex.rxjava2:rxjava:2.2.10'
+    implementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
+    implementation('com.github.bitmark-inc:libauk-kotlin:0.1.4') {
+        exclude group: 'com.google.protobuf'
+        exclude module: 'jetified-protobuf-java'
     }
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0")
     implementation 'io.github.novacrypto:Base58:2022.01.17@jar'
