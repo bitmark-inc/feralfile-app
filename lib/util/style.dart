@@ -69,6 +69,13 @@ const linkStyle = TextStyle(
   decorationThickness: 1.2,
 );
 
+const paragraph = TextStyle(
+    color: AppColorTheme.secondaryDimGrey,
+    fontSize: 12,
+    fontFamily: "AtlasGrotesk",
+    fontWeight: FontWeight.w400,
+    height: 1.4);
+
 SizedBox addTitleSpace() {
   return const SizedBox(height: 40);
 }
