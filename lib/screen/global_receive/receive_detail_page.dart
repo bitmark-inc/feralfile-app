@@ -45,7 +45,7 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
               "Receive NFT",
               style: appTextTheme.headline1,
             ),
-            SizedBox(height: 96.0),
+            SizedBox(height: 48.0),
             Center(
               child: GestureDetector(
                   child: QrImage(
@@ -54,14 +54,15 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
                   ),
                   onTap: copy),
             ),
-            SizedBox(height: 24.0),
-            Text((_account.blockchain ?? "Unknown").toUpperCase(),
+            SizedBox(height: 48.0),
+            Text((_blockchainNFTText(_account.blockchain)).toUpperCase(),
                 style: appTextTheme.headline4),
             SizedBox(height: 18.0),
             accountItem(context, _account),
             SizedBox(height: 18.0),
             GestureDetector(
                 child: Container(
+                  padding: EdgeInsets.fromLTRB(8, 8, 8, 16),
                   decoration: BoxDecoration(
                     border: Border(
                       top: BorderSide(
@@ -75,7 +76,8 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
                         Text(
                           "Account address",
                           textAlign: TextAlign.left,
-                          style: appTextTheme.headline4,
+                          style: appTextTheme.headline4
+                              ?.copyWith(color: AppColorTheme.secondaryDimGrey),
                         ),
                         SizedBox(height: 4.0),
                         Text(
@@ -84,14 +86,19 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
                           softWrap: true,
                           style: TextStyle(
                               fontSize: 12, fontFamily: "IBMPlexMono"),
-                        )
+                        ),
                       ]),
                 ),
                 onTap: copy),
-            if (_copied) ...[
-              SizedBox(height: 24),
-              Center(child: Text("Copied", style: copiedTextStyle)),
-            ],
+            SizedBox(
+                height: 22,
+                child: Container(
+                    alignment: Alignment.center,
+                    child: _copied
+                        ? Text("Copied", style: copiedTextStyle)
+                        : SizedBox())),
+            SizedBox(height: 4),
+            Text(_blockchainWarningText(_account.blockchain), style: paragraph),
             Spacer(),
             AuFilledButton(
                 text: "SHARE",
@@ -109,5 +116,31 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
     setState(() {
       _copied = true;
     });
+  }
+}
+
+String _blockchainNFTText(String? blockchain) {
+  switch (blockchain) {
+    case "Bitmark":
+      return "Bitmark";
+    case "Ethereum":
+      return "ETHEREUM NFT or ETH";
+    case "Tezos":
+      return "TEZOS NFT or XTZ";
+    default:
+      return "Unknown";
+  }
+}
+
+String _blockchainWarningText(String? blockchain) {
+  switch (blockchain) {
+    case "Bitmark":
+      return "Send only Bitmark NFTs to this address. Do not send cryptocurrencies. Sending cryptocurrencies or non-Bitmark NFTs may result in their permanent loss.";
+    case "Ethereum":
+      return "Send only Ether (ETH) cryptocurrency and Ethereum NFTs to this address. Do not send anything from an alternate chain such as USD Tether or Binance Smart Chain. Sending non-Ethereum cryptocurrencies or tokens may result in their permanent loss.";
+    case "Tezos":
+      return "Send only Tezos (XTZ) cryptocurrency and Tezos NFTs (FA2 standard) to this address. Sending other cryptocurrencies or tokens may result in their permanent loss.";
+    default:
+      return "";
   }
 }
