@@ -84,6 +84,8 @@ class AppRouter {
   static const importAccountPage = 'import_account';
   static const homePage = "home_page";
   static const homePageNoTransition = 'home_page_NoTransition';
+  static const artworkPreviewPage = 'artwork_preview';
+  static const artworkDetailsPage = 'artwork_detail';
   static const newAccountPageNoTransition = 'new_account_page_NoTransition';
   static const settingsPage = "settings";
   static const personaDetailsPage = "persona_details";
@@ -425,7 +427,7 @@ class AppRouter {
             builder: (context) => SendReviewPage(
                   payload: settings.arguments as SendCryptoPayload,
                 ));
-      case ArtworkPreviewPage.tag:
+      case artworkPreviewPage:
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider(
@@ -442,7 +444,7 @@ class AppRouter {
                   create: (_) => SelectNetworkBloc(injector()),
                   child: SelectNetworkPage(),
                 ));
-      case ArtworkDetailPage.tag:
+      case artworkDetailsPage:
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => MultiBlocProvider(

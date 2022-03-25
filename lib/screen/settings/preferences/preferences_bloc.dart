@@ -13,8 +13,11 @@ class PreferencesBloc extends Bloc<PreferenceEvent, PreferenceState> {
   List<BiometricType> _availableBiometrics = List.empty();
 
   PreferencesBloc(this._configurationService)
-      : super(PreferenceState(false, false, false, "")) {
+      : super(PreferenceState(false, false, false, false, "")) {
     on<PreferenceInfoEvent>((event, emit) async {
+      final isImmediatePlaybackEnabled =
+          _configurationService.isImmediatePlaybackEnabled();
+
       _availableBiometrics = await _localAuth.getAvailableBiometrics();
       final canCheckBiometrics = await authenticateIsAvailable();
 
@@ -22,11 +25,21 @@ class PreferencesBloc extends Bloc<PreferenceEvent, PreferenceState> {
       final notificationEnabled = _configurationService.isNotificationEnabled();
       final analyticsEnabled = _configurationService.isAnalyticsEnabled();
 
-      emit(PreferenceState(passcodeEnabled && canCheckBiometrics,
-          notificationEnabled, analyticsEnabled, _authMethodTitle()));
+      emit(PreferenceState(
+          isImmediatePlaybackEnabled,
+          passcodeEnabled && canCheckBiometrics,
+          notificationEnabled,
+          analyticsEnabled,
+          _authMethodTitle()));
     });
 
     on<PreferenceUpdateEvent>((event, emit) async {
+      if (event.newState.isImmediatePlaybackEnabled !=
+          state.isImmediatePlaybackEnabled) {
+        await _configurationService.setImmediatePlaybackEnabled(
+            event.newState.isImmediatePlaybackEnabled);
+      }
+
       if (event.newState.isDevicePasscodeEnabled !=
           state.isDevicePasscodeEnabled) {
         final canCheckBiometrics = await authenticateIsAvailable();

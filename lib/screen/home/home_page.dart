@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
@@ -139,6 +140,10 @@ class _HomePageState extends State<HomePage>
   Widget _assetsWidget(List<AssetToken> tokens) {
     final groupBySource = groupBy(tokens, (AssetToken obj) => obj.source);
     var sortedKeys = groupBySource.keys.toList()..sort();
+    final tokenIDs = sortedKeys
+        .map((e) => groupBySource[e] ?? [])
+        .expand((element) => element.map((e) => e.id))
+        .toList();
 
     var sources = sortedKeys.map((source) {
       final assets = groupBySource[source] ?? [];
@@ -184,9 +189,18 @@ class _HomePageState extends State<HomePage>
                           ),
                   ),
                   onTap: () {
-                    Navigator.of(context).pushNamed(ArtworkDetailPage.tag,
-                        arguments: ArtworkDetailPayload(
-                            assets.map((e) => e.id).toList(), index));
+                    final index = tokenIDs.indexOf(asset.id);
+                    final payload = ArtworkDetailPayload(tokenIDs, index);
+                    if (injector<ConfigurationService>()
+                        .isImmediatePlaybackEnabled()) {
+                      Navigator.of(context).pushNamed(
+                          AppRouter.artworkPreviewPage,
+                          arguments: payload);
+                    } else {
+                      Navigator.of(context).pushNamed(
+                          AppRouter.artworkDetailsPage,
+                          arguments: payload);
+                    }
                   },
                 );
               },

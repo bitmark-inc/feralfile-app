@@ -15,6 +15,8 @@ abstract class ConfigurationService {
   List<WCSessionStore> getWCSessions();
   Future<void> setNetwork(Network value);
   Network getNetwork();
+  Future<void> setImmediatePlaybackEnabled(bool value);
+  bool isImmediatePlaybackEnabled();
   Future<void> setDevicePasscodeEnabled(bool value);
   bool isDevicePasscodeEnabled();
   Future<void> setNotificationEnabled(bool value);
@@ -48,6 +50,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_IAP_JWT = "key_iap_jwt";
   static const String KEY_WC_SESSIONS = "key_wc_sessions";
   static const String KEY_NETWORK = "key_network";
+  static const String KEY_IMMEDIATE_PLAYBACK = 'immediate_playback';
   static const String KEY_DEVICE_PASSCODE = "device_passcode";
   static const String KEY_NOTIFICATION = "notifications";
   static const String KEY_ANALYTICS = "analytics";
@@ -131,6 +134,15 @@ class ConfigurationServiceImpl implements ConfigurationService {
     } catch (e) {
       return Network.MAINNET;
     }
+  }
+
+  Future<void> setImmediatePlaybackEnabled(bool value) async {
+    log.info("setImmediatePlaybackEnabled: $value");
+    await _preferences.setBool(KEY_IMMEDIATE_PLAYBACK, value);
+  }
+
+  bool isImmediatePlaybackEnabled() {
+    return _preferences.getBool(KEY_IMMEDIATE_PLAYBACK) ?? false;
   }
 
   @override
