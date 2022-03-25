@@ -1,6 +1,7 @@
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/model/p2p_peer.dart';
+import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -16,22 +17,16 @@ part 'persona_state.dart';
 
 class PersonaBloc extends Bloc<PersonaEvent, PersonaState> {
   CloudDatabase _cloudDB;
-  WalletConnectService _walletConnectService;
-  TezosBeaconService _tezosBeaconService;
+  AccountService _accountService;
 
   PersonaBloc(
-      this._cloudDB, this._walletConnectService, this._tezosBeaconService)
+      this._cloudDB, this._accountService)
       : super(PersonaState()) {
     on<CreatePersonaEvent>((event, emit) async {
       emit(PersonaState(createAccountState: ActionState.loading));
       // await Future.delayed(SHOW_DIALOG_DURATION);
 
-      final uuid = Uuid().v4();
-      final walletStorage = LibAukDart.getWallet(uuid);
-      await walletStorage.createKey("");
-
-      final persona = Persona.newPersona(uuid: uuid, name: "");
-      await _cloudDB.personaDao.insertPersona(persona);
+      final persona = await _accountService.createPersona();
 
       emit(
           PersonaState(createAccountState: ActionState.done, persona: persona));

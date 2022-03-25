@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:autonomy_flutter/database/cloud_database.dart';
+import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -12,6 +13,7 @@ part 'router_state.dart';
 class RouterBloc extends Bloc<RouterEvent, RouterState> {
   ConfigurationService _configurationService;
   BackupService _backupService;
+  AccountService _accountService;
   CloudDatabase _cloudDB;
 
   Future<bool> hasAccounts() async {
@@ -20,35 +22,34 @@ class RouterBloc extends Bloc<RouterEvent, RouterState> {
     return personas.isNotEmpty || connections.isNotEmpty;
   }
 
-  RouterBloc(this._configurationService, this._backupService, this._cloudDB)
+  RouterBloc(this._configurationService, this._backupService,
+      this._accountService, this._cloudDB)
       : super(RouterState(onboardingStep: OnboardingStep.undefined)) {
     on<DefineViewRoutingEvent>((event, emit) async {
       if (state.onboardingStep != OnboardingStep.undefined) return;
 
       await MigrationUtil(_cloudDB).migrateIfNeeded(Platform.isIOS);
-
       if (await hasAccounts()) {
         _configurationService.setDoneOnboarding(true);
         emit(RouterState(onboardingStep: OnboardingStep.dashboard));
       } else {
-        if (Platform.isIOS) {
-          final backupVersion = await _backupService.fetchBackupVersion();
-          if (backupVersion.isNotEmpty) {
-            log.info("[DefineViewRoutingEvent] have backup version");
-            //restore backup database
-            emit(RouterState(
-                onboardingStep: OnboardingStep.restore,
-                backupVersion: backupVersion));
-            return;
-          } else {
-            // has no backup file; try to migration from Keychain
-            await MigrationUtil(_cloudDB).migrationFromKeychain(Platform.isIOS);
+        final backupVersion = await _backupService.fetchBackupVersion();
+        if (backupVersion.isNotEmpty) {
+          log.info("[DefineViewRoutingEvent] have backup version");
+          //restore backup database
+          emit(RouterState(
+              onboardingStep: OnboardingStep.restore,
+              backupVersion: backupVersion));
+          return;
+        } else {
+          // has no backup file; try to migration from Keychain
+          await MigrationUtil(_cloudDB).migrationFromKeychain(Platform.isIOS);
+          await _accountService.androidRestoreKeys();
 
-            if (await hasAccounts()) {
-              _configurationService.setDoneOnboarding(true);
-              emit(RouterState(onboardingStep: OnboardingStep.dashboard));
-              return;
-            }
+          if (await hasAccounts()) {
+            _configurationService.setDoneOnboarding(true);
+            emit(RouterState(onboardingStep: OnboardingStep.dashboard));
+            return;
           }
         }
 
@@ -69,6 +70,7 @@ class RouterBloc extends Bloc<RouterEvent, RouterState> {
           isLoading: true));
 
       await _backupService.restoreCloudDatabase(event.version);
+      await _accountService.androidRestoreKeys();
 
       final personas = await _cloudDB.personaDao.getPersonas();
       final connections = await _cloudDB.connectionDao.getLinkedAccounts();
