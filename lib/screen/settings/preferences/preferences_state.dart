@@ -9,12 +9,14 @@ class PreferenceUpdateEvent extends PreferenceEvent {
 }
 
 class PreferenceState {
+  final bool isImmediatePlaybackEnabled;
   bool isDevicePasscodeEnabled;
   final bool isNotificationEnabled;
   final bool isAnalyticEnabled;
   final String authMethodName;
 
   PreferenceState(
+    this.isImmediatePlaybackEnabled,
     this.isDevicePasscodeEnabled,
     this.isNotificationEnabled,
     this.isAnalyticEnabled,

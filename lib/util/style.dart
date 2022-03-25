@@ -76,6 +76,18 @@ const paragraph = TextStyle(
     fontWeight: FontWeight.w400,
     height: 1.4);
 
+TextStyle makeLinkStyle(TextStyle style) {
+  final color = style.color ?? Colors.black;
+  return style.copyWith(
+    color: Colors.transparent,
+    shadows: [Shadow(color: color, offset: Offset(0, -1))],
+    decoration: TextDecoration.underline,
+    decorationStyle: TextDecorationStyle.solid,
+    decorationColor: color,
+    decorationThickness: 1.2,
+  );
+}
+
 SizedBox addTitleSpace() {
   return const SizedBox(height: 40);
 }

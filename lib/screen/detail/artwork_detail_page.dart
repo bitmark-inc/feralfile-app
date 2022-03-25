@@ -1,14 +1,23 @@
 import 'dart:collection';
 
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/gestures.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:html_unescape/html_unescape.dart';
+import 'package:path/path.dart' as p;
+import 'package:url_launcher/url_launcher.dart';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/model/asset_price.dart';
 import 'package:autonomy_flutter/model/bitmark.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
-import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_page.dart';
 import 'package:autonomy_flutter/screen/detail/report_rendering_issue_widget.dart';
 import 'package:autonomy_flutter/util/au_cached_manager.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
@@ -18,18 +27,8 @@ import 'package:autonomy_flutter/util/theme_manager.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_outlined_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:html_unescape/html_unescape.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:path/path.dart' as p;
 
 class ArtworkDetailPage extends StatefulWidget {
-  static const tag = "artwork_detail";
-
   final ArtworkDetailPayload payload;
 
   const ArtworkDetailPage({Key? key, required this.payload}) : super(key: key);
@@ -162,7 +161,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
                                     SizedBox(height: 100),
                               ),
                         onTap: () => Navigator.of(context).pushNamed(
-                            ArtworkPreviewPage.tag,
+                            AppRouter.artworkPreviewPage,
                             arguments: widget.payload),
                       ),
                       SizedBox(height: 16.0),
@@ -178,7 +177,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
                                   text: "VIEW ARTWORK",
                                   onPress: () {
                                     Navigator.of(context).pushNamed(
-                                        ArtworkPreviewPage.tag,
+                                        AppRouter.artworkPreviewPage,
                                         arguments: widget.payload);
                                   }),
                             ),
@@ -580,4 +579,14 @@ class ArtworkDetailPayload {
   final int currentIndex;
 
   ArtworkDetailPayload(this.ids, this.currentIndex);
+
+  ArtworkDetailPayload copyWith({
+    List<String>? ids,
+    int? currentIndex,
+  }) {
+    return ArtworkDetailPayload(
+      ids ?? this.ids,
+      currentIndex ?? this.currentIndex,
+    );
+  }
 }
