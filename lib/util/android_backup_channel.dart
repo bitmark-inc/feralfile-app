@@ -14,7 +14,10 @@ class AndroidBackupChannel {
   }
 
   Future<List<BackupAccount>> restoreKeys() async {
-    final data = await _channel.invokeMethod('restoreKeys', {});
+    String data = await _channel.invokeMethod('restoreKeys', {});
+    if (data.isEmpty) {
+      return [];
+    }
     final backupData = json.decode(data);
     return BackupData.fromJson(backupData).accounts;
   }
@@ -28,7 +31,7 @@ class BackupData {
   List<BackupAccount> accounts;
 
   factory BackupData.fromJson(Map<String, dynamic> json) => BackupData(
-    accounts: json["accounts"],
+    accounts: List<BackupAccount>.from(json["accounts"].map((x) => BackupAccount.fromJson(x))),
   );
 
   Map<String, dynamic> toJson() => {
