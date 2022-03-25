@@ -28,7 +28,8 @@ class RouterBloc extends Bloc<RouterEvent, RouterState> {
     on<DefineViewRoutingEvent>((event, emit) async {
       if (state.onboardingStep != OnboardingStep.undefined) return;
 
-      await MigrationUtil(_cloudDB).migrateIfNeeded(Platform.isIOS);
+      await MigrationUtil(_configurationService, _cloudDB, _accountService)
+          .migrateIfNeeded();
       if (await hasAccounts()) {
         _configurationService.setDoneOnboarding(true);
         emit(RouterState(onboardingStep: OnboardingStep.dashboard));
@@ -43,7 +44,8 @@ class RouterBloc extends Bloc<RouterEvent, RouterState> {
           return;
         } else {
           // has no backup file; try to migration from Keychain
-          await MigrationUtil(_cloudDB).migrationFromKeychain(Platform.isIOS);
+          await MigrationUtil(_configurationService, _cloudDB, _accountService)
+              .migrationFromKeychain(Platform.isIOS);
           await _accountService.androidRestoreKeys();
 
           if (await hasAccounts()) {
