@@ -86,7 +86,7 @@ Future<void> setup() async {
   injector.registerLazySingleton(() => AUCacheManager());
   injector.registerLazySingleton(() => WalletConnectDappService(injector()));
   injector.registerLazySingleton(
-      () => AccountService(cloudDB, injector(), injector()));
+      () => AccountService(cloudDB, injector(), injector(), injector()));
   injector.registerLazySingleton(
       () => IAPApi(dio, baseUrl: AppConfig.mainNetworkConfig.autonomyAuthUrl));
   injector.registerLazySingleton(() => BackupService(injector(), injector()));
