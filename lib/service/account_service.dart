@@ -136,7 +136,9 @@ class AccountService {
       final accounts = await _cloudDB.personaDao.getPersonas();
       final uuids = accounts.map((e) => e.uuid).toList();
 
-      await _backupChannel.backupKeys(uuids);
+      if (uuids.isNotEmpty) {
+        await _backupChannel.backupKeys(uuids);
+      }
     }
   }
 
