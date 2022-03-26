@@ -29,12 +29,10 @@ jobs:
           cache: true
           cache-key: flutter # optional, change this to force refresh cache
           cache-path: ${{ runner.tool_cache }}/flutter
-      - run: flutter --version
 
       # Checkout code and get packages.
       - name: Checkout code
         uses: actions/checkout@v3
-      - run: flutter pub get
 
       # Setup Ruby, Bundler, and Gemfile dependencies
       - name: Setup Fastlane
@@ -53,13 +51,17 @@ jobs:
           key: ${{ runner.os }}-mobile-signing-key-vault
 
       # Checkout signing key in another repo.
-      - name: Checkout code
+      - name: Checkout signing key file
         if: steps.cache-signing-key.outputs.cache-hit != 'true'
+        env: 
+          KEY_VAULT_DEPLOYMENT_KEY: ${{ secrets.KEY_VAULT_DEPLOYMENT_KEY }}
         run: |
           mkdir ci
-          echo "${{ secrets.KEY_VAULT_DEPLOYMENT_KEY }}"" >> ci/ci
+          echo $KEY_VAULT_DEPLOYMENT_KEY >> ci/ci
           GIT_SSH_COMMAND='ssh -i ci/ci -o IdentitiesOnly=yes' git clone git@github.com:bitmark-inc/mobile-signing-key-vault.git --depth 1
           rm -rf ci/ci
+
+      - run: flutter pub get
 
       # Build and deploy with Fastlane (by default, to beta track) 🚀.
       - run: bundle exec fastlane ${{ github.event.inputs.lane || 'ciappcenter' }}
