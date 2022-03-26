@@ -56,7 +56,8 @@ jobs:
       - name: Checkout code
         if: steps.cache-signing-key.outputs.cache-hit != 'true'
         run: |
-          cat <<< '${{ secrets.KEY_VAULT_DEPLOYMENT_KEY }}' > ci/ci
+          mkdir ci
+          echo "${{ secrets.KEY_VAULT_DEPLOYMENT_KEY }}"" >> ci/ci
           GIT_SSH_COMMAND='ssh -i ci/ci -o IdentitiesOnly=yes' git clone git@github.com:bitmark-inc/mobile-signing-key-vault.git --depth 1
           rm -rf ci/ci
 
