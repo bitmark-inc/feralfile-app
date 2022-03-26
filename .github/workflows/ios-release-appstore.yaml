@@ -42,25 +42,22 @@ jobs:
           bundler-cache: true
           working-directory: ios
 
+      - uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: ${{ secrets.KEY_VAULT_DEPLOYMENT_KEY }}
+
       - name: Cache dependencies
         id: cache-signing-key
         uses: actions/cache@v3
         with:
-          path: |
-            ~/mobile-signing-key-vault
+          path: mobile-signing-key-vault
           key: ${{ runner.os }}-mobile-signing-key-vault
 
       # Checkout signing key in another repo.
       - name: Checkout signing key file
         if: steps.cache-signing-key.outputs.cache-hit != 'true'
-        env: 
-          KEY_VAULT_DEPLOYMENT_KEY: ${{ secrets.KEY_VAULT_DEPLOYMENT_KEY }}
         run: |
-          mkdir ci
-          echo $KEY_VAULT_DEPLOYMENT_KEY >> ci/ci
-          chmod 400 ci/ci
-          GIT_SSH_COMMAND='ssh -i ci/ci -o IdentitiesOnly=yes' git clone git@github.com:bitmark-inc/mobile-signing-key-vault.git --depth 1
-          rm -rf ci/ci
+          git clone git@github.com:bitmark-inc/mobile-signing-key-vault.git --depth 1
 
       - run: flutter pub get
 
