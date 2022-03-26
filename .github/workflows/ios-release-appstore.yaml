@@ -1,0 +1,54 @@
+name: Deploy the iOS app
+on:
+  # Enable manual run
+  workflow_dispatch:
+    inputs:
+      lane:
+        description: 'Fastlane lane to use (beta OR promote_to_production OR production)'
+        required: true
+        default: 'ciappcenter'
+  # Refs/tags push events to matching v*, i.e. v1.0, v20.15.10
+  push:
+    tags:
+    - '*'
+
+jobs:
+  fastlane-deploy:
+    runs-on: macOS-latest
+    steps:
+      # Set up Flutter.
+      - name: Clone Flutter repository with master channel
+        uses: subosito/flutter-action@v2
+        with:
+          channel: master
+      - run: flutter --version
+
+      # Checkout code and get packages.
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - run: flutter pub get
+
+      # Setup Ruby, Bundler, and Gemfile dependencies
+      - name: Setup Fastlane
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '2.6'
+          bundler-cache: true
+          working-directory: ios
+
+      # Checkout signing key in another repo.
+      - name: Checkout code
+        run: |
+          eval `ssh-agent -s`
+          ssh-add - <<< '${{ secrets.KEY_VAULT_DEPLOYMENT_KEY }}'
+          git clone git@github.com:bitmark-inc/mobile-signing-key-vault.git --depth 1
+
+      # Build and deploy with Fastlane (by default, to beta track) 🚀.
+      - run: bundle exec fastlane ${{ github.event.inputs.lane || 'ciappcenter' }}
+        env:
+          APP_VERSION: ${{ secrets.APP_VERSION }}
+          ENTERPRISE_CERTIFICATE_PASSWORD: ${{ secrets.ENTERPRISE_CERTIFICATE_PASSWORD }}
+          APPSTORE_CERTIFICATE_PASSWORD: ${{ secrets.APPSTORE_CERTIFICATE_PASSWORD }}
+          SENTRY_AUTH: ${{ secrets.SENTRY_AUTH }}
+          APPCENTER_API_TOKEN: ${{ secrets.APPCENTER_API_TOKEN }}
+        working-directory: ios
