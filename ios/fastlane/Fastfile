@@ -150,8 +150,8 @@ platform :ios do
 			keychain_password: keychainPassword
 		)
 
-		install_provisioning_profile(path: "ios/fastlane/provisioning_profiles/Autonomy_Inhouse.mobileprovision")
-		install_provisioning_profile(path: "ios/fastlane/provisioning_profiles/Autonomy_Inhouse_Notification.mobileprovision")
+		install_provisioning_profile(path: "fastlane/provisioning_profiles/Autonomy_Inhouse.mobileprovision")
+		install_provisioning_profile(path: "fastlane/provisioning_profiles/Autonomy_Inhouse_Notification.mobileprovision")
 
 		update_project_team(
   			path: "Autonomy.xcodeproj",
@@ -286,8 +286,8 @@ platform :ios do
 			keychain_password: keychainPassword
 		)
 
-		install_provisioning_profile(path: "ios/fastlane/provisioning_profiles/Autonomy_Wallet_Appstore.mobileprovision")
-		install_provisioning_profile(path: "ios/fastlane/provisioning_profiles/Autonomy_Wallet_Push_Notification_Appstore.mobileprovision")
+		install_provisioning_profile(path: "fastlane/provisioning_profiles/Autonomy_Wallet_Appstore.mobileprovision")
+		install_provisioning_profile(path: "fastlane/provisioning_profiles/Autonomy_Wallet_Push_Notification_Appstore.mobileprovision")
 
 		build_testflight
 
