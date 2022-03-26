@@ -46,23 +46,11 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.KEY_VAULT_DEPLOYMENT_KEY }}
 
-      - name: Cache dependencies
-        id: cache-signing-key
-        uses: actions/cache@v3
-        with:
-          path: mobile-signing-key-vault
-          key: ${{ runner.os }}-mobile-signing-key-vault
-
-      # Checkout signing key in another repo.
-      - name: Checkout signing key file
-        if: steps.cache-signing-key.outputs.cache-hit != 'true'
-        run: |
-          git clone git@github.com:bitmark-inc/mobile-signing-key-vault.git --depth 1
-
-      - run: flutter pub get
-
       # Build and deploy with Fastlane (by default, to beta track) 🚀.
-      - run: bundle exec fastlane ${{ github.event.inputs.lane || 'ciappcenter' }}
+      - run: |
+          git clone git@github.com:bitmark-inc/mobile-signing-key-vault.git --depth 1
+          ls
+          bundle exec fastlane ${{ github.event.inputs.lane || 'ciappcenter' }}
         env:
           APP_VERSION: ${{ secrets.APP_VERSION }}
           ENTERPRISE_CERTIFICATE_PASSWORD: ${{ secrets.ENTERPRISE_CERTIFICATE_PASSWORD }}
@@ -70,3 +58,5 @@ jobs:
           SENTRY_AUTH: ${{ secrets.SENTRY_AUTH }}
           APPCENTER_API_TOKEN: ${{ secrets.APPCENTER_API_TOKEN }}
         working-directory: ios
+
+      - run: flutter pub get
