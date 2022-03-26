@@ -3,11 +3,15 @@ on:
   # Enable manual run
   workflow_dispatch:
     inputs:
-      lane:
-        description: 'Fastlane lane to use (beta OR promote_to_production OR production)'
+      choice:
+        type: choice
+        description: 'Fastlane lane to use'
         required: true
+        options:
+        - ciappcenter
+        - citestflight
         default: 'ciappcenter'
-  # Refs/tags push events to matching v*, i.e. v1.0, v20.15.10
+
   push:
     tags:
     - '*'
@@ -20,7 +24,11 @@ jobs:
       - name: Clone Flutter repository with master channel
         uses: subosito/flutter-action@v2
         with:
+          flutter-version: '2.10.3'
           channel: master
+          cache: true
+          cache-key: flutter # optional, change this to force refresh cache
+          cache-path: ${{ runner.tool_cache }}/flutter
       - run: flutter --version
 
       # Checkout code and get packages.
@@ -36,12 +44,21 @@ jobs:
           bundler-cache: true
           working-directory: ios
 
+      - name: Cache dependencies
+        id: cache-signing-key
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/mobile-signing-key-vault
+          key: ${{ runner.os }}-mobile-signing-key-vault
+
       # Checkout signing key in another repo.
       - name: Checkout code
+        if: steps.cache-signing-key.outputs.cache-hit != 'true'
         run: |
-          eval `ssh-agent -s`
-          ssh-add - <<< '${{ secrets.KEY_VAULT_DEPLOYMENT_KEY }}'
-          git clone git@github.com:bitmark-inc/mobile-signing-key-vault.git --depth 1
+          cat <<< '${{ secrets.KEY_VAULT_DEPLOYMENT_KEY }}' > ci/ci
+          GIT_SSH_COMMAND='ssh -i ci/ci -o IdentitiesOnly=yes' git clone git@github.com:bitmark-inc/mobile-signing-key-vault.git --depth 1
+          rm -rf ci/ci
 
       # Build and deploy with Fastlane (by default, to beta track) 🚀.
       - run: bundle exec fastlane ${{ github.event.inputs.lane || 'ciappcenter' }}
