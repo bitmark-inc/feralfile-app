@@ -46,17 +46,18 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.KEY_VAULT_DEPLOYMENT_KEY }}
 
-      # Build and deploy with Fastlane (by default, to beta track) 🚀.
+      - run: flutter pub get
+
+      # Build and deploy with Fastlane (by default, to ciappcenter track) 🚀.
       - run: |
           git clone git@github.com:bitmark-inc/mobile-signing-key-vault.git --depth 1
-          ls
+          echo $JSON_FILE >> key.json
           bundle exec fastlane ${{ github.event.inputs.lane || 'ciappcenter' }}
         env:
           APP_VERSION: ${{ secrets.APP_VERSION }}
           ENTERPRISE_CERTIFICATE_PASSWORD: ${{ secrets.ENTERPRISE_CERTIFICATE_PASSWORD }}
           APPSTORE_CERTIFICATE_PASSWORD: ${{ secrets.APPSTORE_CERTIFICATE_PASSWORD }}
+          JSON_FILE: ${{ secrets.JSON_FILE }}
           SENTRY_AUTH: ${{ secrets.SENTRY_AUTH }}
           APPCENTER_API_TOKEN: ${{ secrets.APPCENTER_API_TOKEN }}
         working-directory: ios
-
-      - run: flutter pub get

@@ -150,8 +150,8 @@ platform :ios do
 			keychain_password: keychainPassword
 		)
 
-		install_provisioning_profile(path: ".travis/provisioning_profiles/Autonomy_Inhouse.mobileprovision")
-		install_provisioning_profile(path: ".travis/provisioning_profiles/Autonomy_Inhouse_Notification.mobileprovision")
+		install_provisioning_profile(path: "provisioning_profiles/Autonomy_Inhouse.mobileprovision")
+		install_provisioning_profile(path: "provisioning_profiles/Autonomy_Inhouse_Notification.mobileprovision")
 
 		update_project_team(
   			path: "Autonomy.xcodeproj",
@@ -169,7 +169,7 @@ platform :ios do
 		old_build_number = latest_testflight_build_number(
 			version: ENV["APP_VERSION"],
 			initial_build_number: 0,
-			api_key_path: ".travis/key.json"
+			api_key_path: "key.json"
 		)
 		next_build_number = old_build_number.to_i + 1
 		increment_build_number(build_number: next_build_number)
@@ -203,14 +203,14 @@ platform :ios do
 			output_directory: "./ipas")
 
 		upload_to_testflight(
-			api_key_path: ".travis/key.json",
+			api_key_path: "key.json",
 			app_version: ENV["APP_VERSION"],
 			build_number: next_build_number.to_s,
 			notify_external_testers: false
 		)
 
 		download_dsyms(
-			api_key_path: ".travis/key.json",
+			api_key_path: "key.json",
 			version: ENV["APP_VERSION"],
 			build_number: next_build_number.to_s,
 			wait_for_dsym_processing: true
@@ -286,8 +286,8 @@ platform :ios do
 			keychain_password: keychainPassword
 		)
 
-		install_provisioning_profile(path: ".travis/provisioning_profiles/Autonomy_Wallet_Appstore.mobileprovision")
-		install_provisioning_profile(path: ".travis/provisioning_profiles/Autonomy_Wallet_Push_Notification_Appstore.mobileprovision")
+		install_provisioning_profile(path: "provisioning_profiles/Autonomy_Wallet_Appstore.mobileprovision")
+		install_provisioning_profile(path: "provisioning_profiles/Autonomy_Wallet_Push_Notification_Appstore.mobileprovision")
 
 		build_testflight
 
