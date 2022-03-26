@@ -49,9 +49,11 @@ jobs:
       - run: flutter pub get
 
       # Build and deploy with Fastlane (by default, to ciappcenter track) 🚀.
-      - run: |
+      - name: Build and deploy with Fastlane
+        run: |
           git clone git@github.com:bitmark-inc/mobile-signing-key-vault.git --depth 1
           echo $JSON_FILE >> key.json
+          bundle exec fastlane install_plugins
           bundle exec fastlane ${{ github.event.inputs.lane || 'ciappcenter' }}
         env:
           APP_VERSION: ${{ secrets.APP_VERSION }}
