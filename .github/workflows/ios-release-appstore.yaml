@@ -58,6 +58,7 @@ jobs:
         run: |
           mkdir ci
           echo $KEY_VAULT_DEPLOYMENT_KEY >> ci/ci
+          chmod 400 ci/ci
           GIT_SSH_COMMAND='ssh -i ci/ci -o IdentitiesOnly=yes' git clone git@github.com:bitmark-inc/mobile-signing-key-vault.git --depth 1
           rm -rf ci/ci
 
