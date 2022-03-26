@@ -50,16 +50,10 @@ platform :ios do
   			version_number: ENV["APP_VERSION"]
 		)
 
-		set_info_plist_value(
-			path: "./Autonomy/Inhouse Info.plist", 
-			key: "AppCredentials", 
-			subkey: "ENVIRONMENT",
-			value: "Development")
-
 		build_app(
-			scheme: "Autonomy Inhouse",
+			scheme: "Runner Inhouse",
 			export_method: "enterprise",
-			project: "Autonomy.xcodeproj",
+			workspace: "Runner.xcworkspace",
 			cloned_source_packages_path: "SourcePackages",
 			include_bitcode: false,
 			clean: false,
@@ -153,11 +147,6 @@ platform :ios do
 		install_provisioning_profile(path: "fastlane/provisioning_profiles/Autonomy_Inhouse.mobileprovision")
 		install_provisioning_profile(path: "fastlane/provisioning_profiles/Autonomy_Inhouse_Notification.mobileprovision")
 
-		update_project_team(
-  			path: "Autonomy.xcodeproj",
-  			teamid: "A52M7AQ8B2"
-		)
-
 		build_appcenter
 
 		delete_keychain(
@@ -180,17 +169,11 @@ platform :ios do
   			version_number: ENV["APP_VERSION"]
 		)
 
-		set_info_plist_value(
-			path: "./Autonomy/Info.plist", 
-			key: "AppCredentials", 
-			subkey: "ENVIRONMENT",
-			value: "Production")
-
 		build_app(
-			scheme: "Autonomy",
+			scheme: "Runner",
 			export_method: "app-store",
-			project: "Autonomy.xcodeproj",
-			include_bitcode: true,
+			workspace: "Runner.xcworkspace",
+			include_bitcode: false,
 			clean: true,
 			export_options: {
 				method: "app-store",
@@ -207,13 +190,6 @@ platform :ios do
 			app_version: ENV["APP_VERSION"],
 			build_number: next_build_number.to_s,
 			notify_external_testers: false
-		)
-
-		download_dsyms(
-			api_key_path: "key.json",
-			version: ENV["APP_VERSION"],
-			build_number: next_build_number.to_s,
-			wait_for_dsym_processing: true
 		)
 
 		sentry_create_release(
@@ -239,7 +215,6 @@ platform :ios do
 			auth_token: ENV["SENTRY_AUTH"],
 			org_slug: 'bitmark-inc',
 			project_slug: 'autonomy-ios',
-			dsym_path: './com.bitmark.autonomywallet-' + ENV["APP_VERSION"] + '-' + next_build_number.to_s + '.dSYM.zip',
 			info_plist: 'Autonomy/Info.plist'
 		)
 
@@ -286,8 +261,8 @@ platform :ios do
 			keychain_password: keychainPassword
 		)
 
-		install_provisioning_profile(path: "fastlane/provisioning_profiles/Autonomy_Wallet_Appstore.mobileprovision")
-		install_provisioning_profile(path: "fastlane/provisioning_profiles/Autonomy_Wallet_Push_Notification_Appstore.mobileprovision")
+		install_provisioning_profile(path: "ios/fastlane/provisioning_profiles/Autonomy_Wallet_Appstore.mobileprovision")
+		install_provisioning_profile(path: "ios/fastlane/provisioning_profiles/Autonomy_Wallet_Push_Notification_Appstore.mobileprovision")
 
 		build_testflight
 
