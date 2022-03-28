@@ -1,5 +1,6 @@
 import android.net.Uri
 import androidx.annotation.NonNull
+import com.bitmark.autonomy_flutter.jsonKT
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodCall
@@ -525,8 +526,6 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
     private fun removeAwaitingRequest() {
         awaitingRequest = null
     }
-
-    private val jsonKT = Json { ignoreUnknownKeys = true }
 
     private fun extractPeer(link: String): P2pPeer {
         val uri = Uri.parse(link)

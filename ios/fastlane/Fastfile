@@ -1,0 +1,273 @@
+# This file contains the fastlane.tools configuration
+# You can find the documentation at https://docs.fastlane.tools
+#
+# For a list of all available actions, check out
+#
+#     https://docs.fastlane.tools/actions
+#
+# For a list of all available plugins, check out
+#
+#     https://docs.fastlane.tools/plugins/available-plugins
+#
+
+# Uncomment the line if you want fastlane to automatically update itself
+# update_fastlane
+
+default_platform(:ios)
+
+platform :ios do
+	def get_max_appcenter_build
+		appcenter_info = appcenter_fetch_version_number(
+			api_token: ENV["APPCENTER_API_TOKEN"],
+			owner_name: "support-zzd0-28",
+			app_name: "Autonomy-1"
+		)
+		appcenter_build = appcenter_info["build_number"]
+		return appcenter_build
+	end
+
+	desc "Run unit tests"
+	lane :test do
+			  run_tests(
+			  scheme: "Autonomy",
+			  project: "Autonomy.xcodeproj",
+			  cloned_source_packages_path: "SourcePackages",
+			  clean: false,
+			  output_directory: "test_results",
+			  derived_data_path: "scan_derived_data",
+			  device: "iPhone 12",
+			  prelaunch_simulator: true,
+			  code_coverage: true)
+	end
+
+	lane :build_appcenter do
+		old_build_number = get_max_appcenter_build
+		next_build_number = old_build_number.to_i + 1
+		increment_build_number(build_number: next_build_number)
+		app_identifier = 'com.bitmark.autonomy.inhouse'
+
+		increment_version_number(
+  			version_number: ENV["APP_VERSION"]
+		)
+
+		build_app(
+			scheme: "Runner Inhouse",
+			export_method: "enterprise",
+			workspace: "Runner.xcworkspace",
+			cloned_source_packages_path: "SourcePackages",
+			include_bitcode: false,
+			clean: false,
+			export_options: {
+				method: "enterprise",
+				provisioningProfiles: {
+					"com.bitmark.autonomy.inhouse": "Autonomy Inhouse",
+					"com.bitmark.autonomy.inhouse.notification": "Autonomy Inhouse Notification",
+				},
+				iCloudContainerEnvironment: 'Production'
+			},
+			output_directory: "./ipas")
+
+		appcenter_upload(
+			api_token: ENV["APPCENTER_API_TOKEN"],
+			owner_name: "support-zzd0-28",
+			app_name: "Autonomy-1",
+			destinations: "Testers,Collaborators",
+			release_notes: ENV["RELEASE_NOTES"],
+			notify_testers: true)
+
+		sentry_create_release(
+			auth_token: ENV["SENTRY_AUTH"],
+			org_slug: 'bitmark-inc',
+			project_slug: 'autonomy-ios',
+			version: ENV["APP_VERSION"],
+			build: next_build_number.to_s,
+			app_identifier: app_identifier
+		)
+
+		sentry_upload_dsym(
+			auth_token: ENV["SENTRY_AUTH"],
+			org_slug: 'bitmark-inc',
+			project_slug: 'autonomy-ios',
+			version: ENV["APP_VERSION"],
+			build: next_build_number.to_s,
+			app_identifier: app_identifier
+		)
+
+		sentry_set_commits(
+			auth_token: ENV["SENTRY_AUTH"],
+			org_slug: 'bitmark-inc',
+			project_slug: 'autonomy-ios',
+			auto: true,
+			clear: true,
+			version: ENV["APP_VERSION"],
+			build: next_build_number.to_s,
+			app_identifier: app_identifier
+    	)
+
+		sentry_finalize_release(
+			auth_token: ENV["SENTRY_AUTH"],
+			org_slug: 'bitmark-inc',
+			project_slug: 'autonomy-ios',
+			version: ENV["APP_VERSION"],
+			build: next_build_number.to_s,
+			app_identifier: app_identifier
+    	)
+	end
+
+	lane :ciappcenter do
+		keychainName = "TravisKeychain"
+	  	keychainPath = "keychains/keychain-db"
+		keychainPassword = SecureRandom.base64
+
+		create_keychain(
+			name: keychainName,
+			default_keychain: true,
+			unlock: true,
+			timeout: 3600,
+			lock_when_sleeps: true,
+			password: keychainPassword
+			)
+
+		create_keychain(
+			name: keychainName,
+			default_keychain: true,
+			unlock: true,
+			timeout: 3600,
+			lock_when_sleeps: true,
+			password: keychainPassword
+		)
+
+		import_certificate(
+			certificate_path: "mobile-signing-key-vault/ios/autonomy-wallet/enterprise/Certificates.p12",
+			certificate_password: ENV["ENTERPRISE_CERTIFICATE_PASSWORD"],
+			keychain_name: keychainName,
+			keychain_password: keychainPassword
+		)
+
+		install_provisioning_profile(path: "fastlane/provisioning_profiles/Autonomy_Inhouse.mobileprovision")
+		install_provisioning_profile(path: "fastlane/provisioning_profiles/Autonomy_Inhouse_Notification.mobileprovision")
+
+		build_appcenter
+
+		delete_keychain(
+			name: keychainName
+		)
+	end
+
+	lane :build_testflight do
+		old_build_number = latest_testflight_build_number(
+			version: ENV["APP_VERSION"],
+			initial_build_number: 0,
+			api_key_path: "key.json"
+		)
+		next_build_number = old_build_number.to_i + 1
+		increment_build_number(build_number: next_build_number)
+		dep_start = Time.now.to_i
+		app_identifier = 'com.bitmark.autonomywallet'
+
+		increment_version_number(
+  			version_number: ENV["APP_VERSION"]
+		)
+
+		build_app(
+			scheme: "Runner",
+			export_method: "app-store",
+			workspace: "Runner.xcworkspace",
+			include_bitcode: false,
+			clean: true,
+			export_options: {
+				method: "app-store",
+				provisioningProfiles: {
+					"com.bitmark.autonomywallet": "Autonomy Wallet Appstore",
+					"com.bitmark.autonomywallet.notification": "Autonomy Wallet Push Notification Appstore",
+				},
+				iCloudContainerEnvironment: 'Production'
+			},
+			output_directory: "./ipas")
+
+		upload_to_testflight(
+			api_key_path: "key.json",
+			app_version: ENV["APP_VERSION"],
+			build_number: next_build_number.to_s,
+			notify_external_testers: false
+		)
+
+		sentry_create_release(
+			auth_token: ENV["SENTRY_AUTH"],
+			org_slug: 'bitmark-inc',
+			project_slug: 'autonomy-ios',
+			version: ENV["APP_VERSION"],
+			build: next_build_number.to_s,
+			app_identifier: app_identifier
+		)
+
+		sentry_set_commits(
+			auth_token: ENV["SENTRY_AUTH"],
+			org_slug: 'bitmark-inc',
+			project_slug: 'autonomy-ios',
+			auto: true,
+			version: ENV["APP_VERSION"],
+			build: next_build_number.to_s,
+			app_identifier: app_identifier
+    	)
+
+		sentry_upload_dsym(
+			auth_token: ENV["SENTRY_AUTH"],
+			org_slug: 'bitmark-inc',
+			project_slug: 'autonomy-ios',
+			info_plist: 'Autonomy/Info.plist'
+		)
+
+		sentry_create_deploy(
+			auth_token: ENV["SENTRY_AUTH"],
+			org_slug: 'bitmark-inc',
+			project_slug: 'autonomy-ios',
+			started: dep_start,
+			finished: Time.now.to_i,
+			env: "Production",
+			version: ENV["APP_VERSION"],
+			build: next_build_number.to_s,
+			app_identifier: app_identifier
+    	)
+
+		sentry_finalize_release(
+			auth_token: ENV["SENTRY_AUTH"],
+			org_slug: 'bitmark-inc',
+			project_slug: 'autonomy-ios',
+			version: ENV["APP_VERSION"],
+			build: next_build_number.to_s,
+			app_identifier: app_identifier
+    	)
+  	end
+
+	lane :citestflight do
+		keychainName = "TravisKeychain"
+		keychainPath = "keychains/keychain-db"
+			keychainPassword = SecureRandom.base64
+
+		create_keychain(
+			name: keychainName,
+			default_keychain: true,
+			unlock: true,
+			timeout: 3600,
+			lock_when_sleeps: true,
+			password: keychainPassword
+		)
+
+		import_certificate(
+			certificate_path: "mobile-signing-key-vault/ios/autonomy-wallet/appstore/Certificates.p12",
+			certificate_password: ENV["APPSTORE_CERTIFICATE_PASSWORD"],
+			keychain_name: keychainName,
+			keychain_password: keychainPassword
+		)
+
+		install_provisioning_profile(path: "ios/fastlane/provisioning_profiles/Autonomy_Wallet_Appstore.mobileprovision")
+		install_provisioning_profile(path: "ios/fastlane/provisioning_profiles/Autonomy_Wallet_Push_Notification_Appstore.mobileprovision")
+
+		build_testflight
+
+		delete_keychain(
+			name: keychainName
+		)
+	end
+end

@@ -44,6 +44,8 @@ abstract class ConfigurationService {
   Future<bool> setLatestRefreshTokens(DateTime? value);
   Future<void> setReadReleaseNotesInVersion(String version);
   String getReadReleaseNotesVersion();
+  String? getPreviousBuildNumber();
+  Future<void> setPreviousBuildNumber(String value);
 
   // ----- App Setting -----
   bool isDemoArtworksMode();
@@ -80,6 +82,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_APP_SETTING_DEMO_ARTWORKS =
       "show_demo_artworks_preference";
   static const String KEY_LASTEST_REFRESH_TOKENS = "latest_refresh_tokens";
+  static const String KEY_PREVIOUS_BUILD_NUMBER = "previous_build_number";
 
   SharedPreferences _preferences;
 
@@ -343,5 +346,15 @@ class ConfigurationServiceImpl implements ConfigurationService {
     }
     return _preferences.setInt(
         KEY_LASTEST_REFRESH_TOKENS, value.millisecondsSinceEpoch);
+  }
+
+  @override
+  Future<void> setPreviousBuildNumber(String value) async {
+    await _preferences.setString(KEY_PREVIOUS_BUILD_NUMBER, value);
+  }
+
+  @override
+  String? getPreviousBuildNumber() {
+    return _preferences.getString(KEY_PREVIOUS_BUILD_NUMBER);
   }
 }
