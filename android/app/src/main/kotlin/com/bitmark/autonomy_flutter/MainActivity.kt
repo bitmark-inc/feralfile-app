@@ -25,6 +25,7 @@ class MainActivity : FlutterFragmentActivity() {
             }
         }
 
+        BackupDartPlugin().createChannels(flutterEngine, applicationContext)
         TezosBeaconDartPlugin().createChannels(flutterEngine)
     }
 

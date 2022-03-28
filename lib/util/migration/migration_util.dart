@@ -4,19 +4,25 @@ import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/model/connection_supports.dart';
+import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/util/android_backup_channel.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/migration/migration_data.dart';
 import 'package:flutter/services.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 class MigrationUtil {
   static const MethodChannel _channel = const MethodChannel('migration_util');
+  ConfigurationService _configurationService;
   CloudDatabase _cloudDB;
+  AccountService _accountService;
 
-  MigrationUtil(this._cloudDB);
+  MigrationUtil(this._configurationService, this._cloudDB, this._accountService);
 
-  Future<void> migrateIfNeeded(bool isIOS) async {
-    if (isIOS) {
+  Future<void> migrateIfNeeded() async {
+    if (Platform.isIOS) {
       await _migrationiOS();
     } else {
       await _migrationAndroid();
@@ -128,28 +134,12 @@ class MigrationUtil {
   }
 
   Future _migrationAndroid() async {
-    final personasCount = await _cloudDB.personaDao.getPersonasCount();
-    if ((personasCount ?? 0) > 0) return;
+    final previousBuildNumber = _configurationService.getPreviousBuildNumber();
 
-    final String jsonString =
-        await _channel.invokeMethod('getExistingUuids', {});
-
-    if (jsonString.isNotEmpty) {
-      final Map<String, dynamic> json = jsonDecode(jsonString);
-      final uuids = json["personas"] ?? [];
-      // The android app is currently supporting single persona only.
-      for (var uuid in uuids) {
-        final wallet = Persona.newPersona(uuid: uuid).wallet();
-        final address = await wallet.getETHAddress();
-
-        if (address.isEmpty) continue;
-        final name = await wallet.getName();
-
-        final persona =
-            Persona(uuid: uuid, name: name, createdAt: DateTime.now());
-
-        await _cloudDB.personaDao.insertPersona(persona);
-      }
+    if (previousBuildNumber == null) {
+      final packageInfo = await PackageInfo.fromPlatform();
+      _configurationService.setPreviousBuildNumber(packageInfo.buildNumber);
+      _accountService.androidBackupKeys();
     }
   }
 

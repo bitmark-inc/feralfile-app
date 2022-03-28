@@ -31,7 +31,7 @@ class BeOwnGalleryPage extends StatelessWidget {
                     ),
                     SizedBox(height: 30),
                     Text(
-                      "At home, on vacation, on the train — never be without your digital art collection. Digital artworks you have purchased as NFTs on Ethereum, Feral File, or Tezos will automatically appear in your Autonomy.",
+                      "At home, on vacation, on the train — never be without your digital art collection. Digital artworks you own as NFTs on Ethereum, Feral File, or Tezos will automatically appear in your Autonomy.",
                       style: appTextTheme.bodyText1,
                     ),
                     SizedBox(height: 15),

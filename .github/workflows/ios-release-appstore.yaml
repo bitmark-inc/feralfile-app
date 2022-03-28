@@ -1,0 +1,65 @@
+name: Deploy the iOS app
+on:
+  # Enable manual run
+  workflow_dispatch:
+    inputs:
+      choice:
+        type: choice
+        description: 'Fastlane lane to use'
+        required: true
+        options:
+        - ciappcenter
+        - citestflight
+        default: 'ciappcenter'
+
+  push:
+    tags:
+    - '*'
+
+jobs:
+  fastlane-deploy:
+    runs-on: macOS-latest
+    steps:
+      # Set up Flutter.
+      - name: Clone Flutter repository with master channel
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '2.10.3'
+          channel: master
+          cache: true
+          cache-key: flutter # optional, change this to force refresh cache
+          cache-path: ${{ runner.tool_cache }}/flutter
+
+      # Checkout code and get packages.
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Setup Ruby, Bundler, and Gemfile dependencies
+      - name: Setup Fastlane
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '2.6'
+          bundler-cache: true
+          working-directory: ios
+
+      - uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: ${{ secrets.KEY_VAULT_DEPLOYMENT_KEY }}
+
+      - run: flutter pub get
+
+      # Build and deploy with Fastlane (by default, to ciappcenter track) 🚀.
+      - name: Build and deploy with Fastlane
+        run: |
+          git clone git@github.com:bitmark-inc/mobile-signing-key-vault.git --depth 1
+          echo $JSON_FILE >> key.json
+          bundle exec fastlane install_plugins
+          export APP_VERSION=$(git describe --tags --abbrev=0 | awk -F. '{print $1"."$2+1".0"}')
+          bundle exec fastlane ${{ github.event.inputs.lane || 'ciappcenter' }}
+        env:
+          ENTERPRISE_CERTIFICATE_PASSWORD: ${{ secrets.ENTERPRISE_CERTIFICATE_PASSWORD }}
+          APPSTORE_CERTIFICATE_PASSWORD: ${{ secrets.APPSTORE_CERTIFICATE_PASSWORD }}
+          JSON_FILE: ${{ secrets.JSON_FILE }}
+          SENTRY_AUTH: ${{ secrets.SENTRY_AUTH }}
+          APPCENTER_API_TOKEN: ${{ secrets.APPCENTER_API_TOKEN }}
+        working-directory: ios
