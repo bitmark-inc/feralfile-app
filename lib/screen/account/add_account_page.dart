@@ -95,10 +95,7 @@ class AddAccountPage extends StatelessWidget {
               'Enter a recovery phrase from another wallet to control your NFTs, sign authorizations, and connect to other platforms.',
               style: appTextTheme.bodyText1),
           SizedBox(height: 16),
-          Text(
-            'Learn more about Autonomy security...',
-            style: linkStyle,
-          )
+          learnMoreAboutAutonomySecurityWidget(context),
         ],
       ),
       onTap: () => Navigator.of(context).pushNamed(AppRouter.importAccountPage),

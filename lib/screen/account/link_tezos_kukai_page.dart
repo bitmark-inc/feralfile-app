@@ -1,6 +1,8 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/material.dart';
@@ -46,7 +48,11 @@ class LinkTezosKukaiPage extends StatelessWidget {
                     Row(
                         mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [Expanded(child: _wantMoreSecurityWidget())]),
+                        children: [
+                          Expanded(
+                              child: wantMoreSecurityWidget(
+                                  context, WalletApp.Kukai))
+                        ]),
                   ],
                 ),
               ),
@@ -87,31 +93,6 @@ class LinkTezosKukaiPage extends StatelessWidget {
           child: Text(stepGuide, style: appTextTheme.bodyText1),
         )
       ],
-    );
-  }
-
-  Widget _wantMoreSecurityWidget() {
-    return Container(
-      padding: EdgeInsets.all(10),
-      color: AppColorTheme.secondaryDimGreyBackground,
-      child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Want more security and portability?',
-                style: TextStyle(
-                    color: AppColorTheme.secondaryDimGrey,
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    fontFamily: "AtlasGrotesk",
-                    height: 1.377)),
-            SizedBox(height: 5),
-            Text(
-                'You can get all the Tezos functionality of Kukai in a mobile app by importing your account to Autonomy.',
-                style: bodySmall),
-            SizedBox(height: 10),
-            Text('Learn more about Autonomy security ...', style: linkStyle),
-          ]),
     );
   }
 }
