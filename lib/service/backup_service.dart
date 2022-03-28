@@ -4,7 +4,7 @@ import 'package:autonomy_flutter/common/app_config.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/util/device.dart';
+import 'package:autonomy_flutter/util/helpers.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/migration/migration_util.dart';
 import 'package:floor/floor.dart';
@@ -48,11 +48,11 @@ class BackupService {
 
     final result = await _iapApi.getProfileVersions(deviceId, filename);
 
-    var versions = result.versions..sort((a, b) => compare(b, a));
+    var versions = result.versions..sort((a, b) => compareVersion(b, a));
 
     String backupVersion = "";
     for (String element in versions) {
-      if (compare(element, version) <= 0) {
+      if (compareVersion(element, version) <= 0) {
         backupVersion = element;
         break;
       }
@@ -100,22 +100,6 @@ class BackupService {
     await file.writeAsBytes(response.bodyBytes, flush: true);
 
     log.info("[BackupService] done database restore");
-  }
-
-  int compare(String version1, String version2) {
-    final ver1 = version1.split(".").map((e) => int.parse(e)).toList();
-    final ver2 = version2.split(".").map((e) => int.parse(e)).toList();
-
-    var i = 0;
-    while (i < ver1.length) {
-      final result = ver1[i] - ver2[i];
-      if (result != 0) {
-        return result;
-      }
-      i++;
-    }
-
-    return 0;
   }
 
   Future<String> getBackupId() async {
