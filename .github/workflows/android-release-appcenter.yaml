@@ -3,8 +3,6 @@ on:
   push:
     tags:
       - '*'
-    branches:
-      - '*'
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -18,16 +16,14 @@ jobs:
         with:
           flutter-version: ' 2.10.3'
           channel: stable
-      - run: flutter doctor -v
       - run: flutter pub get
       - run: flutter build apk
-      - run: flutter build appbundle
-#      - name: upload artefact to App Center
-#        uses: wzieba/AppCenter-Github-Action@v1
-#        with:
-#          appName: wzieba/Sample-App
-#          token: ${{secrets.APP_CENTER_TOKEN}}
-#          group: Testers
-#          file: app/build/outputs/apk/release/app-release-unsigned.apk
-#          notifyTesters: true
-#          debug: false
+      - name: upload artifact to App Center
+        uses: wzieba/AppCenter-Github-Action@v1
+        with:
+          appName: support-zzd0-28/Autonomy-Android-1
+          token: ${{ secrets.APPCENTER_API_TOKEN }}
+          group: Collaborators
+          file: build/app/outputs/flutter-apk/app-release.apk
+          notifyTesters: false
+          debug: false
