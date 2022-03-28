@@ -65,7 +65,9 @@ platform :ios do
 				},
 				iCloudContainerEnvironment: 'Production'
 			},
+			configuration: "release",
 			skip_profile_detection: true,
+			codesigning_identity: "iPhone Distribution: Bitmark Inc.",
 			output_directory: "./ipas")
 
 		appcenter_upload(
