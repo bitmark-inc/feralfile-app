@@ -2,7 +2,11 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/string_ext.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/theme_manager.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
@@ -279,4 +283,88 @@ class UIHelper {
         )),
         isDismissible: false);
   }
+
+  static showAccountLinked(
+      BuildContext context, Connection connection, String walletName) {
+    UIHelper.showInfoDialog(context, "Account linked",
+        "Autonomy has received autorization to link to your NFTs in $walletName.");
+
+    Future.delayed(Duration(seconds: 3), () {
+      UIHelper.hideInfoDialog(context);
+
+      if (injector<ConfigurationService>().isDoneOnboarding()) {
+        Navigator.of(context)
+            .pushNamed(AppRouter.nameLinkedAccountPage, arguments: connection);
+      } else {
+        Navigator.of(context).pushNamedAndRemoveUntil(
+            AppRouter.nameLinkedAccountPage, (route) => false,
+            arguments: connection);
+      }
+    });
+  }
+
+  static showAlreadyLinked(BuildContext context, Connection connection) {
+    UIHelper.hideInfoDialog(context);
+    showErrorDiablog(
+        context,
+        ErrorEvent(
+            null,
+            "Already linked",
+            "You’ve already linked this account to Autonomy.",
+            ErrorItemState.seeAccount), defaultAction: () {
+      Navigator.of(context)
+          .pushNamed(AppRouter.linkedAccountDetailsPage, arguments: connection);
+    });
+  }
+
+  static showAbortedByUser(BuildContext context) {
+    UIHelper.showInfoDialog(
+        context, "Aborted", "The action was aborted by the user.",
+        isDismissible: true, autoDismissAfter: 3);
+  }
+}
+
+learnMoreAboutAutonomySecurityWidget(BuildContext context) {
+  return TextButton(
+      onPressed: () =>
+          Navigator.of(context).pushNamed(AppRouter.autonomySecurityPage),
+      child: Text('Learn more about Autonomy security ...', style: linkStyle),
+      style: TextButton.styleFrom(
+        minimumSize: Size.zero,
+        padding: EdgeInsets.zero,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ));
+}
+
+wantMoreSecurityWidget(BuildContext context, WalletApp walletApp) {
+  var introText = 'You can get all the';
+  if (walletApp == WalletApp.Kukai || walletApp == WalletApp.Temple) {
+    introText += ' Tezos';
+  }
+  introText +=
+      ' functionality of ${walletApp.rawValue} in a mobile app by importing your account to Autonomy. Tap to do this now.';
+
+  return GestureDetector(
+    onTap: () => Navigator.of(context).pushNamed(AppRouter.importAccountPage),
+    child: Container(
+      padding: EdgeInsets.all(10),
+      color: AppColorTheme.secondaryDimGreyBackground,
+      child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Want more security and portability?',
+                style: TextStyle(
+                    color: AppColorTheme.secondaryDimGrey,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: "AtlasGrotesk",
+                    height: 1.377)),
+            SizedBox(height: 5),
+            Text(introText, style: bodySmall),
+            SizedBox(height: 10),
+            learnMoreAboutAutonomySecurityWidget(context),
+          ]),
+    ),
+  );
 }

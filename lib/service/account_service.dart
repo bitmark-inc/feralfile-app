@@ -8,10 +8,14 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/android_backup_channel.dart';
+import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:uuid/uuid.dart';
 import 'package:wallet_connect/wallet_connect.dart';
+
+import 'wallet_connect_dapp_service/wc_connected_session.dart';
 
 class AccountService {
   final CloudDatabase _cloudDB;
@@ -115,6 +119,38 @@ class AccountService {
     await _cloudDB.connectionDao.insertConnection(connection);
   }
 
+  Future<Connection> linkETHWallet(WCConnectedSession session) async {
+    final connection = Connection.fromETHWallet(session);
+    final alreadyLinkedAccount =
+        await getExistingAccount(connection.accountNumber);
+    if (alreadyLinkedAccount != null) {
+      throw AlreadyLinkedException(alreadyLinkedAccount);
+    }
+
+    _cloudDB.connectionDao.insertConnection(connection);
+    return connection;
+  }
+
+  Future<Connection> linkETHBrowserWallet(
+      String address, WalletApp walletApp) async {
+    final alreadyLinkedAccount = await getExistingAccount(address);
+    if (alreadyLinkedAccount != null) {
+      throw AlreadyLinkedException(alreadyLinkedAccount);
+    }
+
+    final connection = Connection(
+      key: address,
+      name: '',
+      data: walletApp.rawValue,
+      connectionType: ConnectionType.walletBrowserConnect.rawValue,
+      accountNumber: address,
+      createdAt: DateTime.now(),
+    );
+
+    await _cloudDB.connectionDao.insertConnection(connection);
+    return connection;
+  }
+
   bool isPersonaHiddenInGallery(String personaUUID) {
     return _configurationService.isPersonaHiddenInGallery(personaUUID);
   }
@@ -156,12 +192,24 @@ class AccountService {
 
       //Import persona to database if needed
       accounts.forEach((account) async {
-        final existingAccount = await _cloudDB.personaDao.findById(account.uuid);
+        final existingAccount =
+            await _cloudDB.personaDao.findById(account.uuid);
         if (existingAccount == null) {
           _cloudDB.personaDao.insertPersona(Persona(
-              uuid: account.uuid, name: account.name, createdAt: DateTime.now()));
+              uuid: account.uuid,
+              name: account.name,
+              createdAt: DateTime.now()));
         }
       });
     }
+  }
+
+  Future<Connection?> getExistingAccount(String accountNumber) async {
+    final existingConnections = await _cloudDB.connectionDao
+        .getConnectionsByAccountNumber(accountNumber);
+
+    if (existingConnections.isEmpty) return null;
+
+    return existingConnections.first;
   }
 }

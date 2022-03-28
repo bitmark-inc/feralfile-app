@@ -1,6 +1,5 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/tokens_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -9,7 +8,6 @@ import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ImportAccountPage extends StatefulWidget {
   const ImportAccountPage({Key? key}) : super(key: key);
@@ -52,7 +50,7 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
                       style: appTextTheme.bodyText1,
                     ),
                     SizedBox(height: 16),
-                    Text('Learn why this is safe...', style: linkStyle),
+                    learnMoreAboutAutonomySecurityWidget(context),
                     SizedBox(height: 40),
                     Container(
                       height: 120,
