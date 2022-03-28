@@ -54,9 +54,9 @@ jobs:
           git clone git@github.com:bitmark-inc/mobile-signing-key-vault.git --depth 1
           echo $JSON_FILE >> key.json
           bundle exec fastlane install_plugins
+          export APP_VERSION=$(git describe --tags --abbrev=0 | awk -F. '{print $1"."$2+1".0"}')
           bundle exec fastlane ${{ github.event.inputs.lane || 'ciappcenter' }}
         env:
-          APP_VERSION: ${{ secrets.APP_VERSION }}
           ENTERPRISE_CERTIFICATE_PASSWORD: ${{ secrets.ENTERPRISE_CERTIFICATE_PASSWORD }}
           APPSTORE_CERTIFICATE_PASSWORD: ${{ secrets.APPSTORE_CERTIFICATE_PASSWORD }}
           JSON_FILE: ${{ secrets.JSON_FILE }}
