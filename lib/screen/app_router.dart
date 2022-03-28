@@ -114,7 +114,7 @@ class AppRouter {
             settings: settings,
             builder: (context) => BlocProvider(
                 create: (_) => RouterBloc(
-                    injector(), injector(), injector<CloudDatabase>()),
+                    injector(), injector(), injector(), injector<CloudDatabase>()),
                 child: OnboardingPage()));
 
       case homePageNoTransition:
@@ -147,7 +147,6 @@ class AppRouter {
                 create: (_) => PersonaBloc(
                       injector<CloudDatabase>(),
                       injector(),
-                      injector(),
                     ),
                 child: NewAccountPage()));
 
@@ -157,7 +156,6 @@ class AppRouter {
             pageBuilder: (context, animetion1, animation2) => BlocProvider(
                 create: (_) => PersonaBloc(
                       injector<CloudDatabase>(),
-                      injector(),
                       injector(),
                     ),
                 child: NewAccountPage()),
@@ -169,7 +167,6 @@ class AppRouter {
             builder: (context) => BlocProvider(
                 create: (_) => PersonaBloc(
                       injector<CloudDatabase>(),
-                      injector(),
                       injector(),
                     ),
                 child: AddAccountPage()));
@@ -188,7 +185,6 @@ class AppRouter {
                   BlocProvider(
                       create: (_) => PersonaBloc(
                             injector<CloudDatabase>(),
-                            injector(),
                             injector(),
                           )),
                 ], child: AccountsPreviewPage()));
@@ -238,7 +234,6 @@ class AppRouter {
                   create: (_) => PersonaBloc(
                     injector<CloudDatabase>(),
                     injector(),
-                    injector(),
                   ),
                   child: NamePersonaPage(uuid: settings.arguments as String),
                 ));
@@ -268,7 +263,6 @@ class AppRouter {
                             create: (_) => PersonaBloc(
                               injector<CloudDatabase>(),
                               injector(),
-                              injector(),
                             ),
                           ),
                         ],
@@ -285,7 +279,6 @@ class AppRouter {
                     BlocProvider(
                       create: (_) => PersonaBloc(
                         injector<CloudDatabase>(),
-                        injector(),
                         injector(),
                       ),
                     ),
@@ -342,7 +335,6 @@ class AppRouter {
                   BlocProvider(
                       create: (_) => PersonaBloc(
                             injector<CloudDatabase>(),
-                            injector(),
                             injector(),
                           )),
                   BlocProvider.value(value: ethereumBloc),
@@ -503,7 +495,6 @@ class AppRouter {
                   BlocProvider(
                     create: (_) => PersonaBloc(
                       injector<CloudDatabase>(),
-                      injector(),
                       injector(),
                     ),
                   ),
