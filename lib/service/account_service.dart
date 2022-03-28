@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
@@ -5,6 +7,7 @@ import 'package:autonomy_flutter/model/p2p_peer.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
+import 'package:autonomy_flutter/util/android_backup_channel.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:uuid/uuid.dart';
@@ -15,9 +18,22 @@ class AccountService {
   final WalletConnectService _walletConnectService;
   final TezosBeaconService _tezosBeaconService;
   final ConfigurationService _configurationService;
+  final AndroidBackupChannel _backupChannel = AndroidBackupChannel();
 
   AccountService(this._cloudDB, this._walletConnectService,
       this._tezosBeaconService, this._configurationService);
+
+  Future<Persona> createPersona() async {
+    final uuid = Uuid().v4();
+    final walletStorage = LibAukDart.getWallet(uuid);
+    await walletStorage.createKey("");
+
+    final persona = Persona.newPersona(uuid: uuid, name: "");
+    await _cloudDB.personaDao.insertPersona(persona);
+    await androidBackupKeys();
+
+    return persona;
+  }
 
   Future<Persona> importPersona(String words) async {
     final uuid = Uuid().v4();
@@ -27,6 +43,7 @@ class AccountService {
 
     final persona = Persona.newPersona(uuid: uuid, name: "");
     await _cloudDB.personaDao.insertPersona(persona);
+    await androidBackupKeys();
 
     return persona;
   }
@@ -34,6 +51,7 @@ class AccountService {
   Future deletePersona(Persona persona) async {
     await _cloudDB.personaDao.deletePersona(persona);
     await LibAukDart.getWallet(persona.uuid).removeKeys();
+    await androidBackupKeys();
 
     final connections = await _cloudDB.connectionDao.getConnections();
     Set<WCPeerMeta> wcPeers = {};
@@ -111,5 +129,39 @@ class AccountService {
 
   Future setHideLinkedAccountInGallery(String address, bool isEnabled) async {
     _configurationService.setHideLinkedAccountInGallery(address, isEnabled);
+  }
+
+  Future androidBackupKeys() async {
+    if (Platform.isAndroid) {
+      final accounts = await _cloudDB.personaDao.getPersonas();
+      final uuids = accounts.map((e) => e.uuid).toList();
+
+      if (uuids.isNotEmpty) {
+        await _backupChannel.backupKeys(uuids);
+      }
+    }
+  }
+
+  Future androidRestoreKeys() async {
+    if (Platform.isAndroid) {
+      final accounts = await _backupChannel.restoreKeys();
+
+      //Remove persona from database if keys not found
+      final personas = await _cloudDB.personaDao.getPersonas();
+      personas.forEach((persona) async {
+        if (!accounts.any((element) => element.uuid == persona.uuid)) {
+          await _cloudDB.personaDao.deletePersona(persona);
+        }
+      });
+
+      //Import persona to database if needed
+      accounts.forEach((account) async {
+        final existingAccount = await _cloudDB.personaDao.findById(account.uuid);
+        if (existingAccount == null) {
+          _cloudDB.personaDao.insertPersona(Persona(
+              uuid: account.uuid, name: account.name, createdAt: DateTime.now()));
+        }
+      });
+    }
   }
 }
