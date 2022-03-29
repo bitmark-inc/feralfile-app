@@ -117,20 +117,20 @@ class _NamePersonaPageState extends State<NamePersonaPage> {
   }
 
   Future _doneNaming() async {
-    final isAndroidEndToEndEncryptionAvailable =
-        await injector<AccountService>().isAndroidEndToEndEncryptionAvailable();
+    if (Platform.isAndroid) {
+      final isAndroidEndToEndEncryptionAvailable =
+          await injector<AccountService>()
+              .isAndroidEndToEndEncryptionAvailable();
 
-    if (Platform.isAndroid && (isAndroidEndToEndEncryptionAvailable != true)) {
       if (injector<ConfigurationService>().isDoneOnboarding()) {
         Navigator.of(context).pushReplacementNamed(AppRouter.cloudErrorPage,
-            arguments: isAndroidEndToEndEncryptionAvailable == false);
+            arguments: isAndroidEndToEndEncryptionAvailable);
       } else {
         Navigator.of(context).pushNamedAndRemoveUntil(
             AppRouter.cloudErrorPage, (route) => false,
-            arguments: isAndroidEndToEndEncryptionAvailable == false);
+            arguments: isAndroidEndToEndEncryptionAvailable);
       }
     } else {
-      //Backed up normally.
       if (injector<ConfigurationService>().isDoneOnboarding()) {
         Navigator.of(context)
             .pushReplacementNamed(AppRouter.cloudPage, arguments: "nameAlias");

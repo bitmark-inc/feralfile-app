@@ -35,7 +35,7 @@ import 'package:autonomy_flutter/screen/bloc/feralfile/feralfile_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/router/router_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
-import 'package:autonomy_flutter/screen/cloud/cloud_error_page.dart';
+import 'package:autonomy_flutter/screen/cloud/cloud_android_page.dart';
 import 'package:autonomy_flutter/screen/cloud/cloud_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
@@ -518,8 +518,8 @@ class AppRouter {
       case cloudErrorPage:
         return CupertinoPageRoute(
             settings: settings,
-            builder: (context) => CloudErrorPage(
-              isEncryptionError: settings.arguments as bool,
+            builder: (context) => CloudAndroidPage(
+              isEncryptionAvailable: settings.arguments as bool?,
             ));
 
       case SentryReportPage.tag:
