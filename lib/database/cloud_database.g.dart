@@ -299,7 +299,7 @@ class _$ConnectionDao extends ConnectionDao {
   Future<List<Connection>> getConnectionsByAccountNumber(
       String accountNumber) async {
     return _queryAdapter.queryList(
-        'SELECT * FROM Connection WHERE accountNumber = ?1',
+        'SELECT * FROM Connection WHERE accountNumber = ?1 COLLATE NOCASE',
         mapper: (Map<String, Object?> row) => Connection(
             key: row['key'] as String,
             name: row['name'] as String,
@@ -331,7 +331,7 @@ class _$ConnectionDao extends ConnectionDao {
   @override
   Future<void> deleteConnectionsByAccountNumber(String accountNumber) async {
     await _queryAdapter.queryNoReturn(
-        'DELETE FROM Connection WHERE accountNumber = ?1',
+        'DELETE FROM Connection WHERE accountNumber = ?1 COLLATE NOCASE',
         arguments: [accountNumber]);
   }
 
