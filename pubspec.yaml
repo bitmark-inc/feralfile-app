@@ -89,6 +89,7 @@ dependencies:
   hive: ^2.0.6
   hive_flutter: ^1.1.0
   flutter_markdown: ^0.6.9
+  open_settings: ^2.0.2
 
 dependency_overrides:
   # Error using when import photo_view from dependencies:

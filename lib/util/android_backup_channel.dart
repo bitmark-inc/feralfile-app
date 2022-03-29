@@ -1,25 +1,37 @@
 import 'dart:convert';
 
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter/services.dart';
 
 class AndroidBackupChannel {
   static const MethodChannel _channel = const MethodChannel('backup');
 
-  Future<bool> isEndToEndEncryptionAvailable() async {
+  Future<bool?> isEndToEndEncryptionAvailable() async {
     return await _channel.invokeMethod('isEndToEndEncryptionAvailable', {});
   }
 
   Future backupKeys(List<String> uuids) async {
-    await _channel.invokeMethod('backupKeys', {"uuids": uuids});
+    try {
+      await _channel.invokeMethod('backupKeys', {"uuids": uuids});
+    } catch (e) {
+      log.warning("Android cloud backup error", e);
+    }
   }
 
   Future<List<BackupAccount>> restoreKeys() async {
-    String data = await _channel.invokeMethod('restoreKeys', {});
-    if (data.isEmpty) {
+    try {
+      String data = await _channel.invokeMethod('restoreKeys', {});
+      if (data.isEmpty) {
+        return [];
+      }
+      final backupData = json.decode(data);
+      return BackupData
+          .fromJson(backupData)
+          .accounts;
+    } catch (e) {
+      log.warning("Android cloud backup error", e);
       return [];
     }
-    final backupData = json.decode(data);
-    return BackupData.fromJson(backupData).accounts;
   }
 }
 

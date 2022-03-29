@@ -57,6 +57,8 @@
 	</array>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>FDMaximumConcurrentTasks</key>
+	<integer>10</integer>
 	<key>LSApplicationCategoryType</key>
 	<string></string>
 	<key>LSRequiresIPhoneOS</key>
@@ -101,7 +103,5 @@
 	<string>Light</string>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
-	<key>FDMaximumConcurrentTasks</key>
-	<integer>10</integer>
 </dict>
 </plist>

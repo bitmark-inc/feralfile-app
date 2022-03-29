@@ -14,9 +14,6 @@ import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.disposables.CompositeDisposable
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.jsonArray
-import java.lang.Exception
 import java.util.*
 
 class BackupDartPlugin : MethodChannel.MethodCallHandler {
@@ -52,6 +49,10 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler {
         client.isEndToEndEncryptionAvailable
             .addOnSuccessListener { isE2EEAvailable ->
                 result.success(isE2EEAvailable)
+            }
+            .addOnFailureListener {
+                //Block store not available
+                result.success(null)
             }
     }
 
@@ -97,18 +98,30 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler {
         client.retrieveBytes()
             .addOnSuccessListener { bytes ->
                 try {
-                    val data = jsonKT.decodeFromString(BackupData.serializer(), bytes.toString(Charsets.UTF_8))
+                    val data = jsonKT.decodeFromString(
+                        BackupData.serializer(),
+                        bytes.toString(Charsets.UTF_8)
+                    )
 
                     Observable.fromIterable(data.accounts)
                         .flatMap { account ->
                             LibAuk.getInstance()
                                 .getStorage(UUID.fromString(account.uuid), context)
                                 .importKey(account.mnemonic.split(" "), account.name, Date())
-                                .andThen(Observable.just(BackupAccount(account.uuid, "", account.name)))
+                                .andThen(
+                                    Observable.just(
+                                        BackupAccount(
+                                            account.uuid,
+                                            "",
+                                            account.name
+                                        )
+                                    )
+                                )
                         }
                         .toList()
                         .subscribe({
-                            val resultData = jsonKT.encodeToString(BackupData.serializer(), BackupData(it))
+                            val resultData =
+                                jsonKT.encodeToString(BackupData.serializer(), BackupData(it))
                             result.success(resultData)
                         }, {
                             result.error("restoreKey error", it.message, it)
@@ -118,6 +131,10 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler {
                     //No accounts found
                     result.success("")
                 }
+            }
+            .addOnFailureListener {
+                //Block store not available
+                result.error("restoreKey error", it.message, it)
             }
     }
 }

@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
+import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -113,14 +116,29 @@ class _NamePersonaPageState extends State<NamePersonaPage> {
     );
   }
 
-  void _doneNaming() {
-    if (injector<ConfigurationService>().isDoneOnboarding()) {
-      Navigator.of(context)
-          .pushReplacementNamed(AppRouter.cloudPage, arguments: "nameAlias");
+  Future _doneNaming() async {
+    final isAndroidEndToEndEncryptionAvailable =
+        await injector<AccountService>().isAndroidEndToEndEncryptionAvailable();
+
+    if (Platform.isAndroid && (isAndroidEndToEndEncryptionAvailable != true)) {
+      if (injector<ConfigurationService>().isDoneOnboarding()) {
+        Navigator.of(context).pushReplacementNamed(AppRouter.cloudErrorPage,
+            arguments: isAndroidEndToEndEncryptionAvailable == false);
+      } else {
+        Navigator.of(context).pushNamedAndRemoveUntil(
+            AppRouter.cloudErrorPage, (route) => false,
+            arguments: isAndroidEndToEndEncryptionAvailable == false);
+      }
     } else {
-      Navigator.of(context).pushNamedAndRemoveUntil(
-          AppRouter.cloudPage, (route) => false,
-          arguments: "nameAlias");
+      //Backed up normally.
+      if (injector<ConfigurationService>().isDoneOnboarding()) {
+        Navigator.of(context)
+            .pushReplacementNamed(AppRouter.cloudPage, arguments: "nameAlias");
+      } else {
+        Navigator.of(context).pushNamedAndRemoveUntil(
+            AppRouter.cloudPage, (route) => false,
+            arguments: "nameAlias");
+      }
     }
   }
 }
