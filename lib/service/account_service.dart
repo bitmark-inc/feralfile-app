@@ -212,4 +212,8 @@ class AccountService {
 
     return existingConnections.first;
   }
+
+  Future<bool?> isAndroidEndToEndEncryptionAvailable() {
+    return _backupChannel.isEndToEndEncryptionAvailable();
+  }
 }

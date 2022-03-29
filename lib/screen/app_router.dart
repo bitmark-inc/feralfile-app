@@ -24,7 +24,6 @@ import 'package:autonomy_flutter/screen/account/new_account_page.dart';
 import 'package:autonomy_flutter/screen/autonomy_security_page.dart';
 import 'package:autonomy_flutter/screen/bloc/connections/connections_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
-import 'package:autonomy_flutter/screen/cloud_page.dart';
 import 'package:autonomy_flutter/screen/connection/connection_details_page.dart';
 import 'package:autonomy_flutter/screen/connection/persona_connections_page.dart';
 import 'package:autonomy_flutter/screen/account/persona_details_page.dart';
@@ -36,6 +35,8 @@ import 'package:autonomy_flutter/screen/bloc/feralfile/feralfile_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/router/router_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
+import 'package:autonomy_flutter/screen/cloud/cloud_error_page.dart';
+import 'package:autonomy_flutter/screen/cloud/cloud_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_bloc.dart';
@@ -105,6 +106,7 @@ class AppRouter {
   static const recoveryPhrasePage = 'recovery_phrase';
   static const wcConnectPage = 'wc_connect';
   static const cloudPage = 'cloud_page';
+  static const cloudErrorPage = 'cloud_error_page';
   static const linkManuallyAddress = 'link_manually_address';
   static const autonomySecurityPage = 'autonomy_security';
 
@@ -512,6 +514,13 @@ class AppRouter {
             builder: (context) => CloudPage(
                   section: settings.arguments as String,
                 ));
+
+      case cloudErrorPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => CloudErrorPage(
+              isEncryptionError: settings.arguments as bool,
+            ));
 
       case SentryReportPage.tag:
         return CupertinoPageRoute(
