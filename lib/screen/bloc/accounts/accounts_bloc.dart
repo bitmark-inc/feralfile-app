@@ -217,21 +217,25 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
 
     on<FetchAllAddressesEvent>((event, emit) async {
       List<String> addresses = [];
-      final personas = await _cloudDB.personaDao.getPersonas();
+      if (_configurationService.isDemoArtworksMode()) {
+        addresses = ['demo'];
+      } else {
+        final personas = await _cloudDB.personaDao.getPersonas();
 
-      for (var persona in personas) {
-        final wallet = persona.wallet();
-        final tzWallet = await wallet.getTezosWallet();
-        final ethAddress = await wallet.getETHAddress();
-        final tzAddress = tzWallet.address;
+        for (var persona in personas) {
+          final wallet = persona.wallet();
+          final tzWallet = await wallet.getTezosWallet();
+          final ethAddress = await wallet.getETHAddress();
+          final tzAddress = tzWallet.address;
 
-        addresses.add(ethAddress);
-        addresses.add(tzAddress);
+          addresses.add(ethAddress);
+          addresses.add(tzAddress);
+        }
+
+        final linkedAccounts = await _cloudDB.connectionDao.getConnections();
+        addresses.addAll(linkedAccounts.map((e) => e.accountNumber));
+        addresses.removeWhere((e) => e == '');
       }
-
-      final linkedAccounts = await _cloudDB.connectionDao.getConnections();
-      addresses.addAll(linkedAccounts.map((e) => e.accountNumber));
-      addresses.removeWhere((e) => e == '');
 
       emit(state.setEvent(FetchAllAddressesSuccessEvent(addresses)));
 
