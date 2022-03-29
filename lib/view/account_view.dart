@@ -96,7 +96,7 @@ Widget accountItem(BuildContext context, Account account,
             SizedBox(width: 16),
             Text(
                 account.name.isNotEmpty
-                    ? account.name
+                    ? account.name.maskIfNeeded()
                     : account.accountNumber.mask(4),
                 style: appTextTheme.headline4),
           ],
@@ -115,7 +115,7 @@ Widget accountItem(BuildContext context, Account account,
             SizedBox(width: 16),
             Text(
                 connection.name.isNotEmpty
-                    ? connection.name
+                    ? connection.name.maskIfNeeded()
                     : connection.accountNumber.mask(4),
                 style: appTextTheme.headline4),
           ],
@@ -196,6 +196,17 @@ Widget _appLogo(Connection connection) {
           return Image.asset("assets/images/temple_wallet.png");
         default:
           return Image.asset("assets/images/tezos_wallet.png");
+      }
+
+    case 'walletBrowserConnect':
+      final walletName = connection.data;
+      switch (walletName) {
+        case "MetaMask":
+          return Image.asset("assets/images/metamask-alternative.png");
+        default:
+          return SizedBox(
+            width: 24,
+          );
       }
 
     default:

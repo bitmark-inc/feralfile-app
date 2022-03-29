@@ -97,7 +97,6 @@ class ProjectMetadataData {
     required this.assetUrl,
     required this.artistId,
     required this.originalFileUrl,
-    required this.firstMintedAt,
   });
 
   String? artistName;
@@ -118,7 +117,6 @@ class ProjectMetadataData {
   String? assetUrl;
   String? artistId;
   String? originalFileUrl;
-  DateTime? firstMintedAt;
 
   factory ProjectMetadataData.fromJson(Map<String, dynamic> json) =>
       ProjectMetadataData(
@@ -140,7 +138,6 @@ class ProjectMetadataData {
         assetUrl: json["assetURL"],
         artistId: json["artistID"],
         originalFileUrl: json["originalFileURL"],
-        firstMintedAt: DateTime.parse(json["firstMintedAt"]),
       );
 
   factory ProjectMetadataData.fromJsonModified(
@@ -165,7 +162,6 @@ class ProjectMetadataData {
         assetUrl: json["assetURL"],
         artistId: json["artistID"],
         originalFileUrl: json["originalFileURL"],
-        firstMintedAt: DateTime.parse(json["firstMintedAt"]),
       );
 
   Map<String, dynamic> toJson() => {
@@ -187,7 +183,6 @@ class ProjectMetadataData {
         "assetURL": assetUrl,
         "artistID": artistId,
         "originalFileURL": originalFileUrl,
-        "firstMintedAt": firstMintedAt?.toIso8601String(),
       };
 }
 

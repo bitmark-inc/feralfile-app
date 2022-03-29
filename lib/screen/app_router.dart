@@ -4,13 +4,16 @@ import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
+import 'package:autonomy_flutter/screen/account/access_method_page.dart';
 import 'package:autonomy_flutter/screen/account/accounts_preview_page.dart';
 import 'package:autonomy_flutter/screen/account/add_account_page.dart';
 import 'package:autonomy_flutter/screen/account/import_account_page.dart';
 import 'package:autonomy_flutter/screen/account/link_account_page.dart';
+import 'package:autonomy_flutter/screen/account/link_app_options_page.dart';
 import 'package:autonomy_flutter/screen/account/link_feralfile_page.dart';
 import 'package:autonomy_flutter/screen/account/link_ledger_page.dart';
 import 'package:autonomy_flutter/screen/account/link_manually_address_page.dart';
+import 'package:autonomy_flutter/screen/account/link_metamask_page.dart';
 import 'package:autonomy_flutter/screen/account/link_tezos_kukai_page.dart';
 import 'package:autonomy_flutter/screen/account/link_tezos_temple_page.dart';
 import 'package:autonomy_flutter/screen/account/link_wallet_connect_page.dart';
@@ -18,6 +21,7 @@ import 'package:autonomy_flutter/screen/account/linked_account_details_page.dart
 import 'package:autonomy_flutter/screen/account/name_linked_account_page.dart';
 import 'package:autonomy_flutter/screen/account/name_persona_page.dart';
 import 'package:autonomy_flutter/screen/account/new_account_page.dart';
+import 'package:autonomy_flutter/screen/autonomy_security_page.dart';
 import 'package:autonomy_flutter/screen/bloc/connections/connections_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/cloud_page.dart';
@@ -77,6 +81,9 @@ class AppRouter {
   static const linkBeaconConnectPage = "link_beacon_connect";
   static const accountsPreviewPage = 'accounts_preview';
   static const linkFeralFilePage = "link_feralfile";
+  static const accessMethodPage = 'access_method_page';
+  static const linkAppOptionPage = 'link_app_option_page';
+  static const linkMetamaskPage = 'link_metamask';
   static const linkTezosKukaiPage = 'link_tezos_kukai_page';
   static const linkTezosTemplePage = 'link_tezos_temple_page';
   static const namePersonaPage = "name_persona_page";
@@ -99,6 +106,7 @@ class AppRouter {
   static const wcConnectPage = 'wc_connect';
   static const cloudPage = 'cloud_page';
   static const linkManuallyAddress = 'link_manually_address';
+  static const autonomySecurityPage = 'autonomy_security';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final networkInjector = injector<NetworkConfigInjector>();
@@ -113,8 +121,8 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider(
-                create: (_) => RouterBloc(
-                    injector(), injector(), injector(), injector<CloudDatabase>()),
+                create: (_) => RouterBloc(injector(), injector(), injector(),
+                    injector<CloudDatabase>()),
                 child: OnboardingPage()));
 
       case homePageNoTransition:
@@ -196,6 +204,32 @@ class AppRouter {
                 create: (_) => FeralfileBloc(
                     injector(), networkInjector.I(), injector<CloudDatabase>()),
                 child: LinkFeralFilePage()));
+
+      case accessMethodPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => BlocProvider(
+                create: (_) => FeralfileBloc(
+                    injector(), networkInjector.I(), injector<CloudDatabase>()),
+                child: AccessMethodPage(
+                  walletApp: settings.arguments as String,
+                )));
+
+      case linkAppOptionPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => BlocProvider(
+                create: (_) => FeralfileBloc(
+                    injector(), networkInjector.I(), injector<CloudDatabase>()),
+                child: LinkAppOptionsPage()));
+
+      case linkMetamaskPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => BlocProvider(
+                create: (_) => FeralfileBloc(
+                    injector(), networkInjector.I(), injector<CloudDatabase>()),
+                child: LinkMetamaskPage()));
 
       case linkTezosKukaiPage:
         return CupertinoPageRoute(
@@ -508,6 +542,10 @@ class AppRouter {
             builder: (context) => GlobalReceiveDetailPage(
                   payload: settings.arguments,
                 ));
+
+      case autonomySecurityPage:
+        return CupertinoPageRoute(
+            settings: settings, builder: (context) => AutonomySecurityPage());
 
       case linkManuallyAddress:
         return CupertinoPageRoute(

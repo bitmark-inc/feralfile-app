@@ -7,7 +7,8 @@ import 'package:autonomy_flutter/service/wallet_connect_dapp_service/wc_connecte
 import 'package:floor/floor.dart';
 
 enum ConnectionType {
-  walletConnect, // Autonomy connect to Wallet
+  walletConnect, // Autonomy connect to ETH Wallet
+  walletBrowserConnect, // Autonomy connect to ETH Browser wallet
   dappConnect, // Autonomy connect to Dapp
   beaconP2PPeer,
   walletBeacon,

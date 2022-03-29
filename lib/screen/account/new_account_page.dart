@@ -6,6 +6,7 @@ import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class NewAccountPage extends StatelessWidget {
   @override
@@ -32,7 +33,7 @@ class NewAccountPage extends StatelessWidget {
                 child: Column(
                   children: [
                     Text(
-                      "Do you have NFTs you want to view with Autonomy?",
+                      "Do you already have NFTs?",
                       style: appTextTheme.headline1,
                     ),
                     SizedBox(height: 30),
@@ -42,7 +43,7 @@ class NewAccountPage extends StatelessWidget {
                       crossAxisAlignment: WrapCrossAlignment.start,
                       children: [
                         _optionItem(context, "Yes",
-                            "I already have NFTs in other wallets that I want to view with Autonomy.",
+                            "I already have NFTs in other wallets that I want to view or control with Autonomy.",
                             onTap: () {
                           Navigator.of(context)
                               .pushNamed(AppRouter.linkAccountpage);
@@ -107,7 +108,7 @@ class NewAccountPage extends StatelessWidget {
                   title,
                   style: appTextTheme.headline4,
                 ),
-                Icon(CupertinoIcons.forward),
+                SvgPicture.asset('assets/images/iconForward.svg'),
               ],
             ),
             SizedBox(height: 16),
@@ -118,9 +119,7 @@ class NewAccountPage extends StatelessWidget {
           ],
         ),
       ),
-      onTap: () {
-        onTap();
-      },
+      onTap: () => onTap(),
     );
   }
 }

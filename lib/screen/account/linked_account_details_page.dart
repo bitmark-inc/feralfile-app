@@ -6,6 +6,7 @@ import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
+import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -46,6 +47,7 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
         break;
 
       case "walletConnect":
+      case "walletBrowserConnect":
         fetchETHBalance();
         break;
 
@@ -83,7 +85,7 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
     return Scaffold(
       appBar: getBackAppBar(
         context,
-        title: widget.connection.name,
+        title: widget.connection.name.maskIfNeeded(),
         onBack: () {
           Navigator.of(context).pop();
         },
@@ -126,6 +128,13 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
                       source = widget.connection.wcConnectedSession
                               ?.sessionStore.remotePeerMeta.name ??
                           "Ethereum Wallet";
+                      coinType = "Ethereum (ETH)";
+                      balanceString = _balance ?? "-- ETH";
+                      addressType = 'Ethereum';
+                      break;
+
+                    case "walletBrowserConnect":
+                      source = widget.connection.data;
                       coinType = "Ethereum (ETH)";
                       balanceString = _balance ?? "-- ETH";
                       addressType = 'Ethereum';

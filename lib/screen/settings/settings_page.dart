@@ -199,7 +199,7 @@ class _SettingsPageState extends State<SettingsPage>
                       fontFamily: "IBMPlexMono"),
                 ),
                 SizedBox(width: 8.0),
-                Icon(CupertinoIcons.forward)
+                SvgPicture.asset('assets/images/iconForward.svg'),
               ],
             )
           ],

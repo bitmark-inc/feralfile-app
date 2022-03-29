@@ -17,7 +17,8 @@ abstract class ConnectionDao {
   @Query('SELECT * FROM Connection WHERE connectionType = :type')
   Future<List<Connection>> getConnectionsByType(String type);
 
-  @Query('SELECT * FROM Connection WHERE accountNumber = :accountNumber')
+  @Query(
+      'SELECT * FROM Connection WHERE accountNumber = :accountNumber COLLATE NOCASE')
   Future<List<Connection>> getConnectionsByAccountNumber(String accountNumber);
 
   @Insert(onConflict: OnConflictStrategy.replace)
@@ -32,7 +33,8 @@ abstract class ConnectionDao {
   @delete
   Future<void> deleteConnection(Connection connection);
 
-  @Query('DELETE FROM Connection WHERE accountNumber = :accountNumber')
+  @Query(
+      'DELETE FROM Connection WHERE accountNumber = :accountNumber COLLATE NOCASE')
   Future<void> deleteConnectionsByAccountNumber(String accountNumber);
 
   @update

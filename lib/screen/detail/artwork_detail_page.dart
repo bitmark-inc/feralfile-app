@@ -109,11 +109,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
 
               var subTitle = "";
               if (asset.artistName != null && asset.artistName!.isNotEmpty) {
-                if (_shouldShortenArtistName(asset.artistName!)) {
-                  subTitle = "by ${asset.artistName!.mask(4)}";
-                } else {
-                  subTitle = "by ${asset.artistName}";
-                }
+                subTitle = "by ${asset.artistName!.maskIfNeeded()}";
               }
 
               if (asset.edition != 0)
@@ -566,11 +562,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
           },
         ),
         isDismissible: true);
-  }
-
-  bool _shouldShortenArtistName(String name) {
-    if (name.contains(' ')) return false;
-    return name.length >= 36;
   }
 }
 

@@ -96,20 +96,9 @@ class WCSignMessagePage extends StatelessWidget {
         Navigator.of(context).pop();
         return;
       } else if (event is AlreadyLinkedError) {
-        showErrorDiablog(
-            context,
-            ErrorEvent(
-                null,
-                "Already linked",
-                "You’ve already linked this account to Autonomy.",
-                ErrorItemState.seeAccount), defaultAction: () {
-          Navigator.of(context).pushReplacementNamed(
-              AppRouter.linkedAccountDetailsPage,
-              arguments: event.connection);
-        }, cancelAction: () {
-          Navigator.of(context).pop();
-        });
-
+        // because user may be wanting to login FeralFile; so skip to show this error
+        // Thread: https://bitmark.slack.com/archives/C034EPS6CLS/p1648218027439049
+        Navigator.of(context).pop();
         return;
       } else if (event is FFNotConnected) {
         showErrorDiablog(

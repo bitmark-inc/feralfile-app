@@ -103,6 +103,7 @@ class PreferenceView extends StatelessWidget {
     return Container(
       padding: EdgeInsets.only(bottom: 16.0),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
