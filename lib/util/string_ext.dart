@@ -8,9 +8,7 @@ extension StringExtension on String {
   }
 
   String maskIfNeeded() {
-    if (this.length > 30) {
-      return this.mask(4);
-    }
-    return this;
+    if (this.contains(' ')) return this;
+    return (this.length >= 36) ? this.mask(4) : this;
   }
 }

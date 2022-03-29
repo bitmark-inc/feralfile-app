@@ -37,7 +37,8 @@ const appTextTheme = TextTheme(
   bodyText1: TextStyle(
       color: Colors.black,
       fontSize: 16,
-      fontFamily: "AtlasGrotesk",
+      fontFamily: "AtlasGrotesk-Light",
+      fontWeight: FontWeight.w300,
       height: 1.377),
   bodyText2: TextStyle(
       color: Color(0xFF6D6B6B), fontSize: 16, fontFamily: "IBMPlexMono"),
@@ -62,7 +63,7 @@ const linkStyle = TextStyle(
   fontSize: 14,
   fontFamily: "AtlasGrotesk",
   height: 1.377,
-  shadows: [Shadow(color: Colors.black, offset: Offset(0, -3))],
+  shadows: [Shadow(color: Colors.black, offset: Offset(0, -2))],
   decoration: TextDecoration.underline,
   decorationStyle: TextDecorationStyle.solid,
   decorationColor: Colors.black,
