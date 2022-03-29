@@ -25,7 +25,7 @@ class UpgradesView extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "Upgrades",
+                "More Autonomy",
                 style: appTextTheme.headline1,
               ),
               SizedBox(height: 16.0),
@@ -38,7 +38,29 @@ class UpgradesView extends StatelessWidget {
   static Widget _subscribeView(BuildContext context, UpgradeState state) {
     switch (state.status) {
       case IAPProductStatus.completed:
-        return Text("You are subscribed.", style: appTextTheme.headline4);
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("Subscribed", style: appTextTheme.headline4),
+            SizedBox(height: 16.0),
+            Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    ' •  ',
+                    style: appTextTheme.bodyText1,
+                    textAlign: TextAlign.start,
+                  ),
+                  Expanded(
+                    child: Text(
+                      'Thank you for your support.',
+                      style: appTextTheme.bodyText1,
+                    ),
+                  ),
+                ])
+          ],
+        );
       case IAPProductStatus.loading:
       case IAPProductStatus.pending:
         return Container(
@@ -58,13 +80,31 @@ class UpgradesView extends StatelessWidget {
               Row(children: [
                 Text("Subscribe", style: appTextTheme.headline4),
                 Spacer(),
-                Icon(CupertinoIcons.forward),
+                SvgPicture.asset('assets/images/iconForward.svg'),
               ]),
               SizedBox(height: 16.0),
-              Text(
-                "• View your collection on TVs and projectors.\n• Preserve and authenticate your artworks for the long-term.\n• Priority Support.",
-                style: appTextTheme.bodyText1,
-              )
+              ...[
+                'View your collection on TVs and projectors.',
+                'Preserve and authenticate your artworks for the long-term.',
+                'Priority Support.'
+              ]
+                  .map((item) => Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              ' •  ',
+                              style: appTextTheme.bodyText1,
+                              textAlign: TextAlign.start,
+                            ),
+                            Expanded(
+                              child: Text(
+                                item,
+                                style: appTextTheme.bodyText1,
+                              ),
+                            ),
+                          ]))
+                  .toList(),
             ],
           ),
         );

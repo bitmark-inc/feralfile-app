@@ -159,7 +159,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   bool isImmediatePlaybackEnabled() {
-    return _preferences.getBool(KEY_IMMEDIATE_PLAYBACK) ?? false;
+    return _preferences.getBool(KEY_IMMEDIATE_PLAYBACK) ?? true;
   }
 
   @override

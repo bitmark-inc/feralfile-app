@@ -171,6 +171,7 @@ flutter:
     - family: AtlasGrotesk
       fonts:
         - asset: fonts/AtlasGrotesk/AtlasGrotesk-Regular.otf
+        - asset: fonts/AtlasGrotesk/AtlasGrotesk-Light.otf
         - asset: fonts/AtlasGrotesk/AtlasGrotesk-Bold.otf
           weight: 700
     - family: DomaineSansText

@@ -8,12 +8,6 @@ class GetAccountsEvent extends AccountsEvent {}
 
 class GetCategorizedAccountsEvent extends AccountsEvent {}
 
-class LinkEthereumWalletEvent extends AccountsEvent {
-  final WCConnectedSession session;
-
-  LinkEthereumWalletEvent(this.session);
-}
-
 class LinkLedgerWalletEvent extends AccountsEvent {
   final String address;
   final String blockchain;

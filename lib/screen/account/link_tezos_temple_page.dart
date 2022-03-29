@@ -7,6 +7,7 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tokens_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -72,7 +73,11 @@ class _LinkTezosTemplePageState extends State<LinkTezosTemplePage> {
                     Row(
                         mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [Expanded(child: _wantMoreSecurityWidget())]),
+                        children: [
+                          Expanded(
+                              child: wantMoreSecurityWidget(
+                                  context, WalletApp.Temple))
+                        ]),
                   ],
                 ),
               ),
@@ -110,31 +115,6 @@ class _LinkTezosTemplePageState extends State<LinkTezosTemplePage> {
           child: Text(stepGuide, style: appTextTheme.bodyText1),
         )
       ],
-    );
-  }
-
-  Widget _wantMoreSecurityWidget() {
-    return Container(
-      padding: EdgeInsets.all(10),
-      color: AppColorTheme.secondaryDimGreyBackground,
-      child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Want more security and portability?',
-                style: TextStyle(
-                    color: AppColorTheme.secondaryDimGrey,
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    fontFamily: "AtlasGrotesk",
-                    height: 1.377)),
-            SizedBox(height: 5),
-            Text(
-                'You can get all the Tezos functionality of Temple in a mobile app by importing your account to Autonomy.',
-                style: bodySmall),
-            SizedBox(height: 10),
-            Text('Learn more about Autonomy security ...', style: linkStyle),
-          ]),
     );
   }
 

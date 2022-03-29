@@ -164,21 +164,6 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
       emit(state.copyWith(categorizedAccounts: categorizedAccounts));
     });
 
-    on<LinkEthereumWalletEvent>((event, emit) async {
-      final connection = Connection.fromETHWallet(event.session);
-      final alreadyLinkedAccount =
-          await getExistingAccount(connection.accountNumber);
-      if (alreadyLinkedAccount != null) {
-        emit(state.setEvent(AlreadyLinkedError(alreadyLinkedAccount)));
-        return;
-      }
-
-      _cloudDB.connectionDao.insertConnection(connection);
-      emit(state.setEvent(LinkAccountSuccess(connection)));
-
-      add(GetAccountsEvent());
-    });
-
     on<LinkLedgerWalletEvent>((event, emit) async {
       final data = event.data;
       data["ledger"] = event.ledgerName;
