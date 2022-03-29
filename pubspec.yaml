@@ -154,6 +154,7 @@ flutter:
     - assets/images/touch_id.svg
     - assets/images/cloudOff.svg
     - assets/images/cloudOn.svg
+    - assets/images/cloudEncryption.svg
     - assets/images/nav-arrow-left.svg
   #   - images/a_dot_ham.jpeg
 
