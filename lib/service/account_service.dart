@@ -127,7 +127,7 @@ class AccountService {
       throw AlreadyLinkedException(alreadyLinkedAccount);
     }
 
-    _cloudDB.connectionDao.insertConnection(connection);
+    await _cloudDB.connectionDao.insertConnection(connection);
     return connection;
   }
 

@@ -4,7 +4,6 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tokens_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_dapp_service/wallet_connect_dapp_service.dart';
@@ -60,37 +59,31 @@ class _LinkAccountPageState extends State<LinkAccountPage>
         },
       ),
       body: Container(
-        margin:
-            EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Link account",
-                      style: appTextTheme.headline1,
-                    ),
-                    addTitleSpace(),
-                    Text(
-                        'If you have multiple accounts in your wallet, make sure that the account you want to link is active.',
-                        style: appTextTheme.bodyText1),
-                    SizedBox(height: 24),
-                    _bitmarkLinkView(context),
-                    addDivider(),
-                    SizedBox(height: 24),
-                    _ethereumLinkView(context),
-                    SizedBox(height: 40),
-                    _tezosLinkView(context),
-                    SizedBox(height: 40),
-                  ],
+        margin: pageEdgeInsets,
+        child: Expanded(
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Link account",
+                  style: appTextTheme.headline1,
                 ),
-              ),
+                addTitleSpace(),
+                Text(
+                    'If you have multiple accounts in your wallet, make sure that the account you want to link is active.',
+                    style: appTextTheme.bodyText1),
+                SizedBox(height: 24),
+                _bitmarkLinkView(context),
+                addDivider(),
+                SizedBox(height: 24),
+                _ethereumLinkView(context),
+                SizedBox(height: 40),
+                _tezosLinkView(context),
+                SizedBox(height: 40),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -261,7 +254,12 @@ class _LinkAccountPageState extends State<LinkAccountPage>
         .removeListener(_remotePeerWCAccountListener!);
   }
 
+  bool _isLinking = false;
+
   Future _handleLinkETHWallet(WCConnectedSession session) async {
+    if (_isLinking) return;
+    _isLinking = true;
+
     try {
       final linkedAccount =
           await injector<AccountService>().linkETHWallet(session);
@@ -274,9 +272,12 @@ class _LinkAccountPageState extends State<LinkAccountPage>
           linkedAccount.wcConnectedSession?.sessionStore.remotePeerMeta.name ??
               'your wallet';
       UIHelper.showAccountLinked(context, linkedAccount, walletName);
+      _isLinking = false;
     } on AlreadyLinkedException catch (exception) {
       UIHelper.showAlreadyLinked(context, exception.connection);
+      _isLinking = false;
     } catch (_) {
+      _isLinking = false;
       UIHelper.hideInfoDialog(context);
       rethrow;
     }
