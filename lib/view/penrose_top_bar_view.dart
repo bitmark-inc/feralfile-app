@@ -55,6 +55,7 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> {
                   constraints: BoxConstraints(),
                   icon: SvgPicture.asset("assets/images/iconQr.svg"),
                   onPressed: () {
+                    if (_opacity == 0) return;
                     Navigator.of(context).pushNamed(AppRouter.scanQRPage,
                         arguments: ScannerItem.GLOBAL);
                   },
@@ -62,8 +63,11 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> {
                 Spacer(),
                 GestureDetector(
                   child: SvgPicture.asset("assets/images/iconReceive.svg"),
-                  onTap: () => Navigator.of(context)
-                      .pushNamed(AppRouter.globalReceivePage),
+                  onTap: () {
+                    if (_opacity == 0) return;
+                    Navigator.of(context)
+                        .pushNamed(AppRouter.globalReceivePage);
+                  },
                 ),
               ],
             ),
