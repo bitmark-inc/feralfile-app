@@ -166,6 +166,8 @@ class _LinkLedgerPageState extends State<LinkLedgerPage> {
         return await _dismissAndShowError(
             context, ledger, "Failed to connect!");
       }
+
+      await Future.delayed(Duration(seconds: 1));
     }
 
     // probe for opening app
@@ -185,6 +187,8 @@ class _LinkLedgerPageState extends State<LinkLedgerPage> {
         return await _dismissAndShowError(context, ledger,
             "Please open the $blockchain app on your ledger.\nIf you haven't installed, please do it in the Ledger Live app.");
       }
+
+      await Future.delayed(Duration(seconds: 1));
 
       UIHelper.hideInfoDialog(context);
       UIHelper.showInfoDialog(context, ledger.name,

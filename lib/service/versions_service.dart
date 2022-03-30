@@ -10,6 +10,7 @@ import 'package:autonomy_flutter/util/theme_manager.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -24,6 +25,7 @@ class VersionService {
       this._pubdocAPI, this._configurationService, this._navigationService);
 
   void checkForUpdate() async {
+    if (kDebugMode) return;
     if (UIHelper.currentDialogTitle == "Update Required") return;
 
     final versionInfo = await getVersionInfo();
