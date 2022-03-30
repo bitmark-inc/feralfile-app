@@ -138,7 +138,7 @@ class _LinkAccountPageState extends State<LinkAccountPage>
               AppRouter.accessMethodPage,
               arguments: WalletApp.MetaMask.toString()),
         ),
-        if (Platform.isIOS) _linkLedger("Ethereum"),
+        _linkLedger("Ethereum"),
         addDivider(),
         TappableForwardRow(
             leftWidget: Row(
@@ -190,7 +190,7 @@ class _LinkAccountPageState extends State<LinkAccountPage>
             onTap: () => Navigator.of(context).pushNamed(
                 AppRouter.accessMethodPage,
                 arguments: WalletApp.Temple.toString())),
-        if (Platform.isIOS) _linkLedger("Tezos"),
+        _linkLedger("Tezos"),
         addDivider(),
         TappableForwardRow(
             leftWidget: Row(
