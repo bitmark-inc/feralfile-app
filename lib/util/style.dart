@@ -110,6 +110,7 @@ class AppColorTheme {
   static const textColor = Colors.grey;
   static const secondaryDimGrey = Color(0xFF6D6B6B);
   static const secondaryDimGreyBackground = Color(0xFFEDEDED);
+  static const secondarySpanishGrey = Color(0xFF999999);
 }
 
 final grantPermissions = const [
