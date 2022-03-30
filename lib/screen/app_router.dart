@@ -106,7 +106,7 @@ class AppRouter {
   static const recoveryPhrasePage = 'recovery_phrase';
   static const wcConnectPage = 'wc_connect';
   static const cloudPage = 'cloud_page';
-  static const cloudErrorPage = 'cloud_error_page';
+  static const cloudAndroidPage = 'cloud_android_page';
   static const linkManuallyAddress = 'link_manually_address';
   static const autonomySecurityPage = 'autonomy_security';
 
@@ -515,7 +515,7 @@ class AppRouter {
                   section: settings.arguments as String,
                 ));
 
-      case cloudErrorPage:
+      case cloudAndroidPage:
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => CloudAndroidPage(

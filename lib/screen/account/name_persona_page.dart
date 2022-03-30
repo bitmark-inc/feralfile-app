@@ -123,11 +123,11 @@ class _NamePersonaPageState extends State<NamePersonaPage> {
               .isAndroidEndToEndEncryptionAvailable();
 
       if (injector<ConfigurationService>().isDoneOnboarding()) {
-        Navigator.of(context).pushReplacementNamed(AppRouter.cloudErrorPage,
+        Navigator.of(context).pushReplacementNamed(AppRouter.cloudAndroidPage,
             arguments: isAndroidEndToEndEncryptionAvailable);
       } else {
         Navigator.of(context).pushNamedAndRemoveUntil(
-            AppRouter.cloudErrorPage, (route) => false,
+            AppRouter.cloudAndroidPage, (route) => false,
             arguments: isAndroidEndToEndEncryptionAvailable);
       }
     } else {
