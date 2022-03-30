@@ -402,8 +402,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "3ead4e6a3291d9e69e9eea4549b6d5611776db51"
-      resolved-ref: "3ead4e6a3291d9e69e9eea4549b6d5611776db51"
+      ref: bd2e4d6eddaea45ad80461ed78062f11f7df7c5b
+      resolved-ref: bd2e4d6eddaea45ad80461ed78062f11f7df7c5b
       url: "https://github.com/autonomy-system/flutter_blue.git"
     source: git
     version: "0.8.0"
@@ -673,8 +673,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "5e3975750dcfa636b6c7d9436ce7445b952c75f1"
-      resolved-ref: "5e3975750dcfa636b6c7d9436ce7445b952c75f1"
+      ref: "4711e3d2aac8f4165932e0b8023ebcf334e31c45"
+      resolved-ref: "4711e3d2aac8f4165932e0b8023ebcf334e31c45"
       url: "https://github.com/autonomy-system/libauk-dart.git"
     source: git
     version: "0.0.1"
@@ -762,6 +762,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.1"
+  open_settings:
+    dependency: "direct main"
+    description:
+      name: open_settings
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.0.2"
   package_config:
     dependency: transitive
     description:
