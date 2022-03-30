@@ -60,29 +60,27 @@ class _LinkAccountPageState extends State<LinkAccountPage>
       ),
       body: Container(
         margin: pageEdgeInsets,
-        child: Expanded(
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Link account",
-                  style: appTextTheme.headline1,
-                ),
-                addTitleSpace(),
-                Text(
-                    'If you have multiple accounts in your wallet, make sure that the account you want to link is active.',
-                    style: appTextTheme.bodyText1),
-                SizedBox(height: 24),
-                _bitmarkLinkView(context),
-                addDivider(),
-                SizedBox(height: 24),
-                _ethereumLinkView(context),
-                SizedBox(height: 40),
-                _tezosLinkView(context),
-                SizedBox(height: 40),
-              ],
-            ),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Link account",
+                style: appTextTheme.headline1,
+              ),
+              addTitleSpace(),
+              Text(
+                  'If you have multiple accounts in your wallet, make sure that the account you want to link is active.',
+                  style: appTextTheme.bodyText1),
+              SizedBox(height: 24),
+              _bitmarkLinkView(context),
+              addDivider(),
+              SizedBox(height: 24),
+              _ethereumLinkView(context),
+              SizedBox(height: 40),
+              _tezosLinkView(context),
+              SizedBox(height: 40),
+            ],
           ),
         ),
       ),
