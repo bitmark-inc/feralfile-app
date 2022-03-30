@@ -99,7 +99,7 @@ class _CloudAndroidPageState extends State<CloudAndroidPage> with WidgetsBinding
                           ? "Backed up"
                           : isEncryptionAvailable == false
                           ? "Enable backup encryption "
-                          : "Google Drive backup unavailable",
+                          : "Google cloud backup unavailable",
                       style: appTextTheme.headline1,
                     ),
                     addTitleSpace(),
@@ -116,8 +116,8 @@ class _CloudAndroidPageState extends State<CloudAndroidPage> with WidgetsBinding
                       SizedBox(height: 16),
                       Text(
                         isEncryptionAvailable == false
-                            ? "Automatic Google Drive backups are enabled, but you are not using end-to-end encryption. We recommend enabling it so we can securely back up your account."
-                            : "Google Drive is currently turned off on your device. If your device supports it, we recommend you enable it so we can safely back up your account. ",
+                            ? "Automatic Google cloud backups are enabled, but you are not using end-to-end encryption. We recommend enabling it so we can securely back up your account."
+                            : "Google cloud backup is currently turned off on your device. If your device supports it, we recommend you enable it so we can safely back up your account.",
                         style: appTextTheme.headline4,
                       ),
                       SizedBox(height: 40),
