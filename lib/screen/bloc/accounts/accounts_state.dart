@@ -15,8 +15,8 @@ class LinkLedgerWalletEvent extends AccountsEvent {
   final String ledgerBLEUUID;
   final Map<String, dynamic> data;
 
-  LinkLedgerWalletEvent(
-      this.address, this.blockchain, this.ledgerName, this.ledgerBLEUUID, this.data);
+  LinkLedgerWalletEvent(this.address, this.blockchain, this.ledgerName,
+      this.ledgerBLEUUID, this.data);
 }
 
 class NameLinkedAccountEvent extends AccountsEvent {
@@ -32,6 +32,7 @@ class NameLinkedAccountEvent extends AccountsEvent {
 class FetchAllAddressesEvent extends AccountsEvent {}
 
 class Account {
+  String key;
   Persona? persona;
   List<Connection>? connections;
   String name;
@@ -40,6 +41,7 @@ class Account {
   DateTime createdAt;
 
   Account({
+    required this.key,
     this.persona,
     this.connections,
     this.blockchain,

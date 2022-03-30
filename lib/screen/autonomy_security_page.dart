@@ -39,21 +39,18 @@ Of course all security ultimately rests on the code, and whether it makes the pr
         onBack: () => Navigator.of(context).pop(),
       ),
       body: Container(
-        margin:
-            EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
-        child: Expanded(
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "About Autonomy Security",
-                  style: appTextTheme.headline1,
-                ),
-                addTitleSpace(),
-                Text(securityContent, style: appTextTheme.bodyText1),
-              ],
-            ),
+        margin: pageEdgeInsets,
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "About Autonomy Security",
+                style: appTextTheme.headline1,
+              ),
+              addTitleSpace(),
+              Text(securityContent, style: appTextTheme.bodyText1),
+            ],
           ),
         ),
       ),
