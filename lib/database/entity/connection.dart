@@ -122,20 +122,25 @@ class Connection {
     final ffConnection = this.ffConnection;
     final ffWeb3Connection = this.ffWeb3Connection;
 
+    var mergedName = ffAccount.alias;
+    if (name.isNotEmpty) {
+      mergedName = name;
+    }
+
     if (ffConnection != null) {
       final newFFConnection = FeralFileConnection(
           source: ffConnection.source, ffAccount: ffAccount);
 
       return this
-          .copyWith(name: ffAccount.alias, data: json.encode(newFFConnection));
+          .copyWith(name: mergedName, data: json.encode(newFFConnection));
     } else if (ffWeb3Connection != null) {
       final newFFWeb3Connection = FeralFileWeb3Connection(
           personaAddress: ffWeb3Connection.personaAddress,
           source: ffWeb3Connection.source,
           ffAccount: ffAccount);
 
-      return this.copyWith(
-          name: ffAccount.alias, data: json.encode(newFFWeb3Connection));
+      return this
+          .copyWith(name: mergedName, data: json.encode(newFFWeb3Connection));
     } else {
       throw Exception("incorrectDataFlow");
     }

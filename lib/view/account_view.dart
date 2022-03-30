@@ -3,6 +3,7 @@ import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/global_receive/receive_detail_page.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -89,10 +90,7 @@ Widget accountItem(BuildContext context, Account account,
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            Container(
-                width: 24,
-                height: 24,
-                child: Image.asset("assets/images/autonomyIcon.png")),
+            accountLogo(account),
             SizedBox(width: 16),
             Text(
                 account.name.isNotEmpty
@@ -111,7 +109,7 @@ Widget accountItem(BuildContext context, Account account,
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            _appLogo(connection),
+            accountLogo(account),
             SizedBox(width: 16),
             Text(
                 connection.name.isNotEmpty
@@ -164,6 +162,24 @@ Widget _blockchainLogo(String? blockchain) {
   }
 }
 
+Widget accountLogo(Account account) {
+  if (account.persona != null) {
+    return Container(
+        width: 24,
+        height: 24,
+        child: Image.asset("assets/images/autonomyIcon.png"));
+  }
+
+  final connection = account.connections?.first;
+  if (connection != null) {
+    return _appLogo(connection);
+  }
+
+  return SizedBox(
+    width: 24,
+  );
+}
+
 Widget _appLogo(Connection connection) {
   switch (connection.connectionType) {
     case 'feralFileToken':
@@ -192,6 +208,7 @@ Widget _appLogo(Connection connection) {
       switch (walletName) {
         case "Kukai Wallet":
           return Image.asset("assets/images/kukai_wallet.png");
+        case "Temple - Tezos Wallet":
         case "Temple - Tezos Wallet (ex. Thanos)":
           return Image.asset("assets/images/temple_wallet.png");
         default:

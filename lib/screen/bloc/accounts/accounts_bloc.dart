@@ -36,6 +36,7 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
         }
 
         final account = Account(
+            key: persona.uuid,
             persona: persona,
             name: name,
             accountNumber: ethAddress,
@@ -59,6 +60,7 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
                 account.connections?.add(connection);
               } catch (error) {
                 accounts.add(Account(
+                    key: connection.key,
                     accountNumber: accountNumber,
                     connections: [connection],
                     name: connection.name,
@@ -69,6 +71,7 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
 
           default:
             accounts.add(Account(
+              key: connection.key,
               accountNumber: connection.accountNumber,
               connections: [connection],
               name: connection.name,
@@ -106,6 +109,7 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
         }
 
         final bitmarkAccount = Account(
+            key: persona.uuid,
             persona: persona,
             name: name,
             blockchain: "Bitmark",
@@ -113,6 +117,7 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
             createdAt: persona.createdAt);
 
         final ethAccount = Account(
+            key: persona.uuid,
             persona: persona,
             name: name,
             blockchain: "Ethereum",
@@ -120,6 +125,7 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
             createdAt: persona.createdAt);
 
         final xtzAccount = Account(
+            key: persona.uuid,
             persona: persona,
             name: name,
             blockchain: "Tezos",
@@ -136,6 +142,7 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
           case "ledgerEthereum":
             categorizedAccounts.add(CategorizedAccounts(connection.name, [
               Account(
+                key: connection.key,
                 blockchain: "Ethereum",
                 accountNumber: connection.accountNumber,
                 connections: [connection],
@@ -148,6 +155,7 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
           case "ledgerTezos":
             categorizedAccounts.add(CategorizedAccounts(connection.name, [
               Account(
+                key: connection.key,
                 blockchain: "Tezos",
                 accountNumber: connection.accountNumber,
                 connections: [connection],

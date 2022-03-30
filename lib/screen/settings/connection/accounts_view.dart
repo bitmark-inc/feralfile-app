@@ -4,6 +4,7 @@ import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/theme_manager.dart';
 import 'package:autonomy_flutter/view/account_view.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
@@ -19,6 +20,9 @@ class AccountsView extends StatefulWidget {
 }
 
 class _AccountsViewState extends State<AccountsView> {
+  String? _editingAccountKey;
+  TextEditingController _nameController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<AccountsBloc, AccountsState>(
@@ -59,6 +63,18 @@ class _AccountsViewState extends State<AccountsView> {
 
                               // All actions are defined in the children parameter.
                               children: [
+                                SlidableAction(
+                                  backgroundColor:
+                                      AppColorTheme.secondarySpanishGrey,
+                                  foregroundColor: Colors.white,
+                                  icon: CupertinoIcons.pencil,
+                                  onPressed: (_) {
+                                    setState(() {
+                                      _nameController.text = account.name;
+                                      _editingAccountKey = account.key;
+                                    });
+                                  },
+                                ),
                                 // A SlidableAction can have an icon and/or a label.
                                 SlidableAction(
                                   backgroundColor: Colors.black,
@@ -74,20 +90,25 @@ class _AccountsViewState extends State<AccountsView> {
                             child: Column(
                               children: [
                                 SizedBox(height: 16),
-                                accountItem(
-                                  context,
-                                  account,
-                                  onPersonaTap: () =>
-                                      Navigator.of(context).pushNamed(
-                                    AppRouter.personaDetailsPage,
-                                    arguments: account.persona,
+                                if (_editingAccountKey == null ||
+                                    _editingAccountKey != account.key) ...[
+                                  accountItem(
+                                    context,
+                                    account,
+                                    onPersonaTap: () =>
+                                        Navigator.of(context).pushNamed(
+                                      AppRouter.personaDetailsPage,
+                                      arguments: account.persona,
+                                    ),
+                                    onConnectionTap: () => Navigator.of(context)
+                                        .pushNamed(
+                                            AppRouter.linkedAccountDetailsPage,
+                                            arguments:
+                                                account.connections!.first),
                                   ),
-                                  onConnectionTap: () => Navigator.of(context)
-                                      .pushNamed(
-                                          AppRouter.linkedAccountDetailsPage,
-                                          arguments:
-                                              account.connections!.first),
-                                ),
+                                ] else ...[
+                                  _editAccountItem(context, account),
+                                ],
                                 SizedBox(height: 16),
                               ],
                             )),
@@ -98,6 +119,45 @@ class _AccountsViewState extends State<AccountsView> {
           ],
         );
       },
+    );
+  }
+
+  Widget _editAccountItem(BuildContext context, Account account) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        accountLogo(account),
+        SizedBox(width: 16),
+        Expanded(
+          child: TextField(
+            autofocus: true,
+            maxLines: 1,
+            decoration: InputDecoration(
+              isDense: true,
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.zero,
+            ),
+            style: appTextTheme.headline4,
+            controller: _nameController,
+            onSubmitted: (String value) async {
+              final persona = account.persona;
+              final connection = account.connections?.first;
+              if (persona != null) {
+                await injector<AccountService>().namePersona(persona, value);
+              } else if (connection != null) {
+                await injector<AccountService>()
+                    .nameLinkedAccount(connection, value);
+              }
+
+              setState(() {
+                _editingAccountKey = null;
+              });
+              context.read<AccountsBloc>().add(GetAccountsEvent());
+            },
+          ),
+        ),
+      ],
     );
   }
 
