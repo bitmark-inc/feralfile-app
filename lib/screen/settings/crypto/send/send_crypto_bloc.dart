@@ -13,6 +13,8 @@ class SendCryptoBloc extends Bloc<SendCryptoEvent, SendCryptoState> {
   TezosService _tezosService;
   CurrencyService _currencyService;
   CryptoType _type;
+  String? cachedAddress;
+  BigInt? cachedAmount;
 
   SendCryptoBloc(
     this._ethereumService,
@@ -93,6 +95,7 @@ class SendCryptoBloc extends Bloc<SendCryptoEvent, SendCryptoState> {
         }
       }
 
+      cachedAddress = newState.address;
       emit(newState);
     });
 
@@ -114,8 +117,6 @@ class SendCryptoBloc extends Bloc<SendCryptoEvent, SendCryptoState> {
           }
         }
 
-        print(value);
-
         final amount =
             BigInt.from(value * pow(10, _type == CryptoType.ETH ? 18 : 6));
 
@@ -130,6 +131,7 @@ class SendCryptoBloc extends Bloc<SendCryptoEvent, SendCryptoState> {
         newState.isAmountError = false;
       }
 
+      cachedAmount = newState.amount;
       emit(newState);
     });
 
@@ -170,6 +172,8 @@ class SendCryptoBloc extends Bloc<SendCryptoEvent, SendCryptoState> {
       if (state.balance != null) {
         final maxAllow = state.balance! - fee;
         newState.maxAllow = maxAllow;
+        newState.address = cachedAddress;
+        newState.amount = cachedAmount;
         newState.isValid = _isValid(newState);
       }
 
