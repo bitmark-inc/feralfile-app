@@ -130,12 +130,14 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         for (var linkAccount in linkedAccounts) {
           switch (linkAccount.connectionType) {
             case 'walletConnect':
+            case 'ledgerEthereum':
               final ethAddress = linkAccount.accountNumber;
               log.info("[HomeBloc] RequestIndex for linked $ethAddress");
               _indexerApi.requestIndex({"owner": ethAddress});
               break;
 
             case 'walletBeacon':
+            case 'ledgerTezos':
               final tezosAddress = linkAccount.accountNumber;
               log.info("[HomeBloc] RequestIndex for linked $tezosAddress");
               _indexerApi

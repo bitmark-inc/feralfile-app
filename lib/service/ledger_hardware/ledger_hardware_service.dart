@@ -34,6 +34,7 @@ class LedgerHardwareService {
   }
 
   Future<bool> connect(LedgerHardwareWallet ledger) async {
+    await stopScanning();
     await ledger.device.connect(autoConnect: true);
     List<BluetoothService> services = await ledger.device.discoverServices();
     await Future.forEach(services, (s) async {
