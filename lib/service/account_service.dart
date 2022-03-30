@@ -4,6 +4,7 @@ import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/model/p2p_peer.dart';
+import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
@@ -202,6 +203,21 @@ class AccountService {
         }
       });
     }
+  }
+
+  Future<Persona> namePersona(Persona persona, String name) async {
+    await persona.wallet().updateName(name);
+    final updatedPersona = persona.copyWith(name: name);
+    await _cloudDB.personaDao.updatePersona(updatedPersona);
+
+    return updatedPersona;
+  }
+
+  Future<Connection> nameLinkedAccount(
+      Connection connection, String name) async {
+    connection.name = name;
+    await _cloudDB.connectionDao.updateConnection(connection);
+    return connection;
   }
 
   Future<Connection?> getExistingAccount(String accountNumber) async {
