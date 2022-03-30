@@ -100,7 +100,7 @@ class FeralfileBloc extends Bloc<FeralFileEvent, FeralFileState> {
             if (code == null) rethrow;
 
             final apiError = getAPIErrorCode(code);
-            if (apiError == APIErrorCode.ffNotConnected) {
+            if (apiError == APIErrorCode.ffNotConnected || apiError == APIErrorCode.notLoggedIn) {
               emit(state.setEvent(FFNotConnected()));
               return;
             }
