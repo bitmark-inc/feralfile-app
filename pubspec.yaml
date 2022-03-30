@@ -89,6 +89,7 @@ dependencies:
   hive: ^2.0.6
   hive_flutter: ^1.1.0
   flutter_markdown: ^0.6.9
+  open_settings: ^2.0.2
 
 dependency_overrides:
   # Error using when import photo_view from dependencies:
@@ -153,6 +154,7 @@ flutter:
     - assets/images/touch_id.svg
     - assets/images/cloudOff.svg
     - assets/images/cloudOn.svg
+    - assets/images/cloudEncryption.svg
     - assets/images/nav-arrow-left.svg
   #   - images/a_dot_ham.jpeg
 
