@@ -16,9 +16,8 @@ import 'package:flutter/cupertino.dart';
 
 class AccountsView extends StatefulWidget {
   final bool isInSettingsPage;
-  final Stream<String>? routeEventStream;
 
-  AccountsView({required this.isInSettingsPage, this.routeEventStream});
+  AccountsView({required this.isInSettingsPage, Key? key}) : super(key: key);
 
   @override
   State<AccountsView> createState() => _AccountsViewState();
@@ -27,20 +26,6 @@ class AccountsView extends StatefulWidget {
 class _AccountsViewState extends State<AccountsView> {
   String? _editingAccountKey;
   TextEditingController _nameController = TextEditingController();
-
-  @override
-  void initState() {
-    widget.routeEventStream?.listen((event) {
-      if (!this.mounted) return;
-      if (event == 'didPopNext') {
-        setState(() {
-          _editingAccountKey = null;
-        });
-      }
-    });
-
-    super.initState();
-  }
 
   @override
   Widget build(BuildContext context) {
