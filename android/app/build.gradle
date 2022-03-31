@@ -29,6 +29,7 @@ apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
 
 android {
     compileSdkVersion 31
+    flavorDimensions 'env'
 
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
@@ -51,12 +52,37 @@ android {
         }
     }
 
+    productFlavors {
+        inhouse {
+            dimension "env"
+            applicationIdSuffix ".inhouse"
+            resValue "string", "app_name", "Autonomy (Dev)"
+            manifestPlaceholders = [
+                    appIcon: "@mipmap/ic_launcher_dev",
+                    appIconRound: "@mipmap/ic_launcher_dev_round"
+            ]
+        }
+
+        prd {
+            dimension "env"
+            resValue "string", "app_name", "Autonomy"
+            manifestPlaceholders = [
+                    appIcon: "@mipmap/ic_launcher",
+                    appIconRound: "@mipmap/ic_launcher_round"
+            ]
+        }
+    }
+
     packagingOptions {
         exclude '**/lib/libsodiumjni.dylib'
     }
 
     defaultConfig {
         resConfigs "en", "US"
+    }
+
+    lintOptions {
+        checkReleaseBuilds false
     }
 }
 
