@@ -47,7 +47,7 @@ class _GlobalReceivePageState extends State<GlobalReceivePage> {
               children: [
                 SizedBox(height: 16.0),
                 Text(
-                  "Receive NFT",
+                  "Receive",
                   style: appTextTheme.headline1,
                 ),
                 SizedBox(height: 40.0),
