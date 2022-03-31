@@ -25,7 +25,7 @@ class _GlobalReceivePageState extends State<GlobalReceivePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: getBackAppBar(
+      appBar: getCloseAppBar(
         context,
         onBack: () {
           Navigator.of(context).pop();

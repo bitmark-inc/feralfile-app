@@ -12,6 +12,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 
@@ -109,19 +110,9 @@ class _ScanQRPageState extends State<ScanQRPage> {
             Padding(
               padding: const EdgeInsets.fromLTRB(15, 55, 15, 0),
               child: GestureDetector(
-                behavior: HitTestBehavior.translucent,
-                onTap: () => Navigator.of(context).pop(),
-                child: Row(
-                  children: [
-                    Icon(CupertinoIcons.back, color: Colors.white),
-                    Text(
-                      "BACK",
-                      style:
-                          appTextTheme.caption?.copyWith(color: Colors.white),
-                    ),
-                  ],
-                ),
-              ),
+                  behavior: HitTestBehavior.translucent,
+                  onTap: () => Navigator.of(context).pop(),
+                  child: SvgPicture.asset('assets/images/iconClose_white.svg')),
             ),
             Padding(
               padding: EdgeInsets.fromLTRB(0, qrSize + 40, 0, 0),

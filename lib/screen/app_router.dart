@@ -70,6 +70,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wallet_connect/wallet_connect.dart';
 
 import 'account/link_beacon_connect_page.dart';
+import 'package:page_transition/page_transition.dart';
 
 class AppRouter {
   static const onboardingPage = "onboarding";
@@ -354,10 +355,11 @@ class AppRouter {
           ),
         );
       case ScanQRPage.tag:
-        return CupertinoPageRoute(
-            settings: settings,
-            fullscreenDialog: true,
-            builder: (context) => BlocProvider(
+        return PageTransition(
+            type: PageTransitionType.leftToRight,
+            curve: Curves.easeIn,
+            duration: Duration(milliseconds: 200),
+            child: BlocProvider(
                 create: (_) => FeralfileBloc(
                     injector(), networkInjector.I(), injector<CloudDatabase>()),
                 child: ScanQRPage(
@@ -519,8 +521,8 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => CloudAndroidPage(
-              isEncryptionAvailable: settings.arguments as bool?,
-            ));
+                  isEncryptionAvailable: settings.arguments as bool?,
+                ));
 
       case SentryReportPage.tag:
         return CupertinoPageRoute(

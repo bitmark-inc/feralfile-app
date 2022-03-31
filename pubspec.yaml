@@ -90,6 +90,7 @@ dependencies:
   hive_flutter: ^1.1.0
   flutter_markdown: ^0.6.9
   open_settings: ^2.0.2
+  page_transition: ^2.0.5
 
 dependency_overrides:
   # Error using when import photo_view from dependencies:
@@ -133,6 +134,7 @@ flutter:
     - assets/images/iconXtz.svg
     - assets/images/iconBitmark.svg
     - assets/images/iconClose.svg
+    - assets/images/iconClose_white.svg
     - assets/images/iconReceive.svg
     - assets/images/iconCloudOff.svg
     - assets/images/iconForward.svg
