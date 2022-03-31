@@ -16,14 +16,18 @@ jobs:
         with:
           flutter-version: ' 2.10.3'
           channel: stable
+      - name: Set env
+        run: |
+          echo "FLUTTER_VERSION_NAME=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+          echo "FLUTTER_VERSION_CODE=$(( ${{ github.run_number}} + 9 ))" >> $GITHUB_ENV
       - run: flutter pub get
-      - run: flutter build apk
+      - run: flutter build apk --flavor inhouse
       - name: upload artifact to App Center
         uses: wzieba/AppCenter-Github-Action@v1
         with:
           appName: support-zzd0-28/Autonomy-Android-1
           token: ${{ secrets.APPCENTER_API_TOKEN }}
           group: Collaborators
-          file: build/app/outputs/flutter-apk/app-release.apk
+          file: build/app/outputs/flutter-apk/app-inhouse-release.apk
           notifyTesters: false
           debug: false
