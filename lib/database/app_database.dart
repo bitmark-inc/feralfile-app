@@ -2,21 +2,29 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/database/dao/asset_token_dao.dart';
 import 'package:autonomy_flutter/database/dao/identity_dao.dart';
+import 'package:autonomy_flutter/database/dao/provenance_dao.dart';
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/database/entity/identity.dart';
+import 'package:autonomy_flutter/model/provenance.dart';
 import 'package:floor/floor.dart';
 import 'package:sqflite/sqflite.dart' as sqflite;
 
 part 'app_database.g.dart'; // the generated code will be there
 
 @TypeConverters([DateTimeConverter])
-@Database(version: 2, entities: [AssetToken, Identity])
+@Database(version: 3, entities: [AssetToken, Identity, Provenance])
 abstract class AppDatabase extends FloorDatabase {
   AssetTokenDao get assetDao;
   IdentityDao get identityDao;
+  ProvenanceDao get provenanceDao;
 }
 
 final migrationToV1ToV2 = Migration(1, 2, (database) async {
   await database.execute(
       'ALTER TABLE AssetToken ADD COLUMN lastActivityTime int DEFAULT(0)');
+});
+
+final migrationToV2ToV3 = Migration(2, 3, (database) async {
+  await database.execute(
+      'CREATE TABLE IF NOT EXISTS `Provenance` (`txID` TEXT NOT NULL, `type` TEXT NOT NULL, `blockchain` TEXT NOT NULL, `owner` TEXT NOT NULL, `timestamp` INTEGER NOT NULL, `tokenID` TEXT NOT NULL, FOREIGN KEY (`tokenID`) REFERENCES `AssetToken` (`id`) ON UPDATE NO ACTION ON DELETE NO ACTION, PRIMARY KEY (`txID`))');
 });
