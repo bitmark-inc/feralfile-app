@@ -1,6 +1,5 @@
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:floor/floor.dart';
-import 'package:json_annotation/json_annotation.dart';
 
 @Entity(tableName: 'Provenance', foreignKeys: [
   ForeignKey(
