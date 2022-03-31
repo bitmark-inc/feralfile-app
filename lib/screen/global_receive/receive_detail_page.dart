@@ -5,6 +5,7 @@ import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share/share.dart';
 
@@ -112,6 +113,7 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
   }
 
   copy() {
+    Vibrate.feedback(FeedbackType.light);
     Clipboard.setData(ClipboardData(text: _account.accountNumber));
     setState(() {
       _copied = true;

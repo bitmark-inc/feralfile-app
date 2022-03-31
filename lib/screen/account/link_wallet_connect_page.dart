@@ -105,6 +105,7 @@ class _LinkWalletConnectPageState extends State<LinkWalletConnectPage> {
                       ),
             ),
             onTap: () {
+              Vibrate.feedback(FeedbackType.light);
               Clipboard.setData(ClipboardData(text: wcURI));
               setState(() {
                 _copied = true;

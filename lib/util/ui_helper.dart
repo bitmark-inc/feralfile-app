@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:share/share.dart';
 
 enum ActionState { notRequested, loading, error, done }
@@ -30,10 +31,15 @@ class UIHelper {
 
   static Future<void> showDialog(
       BuildContext context, String title, Widget content,
-      {bool isDismissible = false}) async {
+      {bool isDismissible = false,
+      FeedbackType? feedback = FeedbackType.selection}) async {
     log.info("[UIHelper] showInfoDialog: $title");
     currentDialogTitle = title;
     final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
+
+    if (feedback != null) {
+      Vibrate.feedback(feedback);
+    }
 
     await showModalBottomSheet<dynamic>(
         context: context,
@@ -67,12 +73,10 @@ class UIHelper {
   }
 
   static Future<void> showInfoDialog(
-    BuildContext context,
-    String title,
-    String description, {
-    bool isDismissible = false,
-    int autoDismissAfter = 0,
-  }) async {
+      BuildContext context, String title, String description,
+      {bool isDismissible = false,
+      int autoDismissAfter = 0,
+      FeedbackType? feedback = FeedbackType.selection}) async {
     log.info("[UIHelper] showInfoDialog: $title, $description");
     final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
 
@@ -97,7 +101,8 @@ class UIHelper {
             SizedBox(height: 40),
           ],
         ),
-        isDismissible: isDismissible);
+        isDismissible: isDismissible,
+        feedback: feedback);
   }
 
   static hideInfoDialog(BuildContext context) {
