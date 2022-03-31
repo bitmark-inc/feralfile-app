@@ -145,7 +145,9 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
                         child: Hero(
                             tag: asset.id,
                             child: ext == ".svg"
-                                ? SvgPicture.network(asset.thumbnailURL!)
+                                ? Center(
+                                    child:
+                                        SvgPicture.network(asset.thumbnailURL!))
                                 : CachedNetworkImage(
                                     imageUrl: asset.thumbnailURL!,
                                     width: double.infinity,
@@ -155,7 +157,17 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
                                         Duration(milliseconds: 300),
                                     fit: BoxFit.cover,
                                     errorWidget: (context, url, error) =>
-                                        SizedBox(height: 100),
+                                        Container(
+                                            color: Color.fromRGBO(
+                                                227, 227, 227, 1),
+                                            padding: EdgeInsets.all(71),
+                                            child: Center(
+                                              child: SvgPicture.asset(
+                                                'assets/images/image_error.svg',
+                                                width: 148,
+                                                height: 158,
+                                              ),
+                                            )),
                                   )),
                         onTap: () => Navigator.of(context).pushNamed(
                             AppRouter.artworkPreviewPage,

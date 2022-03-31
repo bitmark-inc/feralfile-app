@@ -189,7 +189,14 @@ class _HomePageState extends State<HomePage>
                             placeholderFadeInDuration:
                                 Duration(milliseconds: 300),
                             errorWidget: (context, url, error) => Container(
-                                color: Color.fromRGBO(227, 227, 227, 1)),
+                                color: Color.fromRGBO(227, 227, 227, 1),
+                                child: Center(
+                                  child: SvgPicture.asset(
+                                    'assets/images/image_error.svg',
+                                    width: 75,
+                                    height: 75,
+                                  ),
+                                )),
                           ),
                   ),
                   onTap: () {
