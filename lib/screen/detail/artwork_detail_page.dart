@@ -1,5 +1,6 @@
 import 'dart:collection';
 
+import 'package:autonomy_flutter/model/provenance.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -12,7 +13,6 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/model/asset_price.dart';
-import 'package:autonomy_flutter/model/bitmark.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
@@ -218,7 +218,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
                                 : SizedBox(),
                             SizedBox(height: 40.0),
                             _metadataView(context, asset),
-                            asset.blockchain == "bitmark"
+                            state.provenances.isNotEmpty
                                 ? Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
@@ -404,7 +404,14 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
         SizedBox(height: 16.0),
         _rowItem(context, "Title", asset.title),
         Divider(height: 32.0),
-        _rowItem(context, "Artist", asset.artistName),
+        _rowItem(
+          context,
+          "Artist",
+          asset.artistName,
+          // some FF's artist set multiple links
+          // Discussion thread: https://bitmark.slack.com/archives/C01EPPD07HU/p1648698027564299
+          tapLink: asset.artistURL?.split(" & ").first,
+        ),
         (asset.maxEdition ?? 0) > 0
             ? Column(
                 children: [
@@ -417,7 +424,12 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
               )
             : SizedBox(),
         Divider(height: 32.0),
-        _rowItem(context, "Source", polishSource(asset.source ?? "")),
+        _rowItem(
+          context,
+          "Source",
+          polishSource(asset.source ?? ""),
+          tapLink: asset.sourceURL,
+        ),
         Divider(height: 32.0),
         _rowItem(context, "Blockchain", asset.blockchain.capitalize()),
         Divider(height: 32.0),
@@ -457,10 +469,13 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
                     "Provenance",
                     style: appTextTheme.headline2,
                   ),
-                  SizedBox(height: 16.0),
+                  SizedBox(height: 23.0),
                   ...provenances.map((el) {
                     final identity = identityState.identityMap[el.owner];
-                    final identityTitle = identity ?? el.owner;
+                    final identityTitle =
+                        (identity != null && identity.isNotEmpty)
+                            ? identity
+                            : el.owner.maskIfNeeded();
                     final youTitle =
                         _accountNumberHash.contains(el.owner) ? " (You)" : "";
                     final provenanceTitle = identityTitle + youTitle;
@@ -471,7 +486,9 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
                     return Column(
                       children: [
                         _rowItem(context, provenanceTitle,
-                            localTimeString(el.createdAt),
+                            localTimeString(el.timestamp),
+                            subTitle: el.blockchain.toUpperCase(),
+                            tapLink: el.txURL,
                             onNameTap: onNameTap),
                         Divider(height: 32.0),
                       ],
@@ -483,14 +500,31 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
   }
 
   Widget _rowItem(BuildContext context, String name, String? value,
-      {Function()? onNameTap, Function()? onValueTap}) {
+      {String? subTitle,
+      Function()? onNameTap,
+      String? tapLink,
+      Function()? onValueTap}) {
+    if (onValueTap == null && tapLink != null) {
+      final uri = Uri.parse(tapLink);
+      onValueTap = () => launch(uri.toString());
+    }
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
-          child: GestureDetector(
-            child: Text(name, style: appTextTheme.headline4),
-            onTap: onNameTap,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              GestureDetector(
+                child: Text(name, style: appTextTheme.headline4),
+                onTap: onNameTap,
+              ),
+              if (subTitle != null) ...[
+                // SizedBox(height: 3),
+                Text(subTitle, style: appTextTheme.headline4),
+              ]
+            ],
           ),
         ),
         Expanded(
@@ -503,15 +537,19 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
                   value ?? "",
                   textAlign: TextAlign.end,
                   style: TextStyle(
-                      color: Color(0xFF828080),
+                      color:
+                          onValueTap != null ? Colors.black : Color(0xFF828080),
                       fontSize: 16,
                       fontWeight: FontWeight.w300,
-                      fontFamily: "IBMPlexMono"),
+                      fontFamily: "IBMPlexMono",
+                      height: 1.377),
                 ),
                 onTap: onValueTap,
               )),
-              // SizedBox(width: 8.0),
-              // Icon(CupertinoIcons.forward)
+              if (onValueTap != null) ...[
+                SizedBox(width: 8.0),
+                SvgPicture.asset('assets/images/iconForward.svg'),
+              ]
             ],
           ),
         )

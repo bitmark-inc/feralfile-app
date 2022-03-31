@@ -1,15 +1,16 @@
 <svg width="65" height="64" viewBox="0 0 65 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_16_884)">
-<path d="M45.44 40.1174L37.418 40.1174L28.4792 24.6771L11.3351 54.5169L6.77202 47.3424L28.1918 10.2422L45.44 40.1174Z" fill="white"/>
-<path d="M24.088 46.6984L28.2171 39.5291L32.6609 39.5291L37.7598 39.5291L45.704 39.5291L28.7037 10.0624L37.0423 10.0623L58.2874 46.6986L24.088 46.6984Z" fill="white"/>
-<path d="M37.5645 39.8908L28.5986 24.4558L11.2343 54.5313H54.3613L58.2987 47.2116" stroke="#6D6B6B" stroke-width="1.5" stroke-linejoin="bevel"/>
-<path d="M32.6028 31.8007L23.7187 47.2829L58.447 47.2831L36.8734 10.0802L28.487 10.0848" stroke="#6D6B6B" stroke-width="1.5" stroke-linejoin="bevel"/>
-<path d="M27.8289 40.0517L45.6789 40.0045L28.315 9.92882L6.75142 47.278L11.3768 54.4407" stroke="#6D6B6B" stroke-width="1.5" stroke-linejoin="bevel"/>
-<path d="M11.2358 54.5312L28.3592 24.8732L32.4349 31.904L23.5719 47.3836H57.6089L53.7644 54.5312H11.2358Z" fill="#6D6B6B"/>
+<g clip-path="url(#clip0_48_2191)">
+<path d="M45.4402 40.1174L37.4182 40.1174L28.4793 24.6771L11.3352 54.5169L6.77214 47.3424L28.1919 10.2422L45.4402 40.1174Z" fill="black"/>
+<path d="M24.0882 46.6984L28.2174 39.5291L32.6611 39.5291L37.76 39.5291L45.7042 39.5291L28.704 10.0624L37.0426 10.0623L58.2877 46.6986L24.0882 46.6984Z" fill="black"/>
+<path d="M37.5646 39.8908L28.5987 24.4559L11.2344 54.5313H54.3615L58.2988 47.2116" stroke="#6D6B6B" stroke-width="0.5" stroke-linejoin="bevel"/>
+<path d="M32.6028 31.8008L23.7187 47.283L58.447 47.2832L36.8734 10.0804L28.487 10.0849" stroke="#6D6B6B" stroke-width="0.5" stroke-linejoin="bevel"/>
+<path d="M27.8289 40.0518L45.6789 40.0046L28.315 9.92888L6.75142 47.278L11.3768 54.4408" stroke="#6D6B6B" stroke-width="0.5" stroke-linejoin="bevel"/>
+<path d="M11.2361 54.5312L28.3594 24.8732L32.4351 31.904L23.5722 47.3836H57.6091L53.7647 54.5312H11.2361Z" fill="white"/>
+<path d="M37.2009 40.0939L32.4351 31.904M32.4351 31.904L28.3594 24.8732L11.2361 54.5313H53.7647L57.6091 47.3836H23.5722L32.4351 31.904Z" stroke="#6D6B6B" stroke-width="0.5" stroke-linejoin="bevel"/>
 </g>
 <defs>
-<clipPath id="clip0_16_884">
-<rect width="63.9953" height="63.9953" fill="white" transform="translate(0.502319 0.00231934)"/>
+<clipPath id="clip0_48_2191">
+<rect width="63.9953" height="63.9953" fill="white" transform="translate(0.502441 0.00231934)"/>
 </clipPath>
 </defs>
 </svg>
