@@ -31,6 +31,7 @@ class _AccountsViewState extends State<AccountsView> {
   @override
   void initState() {
     widget.routeEventStream?.listen((event) {
+      if (!this.mounted) return;
       if (event == 'didPopNext') {
         setState(() {
           _editingAccountKey = null;

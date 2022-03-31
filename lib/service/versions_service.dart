@@ -2,17 +2,16 @@ import 'dart:io';
 
 import 'package:autonomy_flutter/gateway/pubdoc_api.dart';
 import 'package:autonomy_flutter/model/version_info.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/helpers.dart';
 import 'package:autonomy_flutter/util/theme_manager.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -144,72 +143,15 @@ class VersionService {
   }
 
   void showReleaseNodeDialog(String releaseNotes, String currentVersion) {
-    final title = "What’s new?";
-    if (UIHelper.currentDialogTitle == title) return;
-    final context = _navigationService.navigatorKey.currentContext;
-    if (context == null) return;
-    final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
-    final heightFactor = releaseNotes.length <= 150 ? 0.52 : 0.8;
+    final screenKey =
+        "What’s new?"; // avoid to show multiple what's new screens
+    if (UIHelper.currentDialogTitle == screenKey) return;
 
     releaseNotes = "[$currentVersion]\n\n" + releaseNotes;
-    UIHelper.currentDialogTitle = title;
+    UIHelper.currentDialogTitle = screenKey;
 
     _configurationService.setReadReleaseNotesInVersion(currentVersion);
-    showModalBottomSheet<dynamic>(
-        context: context,
-        isDismissible: false,
-        enableDrag: false,
-        isScrollControlled: true,
-        builder: (context) {
-          return FractionallySizedBox(
-            heightFactor: heightFactor,
-            child: Container(
-              color: Color(0xFF737373),
-              child: ClipPath(
-                clipper: AutonomyTopRightRectangleClipper(),
-                child: Container(
-                  color: theme.backgroundColor,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 32),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(title, style: theme.textTheme.headline1),
-                      SizedBox(height: 40),
-                      Expanded(
-                        child: Markdown(
-                          data: releaseNotes.replaceAll('\n', '\u3164\n'),
-                          softLineBreak: true,
-                          padding: EdgeInsets.only(bottom: 50),
-                          styleSheet: MarkdownStyleSheet.fromTheme(
-                              AuThemeManager()
-                                  .getThemeData(AppTheme.markdownTheme)),
-                        ),
-                      ),
-                      SizedBox(height: 35),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: AuFilledButton(
-                              text: "CLOSE",
-                              onPress: () => UIHelper.hideInfoDialog(context),
-                              color: theme.primaryColor,
-                              textStyle: TextStyle(
-                                  color: theme.backgroundColor,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w700,
-                                  fontFamily: "IBMPlexMono"),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          );
-        });
+    _navigationService.navigateTo(AppRouter.releaseNotesPage,
+        arguments: releaseNotes);
   }
 }
