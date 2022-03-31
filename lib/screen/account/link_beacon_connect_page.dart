@@ -58,6 +58,7 @@ class _LinkBeaconConnectPageState extends State<LinkBeaconConnectPage> {
                         ),
                       ),
                       onTap: () {
+                        Vibrate.feedback(FeedbackType.light);
                         Clipboard.setData(
                             ClipboardData(text: "tezos://${widget.uri}"));
                         setState(() {
