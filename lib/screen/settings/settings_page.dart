@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/network.dart';
@@ -35,7 +33,7 @@ class _SettingsPageState extends State<SettingsPage>
   late ScrollController _controller;
   int _lastTap = 0;
   int _consecutiveTaps = 0;
-  StreamController<String> _routeEventStream = StreamController<String>();
+  var _forceAccountsViewRedraw;
 
   @override
   void initState() {
@@ -44,6 +42,7 @@ class _SettingsPageState extends State<SettingsPage>
     _loadPackageInfo();
     context.read<AccountsBloc>().add(GetAccountsEvent());
     _controller = ScrollController();
+    _forceAccountsViewRedraw = Object();
   }
 
   @override
@@ -56,7 +55,6 @@ class _SettingsPageState extends State<SettingsPage>
   void dispose() {
     WidgetsBinding.instance?.removeObserver(this);
     routeObserver.unsubscribe(this);
-    _routeEventStream.close();
     super.dispose();
   }
 
@@ -64,7 +62,9 @@ class _SettingsPageState extends State<SettingsPage>
   void didPopNext() {
     super.didPopNext();
     context.read<AccountsBloc>().add(GetAccountsEvent());
-    _routeEventStream.add('didPopNext');
+    setState(() {
+      _forceAccountsViewRedraw = Object();
+    });
   }
 
   @override
@@ -99,8 +99,8 @@ class _SettingsPageState extends State<SettingsPage>
                       style: appTextTheme.bodyText1),
                   SizedBox(height: 10),
                   AccountsView(
-                      isInSettingsPage: true,
-                      routeEventStream: _routeEventStream.stream),
+                      key: ValueKey(_forceAccountsViewRedraw),
+                      isInSettingsPage: true),
                 ],
               ),
               Row(

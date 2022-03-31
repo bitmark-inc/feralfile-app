@@ -144,7 +144,7 @@ class VersionService {
 
   void showReleaseNodeDialog(String releaseNotes, String currentVersion) {
     final screenKey =
-        "What’s new?"; // avoid to show multiple what's new screens
+        "What’s new?"; // avoid showing multiple what's new screens
     if (UIHelper.currentDialogTitle == screenKey) return;
 
     releaseNotes = "[$currentVersion]\n\n" + releaseNotes;
