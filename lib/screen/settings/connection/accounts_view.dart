@@ -15,6 +15,11 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter/cupertino.dart';
 
 class AccountsView extends StatefulWidget {
+  final bool isInSettingsPage;
+  final Stream<String>? routeEventStream;
+
+  AccountsView({required this.isInSettingsPage, this.routeEventStream});
+
   @override
   State<AccountsView> createState() => _AccountsViewState();
 }
@@ -22,6 +27,19 @@ class AccountsView extends StatefulWidget {
 class _AccountsViewState extends State<AccountsView> {
   String? _editingAccountKey;
   TextEditingController _nameController = TextEditingController();
+
+  @override
+  void initState() {
+    widget.routeEventStream?.listen((event) {
+      if (event == 'didPopNext') {
+        setState(() {
+          _editingAccountKey = null;
+        });
+      }
+    });
+
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,70 +67,92 @@ class _AccountsViewState extends State<AccountsView> {
             ...accounts
                 .map((account) => Column(
                       children: [
-                        Slidable(
-                            key: UniqueKey(),
-                            endActionPane: ActionPane(
-                              // A motion is a widget used to control how the pane animates.
-                              motion: const ScrollMotion(),
-
-                              // A pane can dismiss the Slidable.
-                              dismissible: DismissiblePane(onDismissed: () {
-                                _showDeleteAccountConfirmation(
-                                    context, account);
-                              }),
-
-                              // All actions are defined in the children parameter.
-                              children: [
-                                SlidableAction(
-                                  backgroundColor:
-                                      AppColorTheme.secondarySpanishGrey,
-                                  foregroundColor: Colors.white,
-                                  icon: CupertinoIcons.pencil,
-                                  onPressed: (_) {
-                                    setState(() {
-                                      _nameController.text = account.name;
-                                      _editingAccountKey = account.key;
-                                    });
-                                  },
-                                ),
-                                // A SlidableAction can have an icon and/or a label.
-                                SlidableAction(
-                                  backgroundColor: Colors.black,
-                                  foregroundColor: Colors.white,
-                                  icon: CupertinoIcons.delete,
-                                  onPressed: (_) {
-                                    _showDeleteAccountConfirmation(
-                                        context, account);
-                                  },
-                                ),
-                              ],
+                        if (!widget.isInSettingsPage) ...[
+                          SizedBox(height: 16),
+                          accountItem(
+                            context,
+                            account,
+                            onPersonaTap: () => Navigator.of(context).pushNamed(
+                              AppRouter.personaDetailsPage,
+                              arguments: account.persona,
                             ),
-                            child: Column(
-                              children: [
-                                SizedBox(height: 16),
-                                if (_editingAccountKey == null ||
-                                    _editingAccountKey != account.key) ...[
-                                  accountItem(
-                                    context,
-                                    account,
-                                    onPersonaTap: () =>
-                                        Navigator.of(context).pushNamed(
-                                      AppRouter.personaDetailsPage,
-                                      arguments: account.persona,
-                                    ),
-                                    onConnectionTap: () => Navigator.of(context)
-                                        .pushNamed(
-                                            AppRouter.linkedAccountDetailsPage,
-                                            arguments:
-                                                account.connections!.first),
+                            onConnectionTap: () => Navigator.of(context)
+                                .pushNamed(AppRouter.linkedAccountDetailsPage,
+                                    arguments: account.connections!.first),
+                          ),
+                          SizedBox(height: 16),
+                        ] else ...[
+                          Slidable(
+                              key: UniqueKey(),
+                              endActionPane: ActionPane(
+                                // A motion is a widget used to control how the pane animates.
+                                motion: const ScrollMotion(),
+
+                                // A pane can dismiss the Slidable.
+                                dismissible: DismissiblePane(onDismissed: () {
+                                  _showDeleteAccountConfirmation(
+                                      context, account);
+                                }),
+
+                                // All actions are defined in the children parameter.
+                                children: [
+                                  SlidableAction(
+                                    backgroundColor:
+                                        AppColorTheme.secondarySpanishGrey,
+                                    foregroundColor: Colors.white,
+                                    icon: CupertinoIcons.pencil,
+                                    onPressed: (_) {
+                                      setState(() {
+                                        _nameController.text = account.name;
+                                        _editingAccountKey = account.key;
+                                      });
+                                    },
                                   ),
-                                ] else ...[
-                                  _editAccountItem(context, account),
+                                  // A SlidableAction can have an icon and/or a label.
+                                  SlidableAction(
+                                    backgroundColor: Colors.black,
+                                    foregroundColor: Colors.white,
+                                    icon: CupertinoIcons.delete,
+                                    onPressed: (_) {
+                                      _showDeleteAccountConfirmation(
+                                          context, account);
+                                    },
+                                  ),
                                 ],
-                                SizedBox(height: 16),
-                              ],
-                            )),
-                        Divider(height: 1.0),
+                              ),
+                              child: Column(
+                                children: [
+                                  SizedBox(height: 16),
+                                  if (_editingAccountKey == null ||
+                                      _editingAccountKey != account.key) ...[
+                                    accountItem(
+                                      context,
+                                      account,
+                                      onPersonaTap: () =>
+                                          Navigator.of(context).pushNamed(
+                                        AppRouter.personaDetailsPage,
+                                        arguments: account.persona,
+                                      ),
+                                      onConnectionTap: () =>
+                                          Navigator.of(context).pushNamed(
+                                              AppRouter
+                                                  .linkedAccountDetailsPage,
+                                              arguments:
+                                                  account.connections!.first),
+                                    ),
+                                  ] else ...[
+                                    _editAccountItem(context, account),
+                                  ],
+                                  SizedBox(height: 16),
+                                ],
+                              )),
+                        ],
+                        Divider(
+                            height: 1.0,
+                            color: (_editingAccountKey == null ||
+                                    _editingAccountKey != account.key)
+                                ? null
+                                : Colors.black),
                       ],
                     ))
                 .toList(),

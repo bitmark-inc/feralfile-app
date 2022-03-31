@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/network.dart';
@@ -17,7 +19,6 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/eula_privacy.dart';
 import 'package:autonomy_flutter/view/penrose_top_bar_view.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -34,6 +35,7 @@ class _SettingsPageState extends State<SettingsPage>
   late ScrollController _controller;
   int _lastTap = 0;
   int _consecutiveTaps = 0;
+  StreamController<String> _routeEventStream = StreamController<String>();
 
   @override
   void initState() {
@@ -54,6 +56,7 @@ class _SettingsPageState extends State<SettingsPage>
   void dispose() {
     WidgetsBinding.instance?.removeObserver(this);
     routeObserver.unsubscribe(this);
+    _routeEventStream.close();
     super.dispose();
   }
 
@@ -61,6 +64,7 @@ class _SettingsPageState extends State<SettingsPage>
   void didPopNext() {
     super.didPopNext();
     context.read<AccountsBloc>().add(GetAccountsEvent());
+    _routeEventStream.add('didPopNext');
   }
 
   @override
@@ -94,7 +98,9 @@ class _SettingsPageState extends State<SettingsPage>
                       'Autonomy accounts are full, multi-chain accounts. Linked accounts link to single-chain accounts from other wallets.',
                       style: appTextTheme.bodyText1),
                   SizedBox(height: 10),
-                  AccountsView(),
+                  AccountsView(
+                      isInSettingsPage: true,
+                      routeEventStream: _routeEventStream.stream),
                 ],
               ),
               Row(
