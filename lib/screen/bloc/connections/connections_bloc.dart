@@ -3,6 +3,7 @@ import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/model/p2p_peer.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:bloc/bloc.dart';
 import "package:collection/collection.dart";
 import 'package:wallet_connect/wallet_connect.dart';
@@ -26,7 +27,12 @@ class ConnectionsBloc extends Bloc<ConnectionsEvent, ConnectionsState> {
 
       List<Connection> personaConnections = [];
       for (var connection in connections) {
-        if (connection.wcConnection?.personaUuid == personaUUID) {
+        final wcConnection = connection.wcConnection;
+        if (wcConnection == null) continue;
+
+        if (wcConnection.personaUuid == personaUUID &&
+            wcConnection.sessionStore.remotePeerMeta.name !=
+                AUTONOMY_TV_PEER_NAME) {
           personaConnections.add(connection);
         }
       }

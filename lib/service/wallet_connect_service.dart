@@ -7,6 +7,7 @@ import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_
 import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:wallet_connect/wallet_connect.dart';
 
@@ -70,6 +71,11 @@ class WalletConnectService {
     wcClient.approveSession(accounts: accounts, chainId: chainId);
 
     tmpUuids[peerMeta] = uuid;
+
+    if (peerMeta.name == AUTONOMY_TV_PEER_NAME) {
+      log.info("it's AUTONOMY_TV_PEER_NAME => skip storing connection");
+      return;
+    }
 
     final wcConnection = WalletConnectConnection(
         personaUuid: uuid, sessionStore: wcClient.sessionStore);
