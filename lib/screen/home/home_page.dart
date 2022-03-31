@@ -174,7 +174,8 @@ class _HomePageState extends State<HomePage>
                 final asset = assets[index];
                 final ext = p.extension(asset.thumbnailURL!);
                 return GestureDetector(
-                  child: Container(
+                  child: Hero(
+                    tag: asset.id,
                     child: ext == ".svg"
                         ? SvgPicture.network(asset.thumbnailURL!)
                         : CachedNetworkImage(
@@ -200,9 +201,11 @@ class _HomePageState extends State<HomePage>
                           AppRouter.artworkPreviewPage,
                           arguments: payload);
                     } else {
-                      Navigator.of(context).pushNamed(
-                          AppRouter.artworkDetailsPage,
-                          arguments: payload);
+                      Navigator.of(context).push(
+                        AppRouter.onGenerateRoute(RouteSettings(
+                            name: AppRouter.artworkDetailsPage,
+                            arguments: payload)),
+                      );
                     }
                   },
                 );

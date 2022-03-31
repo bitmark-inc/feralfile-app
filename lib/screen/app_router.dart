@@ -358,7 +358,7 @@ class AppRouter {
         return PageTransition(
             type: PageTransitionType.leftToRight,
             curve: Curves.easeIn,
-            duration: Duration(milliseconds: 200),
+            duration: Duration(milliseconds: 250),
             child: BlocProvider(
                 create: (_) => FeralfileBloc(
                     injector(), networkInjector.I(), injector<CloudDatabase>()),
@@ -458,15 +458,18 @@ class AppRouter {
                   payload: settings.arguments as SendCryptoPayload,
                 ));
       case artworkPreviewPage:
-        return CupertinoPageRoute(
+        return PageTransition(
+            type: PageTransitionType.fade,
+            curve: Curves.easeIn,
+            duration: Duration(milliseconds: 250),
             settings: settings,
-            builder: (context) => BlocProvider(
-                  create: (_) => ArtworkPreviewBloc(
-                      networkInjector.I<AppDatabase>().assetDao),
-                  child: ArtworkPreviewPage(
-                    payload: settings.arguments as ArtworkDetailPayload,
-                  ),
-                ));
+            child: BlocProvider(
+              create: (_) =>
+                  ArtworkPreviewBloc(networkInjector.I<AppDatabase>().assetDao),
+              child: ArtworkPreviewPage(
+                payload: settings.arguments as ArtworkDetailPayload,
+              ),
+            ));
       case SelectNetworkPage.tag:
         return CupertinoPageRoute(
             settings: settings,
@@ -475,21 +478,24 @@ class AppRouter {
                   child: SelectNetworkPage(),
                 ));
       case artworkDetailsPage:
-        return CupertinoPageRoute(
+        return PageTransition(
+            type: PageTransitionType.fade,
+            curve: Curves.easeIn,
+            duration: Duration(milliseconds: 250),
             settings: settings,
-            builder: (context) => MultiBlocProvider(
-                    providers: [
-                      BlocProvider.value(value: accountsBloc),
-                      BlocProvider(
-                          create: (_) => IdentityBloc(
-                              networkInjector.I<AppDatabase>(),
-                              networkInjector.I())),
-                      BlocProvider(
-                          create: (_) => ArtworkDetailBloc(networkInjector.I(),
-                              networkInjector.I<AppDatabase>().assetDao)),
-                    ],
-                    child: ArtworkDetailPage(
-                        payload: settings.arguments as ArtworkDetailPayload)));
+            child: MultiBlocProvider(
+                providers: [
+                  BlocProvider.value(value: accountsBloc),
+                  BlocProvider(
+                      create: (_) => IdentityBloc(
+                          networkInjector.I<AppDatabase>(),
+                          networkInjector.I())),
+                  BlocProvider(
+                      create: (_) => ArtworkDetailBloc(networkInjector.I(),
+                          networkInjector.I<AppDatabase>().assetDao)),
+                ],
+                child: ArtworkDetailPage(
+                    payload: settings.arguments as ArtworkDetailPayload)));
       case TBSignMessagePage.tag:
         return CupertinoPageRoute(
           settings: settings,

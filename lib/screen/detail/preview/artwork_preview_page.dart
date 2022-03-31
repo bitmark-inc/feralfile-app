@@ -198,7 +198,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                       : SizedBox(),
                   Expanded(
                     child: Center(
-                      child: _getArtworkView(asset),
+                      child: Hero(tag: asset.id, child: _getArtworkView(asset)),
                     ),
                   ),
                 ],
