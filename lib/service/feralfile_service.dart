@@ -7,7 +7,6 @@ import 'package:autonomy_flutter/gateway/bitmark_api.dart';
 import 'package:autonomy_flutter/gateway/feralfile_api.dart';
 import 'package:autonomy_flutter/gateway/indexer_api.dart';
 import 'package:autonomy_flutter/model/asset_price.dart';
-import 'package:autonomy_flutter/model/bitmark.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
@@ -18,8 +17,6 @@ import 'package:libauk_dart/libauk_dart.dart';
 abstract class FeralFileService {
   Future<FFAccount> getAccount(String token);
   Future<FFAccount> getWeb3Account(WalletStorage wallet);
-
-  Future<List<Provenance>> getAssetProvenance(String id);
 
   Future<List<AssetPrice>> getAssetPrices(List<String> ids);
 }
@@ -64,12 +61,6 @@ class FeralFileServiceImpl extends FeralFileService {
       throw Exception('Invalid response');
     }
     return ffAccount;
-  }
-
-  @override
-  Future<List<Provenance>> getAssetProvenance(String id) async {
-    final response = await _bitmarkApi.getBitmarkAssetInfo(id, true, true);
-    return response["bitmark"]?.provenance ?? [];
   }
 
   @override

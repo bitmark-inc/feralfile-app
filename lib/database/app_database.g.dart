@@ -65,10 +65,12 @@ class _$AppDatabase extends AppDatabase {
 
   IdentityDao? _identityDaoInstance;
 
+  ProvenanceDao? _provenanceDaoInstance;
+
   Future<sqflite.Database> open(String path, List<Migration> migrations,
       [Callback? callback]) async {
     final databaseOptions = sqflite.OpenDatabaseOptions(
-      version: 2,
+      version: 3,
       onConfigure: (database) async {
         await database.execute('PRAGMA foreign_keys = ON');
         await callback?.onConfigure?.call(database);
@@ -87,6 +89,10 @@ class _$AppDatabase extends AppDatabase {
             'CREATE TABLE IF NOT EXISTS `AssetToken` (`artistName` TEXT, `artistURL` TEXT, `assetData` TEXT, `assetID` TEXT, `assetURL` TEXT, `basePrice` REAL, `baseCurrency` TEXT, `blockchain` TEXT NOT NULL, `contractType` TEXT, `desc` TEXT, `edition` INTEGER NOT NULL, `id` TEXT NOT NULL, `maxEdition` INTEGER, `medium` TEXT, `mintedAt` TEXT, `previewURL` TEXT, `source` TEXT, `sourceURL` TEXT, `thumbnailURL` TEXT, `galleryThumbnailURL` TEXT, `title` TEXT NOT NULL, `ownerAddress` TEXT, `lastActivityTime` INTEGER NOT NULL, PRIMARY KEY (`id`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `Identity` (`accountNumber` TEXT NOT NULL, `blockchain` TEXT NOT NULL, `name` TEXT NOT NULL, `queriedAt` INTEGER NOT NULL, PRIMARY KEY (`accountNumber`))');
+        await database.execute(
+            'CREATE TABLE IF NOT EXISTS `Provenance` (`txID` TEXT NOT NULL, `type` TEXT NOT NULL, `blockchain` TEXT NOT NULL, `owner` TEXT NOT NULL, `timestamp` INTEGER NOT NULL, `txURL` TEXT NOT NULL, `tokenID` TEXT NOT NULL, FOREIGN KEY (`tokenID`) REFERENCES `AssetToken` (`id`) ON UPDATE NO ACTION ON DELETE NO ACTION, PRIMARY KEY (`txID`))');
+        await database.execute(
+            'CREATE INDEX `index_Provenance_tokenID` ON `Provenance` (`tokenID`)');
 
         await callback?.onCreate?.call(database, version);
       },
@@ -102,6 +108,11 @@ class _$AppDatabase extends AppDatabase {
   @override
   IdentityDao get identityDao {
     return _identityDaoInstance ??= _$IdentityDao(database, changeListener);
+  }
+
+  @override
+  ProvenanceDao get provenanceDao {
+    return _provenanceDaoInstance ??= _$ProvenanceDao(database, changeListener);
   }
 }
 
@@ -200,6 +211,7 @@ class _$AssetTokenDao extends AssetTokenDao {
             mintedAt: row['mintedAt'] as String?,
             previewURL: row['previewURL'] as String?,
             source: row['source'] as String?,
+            sourceURL: row['sourceURL'] as String?,
             thumbnailURL: row['thumbnailURL'] as String?,
             galleryThumbnailURL: row['galleryThumbnailURL'] as String?,
             title: row['title'] as String,
@@ -237,6 +249,7 @@ class _$AssetTokenDao extends AssetTokenDao {
             mintedAt: row['mintedAt'] as String?,
             previewURL: row['previewURL'] as String?,
             source: row['source'] as String?,
+            sourceURL: row['sourceURL'] as String?,
             thumbnailURL: row['thumbnailURL'] as String?,
             galleryThumbnailURL: row['galleryThumbnailURL'] as String?,
             title: row['title'] as String,
@@ -269,6 +282,7 @@ class _$AssetTokenDao extends AssetTokenDao {
             mintedAt: row['mintedAt'] as String?,
             previewURL: row['previewURL'] as String?,
             source: row['source'] as String?,
+            sourceURL: row['sourceURL'] as String?,
             thumbnailURL: row['thumbnailURL'] as String?,
             galleryThumbnailURL: row['galleryThumbnailURL'] as String?,
             title: row['title'] as String,
@@ -299,6 +313,7 @@ class _$AssetTokenDao extends AssetTokenDao {
             mintedAt: row['mintedAt'] as String?,
             previewURL: row['previewURL'] as String?,
             source: row['source'] as String?,
+            sourceURL: row['sourceURL'] as String?,
             thumbnailURL: row['thumbnailURL'] as String?,
             galleryThumbnailURL: row['galleryThumbnailURL'] as String?,
             title: row['title'] as String,
@@ -441,6 +456,70 @@ class _$IdentityDao extends IdentityDao {
   @override
   Future<void> deleteIdentity(Identity identity) async {
     await _identityDeletionAdapter.delete(identity);
+  }
+}
+
+class _$ProvenanceDao extends ProvenanceDao {
+  _$ProvenanceDao(this.database, this.changeListener)
+      : _queryAdapter = QueryAdapter(database),
+        _provenanceInsertionAdapter = InsertionAdapter(
+            database,
+            'Provenance',
+            (Provenance item) => <String, Object?>{
+                  'txID': item.txID,
+                  'type': item.type,
+                  'blockchain': item.blockchain,
+                  'owner': item.owner,
+                  'timestamp': _dateTimeConverter.encode(item.timestamp),
+                  'txURL': item.txURL,
+                  'tokenID': item.tokenID
+                });
+
+  final sqflite.DatabaseExecutor database;
+
+  final StreamController<String> changeListener;
+
+  final QueryAdapter _queryAdapter;
+
+  final InsertionAdapter<Provenance> _provenanceInsertionAdapter;
+
+  @override
+  Future<List<Provenance>> findProvenanceByTokenID(String tokenID) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM Provenance WHERE tokenID = ?1',
+        mapper: (Map<String, Object?> row) => Provenance(
+            type: row['type'] as String,
+            blockchain: row['blockchain'] as String,
+            txID: row['txID'] as String,
+            owner: row['owner'] as String,
+            timestamp: _dateTimeConverter.decode(row['timestamp'] as int),
+            txURL: row['txURL'] as String,
+            tokenID: row['tokenID'] as String),
+        arguments: [tokenID]);
+  }
+
+  @override
+  Future<void> deleteProvenanceNotBelongs(List<String> tokenIDs) async {
+    const offset = 1;
+    final _sqliteVariablesForTokenIDs =
+        Iterable<String>.generate(tokenIDs.length, (i) => '?${i + offset}')
+            .join(',');
+    await _queryAdapter.queryNoReturn(
+        'DELETE FROM Provenance WHERE tokenID NOT IN (' +
+            _sqliteVariablesForTokenIDs +
+            ')',
+        arguments: [...tokenIDs]);
+  }
+
+  @override
+  Future<void> removeAll() async {
+    await _queryAdapter.queryNoReturn('DELETE FROM Provenance');
+  }
+
+  @override
+  Future<void> insertProvenance(List<Provenance> provenance) async {
+    await _provenanceInsertionAdapter.insertList(
+        provenance, OnConflictStrategy.replace);
   }
 }
 

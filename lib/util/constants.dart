@@ -6,7 +6,7 @@ const CLOUDFLAREIMAGEURLPREFIX =
 
 Future<bool> isAppCenterBuild() async {
   final PackageInfo info = await PackageInfo.fromPlatform();
-  return info.packageName == "com.bitmark.autonomy.inhouse";
+  return info.packageName.contains("inhouse");
 }
 
 enum WalletApp {

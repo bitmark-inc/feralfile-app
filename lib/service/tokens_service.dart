@@ -7,7 +7,9 @@ import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/dao/asset_token_dao.dart';
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/gateway/indexer_api.dart';
+import 'package:autonomy_flutter/model/asset.dart';
 import 'package:autonomy_flutter/model/network.dart';
+import 'package:autonomy_flutter/model/provenance.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -79,6 +81,11 @@ class TokensService {
         .I<AppDatabase>()
         .assetDao
         .deleteAssetsNotIn(tokenIDs);
+    await _networkConfigInjector
+        .I<AppDatabase>()
+        .provenanceDao
+        .deleteProvenanceNotBelongs(tokenIDs);
+
     final dbTokenIDs = (await _assetDao.findAllAssetTokenIDs()).toSet();
 
     _refreshAllTokensWorker = Completer();
@@ -101,13 +108,28 @@ class TokensService {
           ? AppConfig.mainNetworkConfig.indexerApiUrl
           : AppConfig.testNetworkConfig.indexerApiUrl;
 
-  Future<List<AssetToken>> fetchLatestTokens(
+  Future<List<Asset>> fetchLatestAssets(
       List<String> addresses, int size) async {
     var owners = addresses.join(',');
-    final tokens = await _networkConfigInjector
+    return await _networkConfigInjector
         .I<IndexerApi>()
         .getNftTokensByOwner(owners, 0, size);
-    return tokens.map((e) => AssetToken.fromAsset(e)).toList();
+  }
+
+  Future insertAssetsWithProvenance(List<Asset> assets) async {
+    List<AssetToken> tokens = [];
+    List<Provenance> provenance = [];
+
+    for (var asset in assets) {
+      tokens.add(AssetToken.fromAsset(asset));
+      provenance.addAll(asset.provenance);
+    }
+
+    await _networkConfigInjector.I<AppDatabase>().assetDao.insertAssets(tokens);
+    await _networkConfigInjector
+        .I<AppDatabase>()
+        .provenanceDao
+        .insertProvenance(provenance);
   }
 
   Future<List<String>> getTokenIDs(List<String> addresses) async {
@@ -154,12 +176,9 @@ class TokensService {
       switch (message[0]) {
         case REFRESH_ALL_TOKENS:
           if (result is FetchTokensSuccess) {
-            _networkConfigInjector
-                .I<AppDatabase>()
-                .assetDao
-                .insertAssets(result.tokens);
+            insertAssetsWithProvenance(result.assets);
             log.info(
-                "[REFRESH_ALL_TOKENS] receive ${result.tokens.length} tokens");
+                "[REFRESH_ALL_TOKENS] receive ${result.assets.length} tokens");
           } else if (result is FetchTokensDone) {
             _configurationService.setLatestRefreshTokens(DateTime.now());
             _refreshAllTokensWorker?.complete();
@@ -176,11 +195,8 @@ class TokensService {
           final uuid = message[1];
 
           if (result is FetchTokensSuccess) {
-            _networkConfigInjector
-                .I<AppDatabase>()
-                .assetDao
-                .insertAssets(result.tokens);
-            log.info("[FETCH_TOKENS] receive ${result.tokens.length} tokens");
+            insertAssetsWithProvenance(result.assets);
+            log.info("[FETCH_TOKENS] receive ${result.assets.length} tokens");
           } else if (result is FetchTokensDone) {
             _fetchTokensCompleters[uuid]?.complete();
             _fetchTokensCompleters.remove(uuid);
@@ -235,20 +251,18 @@ class TokensService {
 
       while (true) {
         print("[_refreshAllTokens] $owners - offset: $offset");
-        final tokens = await _isolateIndexerAPI.getNftTokensByOwner(
+        final assets = await _isolateIndexerAPI.getNftTokensByOwner(
             owners, offset, INDEXER_TOKENS_MAXIMUM);
-        final assetTokens = tokens.map((e) => AssetToken.fromAsset(e)).toList();
-        tokenIDs.addAll(assetTokens.map((e) => e.id));
-        _isolateSendPort?.send([key, keyUUID, FetchTokensSuccess(assetTokens)]);
+        tokenIDs.addAll(assets.map((e) => e.id));
+        _isolateSendPort?.send([key, keyUUID, FetchTokensSuccess(assets)]);
 
-        if (tokens.length < INDEXER_TOKENS_MAXIMUM) {
+        if (assets.length < INDEXER_TOKENS_MAXIMUM) {
           break;
         }
 
         if (latestRefreshToken != null) {
           expectedNewTokenIDs.difference(tokenIDs);
-          if (assetTokens.last.lastActivityTime.compareTo(latestRefreshToken) <
-                  0 &&
+          if (assets.last.lastActivityTime.compareTo(latestRefreshToken) < 0 &&
               expectedNewTokenIDs.isEmpty) {
             break;
           }
@@ -267,9 +281,9 @@ class TokensService {
 abstract class TokensServiceResult {}
 
 class FetchTokensSuccess extends TokensServiceResult {
-  final List<AssetToken> tokens;
+  final List<Asset> assets;
 
-  FetchTokensSuccess(this.tokens);
+  FetchTokensSuccess(this.assets);
 }
 
 class FetchTokenFailure extends TokensServiceResult {
