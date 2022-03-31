@@ -34,9 +34,11 @@
 		764F859B27D810EB00B67672 /* Result+Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764F859A27D810EB00B67672 /* Result+Helpers.swift */; };
 		764F859C27D810EB00B67672 /* Result+Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764F859A27D810EB00B67672 /* Result+Helpers.swift */; };
 		764F859E27D9E19400B67672 /* ErrorHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764F859D27D9E19400B67672 /* ErrorHandler.swift */; };
+		768D9FDC27F5669D0016928E /* LaunchScreenInhouse.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 768D9FDA27F566950016928E /* LaunchScreenInhouse.storyboard */; };
 		768E7EE927C770D000585D12 /* SystemChannelHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 768E7EE827C770D000585D12 /* SystemChannelHandler.swift */; };
 		768E7EEB27CE4C5D00585D12 /* CloudKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 768E7EEA27CE4C5D00585D12 /* CloudKitManager.swift */; };
 		768E7EED27CE506600585D12 /* CloudChannelHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 768E7EEC27CE506600585D12 /* CloudChannelHandler.swift */; };
+		76B4E10527F585BA00FB762F /* LaunchScreenInhouse.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 768D9FDA27F566950016928E /* LaunchScreenInhouse.storyboard */; };
 		76F3288827CE585F00C3B9FA /* CloudKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 76F3288727CE585F00C3B9FA /* CloudKit.framework */; };
 		76F3289427D1EC1C00C3B9FA /* BeaconChannelHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399594127B2C2FA002653E7 /* BeaconChannelHandler.swift */; };
 		76F3289527D1EC1C00C3B9FA /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
@@ -106,6 +108,7 @@
 		764F859827D7348000B67672 /* BeaconConnectService+PostMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BeaconConnectService+PostMessage.swift"; sourceTree = "<group>"; };
 		764F859A27D810EB00B67672 /* Result+Helpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Result+Helpers.swift"; sourceTree = "<group>"; };
 		764F859D27D9E19400B67672 /* ErrorHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorHandler.swift; sourceTree = "<group>"; };
+		768D9FDA27F566950016928E /* LaunchScreenInhouse.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreenInhouse.storyboard; sourceTree = "<group>"; };
 		768E7EE827C770D000585D12 /* SystemChannelHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemChannelHandler.swift; sourceTree = "<group>"; };
 		768E7EEA27CE4C5D00585D12 /* CloudKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudKitManager.swift; sourceTree = "<group>"; };
 		768E7EEC27CE506600585D12 /* CloudChannelHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudChannelHandler.swift; sourceTree = "<group>"; };
@@ -222,6 +225,7 @@
 				97C146FA1CF9000F007C117D /* Main.storyboard */,
 				97C146FD1CF9000F007C117D /* Assets.xcassets */,
 				97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */,
+				768D9FDA27F566950016928E /* LaunchScreenInhouse.storyboard */,
 				97C147021CF9000F007C117D /* Info.plist */,
 				76F328B227D1EC1C00C3B9FA /* Runner-Inhouse-Info.plist */,
 				1498D2321E8E86230040F4C2 /* GeneratedPluginRegistrant.h */,
@@ -349,6 +353,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				76F328A627D1EC1C00C3B9FA /* LaunchScreen.storyboard in Resources */,
+				768D9FDC27F5669D0016928E /* LaunchScreenInhouse.storyboard in Resources */,
 				76F328A727D1EC1C00C3B9FA /* AppFrameworkInfo.plist in Resources */,
 				581747E527D7131D0070EB48 /* Settings.bundle in Resources */,
 				76F328A827D1EC1C00C3B9FA /* Assets.xcassets in Resources */,
@@ -361,6 +366,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */,
+				76B4E10527F585BA00FB762F /* LaunchScreenInhouse.storyboard in Resources */,
 				3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */,
 				581747E427D7131D0070EB48 /* Settings.bundle in Resources */,
 				97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */,
