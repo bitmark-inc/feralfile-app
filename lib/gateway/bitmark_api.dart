@@ -13,11 +13,4 @@ abstract class BitmarkApi {
     @Query("owner") String owner,
     @Query("pending") bool includePending,
   );
-
-  @GET("/v1/bitmarks/{id}")
-  Future<Map<String, Bitmark>> getBitmarkAssetInfo(
-    @Path("id") String id,
-    @Query("pending") bool includePending,
-    @Query("provenance") bool provenance,
-  );
 }

@@ -2,6 +2,7 @@ import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/dao/asset_token_dao.dart';
+import 'package:autonomy_flutter/database/dao/provenance_dao.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/gateway/indexer_api.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
@@ -23,6 +24,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
   AssetTokenDao get _assetTokenDao =>
       _networkConfigInjector.I<AppDatabase>().assetDao;
+  ProvenanceDao get _provenanceDao =>
+      _networkConfigInjector.I<AppDatabase>().provenanceDao;
   IndexerApi get _indexerApi => _networkConfigInjector.I<IndexerApi>();
 
   HomeBloc(
@@ -72,19 +75,21 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
         final firstTokensSize = assetTokens.isEmpty ? 20 : 50;
 
-        final latestNFTs = await _tokensService.fetchLatestTokens(
+        final latestAssets = await _tokensService.fetchLatestAssets(
             allAccountNumbers, firstTokensSize);
-        await _assetTokenDao.insertAssets(latestNFTs);
+        await _tokensService.insertAssetsWithProvenance(latestAssets);
 
-        log.info("[HomeBloc] fetch ${latestNFTs.length} latest NFTs");
+        log.info("[HomeBloc] fetch ${latestAssets.length} latest NFTs");
 
-        if (latestNFTs.length < firstTokensSize) {
+        if (latestAssets.length < firstTokensSize) {
           // Delete obsoleted assets
-          if (latestNFTs.isNotEmpty) {
-            await _assetTokenDao
-                .deleteAssetsNotIn(latestNFTs.map((e) => e.id).toList());
+          if (latestAssets.isNotEmpty) {
+            final tokenIDs = latestAssets.map((e) => e.id).toList();
+            await _assetTokenDao.deleteAssetsNotIn(tokenIDs);
+            await _provenanceDao.deleteProvenanceNotBelongs(tokenIDs);
           } else {
             await _assetTokenDao.removeAll();
+            await _provenanceDao.removeAll();
           }
 
           emit(state.copyWith(

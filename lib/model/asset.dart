@@ -1,3 +1,4 @@
+import 'package:autonomy_flutter/model/provenance.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 
 class Asset {
@@ -11,6 +12,7 @@ class Asset {
     required this.thumbnailID,
     required this.projectMetadata,
     required this.lastActivityTime,
+    required this.provenance,
   });
 
   String id;
@@ -22,30 +24,24 @@ class Asset {
   String thumbnailID;
   ProjectMetadata projectMetadata;
   DateTime lastActivityTime;
+  List<Provenance> provenance;
 
   factory Asset.fromJson(Map<String, dynamic> json) => Asset(
-      id: json["indexID"],
-      edition: json["edition"],
-      blockchain: json["blockchain"],
-      mintedAt: DateTime.parse(json["mintedAt"]),
-      contractType: json["contractType"],
-      owner: json["owner"],
-      thumbnailID: json["thumbnailID"],
-      projectMetadata: ProjectMetadata.fromJsonModified(
-          json["projectMetadata"], json["thumbnailID"]),
-      lastActivityTime: DateTime.parse(json['lastActivityTime']));
-
-  Map<String, dynamic> toJson() => {
-        "indexID": id,
-        "edition": edition,
-        "blockchain": blockchain,
-        "mintedAt": mintedAt.toIso8601String(),
-        "contractType": contractType,
-        "owner": owner,
-        "thumbnailID": thumbnailID,
-        "projectMetadata": projectMetadata.toJson(),
-        "lastActivityTime": lastActivityTime.toIso8601String,
-      };
+        id: json["indexID"],
+        edition: json["edition"],
+        blockchain: json["blockchain"],
+        mintedAt: DateTime.parse(json["mintedAt"]),
+        contractType: json["contractType"],
+        owner: json["owner"],
+        thumbnailID: json["thumbnailID"],
+        projectMetadata: ProjectMetadata.fromJsonModified(
+            json["projectMetadata"], json["thumbnailID"]),
+        lastActivityTime: DateTime.parse(json['lastActivityTime']),
+        provenance: json["provenance"] != null
+            ? List<Provenance>.from(json["provenance"]
+                .map((x) => Provenance.fromJson(x, json["indexID"])))
+            : [],
+      );
 }
 
 class ProjectMetadata {
