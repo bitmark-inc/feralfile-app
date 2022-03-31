@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
@@ -383,7 +384,8 @@ class _WCConnectPageState extends State<WCConnectPage>
                   text: "Connect".toUpperCase(),
                   onPress: () {
                     // Handle for Autonomy TV
-                    if (widget.wcConnectArgs?.peerMeta.name == 'Autonomy TV') {
+                    if (widget.wcConnectArgs?.peerMeta.name ==
+                        AUTONOMY_TV_PEER_NAME) {
                       context
                           .read<AccountsBloc>()
                           .add(FetchAllAddressesEvent());
