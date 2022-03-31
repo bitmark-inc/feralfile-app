@@ -92,7 +92,11 @@ class AutonomyApp extends StatelessWidget {
       ],
       debugShowCheckedModeBanner: false,
       navigatorKey: injector<NavigationService>().navigatorKey,
-      navigatorObservers: [routeObserver, SentryNavigatorObserver()],
+      navigatorObservers: [
+        routeObserver,
+        SentryNavigatorObserver(),
+        HeroController()
+      ],
       initialRoute: AppRouter.onboardingPage,
       onGenerateRoute: AppRouter.onGenerateRoute,
     );

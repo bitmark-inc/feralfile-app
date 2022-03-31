@@ -70,6 +70,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wallet_connect/wallet_connect.dart';
 
 import 'account/link_beacon_connect_page.dart';
+import 'package:page_transition/page_transition.dart';
 
 class AppRouter {
   static const onboardingPage = "onboarding";
@@ -354,10 +355,11 @@ class AppRouter {
           ),
         );
       case ScanQRPage.tag:
-        return CupertinoPageRoute(
-            settings: settings,
-            fullscreenDialog: true,
-            builder: (context) => BlocProvider(
+        return PageTransition(
+            type: PageTransitionType.leftToRight,
+            curve: Curves.easeIn,
+            duration: Duration(milliseconds: 250),
+            child: BlocProvider(
                 create: (_) => FeralfileBloc(
                     injector(), networkInjector.I(), injector<CloudDatabase>()),
                 child: ScanQRPage(
@@ -456,15 +458,18 @@ class AppRouter {
                   payload: settings.arguments as SendCryptoPayload,
                 ));
       case artworkPreviewPage:
-        return CupertinoPageRoute(
+        return PageTransition(
+            type: PageTransitionType.fade,
+            curve: Curves.easeIn,
+            duration: Duration(milliseconds: 250),
             settings: settings,
-            builder: (context) => BlocProvider(
-                  create: (_) => ArtworkPreviewBloc(
-                      networkInjector.I<AppDatabase>().assetDao),
-                  child: ArtworkPreviewPage(
-                    payload: settings.arguments as ArtworkDetailPayload,
-                  ),
-                ));
+            child: BlocProvider(
+              create: (_) =>
+                  ArtworkPreviewBloc(networkInjector.I<AppDatabase>().assetDao),
+              child: ArtworkPreviewPage(
+                payload: settings.arguments as ArtworkDetailPayload,
+              ),
+            ));
       case SelectNetworkPage.tag:
         return CupertinoPageRoute(
             settings: settings,
@@ -473,24 +478,27 @@ class AppRouter {
                   child: SelectNetworkPage(),
                 ));
       case artworkDetailsPage:
-        return CupertinoPageRoute(
+        return PageTransition(
+            type: PageTransitionType.fade,
+            curve: Curves.easeIn,
+            duration: Duration(milliseconds: 250),
             settings: settings,
-            builder: (context) => MultiBlocProvider(
-                    providers: [
-                      BlocProvider.value(value: accountsBloc),
-                      BlocProvider(
-                          create: (_) => IdentityBloc(
-                              networkInjector.I<AppDatabase>(),
-                              networkInjector.I())),
-                      BlocProvider(
-                          create: (_) => ArtworkDetailBloc(
-                                networkInjector.I(),
-                                networkInjector.I<AppDatabase>().assetDao,
-                                networkInjector.I<AppDatabase>().provenanceDao,
-                              )),
-                    ],
-                    child: ArtworkDetailPage(
-                        payload: settings.arguments as ArtworkDetailPayload)));
+            child: MultiBlocProvider(
+                providers: [
+                  BlocProvider.value(value: accountsBloc),
+                  BlocProvider(
+                      create: (_) => IdentityBloc(
+                          networkInjector.I<AppDatabase>(),
+                          networkInjector.I())),
+                  BlocProvider(
+                      create: (_) => ArtworkDetailBloc(
+                            networkInjector.I(),
+                            networkInjector.I<AppDatabase>().assetDao,
+                            networkInjector.I<AppDatabase>().provenanceDao,
+                          )),
+                ],
+                child: ArtworkDetailPage(
+                    payload: settings.arguments as ArtworkDetailPayload)));
       case TBSignMessagePage.tag:
         return CupertinoPageRoute(
           settings: settings,

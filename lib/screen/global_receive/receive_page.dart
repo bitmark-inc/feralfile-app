@@ -25,7 +25,7 @@ class _GlobalReceivePageState extends State<GlobalReceivePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: getBackAppBar(
+      appBar: getCloseAppBar(
         context,
         onBack: () {
           Navigator.of(context).pop();
@@ -47,7 +47,7 @@ class _GlobalReceivePageState extends State<GlobalReceivePage> {
               children: [
                 SizedBox(height: 16.0),
                 Text(
-                  "Receive NFT",
+                  "Receive",
                   style: appTextTheme.headline1,
                 ),
                 SizedBox(height: 40.0),
