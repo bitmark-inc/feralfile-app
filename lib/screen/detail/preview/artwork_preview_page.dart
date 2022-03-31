@@ -265,7 +265,10 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
       case "image":
         final ext = p.extension(asset.thumbnailURL!);
         return ext == ".svg"
-            ? SvgPicture.network(asset.thumbnailURL!)
+            ? SvgPicture.network(
+                asset.thumbnailURL!,
+                color: Colors.white,
+              )
             : CachedNetworkImage(
                 imageUrl: asset.previewURL!,
                 imageBuilder: (context, imageProvider) => PhotoView(
@@ -274,7 +277,13 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                 cacheManager: injector<AUCacheManager>(),
                 placeholder: (context, url) => Container(),
                 placeholderFadeInDuration: Duration(milliseconds: 300),
-                errorWidget: (context, url, error) => Container(),
+                errorWidget: (context, url, error) => Center(
+                  child: SvgPicture.asset(
+                    'assets/images/image_error.svg',
+                    width: 148,
+                    height: 158,
+                  ),
+                ),
                 fit: BoxFit.cover,
               );
       case "video":
