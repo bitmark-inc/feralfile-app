@@ -483,8 +483,11 @@ class AppRouter {
                               networkInjector.I<AppDatabase>(),
                               networkInjector.I())),
                       BlocProvider(
-                          create: (_) => ArtworkDetailBloc(networkInjector.I(),
-                              networkInjector.I<AppDatabase>().assetDao)),
+                          create: (_) => ArtworkDetailBloc(
+                                networkInjector.I(),
+                                networkInjector.I<AppDatabase>().assetDao,
+                                networkInjector.I<AppDatabase>().provenanceDao,
+                              )),
                     ],
                     child: ArtworkDetailPage(
                         payload: settings.arguments as ArtworkDetailPayload)));
@@ -519,8 +522,8 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => CloudAndroidPage(
-              isEncryptionAvailable: settings.arguments as bool?,
-            ));
+                  isEncryptionAvailable: settings.arguments as bool?,
+                ));
 
       case SentryReportPage.tag:
         return CupertinoPageRoute(
