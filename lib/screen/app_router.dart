@@ -46,6 +46,7 @@ import 'package:autonomy_flutter/screen/global_receive/receive_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_page.dart';
 import 'package:autonomy_flutter/screen/onboarding_page.dart';
+import 'package:autonomy_flutter/screen/release_notes_page.dart';
 import 'package:autonomy_flutter/screen/report/sentry_report_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/receive_page.dart';
@@ -110,6 +111,7 @@ class AppRouter {
   static const cloudAndroidPage = 'cloud_android_page';
   static const linkManuallyAddress = 'link_manually_address';
   static const autonomySecurityPage = 'autonomy_security';
+  static const releaseNotesPage = 'releaseNotesPage';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final networkInjector = injector<NetworkConfigInjector>();
@@ -566,6 +568,15 @@ class AppRouter {
       case autonomySecurityPage:
         return CupertinoPageRoute(
             settings: settings, builder: (context) => AutonomySecurityPage());
+
+      case releaseNotesPage:
+        return PageTransition(
+            type: PageTransitionType.bottomToTop,
+            curve: Curves.easeIn,
+            duration: Duration(milliseconds: 200),
+            child: ReleaseNotesPage(
+              releaseNotes: settings.arguments as String,
+            ));
 
       case linkManuallyAddress:
         return CupertinoPageRoute(
