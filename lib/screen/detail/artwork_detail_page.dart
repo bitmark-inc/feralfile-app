@@ -142,20 +142,21 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
                       ],
                       SizedBox(height: 16.0),
                       GestureDetector(
-                        child: ext == ".svg"
-                            ? SvgPicture.network(asset.thumbnailURL!)
-                            : CachedNetworkImage(
-                                imageUrl: asset.thumbnailURL!,
-                                width: double.infinity,
-                                maxWidthDiskCache: (screenHeight * 3).floor(),
-                                memCacheWidth: (screenWidth * 3).floor(),
-                                cacheManager: injector<AUCacheManager>(),
-                                placeholderFadeInDuration:
-                                    Duration(milliseconds: 300),
-                                fit: BoxFit.cover,
-                                errorWidget: (context, url, error) =>
-                                    SizedBox(height: 100),
-                              ),
+                        child: Hero(
+                            tag: asset.id,
+                            child: ext == ".svg"
+                                ? SvgPicture.network(asset.thumbnailURL!)
+                                : CachedNetworkImage(
+                                    imageUrl: asset.thumbnailURL!,
+                                    width: double.infinity,
+                                    memCacheWidth: (screenWidth * 3).floor(),
+                                    cacheManager: injector<AUCacheManager>(),
+                                    placeholderFadeInDuration:
+                                        Duration(milliseconds: 300),
+                                    fit: BoxFit.cover,
+                                    errorWidget: (context, url, error) =>
+                                        SizedBox(height: 100),
+                                  )),
                         onTap: () => Navigator.of(context).pushNamed(
                             AppRouter.artworkPreviewPage,
                             arguments: widget.payload),
