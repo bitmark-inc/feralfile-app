@@ -2,6 +2,7 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 class LinkBeaconConnectPage extends StatefulWidget {
@@ -58,6 +59,7 @@ class _LinkBeaconConnectPageState extends State<LinkBeaconConnectPage> {
                         ),
                       ),
                       onTap: () {
+                        Vibrate.feedback(FeedbackType.light);
                         Clipboard.setData(
                             ClipboardData(text: "tezos://${widget.uri}"));
                         setState(() {

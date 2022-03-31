@@ -5,6 +5,7 @@ import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 class LinkWalletConnectPage extends StatefulWidget {
@@ -105,6 +106,7 @@ class _LinkWalletConnectPageState extends State<LinkWalletConnectPage> {
                       ),
             ),
             onTap: () {
+              Vibrate.feedback(FeedbackType.light);
               Clipboard.setData(ClipboardData(text: wcURI));
               setState(() {
                 _copied = true;

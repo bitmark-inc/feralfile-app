@@ -158,7 +158,8 @@ class _LinkLedgerPageState extends State<LinkLedgerPage> {
   }
 
   _onDeviceTap(BuildContext context, LedgerHardwareWallet ledger) async {
-    UIHelper.showInfoDialog(context, ledger.name, "Connecting...");
+    UIHelper.showInfoDialog(context, ledger.name, "Connecting...",
+        feedback: null);
     if (!ledger.isConnected) {
       final result = await injector<LedgerHardwareService>().connect(ledger);
       if (!result) {
@@ -232,9 +233,8 @@ class _LinkLedgerPageState extends State<LinkLedgerPage> {
   _dismissAndShowError(BuildContext context, LedgerHardwareWallet ledger,
       String errorMessage) async {
     return await Future.delayed(Duration(milliseconds: 300), () async {
-      Vibrate.feedback(FeedbackType.error);
       await UIHelper.showInfoDialog(context, ledger.name, errorMessage,
-          autoDismissAfter: 2);
+          autoDismissAfter: 2, feedback: FeedbackType.error);
     });
   }
 }

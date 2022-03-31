@@ -56,3 +56,41 @@ AppBar getBackAppBar(BuildContext context,
     elevation: 0,
   );
 }
+
+AppBar getCloseAppBar(BuildContext context,
+    {String title = "", required Function()? onBack}) {
+  return AppBar(
+    systemOverlayStyle: SystemUiOverlayStyle(
+      statusBarColor: Colors.white,
+      statusBarIconBrightness: Brightness.dark,
+      statusBarBrightness: Brightness.light,
+    ),
+    leading: SizedBox(),
+    leadingWidth: 0.0,
+    automaticallyImplyLeading: true,
+    title: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onTap: onBack,
+          child: onBack != null
+              ? SvgPicture.asset('assets/images/iconClose.svg')
+              : SizedBox(width: 60),
+        ),
+        Expanded(
+          child: Text(
+            title,
+            overflow: TextOverflow.ellipsis,
+            style: appTextTheme.caption,
+            textAlign: TextAlign.center,
+          ),
+        ),
+        SizedBox(width: 60),
+      ],
+    ),
+    backgroundColor: Colors.transparent,
+    shadowColor: Colors.transparent,
+    elevation: 0,
+  );
+}

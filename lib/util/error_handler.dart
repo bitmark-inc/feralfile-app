@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -88,6 +89,7 @@ Future showErrorDialog(BuildContext context, String title, String description,
     cuttedColor = Color.fromARGB(255, 62, 60, 61);
   }
 
+  Vibrate.feedback(FeedbackType.warning);
   await showModalBottomSheet(
       context: context,
       // isDismissible: false,

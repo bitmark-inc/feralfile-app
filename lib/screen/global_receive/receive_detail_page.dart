@@ -5,6 +5,7 @@ import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share/share.dart';
 
@@ -28,6 +29,7 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    double safeAreaBottom = MediaQuery.of(context).padding.bottom;
     return Scaffold(
       appBar: getBackAppBar(
         context,
@@ -35,83 +37,91 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
           Navigator.of(context).pop();
         },
       ),
-      body: Container(
-        padding: EdgeInsets.symmetric(horizontal: 16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            SizedBox(height: 16.0),
-            Text(
-              "Receive NFT",
-              style: appTextTheme.headline1,
-            ),
-            SizedBox(height: 48.0),
-            Center(
-              child: GestureDetector(
-                  child: QrImage(
-                    data: _account.accountNumber,
-                    size: 180.0,
+      body: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Expanded(
+            child: SingleChildScrollView(
+          padding: EdgeInsets.symmetric(horizontal: 16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SizedBox(height: 16.0),
+              Text(
+                "Receive NFT",
+                style: appTextTheme.headline1,
+              ),
+              SizedBox(height: 48.0),
+              Center(
+                child: GestureDetector(
+                    child: QrImage(
+                      data: _account.accountNumber,
+                      size: 180.0,
+                    ),
+                    onTap: copy),
+              ),
+              SizedBox(height: 48.0),
+              Text((_blockchainNFTText(_account.blockchain)).toUpperCase(),
+                  style: appTextTheme.headline4),
+              SizedBox(height: 18.0),
+              accountItem(context, _account),
+              SizedBox(height: 18.0),
+              GestureDetector(
+                  child: Container(
+                    padding: EdgeInsets.fromLTRB(8, 8, 8, 16),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        top: BorderSide(
+                            width: 1.0,
+                            color: Color.fromRGBO(227, 227, 227, 1)),
+                      ),
+                      color: Color.fromRGBO(237, 237, 237, 0.3),
+                    ),
+                    child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            "Account address",
+                            textAlign: TextAlign.left,
+                            style: appTextTheme.headline4?.copyWith(
+                                color: AppColorTheme.secondaryDimGrey),
+                          ),
+                          SizedBox(height: 4.0),
+                          Text(
+                            _account.accountNumber,
+                            textAlign: TextAlign.center,
+                            softWrap: true,
+                            style: TextStyle(
+                                fontSize: 12, fontFamily: "IBMPlexMono"),
+                          ),
+                        ]),
                   ),
                   onTap: copy),
-            ),
-            SizedBox(height: 48.0),
-            Text((_blockchainNFTText(_account.blockchain)).toUpperCase(),
-                style: appTextTheme.headline4),
-            SizedBox(height: 18.0),
-            accountItem(context, _account),
-            SizedBox(height: 18.0),
-            GestureDetector(
-                child: Container(
-                  padding: EdgeInsets.fromLTRB(8, 8, 8, 16),
-                  decoration: BoxDecoration(
-                    border: Border(
-                      top: BorderSide(
-                          width: 1.0, color: Color.fromRGBO(227, 227, 227, 1)),
-                    ),
-                    color: Color.fromRGBO(237, 237, 237, 0.3),
-                  ),
-                  child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text(
-                          "Account address",
-                          textAlign: TextAlign.left,
-                          style: appTextTheme.headline4
-                              ?.copyWith(color: AppColorTheme.secondaryDimGrey),
-                        ),
-                        SizedBox(height: 4.0),
-                        Text(
-                          _account.accountNumber,
-                          textAlign: TextAlign.center,
-                          softWrap: true,
-                          style: TextStyle(
-                              fontSize: 12, fontFamily: "IBMPlexMono"),
-                        ),
-                      ]),
-                ),
-                onTap: copy),
-            SizedBox(
-                height: 22,
-                child: Container(
-                    alignment: Alignment.center,
-                    child: _copied
-                        ? Text("Copied", style: copiedTextStyle)
-                        : SizedBox())),
-            SizedBox(height: 4),
-            Text(_blockchainWarningText(_account.blockchain), style: paragraph),
-            Spacer(),
-            AuFilledButton(
-                text: "SHARE",
-                onPress: () => Share.share(_account.accountNumber,
-                    subject: "My account number")),
-            SizedBox(height: 40)
-          ],
+              SizedBox(
+                  height: 22,
+                  child: Container(
+                      alignment: Alignment.center,
+                      child: _copied
+                          ? Text("Copied", style: copiedTextStyle)
+                          : SizedBox())),
+              SizedBox(height: 4),
+              Text(_blockchainWarningText(_account.blockchain),
+                  style: paragraph),
+            ],
+          ),
+        )),
+        Container(
+          padding: EdgeInsets.symmetric(
+              horizontal: 16.0, vertical: safeAreaBottom > 0 ? 40 : 16),
+          child: AuFilledButton(
+              text: "SHARE",
+              onPress: () => Share.share(_account.accountNumber,
+                  subject: "My account number")),
         ),
-      ),
+      ]),
     );
   }
 
   copy() {
+    Vibrate.feedback(FeedbackType.light);
     Clipboard.setData(ClipboardData(text: _account.accountNumber));
     setState(() {
       _copied = true;
