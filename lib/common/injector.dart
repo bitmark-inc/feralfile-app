@@ -51,11 +51,21 @@ Future<void> setup() async {
 
   final testnetDB = await $FloorAppDatabase
       .databaseBuilder('app_database_testnet.db')
-      .addMigrations([migrationToV1ToV2, migrationToV2ToV3]).build();
+      .addMigrations([
+    migrationToV1ToV2,
+    migrationToV2ToV3,
+    migrationToV3ToV4,
+    migrationToV4ToV5,
+  ]).build();
 
   final mainnetDB = await $FloorAppDatabase
       .databaseBuilder('app_database_testnet.db')
-      .addMigrations([migrationToV1ToV2, migrationToV2ToV3]).build();
+      .addMigrations([
+    migrationToV1ToV2,
+    migrationToV2ToV3,
+    migrationToV3ToV4,
+    migrationToV4ToV5,
+  ]).build();
 
   final cloudDB =
       await $FloorCloudDatabase.databaseBuilder('cloud_database.db').build();

@@ -12,7 +12,7 @@ import 'package:sqflite/sqflite.dart' as sqflite;
 part 'app_database.g.dart'; // the generated code will be there
 
 @TypeConverters([DateTimeConverter])
-@Database(version: 3, entities: [AssetToken, Identity, Provenance])
+@Database(version: 5, entities: [AssetToken, Identity, Provenance])
 abstract class AppDatabase extends FloorDatabase {
   AssetTokenDao get assetDao;
   IdentityDao get identityDao;
@@ -27,4 +27,16 @@ final migrationToV1ToV2 = Migration(1, 2, (database) async {
 final migrationToV2ToV3 = Migration(2, 3, (database) async {
   await database.execute(
       'CREATE TABLE IF NOT EXISTS `Provenance` (`txID` TEXT NOT NULL, `type` TEXT NOT NULL, `blockchain` TEXT NOT NULL, `owner` TEXT NOT NULL, `timestamp` INTEGER NOT NULL, `tokenID` TEXT NOT NULL, FOREIGN KEY (`tokenID`) REFERENCES `AssetToken` (`id`) ON UPDATE NO ACTION ON DELETE NO ACTION, PRIMARY KEY (`txID`))');
+});
+
+// For unknown reason, execute DROP then CREATE in same migration execution doesn't work.
+// So I have to separate 2 versions
+final migrationToV3ToV4 = Migration(3, 4, (database) async {
+  await database.execute("DROP TABLE IF EXISTS Provenance;");
+});
+
+final migrationToV4ToV5 = Migration(4, 5, (database) async {
+  await database.execute("""
+      CREATE TABLE IF NOT EXISTS `Provenance` (`txID` TEXT NOT NULL, `type` TEXT NOT NULL, `blockchain` TEXT NOT NULL, `owner` TEXT NOT NULL, `timestamp` INTEGER NOT NULL, `txURL` TEXT NOT NULL, `tokenID` TEXT NOT NULL, FOREIGN KEY (`tokenID`) REFERENCES `AssetToken` (`id`) ON UPDATE NO ACTION ON DELETE NO ACTION, PRIMARY KEY (`txID`));
+      CREATE INDEX `index_Provenance_tokenID` ON `Provenance` (`tokenID`);""");
 });
