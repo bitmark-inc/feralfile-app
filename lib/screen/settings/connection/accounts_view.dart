@@ -135,6 +135,7 @@ class _AccountsViewState extends State<AccountsView> {
                         ],
                         Divider(
                             height: 1.0,
+                            thickness: 1.0,
                             color: (_editingAccountKey == null ||
                                     _editingAccountKey != account.key)
                                 ? null
