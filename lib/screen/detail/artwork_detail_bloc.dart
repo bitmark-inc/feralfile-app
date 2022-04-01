@@ -1,7 +1,5 @@
 import 'package:autonomy_flutter/database/dao/asset_token_dao.dart';
 import 'package:autonomy_flutter/database/dao/provenance_dao.dart';
-import 'package:autonomy_flutter/model/bitmark.dart';
-import 'package:autonomy_flutter/model/provenance.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';

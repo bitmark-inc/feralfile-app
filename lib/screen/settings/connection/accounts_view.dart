@@ -30,109 +30,53 @@ class _AccountsViewState extends State<AccountsView> {
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<AccountsBloc, AccountsState>(
-      listener: (context, state) {
-        final accounts = state.accounts;
-        if (accounts == null) return;
+        listener: (context, state) {
+      final accounts = state.accounts;
+      if (accounts == null) return;
 
-        // move back to onboarding
-        if (accounts.isEmpty) {
-          injector<ConfigurationService>().setDoneOnboardingOnce(true);
-          injector<ConfigurationService>().setDoneOnboarding(false);
-          Navigator.of(context).pushNamedAndRemoveUntil(
-              AppRouter.newAccountPage, (route) => false);
-        }
-      },
-      builder: (context, state) {
-        final accounts = state.accounts;
-        if (accounts == null) return CupertinoActivityIndicator();
-        if (accounts.isEmpty) return SizedBox();
+      // move back to onboarding
+      if (accounts.isEmpty) {
+        injector<ConfigurationService>().setDoneOnboardingOnce(true);
+        injector<ConfigurationService>().setDoneOnboarding(false);
+        Navigator.of(context).pushNamedAndRemoveUntil(
+            AppRouter.newAccountPage, (route) => false);
+      }
+    }, builder: (context, state) {
+      final accounts = state.accounts;
+      if (accounts == null) return CupertinoActivityIndicator();
+      if (accounts.isEmpty) return SizedBox();
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      if (!widget.isInSettingsPage) {
+        return _noEditAccountsListWidget(accounts);
+      }
+
+      return SlidableAutoCloseBehavior(
+        child: Column(
           children: [
             ...accounts
                 .map((account) => Column(
                       children: [
-                        if (!widget.isInSettingsPage) ...[
-                          SizedBox(height: 16),
-                          accountItem(
-                            context,
-                            account,
-                            onPersonaTap: () => Navigator.of(context).pushNamed(
-                              AppRouter.personaDetailsPage,
-                              arguments: account.persona,
+                        Slidable(
+                            key: UniqueKey(),
+                            groupTag: 'accountsView',
+                            closeOnScroll: true,
+                            endActionPane: ActionPane(
+                              motion: const DrawerMotion(),
+                              dragDismissible: false,
+                              children: slidableActions(account),
                             ),
-                            onConnectionTap: () => Navigator.of(context)
-                                .pushNamed(AppRouter.linkedAccountDetailsPage,
-                                    arguments: account.connections!.first),
-                          ),
-                          SizedBox(height: 16),
-                        ] else ...[
-                          Slidable(
-                              key: UniqueKey(),
-                              endActionPane: ActionPane(
-                                // A motion is a widget used to control how the pane animates.
-                                motion: const ScrollMotion(),
-
-                                // A pane can dismiss the Slidable.
-                                dismissible: DismissiblePane(onDismissed: () {
-                                  _showDeleteAccountConfirmation(
-                                      context, account);
-                                }),
-
-                                // All actions are defined in the children parameter.
-                                children: [
-                                  SlidableAction(
-                                    backgroundColor:
-                                        AppColorTheme.secondarySpanishGrey,
-                                    foregroundColor: Colors.white,
-                                    icon: CupertinoIcons.pencil,
-                                    onPressed: (_) {
-                                      setState(() {
-                                        _nameController.text = account.name;
-                                        _editingAccountKey = account.key;
-                                      });
-                                    },
-                                  ),
-                                  // A SlidableAction can have an icon and/or a label.
-                                  SlidableAction(
-                                    backgroundColor: Colors.black,
-                                    foregroundColor: Colors.white,
-                                    icon: CupertinoIcons.delete,
-                                    onPressed: (_) {
-                                      _showDeleteAccountConfirmation(
-                                          context, account);
-                                    },
-                                  ),
+                            child: Column(
+                              children: [
+                                SizedBox(height: 16),
+                                if (_editingAccountKey == null ||
+                                    _editingAccountKey != account.key) ...[
+                                  _viewAccountItem(account),
+                                ] else ...[
+                                  _editAccountItem(account),
                                 ],
-                              ),
-                              child: Column(
-                                children: [
-                                  SizedBox(height: 16),
-                                  if (_editingAccountKey == null ||
-                                      _editingAccountKey != account.key) ...[
-                                    accountItem(
-                                      context,
-                                      account,
-                                      onPersonaTap: () =>
-                                          Navigator.of(context).pushNamed(
-                                        AppRouter.personaDetailsPage,
-                                        arguments: account.persona,
-                                      ),
-                                      onConnectionTap: () =>
-                                          Navigator.of(context).pushNamed(
-                                              AppRouter
-                                                  .linkedAccountDetailsPage,
-                                              arguments:
-                                                  account.connections!.first),
-                                    ),
-                                  ] else ...[
-                                    _editAccountItem(context, account),
-                                  ],
-                                  SizedBox(height: 16),
-                                ],
-                              )),
-                        ],
+                                SizedBox(height: 16),
+                              ],
+                            )),
                         Divider(
                             height: 1.0,
                             thickness: 1.0,
@@ -144,12 +88,71 @@ class _AccountsViewState extends State<AccountsView> {
                     ))
                 .toList(),
           ],
-        );
-      },
+        ),
+      );
+    });
+  }
+
+  List<SlidableAction> slidableActions(Account account) {
+    return [
+      SlidableAction(
+        backgroundColor: AppColorTheme.secondarySpanishGrey,
+        foregroundColor: Colors.white,
+        icon: CupertinoIcons.pencil,
+        onPressed: (_) {
+          setState(() {
+            _nameController.text = account.name;
+            _editingAccountKey = account.key;
+          });
+        },
+      ),
+      SlidableAction(
+        backgroundColor: Colors.black,
+        foregroundColor: Colors.white,
+        icon: CupertinoIcons.delete,
+        onPressed: (_) {
+          _showDeleteAccountConfirmation(context, account);
+        },
+      ),
+    ];
+  }
+
+  Widget _noEditAccountsListWidget(List<Account> accounts) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ...accounts
+            .map((account) => Column(
+                  children: [
+                    SizedBox(height: 16),
+                    _viewAccountItem(account),
+                    SizedBox(height: 16),
+                    Divider(
+                      height: 1.0,
+                      thickness: 1.0,
+                    ),
+                  ],
+                ))
+            .toList(),
+      ],
     );
   }
 
-  Widget _editAccountItem(BuildContext context, Account account) {
+  Widget _viewAccountItem(Account account) {
+    return accountItem(
+      context,
+      account,
+      onPersonaTap: () => Navigator.of(context).pushNamed(
+        AppRouter.personaDetailsPage,
+        arguments: account.persona,
+      ),
+      onConnectionTap: () => Navigator.of(context).pushNamed(
+          AppRouter.linkedAccountDetailsPage,
+          arguments: account.connections!.first),
+    );
+  }
+
+  Widget _editAccountItem(Account account) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       mainAxisAlignment: MainAxisAlignment.start,
