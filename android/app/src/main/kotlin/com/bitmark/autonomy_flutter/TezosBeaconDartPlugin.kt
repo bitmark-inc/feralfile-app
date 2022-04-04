@@ -28,6 +28,7 @@ import it.airgap.beaconsdk.transport.p2p.matrix.p2pMatrix
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.onEach
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.decodeFromString
@@ -572,30 +573,46 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
 
 @Serializable
 data class TezosWalletConnection(
+    @SerialName("address")
     val address: String,
+    @SerialName("peer")
     val peer: Peer?,
+    @SerialName("permissionResponse")
     val permissionResponse: PermissionTezosResponse
 )
 
 
 @Serializable
 data class PostMessagePairingRequest(
+    @SerialName("id")
     val id: String,
+    @SerialName("name")
     val name: String,
+    @SerialName("icon")
     val icon: String?,
+    @SerialName("appUrl")
     val appUrl: String?,
+    @SerialName("publicKey")
     val publicKey: String,
+    @SerialName("type")
     val type: String
 )
 
 @Serializable
 data class ExtendedPostMessagePairingResponse(
+    @SerialName("id")
     val id: String,
+    @SerialName("type")
     val type: String,
+    @SerialName("name")
     val name: String,
+    @SerialName("publicKey")
     val publicKey: String,
+    @SerialName("icon")
     val icon: String?,
+    @SerialName("appUrl")
     val appUrl: String?,
+    @SerialName("senderId")
     val senderId: String,
 ) {
     fun extractPeer(): P2pPeer { // should be postMessagePeer; but we use that just for field values
@@ -613,24 +630,39 @@ data class ExtendedPostMessagePairingResponse(
 
 @Serializable
 data class PostMessagePermissionRequest(
+    @SerialName("type")
     val type: String,
+    @SerialName("id")
     val id: String,
+    @SerialName("blockchainIdentifier")
     val blockchainIdentifier: String,
+    @SerialName("senderID")
     val senderID: String,
+    @SerialName("appMetadata")
     val appMetadata: AppMetadata,
+    @SerialName("network")
     val network: Network,
+    @SerialName("scopes")
     val scopes: List<TezosPermission.Scope>,
+    @SerialName("version")
     val version: String
 )
 
 @Serializable
 data class PostMessageResponse(
+    @SerialName("id")
     val id: String,
+    @SerialName("publicKey")
     val publicKey: String,
+    @SerialName("network")
     val network: TezosNetwork,
+    @SerialName("scopes")
     val scopes: List<TezosPermission.Scope>,
+    @SerialName("version")
     val version: String,
+    @SerialName("senderId")
     val senderId: String,
+    @SerialName("type")
     val type: String
 ) {
     fun convertToPermissionResponse(): PermissionTezosResponse {
@@ -652,9 +684,14 @@ data class PostMessageResponse(
 
 @Serializable
 data class PostMessageErrorResponse(
+    @SerialName("id")
     val id: String,
+    @SerialName("version")
     val version: String,
+    @SerialName("senderId")
     val senderId: String,
+    @SerialName("type")
     val type: String,
+    @SerialName("errorType")
     val errorType : String
 )

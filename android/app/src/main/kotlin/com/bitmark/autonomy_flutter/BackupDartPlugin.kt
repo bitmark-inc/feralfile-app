@@ -13,6 +13,7 @@ import io.flutter.plugin.common.MethodChannel
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.disposables.CompositeDisposable
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import java.util.*
 
@@ -141,12 +142,16 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler {
 
 @Serializable
 data class BackupData(
+    @SerialName("accounts")
     val accounts: List<BackupAccount>
 )
 
 @Serializable
 data class BackupAccount(
+    @SerialName("uuid")
     val uuid: String,
+    @SerialName("mnemonic")
     val mnemonic: String,
+    @SerialName("name")
     val name: String,
 )
