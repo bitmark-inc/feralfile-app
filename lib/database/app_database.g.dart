@@ -443,6 +443,11 @@ class _$IdentityDao extends IdentityDao {
   }
 
   @override
+  Future<void> removeAll() async {
+    await _queryAdapter.queryNoReturn('DELETE FROM Identity');
+  }
+
+  @override
   Future<void> insertIdentity(Identity identity) async {
     await _identityInsertionAdapter.insert(
         identity, OnConflictStrategy.replace);

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
@@ -15,6 +16,7 @@ class RouterBloc extends Bloc<RouterEvent, RouterState> {
   BackupService _backupService;
   AccountService _accountService;
   CloudDatabase _cloudDB;
+  AppDatabase _appDatabase;
 
   Future<bool> hasAccounts() async {
     final personas = await _cloudDB.personaDao.getPersonas();
@@ -23,13 +25,15 @@ class RouterBloc extends Bloc<RouterEvent, RouterState> {
   }
 
   RouterBloc(this._configurationService, this._backupService,
-      this._accountService, this._cloudDB)
+      this._accountService, this._cloudDB, this._appDatabase)
       : super(RouterState(onboardingStep: OnboardingStep.undefined)) {
     on<DefineViewRoutingEvent>((event, emit) async {
       if (state.onboardingStep != OnboardingStep.undefined) return;
 
-      await MigrationUtil(_configurationService, _cloudDB, _accountService)
-          .migrateIfNeeded();
+      final migrationUtil = MigrationUtil(
+          _configurationService, _cloudDB, _appDatabase, _accountService);
+      await migrationUtil.migrateIfNeeded();
+      await migrationUtil.resetLocalCacheIfNeeded();
       if (await hasAccounts()) {
         _configurationService.setDoneOnboarding(true);
         emit(RouterState(onboardingStep: OnboardingStep.dashboard));
@@ -44,7 +48,8 @@ class RouterBloc extends Bloc<RouterEvent, RouterState> {
           return;
         } else {
           // has no backup file; try to migration from Keychain
-          await MigrationUtil(_configurationService, _cloudDB, _accountService)
+          await MigrationUtil(_configurationService, _cloudDB, _appDatabase,
+                  _accountService)
               .migrationFromKeychain(Platform.isIOS);
           await _accountService.androidRestoreKeys();
 
