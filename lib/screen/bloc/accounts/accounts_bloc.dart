@@ -4,7 +4,6 @@ import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/wallet_connect_dapp_service/wc_connected_session.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 part 'accounts_state.dart';
