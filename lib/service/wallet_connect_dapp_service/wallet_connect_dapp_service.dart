@@ -9,6 +9,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:wallet_connect/models/session/wc_approve_session_response.dart';
 import 'package:wallet_connect/wallet_connect.dart';
 import 'package:uuid/uuid.dart';
+import 'package:web3dart/web3dart.dart';
 
 class WalletConnectDappService {
   late WCClient _wcClient;
@@ -137,8 +138,12 @@ class WalletConnectDappService {
           peerId: _wcClient.peerId!,
           remotePeerId: response.peerId);
 
+      final eip55Accounts = response.accounts
+          .map((e) => EthereumAddress.fromHex(e).hexEip55)
+          .toList();
+
       final connectedSession = WCConnectedSession(
-          sessionStore: _wcSessionStore, accounts: response.accounts);
+          sessionStore: _wcSessionStore, accounts: eip55Accounts);
 
       remotePeerAccount.value = connectedSession;
     }
