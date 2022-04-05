@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
@@ -7,7 +9,9 @@ import 'package:autonomy_flutter/model/connection_supports.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/android_backup_channel.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/device.dart';
+import 'package:autonomy_flutter/util/helpers.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/migration/migration_data.dart';
 import 'package:flutter/services.dart';
@@ -17,9 +21,11 @@ class MigrationUtil {
   static const MethodChannel _channel = const MethodChannel('migration_util');
   ConfigurationService _configurationService;
   CloudDatabase _cloudDB;
+  AppDatabase _appDB;
   AccountService _accountService;
 
-  MigrationUtil(this._configurationService, this._cloudDB, this._accountService);
+  MigrationUtil(this._configurationService, this._cloudDB, this._appDB,
+      this._accountService);
 
   Future<void> migrateIfNeeded() async {
     if (Platform.isIOS) {
@@ -157,5 +163,24 @@ class MigrationUtil {
 
       await _cloudDB.personaDao.insertPersona(persona);
     }
+  }
+
+  Future resetLocalCacheIfNeeded() async {
+    final previousVersion = _configurationService.getPreviousVersion();
+
+    if (previousVersion == null) {
+      final packageInfo = await PackageInfo.fromPlatform();
+      _configurationService.setPreviousVersion(packageInfo.version);
+      await _resetCache();
+      return;
+    }
+
+    if (compareVersion(previousVersion, RESET_LOCAL_CACHE_VERSION) < 0) {
+      await _resetCache();
+    }
+  }
+
+  Future _resetCache() async {
+    await _appDB.removeAll();
   }
 }

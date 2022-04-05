@@ -126,8 +126,12 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider(
-                create: (_) => RouterBloc(injector(), injector(), injector(),
-                    injector<CloudDatabase>()),
+                create: (_) => RouterBloc(
+                    injector(),
+                    injector(),
+                    injector(),
+                    injector<CloudDatabase>(),
+                    networkInjector.I<AppDatabase>()),
                 child: OnboardingPage()));
 
       case homePageNoTransition:
