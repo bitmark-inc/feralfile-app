@@ -258,7 +258,7 @@ class _$ConnectionDao extends ConnectionDao {
   @override
   Future<List<Connection>> getLinkedAccounts() async {
     return _queryAdapter.queryList(
-        'SELECT * FROM Connection WHERE connectionType NOT IN (\"dappConnect\", \"beaconP2PPeer\")',
+        'SELECT * FROM Connection WHERE connectionType NOT IN (\"dappConnect\", \"beaconP2PPeer\", \"manuallyIndexerTokenID\")',
         mapper: (Map<String, Object?> row) => Connection(
             key: row['key'] as String,
             name: row['name'] as String,
@@ -333,6 +333,13 @@ class _$ConnectionDao extends ConnectionDao {
     await _queryAdapter.queryNoReturn(
         'DELETE FROM Connection WHERE accountNumber = ?1 COLLATE NOCASE',
         arguments: [accountNumber]);
+  }
+
+  @override
+  Future<void> deleteConnectionsByType(String type) async {
+    await _queryAdapter.queryNoReturn(
+        'DELETE FROM Connection WHERE connectionType = ?1',
+        arguments: [type]);
   }
 
   @override

@@ -12,7 +12,7 @@ import 'package:autonomy_flutter/screen/account/link_account_page.dart';
 import 'package:autonomy_flutter/screen/account/link_app_options_page.dart';
 import 'package:autonomy_flutter/screen/account/link_feralfile_page.dart';
 import 'package:autonomy_flutter/screen/account/link_ledger_page.dart';
-import 'package:autonomy_flutter/screen/account/link_manually_address_page.dart';
+import 'package:autonomy_flutter/screen/account/link_manually_page.dart';
 import 'package:autonomy_flutter/screen/account/link_metamask_page.dart';
 import 'package:autonomy_flutter/screen/account/link_tezos_kukai_page.dart';
 import 'package:autonomy_flutter/screen/account/link_tezos_temple_page.dart';
@@ -109,7 +109,7 @@ class AppRouter {
   static const wcConnectPage = 'wc_connect';
   static const cloudPage = 'cloud_page';
   static const cloudAndroidPage = 'cloud_android_page';
-  static const linkManuallyAddress = 'link_manually_address';
+  static const linkManually = 'link_manually';
   static const autonomySecurityPage = 'autonomy_security';
   static const releaseNotesPage = 'releaseNotesPage';
 
@@ -578,10 +578,12 @@ class AppRouter {
               releaseNotes: settings.arguments as String,
             ));
 
-      case linkManuallyAddress:
+      case linkManually:
         return CupertinoPageRoute(
             settings: settings,
-            builder: (context) => LinkManuallyAddressPage());
+            builder: (context) => LinkManuallyPage(
+                  type: settings.arguments as String,
+                ));
 
       default:
         throw Exception('Invalid route: ${settings.name}');
