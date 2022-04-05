@@ -17,4 +17,7 @@ abstract class IdentityDao {
 
   @delete
   Future<void> deleteIdentity(Identity identity);
+
+  @Query('DELETE FROM Identity')
+  Future<void> removeAll();
 }

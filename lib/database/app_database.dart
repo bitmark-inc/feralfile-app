@@ -17,6 +17,12 @@ abstract class AppDatabase extends FloorDatabase {
   AssetTokenDao get assetDao;
   IdentityDao get identityDao;
   ProvenanceDao get provenanceDao;
+
+  Future<dynamic> removeAll() async {
+    await provenanceDao.removeAll();
+    await assetDao.removeAll();
+    await identityDao.removeAll();
+  }
 }
 
 final migrationToV1ToV2 = Migration(1, 2, (database) async {

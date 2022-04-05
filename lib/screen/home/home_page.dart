@@ -172,14 +172,14 @@ class _HomePageState extends State<HomePage>
             delegate: SliverChildBuilderDelegate(
               (BuildContext context, int index) {
                 final asset = assets[index];
-                final ext = p.extension(asset.thumbnailURL!);
+                final ext = p.extension(asset.galleryThumbnailURL!);
                 return GestureDetector(
                   child: Hero(
                     tag: asset.id,
                     child: ext == ".svg"
-                        ? SvgPicture.network(asset.thumbnailURL!)
+                        ? SvgPicture.network(asset.galleryThumbnailURL!)
                         : CachedNetworkImage(
-                            imageUrl: asset.thumbnailURL!,
+                            imageUrl: asset.galleryThumbnailURL!,
                             fit: BoxFit.cover,
                             memCacheHeight: _cachedImageSize,
                             memCacheWidth: _cachedImageSize,

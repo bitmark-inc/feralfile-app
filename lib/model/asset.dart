@@ -151,9 +151,10 @@ class ProjectMetadataData {
         source: json["source"],
         sourceUrl: json["sourceURL"],
         previewUrl: _replaceIPFS(json["previewURL"]),
-        thumbnailUrl: _refineToCloudflareURL(
-            json["thumbnailURL"], thumbailID, "thumbnail"),
-        galleryThumbnailUrl: _replaceIPFS(json["galleryThumbnailURL"]),
+        thumbnailUrl:
+            _refineToCloudflareURL(json["thumbnailURL"], thumbailID, "preview"),
+        galleryThumbnailUrl: _refineToCloudflareURL(
+            json["galleryThumbnailURL"], thumbailID, "thumbnail"),
         assetData: json["assetData"],
         assetUrl: json["assetURL"],
         artistId: json["artistID"],
@@ -182,7 +183,6 @@ class ProjectMetadataData {
       };
 }
 
-// TODO: see if it improve the speed, ask backend to replace the endpoint
 const _defaultIPFSPrefix = "https://ipfs.io";
 const _cloudflareIPFSPrexix = "https://cloudflare-ipfs.com";
 String _replaceIPFS(String url) {
