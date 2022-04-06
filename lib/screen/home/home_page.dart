@@ -19,14 +19,15 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/penrose_top_bar_view.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import "package:collection/collection.dart";
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:uni_links/uni_links.dart';
 import 'package:path/path.dart' as p;
+import 'package:uni_links/uni_links.dart';
 
 class HomePage extends StatefulWidget {
   static const tag = "home";
@@ -79,13 +80,17 @@ class _HomePageState extends State<HomePage>
   }
 
   @override
-  void didPopNext() {
+  void didPopNext() async {
     super.didPopNext();
-    context.read<HomeBloc>().add(RefreshTokensEvent());
+    final connectivityResult = await (Connectivity().checkConnectivity());
+    if (connectivityResult == ConnectivityResult.mobile ||
+        connectivityResult == ConnectivityResult.wifi) {
+      context.read<HomeBloc>().add(RefreshTokensEvent());
 
-    Future.delayed(const Duration(milliseconds: 1000), () {
-      context.read<HomeBloc>().add(ReindexIndexerEvent());
-    });
+      Future.delayed(const Duration(milliseconds: 1000), () {
+        context.read<HomeBloc>().add(ReindexIndexerEvent());
+      });
+    }
   }
 
   @override
