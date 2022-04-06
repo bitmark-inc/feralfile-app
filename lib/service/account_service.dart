@@ -120,6 +120,19 @@ class AccountService {
     await _cloudDB.connectionDao.insertConnection(connection);
   }
 
+  Future linkIndexerTokenID(String indexerTokenID) async {
+    final connection = Connection(
+      key: indexerTokenID,
+      name: '',
+      data: '',
+      connectionType: ConnectionType.manuallyIndexerTokenID.rawValue,
+      accountNumber: '',
+      createdAt: DateTime.now(),
+    );
+
+    await _cloudDB.connectionDao.insertConnection(connection);
+  }
+
   Future<Connection> linkETHWallet(WCConnectedSession session) async {
     final connection = Connection.fromETHWallet(session);
     final alreadyLinkedAccount =

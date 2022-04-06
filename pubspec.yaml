@@ -41,7 +41,7 @@ dependencies:
   dio_http2_adapter: ^2.0.0
   qr_flutter: ^4.0.0
   share: ^2.0.4
-  flutter_svg: ^1.0.0
+  flutter_svg: ^1.0.3
   aws_firehose_api: ^1.2.0
   aws_cognito_identity_api: ^1.2.0
   tezart:

@@ -17,6 +17,7 @@ enum ConnectionType {
   ledgerEthereum,
   ledgerTezos,
   manuallyAddress,
+  manuallyIndexerTokenID,
 }
 
 extension RawValue on ConnectionType {

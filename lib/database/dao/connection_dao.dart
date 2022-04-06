@@ -7,7 +7,7 @@ abstract class ConnectionDao {
   Future<List<Connection>> getConnections();
 
   @Query(
-      'SELECT * FROM Connection WHERE connectionType NOT IN ("dappConnect", "beaconP2PPeer")')
+      'SELECT * FROM Connection WHERE connectionType NOT IN ("dappConnect", "beaconP2PPeer", "manuallyIndexerTokenID")')
   Future<List<Connection>> getLinkedAccounts();
 
   @Query(
@@ -36,6 +36,9 @@ abstract class ConnectionDao {
   @Query(
       'DELETE FROM Connection WHERE accountNumber = :accountNumber COLLATE NOCASE')
   Future<void> deleteConnectionsByAccountNumber(String accountNumber);
+
+  @Query('DELETE FROM Connection WHERE connectionType = :type')
+  Future<void> deleteConnectionsByType(String type);
 
   @update
   Future<void> updateConnection(Connection connection);

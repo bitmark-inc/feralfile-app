@@ -3,6 +3,7 @@ import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/dao/asset_token_dao.dart';
 import 'package:autonomy_flutter/database/dao/provenance_dao.dart';
+import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/gateway/indexer_api.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
@@ -27,6 +28,18 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   ProvenanceDao get _provenanceDao =>
       _networkConfigInjector.I<AppDatabase>().provenanceDao;
   IndexerApi get _indexerApi => _networkConfigInjector.I<IndexerApi>();
+
+  Future fetchManuallyTokens() async {
+    final tokenIndexerIDs = (await _cloudDB.connectionDao.getConnectionsByType(
+            ConnectionType.manuallyIndexerTokenID.rawValue))
+        .map((e) => e.key)
+        .toList();
+    if (tokenIndexerIDs.isEmpty) return;
+
+    final manuallyAssets =
+        (await _indexerApi.getNftTokens({"ids": tokenIndexerIDs}));
+    await _tokensService.insertAssetsWithProvenance(manuallyAssets);
+  }
 
   HomeBloc(
       this._tokensService,
@@ -92,10 +105,13 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
             await _provenanceDao.removeAll();
           }
 
+          await fetchManuallyTokens();
+
           emit(state.copyWith(
               tokens: await _assetTokenDao
                   .findAllAssetTokensWhereNot(hiddenOwners)));
         } else {
+          await fetchManuallyTokens();
           emit(state.copyWith(
               tokens: await _assetTokenDao
                   .findAllAssetTokensWhereNot(hiddenOwners)));
