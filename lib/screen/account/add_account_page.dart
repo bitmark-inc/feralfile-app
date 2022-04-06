@@ -1,4 +1,7 @@
 import 'dart:io';
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/database/cloud_database.dart';
+import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -6,6 +9,7 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -40,7 +44,10 @@ class AddAccountPage extends StatelessWidget {
                     _importAccountOption(context),
                     addDivider(),
                     _createAccountOption(context),
-                    _linkAddressWidget()
+                    _linkAddressWidget(),
+                    if (kDebugMode) ...[
+                      _linkTokenIndexerIDWidget(context),
+                    ]
                   ],
                 ),
               ),
@@ -65,7 +72,7 @@ class AddAccountPage extends StatelessWidget {
                   bottomWidget: Text('Manually input an address (Debug only)',
                       style: appTextTheme.bodyText1),
                   onTap: () => Navigator.of(context)
-                      .pushNamed(AppRouter.linkManuallyAddress),
+                      .pushNamed(AppRouter.linkManually, arguments: 'address'),
                 ),
               ],
             );
@@ -73,6 +80,28 @@ class AddAccountPage extends StatelessWidget {
 
           return SizedBox();
         });
+  }
+
+  Widget _linkTokenIndexerIDWidget(BuildContext context) {
+    return Column(
+      children: [
+        addDivider(),
+        TappableForwardRowWithContent(
+          leftWidget:
+              Text('Link Indexer TokenID', style: appTextTheme.headline4),
+          bottomWidget: Text('Manually input an indexer tokenID (Debug only)',
+              style: appTextTheme.bodyText1),
+          onTap: () => Navigator.of(context)
+              .pushNamed(AppRouter.linkManually, arguments: 'indexerTokenID'),
+        ),
+        TextButton(
+            onPressed: () {
+              injector<CloudDatabase>().connectionDao.deleteConnectionsByType(
+                  ConnectionType.manuallyIndexerTokenID.rawValue);
+            },
+            child: Text("DELETE ALL")),
+      ],
+    );
   }
 
   Widget _linkAccountOption(BuildContext context) {

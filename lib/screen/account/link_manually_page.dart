@@ -9,25 +9,45 @@ import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/material.dart';
 
-class LinkManuallyAddressPage extends StatefulWidget {
-  const LinkManuallyAddressPage({Key? key}) : super(key: key);
+class LinkManuallyPage extends StatefulWidget {
+  final String type;
+  const LinkManuallyPage({required this.type, Key? key}) : super(key: key);
 
   @override
-  State<LinkManuallyAddressPage> createState() =>
-      _LinkManuallyAddressPageState();
+  State<LinkManuallyPage> createState() => _LinkManuallyPageState();
 }
 
-class _LinkManuallyAddressPageState extends State<LinkManuallyAddressPage> {
+class _LinkManuallyPageState extends State<LinkManuallyPage> {
   TextEditingController _addressController = TextEditingController();
+
+  String get title {
+    switch (widget.type) {
+      case 'address':
+        return 'Link Address';
+      case 'indexerTokenID':
+        return 'Indexer TokenID';
+      default:
+        return '';
+    }
+  }
+
+  String get description {
+    switch (widget.type) {
+      case 'address':
+        return 'To manually input an address (Debug only).';
+      case 'indexerTokenID':
+        return 'To manually input an indexer TokenID (Debug only).';
+      default:
+        return '';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: getBackAppBar(
         context,
-        onBack: () {
-          Navigator.of(context).pop();
-        },
+        onBack: () => Navigator.of(context).pop(),
       ),
       body: Container(
         margin: pageEdgeInsetsWithSubmitButton,
@@ -40,18 +60,18 @@ class _LinkManuallyAddressPageState extends State<LinkManuallyAddressPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Link Address",
+                      title,
                       style: appTextTheme.headline1,
                     ),
                     addTitleSpace(),
                     Text(
-                      "To manually input an address (Debug only).",
+                      description,
                       style: appTextTheme.bodyText1,
                     ),
                     SizedBox(height: 40),
                     AuTextField(
                       title: "",
-                      placeholder: "Paste address",
+                      placeholder: "Paste ${widget.type}",
                       controller: _addressController,
                     ),
                   ],
@@ -63,7 +83,7 @@ class _LinkManuallyAddressPageState extends State<LinkManuallyAddressPage> {
                 Expanded(
                   child: AuFilledButton(
                     text: "LINK".toUpperCase(),
-                    onPress: () => _linkManuallyAddress(),
+                    onPress: () => _link(),
                   ),
                 ),
               ],
@@ -74,11 +94,25 @@ class _LinkManuallyAddressPageState extends State<LinkManuallyAddressPage> {
     );
   }
 
-  void _linkManuallyAddress() async {
-    await injector<AccountService>()
-        .linkManuallyAddress(_addressController.text);
-    UIHelper.showInfoDialog(
-        context, 'Account linked', 'Autonomy has linked your address.');
+  void _link() async {
+    switch (widget.type) {
+      case 'address':
+        await injector<AccountService>()
+            .linkManuallyAddress(_addressController.text);
+        UIHelper.showInfoDialog(
+            context, 'Account linked', 'Autonomy has linked your address.');
+        break;
+
+      case 'indexerTokenID':
+        await injector<AccountService>()
+            .linkIndexerTokenID(_addressController.text);
+        UIHelper.showInfoDialog(
+            context, 'Account linked', 'Autonomy has linked your address.');
+        break;
+
+      default:
+        return;
+    }
 
     Future.delayed(SHORT_SHOW_DIALOG_DURATION, () {
       if (injector<ConfigurationService>().isDoneOnboarding()) {
