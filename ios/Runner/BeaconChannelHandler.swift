@@ -33,9 +33,7 @@ class BeaconChannelHandler: NSObject {
             .map { String(data: $0, encoding: .utf8) }
             .sink(receiveCompletion: {  (completion) in
                 if let error = completion.error {
-                    result(
-                        FlutterError(code: "Failed to addPeer", message: error.localizedDescription, details: nil)
-                    )
+                    result(ErrorHandler.flutterError(error: error, "Failed to addPeer"))
                 }
 
             }, receiveValue: { serializedPeer in

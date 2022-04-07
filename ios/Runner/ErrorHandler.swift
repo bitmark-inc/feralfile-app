@@ -11,6 +11,7 @@ enum AppError: String, Error {
     case pendingBeaconClient = "pendingBeaconClient"
     case incorrectData = "incorrectData"
     case aborted = "aborted"
+    case invalidDeeplink = "invalidDeeplink"
 }
 
 
@@ -27,6 +28,14 @@ struct ErrorHandler {
             "error": 1,
             "reason": error.localizedDescription,
         ]
+    }
+
+    static func flutterError(error: Error, _ defaultMessage: String) -> FlutterError {
+        if let appError = error as? AppError {
+            return FlutterError(code: appError.rawValue, message: defaultMessage, details: nil)
+        }
+
+        return FlutterError(code: defaultMessage, message: error.localizedDescription, details: nil)
     }
 
 }
