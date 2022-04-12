@@ -183,12 +183,10 @@ class ProjectMetadataData {
       };
 }
 
-const _defaultIPFSPrefix = "https://ipfs.io";
-const _cloudflareIPFSPrexix = "https://cloudflare-ipfs.com";
 String _replaceIPFS(String url) {
-  if (url.startsWith(_defaultIPFSPrefix)) {
+  if (url.startsWith(DEFAULT_IPFS_PREFIX)) {
     return url.replaceRange(
-        0, _defaultIPFSPrefix.length, _cloudflareIPFSPrexix);
+        0, DEFAULT_IPFS_PREFIX.length, CLOUDFLARE_IPFS_PREFIX);
   }
   return url;
 }

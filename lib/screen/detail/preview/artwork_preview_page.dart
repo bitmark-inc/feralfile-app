@@ -296,6 +296,8 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
           return SizedBox();
         }
       default:
+        _webViewController?.loadUrl(asset.previewURL!);
+
         return WebView(
             key: Key(asset.assetID ?? asset.id),
             initialUrl: asset.previewURL,
