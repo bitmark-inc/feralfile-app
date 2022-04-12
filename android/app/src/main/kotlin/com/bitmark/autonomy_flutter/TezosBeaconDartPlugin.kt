@@ -28,11 +28,7 @@ import it.airgap.beaconsdk.transport.p2p.matrix.p2pMatrix
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.onEach
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.SerializationException
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.json.Json
+import kotlinx.serialization.*
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
@@ -211,7 +207,7 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
                     dependencyRegistry.crypto
 
                     params["type"] = "beaconRequestedPermission"
-                    val data = jsonKT.encodeToString(it, P2pPeer::class).encodeToByteArray()
+                    val data = jsonKT.encodeToString(it).encodeToByteArray()
                     params["peer"] = data
 
                     rev["eventName"] = "observeEvent"
@@ -231,7 +227,7 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
 
                     params["type"] = "beaconLinked"
                     val data =
-                        jsonKT.encodeToString(it, TezosWalletConnection::class).encodeToByteArray()
+                        jsonKT.encodeToString(it).encodeToByteArray()
                     params["connection"] = data
 
                     rev["eventName"] = "observeEvent"
@@ -342,8 +338,10 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
             type = "postmessage-pairing-request"
         )
 
-        val json = jsonKT.encodeToString(PostMessagePairingRequest.serializer(), peer)
-        val encodedData = dependencyRegistry.base58Check.encode(json.toByteArray(Charsets.UTF_8)).getOrNull() ?: ""
+        val json = jsonKT.encodeToString(peer)
+        val encodedData =
+            dependencyRegistry.base58Check.encode(json.toByteArray(Charsets.UTF_8)).getOrNull()
+                ?: ""
         rev["uri"] = encodedData
 
         result.success(rev)
@@ -380,7 +378,8 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
                 type = "permission_request"
             )
 
-            val json = jsonKT.encodeToString(PostMessagePermissionRequest.serializer(), request)
+            val json = jsonKT.encodeToString(request)
+
             val message =
                 dependencyRegistry.base58Check.encode(json.toByteArray(Charsets.UTF_8)).getOrNull()
                     ?: return
@@ -396,7 +395,7 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
 
             val rev: HashMap<String, Any> = HashMap()
             rev["error"] = 0
-            rev["peer"] = jsonKT.encodeToString(P2pPeer.serializer(), pairingPeer)
+            rev["peer"] = jsonKT.encodeToString(pairingPeer)
             rev["permissionRequestMessage"] = encryptedData
 
             result.success(rev)
@@ -438,7 +437,7 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
                 val rev: HashMap<String, Any> = HashMap()
                 rev["error"] = 0
                 rev["tzAddress"] = tzAddress
-                rev["response"] = jsonKT.encodeToString(PermissionTezosResponse.serializer(), permissionTezosResponse)
+                rev["response"] = jsonKT.encodeToString(permissionTezosResponse)
 
                 result.success(rev)
             } catch (e: SerializationException) {
@@ -693,5 +692,5 @@ data class PostMessageErrorResponse(
     @SerialName("type")
     val type: String,
     @SerialName("errorType")
-    val errorType : String
+    val errorType: String
 )
