@@ -11,7 +11,7 @@ class PreferenceUpdateEvent extends PreferenceEvent {
 class PreferenceState {
   final bool isImmediatePlaybackEnabled;
   bool isDevicePasscodeEnabled;
-  final bool isNotificationEnabled;
+  bool isNotificationEnabled;
   final bool isAnalyticEnabled;
   final String authMethodName;
 
