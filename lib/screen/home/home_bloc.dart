@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tokens_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -64,7 +65,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       try {
         late List<String> allAccountNumbers;
         if (_configurationService.isDemoArtworksMode()) {
-          allAccountNumbers = ["demo"];
+          allAccountNumbers = [await getDemoAccount()];
         } else {
           final allAddresses = await _getPersonaAddresses();
           final linkedAccounts =

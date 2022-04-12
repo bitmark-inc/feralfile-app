@@ -6,6 +6,7 @@ import 'package:autonomy_flutter/util/biometrics_util.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 
 class PreferencesBloc extends Bloc<PreferenceEvent, PreferenceState> {
   ConfigurationService _configurationService;
@@ -65,6 +66,11 @@ class PreferencesBloc extends Bloc<PreferenceEvent, PreferenceState> {
       }
 
       if (event.newState.isNotificationEnabled != state.isNotificationEnabled) {
+        if (event.newState.isNotificationEnabled == true) {
+          event.newState.isNotificationEnabled =
+              await OneSignal.shared.promptUserForPushNotificationPermission();
+        }
+
         await _configurationService
             .setNotificationEnabled(event.newState.isNotificationEnabled);
       }
