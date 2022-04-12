@@ -19,7 +19,7 @@ abstract class AssetTokenDao {
   @Query('SELECT id FROM AssetToken')
   Future<List<String>> findAllAssetTokenIDs();
 
-  @insert
+  @Insert(onConflict: OnConflictStrategy.replace)
   Future<void> insertAsset(AssetToken asset);
 
   @Insert(onConflict: OnConflictStrategy.replace)
