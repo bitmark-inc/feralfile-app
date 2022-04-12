@@ -2,11 +2,13 @@ buildscript {
     repositories {
         // ...
         maven { url 'https://plugins.gradle.org/m2/' } // Gradle Plugin Portal
+        google()  // Google's Maven repository
     }
     dependencies {
         // ...
         // OneSignal-Gradle-Plugin
         classpath 'gradle.plugin.com.onesignal:onesignal-gradle-plugin:[0.12.10, 0.99.99]'
+        classpath 'com.google.gms:google-services:4.3.10'
     }
 }
 
@@ -50,6 +52,7 @@ if (flutterVersionName == null) {
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlinx-serialization'
+apply plugin: 'com.google.gms.google-services'
 
 apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
 
