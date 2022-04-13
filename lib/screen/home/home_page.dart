@@ -7,6 +7,7 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
+import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';

@@ -14,6 +14,9 @@ abstract class IAPApi {
   @POST("/auth")
   Future<JWT> verifyIAP(@Body() Map<String, String> body);
 
+  @POST("/apis/v1/auth")
+  Future<JWT> auth(@Body() Map<String, String?> body);
+
   @MultiPart()
   @POST("/apis/v1/premium/profile-data")
   Future<dynamic> uploadProfile(
