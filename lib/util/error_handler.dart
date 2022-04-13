@@ -56,6 +56,14 @@ ErrorEvent? translateError(Object exception) {
         "Uh oh!",
         "Cannot connect to the Tezos node (smartpy.io) at the moment.\nPlease try later.",
         ErrorItemState.suggestReportIssue);
+  } else if (exception is PlatformException) {
+    switch (exception.code) {
+      case 'invalidDeeplink':
+        return ErrorEvent(exception, "Uh oh!", "The link is not valid",
+            ErrorItemState.suggestReportIssue);
+      default:
+        break;
+    }
   }
 
   return ErrorEvent(

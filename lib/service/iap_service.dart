@@ -90,10 +90,16 @@ class IAPServiceImpl implements IAPService {
 
   Future<bool> renewJWT() async {
     final receiptData = _configurationService.getIAPReceipt();
-    if (receiptData == null) return false;
+    if (receiptData == null) {
+      _configurationService.setIAPJWT(null);
+      return false;
+    }
 
     final jwt = await _verifyPurchase(receiptData);
-    if (jwt == null) return false;
+    if (jwt == null) {
+      _configurationService.setIAPJWT(null);
+      return false;
+    }
     _configurationService.setIAPJWT(jwt);
     return true;
   }

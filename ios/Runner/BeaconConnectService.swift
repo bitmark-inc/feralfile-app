@@ -302,13 +302,15 @@ fileprivate extension BeaconConnectService {
     func extractPeer(from deeplink: String) throws -> Beacon.P2PPeer {
         guard let message = URLComponents(string: deeplink)?.queryItems?.first(where: { $0.name == "data" })?.value,
               let messageData = Base58.base58CheckDecode(message) else {
-                  throw BeaconConnectError.invalidDeeplink
+                    Logger.info("[invalidDeeplink] \(deeplink)")
+                  throw AppError.invalidDeeplink
               }
 
         let decoder = JSONDecoder()
         let data = Data(messageData)
         guard let peer = try? decoder.decode(Beacon.P2PPeer.self, from: data) else {
-            throw BeaconConnectError.invalidDeeplink
+            Logger.info("[invalidDeeplink] \(deeplink)")
+            throw AppError.invalidDeeplink
         }
 
         return peer
@@ -316,6 +318,5 @@ fileprivate extension BeaconConnectService {
 }
 
 enum BeaconConnectError: Error {
-    case invalidDeeplink
     case pendingBeaconClient
 }
