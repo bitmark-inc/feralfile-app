@@ -66,7 +66,7 @@ class PreferencesBloc extends Bloc<PreferenceEvent, PreferenceState> {
       }
 
       if (event.newState.isNotificationEnabled != state.isNotificationEnabled) {
-        if (event.newState.isNotificationEnabled == true) {
+        if (event.newState.isNotificationEnabled == true && Platform.isIOS) {
           event.newState.isNotificationEnabled =
               await OneSignal.shared.promptUserForPushNotificationPermission();
         }
