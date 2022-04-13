@@ -87,8 +87,10 @@ class BeaconChannelHandler: NSObject {
         switch request {
         case let .permission(permissionRequest):
             let publicKey: String? = args["publicKey"] as? String
+
             if let publicKey = publicKey {
-                response = permissionRequest.connect(publicKey: publicKey)
+                guard let address = args["address"] as? String else { return }
+                response = try! permissionRequest.connect(publicKey: publicKey, address: address)
             } else {
                 response = permissionRequest.decline()
             }
@@ -242,7 +244,6 @@ extension BeaconChannelHandler: FlutterStreamHandler {
                 self?.requests.append(request)
                 var params: [String: Any] = [
                         "id": request.id,
-                        "blockchainIdentifier": request.blockchainIdentifier,
                         "senderID": request.senderID,
                         "version": request.version,
                         "originID": request.origin.id,

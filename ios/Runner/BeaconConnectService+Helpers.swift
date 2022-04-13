@@ -11,9 +11,15 @@ import BeaconCore
 import BeaconBlockchainTezos
 
 extension PermissionTezosRequest {
-    func connect(publicKey: String) -> TezosBeaconResponse {
-        .permission(
-            PermissionTezosResponse(from: self, publicKey: publicKey)
+    func connect(publicKey: String, address: String) throws -> TezosBeaconResponse {
+        return .permission(
+            PermissionTezosResponse(
+                from: self,
+                account: try Tezos.Account(
+                    publicKey: publicKey,
+                    address: address,
+                    network: network
+                ))
         )
     }
 
@@ -30,7 +36,7 @@ extension SignPayloadTezosRequest {
     }
 
     func decline() -> TezosBeaconResponse {
-        .error(ErrorBeaconResponse(from: self, errorType: .aborted))
+        .error(ErrorBeaconResponse(id: id, version: version, requestOrigin: origin, errorType: .aborted))
     }
 }
 
@@ -42,7 +48,7 @@ extension OperationTezosRequest {
     }
 
     func decline() -> TezosBeaconResponse {
-        .error(ErrorBeaconResponse(from: self, errorType: .aborted))
+        .error(ErrorBeaconResponse(id: id, version: version, requestOrigin: origin, errorType: .aborted))
     }
 }
 
