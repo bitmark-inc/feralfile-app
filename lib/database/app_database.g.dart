@@ -362,7 +362,7 @@ class _$AssetTokenDao extends AssetTokenDao {
 
   @override
   Future<void> insertAsset(AssetToken asset) async {
-    await _assetTokenInsertionAdapter.insert(asset, OnConflictStrategy.abort);
+    await _assetTokenInsertionAdapter.insert(asset, OnConflictStrategy.replace);
   }
 
   @override
