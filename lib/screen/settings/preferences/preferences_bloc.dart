@@ -13,8 +13,9 @@ class PreferencesBloc extends Bloc<PreferenceEvent, PreferenceState> {
   List<BiometricType> _availableBiometrics = List.empty();
 
   PreferencesBloc(this._configurationService)
-      : super(PreferenceState(false, false, false, false, "")) {
+      : super(PreferenceState("", false, false, false, false, "")) {
     on<PreferenceInfoEvent>((event, emit) async {
+      final gallerySortBy = _configurationService.getGallerySortBy();
       final isImmediatePlaybackEnabled =
           _configurationService.isImmediatePlaybackEnabled();
 
@@ -26,6 +27,7 @@ class PreferencesBloc extends Bloc<PreferenceEvent, PreferenceState> {
       final analyticsEnabled = _configurationService.isAnalyticsEnabled();
 
       emit(PreferenceState(
+          gallerySortBy,
           isImmediatePlaybackEnabled,
           passcodeEnabled && canCheckBiometrics,
           notificationEnabled,
@@ -34,6 +36,11 @@ class PreferencesBloc extends Bloc<PreferenceEvent, PreferenceState> {
     });
 
     on<PreferenceUpdateEvent>((event, emit) async {
+      if (event.newState.gallerySortBy != state.gallerySortBy) {
+        await _configurationService
+            .setGallerySortBy(event.newState.gallerySortBy);
+      }
+
       if (event.newState.isImmediatePlaybackEnabled !=
           state.isImmediatePlaybackEnabled) {
         await _configurationService.setImmediatePlaybackEnabled(
