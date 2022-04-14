@@ -33,8 +33,10 @@ class TezosBeaconChannel {
     await _channel.invokeMethod('removePeer', {'peer': peerJSON});
   }
 
-  Future permissionResponse(String id, String? publicKey) async {
-    await _channel.invokeMethod('response', {"id": id, "publicKey": publicKey});
+  Future permissionResponse(
+      String id, String? publicKey, String? address) async {
+    await _channel.invokeMethod(
+        'response', {"id": id, "publicKey": publicKey, "address": address});
   }
 
   Future signResponse(String id, String? signature) async {
@@ -96,7 +98,6 @@ class TezosBeaconChannel {
       switch (event['eventName']) {
         case 'observeRequest':
           final String id = params["id"];
-          final String blockchainIdentifier = params["blockchainIdentifier"];
           final String senderID = params["senderID"];
           final String version = params["version"];
           final String originID = params["originID"];
@@ -104,8 +105,8 @@ class TezosBeaconChannel {
           final String? appName = params["appName"];
           final String? icon = params["icon"];
 
-          final request = BeaconRequest(id, blockchainIdentifier, senderID,
-              version, originID, type, appName, icon);
+          final request = BeaconRequest(
+              id, senderID, version, originID, type, appName, icon);
           switch (type) {
             case "signPayload":
               final String? payload = params["payload"];
@@ -180,7 +181,6 @@ abstract class BeaconHandler {
 
 class BeaconRequest {
   final String id;
-  final String blockchainIdentifier;
   final String senderID;
   final String version;
   final String originID;
@@ -192,6 +192,6 @@ class BeaconRequest {
   String? payload;
   String? sourceAddress;
 
-  BeaconRequest(this.id, this.blockchainIdentifier, this.senderID, this.version,
-      this.originID, this.type, this.appName, this.icon);
+  BeaconRequest(this.id, this.senderID, this.version, this.originID, this.type,
+      this.appName, this.icon);
 }

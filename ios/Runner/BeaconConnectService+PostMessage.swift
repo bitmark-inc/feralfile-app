@@ -109,9 +109,10 @@ extension BeaconConnectService {
                 do {
                     let postMessageResponse = try JSONDecoder().decode(
                         PostMessageResponse.self, from: Data(decodedMessage))
-                    
-                    let permissionTezosResponse = postMessageResponse.convertToPermissionRequest()
+
                     let tzAddress = try beaconDappClient.crypto.address(fromPublicKey: postMessageResponse.publicKey)
+                    let permissionTezosResponse = try postMessageResponse.convertToPermissionRequest(address: tzAddress)
+
                     
                     promise(.success((tzAddress, permissionTezosResponse)))
                     
@@ -192,7 +193,7 @@ struct PostMessagePermissionRequest: Codable {
     public let id: String
     public let blockchainIdentifier: String
     public let senderID: String
-    public let appMetadata: Beacon.AppMetadata
+    public let appMetadata: AnyAppMetadata
     public let network: Tezos.Network
     public let scopes: [Tezos.Permission.Scope]
     public let version: String
@@ -220,16 +221,14 @@ struct PostMessageErrorResponse: Codable {
 }
 
 extension PostMessageResponse {
-    public func convertToPermissionRequest() -> PermissionTezosResponse {
+    public func convertToPermissionRequest(address: String) throws -> PermissionTezosResponse  {
         PermissionTezosResponse(
             id: id,
-            blockchainIdentifier: Tezos.identifier,
-            publicKey: publicKey,
-            network: network,
-            scopes: scopes,
-            threshold: nil,
+            version: version,
             // this should be postMessage or something, but the app crashes if I updated for unknown reason, so I just let it .p2p for now
-            version: version, requestOrigin: Beacon.Origin.p2p(id: senderId)
+            requestOrigin: Beacon.Origin.p2p(id: senderId),
+            account: try Tezos.Account(publicKey: publicKey, address: address, network: network),
+            scopes: scopes
         )
     }
 }

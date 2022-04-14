@@ -45,6 +45,8 @@
 		768E7EE927C770D000585D12 /* SystemChannelHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 768E7EE827C770D000585D12 /* SystemChannelHandler.swift */; };
 		768E7EEB27CE4C5D00585D12 /* CloudKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 768E7EEA27CE4C5D00585D12 /* CloudKitManager.swift */; };
 		768E7EED27CE506600585D12 /* CloudChannelHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 768E7EEC27CE506600585D12 /* CloudChannelHandler.swift */; };
+		76AA1D4B2806E79000E21A83 /* BeaconBlockchainSubstrate in Frameworks */ = {isa = PBXBuildFile; productRef = 76AA1D4A2806E79000E21A83 /* BeaconBlockchainSubstrate */; };
+		76AA1D4D280787D800E21A83 /* BeaconBlockchainSubstrate in Frameworks */ = {isa = PBXBuildFile; productRef = 76AA1D4C280787D800E21A83 /* BeaconBlockchainSubstrate */; };
 		76B4E10527F585BA00FB762F /* LaunchScreenInhouse.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 768D9FDA27F566950016928E /* LaunchScreenInhouse.storyboard */; };
 		76F3288827CE585F00C3B9FA /* CloudKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 76F3288727CE585F00C3B9FA /* CloudKit.framework */; };
 		76F3289427D1EC1C00C3B9FA /* BeaconChannelHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399594127B2C2FA002653E7 /* BeaconChannelHandler.swift */; };
@@ -230,6 +232,7 @@
 				76F3289F27D1EC1C00C3B9FA /* BeaconBlockchainTezos in Frameworks */,
 				58A4B4F727E33AA0001F30D2 /* libsqlite3.tbd in Frameworks */,
 				76F328A027D1EC1C00C3B9FA /* LibAuk in Frameworks */,
+				76AA1D4D280787D800E21A83 /* BeaconBlockchainSubstrate in Frameworks */,
 				76F328A127D1EC1C00C3B9FA /* BeaconTransportP2PMatrix in Frameworks */,
 				76F328A227D1EC1C00C3B9FA /* BeaconClientWallet in Frameworks */,
 				76F328A327D1EC1C00C3B9FA /* BeaconCore in Frameworks */,
@@ -245,6 +248,7 @@
 				63F1664B27B2509F00451AAA /* BeaconBlockchainTezos in Frameworks */,
 				63CED4A827AE9DFC00699ED5 /* LibAuk in Frameworks */,
 				58A4B4F627E33A99001F30D2 /* libsqlite3.tbd in Frameworks */,
+				76AA1D4B2806E79000E21A83 /* BeaconBlockchainSubstrate in Frameworks */,
 				63F1665127B2509F00451AAA /* BeaconTransportP2PMatrix in Frameworks */,
 				63F1664D27B2509F00451AAA /* BeaconClientWallet in Frameworks */,
 				63F1664F27B2509F00451AAA /* BeaconCore in Frameworks */,
@@ -449,6 +453,7 @@
 				76F3288E27D1EC1C00C3B9FA /* BeaconClientWallet */,
 				76F3288F27D1EC1C00C3B9FA /* BeaconCore */,
 				76F3289027D1EC1C00C3B9FA /* BeaconTransportP2PMatrix */,
+				76AA1D4C280787D800E21A83 /* BeaconBlockchainSubstrate */,
 			);
 			productName = Runner;
 			productReference = 76F328B127D1EC1C00C3B9FA /* Runner Inhouse.app */;
@@ -480,6 +485,7 @@
 				63F1664C27B2509F00451AAA /* BeaconClientWallet */,
 				63F1664E27B2509F00451AAA /* BeaconCore */,
 				63F1665027B2509F00451AAA /* BeaconTransportP2PMatrix */,
+				76AA1D4A2806E79000E21A83 /* BeaconBlockchainSubstrate */,
 			);
 			productName = Runner;
 			productReference = 97C146EE1CF9000F007C117D /* Runner.app */;
@@ -1498,7 +1504,7 @@
 			repositoryURL = "https://github.com/autonomy-system/beacon-ios-sdk";
 			requirement = {
 				kind = revision;
-				revision = d095afb7ae5d121d2c9a2a6306d0a9cd0de8753f;
+				revision = 140c4a1526fee625641f5e8d2beafafd037abd22;
 			};
 		};
 		76F3288B27D1EC1C00C3B9FA /* XCRemoteSwiftPackageReference "libauk-swift" */ = {
@@ -1544,6 +1550,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 63F1664927B2509F00451AAA /* XCRemoteSwiftPackageReference "beacon-ios-sdk" */;
 			productName = BeaconTransportP2PMatrix;
+		};
+		76AA1D4A2806E79000E21A83 /* BeaconBlockchainSubstrate */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 63F1664927B2509F00451AAA /* XCRemoteSwiftPackageReference "beacon-ios-sdk" */;
+			productName = BeaconBlockchainSubstrate;
+		};
+		76AA1D4C280787D800E21A83 /* BeaconBlockchainSubstrate */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 63F1664927B2509F00451AAA /* XCRemoteSwiftPackageReference "beacon-ios-sdk" */;
+			productName = BeaconBlockchainSubstrate;
 		};
 		76F3288A27D1EC1C00C3B9FA /* LibAuk */ = {
 			isa = XCSwiftPackageProductDependency;
