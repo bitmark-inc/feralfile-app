@@ -1,3 +1,8 @@
+import 'package:json_annotation/json_annotation.dart';
+
+part 'tezos_connection.g.dart';
+
+@JsonSerializable()
 class TezosConnection {
   TezosConnection({
     required this.address,
@@ -9,19 +14,13 @@ class TezosConnection {
   Peer peer;
   PermissionResponse permissionResponse;
 
-  factory TezosConnection.fromJson(Map<String, dynamic> json) => TezosConnection(
-    address: json["address"],
-    peer: Peer.fromJson(json["peer"]),
-    permissionResponse: PermissionResponse.fromJson(json["permissionResponse"]),
-  );
+  factory TezosConnection.fromJson(Map<String, dynamic> json) =>
+      _$TezosConnectionFromJson(json);
 
-  Map<String, dynamic> toJson() => {
-    "address": address,
-    "peer": peer.toJson(),
-    "permissionResponse": permissionResponse.toJson(),
-  };
+  Map<String, dynamic> toJson() => _$TezosConnectionToJson(this);
 }
 
+@JsonSerializable()
 class Peer {
   Peer({
     required this.relayServer,
@@ -39,65 +38,58 @@ class Peer {
   String name;
   String version;
 
-  factory Peer.fromJson(Map<String, dynamic> json) => Peer(
-    relayServer: json["relayServer"],
-    id: json["id"],
-    kind: json["kind"],
-    publicKey: json["publicKey"],
-    name: json["name"],
-    version: json["version"],
-  );
+  factory Peer.fromJson(Map<String, dynamic> json) => _$PeerFromJson(json);
 
-  Map<String, dynamic> toJson() => {
-    "relayServer": relayServer,
-    "id": id,
-    "kind": kind,
-    "publicKey": publicKey,
-    "name": name,
-    "version": version,
-  };
+  Map<String, dynamic> toJson() => _$PeerToJson(this);
 }
 
+@JsonSerializable()
 class PermissionResponse {
+  String id;
+  String version;
+  RequestOrigin requestOrigin;
+  List<String> scopes;
+  String? publicKey;
+  TezosNetwork? network;
+  BeaconAccount? account;
+
   PermissionResponse({
-    required this.scopes,
-    required this.blockchainIdentifier,
     required this.id,
-    required this.requestOrigin,
     required this.version,
-    required this.publicKey,
-    required this.network,
+    required this.requestOrigin,
+    required this.scopes,
+    this.publicKey,
+    this.network,
+    this.account,
   });
 
-  List<String> scopes;
-  String blockchainIdentifier;
-  String id;
-  RequestOrigin requestOrigin;
-  String version;
-  String publicKey;
-  TezosNetwork network;
+  factory PermissionResponse.fromJson(Map<String, dynamic> json) =>
+      _$PermissionResponseFromJson(json);
 
-  factory PermissionResponse.fromJson(Map<String, dynamic> json) => PermissionResponse(
-    scopes: List<String>.from(json["scopes"].map((x) => x)),
-    blockchainIdentifier: json["blockchainIdentifier"],
-    id: json["id"],
-    requestOrigin: RequestOrigin.fromJson(json["requestOrigin"]),
-    version: json["version"],
-    publicKey: json["publicKey"],
-    network: TezosNetwork.fromJson(json["network"]),
-  );
-
-  Map<String, dynamic> toJson() => {
-    "scopes": List<dynamic>.from(scopes.map((x) => x)),
-    "blockchainIdentifier": blockchainIdentifier,
-    "id": id,
-    "requestOrigin": requestOrigin.toJson(),
-    "version": version,
-    "publicKey": publicKey,
-    "network": network.toJson(),
-  };
+  Map<String, dynamic> toJson() => _$PermissionResponseToJson(this);
 }
 
+@JsonSerializable()
+class BeaconAccount {
+  String accountId;
+  TezosNetwork network;
+  String publicKey;
+  String address;
+
+  BeaconAccount({
+    required this.accountId,
+    required this.network,
+    required this.publicKey,
+    required this.address,
+  });
+
+  factory BeaconAccount.fromJson(Map<String, dynamic> json) =>
+      _$BeaconAccountFromJson(json);
+
+  Map<String, dynamic> toJson() => _$BeaconAccountToJson(this);
+}
+
+@JsonSerializable()
 class TezosNetwork {
   TezosNetwork({
     required this.type,
@@ -105,15 +97,13 @@ class TezosNetwork {
 
   String type;
 
-  factory TezosNetwork.fromJson(Map<String, dynamic> json) => TezosNetwork(
-    type: json["type"],
-  );
+  factory TezosNetwork.fromJson(Map<String, dynamic> json) =>
+      _$TezosNetworkFromJson(json);
 
-  Map<String, dynamic> toJson() => {
-    "type": type,
-  };
+  Map<String, dynamic> toJson() => _$TezosNetworkToJson(this);
 }
 
+@JsonSerializable()
 class RequestOrigin {
   RequestOrigin({
     required this.kind,
@@ -123,13 +113,8 @@ class RequestOrigin {
   String kind;
   String id;
 
-  factory RequestOrigin.fromJson(Map<String, dynamic> json) => RequestOrigin(
-    kind: json["kind"] ?? json["type"] ?? "",
-    id: json["id"],
-  );
+  factory RequestOrigin.fromJson(Map<String, dynamic> json) =>
+      _$RequestOriginFromJson(json);
 
-  Map<String, dynamic> toJson() => {
-    "kind": kind,
-    "id": id,
-  };
+  Map<String, dynamic> toJson() => _$RequestOriginToJson(this);
 }

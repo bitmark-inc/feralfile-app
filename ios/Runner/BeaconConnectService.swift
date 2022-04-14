@@ -12,6 +12,7 @@ import BeaconClientWallet
 import BeaconTransportP2PMatrix
 import BeaconCore
 import Base58Swift
+import BeaconBlockchainSubstrate
 
 typealias TezosBeaconRequest = BeaconRequest<Tezos>
 typealias TezosBeaconResponse = BeaconResponse<Tezos>
@@ -36,8 +37,8 @@ class BeaconConnectService {
             Beacon.WalletClient.create(
                 with: .init(
                     name: Constant.appname,
-                    blockchains: [Tezos.factory],
-                    connections: [.p2p(.init(client: try Transport.P2P.Matrix.factory()))]
+                    blockchains: [Tezos.factory, Substrate.factory],
+                    connections: [try Transport.P2P.Matrix.connection()]
                 )
             ) { result in
                 switch result {
@@ -92,16 +93,15 @@ class BeaconConnectService {
                 switch response {
                 case let .permission(permissionResponse):
                     guard let beaconDappClient = beaconClient else { return }
-                    let publicKey = permissionResponse.publicKey
                     let peerPublicKey = permissionResponse.requestOrigin.id
 
                     beaconDappClient.storageManager.findPeers(where: { $0.publicKey == peerPublicKey }) { [weak self] result in
                         guard let self = self else { return }
                         switch result {
                         case let .success(peer):
-                            guard let p2pPeer = peer?.toP2P(), let tzAddress = try? beaconDappClient.crypto.address(fromPublicKey: publicKey) else { return }
+                            guard let p2pPeer = peer?.toP2P() else { return }
                             self.eventsSubject
-                                .send(.beaconLinked(p2pPeer, tzAddress, permissionResponse))
+                                .send(.beaconLinked(p2pPeer, permissionResponse.account.address, permissionResponse))
 
                         case let .failure(error):
                             self.eventsSubject
@@ -239,7 +239,7 @@ extension BeaconConnectService {
                     self.backgroundTaskID = UIApplication.shared.beginBackgroundTask (withName: data) {
                         // End the task if time expires.
                         UIApplication.shared.endBackgroundTask(self.backgroundTaskID!)
-                            self.backgroundTaskID = UIBackgroundTaskIdentifier.invalid
+                        self.backgroundTaskID = UIBackgroundTaskIdentifier.invalid
                     }
 
                 case let .failure(error):
@@ -266,30 +266,32 @@ extension BeaconConnectService {
 
                 let result = appMetadataResult.map { appMetadata in
 
-                    let permissionRequest = PermissionTezosRequest(
-                        type: "permission_request",
+                    let permissionRequest = PermissionV2TezosRequest(
+                        version: "2",
                         id: UUID().uuidString.lowercased(),
-                        blockchainIdentifier: Tezos.identifier,
                         senderID: appMetadata.senderID,
-                        appMetadata: appMetadata,
+                        appMetadata:  PermissionV2TezosRequest.AppMetadata(from: appMetadata),
                         network: Tezos.Network(type: .mainnet, name: nil, rpcURL: nil),
-                        scopes: [Tezos.Permission.Scope.operationRequest, Tezos.Permission.Scope.sign],
-                        origin: Beacon.Origin.p2p(id: newPeer.publicKey),
-                        version: "2")
+                        scopes: [Tezos.Permission.Scope.operationRequest, Tezos.Permission.Scope.sign]
+                    )
 
-                    let beaconRequest: BeaconRequest<Tezos> = .permission(permissionRequest)
+                    permissionRequest.toBeaconMessage(
+                        with: Beacon.Origin.p2p(id: newPeer.publicKey)) { (result) in
+                            guard let permissionRequestMessage = result.get(ifFailure: completion) else { return }
 
-                    beaconClient.request(with: beaconRequest) { [weak self] result in
-                        guard let self = self else { return }
-                        switch result {
-                        case .success:
-                            self.eventsSubject.send(.beaconRequestedPermission(newPeer.toP2P()))
+                            beaconClient.request(with: permissionRequestMessage) { [weak self] result in
+                                guard let self = self else { return }
 
-                        case let .failure(error):
-                            Logger.error("Error: \(error)")
-                            completion(.failure(error))
+                                switch result {
+                                case .success:
+                                    self.eventsSubject.send(.beaconRequestedPermission(newPeer.toP2P()))
+
+                                case let .failure(error):
+                                    Logger.error("Error: \(error)")
+                                    completion(.failure(error))
+                                }
+                            }
                         }
-                    }
                 }
 
                 completion(result)
@@ -302,9 +304,9 @@ fileprivate extension BeaconConnectService {
     func extractPeer(from deeplink: String) throws -> Beacon.P2PPeer {
         guard let message = URLComponents(string: deeplink)?.queryItems?.first(where: { $0.name == "data" })?.value,
               let messageData = Base58.base58CheckDecode(message) else {
-                    Logger.info("[invalidDeeplink] \(deeplink)")
-                  throw AppError.invalidDeeplink
-              }
+            Logger.info("[invalidDeeplink] \(deeplink)")
+            throw AppError.invalidDeeplink
+        }
 
         let decoder = JSONDecoder()
         let data = Data(messageData)
