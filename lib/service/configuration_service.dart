@@ -9,7 +9,7 @@ import 'package:wallet_connect/wallet_connect.dart';
 abstract class ConfigurationService {
   Future<void> setIAPReceipt(String? value);
   String? getIAPReceipt();
-  Future<void> setIAPJWT(JWT value);
+  Future<void> setIAPJWT(JWT? value);
   JWT? getIAPJWT();
   Future<void> setWCSessions(List<WCSessionStore> value);
   List<WCSessionStore> getWCSessions();
@@ -103,7 +103,11 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  Future<void> setIAPJWT(JWT value) async {
+  Future<void> setIAPJWT(JWT? value) async {
+    if (value == null) {
+      await _preferences.remove(KEY_IAP_JWT);
+      return;
+    }
     final json = jsonEncode(value);
     await _preferences.setString(KEY_IAP_JWT, json);
   }
