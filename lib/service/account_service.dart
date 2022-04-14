@@ -4,7 +4,6 @@ import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/model/p2p_peer.dart';
-import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
@@ -51,6 +50,19 @@ class AccountService {
     await androidBackupKeys();
 
     return persona;
+  }
+
+  Future<WalletStorage> getDefaultAccount() async {
+    final personas = await _cloudDB.personaDao.getPersonas();
+
+    final Persona defaultPersona;
+    if (personas.isEmpty) {
+      defaultPersona = await createPersona();
+    } else {
+      defaultPersona = personas.first;
+    }
+
+    return LibAukDart.getWallet(defaultPersona.uuid);
   }
 
   Future deletePersona(Persona persona) async {
