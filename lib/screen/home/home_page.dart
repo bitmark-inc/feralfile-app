@@ -4,6 +4,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
@@ -45,6 +46,7 @@ class _HomePageState extends State<HomePage>
   StreamSubscription<FGBGType>? _fgbgSubscription;
   late ScrollController _controller;
   int _cachedImageSize = 0;
+  String _gallerySortBy = GallerySortProperty.Platform;
 
   @override
   void initState() {
@@ -56,6 +58,9 @@ class _HomePageState extends State<HomePage>
     _controller = ScrollController();
     context.read<HomeBloc>().add(RefreshTokensEvent());
     context.read<HomeBloc>().add(ReindexIndexerEvent());
+
+    _gallerySortBy = injector<ConfigurationService>().getGallerySortBy() ??
+        GallerySortProperty.Platform;
   }
 
   @override
@@ -94,39 +99,61 @@ class _HomePageState extends State<HomePage>
         context.read<HomeBloc>().add(ReindexIndexerEvent());
       });
     }
+
+    setState(() {
+      _gallerySortBy = injector<ConfigurationService>().getGallerySortBy() ??
+          GallerySortProperty.Platform;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return PrimaryScrollController(
-      controller: _controller,
-      child: Scaffold(
-          body: BlocBuilder<HomeBloc, HomeState>(builder: (context, state) {
-        final tokens = state.tokens;
-        final shouldShowMainView = tokens != null && tokens.isNotEmpty;
-        final Widget assetsWidget =
-            shouldShowMainView ? _assetsWidget(tokens!) : _emptyGallery();
+    final state = context.watch<HomeBloc>().state;
+    final tokens = state.tokens;
 
-        return Stack(fit: StackFit.loose, children: [
-          assetsWidget,
-          PenroseTopBarView(true, _controller),
-          BlocBuilder<HomeBloc, HomeState>(
-            builder: (context, state) {
-              if (state.fetchTokenState != ActionState.loading)
-                return SizedBox();
+    final shouldShowMainView = tokens != null && tokens.isNotEmpty;
+    IdentityState? identityState;
+    if (_gallerySortBy == GallerySortProperty.ArtistName) {
+      identityState = context.watch<IdentityBloc>().state;
+    }
 
-              return Align(
-                alignment: Alignment.topRight,
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(
-                      0, MediaQuery.of(context).padding.top + 120, 20, 0),
-                  child: CupertinoActivityIndicator(),
+    final Widget assetsWidget = shouldShowMainView
+        ? _assetsWidget(tokens!, identityState?.identityMap)
+        : _emptyGallery();
+
+    return BlocListener<HomeBloc, HomeState>(
+      listener: (context, state) {
+        if (state.tokens == null) return;
+        final fetchingIdentityArtistNames = state.tokens!
+            .map((e) => e.artistName ?? '')
+            .where((e) => (e.startsWith("0x") || e.startsWith("tz")))
+            .toSet();
+        context
+            .read<IdentityBloc>()
+            .add(GetIdentityEvent(fetchingIdentityArtistNames));
+      },
+      child: PrimaryScrollController(
+        controller: _controller,
+        child: Scaffold(
+          body: Stack(
+            fit: StackFit.loose,
+            children: [
+              assetsWidget,
+              PenroseTopBarView(true, _controller),
+              if (state.fetchTokenState == ActionState.loading) ...[
+                Align(
+                  alignment: Alignment.topRight,
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(
+                        0, MediaQuery.of(context).padding.top + 120, 20, 0),
+                    child: CupertinoActivityIndicator(),
+                  ),
                 ),
-              );
-            },
+              ],
+            ],
           ),
-        ]);
-      })),
+        ),
+      ),
     );
   }
 
@@ -148,10 +175,10 @@ class _HomePageState extends State<HomePage>
     );
   }
 
-  Widget _assetsWidget(List<AssetToken> tokens) {
+  Widget _assetsWidget(
+      List<AssetToken> tokens, Map<String, String>? identityMap) {
     final groupByProperty = groupBy(tokens, (AssetToken obj) {
-      switch (injector<ConfigurationService>().getGallerySortBy() ??
-          GallerySortProperty.Platform) {
+      switch (_gallerySortBy) {
         case GallerySortProperty.Medium:
           return obj.medium?.capitalize();
         case GallerySortProperty.ArtistName:
@@ -180,9 +207,12 @@ class _HomePageState extends State<HomePage>
       }
 
       var _sortingPropertyValue = sortingPropertyValue;
-      if (injector<ConfigurationService>().getGallerySortBy() ==
-          GallerySortProperty.ArtistName) {
-        _sortingPropertyValue = _sortingPropertyValue?.maskIfNeeded();
+      if (_sortingPropertyValue != null &&
+          _gallerySortBy == GallerySortProperty.ArtistName) {
+        final identity = identityMap?[_sortingPropertyValue];
+        _sortingPropertyValue = (identity != null && identity.isNotEmpty)
+            ? identity
+            : _sortingPropertyValue.maskIfNeeded();
       }
 
       return <Widget>[
