@@ -1,8 +1,15 @@
 import 'dart:io';
 
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/gateway/iap_api.dart';
+import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_state.dart';
+import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/biometrics_util.dart';
+import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -10,10 +17,13 @@ import 'package:onesignal_flutter/onesignal_flutter.dart';
 
 class PreferencesBloc extends Bloc<PreferenceEvent, PreferenceState> {
   ConfigurationService _configurationService;
+  AccountService _accountService;
+  IAPApi _iapApi;
   LocalAuthentication _localAuth = LocalAuthentication();
   List<BiometricType> _availableBiometrics = List.empty();
 
-  PreferencesBloc(this._configurationService)
+  PreferencesBloc(
+      this._configurationService, this._accountService, this._iapApi)
       : super(PreferenceState(false, false, false, false, "")) {
     on<PreferenceInfoEvent>((event, emit) async {
       final isImmediatePlaybackEnabled =
@@ -66,13 +76,25 @@ class PreferencesBloc extends Bloc<PreferenceEvent, PreferenceState> {
       }
 
       if (event.newState.isNotificationEnabled != state.isNotificationEnabled) {
-        if (event.newState.isNotificationEnabled == true && Platform.isIOS) {
-          event.newState.isNotificationEnabled =
-              await OneSignal.shared.promptUserForPushNotificationPermission();
-        }
+        try {
+          if (event.newState.isNotificationEnabled == true && Platform.isIOS) {
+            event.newState.isNotificationEnabled = await OneSignal.shared
+                .promptUserForPushNotificationPermission();
+          }
 
-        await _configurationService
-            .setNotificationEnabled(event.newState.isNotificationEnabled);
+          final environment = await getAppVariant();
+          final identityHash =
+              (await _iapApi.generateIdentityHash({"environment": environment}))
+                  .hash;
+          final defaultDID =
+              await (await _accountService.getDefaultAccount()).getAccountDID();
+          await OneSignal.shared.setExternalUserId(defaultDID, identityHash);
+
+          await _configurationService
+              .setNotificationEnabled(event.newState.isNotificationEnabled);
+        } catch (error) {
+          log.warning("Error when setting notification: $error");
+        }
       }
 
       if (event.newState.isAnalyticEnabled != state.isAnalyticEnabled) {

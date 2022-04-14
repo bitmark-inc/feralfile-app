@@ -21,6 +21,10 @@ Future<String> getOneSignalAppID() async {
       : "60c6ff6b-b7af-44ad-b924-5e674e7d54c4";
 }
 
+Future<String> getAppVariant() async {
+  return await isAppCenterBuild() ? "inhouse" : "production";
+}
+
 enum WalletApp {
   MetaMask,
   Kukai,
