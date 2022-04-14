@@ -38,6 +38,10 @@ import Sentry
                 LibAukChannelHandler.shared.getName(call: call, result: result)
             case "updateName":
                 LibAukChannelHandler.shared.updateName(call: call, result: result)
+            case "getAccountDID":
+                LibAukChannelHandler.shared.getAccountDID(call: call, result: result)
+            case "getAccountDIDSignature":
+                LibAukChannelHandler.shared.getAccountDIDSignature(call: call, result: result)
             case "isWalletCreated":
                 LibAukChannelHandler.shared.isWalletCreated(call: call, result: result)
             case "getETHAddress":

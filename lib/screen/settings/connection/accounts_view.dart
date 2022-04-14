@@ -9,10 +9,10 @@ import 'package:autonomy_flutter/util/theme_manager.dart';
 import 'package:autonomy_flutter/view/account_view.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:flutter/cupertino.dart';
 
 class AccountsView extends StatefulWidget {
   final bool isInSettingsPage;
@@ -56,27 +56,40 @@ class _AccountsViewState extends State<AccountsView> {
             ...accounts
                 .map((account) => Column(
                       children: [
-                        Slidable(
-                            key: UniqueKey(),
-                            groupTag: 'accountsView',
-                            closeOnScroll: true,
-                            endActionPane: ActionPane(
-                              motion: const DrawerMotion(),
-                              dragDismissible: false,
-                              children: slidableActions(account),
-                            ),
-                            child: Column(
-                              children: [
-                                SizedBox(height: 16),
-                                if (_editingAccountKey == null ||
-                                    _editingAccountKey != account.key) ...[
-                                  _viewAccountItem(account),
-                                ] else ...[
-                                  _editAccountItem(account),
+                        accounts.indexOf(account) != 0
+                            ? Slidable(
+                                key: UniqueKey(),
+                                groupTag: 'accountsView',
+                                closeOnScroll: true,
+                                endActionPane: ActionPane(
+                                  motion: const DrawerMotion(),
+                                  dragDismissible: false,
+                                  children: slidableActions(account),
+                                ),
+                                child: Column(
+                                  children: [
+                                    SizedBox(height: 16),
+                                    if (_editingAccountKey == null ||
+                                        _editingAccountKey != account.key) ...[
+                                      _viewAccountItem(account),
+                                    ] else ...[
+                                      _editAccountItem(account),
+                                    ],
+                                    SizedBox(height: 16),
+                                  ],
+                                ))
+                            : Column(
+                                children: [
+                                  SizedBox(height: 16),
+                                  if (_editingAccountKey == null ||
+                                      _editingAccountKey != account.key) ...[
+                                    _viewAccountItem(account),
+                                  ] else ...[
+                                    _editAccountItem(account),
+                                  ],
+                                  SizedBox(height: 16),
                                 ],
-                                SizedBox(height: 16),
-                              ],
-                            )),
+                              ),
                         Divider(
                             height: 1.0,
                             thickness: 1.0,
