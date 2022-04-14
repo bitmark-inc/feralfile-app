@@ -25,8 +25,8 @@ class IdentityBloc extends Bloc<IdentityEvent, IdentityState> {
           if (identity != null) {
             if (identity.queriedAt
                     .add(localIdentityCacheDuration)
-                    .compareTo(DateTime.now()) ==
-                -1) {
+                    .compareTo(DateTime.now()) >=
+                0) {
               // If the identity cache are still ok, add to the map
               resultFromDB[address] = identity.name;
             } else {
