@@ -13,4 +13,11 @@ class Logger {
         print(message)
         SentrySDK.capture(message: message)
     }
+
+    static func info(_ message: String) {
+        let crumb = Breadcrumb()
+        crumb.level = SentryLevel.info
+        crumb.message = message
+        SentrySDK.addBreadcrumb(crumb: crumb)
+    }
 }

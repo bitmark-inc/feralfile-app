@@ -521,8 +521,9 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
                 onTap: onNameTap,
               ),
               if (subTitle != null) ...[
-                // SizedBox(height: 3),
-                Text(subTitle, style: appTextTheme.headline4),
+                SizedBox(height: 2),
+                Text(subTitle,
+                    style: appTextTheme.headline4?.copyWith(fontSize: 12)),
               ]
             ],
           ),

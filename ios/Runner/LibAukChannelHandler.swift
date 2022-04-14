@@ -103,6 +103,39 @@ class LibAukChannelHandler {
         ])
     }
     
+    func getAccountDID(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args: NSDictionary = call.arguments as! NSDictionary
+        let uuid: String = args["uuid"] as! String
+        
+        LibAuk.shared.storage(for: UUID(uuidString: uuid)!)
+            .getAccountDID()
+            .sink(receiveCompletion: { _ in }, receiveValue: { (accountDID) in
+                result([
+                    "error": 0,
+                    "msg": "exportMnemonicWords success",
+                    "data": accountDID,
+                ])
+            })
+            .store(in: &cancelBag)
+    }
+    
+    func getAccountDIDSignature(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args: NSDictionary = call.arguments as! NSDictionary
+        let uuid: String = args["uuid"] as! String
+        let message: String = args["message"] as! String
+
+        LibAuk.shared.storage(for: UUID(uuidString: uuid)!)
+            .getAccountDIDSignature(message: message)
+            .sink(receiveCompletion: { _ in }, receiveValue: { (signature) in
+                result([
+                    "error": 0,
+                    "msg": "exportMnemonicWords success",
+                    "data": signature,
+                ])
+            })
+            .store(in: &cancelBag)
+    }
+    
     func getETHAddress(call: FlutterMethodCall, result: @escaping FlutterResult) {
         let args: NSDictionary = call.arguments as! NSDictionary
         let uuid: String = args["uuid"] as! String

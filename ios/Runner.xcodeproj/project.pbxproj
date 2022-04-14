@@ -1490,7 +1490,7 @@
 			repositoryURL = "https://github.com/bitmark-inc/libauk-swift.git";
 			requirement = {
 				kind = revision;
-				revision = f74029c0913a9409c88a6c4eb730657dd07a7839;
+				revision = 62fd36e674d2b20b1190a6d8ba554972248d79e7;
 			};
 		};
 		63F1664927B2509F00451AAA /* XCRemoteSwiftPackageReference "beacon-ios-sdk" */ = {
