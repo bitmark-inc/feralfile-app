@@ -15,6 +15,8 @@ abstract class ConfigurationService {
   List<WCSessionStore> getWCSessions();
   Future<void> setNetwork(Network value);
   Network getNetwork();
+  Future<void> setGallerySortBy(String? value);
+  String? getGallerySortBy();
   Future<void> setImmediatePlaybackEnabled(bool value);
   bool isImmediatePlaybackEnabled();
   Future<void> setDevicePasscodeEnabled(bool value);
@@ -60,6 +62,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_IAP_JWT = "key_iap_jwt";
   static const String KEY_WC_SESSIONS = "key_wc_sessions";
   static const String KEY_NETWORK = "key_network";
+  static const String KEY_GALLERY_SORT_BY = 'gallery_sort_by';
   static const String KEY_IMMEDIATE_PLAYBACK = 'immediate_playback';
   static const String KEY_DEVICE_PASSCODE = "device_passcode";
   static const String KEY_NOTIFICATION = "notifications";
@@ -155,6 +158,20 @@ class ConfigurationServiceImpl implements ConfigurationService {
     } catch (e) {
       return Network.MAINNET;
     }
+  }
+
+  Future<void> setGallerySortBy(String? value) async {
+    log.info("setGallerySortBy: $value");
+    if (value == null) {
+      _preferences.remove(KEY_GALLERY_SORT_BY);
+      return;
+    }
+
+    _preferences.setString(KEY_GALLERY_SORT_BY, value);
+  }
+
+  String? getGallerySortBy() {
+    return _preferences.getString(KEY_GALLERY_SORT_BY);
   }
 
   Future<void> setImmediatePlaybackEnabled(bool value) async {

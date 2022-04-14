@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tokens_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/au_cached_manager.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/penrose_top_bar_view.dart';
@@ -29,6 +30,7 @@ import 'package:flutter_fgbg/flutter_fgbg.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:path/path.dart' as p;
 import 'package:uni_links/uni_links.dart';
+import 'package:autonomy_flutter/util/string_ext.dart';
 
 class HomePage extends StatefulWidget {
   static const tag = "home";
@@ -147,15 +149,27 @@ class _HomePageState extends State<HomePage>
   }
 
   Widget _assetsWidget(List<AssetToken> tokens) {
-    final groupBySource = groupBy(tokens, (AssetToken obj) => obj.source);
-    var sortedKeys = groupBySource.keys.toList()..sort();
+    final groupByProperty = groupBy(tokens, (AssetToken obj) {
+      switch (injector<ConfigurationService>().getGallerySortBy() ??
+          GallerySortProperty.Platform) {
+        case GallerySortProperty.Medium:
+          return obj.medium?.capitalize();
+        case GallerySortProperty.ArtistName:
+          return obj.artistName;
+        case GallerySortProperty.Chain:
+          return obj.blockchain.capitalize();
+        default:
+          return polishSource(obj.source ?? "");
+      }
+    });
+    var sortedKeys = groupByProperty.keys.toList()..sort();
     final tokenIDs = sortedKeys
-        .map((e) => groupBySource[e] ?? [])
+        .map((e) => groupByProperty[e] ?? [])
         .expand((element) => element.map((e) => e.id))
         .toList();
 
-    var sources = sortedKeys.map((source) {
-      final assets = groupBySource[source] ?? [];
+    var sources = sortedKeys.map((sortingPropertyValue) {
+      final assets = groupByProperty[sortingPropertyValue] ?? [];
       const int cellPerRow = 3;
       const double cellSpacing = 3.0;
       if (_cachedImageSize == 0) {
@@ -164,9 +178,22 @@ class _HomePageState extends State<HomePage>
                 cellSpacing * (cellPerRow - 1);
         _cachedImageSize = (estimatedCellWidth * 3).ceil();
       }
+
+      var _sortingPropertyValue = sortingPropertyValue;
+      if (injector<ConfigurationService>().getGallerySortBy() ==
+          GallerySortProperty.ArtistName) {
+        _sortingPropertyValue = _sortingPropertyValue?.maskIfNeeded();
+      }
+
       return <Widget>[
-        SliverPersistentHeader(
-          delegate: CategoryHeaderDelegate(source),
+        SliverToBoxAdapter(
+          child: Container(
+            padding: EdgeInsets.fromLTRB(14, 0, 24, 14),
+            child: Text(
+              _sortingPropertyValue ?? '',
+              style: appTextTheme.headline1,
+            ),
+          ),
         ),
         SliverGrid(
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -342,31 +369,4 @@ class _HomePageState extends State<HomePage>
         break;
     }
   }
-}
-
-class CategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
-  final String? source;
-  CategoryHeaderDelegate(this.source);
-
-  @override
-  Widget build(
-      BuildContext context, double shrinkOffset, bool overlapsContent) {
-    return Container(
-      padding: EdgeInsets.fromLTRB(14, 0, 24, 14),
-      child: Text(
-        polishSource(source ?? ""),
-        style: appTextTheme.headline1,
-      ),
-    );
-  }
-
-  @override
-  double get maxExtent => 67;
-
-  @override
-  double get minExtent => 67;
-
-  @override
-  bool shouldRebuild(covariant CategoryHeaderDelegate oldDelegate) =>
-      oldDelegate.source != source;
 }
