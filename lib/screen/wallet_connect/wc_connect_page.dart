@@ -88,7 +88,7 @@ class _WCConnectPageState extends State<WCConnectPage>
 
     if (beaconRequest != null) {
       injector<TezosBeaconService>()
-          .permissionResponse(null, beaconRequest.id, null);
+          .permissionResponse(null, beaconRequest.id, null, null);
     }
 
     Navigator.of(context).pop();
@@ -137,7 +137,11 @@ class _WCConnectPageState extends State<WCConnectPage>
           .I<TezosService>()
           .getPublicKey(tezosWallet);
       await injector<TezosBeaconService>().permissionResponse(
-          selectedPersona!.uuid, beaconRequest.id, publicKey);
+        selectedPersona!.uuid,
+        beaconRequest.id,
+        publicKey,
+        tezosWallet.address,
+      );
       payloadAddress = tezosWallet.address;
       payloadType = CryptoType.XTZ;
     }
