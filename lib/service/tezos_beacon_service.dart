@@ -55,8 +55,9 @@ class TezosBeaconService implements BeaconHandler {
     await _beaconChannel.removePeer(peer);
   }
 
-  Future permissionResponse(String? uuid, String id, String? publicKey) async {
-    await _beaconChannel.permissionResponse(id, publicKey);
+  Future permissionResponse(
+      String? uuid, String id, String? publicKey, String? address) async {
+    await _beaconChannel.permissionResponse(id, publicKey, address);
 
     if (_currentPeer != null && uuid != null) {
       final peer = _currentPeer!;
