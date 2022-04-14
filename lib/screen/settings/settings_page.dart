@@ -1,4 +1,5 @@
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -117,7 +118,8 @@ class _SettingsPageState extends State<SettingsPage>
               ),
               SizedBox(height: 40),
               BlocProvider(
-                create: (_) => PreferencesBloc(injector()),
+                create: (_) =>
+                    PreferencesBloc(injector(), injector(), injector()),
                 child: PreferenceView(),
               ),
               SizedBox(height: 40.0),
