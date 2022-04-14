@@ -9,7 +9,6 @@ import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/material.dart';
@@ -108,8 +107,10 @@ class WCSignMessagePage extends StatelessWidget {
                 "Uh-oh!",
                 "To sign in with a Web3 wallet, you must first create a Feral File account then connect your wallet.",
                 ErrorItemState.close), defaultAction: () {
-          Navigator.of(context).popUntil(
-              (route) => route.settings.name == AppRouter.settingsPage);
+          Navigator.of(context).popUntil((route) =>
+              route.settings.name == AppRouter.settingsPage ||
+              route.settings.name == AppRouter.homePage ||
+              route.settings.name == AppRouter.homePageNoTransition);
         });
       }
     }, builder: (context, state) {

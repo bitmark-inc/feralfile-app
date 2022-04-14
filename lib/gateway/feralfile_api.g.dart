@@ -19,7 +19,10 @@ class _FeralFileApi implements FeralFileApi {
   Future<Map<String, FFAccount>> getAccount(bearerToken) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
-    final _headers = <String, dynamic>{r'Authorization': bearerToken};
+    final _headers = <String, dynamic>{
+      r'Authorization': bearerToken,
+      r'cache-control': 'no-cache'
+    };
     _headers.removeWhere((k, v) => v == null);
     final _data = <String, dynamic>{};
     final _result = await _dio.fetch<Map<String, dynamic>>(
