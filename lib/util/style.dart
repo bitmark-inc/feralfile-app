@@ -94,7 +94,18 @@ SizedBox addTitleSpace() {
 }
 
 Divider addDivider() {
-  return const Divider(height: 32.0);
+  return Divider(
+    height: 32.0,
+    thickness: 1.0,
+  );
+}
+
+Divider addDialogDivider({double height = 32}) {
+  return Divider(
+    height: height,
+    thickness: 1,
+    color: Colors.white,
+  );
 }
 
 const pageEdgeInsets =

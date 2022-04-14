@@ -30,9 +30,7 @@ class _LinkFeralFilePageState extends State<LinkFeralFilePage> {
     return Scaffold(
       appBar: getBackAppBar(
         context,
-        onBack: () {
-          Navigator.of(context).pop();
-        },
+        onBack: () => Navigator.of(context).pop(),
       ),
       body: Container(
         margin: pageEdgeInsetsWithSubmitButton,

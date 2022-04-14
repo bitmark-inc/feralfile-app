@@ -133,9 +133,21 @@ class AppRouter {
       case homePageNoTransition:
         return PageRouteBuilder(
             settings: settings,
-            pageBuilder: (context, animetion1, animation2) => BlocProvider(
-                  create: (_) => HomeBloc(injector(), injector(), injector(),
-                      networkInjector, injector<CloudDatabase>(), injector()),
+            pageBuilder: (context, animetion1, animation2) => MultiBlocProvider(
+                  providers: [
+                    BlocProvider(
+                        create: (_) => HomeBloc(
+                            injector(),
+                            injector(),
+                            injector(),
+                            networkInjector,
+                            injector<CloudDatabase>(),
+                            injector())),
+                    BlocProvider(
+                        create: (_) => IdentityBloc(
+                            networkInjector.I<AppDatabase>(),
+                            networkInjector.I())),
+                  ],
                   child: HomePage(),
                 ),
             transitionDuration: Duration(seconds: 0));
@@ -143,9 +155,21 @@ class AppRouter {
       case homePage:
         return CupertinoPageRoute(
             settings: settings,
-            builder: (context) => BlocProvider(
-                  create: (_) => HomeBloc(injector(), injector(), injector(),
-                      networkInjector, injector<CloudDatabase>(), injector()),
+            builder: (context) => MultiBlocProvider(
+                  providers: [
+                    BlocProvider(
+                        create: (_) => HomeBloc(
+                            injector(),
+                            injector(),
+                            injector(),
+                            networkInjector,
+                            injector<CloudDatabase>(),
+                            injector())),
+                    BlocProvider(
+                        create: (_) => IdentityBloc(
+                            networkInjector.I<AppDatabase>(),
+                            networkInjector.I())),
+                  ],
                   child: HomePage(),
                 ));
       case beOwnGalleryPage:
