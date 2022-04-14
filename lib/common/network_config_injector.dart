@@ -44,14 +44,7 @@ class NetworkConfigInjector {
         () => TezosServiceImpl(testnetInjector()));
     testnetInjector.registerLazySingleton<AppDatabase>(() => testnetDB);
     testnetInjector.registerLazySingleton<FeralFileService>(() =>
-        FeralFileServiceImpl(
-            _configurationService,
-            testnetInjector(),
-            testnetInjector(),
-            testnetInjector(),
-            testnetInjector(),
-            testnetInjector(),
-            testnetInjector()));
+        FeralFileServiceImpl(testnetInjector()));
 
     //Main network
     mainnetInjector.registerLazySingleton(
@@ -72,14 +65,7 @@ class NetworkConfigInjector {
         () => TezosServiceImpl(mainnetInjector()));
     mainnetInjector.registerLazySingleton<AppDatabase>(() => mainnetDB);
     mainnetInjector.registerLazySingleton<FeralFileService>(() =>
-        FeralFileServiceImpl(
-            _configurationService,
-            mainnetInjector(),
-            mainnetInjector(),
-            mainnetInjector(),
-            mainnetInjector(),
-            mainnetInjector(),
-            mainnetInjector()));
+        FeralFileServiceImpl(mainnetInjector()));
   }
 
   GetIt get I => _configurationService.getNetwork() == Network.MAINNET
