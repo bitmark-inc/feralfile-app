@@ -9,12 +9,14 @@ part 'iap_api.g.dart';
 
 @RestApi(baseUrl: "https://autonomy-auth.test.bitmark.com")
 abstract class IAPApi {
+  static const authenticationPath = "/apis/v1/auth";
+
   factory IAPApi(Dio dio, {String baseUrl}) = _IAPApi;
 
   @POST("/auth")
   Future<JWT> verifyIAP(@Body() Map<String, String> body);
 
-  @POST("/apis/v1/auth")
+  @POST(authenticationPath)
   Future<JWT> auth(@Body() Map<String, String?> body);
 
   @MultiPart()
@@ -36,4 +38,8 @@ abstract class IAPApi {
   Future deleteAllProfiles(
     @Header("requester") String requester,
   );
+
+  @POST("/apis/v1/me/identity-hash")
+  Future<OnesignalIdentityHash> generateIdentityHash(
+      @Body() Map<String, String> body);
 }

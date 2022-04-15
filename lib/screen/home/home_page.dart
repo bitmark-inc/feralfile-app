@@ -8,7 +8,6 @@ import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
-import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -16,6 +15,8 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tokens_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/au_cached_manager.dart';
+import 'package:autonomy_flutter/util/inapp_notifications.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -29,6 +30,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:path/path.dart' as p;
 import 'package:uni_links/uni_links.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -58,6 +60,8 @@ class _HomePageState extends State<HomePage>
     _controller = ScrollController();
     context.read<HomeBloc>().add(RefreshTokensEvent());
     context.read<HomeBloc>().add(ReindexIndexerEvent());
+    OneSignal.shared
+        .setNotificationWillShowInForegroundHandler(_shouldShowNotifications);
 
     _gallerySortBy = injector<ConfigurationService>().getGallerySortBy() ??
         GallerySortProperty.Platform;
@@ -398,5 +402,11 @@ class _HomePageState extends State<HomePage>
         _deeplinkSubscription?.pause();
         break;
     }
+  }
+
+  void _shouldShowNotifications(OSNotificationReceivedEvent event) {
+    log.info("Receive notification: ${event.notification}");
+    showNotifications(event.notification);
+    event.complete(null);
   }
 }
