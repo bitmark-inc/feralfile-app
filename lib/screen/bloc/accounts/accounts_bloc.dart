@@ -4,6 +4,7 @@ import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 part 'accounts_state.dart';
@@ -210,7 +211,7 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
     on<FetchAllAddressesEvent>((event, emit) async {
       List<String> addresses = [];
       if (_configurationService.isDemoArtworksMode()) {
-        addresses = ['demo'];
+        addresses = [await getDemoAccount()];
       } else {
         final personas = await _cloudDB.personaDao.getPersonas();
 

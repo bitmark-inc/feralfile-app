@@ -12,7 +12,7 @@ class PreferenceState {
   final String? gallerySortBy;
   final bool isImmediatePlaybackEnabled;
   bool isDevicePasscodeEnabled;
-  final bool isNotificationEnabled;
+  bool isNotificationEnabled;
   final bool isAnalyticEnabled;
   final String authMethodName;
 

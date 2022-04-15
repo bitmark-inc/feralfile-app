@@ -73,11 +73,17 @@ Future<void> setup() async {
 
   injector.registerLazySingleton(() => cloudDB);
 
-  final dio = Dio(); // Provide a dio instance
+  final dio = Dio(); // Default a dio instance
   dio.interceptors.add(LoggingInterceptor());
-  // dio.interceptors.add(SentryInterceptor());
   (dio.transformer as DefaultTransformer).jsonDecodeCallback = parseJson;
   dio.addSentry(captureFailedRequests: true);
+
+  final authenticatedDio = Dio(); // Authenticated dio instance for AU servers
+  authenticatedDio.interceptors.add(AutonomyAuthInterceptor());
+  authenticatedDio.interceptors.add(LoggingInterceptor());
+  (authenticatedDio.transformer as DefaultTransformer).jsonDecodeCallback =
+      parseJson;
+  authenticatedDio.addSentry(captureFailedRequests: true);
 
   final dioHTTP2 = Dio(); // Provide a dio instance
   dioHTTP2.interceptors.add(LoggingInterceptor());
@@ -100,8 +106,8 @@ Future<void> setup() async {
   injector.registerLazySingleton(() => WalletConnectDappService(injector()));
   injector.registerLazySingleton(
       () => AccountService(cloudDB, injector(), injector(), injector()));
-  injector.registerLazySingleton(
-      () => IAPApi(dio, baseUrl: AppConfig.mainNetworkConfig.autonomyAuthUrl));
+  injector.registerLazySingleton(() => IAPApi(authenticatedDio,
+      baseUrl: AppConfig.mainNetworkConfig.autonomyAuthUrl));
   injector.registerLazySingleton(() => AuthService(injector(), injector()));
   injector.registerLazySingleton(() => BackupService(injector(), injector()));
   injector.registerLazySingleton<IAPService>(

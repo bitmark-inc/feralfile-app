@@ -23,3 +23,16 @@ class JWT {
     return value > 0;
   }
 }
+
+class OnesignalIdentityHash {
+  String hash;
+
+  OnesignalIdentityHash({required this.hash});
+
+  OnesignalIdentityHash.fromJson(Map<String, dynamic> json)
+      : hash = json['hash'];
+
+  Map<String, dynamic> toJson() => {
+        'hash': hash,
+      };
+}

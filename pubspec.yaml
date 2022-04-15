@@ -92,6 +92,8 @@ dependencies:
   open_settings: ^2.0.2
   page_transition: ^2.0.5
   connectivity_plus: ^2.2.1
+  onesignal_flutter: ^3.3.0
+  overlay_support: ^1.2.1
 
 dependency_overrides:
   # Error using when import photo_view from dependencies:
