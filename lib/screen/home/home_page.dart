@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tokens_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/au_cached_manager.dart';
+import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -348,7 +349,8 @@ class _HomePageState extends State<HomePage>
 
   void _shouldShowNotifications(OSNotificationReceivedEvent event) {
     log.info("Receive notification: ${event.notification}");
-    event.complete(event.notification);
+    showNotifications(event.notification);
+    event.complete(null);
   }
 }
 
