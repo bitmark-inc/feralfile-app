@@ -41,6 +41,7 @@ class NavigationService {
     _isAppLocking = false;
     navigatorKey.currentState?.pop();
     _finishLocking?.complete();
+    _finishLocking = null;
   }
 
   void goBack() {
