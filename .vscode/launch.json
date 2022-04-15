@@ -5,7 +5,16 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "autonomy-flutter",
+            "name": "autonomy-production",
+            "request": "launch",
+            "type": "dart",
+			"args": [
+				"--flavor",
+				"prd"
+			]
+        },
+        {
+            "name": "autonomy-inhouse",
             "request": "launch",
             "type": "dart",
 			"args": [
@@ -17,13 +26,21 @@
             "name": "autonomy-flutter (profile mode)",
             "request": "launch",
             "type": "dart",
-            "flutterMode": "profile"
+            "flutterMode": "profile",
+            "args": [
+				"--flavor",
+				"prd"
+			]
         },
         {
             "name": "autonomy-flutter (release mode)",
             "request": "launch",
             "type": "dart",
-            "flutterMode": "release"
+            "flutterMode": "release",
+            "args": [
+				"--flavor",
+				"prd"
+			]
         }
     ]
 }
