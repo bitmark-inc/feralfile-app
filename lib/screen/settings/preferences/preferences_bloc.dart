@@ -77,7 +77,7 @@ class PreferencesBloc extends Bloc<PreferenceEvent, PreferenceState> {
 
       if (event.newState.isNotificationEnabled != state.isNotificationEnabled) {
         try {
-          if (event.newState.isNotificationEnabled == true && Platform.isIOS) {
+          if (event.newState.isNotificationEnabled == true) {
             if (Platform.isIOS) {
               event.newState.isNotificationEnabled = await OneSignal.shared
                   .promptUserForPushNotificationPermission();
@@ -90,6 +90,8 @@ class PreferencesBloc extends Bloc<PreferenceEvent, PreferenceState> {
             final defaultDID = await (await _accountService.getDefaultAccount())
                 .getAccountDID();
             await OneSignal.shared.setExternalUserId(defaultDID, identityHash);
+          } else {
+            await OneSignal.shared.removeExternalUserId();
           }
 
           await _configurationService
