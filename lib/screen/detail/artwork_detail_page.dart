@@ -88,9 +88,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
         Scaffold(
           appBar: getBackAppBar(
             context,
-            onBack: () {
-              Navigator.of(context).pop();
-            },
+            onBack: () => Navigator.of(context).pop(),
           ),
           body: BlocConsumer<ArtworkDetailBloc, ArtworkDetailState>(
               listener: (context, state) {
@@ -394,6 +392,13 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
   }
 
   Widget _metadataView(BuildContext context, AssetToken asset) {
+    final identityState = context.watch<IdentityBloc>().state;
+
+    final identity = identityState.identityMap[asset.artistName];
+    final artistName = (identity != null && identity.isNotEmpty)
+        ? identity
+        : asset.artistName?.maskIfNeeded();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -407,7 +412,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
         _rowItem(
           context,
           "Artist",
-          asset.artistName,
+          artistName,
           // some FF's artist set multiple links
           // Discussion thread: https://bitmark.slack.com/archives/C01EPPD07HU/p1648698027564299
           tapLink: asset.artistURL?.split(" & ").first,
@@ -513,6 +518,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
+          flex: 2,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -529,6 +535,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
           ),
         ),
         Expanded(
+          flex: 3,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [

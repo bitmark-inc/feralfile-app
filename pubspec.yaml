@@ -71,7 +71,7 @@ dependencies:
   libauk_dart:
     git:
       url: https://github.com/autonomy-system/libauk-dart.git
-      ref: 2d3ea117037ecaa71c2337440438e83add118050
+      ref: edd3354bf2db2394a3ba1bb8a3202b5035e9177e
   wallet_connect:
     git: https://github.com/autonomy-system/wallet-connect-dart.git
   collection: ^1.15.0
