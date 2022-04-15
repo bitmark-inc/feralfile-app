@@ -31,6 +31,15 @@ enum WalletApp {
   Temple,
 }
 
+class GallerySortProperty {
+  static const Platform = 'Platform';
+  static const Medium = 'Medium';
+  static const ArtistName = 'Artist name';
+  static const Chain = "Chain";
+
+  static List<String> get getList => [Platform, Medium, ArtistName, Chain];
+}
+
 extension RawValue on WalletApp {
   String get rawValue => this.toString().split('.').last;
 }

@@ -20,8 +20,8 @@ class CloudAndroidPage extends StatefulWidget {
   State<CloudAndroidPage> createState() => _CloudAndroidPageState();
 }
 
-class _CloudAndroidPageState extends State<CloudAndroidPage> with WidgetsBindingObserver {
-
+class _CloudAndroidPageState extends State<CloudAndroidPage>
+    with WidgetsBindingObserver {
   bool? isEncryptionAvailable;
 
   @override
@@ -53,18 +53,20 @@ class _CloudAndroidPageState extends State<CloudAndroidPage> with WidgetsBinding
     if (isEncryptionAvailable == true) return;
 
     final accountService = injector<AccountService>();
-    final isAndroidEndToEndEncryptionAvailable = await accountService.isAndroidEndToEndEncryptionAvailable();
+    final isAndroidEndToEndEncryptionAvailable =
+        await accountService.isAndroidEndToEndEncryptionAvailable();
 
     if (isEncryptionAvailable == isAndroidEndToEndEncryptionAvailable) return;
 
-    if (isEncryptionAvailable == null && isAndroidEndToEndEncryptionAvailable != null) {
+    if (isEncryptionAvailable == null &&
+        isAndroidEndToEndEncryptionAvailable != null) {
       await accountService.androidBackupKeys();
     }
 
     setState(() {
       isEncryptionAvailable = isAndroidEndToEndEncryptionAvailable;
     });
-}
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -98,8 +100,8 @@ class _CloudAndroidPageState extends State<CloudAndroidPage> with WidgetsBinding
                       isEncryptionAvailable == true
                           ? "Backed up"
                           : isEncryptionAvailable == false
-                          ? "Enable backup encryption "
-                          : "Google cloud backup unavailable",
+                              ? "Enable backup encryption "
+                              : "Google cloud backup unavailable",
                       style: appTextTheme.headline1,
                     ),
                     addTitleSpace(),
@@ -110,8 +112,7 @@ class _CloudAndroidPageState extends State<CloudAndroidPage> with WidgetsBinding
                     if (isEncryptionAvailable == true) ...[
                       SizedBox(height: 40),
                       Center(
-                          child: SvgPicture.asset(
-                              "assets/images/cloudOn.svg")),
+                          child: SvgPicture.asset("assets/images/cloudOn.svg")),
                     ] else ...[
                       SizedBox(height: 16),
                       Text(
@@ -122,7 +123,9 @@ class _CloudAndroidPageState extends State<CloudAndroidPage> with WidgetsBinding
                       ),
                       SizedBox(height: 40),
                       Center(
-                          child: SvgPicture.asset(isEncryptionAvailable == false ? "assets/images/cloudEncryption.svg" : "assets/images/cloudOff.svg")),
+                          child: SvgPicture.asset(isEncryptionAvailable == false
+                              ? "assets/images/cloudEncryption.svg"
+                              : "assets/images/cloudOff.svg")),
                     ],
                   ]),
             ),
@@ -173,7 +176,9 @@ class _CloudAndroidPageState extends State<CloudAndroidPage> with WidgetsBinding
     if (injector<ConfigurationService>().isDoneOnboarding()) {
       Navigator.of(context).popUntil((route) =>
           route.settings.name == AppRouter.settingsPage ||
-          route.settings.name == AppRouter.wcConnectPage);
+          route.settings.name == AppRouter.wcConnectPage ||
+          route.settings.name == AppRouter.homePage ||
+          route.settings.name == AppRouter.homePageNoTransition);
     } else {
       doneOnboarding(context);
     }

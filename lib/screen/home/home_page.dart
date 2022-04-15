@@ -4,6 +4,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
@@ -16,6 +17,7 @@ import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/au_cached_manager.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/penrose_top_bar_view.dart';
@@ -31,6 +33,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:path/path.dart' as p;
 import 'package:uni_links/uni_links.dart';
+import 'package:autonomy_flutter/util/string_ext.dart';
 
 class HomePage extends StatefulWidget {
   static const tag = "home";
@@ -45,6 +48,7 @@ class _HomePageState extends State<HomePage>
   StreamSubscription<FGBGType>? _fgbgSubscription;
   late ScrollController _controller;
   int _cachedImageSize = 0;
+  String _gallerySortBy = GallerySortProperty.Platform;
 
   @override
   void initState() {
@@ -58,6 +62,9 @@ class _HomePageState extends State<HomePage>
     context.read<HomeBloc>().add(ReindexIndexerEvent());
     OneSignal.shared
         .setNotificationWillShowInForegroundHandler(_shouldShowNotifications);
+
+    _gallerySortBy = injector<ConfigurationService>().getGallerySortBy() ??
+        GallerySortProperty.Platform;
   }
 
   @override
@@ -96,39 +103,61 @@ class _HomePageState extends State<HomePage>
         context.read<HomeBloc>().add(ReindexIndexerEvent());
       });
     }
+
+    setState(() {
+      _gallerySortBy = injector<ConfigurationService>().getGallerySortBy() ??
+          GallerySortProperty.Platform;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return PrimaryScrollController(
-      controller: _controller,
-      child: Scaffold(
-          body: BlocBuilder<HomeBloc, HomeState>(builder: (context, state) {
-        final tokens = state.tokens;
-        final shouldShowMainView = tokens != null && tokens.isNotEmpty;
-        final Widget assetsWidget =
-            shouldShowMainView ? _assetsWidget(tokens!) : _emptyGallery();
+    final state = context.watch<HomeBloc>().state;
+    final tokens = state.tokens;
 
-        return Stack(fit: StackFit.loose, children: [
-          assetsWidget,
-          PenroseTopBarView(true, _controller),
-          BlocBuilder<HomeBloc, HomeState>(
-            builder: (context, state) {
-              if (state.fetchTokenState != ActionState.loading)
-                return SizedBox();
+    final shouldShowMainView = tokens != null && tokens.isNotEmpty;
+    IdentityState? identityState;
+    if (_gallerySortBy == GallerySortProperty.ArtistName) {
+      identityState = context.watch<IdentityBloc>().state;
+    }
 
-              return Align(
-                alignment: Alignment.topRight,
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(
-                      0, MediaQuery.of(context).padding.top + 120, 20, 0),
-                  child: CupertinoActivityIndicator(),
+    final Widget assetsWidget = shouldShowMainView
+        ? _assetsWidget(tokens!, identityState?.identityMap)
+        : _emptyGallery();
+
+    return BlocListener<HomeBloc, HomeState>(
+      listener: (context, state) {
+        if (state.tokens == null) return;
+        final fetchingIdentityArtistNames = state.tokens!
+            .map((e) => e.artistName ?? '')
+            .where((e) => (e.startsWith("0x") || e.startsWith("tz")))
+            .toSet();
+        context
+            .read<IdentityBloc>()
+            .add(GetIdentityEvent(fetchingIdentityArtistNames));
+      },
+      child: PrimaryScrollController(
+        controller: _controller,
+        child: Scaffold(
+          body: Stack(
+            fit: StackFit.loose,
+            children: [
+              assetsWidget,
+              PenroseTopBarView(true, _controller),
+              if (state.fetchTokenState == ActionState.loading) ...[
+                Align(
+                  alignment: Alignment.topRight,
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(
+                        0, MediaQuery.of(context).padding.top + 120, 20, 0),
+                    child: CupertinoActivityIndicator(),
+                  ),
                 ),
-              );
-            },
+              ],
+            ],
           ),
-        ]);
-      })),
+        ),
+      ),
     );
   }
 
@@ -150,16 +179,28 @@ class _HomePageState extends State<HomePage>
     );
   }
 
-  Widget _assetsWidget(List<AssetToken> tokens) {
-    final groupBySource = groupBy(tokens, (AssetToken obj) => obj.source);
-    var sortedKeys = groupBySource.keys.toList()..sort();
+  Widget _assetsWidget(
+      List<AssetToken> tokens, Map<String, String>? identityMap) {
+    final groupByProperty = groupBy(tokens, (AssetToken obj) {
+      switch (_gallerySortBy) {
+        case GallerySortProperty.Medium:
+          return obj.medium?.capitalize();
+        case GallerySortProperty.ArtistName:
+          return obj.artistName;
+        case GallerySortProperty.Chain:
+          return obj.blockchain.capitalize();
+        default:
+          return polishSource(obj.source ?? "");
+      }
+    });
+    var sortedKeys = groupByProperty.keys.toList()..sort();
     final tokenIDs = sortedKeys
-        .map((e) => groupBySource[e] ?? [])
+        .map((e) => groupByProperty[e] ?? [])
         .expand((element) => element.map((e) => e.id))
         .toList();
 
-    var sources = sortedKeys.map((source) {
-      final assets = groupBySource[source] ?? [];
+    var sources = sortedKeys.map((sortingPropertyValue) {
+      final assets = groupByProperty[sortingPropertyValue] ?? [];
       const int cellPerRow = 3;
       const double cellSpacing = 3.0;
       if (_cachedImageSize == 0) {
@@ -168,9 +209,25 @@ class _HomePageState extends State<HomePage>
                 cellSpacing * (cellPerRow - 1);
         _cachedImageSize = (estimatedCellWidth * 3).ceil();
       }
+
+      var _sortingPropertyValue = sortingPropertyValue;
+      if (_sortingPropertyValue != null &&
+          _gallerySortBy == GallerySortProperty.ArtistName) {
+        final identity = identityMap?[_sortingPropertyValue];
+        _sortingPropertyValue = (identity != null && identity.isNotEmpty)
+            ? identity
+            : _sortingPropertyValue.maskIfNeeded();
+      }
+
       return <Widget>[
-        SliverPersistentHeader(
-          delegate: CategoryHeaderDelegate(source),
+        SliverToBoxAdapter(
+          child: Container(
+            padding: EdgeInsets.fromLTRB(14, 0, 24, 14),
+            child: Text(
+              _sortingPropertyValue ?? '',
+              style: appTextTheme.headline1,
+            ),
+          ),
         ),
         SliverGrid(
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -352,31 +409,4 @@ class _HomePageState extends State<HomePage>
     showNotifications(event.notification);
     event.complete(null);
   }
-}
-
-class CategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
-  final String? source;
-  CategoryHeaderDelegate(this.source);
-
-  @override
-  Widget build(
-      BuildContext context, double shrinkOffset, bool overlapsContent) {
-    return Container(
-      padding: EdgeInsets.fromLTRB(14, 0, 24, 14),
-      child: Text(
-        polishSource(source ?? ""),
-        style: appTextTheme.headline1,
-      ),
-    );
-  }
-
-  @override
-  double get maxExtent => 67;
-
-  @override
-  double get minExtent => 67;
-
-  @override
-  bool shouldRebuild(covariant CategoryHeaderDelegate oldDelegate) =>
-      oldDelegate.source != source;
 }
