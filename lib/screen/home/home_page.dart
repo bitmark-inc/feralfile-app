@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/main.dart';
@@ -43,7 +44,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage>
-    with RouteAware, WidgetsBindingObserver {
+    with RouteAware, WidgetsBindingObserver, AfterLayoutMixin<HomePage> {
   StreamSubscription? _deeplinkSubscription;
   StreamSubscription<FGBGType>? _fgbgSubscription;
   late ScrollController _controller;
@@ -54,7 +55,6 @@ class _HomePageState extends State<HomePage>
   void initState() {
     super.initState();
     _initUniLinks();
-    _cloudBackup();
     WidgetsBinding.instance?.addObserver(this);
     _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
     _controller = ScrollController();
@@ -74,12 +74,9 @@ class _HomePageState extends State<HomePage>
   }
 
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.inactive) {
-      _cloudBackup();
-    } else if (state == AppLifecycleState.resumed) {
-      injector<VersionService>().checkForUpdate();
-    }
+  void afterFirstLayout(BuildContext context) {
+    _cloudBackup();
+    _handleForeground();
   }
 
   @override
@@ -383,25 +380,10 @@ class _HomePageState extends State<HomePage>
   void _handleForeBackground(FGBGType event) async {
     switch (event) {
       case FGBGType.foreground:
-        if (injector<ConfigurationService>().isDevicePasscodeEnabled()) {
-          injector<NavigationService>()
-              .lockScreen()
-              ?.then((_) => _deeplinkSubscription?.resume());
-        } else {
-          _deeplinkSubscription?.resume();
-        }
-        injector<ConfigurationService>().reload();
-        Future.delayed(const Duration(milliseconds: 3500), () async {
-          context.read<HomeBloc>().add(RefreshTokensEvent());
-          context.read<HomeBloc>().add(ReindexIndexerEvent());
-          await injector<AWSService>()
-              .storeEventWithDeviceData("device_foreground");
-        });
+        _handleForeground();
         break;
       case FGBGType.background:
-        injector<AWSService>().storeEventWithDeviceData("device_background");
-        injector<TokensService>().disposeIsolate();
-        _deeplinkSubscription?.pause();
+        _handleBackground();
         break;
     }
   }
@@ -410,5 +392,31 @@ class _HomePageState extends State<HomePage>
     log.info("Receive notification: ${event.notification}");
     showNotifications(event.notification);
     event.complete(null);
+  }
+
+  void _handleForeground() {
+    if (injector<ConfigurationService>().isDevicePasscodeEnabled()) {
+      injector<NavigationService>()
+          .lockScreen()
+          ?.then((_) => _deeplinkSubscription?.resume());
+    } else {
+      _deeplinkSubscription?.resume();
+    }
+    injector<ConfigurationService>().reload();
+    Future.delayed(const Duration(milliseconds: 3500), () async {
+      context.read<HomeBloc>().add(RefreshTokensEvent());
+      context.read<HomeBloc>().add(ReindexIndexerEvent());
+      await injector<AWSService>()
+          .storeEventWithDeviceData("device_foreground");
+    });
+
+    injector<VersionService>().checkForUpdate();
+  }
+
+  void _handleBackground() {
+    injector<AWSService>().storeEventWithDeviceData("device_background");
+    injector<TokensService>().disposeIsolate();
+    _deeplinkSubscription?.pause();
+    _cloudBackup();
   }
 }
