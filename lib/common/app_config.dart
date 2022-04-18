@@ -16,7 +16,7 @@ class AppConfig {
   );
   static const AppConfigNetwork mainNetworkConfig = AppConfigNetwork(
     "https://mainnet.infura.io/v3/ab0e0fe9710b412ca73bb044713a3523",
-    "https://mainnet.smartpy.io/",
+    "https://rpc.tzbeta.net",
     "https://api.bitmark.com",
     "https://indexer.autonomy.io",
     "https://accounts.test.autonomy.io",
