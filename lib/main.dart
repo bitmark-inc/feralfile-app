@@ -15,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:overlay_support/overlay_support.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
@@ -55,7 +56,7 @@ void main() async {
     await injector<AWSService>().initServices();
 
     BlocOverrides.runZoned(
-      () => runApp(AutonomyApp()),
+      () => runApp(OverlaySupport.global(child: AutonomyApp())),
       blocObserver: AppBlocObserver(),
     );
 
