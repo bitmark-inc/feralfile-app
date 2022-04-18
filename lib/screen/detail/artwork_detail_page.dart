@@ -1,6 +1,7 @@
 import 'dart:collection';
 
 import 'package:autonomy_flutter/model/provenance.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -188,9 +189,14 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
                               child: AuOutlinedButton(
                                   text: "VIEW ARTWORK",
                                   onPress: () {
-                                    Navigator.of(context).pushNamed(
-                                        AppRouter.artworkPreviewPage,
-                                        arguments: widget.payload);
+                                    if (injector<ConfigurationService>()
+                                        .isImmediatePlaybackEnabled()) {
+                                      Navigator.of(context).pop();
+                                    } else {
+                                      Navigator.of(context).pushNamed(
+                                          AppRouter.artworkPreviewPage,
+                                          arguments: widget.payload);
+                                    }
                                   }),
                             ),
                             SizedBox(height: 40.0),
