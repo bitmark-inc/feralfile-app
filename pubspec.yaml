@@ -45,7 +45,9 @@ dependencies:
   aws_firehose_api: ^1.2.0
   aws_cognito_identity_api: ^1.2.0
   tezart:
-    git: https://github.com/autonomy-system/tezart.git
+    git:
+      url: https://github.com/autonomy-system/tezart.git
+      ref: 7d25a098d29d48da9c28c0d5c492a4b5acf0cfe5
   local_auth: ^1.1.10
   sentry_flutter: ^6.4.0
   sentry_dio: ^6.4.0
