@@ -184,22 +184,33 @@ class _HomePageState extends State<HomePage>
     final groupByProperty = groupBy(tokens, (AssetToken obj) {
       switch (_gallerySortBy) {
         case GallerySortProperty.Medium:
-          return obj.medium?.capitalize();
+          return obj.medium?.capitalize() ?? "";
         case GallerySortProperty.ArtistName:
-          return obj.artistName;
+          return obj.artistName?.toIdentityOrMask(identityMap) ?? "";
         case GallerySortProperty.Chain:
           return obj.blockchain.capitalize();
         default:
           return polishSource(obj.source ?? "");
       }
     });
-    var sortedKeys = groupByProperty.keys.toList()..sort();
-    final tokenIDs = sortedKeys
+
+    var keys = groupByProperty.keys.toList();
+    keys.sort((a, b) {
+      if (a.startsWith('[') && !b.startsWith('[')) {
+        return 1;
+      } else if (!a.startsWith('[') && b.startsWith('[')) {
+        return -1;
+      } else {
+        return a.toLowerCase().compareTo(b.toLowerCase());
+      }
+    });
+
+    final tokenIDs = keys
         .map((e) => groupByProperty[e] ?? [])
         .expand((element) => element.map((e) => e.id))
         .toList();
 
-    var sources = sortedKeys.map((sortingPropertyValue) {
+    var sources = keys.map((sortingPropertyValue) {
       final assets = groupByProperty[sortingPropertyValue] ?? [];
       const int cellPerRow = 3;
       const double cellSpacing = 3.0;
@@ -210,20 +221,12 @@ class _HomePageState extends State<HomePage>
         _cachedImageSize = (estimatedCellWidth * 3).ceil();
       }
 
-      var _sortingPropertyValue = sortingPropertyValue;
-      if (_sortingPropertyValue != null &&
-          _gallerySortBy == GallerySortProperty.ArtistName) {
-        final identity = identityMap?[_sortingPropertyValue];
-        _sortingPropertyValue =
-            _sortingPropertyValue.toIdentityOrMask(identityMap);
-      }
-
       return <Widget>[
         SliverToBoxAdapter(
           child: Container(
             padding: EdgeInsets.fromLTRB(14, 0, 24, 14),
             child: Text(
-              _sortingPropertyValue ?? '',
+              sortingPropertyValue,
               style: appTextTheme.headline1,
             ),
           ),
