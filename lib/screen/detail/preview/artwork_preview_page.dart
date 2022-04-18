@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
+import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
@@ -37,7 +38,10 @@ class ArtworkPreviewPage extends StatefulWidget {
 }
 
 class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
-    with WidgetsBindingObserver, AfterLayoutMixin<ArtworkPreviewPage> {
+    with
+        RouteAware,
+        WidgetsBindingObserver,
+        AfterLayoutMixin<ArtworkPreviewPage> {
   VideoPlayerController? _controller;
   bool isFullscreen = false;
   late int currentIndex;
@@ -74,19 +78,26 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     context
         .read<ArtworkPreviewBloc>()
         .add(ArtworkPreviewGetAssetTokenEvent(id));
+  }
 
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.landscapeLeft,
-      DeviceOrientation.landscapeRight,
-    ]);
+  @override
+  void didChangeDependencies() {
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+    enableLandscapeMode();
+    super.didChangeDependencies();
+  }
+
+  @override
+  void didPopNext() {
+    enableLandscapeMode();
+    _controller?.play();
+    super.didPopNext();
   }
 
   @override
   void dispose() async {
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-    ]);
+    disableLandscapeMode();
+    routeObserver.unsubscribe(this);
     WidgetsBinding.instance?.removeObserver(this);
     _controller?.dispose();
     _controller = null;
@@ -263,6 +274,8 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
           if (!isImmediatePlaybackEnabled) return;
           final currentIndex = widget.payload.ids.indexOf(asset.id);
 
+          disableLandscapeMode();
+          _clearPrevious();
           Navigator.of(context).pushNamed(AppRouter.artworkDetailsPage,
               arguments: widget.payload.copyWith(currentIndex: currentIndex));
         },
