@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_state.dart';
@@ -108,8 +109,13 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: BlocBuilder<ArtworkPreviewBloc, ArtworkPreviewState>(
-          builder: (context, state) {
+      body: BlocConsumer<ArtworkPreviewBloc, ArtworkPreviewState>(
+          listener: (context, state) {
+        if (state.asset?.artistName == null) return;
+        context
+            .read<IdentityBloc>()
+            .add(GetIdentityEvent([state.asset!.artistName!]));
+      }, builder: (context, state) {
         if (state.asset != null) {
           final asset = state.asset!;
           Sentry.startTransaction("view: " + asset.id, "load");
@@ -117,6 +123,10 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
           if (asset.medium == "video" && loadedPath != asset.previewURL) {
             _startPlay(asset.previewURL!);
           }
+
+          final identityState = context.watch<IdentityBloc>().state;
+          final artistName =
+              asset.artistName?.toIdentityOrMask(identityState.identityMap);
 
           return Container(
               padding: MediaQuery.of(context).padding.copyWith(
@@ -136,7 +146,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                                   color: Colors.white,
                                 ),
                               ),
-                              _titleAndArtistNameWidget(asset),
+                              _titleAndArtistNameWidget(asset, artistName),
                               IconButton(
                                 onPressed: () {
                                   currentIndex = currentIndex <= 0
@@ -210,7 +220,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     );
   }
 
-  Widget _titleAndArtistNameWidget(AssetToken asset) {
+  Widget _titleAndArtistNameWidget(AssetToken asset, String? artistName) {
     final isImmediatePlaybackEnabled =
         injector<ConfigurationService>().isImmediatePlaybackEnabled();
 
@@ -243,7 +253,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
             ),
             SizedBox(height: 4.0),
             Text(
-              "by ${asset.artistName?.maskIfNeeded()}",
+              "by $artistName",
               overflow: TextOverflow.ellipsis,
               style: artistNameStyle,
             )
