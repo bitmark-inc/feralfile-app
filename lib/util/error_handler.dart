@@ -54,7 +54,7 @@ ErrorEvent? translateError(Object exception) {
     return ErrorEvent(
         exception,
         "Uh oh!",
-        "Cannot connect to the Tezos node (smartpy.io) at the moment.\nPlease try later.",
+        "Cannot connect to the Tezos node at the moment.\nPlease try later.",
         ErrorItemState.suggestReportIssue);
   } else if (exception is PlatformException) {
     switch (exception.code) {
