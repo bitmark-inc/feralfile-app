@@ -1375,11 +1375,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: HEAD
-      resolved-ref: "5ab0070d10058813077af05c472ff882af359187"
+      ref: "7d25a098d29d48da9c28c0d5c492a4b5acf0cfe5"
+      resolved-ref: "7d25a098d29d48da9c28c0d5c492a4b5acf0cfe5"
       url: "https://github.com/autonomy-system/tezart.git"
     source: git
-    version: "2.0.3"
+    version: "2.0.4"
   timing:
     dependency: transitive
     description:

@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:flutter/foundation.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:tezart/src/crypto/crypto.dart' as crypto;
 import 'package:tezart/src/crypto/crypto.dart' show Prefixes;
@@ -45,7 +46,7 @@ class TezosServiceImpl extends TezosService {
   Future<int> estimateOperationFee(
       TezosWallet wallet, List<TransactionOperation> operations) async {
     log.info("TezosService.estimateOperationFee");
-    final keystore = _getKeystore(wallet);
+    final keystore = await getKeystoreAsync(wallet);
 
     var operationList = OperationsList(
         source: keystore, rpcInterface: _tezartClient.rpcInterface);
@@ -71,7 +72,7 @@ class TezosServiceImpl extends TezosService {
       TezosWallet wallet, List<TransactionOperation> operations) async {
     log.info("TezosService.sendOperationTransaction");
 
-    final keystore = _getKeystore(wallet);
+    final keystore = await getKeystoreAsync(wallet);
 
     var operationList = OperationsList(
         source: keystore, rpcInterface: _tezartClient.rpcInterface);
@@ -93,7 +94,7 @@ class TezosServiceImpl extends TezosService {
   @override
   Future<int> estimateFee(TezosWallet wallet, String to, int amount) async {
     log.info("TezosService.estimateFee: $to, $amount");
-    final keystore = _getKeystore(wallet);
+    final keystore = await getKeystoreAsync(wallet);
     final operation = await _tezartClient.transferOperation(
       source: keystore,
       destination: to,
@@ -113,7 +114,7 @@ class TezosServiceImpl extends TezosService {
   Future<String?> sendTransaction(
       TezosWallet wallet, String to, int amount) async {
     log.info("TezosService.sendTransaction: $to, $amount");
-    final keystore = _getKeystore(wallet);
+    final keystore = await getKeystoreAsync(wallet);
     final operation = await _tezartClient.transferOperation(
       source: keystore,
       destination: to,
@@ -136,5 +137,9 @@ class TezosServiceImpl extends TezosService {
     );
 
     return Keystore.fromSecretKey(secretString);
+  }
+
+  Future<Keystore> getKeystoreAsync(TezosWallet wallet) {
+    return compute(_getKeystore, wallet);
   }
 }
