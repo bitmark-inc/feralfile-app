@@ -489,9 +489,15 @@ class AppRouter {
             curve: Curves.easeIn,
             duration: Duration(milliseconds: 250),
             settings: settings,
-            child: BlocProvider(
-              create: (_) =>
-                  ArtworkPreviewBloc(networkInjector.I<AppDatabase>().assetDao),
+            child: MultiBlocProvider(
+              providers: [
+                BlocProvider(
+                    create: (_) => ArtworkPreviewBloc(
+                        networkInjector.I<AppDatabase>().assetDao)),
+                BlocProvider(
+                    create: (_) => IdentityBloc(
+                        networkInjector.I<AppDatabase>(), networkInjector.I())),
+              ],
               child: ArtworkPreviewPage(
                 payload: settings.arguments as ArtworkDetailPayload,
               ),
