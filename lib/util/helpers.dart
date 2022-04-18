@@ -1,4 +1,3 @@
-import 'package:retrofit/dio.dart';
 import 'package:http/http.dart' as http;
 
 int compareVersion(String version1, String version2) {

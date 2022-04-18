@@ -4,13 +4,11 @@ import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/theme_manager.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
 class UpgradesView extends StatelessWidget {
   static const String tag = 'select_network';
