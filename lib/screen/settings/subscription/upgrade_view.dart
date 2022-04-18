@@ -134,7 +134,7 @@ class UpgradesView extends StatelessWidget {
               style: theme.textTheme.headline5),
           SizedBox(height: 40),
           AuFilledButton(
-            text: "SUBSCRIBE FOR ${price ?? ".99"}/MONTH",
+            text: "SUBSCRIBE FOR ${price ?? "4.99"}/MONTH",
             onPress: () {
               if (onPressSubscribe != null) onPressSubscribe();
               Navigator.of(context).pop();
