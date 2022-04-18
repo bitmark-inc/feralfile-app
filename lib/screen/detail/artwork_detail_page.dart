@@ -101,13 +101,18 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
             context.read<IdentityBloc>().add(GetIdentityEvent(identitiesList));
           }, builder: (context, state) {
             if (state.asset != null) {
+              final identityState = context.watch<IdentityBloc>().state;
+
               final asset = state.asset!;
               final screenWidth = MediaQuery.of(context).size.width;
               final screenHeight = MediaQuery.of(context).size.height;
 
+              final artistName =
+                  asset.artistName?.toIdentityOrMask(identityState.identityMap);
+
               var subTitle = "";
-              if (asset.artistName != null && asset.artistName!.isNotEmpty) {
-                subTitle = "by ${asset.artistName!.maskIfNeeded()}";
+              if (artistName != null && artistName.isNotEmpty) {
+                subTitle = "by $artistName";
               }
 
               if (asset.edition != 0)
@@ -215,7 +220,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
                                   )
                                 : SizedBox(),
                             SizedBox(height: 40.0),
-                            _metadataView(context, asset),
+                            _metadataView(context, asset, artistName),
                             state.provenances.isNotEmpty
                                 ? Column(
                                     crossAxisAlignment:
@@ -391,14 +396,8 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
     );
   }
 
-  Widget _metadataView(BuildContext context, AssetToken asset) {
-    final identityState = context.watch<IdentityBloc>().state;
-
-    final identity = identityState.identityMap[asset.artistName];
-    final artistName = (identity != null && identity.isNotEmpty)
-        ? identity
-        : asset.artistName?.maskIfNeeded();
-
+  Widget _metadataView(
+      BuildContext context, AssetToken asset, String? artistName) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -478,9 +477,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
                   ...provenances.map((el) {
                     final identity = identityState.identityMap[el.owner];
                     final identityTitle =
-                        (identity != null && identity.isNotEmpty)
-                            ? identity
-                            : el.owner.maskIfNeeded();
+                        el.owner.toIdentityOrMask(identityState.identityMap);
                     final youTitle =
                         _accountNumberHash.contains(el.owner) ? " (You)" : "";
                     final provenanceTitle = identityTitle + youTitle;

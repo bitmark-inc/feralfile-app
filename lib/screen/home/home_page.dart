@@ -214,9 +214,8 @@ class _HomePageState extends State<HomePage>
       if (_sortingPropertyValue != null &&
           _gallerySortBy == GallerySortProperty.ArtistName) {
         final identity = identityMap?[_sortingPropertyValue];
-        _sortingPropertyValue = (identity != null && identity.isNotEmpty)
-            ? identity
-            : _sortingPropertyValue.maskIfNeeded();
+        _sortingPropertyValue =
+            _sortingPropertyValue.toIdentityOrMask(identityMap);
       }
 
       return <Widget>[
