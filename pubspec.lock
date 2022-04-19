@@ -78,6 +78,20 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "8.0.1"
+  bonsoir:
+    dependency: transitive
+    description:
+      name: bonsoir
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.1+2"
+  bonsoir_platform_interface:
+    dependency: transitive
+    description:
+      name: bonsoir_platform_interface
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.1.0+1"
   boolean_selector:
     dependency: transitive
     description:
@@ -176,6 +190,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.1"
+  cast:
+    dependency: "direct main"
+    description:
+      name: cast
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.1.1"
   characters:
     dependency: transitive
     description:
@@ -538,6 +559,13 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_to_airplay:
+    dependency: "direct main"
+    description:
+      name: flutter_to_airplay
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.0.2"
   flutter_vibrate:
     dependency: "direct main"
     description:
@@ -619,7 +647,7 @@ packages:
       name: http
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.13.3"
+    version: "0.13.4"
   http2:
     dependency: transitive
     description:
