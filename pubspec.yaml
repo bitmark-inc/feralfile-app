@@ -96,6 +96,7 @@ dependencies:
   connectivity_plus: ^2.2.1
   onesignal_flutter: ^3.3.0
   overlay_support: ^1.2.1
+  flutter_to_airplay: ^2.0.2
 
 dependency_overrides:
   # Error using when import photo_view from dependencies:
@@ -164,6 +165,7 @@ flutter:
     - assets/images/cloudEncryption.svg
     - assets/images/nav-arrow-left.svg
     - assets/images/image_error.svg
+    - assets/images/cast.svg
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
