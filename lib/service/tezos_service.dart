@@ -94,7 +94,7 @@ class TezosServiceImpl extends TezosService {
   @override
   Future<int> estimateFee(TezosWallet wallet, String to, int amount) async {
     log.info("TezosService.estimateFee: $to, $amount");
-    final keystore = await getKeystoreAsync(wallet);
+    final keystore = _getKeystore(wallet);
     final operation = await _tezartClient.transferOperation(
       source: keystore,
       destination: to,

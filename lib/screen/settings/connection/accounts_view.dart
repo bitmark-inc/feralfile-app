@@ -46,6 +46,9 @@ class _AccountsViewState extends State<AccountsView> {
       if (accounts == null) return CupertinoActivityIndicator();
       if (accounts.isEmpty) return SizedBox();
 
+      final firstPersonaIndex =
+          accounts.indexWhere((element) => element.persona != null);
+
       if (!widget.isInSettingsPage) {
         return _noEditAccountsListWidget(accounts);
       }
@@ -56,7 +59,7 @@ class _AccountsViewState extends State<AccountsView> {
             ...accounts
                 .map((account) => Column(
                       children: [
-                        accounts.indexOf(account) != 0
+                        accounts.indexOf(account) != firstPersonaIndex
                             ? Slidable(
                                 key: UniqueKey(),
                                 groupTag: 'accountsView',
