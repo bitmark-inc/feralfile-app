@@ -87,8 +87,9 @@ class TezosServiceImpl extends TezosService {
     }
 
     await operationList.execute();
+    await operationList.monitor();
 
-    return operationList.result.signature?.edsig;
+    return operationList.result.blockHash;
   }
 
   @override
@@ -124,8 +125,9 @@ class TezosServiceImpl extends TezosService {
       customStorageLimit: 257,
     );
     await operation.execute();
+    await operation.monitor();
 
-    return operation.result.signature?.edsig;
+    return operation.result.blockHash;
   }
 
   Keystore _getKeystore(TezosWallet wallet) {
