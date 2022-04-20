@@ -110,7 +110,7 @@ class RequestOrigin {
     required this.id,
   });
 
-  String kind;
+  String? kind;
   String id;
 
   factory RequestOrigin.fromJson(Map<String, dynamic> json) =>

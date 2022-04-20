@@ -94,7 +94,7 @@ Map<String, dynamic> _$TezosNetworkToJson(TezosNetwork instance) =>
 
 RequestOrigin _$RequestOriginFromJson(Map<String, dynamic> json) =>
     RequestOrigin(
-      kind: json['kind'] as String,
+      kind: json['kind'] as String?,
       id: json['id'] as String,
     );
 

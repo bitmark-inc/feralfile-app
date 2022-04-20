@@ -87,14 +87,15 @@ class TezosServiceImpl extends TezosService {
     }
 
     await operationList.execute();
+    await operationList.monitor();
 
-    return operationList.result.signature?.edsig;
+    return operationList.result.blockHash;
   }
 
   @override
   Future<int> estimateFee(TezosWallet wallet, String to, int amount) async {
     log.info("TezosService.estimateFee: $to, $amount");
-    final keystore = await getKeystoreAsync(wallet);
+    final keystore = _getKeystore(wallet);
     final operation = await _tezartClient.transferOperation(
       source: keystore,
       destination: to,
@@ -124,8 +125,9 @@ class TezosServiceImpl extends TezosService {
       customStorageLimit: 257,
     );
     await operation.execute();
+    await operation.monitor();
 
-    return operation.result.signature?.edsig;
+    return operation.result.blockHash;
   }
 
   Keystore _getKeystore(TezosWallet wallet) {
