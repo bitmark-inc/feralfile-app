@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 AppBar getBackAppBar(BuildContext context,
-    {String title = "", required Function()? onBack}) {
+    {String title = "", required Function()? onBack, Function()? action}) {
   return AppBar(
     systemOverlayStyle: SystemUiOverlayStyle(
       statusBarColor: Colors.white,
@@ -51,6 +51,14 @@ AppBar getBackAppBar(BuildContext context,
         SizedBox(width: 60),
       ],
     ),
+    actions: action != null ? [
+      IconButton(
+          onPressed: action,
+          icon: Icon(
+            Icons.more_horiz,
+            color: Colors.black,
+          ))
+    ] : null,
     backgroundColor: Colors.transparent,
     shadowColor: Colors.transparent,
     elevation: 0,
