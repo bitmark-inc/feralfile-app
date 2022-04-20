@@ -22,11 +22,14 @@ abstract class AssetTokenDao {
   @Query('SELECT * FROM AssetToken WHERE hidden = 1')
   Future<List<AssetToken>> findAllHiddenAssets();
 
-  @Insert(onConflict: OnConflictStrategy.ignore)
+  @Insert(onConflict: OnConflictStrategy.replace)
   Future<void> insertAsset(AssetToken asset);
 
-  @Insert(onConflict: OnConflictStrategy.ignore)
+  @Insert(onConflict: OnConflictStrategy.replace)
   Future<void> insertAssets(List<AssetToken> assets);
+
+  @Query('UPDATE AssetToken SET hidden = 1 WHERE id IN (:ids)')
+  Future<void> updateHiddenAssets(List<String> ids);
 
   @update
   Future<void> updateAsset(AssetToken asset);

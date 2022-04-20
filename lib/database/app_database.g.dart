@@ -400,6 +400,19 @@ class _$AssetTokenDao extends AssetTokenDao {
   }
 
   @override
+  Future<void> updateHiddenAssets(List<String> ids) async {
+    const offset = 1;
+    final _sqliteVariablesForIds =
+        Iterable<String>.generate(ids.length, (i) => '?${i + offset}')
+            .join(',');
+    await _queryAdapter.queryNoReturn(
+        'UPDATE AssetToken SET hidden = 1 WHERE id IN (' +
+            _sqliteVariablesForIds +
+            ')',
+        arguments: [...ids]);
+  }
+
+  @override
   Future<void> deleteAssetsNotIn(List<String> ids) async {
     const offset = 1;
     final _sqliteVariablesForIds =
@@ -432,13 +445,13 @@ class _$AssetTokenDao extends AssetTokenDao {
 
   @override
   Future<void> insertAsset(AssetToken asset) async {
-    await _assetTokenInsertionAdapter.insert(asset, OnConflictStrategy.ignore);
+    await _assetTokenInsertionAdapter.insert(asset, OnConflictStrategy.replace);
   }
 
   @override
   Future<void> insertAssets(List<AssetToken> assets) async {
     await _assetTokenInsertionAdapter.insertList(
-        assets, OnConflictStrategy.ignore);
+        assets, OnConflictStrategy.replace);
   }
 
   @override
