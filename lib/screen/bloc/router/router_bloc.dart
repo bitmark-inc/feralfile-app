@@ -4,6 +4,7 @@ import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/migration/migration_util.dart';
 import 'package:bloc/bloc.dart';
@@ -15,6 +16,7 @@ class RouterBloc extends Bloc<RouterEvent, RouterState> {
   BackupService _backupService;
   AccountService _accountService;
   CloudDatabase _cloudDB;
+  NavigationService _navigationService;
 
   Future<bool> hasAccounts() async {
     final personas = await _cloudDB.personaDao.getPersonas();
@@ -23,12 +25,13 @@ class RouterBloc extends Bloc<RouterEvent, RouterState> {
   }
 
   RouterBloc(this._configurationService, this._backupService,
-      this._accountService, this._cloudDB)
+      this._accountService, this._cloudDB, this._navigationService)
       : super(RouterState(onboardingStep: OnboardingStep.undefined)) {
     on<DefineViewRoutingEvent>((event, emit) async {
       if (state.onboardingStep != OnboardingStep.undefined) return;
 
-      await MigrationUtil(_configurationService, _cloudDB, _accountService)
+      await MigrationUtil(_configurationService, _cloudDB, _accountService,
+              _navigationService)
           .migrateIfNeeded();
       if (await hasAccounts()) {
         _configurationService.setDoneOnboarding(true);
@@ -44,7 +47,8 @@ class RouterBloc extends Bloc<RouterEvent, RouterState> {
           return;
         } else {
           // has no backup file; try to migration from Keychain
-          await MigrationUtil(_configurationService, _cloudDB, _accountService)
+          await MigrationUtil(_configurationService, _cloudDB, _accountService,
+                  _navigationService)
               .migrationFromKeychain(Platform.isIOS);
           await _accountService.androidRestoreKeys();
 

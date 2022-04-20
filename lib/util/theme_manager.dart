@@ -1,7 +1,7 @@
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:flutter/material.dart';
 
-enum AppTheme { mainTheme, sheetTheme, markdownTheme }
+enum AppTheme { mainTheme, sheetTheme, markdownTheme, markdownThemeBlack }
 
 class AuThemeManager {
   ThemeData getThemeData(AppTheme theme) {
@@ -10,6 +10,8 @@ class AuThemeManager {
         return mainTheme;
       case AppTheme.markdownTheme:
         return markdownTheme;
+      case AppTheme.markdownThemeBlack:
+        return markdownThemeBlack;
       default:
         return sheetTheme;
     }
@@ -41,4 +43,10 @@ class AuThemeManager {
       primaryColor: Colors.white,
       textTheme: ThemeData.dark().textTheme.copyWith(
           bodyText2: appTextTheme.bodyText1?.copyWith(color: Colors.white)));
+
+  final ThemeData markdownThemeBlack = ThemeData(
+      backgroundColor: Colors.black,
+      primaryColor: Colors.white,
+      textTheme: ThemeData.dark().textTheme.copyWith(
+          bodyText2: appTextTheme.bodyText1?.copyWith(color: Colors.black)));
 }
