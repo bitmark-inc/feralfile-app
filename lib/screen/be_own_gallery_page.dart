@@ -1,4 +1,6 @@
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -48,8 +50,15 @@ class BeOwnGalleryPage extends StatelessWidget {
                 Expanded(
                   child: AuFilledButton(
                     text: "CONTINUE".toUpperCase(),
-                    onPress: () {
-                      Navigator.of(context).pushNamed(AppRouter.newAccountPage);
+                    onPress: () async {
+                      if (injector<ConfigurationService>()
+                              .isNotificationEnabled() ==
+                          null) {
+                        await Navigator.of(context)
+                            .pushNamed(AppRouter.notificationOnboardingPage);
+                      }
+                      await Navigator.of(context)
+                          .pushNamed(AppRouter.newAccountPage);
                     },
                   ),
                 ),
