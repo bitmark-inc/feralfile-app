@@ -55,6 +55,8 @@ import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_page.da
 import 'package:autonomy_flutter/screen/settings/crypto/send_review_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
+import 'package:autonomy_flutter/screen/settings/hidden_artworks/hidden_artworks_bloc.dart';
+import 'package:autonomy_flutter/screen/settings/hidden_artworks/hidden_artworks_page.dart';
 import 'package:autonomy_flutter/screen/settings/networks/select_network_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/networks/select_network_page.dart';
 import 'package:autonomy_flutter/screen/settings/settings_page.dart';
@@ -112,6 +114,7 @@ class AppRouter {
   static const linkManually = 'link_manually';
   static const autonomySecurityPage = 'autonomy_security';
   static const releaseNotesPage = 'releaseNotesPage';
+  static const hiddenArtworksPage = 'hidden_artworks';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final networkInjector = injector<NetworkConfigInjector>();
@@ -616,6 +619,14 @@ class AppRouter {
             builder: (context) => LinkManuallyPage(
                   type: settings.arguments as String,
                 ));
+
+      case hiddenArtworksPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => BlocProvider(
+              create: (_) => HiddenArtworksBloc(networkInjector.I()),
+              child: HiddenArtworksPage(),
+            ));
 
       default:
         throw Exception('Invalid route: ${settings.name}');
