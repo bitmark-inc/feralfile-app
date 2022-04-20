@@ -84,7 +84,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
   // ----- App Setting -----
   static const String KEY_APP_SETTING_DEMO_ARTWORKS =
       "show_demo_artworks_preference";
-  static const String KEY_LASTEST_REFRESH_TOKENS = "latest_refresh_tokens_2";
+  static const String KEY_LASTEST_REFRESH_TOKENS = "latest_refresh_tokens_3";
   static const String KEY_PREVIOUS_BUILD_NUMBER = "previous_build_number";
 
   SharedPreferences _preferences;
