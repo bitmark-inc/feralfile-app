@@ -43,11 +43,12 @@ class UIHelper {
     await showModalBottomSheet<dynamic>(
         context: context,
         isDismissible: isDismissible,
+        backgroundColor: Colors.transparent,
         enableDrag: false,
         isScrollControlled: true,
         builder: (context) {
           return Container(
-            color: Color(0xFF737373),
+            color: Colors.transparent,
             child: ClipPath(
               clipper: AutonomyTopRightRectangleClipper(),
               child: Container(
