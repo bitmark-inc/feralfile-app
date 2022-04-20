@@ -51,7 +51,7 @@ Future<void> setup() async {
   final sharedPreferences = await SharedPreferences.getInstance();
 
   final testnetDB = await $FloorAppDatabase
-      .databaseBuilder('app_database_testnet.db')
+      .databaseBuilder('app_database_mainnet.db')
       .addMigrations([
     migrationToV1ToV2,
     migrationToV2ToV3,
