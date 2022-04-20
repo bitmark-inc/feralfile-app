@@ -1,6 +1,7 @@
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:overlay_support/overlay_support.dart';
 
@@ -31,4 +32,5 @@ void showNotifications(OSNotification notification) {
       duration: Duration(seconds: 3),
       elevation: 0,
       slideDismissDirection: DismissDirection.up);
+  Vibrate.feedback(FeedbackType.warning);
 }
