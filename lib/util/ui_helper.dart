@@ -234,6 +234,59 @@ class UIHelper {
         isDismissible: false);
   }
 
+  static showHideArtworkResultDialog(BuildContext context, {required Function() onOK}) {
+    final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
+
+    showDialog(
+        context,
+        "Artwork hidden",
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            RichText(
+              text: TextSpan(children: [
+                TextSpan(
+                  style: theme.textTheme.bodyText1,
+                  text:
+                  "This artwork will no longer appear in your gallery. You can still find it in the ",
+                ),
+                TextSpan(
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontFamily: "AtlasGrotesk-Light",
+                      fontWeight: FontWeight.w700,
+                      height: 1.377),
+                  text: "Hidden artworks >",
+                ),
+                TextSpan(
+                  style: theme.textTheme.bodyText1,
+                  text: " section of settings if you want to view it or unhide it.",
+                ),
+              ]),
+            ),
+            SizedBox(height: 40),
+            Row(
+              children: [
+                Expanded(
+                  child: AuFilledButton(
+                    text: "OK",
+                    onPress: onOK,
+                    color: theme.primaryColor,
+                    textStyle: TextStyle(
+                        color: theme.backgroundColor,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        fontFamily: "IBMPlexMono"),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 15),
+          ],
+        ));
+  }
+
   static showIdentityDetailDialog(BuildContext context,
       {required String name, required String address}) {
     final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
