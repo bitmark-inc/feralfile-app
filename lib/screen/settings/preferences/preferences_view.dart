@@ -1,3 +1,4 @@
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_state.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/select_gallery_sorting_widget.dart';
@@ -77,6 +78,19 @@ class PreferenceView extends StatelessWidget {
                 context
                     .read<PreferencesBloc>()
                     .add(PreferenceUpdateEvent(newState));
+              },
+            ),
+            addDivider(),
+            InkWell(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text("Hidden artworks", style: appTextTheme.headline4),
+                  Icon(Icons.navigate_next, color: Colors.black),
+                ],
+              ),
+              onTap: () {
+                Navigator.of(context).pushNamed(AppRouter.hiddenArtworksPage);
               },
             ),
           ],
