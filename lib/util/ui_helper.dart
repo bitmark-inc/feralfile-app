@@ -234,37 +234,44 @@ class UIHelper {
         isDismissible: false);
   }
 
-  static showHideArtworkResultDialog(BuildContext context, {required Function() onOK}) {
+  static showHideArtworkResultDialog(BuildContext context, bool isHidden,
+      {required Function() onOK}) {
     final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
 
     showDialog(
         context,
-        "Artwork hidden",
+        isHidden ? "Artwork hidden" : "Artwork unhidden",
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            RichText(
-              text: TextSpan(children: [
-                TextSpan(
-                  style: theme.textTheme.bodyText1,
-                  text:
-                  "This artwork will no longer appear in your gallery. You can still find it in the ",
-                ),
-                TextSpan(
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontFamily: "AtlasGrotesk-Light",
-                      fontWeight: FontWeight.w700,
-                      height: 1.377),
-                  text: "Hidden artworks >",
-                ),
-                TextSpan(
-                  style: theme.textTheme.bodyText1,
-                  text: " section of settings if you want to view it or unhide it.",
-                ),
-              ]),
-            ),
+            isHidden
+                ? RichText(
+                    text: TextSpan(children: [
+                      TextSpan(
+                        style: theme.textTheme.bodyText1,
+                        text:
+                            "This artwork will no longer appear in your gallery. You can still find it in the ",
+                      ),
+                      TextSpan(
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontFamily: "AtlasGrotesk-Light",
+                            fontWeight: FontWeight.w700,
+                            height: 1.377),
+                        text: "Hidden artworks >",
+                      ),
+                      TextSpan(
+                        style: theme.textTheme.bodyText1,
+                        text:
+                            " section of settings if you want to view it or unhide it.",
+                      ),
+                    ]),
+                  )
+                : Text(
+                    "This artwork will now be visible in your gallery.",
+                    style: theme.textTheme.bodyText1,
+                  ),
             SizedBox(height: 40),
             Row(
               children: [

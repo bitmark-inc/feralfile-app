@@ -92,54 +92,8 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
           appBar: getBackAppBar(context,
               onBack: () => Navigator.of(context).pop(),
               action: () {
-                final theme =
-                    AuThemeManager().getThemeData(AppTheme.sheetTheme);
-
-                UIHelper.showDialog(
-                    context,
-                    "Options",
-                    Container(
-                      child: Column(
-                        children: [
-                          InkWell(
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text('Hide artwork',
-                                    style: theme.textTheme.headline4),
-                                Icon(Icons.navigate_next, color: Colors.white),
-                              ],
-                            ),
-                            onTap: () {
-                              if (currentAsset == null) return;
-                              final appDatabase = injector<NetworkConfigInjector>().I<AppDatabase>();
-                              currentAsset!.hidden = 1;
-                              appDatabase.assetDao.updateAsset(currentAsset!);
-
-                              Navigator.of(context).pop();
-                              UIHelper.showHideArtworkResultDialog(context, onOK: () {
-                                Navigator.of(context).popUntil((route) =>
-                                    route.settings.name == AppRouter.homePage ||
-                                    route.settings.name ==
-                                        AppRouter.homePageNoTransition);
-                              });
-                            },
-                          ),
-                          Divider(height: 20, color: Colors.white),
-                          TextButton(
-                            onPressed: () => Navigator.pop(context),
-                            child: Text(
-                              "CANCEL",
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w700,
-                                  fontFamily: "IBMPlexMono"),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ));
+                if (currentAsset == null) return;
+                _showArtworkOptionsDialog(currentAsset!);
               }),
           body: BlocConsumer<ArtworkDetailBloc, ArtworkDetailState>(
               listener: (context, state) {
@@ -681,6 +635,59 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
           },
         ),
         isDismissible: true);
+  }
+
+  void _showArtworkOptionsDialog(AssetToken asset) {
+    final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
+
+    UIHelper.showDialog(
+        context,
+        "Options",
+        Container(
+          child: Column(
+            children: [
+              InkWell(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(asset.isHidden() ? 'Unhide artwork' : 'Hide artwork',
+                        style: theme.textTheme.headline4),
+                    Icon(Icons.navigate_next, color: Colors.white),
+                  ],
+                ),
+                onTap: () async {
+                  final appDatabase = injector<NetworkConfigInjector>().I<AppDatabase>();
+                  if (asset.isHidden()) {
+                    asset.hidden = null;
+                  } else {
+                    asset.hidden = 1;
+                  }
+                  await appDatabase.assetDao.updateAsset(asset);
+
+                  Navigator.of(context).pop();
+                  UIHelper.showHideArtworkResultDialog(context, asset.isHidden(), onOK: () {
+                    Navigator.of(context).popUntil((route) =>
+                    route.settings.name == AppRouter.homePage ||
+                        route.settings.name ==
+                            AppRouter.homePageNoTransition);
+                  });
+                },
+              ),
+              Divider(height: 20, color: Colors.white),
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(
+                  "CANCEL",
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      fontFamily: "IBMPlexMono"),
+                ),
+              ),
+            ],
+          ),
+        ));
   }
 }
 
