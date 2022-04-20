@@ -6,6 +6,7 @@ const CLOUDFLAREIMAGEURLPREFIX =
 const AUTONOMY_TV_PEER_NAME = 'Autonomy TV';
 const DEFAULT_IPFS_PREFIX = 'https://ipfs.io';
 const CLOUDFLARE_IPFS_PREFIX = 'https://cloudflare-ipfs.com';
+
 Future<bool> isAppCenterBuild() async {
   final PackageInfo info = await PackageInfo.fromPlatform();
   return info.packageName.contains("inhouse");
@@ -32,12 +33,12 @@ enum WalletApp {
 }
 
 class GallerySortProperty {
-  static const Platform = 'Platform';
+  static const Source = 'Source';
   static const Medium = 'Medium';
   static const ArtistName = 'Artist name';
   static const Chain = "Chain";
 
-  static List<String> get getList => [Platform, Medium, ArtistName, Chain];
+  static List<String> get getList => [Source, Medium, ArtistName, Chain];
 }
 
 extension RawValue on WalletApp {
