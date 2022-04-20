@@ -114,7 +114,7 @@ class PreferenceView extends StatelessWidget {
 
   Widget _gallerySortingByWidget(BuildContext context, String? gallerySortBy) {
     return TappableForwardRowWithContent(
-      leftWidget: Text('Gallery sorting by', style: appTextTheme.headline4),
+      leftWidget: Text('Sort gallery by:', style: appTextTheme.headline4),
       bottomWidget: Text(
         gallerySortBy ?? 'Platform (default)',
         style: appTextTheme.bodyText1,
@@ -129,7 +129,7 @@ class PreferenceView extends StatelessWidget {
         context,
         'Gallery sorting',
         SelectGallerySortingWidget(
-            sortBy: gallerySortBy ?? GallerySortProperty.Platform),
+            sortBy: gallerySortBy ?? GallerySortProperty.Source),
         isDismissible: true);
   }
 }

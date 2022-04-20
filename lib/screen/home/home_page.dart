@@ -49,7 +49,7 @@ class _HomePageState extends State<HomePage>
   StreamSubscription<FGBGType>? _fgbgSubscription;
   late ScrollController _controller;
   int _cachedImageSize = 0;
-  String _gallerySortBy = GallerySortProperty.Platform;
+  String _gallerySortBy = GallerySortProperty.Source;
 
   @override
   void initState() {
@@ -64,7 +64,7 @@ class _HomePageState extends State<HomePage>
         .setNotificationWillShowInForegroundHandler(_shouldShowNotifications);
 
     _gallerySortBy = injector<ConfigurationService>().getGallerySortBy() ??
-        GallerySortProperty.Platform;
+        GallerySortProperty.Source;
   }
 
   @override
@@ -103,7 +103,7 @@ class _HomePageState extends State<HomePage>
 
     setState(() {
       _gallerySortBy = injector<ConfigurationService>().getGallerySortBy() ??
-          GallerySortProperty.Platform;
+          GallerySortProperty.Source;
     });
   }
 
