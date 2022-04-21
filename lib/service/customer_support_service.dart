@@ -15,8 +15,10 @@ import 'package:logging/logging.dart';
 import 'package:path_provider/path_provider.dart';
 
 abstract class CustomerSupportService {
-  ValueNotifier<List<int>>
+  ValueNotifier<List<int>?>
       get numberOfIssuesInfo; // [numberOfIssues, numberOfUnreadIssues]
+  ValueNotifier<int> get triggerReloadMessages;
+
   Future<IssueDetails> getDetails(String issueID, int total);
   Future<List<Issue>> getIssues();
   Future<PostedMessageResponse> createIssue(
@@ -25,11 +27,13 @@ abstract class CustomerSupportService {
       String issueID, String message, List<SendAttachment> attachments);
   Future<String> getStoredDirectory();
   Future storeFile(String filename, List<int> bytes);
+  Future reopen(String issueID);
 }
 
 class CustomerSupportServiceImpl extends CustomerSupportService {
   final CustomerSupportApi _customerSupportApi;
-  ValueNotifier<List<int>> numberOfIssuesInfo = ValueNotifier([0, 0]);
+  ValueNotifier<List<int>?> numberOfIssuesInfo = ValueNotifier(null);
+  ValueNotifier<int> triggerReloadMessages = ValueNotifier(0);
 
   CustomerSupportServiceImpl(this._customerSupportApi);
 
@@ -44,12 +48,12 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
   }
 
   Future<IssueDetails> getDetails(String issueID, int total) async {
-    return await _customerSupportApi.getDetails(issueID, 0, total);
+    return await _customerSupportApi.getDetails(issueID, total);
   }
 
   Future<PostedMessageResponse> createIssue(String reportIssueType,
       String message, List<SendAttachment> attachments) async {
-    var title = '[$reportIssueType] $message';
+    var title = message;
     if (title.length > 170) {
       title = title.substring(0, 170);
     }
@@ -89,5 +93,9 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     await file.create(recursive: true);
     await file.writeAsBytes(bytes);
     log('[done] storeFile $filename');
+  }
+
+  Future reopen(String issueID) async {
+    return _customerSupportApi.reOpenIssue(issueID);
   }
 }

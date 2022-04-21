@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/customer_support.dart' as app;
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
@@ -9,6 +10,7 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/theme_manager.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:flutter_chat_ui/flutter_chat_ui.dart';
@@ -20,13 +22,11 @@ import 'package:bubble/bubble.dart';
 class SupportThreadPage extends StatefulWidget {
   final String reportIssueType;
   final String? issueID;
-  final int? total;
 
   const SupportThreadPage({
     Key? key,
     required this.reportIssueType,
     this.issueID,
-    this.total = 0,
   }) : super(key: key);
 
   @override
@@ -40,38 +40,65 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   bool _isPostMessageRunning = false;
   final _user = const types.User(id: 'user');
   final _bitmark = const types.User(id: 'bitmark');
+  String _reportIssueType = '';
+  String _status = '';
   String? _issueID;
-  Widget? _customBottomWidget;
+  var _forceAccountsViewRedraw;
   var _sendIcon = "assets/images/sendMessage.svg";
+  final _introMessagerID = const Uuid().v4();
+  final _resolvedMessagerID = const Uuid().v4();
+  types.TextMessage get _introMessager => types.TextMessage(
+        author: _bitmark,
+        id: _introMessagerID,
+        text: ReportIssueType.introMessage(_reportIssueType),
+        createdAt: DateTime.now().millisecondsSinceEpoch,
+      );
+
+  types.CustomMessage get _resolvedMessager => types.CustomMessage(
+        id: _resolvedMessagerID,
+        author: _bitmark,
+        metadata: {"status": "resolved"},
+      );
 
   @override
   void initState() {
-    // if (true) {
-    //   _customBottomWidget = SizedBox(height: 40);
-    // }
+    injector<CustomerSupportService>()
+        .triggerReloadMessages
+        .addListener(_loadIssueDetails);
+    _reportIssueType = widget.reportIssueType;
     _issueID = widget.issueID;
+    memoryValues.viewingSupportThreadIssueID = _issueID;
+    _forceAccountsViewRedraw = Object();
     super.initState();
 
-    if (_issueID == null) {
-      _messages = [
-        types.TextMessage(
-          author: _bitmark,
-          id: Uuid().v4().toString(),
-          text: ReportIssueType.introMessage(widget.reportIssueType),
-          createdAt: DateTime.now().millisecondsSinceEpoch,
-        )
-      ];
-    } else {
-      _loadMessages();
+    if (_issueID != null) {
+      _loadIssueDetails();
     }
   }
 
   @override
+  void dispose() {
+    injector<CustomerSupportService>()
+        .triggerReloadMessages
+        .removeListener(_loadIssueDetails);
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    List<types.Message> messages = (_pendingMessages + _messages);
+    if (_status == 'closed' || _status == 'clickToReopen') {
+      messages.insert(0, _resolvedMessager);
+    }
+
+    if (_issueID == null || messages.length > 0) {
+      messages.add(_introMessager);
+    }
+
     return Scaffold(
         appBar: getBackAppBar(
           context,
-          title: ReportIssueType.toTitle(widget.reportIssueType).toUpperCase(),
+          title: ReportIssueType.toTitle(_reportIssueType).toUpperCase(),
           onBack: () => Navigator.of(context).pop(),
         ),
         body: Container(
@@ -81,7 +108,8 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
               theme: _chatTheme,
               sendButtonVisibilityMode: SendButtonVisibilityMode.always,
               customMessageBuilder: _customMessageBuilder,
-              messages: _pendingMessages + _messages,
+              emptyState: CupertinoActivityIndicator(),
+              messages: messages,
               onAttachmentPressed: _handleAtachmentPressed,
               onSendPressed: _handleSendPressed,
               onTextChanged: (text) {
@@ -92,7 +120,8 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
                 });
               },
               user: _user,
-              customBottomWidget: _customBottomWidget,
+              customBottomWidget:
+                  _status == 'closed' ? SizedBox(height: 40) : null,
             )));
   }
 
@@ -147,7 +176,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
                 TextButton(
                     onPressed: () {
                       setState(() {
-                        _customBottomWidget = null;
+                        _status = "clickToReopen";
                       });
                     },
                     style: textButtonNoPadding,
@@ -163,17 +192,19 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     }
   }
 
-  void _loadMessages() async {
+  void _loadIssueDetails() async {
     if (widget.issueID == null) return;
     final issueDetails = await injector<CustomerSupportService>()
-        .getDetails(widget.issueID!, widget.total ?? 1000);
+        .getDetails(widget.issueID!, 1000);
 
     final _parsedMessages = (await Future.wait(
-            issueDetails.messages.map((e) => convertChatMessage(e))))
+            issueDetails.messages.map((e) => _convertChatMessage(e))))
         .expand((i) => i)
         .toList();
 
     setState(() {
+      _status = issueDetails.issue.status;
+      _reportIssueType = issueDetails.issue.reportIssueType;
       _messages = _parsedMessages;
     });
   }
@@ -187,23 +218,11 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
           attachments: [],
           timestamp: DateTime.now()),
     );
-    _postMessage();
-
+    await _convertPendingChatMessages();
     setState(() {
       _sendIcon = "assets/images/sendMessage.svg";
     });
-  }
-
-  void _addMessage(types.Message message) {
-    setState(() {
-      _messages.insert(0, message);
-    });
-  }
-
-  void removeMessage(String messageID) {
-    setState(() {
-      _messages.removeWhere((element) => element.id == messageID);
-    });
+    _postMessageToServer();
   }
 
   void _handleAtachmentPressed() {
@@ -218,6 +237,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
           TextButton(
             style: textButtonNoPadding,
             onPressed: () {
+              Navigator.of(context).pop();
               _handleImageSelection();
             },
             child: Align(
@@ -246,7 +266,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
                     ],
                     timestamp: DateTime.now()),
               );
-              _postMessage();
+              _postMessageToServer();
 
               Navigator.pop(context);
             },
@@ -295,22 +315,24 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
           timestamp: DateTime.now()),
     );
 
-    _postMessage();
-    Navigator.pop(context);
+    await _convertPendingChatMessages();
+    setState(() {
+      _forceAccountsViewRedraw = Object();
+    });
+
+    _postMessageToServer();
   }
 
-  Future convertPendingChatMessages() async {
+  Future _convertPendingChatMessages() async {
     final _parsedSendMessages = (await Future.wait(
-            _pendingSendMessages.map((e) => convertChatMessage(e))))
+            _pendingSendMessages.map((e) => _convertChatMessage(e))))
         .expand((i) => i)
         .toList();
 
-    setState(() {
-      _pendingMessages = _parsedSendMessages;
-    });
+    _pendingMessages = _parsedSendMessages;
   }
 
-  Future<List<types.Message>> convertChatMessage(dynamic message) async {
+  Future<List<types.Message>> _convertChatMessage(dynamic message) async {
     late var id, author, status, createdAt, text;
 
     if (message is app.Message) {
@@ -335,7 +357,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       return [
         types.TextMessage(
           id: id,
-          author: _user,
+          author: author,
           createdAt: createdAt.millisecondsSinceEpoch,
           text: text,
           status: status,
@@ -369,7 +391,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
         if (contentTypes[i].contains("image")) {
           messages.add(types.ImageMessage(
             id: id,
-            author: _user,
+            author: author,
             createdAt: createdAt.millisecondsSinceEpoch,
             status: status,
             showStatus: true,
@@ -380,7 +402,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
         } else {
           messages.add(types.FileMessage(
             id: id,
-            author: _user,
+            author: author,
             createdAt: createdAt.millisecondsSinceEpoch,
             status: status,
             showStatus: true,
@@ -395,7 +417,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     }
   }
 
-  void _postMessage() async {
+  void _postMessageToServer() async {
     if (_isPostMessageRunning || _pendingSendMessages.length == 0) return;
     final message = _pendingSendMessages.last;
     _isPostMessageRunning = true;
@@ -405,10 +427,18 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       final result = await injector<CustomerSupportService>().createIssue(
           widget.reportIssueType, message.message, message.attachments);
       _issueID = result.issueID;
+      memoryValues.viewingSupportThreadIssueID = _issueID;
       postedMessage = result.message;
 
       //
     } else {
+      if (_status == 'closed' || _status == 'clickToReopen') {
+        setState(() {
+          _status = "reopening";
+        });
+        await injector<CustomerSupportService>().reopen(_issueID!);
+      }
+
       final result = await injector<CustomerSupportService>()
           .commentIssue(_issueID!, message.message, message.attachments);
       postedMessage = result.message;
@@ -424,17 +454,16 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       }
     }
 
-    final newMessages = await convertChatMessage(postedMessage);
+    await _convertPendingChatMessages();
+    final newMessages = await _convertChatMessage(postedMessage);
 
     setState(() {
       _messages.insertAll(0, newMessages);
     });
 
     _isPostMessageRunning = false;
-    _postMessage();
+    _postMessageToServer();
   }
-
-  void convert() {}
 
   DefaultChatTheme get _chatTheme {
     return DefaultChatTheme(

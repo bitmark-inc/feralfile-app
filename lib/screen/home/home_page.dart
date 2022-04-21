@@ -21,6 +21,7 @@ import 'package:autonomy_flutter/util/au_cached_manager.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/rand.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/penrose_top_bar_view.dart';
@@ -398,6 +399,15 @@ class _HomePageState extends State<HomePage>
 
   void _shouldShowNotifications(OSNotificationReceivedEvent event) {
     log.info("Receive notification: ${event.notification}");
+    final notificationIssueID =
+        '${event.notification.additionalData?['issue_id']}';
+    if (notificationIssueID == memoryValues.viewingSupportThreadIssueID) {
+      injector<CustomerSupportService>().triggerReloadMessages.value += 1;
+      injector<CustomerSupportService>().getIssues();
+      event.complete(null);
+      return;
+    }
+
     showNotifications(event.notification,
         notificationOpenedHandler: _handleNotificationClicked);
     event.complete(null);
@@ -416,7 +426,7 @@ class _HomePageState extends State<HomePage>
     switch (notificationType) {
       case "customer_support_new_message":
       case "customer_support_close_issue":
-        final issueID = notification.additionalData!["issue_id"];
+        final issueID = '${notification.additionalData!["issue_id"]}';
         Navigator.of(context).pushNamedAndRemoveUntil(
             AppRouter.supportThreadPage,
             ((route) =>
@@ -424,8 +434,7 @@ class _HomePageState extends State<HomePage>
                 route.settings.name == AppRouter.homePageNoTransition),
             arguments: [
               "",
-              issueID,
-              null,
+              '$issueID',
             ]);
         break;
       default:
