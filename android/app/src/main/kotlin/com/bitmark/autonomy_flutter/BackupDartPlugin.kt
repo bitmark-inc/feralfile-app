@@ -10,6 +10,7 @@ import com.google.android.gms.auth.blockstore.StoreBytesData
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
+import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.disposables.CompositeDisposable
@@ -108,7 +109,16 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler {
                         .flatMap { account ->
                             LibAuk.getInstance()
                                 .getStorage(UUID.fromString(account.uuid), context)
-                                .importKey(account.mnemonic.split(" "), account.name, Date())
+                                .isWalletCreated()
+                                .flatMapCompletable { isCreated ->
+                                    if (!isCreated) {
+                                        LibAuk.getInstance()
+                                            .getStorage(UUID.fromString(account.uuid), context)
+                                            .importKey(account.mnemonic.split(" "), account.name, Date())
+                                    } else {
+                                        Completable.complete()
+                                    }
+                                }
                                 .andThen(
                                     Observable.just(
                                         BackupAccount(
