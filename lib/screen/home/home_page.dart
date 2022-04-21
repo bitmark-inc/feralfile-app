@@ -65,6 +65,11 @@ class _HomePageState extends State<HomePage>
     OneSignal.shared
         .setNotificationWillShowInForegroundHandler(_shouldShowNotifications);
     injector<AuditService>().auditFirstLog();
+    OneSignal.shared.setNotificationOpenedHandler((openedResult) {
+      Future.delayed(Duration(milliseconds: 500), () {
+        _handleNotificationClicked(openedResult.notification);
+      });
+    });
 
     _gallerySortBy = injector<ConfigurationService>().getGallerySortBy() ??
         GallerySortProperty.Source;
@@ -393,8 +398,40 @@ class _HomePageState extends State<HomePage>
 
   void _shouldShowNotifications(OSNotificationReceivedEvent event) {
     log.info("Receive notification: ${event.notification}");
-    showNotifications(event.notification);
+    showNotifications(event.notification,
+        notificationOpenedHandler: _handleNotificationClicked);
     event.complete(null);
+  }
+
+  void _handleNotificationClicked(OSNotification notification) {
+    if (notification.additionalData == null) {
+      // Skip handling the notification without data
+      return;
+    }
+
+    Navigator.of(context).popUntil((route) =>
+        route.settings.name == AppRouter.homePage ||
+        route.settings.name == AppRouter.homePageNoTransition);
+
+    log.info(
+        "Tap to notification: ${notification.body ?? "empty"} \nAddtional data: ${notification.additionalData!}");
+
+    final notificationType = notification.additionalData!["notification_type"];
+    switch (notificationType) {
+      case "customer_support_new_message":
+      case "customer_support_close_issue":
+        final issueID = notification.additionalData!["issue_id"];
+        Navigator.of(context)
+            .pushNamed(AppRouter.supportThreadPage, arguments: [
+          "",
+          issueID,
+          null,
+        ]);
+        break;
+      default:
+        log.warning("unhandled notification type: $notificationType");
+        break;
+    }
   }
 
   void _handleForeground() {
