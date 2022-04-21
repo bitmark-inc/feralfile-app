@@ -5,6 +5,7 @@ import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 part 'accounts_state.dart';
@@ -27,7 +28,7 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
       List<Account> accounts = [];
 
       for (var persona in personas) {
-        final ethAddress = await persona.wallet().getETHAddress();
+        final ethAddress = await persona.wallet().getETHEip55Address();
         if (ethAddress.isEmpty) continue;
         var name = await persona.wallet().getName();
 
@@ -100,7 +101,7 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
 
       for (var persona in personas) {
         final bitmarkAddress = await persona.wallet().getBitmarkAddress();
-        final ethAddress = await persona.wallet().getETHAddress();
+        final ethAddress = await persona.wallet().getETHEip55Address();
         final xtzAddress = (await persona.wallet().getTezosWallet()).address;
         var name = await persona.wallet().getName();
 
@@ -218,7 +219,7 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
         for (var persona in personas) {
           final wallet = persona.wallet();
           final tzWallet = await wallet.getTezosWallet();
-          final ethAddress = await wallet.getETHAddress();
+          final ethAddress = await wallet.getETHEip55Address();
           final tzAddress = tzWallet.address;
 
           addresses.add(ethAddress);
