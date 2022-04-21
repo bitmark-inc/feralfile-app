@@ -661,7 +661,6 @@ class AppRouter {
             builder: (context) => SupportThreadPage(
                   reportIssueType: args[0] as String,
                   issueID: args[1] as String?,
-                  total: args[2] as int?,
                 ));
 
       case linkManually:

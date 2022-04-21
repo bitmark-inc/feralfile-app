@@ -5,6 +5,7 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -20,8 +21,6 @@ class SupportListPage extends StatefulWidget {
 
 class _SupportListPageState extends State<SupportListPage>
     with RouteAware, WidgetsBindingObserver {
-  RefreshController _refreshController =
-      RefreshController(initialRefresh: false);
   List<Issue>? _issues;
 
   @override
@@ -29,6 +28,9 @@ class _SupportListPageState extends State<SupportListPage>
     super.didChangeDependencies();
     routeObserver.subscribe(this, ModalRoute.of(context)!);
     loadIssues();
+    injector<CustomerSupportService>()
+        .triggerReloadMessages
+        .addListener(loadIssues);
   }
 
   @override
@@ -41,9 +43,13 @@ class _SupportListPageState extends State<SupportListPage>
   void dispose() {
     super.dispose();
     routeObserver.unsubscribe(this);
+    injector<CustomerSupportService>()
+        .triggerReloadMessages
+        .removeListener(loadIssues);
   }
 
   void loadIssues() async {
+    print("LOAD ISSUE");
     final issues = await injector<CustomerSupportService>().getIssues();
     setState(() {
       _issues = issues;
@@ -57,18 +63,13 @@ class _SupportListPageState extends State<SupportListPage>
         context,
         onBack: () => Navigator.of(context).pop(),
       ),
-      body: SmartRefresher(
-        controller: _refreshController,
-        enablePullDown: false,
-        enablePullUp: false,
-        child: _issuesWidget(),
-      ),
+      body: _issuesWidget(),
     );
   }
 
   Widget _issuesWidget() {
     final issues = _issues;
-    if (issues == null) return CupertinoActivityIndicator();
+    if (issues == null) return Center(child: CupertinoActivityIndicator());
 
     if (issues.length == 0) return SizedBox();
     return CustomScrollView(slivers: [
@@ -88,12 +89,12 @@ class _SupportListPageState extends State<SupportListPage>
           return Padding(
             padding: EdgeInsets.symmetric(horizontal: pageEdgeInsets.left),
             child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
               child: _contentRow(issue),
               onTap: () => Navigator.of(context)
                   .pushNamed(AppRouter.supportThreadPage, arguments: [
                 issue.reportIssueType,
                 issue.issueID,
-                issue.total
               ]),
             ),
           );
@@ -134,7 +135,9 @@ class _SupportListPageState extends State<SupportListPage>
             ),
             Row(
               children: [
-                Text("10:38"),
+                Text(getVerboseDateTimeRepresentation(
+                    issue.lastMessage?.timestamp.toLocal() ??
+                        issue.timestamp.toLocal())),
                 SizedBox(width: 20),
                 SvgPicture.asset('assets/images/iconForward.svg'),
               ],
@@ -145,7 +148,7 @@ class _SupportListPageState extends State<SupportListPage>
         Padding(
           padding: const EdgeInsets.only(right: 20),
           child: Text(
-            issue.lastMessage?.message ?? '',
+            getLastMessage(issue),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: appTextTheme.bodyText1,
@@ -154,5 +157,19 @@ class _SupportListPageState extends State<SupportListPage>
         addDivider(),
       ],
     );
+  }
+
+  String getLastMessage(Issue issue) {
+    final lastMessage = issue.lastMessage;
+    if (lastMessage == null) return '';
+
+    if (lastMessage.message.isNotEmpty) return lastMessage.message;
+
+    final attachment = lastMessage.attachments.last;
+    if (attachment.contentType.contains('image')) {
+      return 'Image sent: ${attachment.title}';
+    } else {
+      return 'File sent: ${attachment.title}';
+    }
   }
 }

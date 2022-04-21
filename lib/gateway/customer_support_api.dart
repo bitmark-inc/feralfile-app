@@ -14,9 +14,10 @@ abstract class CustomerSupportApi {
   @GET("/v1/issues/{issueID}")
   Future<IssueDetails> getDetails(
     @Path("issueID") String issueID,
-    @Query("start") int start,
-    @Query("count") int count,
-  );
+    @Query("count") int count, {
+    @Query("start") int start = 0,
+    @Query("reverse") bool reverse = true,
+  });
 
   @POST("/v1/issues/")
   Future<PostedMessageResponse> createIssue(
@@ -27,5 +28,10 @@ abstract class CustomerSupportApi {
   Future<PostedMessageResponse> commentIssue(
     @Path("issueID") String issueID,
     @Body() Map<String, Object> body,
+  );
+
+  @PATCH("/v1/issues/{issueID}/reopen")
+  Future reOpenIssue(
+    @Path("issueID") String issueID,
   );
 }

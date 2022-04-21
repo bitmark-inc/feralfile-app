@@ -97,10 +97,11 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> {
   }
 
   Widget _customerSupportIconWidget() {
-    return ValueListenableBuilder<List<int>>(
+    return ValueListenableBuilder<List<int>?>(
         valueListenable: injector<CustomerSupportService>().numberOfIssuesInfo,
-        builder: (BuildContext context, List<int> numberOfIssuesInfo,
+        builder: (BuildContext context, List<int>? numberOfIssuesInfo,
             Widget? child) {
+          final unreadIssues = numberOfIssuesInfo?[1] ?? 0;
           return GestureDetector(
             child: Stack(
               clipBehavior: Clip.none,
@@ -109,13 +110,13 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> {
                     // top: 3,
                     child: SvgPicture.asset(
                         "assets/images/iconCustomerSupport.svg")),
-                if (numberOfIssuesInfo[1] != 0) ...[
+                if (unreadIssues != 0) ...[
                   Positioned(
                       top: -3,
                       left: 12,
                       child: Align(
                         alignment: Alignment.topRight,
-                        child: BadgeView(number: numberOfIssuesInfo[1]),
+                        child: BadgeView(number: unreadIssues),
                       )),
                 ]
               ],

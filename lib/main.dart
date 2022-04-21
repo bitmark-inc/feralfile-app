@@ -128,13 +128,15 @@ class AppBlocObserver extends BlocObserver {
 final RouteObserver<ModalRoute<void>> routeObserver =
     RouteObserver<ModalRoute<void>>();
 
-var memoryValues = MemoryValues(scopedPersona: null);
+var memoryValues = MemoryValues();
 
 class MemoryValues {
   String? scopedPersona;
+  String? viewingSupportThreadIssueID;
 
   MemoryValues({
     this.scopedPersona,
+    this.viewingSupportThreadIssueID,
   });
 
   MemoryValues copyWith({
