@@ -109,8 +109,8 @@ class AutonomyAuthInterceptor extends Interceptor {
   void onRequest(
       RequestOptions options, RequestInterceptorHandler handler) async {
     if (options.path != IAPApi.authenticationPath) {
-      final token = await injector<AuthService>().getAuthToken();
-      options.headers["Authorization"] = "Bearer $token";
+      final jwt = await injector<AuthService>().getAuthToken();
+      options.headers["Authorization"] = "Bearer ${jwt.jwtToken}";
     }
 
     return handler.next(options);

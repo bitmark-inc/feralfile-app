@@ -8,6 +8,7 @@ import 'package:autonomy_flutter/model/connection_supports.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/android_backup_channel.dart';
 import 'package:autonomy_flutter/util/device.dart';
@@ -23,9 +24,10 @@ class MigrationUtil {
   CloudDatabase _cloudDB;
   AccountService _accountService;
   NavigationService _navigationService;
+  IAPService _iapService;
 
   MigrationUtil(this._configurationService, this._cloudDB, this._accountService,
-      this._navigationService);
+      this._navigationService, this._iapService);
 
   Future<void> migrateIfNeeded() async {
     if (Platform.isIOS) {
@@ -34,6 +36,8 @@ class MigrationUtil {
       await _migrationAndroid();
     }
     await _askForNotification();
+    _iapService.restore();
+    log.info("[migration] finished");
   }
 
   Future<void> migrationFromKeychain(bool isIOS) async {
