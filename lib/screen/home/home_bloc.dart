@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tokens_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -197,7 +198,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     List<String> tezosAddresses = [];
 
     for (var persona in personas) {
-      final ethAddress = await persona.wallet().getETHAddress();
+      final ethAddress = await persona.wallet().getETHEip55Address();
       final tezosWallet = await persona.wallet().getTezosWallet();
       final tezosAddress = tezosWallet.address;
       final bitmarkAddress = await persona.wallet().getBitmarkAddress();
@@ -219,7 +220,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     final personaUUIDs = _configurationService.getPersonaUUIDsHiddenInGallery();
     for (var personaUUID in personaUUIDs) {
       final personaWallet = Persona.newPersona(uuid: personaUUID).wallet();
-      final ethAddress = await personaWallet.getETHAddress();
+      final ethAddress = await personaWallet.getETHEip55Address();
 
       if (ethAddress.isEmpty) continue;
       hiddenAddresses.add(ethAddress);

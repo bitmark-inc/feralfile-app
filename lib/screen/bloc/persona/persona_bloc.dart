@@ -7,6 +7,7 @@ import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:bloc/bloc.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -42,7 +43,7 @@ class PersonaBloc extends Bloc<PersonaEvent, PersonaState> {
 
       for (var persona in personas) {
         if (persona.name.isEmpty) {
-          final address = await persona.wallet().getETHAddress();
+          final address = await persona.wallet().getETHEip55Address();
           _namedPersonas.add(persona.copyWith(name: address.mask(4)));
         } else {
           _namedPersonas.add(persona);
