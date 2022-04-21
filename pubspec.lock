@@ -538,6 +538,15 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_to_airplay:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: "0bd6ff556a664d3f8881f1a570f4d2028b7101dd"
+      resolved-ref: "0bd6ff556a664d3f8881f1a570f4d2028b7101dd"
+      url: "https://github.com/autonomy-system/flutter_to_airplay.git"
+    source: git
+    version: "2.0.2"
   flutter_vibrate:
     dependency: "direct main"
     description:
@@ -619,7 +628,7 @@ packages:
       name: http
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.13.3"
+    version: "0.13.4"
   http2:
     dependency: transitive
     description:

@@ -12,6 +12,8 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/au_cached_manager.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/theme_manager.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
@@ -19,6 +21,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_to_airplay/airplay_route_picker_view.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shake/shake.dart';
@@ -187,6 +190,15 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                                   color: Colors.white,
                                 ),
                               ),
+                              asset.medium == "video" && Platform.isIOS
+                                  ? InkWell(
+                                      onTap: () => _showCastDialog(context),
+                                      child: SvgPicture.asset(
+                                          'assets/images/cast.svg'),
+                                    )
+                                  : SizedBox(
+                                      width: 25,
+                                    ),
                               IconButton(
                                 onPressed: () async {
                                   setState(() {
@@ -459,5 +471,55 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
         _initializePlay(videoPath);
       });
     });
+  }
+
+  Future<void> _showCastDialog(BuildContext context) {
+    final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
+    return UIHelper.showDialog(
+        context,
+        "Select a device",
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (Platform.isIOS)
+              SizedBox(
+                height: 44,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Padding(
+                        padding: EdgeInsets.only(left: 44, bottom: 5),
+                        child: Text(
+                          "Airplay",
+                          style: theme.textTheme.headline4,
+                        ),
+                      ),
+                    ),
+                    AirPlayRoutePickerView(
+                      tintColor: Colors.white,
+                      activeTintColor: Colors.white,
+                      backgroundColor: Colors.transparent,
+                      prioritizesVideoDevices: true,
+                    ),
+                  ],
+                ),
+              ),
+            SizedBox(height: 54),
+            Text(
+              "CANCEL",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  fontFamily: "IBMPlexMono"),
+            ),
+            SizedBox(height: 13),
+          ],
+        ),
+        isDismissible: true);
   }
 }
