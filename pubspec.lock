@@ -78,20 +78,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "8.0.1"
-  bonsoir:
-    dependency: transitive
-    description:
-      name: bonsoir
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.0.1+2"
-  bonsoir_platform_interface:
-    dependency: transitive
-    description:
-      name: bonsoir_platform_interface
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.1.0+1"
   boolean_selector:
     dependency: transitive
     description:
@@ -190,13 +176,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.1"
-  cast:
-    dependency: "direct main"
-    description:
-      name: cast
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.1.1"
   characters:
     dependency: transitive
     description:
@@ -562,9 +541,11 @@ packages:
   flutter_to_airplay:
     dependency: "direct main"
     description:
-      name: flutter_to_airplay
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "."
+      ref: "0bd6ff556a664d3f8881f1a570f4d2028b7101dd"
+      resolved-ref: "0bd6ff556a664d3f8881f1a570f4d2028b7101dd"
+      url: "https://github.com/autonomy-system/flutter_to_airplay.git"
+    source: git
     version: "2.0.2"
   flutter_vibrate:
     dependency: "direct main"
