@@ -132,7 +132,7 @@ class AppRouter {
             settings: settings,
             builder: (context) => BlocProvider(
                 create: (_) => RouterBloc(injector(), injector(), injector(),
-                    injector<CloudDatabase>(), injector()),
+                    injector<CloudDatabase>(), injector(), injector()),
                 child: OnboardingPage()));
 
       case homePageNoTransition:
