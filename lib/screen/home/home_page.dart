@@ -409,10 +409,6 @@ class _HomePageState extends State<HomePage>
       return;
     }
 
-    Navigator.of(context).popUntil((route) =>
-        route.settings.name == AppRouter.homePage ||
-        route.settings.name == AppRouter.homePageNoTransition);
-
     log.info(
         "Tap to notification: ${notification.body ?? "empty"} \nAddtional data: ${notification.additionalData!}");
 
@@ -421,12 +417,16 @@ class _HomePageState extends State<HomePage>
       case "customer_support_new_message":
       case "customer_support_close_issue":
         final issueID = notification.additionalData!["issue_id"];
-        Navigator.of(context)
-            .pushNamed(AppRouter.supportThreadPage, arguments: [
-          "",
-          issueID,
-          null,
-        ]);
+        Navigator.of(context).pushNamedAndRemoveUntil(
+            AppRouter.supportThreadPage,
+            ((route) =>
+                route.settings.name == AppRouter.homePage ||
+                route.settings.name == AppRouter.homePageNoTransition),
+            arguments: [
+              "",
+              issueID,
+              null,
+            ]);
         break;
       default:
         log.warning("unhandled notification type: $notificationType");
