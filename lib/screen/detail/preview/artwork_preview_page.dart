@@ -190,11 +190,15 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                                   color: Colors.white,
                                 ),
                               ),
-                              InkWell(
-                                onTap: () => _showCastDialog(context),
-                                child:
-                                    SvgPicture.asset('assets/images/cast.svg'),
-                              ),
+                              asset.medium == "video" && Platform.isIOS
+                                  ? InkWell(
+                                      onTap: () => _showCastDialog(context),
+                                      child: SvgPicture.asset(
+                                          'assets/images/cast.svg'),
+                                    )
+                                  : SizedBox(
+                                      width: 25,
+                                    ),
                               IconButton(
                                 onPressed: () async {
                                   setState(() {
@@ -479,25 +483,41 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             if (Platform.isIOS)
-              Row(
-                children: [
-                  AirPlayRoutePickerView(
-                    tintColor: Colors.white,
-                    activeTintColor: Colors.white,
-                    backgroundColor: Colors.transparent,
-                  ),
-                  Text(
-                    "AIRPLAY (tap the icon)",
-                    style: theme.textTheme.headline4,
-                  ),
-                ],
+              SizedBox(
+                height: 44,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Padding(
+                        padding: EdgeInsets.only(left: 44, bottom: 5),
+                        child: Text(
+                          "Airplay",
+                          style: theme.textTheme.headline4,
+                        ),
+                      ),
+                    ),
+                    AirPlayRoutePickerView(
+                      tintColor: Colors.white,
+                      activeTintColor: Colors.white,
+                      backgroundColor: Colors.transparent,
+                      prioritizesVideoDevices: true,
+                    ),
+                  ],
+                ),
               ),
             SizedBox(height: 54),
             Text(
               "CANCEL",
               textAlign: TextAlign.center,
-              style: theme.textTheme.bodyText1,
-            )
+              style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  fontFamily: "IBMPlexMono"),
+            ),
+            SizedBox(height: 13),
           ],
         ),
         isDismissible: true);
