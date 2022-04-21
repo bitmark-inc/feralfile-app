@@ -609,22 +609,20 @@ class AppRouter {
                 ));
 
       case globalReceivePage:
-        return PageTransition(
-            type: PageTransitionType.topToBottom,
-            curve: Curves.easeIn,
-            duration: Duration(milliseconds: 250),
-            child: MultiBlocProvider(providers: [
-              BlocProvider.value(value: accountsBloc),
-              BlocProvider(
-                create: (_) => PersonaBloc(
-                  injector<CloudDatabase>(),
-                  injector(),
-                  injector<AuditService>(),
-                ),
-              ),
-              BlocProvider.value(value: ethereumBloc),
-              BlocProvider.value(value: tezosBloc),
-            ], child: GlobalReceivePage()));
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => MultiBlocProvider(providers: [
+                  BlocProvider.value(value: accountsBloc),
+                  BlocProvider(
+                    create: (_) => PersonaBloc(
+                      injector<CloudDatabase>(),
+                      injector(),
+                      injector<AuditService>(),
+                    ),
+                  ),
+                  BlocProvider.value(value: ethereumBloc),
+                  BlocProvider.value(value: tezosBloc),
+                ], child: GlobalReceivePage()));
 
       case GlobalReceiveDetailPage.tag:
         return CupertinoPageRoute(
@@ -647,8 +645,11 @@ class AppRouter {
             ));
 
       case supportCustomerPage:
-        return CupertinoPageRoute(
-            settings: settings, builder: (context) => SupportCustomerPage());
+        return PageTransition(
+            type: PageTransitionType.topToBottom,
+            curve: Curves.easeIn,
+            duration: Duration(milliseconds: 250),
+            child: SupportCustomerPage());
 
       case supportListPage:
         return CupertinoPageRoute(

@@ -26,7 +26,7 @@ class _SupportCustomerPageState extends State<SupportCustomerPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: getBackAppBar(
+      appBar: getCloseAppBar(
         context,
         onBack: () => Navigator.of(context).pop(),
       ),
