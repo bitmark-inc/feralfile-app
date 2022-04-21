@@ -34,7 +34,8 @@ class PreferencesBloc extends Bloc<PreferenceEvent, PreferenceState> {
       final canCheckBiometrics = await authenticateIsAvailable();
 
       final passcodeEnabled = _configurationService.isDevicePasscodeEnabled();
-      final notificationEnabled = _configurationService.isNotificationEnabled();
+      final notificationEnabled =
+          _configurationService.isNotificationEnabled() ?? false;
       final analyticsEnabled = _configurationService.isAnalyticsEnabled();
 
       emit(PreferenceState(

@@ -45,6 +45,7 @@ import 'package:autonomy_flutter/screen/global_receive/receive_detail_page.dart'
 import 'package:autonomy_flutter/screen/global_receive/receive_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_page.dart';
+import 'package:autonomy_flutter/screen/notification_onboarding_page.dart';
 import 'package:autonomy_flutter/screen/onboarding_page.dart';
 import 'package:autonomy_flutter/screen/release_notes_page.dart';
 import 'package:autonomy_flutter/screen/report/sentry_report_page.dart';
@@ -55,6 +56,8 @@ import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_page.da
 import 'package:autonomy_flutter/screen/settings/crypto/send_review_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
+import 'package:autonomy_flutter/screen/settings/hidden_artworks/hidden_artworks_bloc.dart';
+import 'package:autonomy_flutter/screen/settings/hidden_artworks/hidden_artworks_page.dart';
 import 'package:autonomy_flutter/screen/settings/networks/select_network_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/networks/select_network_page.dart';
 import 'package:autonomy_flutter/screen/settings/settings_page.dart';
@@ -76,6 +79,7 @@ import 'package:page_transition/page_transition.dart';
 class AppRouter {
   static const onboardingPage = "onboarding";
   static const beOwnGalleryPage = 'be_own_gallery';
+  static const notificationOnboardingPage = 'notification_onboarding';
   static const newAccountPage = "new_account";
   static const addAccountPage = 'add_account';
   static const linkAccountpage = "link_account";
@@ -112,6 +116,7 @@ class AppRouter {
   static const linkManually = 'link_manually';
   static const autonomySecurityPage = 'autonomy_security';
   static const releaseNotesPage = 'releaseNotesPage';
+  static const hiddenArtworksPage = 'hidden_artworks';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final networkInjector = injector<NetworkConfigInjector>();
@@ -127,7 +132,7 @@ class AppRouter {
             settings: settings,
             builder: (context) => BlocProvider(
                 create: (_) => RouterBloc(injector(), injector(), injector(),
-                    injector<CloudDatabase>()),
+                    injector<CloudDatabase>(), injector(), injector()),
                 child: OnboardingPage()));
 
       case homePageNoTransition:
@@ -176,6 +181,13 @@ class AppRouter {
         return CupertinoPageRoute(
           settings: settings,
           builder: (context) => BeOwnGalleryPage(),
+        );
+      case notificationOnboardingPage:
+        return CupertinoPageRoute(
+          settings: settings,
+          fullscreenDialog: true,
+          builder: (context) =>
+              NotificationOnboardingPage(injector(), injector(), injector()),
         );
       case newAccountPage:
         return CupertinoPageRoute(
@@ -616,6 +628,14 @@ class AppRouter {
             builder: (context) => LinkManuallyPage(
                   type: settings.arguments as String,
                 ));
+
+      case hiddenArtworksPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => BlocProvider(
+              create: (_) => HiddenArtworksBloc(networkInjector.I()),
+              child: HiddenArtworksPage(),
+            ));
 
       default:
         throw Exception('Invalid route: ${settings.name}');
