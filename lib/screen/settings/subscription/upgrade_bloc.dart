@@ -27,7 +27,6 @@ class UpgradesBloc extends Bloc<UpgradeEvent, UpgradeState> {
         }
       } else {
         emit(UpgradeState(IAPProductStatus.loading, null));
-        _iapService.setup();
       }
     });
 

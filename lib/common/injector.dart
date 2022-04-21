@@ -110,7 +110,8 @@ Future<void> setup() async {
       () => AccountService(cloudDB, injector(), injector(), injector()));
   injector.registerLazySingleton(() => IAPApi(authenticatedDio,
       baseUrl: AppConfig.mainNetworkConfig.autonomyAuthUrl));
-  injector.registerLazySingleton(() => AuthService(injector(), injector()));
+  injector.registerLazySingleton(
+      () => AuthService(injector(), injector(), injector()));
   injector.registerLazySingleton(() => BackupService(injector(), injector()));
   injector.registerLazySingleton<IAPService>(
       () => IAPServiceImpl(injector(), injector()));
