@@ -60,7 +60,7 @@ class AccountService {
 
     if (personas.isEmpty) {
       await MigrationUtil(_configurationService, _cloudDB, this,
-              injector<NavigationService>())
+              injector<NavigationService>(), injector())
           .migrationFromKeychain(Platform.isIOS);
       await androidRestoreKeys();
 
