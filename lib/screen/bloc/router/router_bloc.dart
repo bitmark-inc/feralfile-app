@@ -87,6 +87,9 @@ class RouterBloc extends Bloc<RouterEvent, RouterState> {
         _configurationService.setDoneOnboarding(true);
         emit(RouterState(onboardingStep: OnboardingStep.dashboard));
       }
+      await MigrationUtil(_configurationService, _cloudDB, _accountService,
+              _navigationService)
+          .migrateIfNeeded();
     });
   }
 }
