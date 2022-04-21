@@ -25,11 +25,9 @@ class _GlobalReceivePageState extends State<GlobalReceivePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: getCloseAppBar(
+      appBar: getBackAppBar(
         context,
-        onBack: () {
-          Navigator.of(context).pop();
-        },
+        onBack: () => Navigator.of(context).pop(),
       ),
       body: BlocBuilder<AccountsBloc, AccountsState>(builder: (context, state) {
         final categorizedAccounts = state.categorizedAccounts;
