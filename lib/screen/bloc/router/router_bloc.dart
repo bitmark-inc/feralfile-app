@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
@@ -19,6 +20,7 @@ class RouterBloc extends Bloc<RouterEvent, RouterState> {
   CloudDatabase _cloudDB;
   NavigationService _navigationService;
   IAPService _iapService;
+  AuditService _auditService;
 
   Future<bool> hasAccounts() async {
     final personas = await _cloudDB.personaDao.getPersonas();
@@ -32,13 +34,14 @@ class RouterBloc extends Bloc<RouterEvent, RouterState> {
       this._accountService,
       this._cloudDB,
       this._navigationService,
-      this._iapService)
+      this._iapService,
+      this._auditService)
       : super(RouterState(onboardingStep: OnboardingStep.undefined)) {
     on<DefineViewRoutingEvent>((event, emit) async {
       if (state.onboardingStep != OnboardingStep.undefined) return;
 
       await MigrationUtil(_configurationService, _cloudDB, _accountService,
-              _navigationService, _iapService)
+              _navigationService, _iapService, _auditService)
           .migrateIfNeeded();
       if (await hasAccounts()) {
         _configurationService.setDoneOnboarding(true);
@@ -55,7 +58,7 @@ class RouterBloc extends Bloc<RouterEvent, RouterState> {
         } else {
           // has no backup file; try to migration from Keychain
           await MigrationUtil(_configurationService, _cloudDB, _accountService,
-                  _navigationService, _iapService)
+                  _navigationService, _iapService, _auditService)
               .migrationFromKeychain(Platform.isIOS);
           await _accountService.androidRestoreKeys();
 
@@ -95,7 +98,7 @@ class RouterBloc extends Bloc<RouterEvent, RouterState> {
         emit(RouterState(onboardingStep: OnboardingStep.dashboard));
       }
       await MigrationUtil(_configurationService, _cloudDB, _accountService,
-              _navigationService, _iapService)
+              _navigationService, _iapService, _auditService)
           .migrateIfNeeded();
     });
   }
