@@ -1,3 +1,4 @@
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_state.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/select_gallery_sorting_widget.dart';
@@ -79,6 +80,19 @@ class PreferenceView extends StatelessWidget {
                     .add(PreferenceUpdateEvent(newState));
               },
             ),
+            addDivider(),
+            InkWell(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text("Hidden artworks", style: appTextTheme.headline4),
+                  Icon(Icons.navigate_next, color: Colors.black),
+                ],
+              ),
+              onTap: () {
+                Navigator.of(context).pushNamed(AppRouter.hiddenArtworksPage);
+              },
+            ),
           ],
         ),
       );
@@ -114,7 +128,7 @@ class PreferenceView extends StatelessWidget {
 
   Widget _gallerySortingByWidget(BuildContext context, String? gallerySortBy) {
     return TappableForwardRowWithContent(
-      leftWidget: Text('Gallery sorting by', style: appTextTheme.headline4),
+      leftWidget: Text('Sort gallery by:', style: appTextTheme.headline4),
       bottomWidget: Text(
         gallerySortBy ?? 'Platform (default)',
         style: appTextTheme.bodyText1,
@@ -129,7 +143,7 @@ class PreferenceView extends StatelessWidget {
         context,
         'Gallery sorting',
         SelectGallerySortingWidget(
-            sortBy: gallerySortBy ?? GallerySortProperty.Platform),
+            sortBy: gallerySortBy ?? GallerySortProperty.Source),
         isDismissible: true);
   }
 }

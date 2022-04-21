@@ -27,6 +27,7 @@ class AssetToken {
   String title;
   String? ownerAddress;
   DateTime lastActivityTime;
+  int? hidden;
 
   AssetToken({
     required this.artistName,
@@ -52,6 +53,7 @@ class AssetToken {
     required this.title,
     required this.ownerAddress,
     required this.lastActivityTime,
+    this.hidden
   });
 
   factory AssetToken.fromAsset(Asset asset) => AssetToken(
@@ -79,4 +81,6 @@ class AssetToken {
         ownerAddress: asset.owner,
         lastActivityTime: asset.lastActivityTime,
       );
+
+  bool isHidden() => hidden == 1;
 }

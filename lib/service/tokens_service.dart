@@ -125,7 +125,11 @@ class TokensService {
       provenance.addAll(asset.provenance);
     }
 
-    await _networkConfigInjector.I<AppDatabase>().assetDao.insertAssets(tokens);
+    final hiddenAssets = await _assetDao.findAllHiddenAssets();
+    final hiddenIds = hiddenAssets.map((e) => e.id).toList();
+    await _assetDao.insertAssets(tokens);
+    await _assetDao.updateHiddenAssets(hiddenIds);
+
     await _networkConfigInjector
         .I<AppDatabase>()
         .provenanceDao

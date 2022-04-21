@@ -39,6 +39,11 @@ class _SelectGallerySortingWidgetState
             return Column(
               children: [
                 ListTile(
+                  onTap: () {
+                    setState(() {
+                      _sortBy = property;
+                    });
+                  },
                   contentPadding: EdgeInsets.zero,
                   title: Text(
                     property,

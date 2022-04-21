@@ -169,6 +169,7 @@ flutter:
     - assets/images/nav-arrow-left.svg
     - assets/images/image_error.svg
     - assets/images/cast.svg
+    - assets/images/notification_onboarding.svg
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

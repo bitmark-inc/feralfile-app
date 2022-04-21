@@ -27,7 +27,7 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> {
 
   _scrollListener() {
     if (widget.scrollController.offset > 80) {
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.leanBack);
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
       setState(() {
         _opacity = 0;
       });
