@@ -1,0 +1,158 @@
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/model/customer_support.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/service/customer_support_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:pull_to_refresh/pull_to_refresh.dart';
+
+class SupportListPage extends StatefulWidget {
+  const SupportListPage({Key? key}) : super(key: key);
+
+  @override
+  State<SupportListPage> createState() => _SupportListPageState();
+}
+
+class _SupportListPageState extends State<SupportListPage>
+    with RouteAware, WidgetsBindingObserver {
+  RefreshController _refreshController =
+      RefreshController(initialRefresh: false);
+  List<Issue>? _issues;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+    loadIssues();
+  }
+
+  @override
+  void didPopNext() {
+    loadIssues();
+    super.didPopNext();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    routeObserver.unsubscribe(this);
+  }
+
+  void loadIssues() async {
+    final issues = await injector<CustomerSupportService>().getIssues();
+    setState(() {
+      _issues = issues;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: getBackAppBar(
+        context,
+        onBack: () => Navigator.of(context).pop(),
+      ),
+      body: SmartRefresher(
+        controller: _refreshController,
+        enablePullDown: false,
+        enablePullUp: false,
+        child: _issuesWidget(),
+      ),
+    );
+  }
+
+  Widget _issuesWidget() {
+    final issues = _issues;
+    if (issues == null) return CupertinoActivityIndicator();
+
+    if (issues.length == 0) return SizedBox();
+    return CustomScrollView(slivers: [
+      SliverToBoxAdapter(
+        child: Container(
+            padding: pageEdgeInsets.copyWith(bottom: 40),
+            child: Text(
+              "Support history",
+              style: appTextTheme.headline1,
+            )),
+      ),
+      SliverList(
+          delegate: SliverChildBuilderDelegate(
+        (context, index) {
+          final issue = issues[index];
+
+          return Padding(
+            padding: EdgeInsets.symmetric(horizontal: pageEdgeInsets.left),
+            child: GestureDetector(
+              child: _contentRow(issue),
+              onTap: () => Navigator.of(context)
+                  .pushNamed(AppRouter.supportThreadPage, arguments: [
+                issue.reportIssueType,
+                issue.issueID,
+                issue.total
+              ]),
+            ),
+          );
+        },
+        childCount: issues.length,
+      )),
+    ]);
+  }
+
+  Widget _contentRow(Issue issue) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  ReportIssueType.toTitle(issue.reportIssueType),
+                  style: appTextTheme.headline4,
+                ),
+                if (issue.unread > 0) ...[
+                  SizedBox(width: 8),
+                  Padding(
+                    padding: EdgeInsets.only(top: 4),
+                    child: Container(
+                      decoration: BoxDecoration(
+                          color: Colors.black, shape: BoxShape.circle),
+                      width: 10,
+                      height: 10,
+                    ),
+                  ),
+                ]
+              ],
+            ),
+            Row(
+              children: [
+                Text("10:38"),
+                SizedBox(width: 20),
+                SvgPicture.asset('assets/images/iconForward.svg'),
+              ],
+            ),
+          ],
+        ),
+        SizedBox(height: 17),
+        Padding(
+          padding: const EdgeInsets.only(right: 20),
+          child: Text(
+            issue.lastMessage?.message ?? '',
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: appTextTheme.bodyText1,
+          ),
+        ),
+        addDivider(),
+      ],
+    );
+  }
+}

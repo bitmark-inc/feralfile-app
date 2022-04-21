@@ -16,6 +16,8 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:autonomy_flutter/view/au_outlined_button.dart';
 import 'package:autonomy_flutter/view/eula_privacy.dart';
 import 'package:autonomy_flutter/view/penrose_top_bar_view.dart';
 import 'package:flutter/material.dart';
@@ -98,6 +100,18 @@ class _SettingsPageState extends State<SettingsPage>
                   Text(
                       'Autonomy accounts are full, multi-chain accounts. Linked accounts link to single-chain accounts from other wallets.',
                       style: appTextTheme.bodyText1),
+                  SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: AuOutlinedButton(
+                          text: "RECEIVE".toUpperCase(),
+                          onPress: () => Navigator.of(context)
+                              .pushNamed(AppRouter.globalReceivePage),
+                        ),
+                      ),
+                    ],
+                  ),
                   SizedBox(height: 10),
                   AccountsView(
                       key: ValueKey(_forceAccountsViewRedraw),

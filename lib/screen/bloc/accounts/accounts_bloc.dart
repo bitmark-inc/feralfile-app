@@ -2,6 +2,7 @@ import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/model/network.dart';
+import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -13,8 +14,10 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
   ConfigurationService _configurationService;
   CloudDatabase _cloudDB;
   BackupService _backupService;
+  AuditService _auditService;
 
-  AccountsBloc(this._configurationService, this._cloudDB, this._backupService)
+  AccountsBloc(this._configurationService, this._cloudDB, this._backupService,
+      this._auditService)
       : super(AccountsState()) {
     on<ResetEventEvent>((event, emit) async {
       emit(state.setEvent(null));
@@ -85,6 +88,7 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
         await _backupService.deleteAllProfiles();
         await _cloudDB.personaDao.removeAll();
         await _cloudDB.connectionDao.removeAll();
+        await _auditService.audiPersonaAction('cleanUp', null);
       }
 
       accounts.sort((a, b) => a.createdAt.compareTo(b.createdAt));

@@ -9,9 +9,11 @@ import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
+import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tokens_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
@@ -62,6 +64,7 @@ class _HomePageState extends State<HomePage>
     context.read<HomeBloc>().add(ReindexIndexerEvent());
     OneSignal.shared
         .setNotificationWillShowInForegroundHandler(_shouldShowNotifications);
+    injector<AuditService>().auditFirstLog();
 
     _gallerySortBy = injector<ConfigurationService>().getGallerySortBy() ??
         GallerySortProperty.Source;
@@ -92,10 +95,10 @@ class _HomePageState extends State<HomePage>
   void didPopNext() async {
     super.didPopNext();
     final connectivityResult = await (Connectivity().checkConnectivity());
+
+    context.read<HomeBloc>().add(RefreshTokensEvent());
     if (connectivityResult == ConnectivityResult.mobile ||
         connectivityResult == ConnectivityResult.wifi) {
-      context.read<HomeBloc>().add(RefreshTokensEvent());
-
       Future.delayed(const Duration(milliseconds: 1000), () {
         context.read<HomeBloc>().add(ReindexIndexerEvent());
       });
@@ -411,6 +414,7 @@ class _HomePageState extends State<HomePage>
     });
 
     injector<VersionService>().checkForUpdate();
+    injector<CustomerSupportService>().getIssues();
   }
 
   void _handleBackground() {

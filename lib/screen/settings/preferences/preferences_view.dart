@@ -130,7 +130,7 @@ class PreferenceView extends StatelessWidget {
     return TappableForwardRowWithContent(
       leftWidget: Text('Sort gallery by:', style: appTextTheme.headline4),
       bottomWidget: Text(
-        gallerySortBy ?? 'Platform (default)',
+        gallerySortBy ?? 'Source (default)',
         style: appTextTheme.bodyText1,
       ),
       onTap: () => showSelectGallerySortingDialog(context, gallerySortBy),
