@@ -5,6 +5,7 @@ import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_det
 import 'package:autonomy_flutter/service/currency_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
+import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:web3dart/web3dart.dart';
 
@@ -31,7 +32,7 @@ class SendCryptoBloc extends Bloc<SendCryptoEvent, SendCryptoState> {
 
       switch (_type) {
         case CryptoType.ETH:
-          final ownerAddress = await event.wallet.getETHAddress();
+          final ownerAddress = await event.wallet.getETHEip55Address();
           final balance = await _ethereumService.getBalance(ownerAddress);
 
           newState.balance = balance.getInWei;

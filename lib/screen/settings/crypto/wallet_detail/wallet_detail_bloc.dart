@@ -6,6 +6,7 @@ import 'package:autonomy_flutter/service/currency_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
+import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -24,7 +25,7 @@ class WalletDetailBloc extends Bloc<WalletDetailEvent, WalletDetailState> {
 
       switch (event.type) {
         case CryptoType.ETH:
-          final address = await event.wallet.getETHAddress();
+          final address = await event.wallet.getETHEip55Address();
           emit(state.copyWith(address: address));
           final balance = await _ethereumService.getBalance(address);
 

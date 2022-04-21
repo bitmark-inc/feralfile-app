@@ -3,6 +3,7 @@ import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
+import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:bloc/bloc.dart';
 import 'package:web3dart/web3dart.dart';
 
@@ -20,7 +21,7 @@ class EthereumBloc extends Bloc<EthereumEvent, EthereumState> {
     on<GetEthereumAddressEvent>((event, emit) async {
       if (state.personaAddresses?[event.uuid] != null) return;
       final address =
-          await Persona.newPersona(uuid: event.uuid).wallet().getETHAddress();
+          await Persona.newPersona(uuid: event.uuid).wallet().getETHEip55Address();
       var personaAddresses = state.personaAddresses ?? Map();
       personaAddresses[event.uuid] = address;
 
@@ -39,7 +40,7 @@ class EthereumBloc extends Bloc<EthereumEvent, EthereumState> {
 
     on<GetEthereumBalanceWithUUIDEvent>((event, emit) async {
       final address =
-          await Persona.newPersona(uuid: event.uuid).wallet().getETHAddress();
+          await Persona.newPersona(uuid: event.uuid).wallet().getETHEip55Address();
       final network = _configurationService.getNetwork();
 
       final ethBalance = await _ethereumService.getBalance(address);

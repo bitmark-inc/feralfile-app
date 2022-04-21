@@ -4,6 +4,7 @@ import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/tokens_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -101,7 +102,7 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
           .importPersona(_phraseTextController.text);
       // SideEffect: pre-fetch tokens
       injector<TokensService>().fetchTokensForAddresses([
-        (await persona.wallet().getETHAddress()),
+        (await persona.wallet().getETHEip55Address()),
         (await persona.wallet().getTezosWallet()).address,
         (await persona.wallet().getBitmarkAddress()),
       ]);
