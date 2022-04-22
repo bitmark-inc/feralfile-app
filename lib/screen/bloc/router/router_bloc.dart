@@ -38,12 +38,24 @@ class RouterBloc extends Bloc<RouterEvent, RouterState> {
       if (state.onboardingStep != OnboardingStep.undefined) return;
 
       await MigrationUtil(_configurationService, _cloudDB, _accountService,
-              _navigationService, _iapService)
+          _navigationService, _iapService)
           .migrateIfNeeded();
-      if (await hasAccounts()) {
-        _configurationService.setDoneOnboarding(true);
+
+      if (_configurationService.isDoneOnboarding()) {
         emit(RouterState(onboardingStep: OnboardingStep.dashboard));
-      } else {
+        return;
+      }
+
+      // Check and restore full accounts from cloud if existing
+      await MigrationUtil(_configurationService, _cloudDB, _accountService,
+          _navigationService, _iapService)
+          .migrationFromKeychain(Platform.isIOS);
+      await _accountService.androidRestoreKeys();
+
+      //Soft delay 1s waiting for database synchronizing
+      await Future.delayed(Duration(seconds: 1));
+
+      if (await hasAccounts()) {
         final backupVersion = await _backupService.fetchBackupVersion();
         if (backupVersion.isNotEmpty) {
           log.info("[DefineViewRoutingEvent] have backup version");
@@ -53,21 +65,11 @@ class RouterBloc extends Bloc<RouterEvent, RouterState> {
               backupVersion: backupVersion));
           return;
         } else {
-          // has no backup file; try to migration from Keychain
-          await MigrationUtil(_configurationService, _cloudDB, _accountService,
-                  _navigationService, _iapService)
-              .migrationFromKeychain(Platform.isIOS);
-          await _accountService.androidRestoreKeys();
-
-          if (await hasAccounts()) {
-            _configurationService.setDoneOnboarding(true);
-            emit(RouterState(onboardingStep: OnboardingStep.dashboard));
-            return;
-          }
+          _configurationService.setDoneOnboarding(true);
+          emit(RouterState(onboardingStep: OnboardingStep.dashboard));
+          return;
         }
-
-        _configurationService.setDoneOnboarding(false);
-
+      } else {
         if (_configurationService.isDoneOnboardingOnce()) {
           emit(RouterState(onboardingStep: OnboardingStep.newAccountPage));
         } else {
