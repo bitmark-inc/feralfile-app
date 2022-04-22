@@ -9,7 +9,9 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/util/au_cached_manager.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/theme_manager.dart';
@@ -30,6 +32,19 @@ import 'package:webview_flutter/webview_flutter.dart';
 import 'package:after_layout/after_layout.dart';
 import 'package:easy_debounce/easy_debounce.dart';
 import 'package:path/path.dart' as p;
+import 'package:cast/cast.dart';
+import 'package:mime/mime.dart';
+
+enum AUCastDeviceType { Airplay, Chromecast }
+
+class AUCastDevice {
+  final AUCastDeviceType type;
+  bool isActivated = false;
+  final CastDevice? chromecastDevice;
+  CastSession? chromecastSession;
+
+  AUCastDevice(this.type, [this.chromecastDevice]);
+}
 
 class ArtworkPreviewPage extends StatefulWidget {
   final ArtworkDetailPayload payload;
@@ -47,8 +62,16 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
         AfterLayoutMixin<ArtworkPreviewPage> {
   VideoPlayerController? _controller;
   bool isFullscreen = false;
+  AssetToken? asset;
   late int currentIndex;
   WebViewController? _webViewController;
+  Future<List<CastDevice>> _castDevicesFuture = CastDiscoveryService().search();
+
+  static List<AUCastDevice> _defaultCastDevices = [
+    AUCastDevice(AUCastDeviceType.Airplay)
+  ];
+
+  List<AUCastDevice> _castDevices = [];
 
   ShakeDetector? _detector;
 
@@ -102,6 +125,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     disableLandscapeMode();
     routeObserver.unsubscribe(this);
     WidgetsBinding.instance?.removeObserver(this);
+    _stopAllChromecastDevices();
     _controller?.dispose();
     _controller = null;
     _webViewController = null;
@@ -131,16 +155,16 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
             .add(GetIdentityEvent([state.asset!.artistName!]));
       }, builder: (context, state) {
         if (state.asset != null) {
-          final asset = state.asset!;
-          Sentry.startTransaction("view: " + asset.id, "load");
+          asset = state.asset!;
+          Sentry.startTransaction("view: " + asset!.id, "load");
 
-          if (asset.medium == "video" && loadedPath != asset.previewURL) {
-            _startPlay(asset.previewURL!);
+          if (asset!.medium == "video" && loadedPath != asset!.previewURL) {
+            _startPlay(asset!.previewURL!);
           }
 
           final identityState = context.watch<IdentityBloc>().state;
           final artistName =
-              asset.artistName?.toIdentityOrMask(identityState.identityMap);
+              asset?.artistName?.toIdentityOrMask(identityState.identityMap);
 
           return Container(
               padding: MediaQuery.of(context).padding.copyWith(
@@ -160,13 +184,14 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                                   color: Colors.white,
                                 ),
                               ),
-                              _titleAndArtistNameWidget(asset, artistName),
+                              _titleAndArtistNameWidget(asset!, artistName),
                               IconButton(
                                 onPressed: () {
                                   currentIndex = currentIndex <= 0
                                       ? widget.payload.ids.length - 1
                                       : currentIndex - 1;
                                   final id = widget.payload.ids[currentIndex];
+                                  _stopAllChromecastDevices();
                                   context.read<ArtworkPreviewBloc>().add(
                                       ArtworkPreviewGetAssetTokenEvent(id));
                                 },
@@ -182,6 +207,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                                       ? 0
                                       : currentIndex + 1;
                                   final id = widget.payload.ids[currentIndex];
+                                  _stopAllChromecastDevices();
                                   context.read<ArtworkPreviewBloc>().add(
                                       ArtworkPreviewGetAssetTokenEvent(id));
                                 },
@@ -190,15 +216,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                                   color: Colors.white,
                                 ),
                               ),
-                              asset.medium == "video" && Platform.isIOS
-                                  ? InkWell(
-                                      onTap: () => _showCastDialog(context),
-                                      child: SvgPicture.asset(
-                                          'assets/images/cast.svg'),
-                                    )
-                                  : SizedBox(
-                                      width: 25,
-                                    ),
+                              _castButton(context),
                               IconButton(
                                 onPressed: () async {
                                   setState(() {
@@ -231,7 +249,8 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                       : SizedBox(),
                   Expanded(
                     child: Center(
-                      child: Hero(tag: asset.id, child: _getArtworkView(asset)),
+                      child:
+                          Hero(tag: asset!.id, child: _getArtworkView(asset!)),
                     ),
                   ),
                 ],
@@ -305,11 +324,10 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                 color: Colors.white,
               )
             : CachedNetworkImage(
-                imageUrl: asset.previewURL!,
+                imageUrl: asset.thumbnailURL!,
                 imageBuilder: (context, imageProvider) => PhotoView(
                   imageProvider: imageProvider,
                 ),
-                cacheManager: injector<AUCacheManager>(),
                 placeholder: (context, url) => Container(),
                 placeholderFadeInDuration: Duration(milliseconds: 300),
                 errorWidget: (context, url, error) => Center(
@@ -473,53 +491,223 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     });
   }
 
-  Future<void> _showCastDialog(BuildContext context) {
+  Widget _castButton(BuildContext context) {
+    return FutureBuilder<bool>(
+        builder: (context, snapshot) {
+          if ((asset?.medium == "video" || asset?.medium == "image") &&
+              (snapshot.hasData && snapshot.data!)) {
+            return InkWell(
+              onTap: () => _showCastDialog(context),
+              child: SvgPicture.asset('assets/images/cast.svg'),
+            );
+          } else {
+            return SizedBox(
+              width: 25,
+            );
+          }
+        },
+        future: injector<IAPService>().isSubscribed());
+  }
+
+  Widget _airplayItem(BuildContext context) {
     final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
+    return Padding(
+        child: SizedBox(
+          height: 44,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Padding(
+                  padding: EdgeInsets.only(left: 41, bottom: 5),
+                  child: Text(
+                    "Airplay",
+                    style: theme.textTheme.headline4
+                        ?.copyWith(color: AppColorTheme.secondarySpanishGrey),
+                  ),
+                ),
+              ),
+              AirPlayRoutePickerView(
+                tintColor: Colors.white,
+                activeTintColor: Colors.white,
+                backgroundColor: Colors.transparent,
+                prioritizesVideoDevices: true,
+              ),
+            ],
+          ),
+        ),
+        padding: EdgeInsets.symmetric(vertical: 6));
+  }
+
+  Widget _castingListView(BuildContext context, List<AUCastDevice> devices) {
+    final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
+    return ConstrainedBox(
+        constraints: new BoxConstraints(
+          minHeight: 35.0,
+          maxHeight: 160.0,
+        ),
+        child: ListView.separated(
+            shrinkWrap: true,
+            itemBuilder: ((context, index) {
+              final device = devices[index];
+
+              switch (device.type) {
+                case AUCastDeviceType.Airplay:
+                  return _airplayItem(context);
+                case AUCastDeviceType.Chromecast:
+                  return GestureDetector(
+                    child: Padding(
+                      child: Row(
+                        children: [
+                          Icon(Icons.cast),
+                          SizedBox(width: 17),
+                          Text(
+                            device.chromecastDevice!.name,
+                            style: theme.textTheme.headline4?.copyWith(
+                                color: device.isActivated
+                                    ? Colors.white
+                                    : AppColorTheme.secondarySpanishGrey),
+                          ),
+                        ],
+                      ),
+                      padding: EdgeInsets.symmetric(vertical: 19),
+                    ),
+                    onTap: () {
+                      UIHelper.hideInfoDialog(context);
+                      var copiedDevice = _castDevices[index];
+                      if (copiedDevice.isActivated) {
+                        _stopAndDisconnectChomecast(index);
+                      } else {
+                        _connectAndCast(index);
+                      }
+
+                      // invert the state
+                      copiedDevice.isActivated = !copiedDevice.isActivated;
+                      _castDevices[index] = copiedDevice;
+                    },
+                  );
+              }
+            }),
+            separatorBuilder: ((context, index) => Divider(
+                  thickness: 1,
+                  color: Colors.white,
+                )),
+            itemCount: devices.length));
+  }
+
+  Future<void> _showCastDialog(BuildContext context) {
     return UIHelper.showDialog(
         context,
         "Select a device",
-        Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (Platform.isIOS)
-              SizedBox(
-                height: 44,
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Padding(
-                        padding: EdgeInsets.only(left: 44, bottom: 5),
-                        child: Text(
-                          "Airplay",
-                          style: theme.textTheme.headline4,
-                        ),
-                      ),
-                    ),
-                    AirPlayRoutePickerView(
-                      tintColor: Colors.white,
-                      activeTintColor: Colors.white,
-                      backgroundColor: Colors.transparent,
-                      prioritizesVideoDevices: true,
-                    ),
-                  ],
-                ),
-              ),
-            SizedBox(height: 54),
-            Text(
-              "CANCEL",
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  fontFamily: "IBMPlexMono"),
-            ),
-            SizedBox(height: 13),
-          ],
+        FutureBuilder<List<CastDevice>>(
+          future: _castDevicesFuture,
+          builder: (context, snapshot) {
+            if (!snapshot.hasData ||
+                snapshot.data!.isEmpty ||
+                snapshot.hasError) {
+              if (asset?.medium == "video") {
+                return _airplayItem(context);
+              } else {
+                return SizedBox(height: 44);
+              }
+            }
+
+            if (_castDevices.isEmpty) {
+              _castDevices = (asset?.medium == "video"
+                      ? _defaultCastDevices
+                      : List<AUCastDevice>.empty()) +
+                  snapshot.data!
+                      .map((e) => AUCastDevice(AUCastDeviceType.Chromecast, e))
+                      .toList();
+            }
+
+            var castDevices = _castDevices;
+            if (asset?.medium == "image") {
+              // remove the airplay option
+              castDevices = _castDevices
+                  .where((element) => element.type != AUCastDeviceType.Airplay)
+                  .toList();
+            }
+
+            return _castingListView(context, castDevices);
+          },
         ),
         isDismissible: true);
+  }
+
+  Future<void> _connectAndCast(int index) async {
+    final device = _castDevices[index];
+    if (device.chromecastDevice == null) return;
+    final session = await CastSessionManager()
+        .startSession(device.chromecastDevice!, Duration(seconds: 5));
+    device.chromecastSession = session;
+    _castDevices[index] = device;
+
+    log.info("[Chromecast] Connecting to ${device.chromecastDevice!.name}");
+    session.stateStream.listen((state) {
+      log.info("[Chromecast] device status: ${state.name}");
+      if (state == CastSessionState.connected) {
+        log.info(
+            "[Chromecast] send cast message with url: ${asset!.previewURL!}");
+      }
+    });
+
+    var i = 0;
+
+    session.messageStream.listen((message) {
+      i += 1;
+
+      print('receive message: $message');
+
+      if (i == 2) {
+        Future.delayed(Duration(seconds: 5)).then((x) {
+          _sendMessagePlayVideo(session);
+        });
+      }
+    });
+
+    session.sendMessage(CastSession.kNamespaceReceiver, {
+      'type': 'LAUNCH',
+      'appId': 'CC1AD845', // set the appId of your app here
+    });
+  }
+
+  void _sendMessagePlayVideo(CastSession session) {
+    var message = {
+      // Here you can plug an URL to any mp4, webm, mp3 or jpg file with the proper contentType.
+      'contentId': asset!.previewURL!,
+      'contentType': lookupMimeType(asset!.previewURL!),
+      'streamType': 'BUFFERED', // or LIVE
+
+      // Title and cover displayed while buffering
+      'metadata': {
+        'type': 0,
+        'metadataType': 0,
+        'title': asset!.title,
+        'images': [
+          {'url': asset!.thumbnailURL!}
+        ]
+      }
+    };
+
+    session.sendMessage(CastSession.kNamespaceMedia, {
+      'type': 'LOAD',
+      'autoPlay': true,
+      'currentTime': 0,
+      'media': message,
+    });
+  }
+
+  void _stopAndDisconnectChomecast(int index) {
+    final session = _castDevices[index].chromecastSession;
+    session?.close();
+  }
+
+  void _stopAllChromecastDevices() {
+    _castDevices.forEach((element) {
+      element.chromecastSession?.close();
+    });
+    _castDevices = [];
   }
 }
