@@ -122,7 +122,7 @@ class _HomePageState extends State<HomePage>
 
     final shouldShowMainView = tokens != null && tokens.isNotEmpty;
     IdentityState? identityState;
-    if (_gallerySortBy == GallerySortProperty.ArtistName) {
+    if (_gallerySortBy == GallerySortProperty.Artist) {
       identityState = context.watch<IdentityBloc>().state;
     }
 
@@ -190,8 +190,8 @@ class _HomePageState extends State<HomePage>
       switch (_gallerySortBy) {
         case GallerySortProperty.Medium:
           return obj.medium?.capitalize() ?? "";
-        case GallerySortProperty.ArtistName:
-          return obj.artistName?.toIdentityOrMask(identityMap) ?? "";
+        case GallerySortProperty.Artist:
+          return obj.artistName?.toIdentityOrMask(identityMap) ?? "Unknown";
         case GallerySortProperty.Chain:
           return obj.blockchain.capitalize();
         default:
@@ -201,6 +201,8 @@ class _HomePageState extends State<HomePage>
 
     var keys = groupByProperty.keys.toList();
     keys.sort((a, b) {
+      if (a == 'Unknown') return 1;
+      if (b == 'Unknown') return -1;
       if (a.startsWith('[') && !b.startsWith('[')) {
         return 1;
       } else if (!a.startsWith('[') && b.startsWith('[')) {

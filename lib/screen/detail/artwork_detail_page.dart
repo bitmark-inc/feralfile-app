@@ -424,15 +424,17 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
         ),
         SizedBox(height: 16.0),
         _rowItem(context, "Title", asset.title),
-        Divider(height: 32.0),
-        _rowItem(
-          context,
-          "Artist",
-          artistName,
-          // some FF's artist set multiple links
-          // Discussion thread: https://bitmark.slack.com/archives/C01EPPD07HU/p1648698027564299
-          tapLink: asset.artistURL?.split(" & ").first,
-        ),
+        if (artistName != null) ...[
+          Divider(height: 32.0),
+          _rowItem(
+            context,
+            "Artist",
+            artistName,
+            // some FF's artist set multiple links
+            // Discussion thread: https://bitmark.slack.com/archives/C01EPPD07HU/p1648698027564299
+            tapLink: asset.artistURL?.split(" & ").first,
+          ),
+        ],
         (asset.maxEdition ?? 0) > 0
             ? Column(
                 children: [
@@ -497,7 +499,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
                         el.owner.toIdentityOrMask(identityState.identityMap);
                     final youTitle =
                         _accountNumberHash.contains(el.owner) ? " (You)" : "";
-                    final provenanceTitle = identityTitle + youTitle;
+                    final provenanceTitle = identityTitle ?? '' + youTitle;
                     final onNameTap = () => identity != null
                         ? UIHelper.showIdentityDetailDialog(context,
                             name: identity, address: el.owner)
@@ -656,7 +658,8 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
                   ],
                 ),
                 onTap: () async {
-                  final appDatabase = injector<NetworkConfigInjector>().I<AppDatabase>();
+                  final appDatabase =
+                      injector<NetworkConfigInjector>().I<AppDatabase>();
                   if (asset.isHidden()) {
                     asset.hidden = null;
                   } else {
@@ -665,11 +668,11 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
                   await appDatabase.assetDao.updateAsset(asset);
 
                   Navigator.of(context).pop();
-                  UIHelper.showHideArtworkResultDialog(context, asset.isHidden(), onOK: () {
+                  UIHelper.showHideArtworkResultDialog(
+                      context, asset.isHidden(), onOK: () {
                     Navigator.of(context).popUntil((route) =>
-                    route.settings.name == AppRouter.homePage ||
-                        route.settings.name ==
-                            AppRouter.homePageNoTransition);
+                        route.settings.name == AppRouter.homePage ||
+                        route.settings.name == AppRouter.homePageNoTransition);
                   });
                 },
               ),
