@@ -13,9 +13,7 @@ abstract class CustomerSupportApi {
 
   @GET("/v1/issues/{issueID}")
   Future<IssueDetails> getDetails(
-    @Path("issueID") String issueID,
-    @Query("count") int count, {
-    @Query("start") int start = 0,
+    @Path("issueID") String issueID, {
     @Query("reverse") bool reverse = true,
   });
 

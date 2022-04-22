@@ -1,8 +1,10 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/customer_support.dart' as app;
+import 'package:autonomy_flutter/model/customer_support.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -18,6 +20,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
 import 'package:bubble/bubble.dart';
+import 'package:autonomy_flutter/util/log.dart' as logUtil;
 
 class SupportThreadPage extends StatefulWidget {
   final String reportIssueType;
@@ -194,20 +197,21 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   }
 
   void _loadIssueDetails() async {
-    if (widget.issueID == null) return;
-    final issueDetails = await injector<CustomerSupportService>()
-        .getDetails(widget.issueID!, 1000);
+    if (_issueID == null) return;
+    final issueDetails =
+        await injector<CustomerSupportService>().getDetails(_issueID!);
 
     final _parsedMessages = (await Future.wait(
-            issueDetails.messages.map((e) => _convertChatMessage(e))))
+            issueDetails.messages.map((e) => _convertChatMessage(e, null))))
         .expand((i) => i)
         .toList();
 
-    setState(() {
-      _status = issueDetails.issue.status;
-      _reportIssueType = issueDetails.issue.reportIssueType;
-      _messages = _parsedMessages;
-    });
+    if (mounted)
+      setState(() {
+        _status = issueDetails.issue.status;
+        _reportIssueType = issueDetails.issue.reportIssueType;
+        _messages = _parsedMessages;
+      });
   }
 
   void _handleSendPressed(types.PartialText message) async {
@@ -219,11 +223,37 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
           attachments: [],
           timestamp: DateTime.now()),
     );
+
+    await _addAppLogsIfNeeded(message.text);
     await _convertPendingChatMessages();
     setState(() {
       _sendIcon = "assets/images/sendMessage.svg";
     });
     _postMessageToServer();
+  }
+
+  Future _addAppLogsIfNeeded(String issueTitle) async {
+    if (_issueID != null || _pendingSendMessages.length != 1) return;
+    // add log file
+    final logFilePath = await logUtil.getLatestLogFile();
+    File file = File(logFilePath);
+    final bytes = await file.readAsBytes();
+    final log = base64Encode(bytes);
+    final fileName = logFilePath.split('/').last;
+
+    _pendingSendMessages.add(app.SendMessage(
+      id: const Uuid().v4(),
+      message: '',
+      attachments: [
+        app.SendAttachment(
+          data: log,
+          title: "${bytes.length}_$fileName",
+          contentType: 'file',
+        ),
+      ],
+      timestamp: DateTime.now(),
+      issueTitle: issueTitle,
+    ));
   }
 
   void _handleAtachmentPressed() {
@@ -250,7 +280,10 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
           TextButton(
             style: textButtonNoPadding,
             onPressed: () async {
-              final accountAuditLogs = await injector<AuditService>().export();
+              final accountAuditLogsBytes =
+                  await injector<AuditService>().export();
+              final accountLogTitle =
+                  'account_audit-${DateTime.now().microsecondsSinceEpoch}.logs';
 
               _pendingSendMessages.insert(
                 0,
@@ -259,17 +292,22 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
                     message: '',
                     attachments: [
                       app.SendAttachment(
-                        data: accountAuditLogs,
-                        title:
-                            'account_audit-${DateTime.now().microsecondsSinceEpoch}.logs',
+                        data: base64Encode(accountAuditLogsBytes),
+                        title: "${accountAuditLogsBytes.length}_" +
+                            accountLogTitle,
                         contentType: 'file',
                       ),
                     ],
                     timestamp: DateTime.now()),
               );
-              _postMessageToServer();
 
+              await _addAppLogsIfNeeded(accountLogTitle);
+              await _convertPendingChatMessages();
+              setState(() {
+                _forceAccountsViewRedraw = Object();
+              });
               Navigator.pop(context);
+              _postMessageToServer();
             },
             child: Align(
               alignment: Alignment.centerLeft,
@@ -301,10 +339,11 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     final attachments = await Future.wait(result.map((element) async {
       final bytes = await element.readAsBytes();
       return app.SendAttachment(
-          data: base64Encode(bytes),
-          title: element.name,
-          path: element.path,
-          contentType: 'image');
+        data: base64Encode(bytes),
+        title: "${bytes.length}_${element.name}",
+        path: element.path,
+        contentType: 'image',
+      );
     }));
 
     _pendingSendMessages.insert(
@@ -316,6 +355,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
           timestamp: DateTime.now()),
     );
 
+    await _addAppLogsIfNeeded(attachments.first.title);
     await _convertPendingChatMessages();
     setState(() {
       _forceAccountsViewRedraw = Object();
@@ -326,18 +366,19 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
 
   Future _convertPendingChatMessages() async {
     final _parsedSendMessages = (await Future.wait(
-            _pendingSendMessages.map((e) => _convertChatMessage(e))))
+            _pendingSendMessages.map((e) => _convertChatMessage(e, null))))
         .expand((i) => i)
         .toList();
 
     _pendingMessages = _parsedSendMessages;
   }
 
-  Future<List<types.Message>> _convertChatMessage(dynamic message) async {
+  Future<List<types.Message>> _convertChatMessage(
+      dynamic message, String? tempID) async {
     late var id, author, status, createdAt, text;
 
     if (message is app.Message) {
-      id = "${message.id}";
+      id = tempID ?? "${message.id}";
       author = message.from.contains("did:key") ? _user : _bitmark;
       status = types.Status.delivered;
       createdAt = message.timestamp;
@@ -391,7 +432,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       for (var i = 0; i < titles.length; i += 1) {
         if (contentTypes[i].contains("image")) {
           messages.add(types.ImageMessage(
-            id: id,
+            id: id + '$i',
             author: author,
             createdAt: createdAt.millisecondsSinceEpoch,
             status: status,
@@ -401,14 +442,16 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
             uri: uris[i],
           ));
         } else {
+          final sizeAndRealTitle =
+              ReceiveAttachment.extractSizeAndRealTitle(titles[i]);
           messages.add(types.FileMessage(
-            id: id,
+            id: id + '$i',
             author: author,
             createdAt: createdAt.millisecondsSinceEpoch,
             status: status,
             showStatus: true,
-            name: titles[i],
-            size: 0,
+            name: sizeAndRealTitle[1],
+            size: sizeAndRealTitle[0] ?? 0,
             uri: uris[i],
           ));
         }
@@ -419,6 +462,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   }
 
   void _postMessageToServer() async {
+    // return;
     if (_isPostMessageRunning || _pendingSendMessages.length == 0) return;
     final message = _pendingSendMessages.last;
     _isPostMessageRunning = true;
@@ -426,9 +470,15 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
 
     if (_issueID == null) {
       final result = await injector<CustomerSupportService>().createIssue(
-          widget.reportIssueType, message.message, message.attachments);
+        widget.reportIssueType,
+        message.issueTitle ?? message.message,
+        message.attachments,
+      );
       _issueID = result.issueID;
       memoryValues.viewingSupportThreadIssueID = _issueID;
+      injector<CustomerSupportService>()
+          .triggerReloadMessages
+          .addListener(_loadIssueDetails);
       postedMessage = result.message;
 
       //
@@ -445,18 +495,24 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       postedMessage = result.message;
     }
 
-    _pendingSendMessages.removeLast();
+    final _pendingSendMessage = _pendingSendMessages.removeLast();
     if (message.attachments.length > 0 &&
         message.attachments.length == postedMessage.attachments.length) {
       for (var i = 0; i < message.attachments.length; i += 1) {
-        await injector<CustomerSupportService>().storeFile(
-            postedMessage.attachments[i].name,
-            base64Decode(message.attachments[i].data));
+        final attachment = postedMessage.attachments[i];
+
+        // only local backup image for now
+        if (attachment.contentType.contains('image')) {
+          await injector<CustomerSupportService>().storeFile(
+              postedMessage.attachments[i].name,
+              base64Decode(message.attachments[i].data));
+        }
       }
     }
 
     await _convertPendingChatMessages();
-    final newMessages = await _convertChatMessage(postedMessage);
+    final newMessages =
+        await _convertChatMessage(postedMessage, _pendingSendMessage.id);
 
     setState(() {
       _messages.insertAll(0, newMessages);
@@ -523,6 +579,15 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
           fontWeight: FontWeight.w300,
           fontFamily: "AtlasGrotesk-Light",
           height: 1.377),
+      sendingIcon: Container(
+        width: 16,
+        height: 12,
+        padding: EdgeInsets.only(left: 3),
+        child: CircularProgressIndicator(
+          color: AppColorTheme.secondarySpanishGrey,
+          strokeWidth: 2,
+        ),
+      ),
     );
   }
 }

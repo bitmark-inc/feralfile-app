@@ -33,14 +33,9 @@ class _CustomerSupportApi implements CustomerSupportApi {
   }
 
   @override
-  Future<IssueDetails> getDetails(issueID, count,
-      {start = 0, reverse = true}) async {
+  Future<IssueDetails> getDetails(issueID, {reverse = true}) async {
     const _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{
-      r'count': count,
-      r'start': start,
-      r'reverse': reverse
-    };
+    final queryParameters = <String, dynamic>{r'reverse': reverse};
     final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
     final _result = await _dio.fetch<Map<String, dynamic>>(
