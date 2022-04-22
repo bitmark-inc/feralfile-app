@@ -35,10 +35,10 @@ enum WalletApp {
 class GallerySortProperty {
   static const Source = 'Source';
   static const Medium = 'Medium';
-  static const ArtistName = 'Artist name';
+  static const Artist = 'Artist';
   static const Chain = "Chain";
 
-  static List<String> get getList => [Source, Medium, ArtistName, Chain];
+  static List<String> get getList => [Source, Medium, Artist, Chain];
 }
 
 extension RawValue on WalletApp {

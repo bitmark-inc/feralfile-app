@@ -12,7 +12,7 @@ abstract class AuditService {
 }
 
 class AuditCategory {
-  static const Persona = 'persona';
+  static const FullAccount = 'fullAccount';
 }
 
 class AuditServiceImpl extends AuditService {
@@ -24,7 +24,7 @@ class AuditServiceImpl extends AuditService {
 
   void auditFirstLog() async {
     final audits =
-        await _cloudDB.auditDao.getAuditsBy(AuditCategory.Persona, 'init');
+        await _cloudDB.auditDao.getAuditsBy(AuditCategory.FullAccount, 'init');
     if (audits.length > 0) return; // ignore if already init.
 
     final personas = await _cloudDB.personaDao.getPersonas();
@@ -41,7 +41,7 @@ class AuditServiceImpl extends AuditService {
 
     final audit = Audit(
       uuid: Uuid().v4(),
-      category: AuditCategory.Persona,
+      category: AuditCategory.FullAccount,
       action: 'init',
       createdAt: DateTime.now(),
       metadata: jsonEncode(metadata),
@@ -64,7 +64,7 @@ class AuditServiceImpl extends AuditService {
 
     final audit = Audit(
       uuid: Uuid().v4(),
-      category: AuditCategory.Persona,
+      category: AuditCategory.FullAccount,
       action: action,
       createdAt: DateTime.now(),
       metadata: jsonEncode(metadata),
