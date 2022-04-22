@@ -1,8 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/device.dart';
-import 'package:autonomy_flutter/util/log.dart' as logUtil;
+
 import 'package:flutter/material.dart';
 
 import 'package:autonomy_flutter/gateway/customer_support_api.dart';
@@ -16,7 +17,7 @@ abstract class CustomerSupportService {
       get numberOfIssuesInfo; // [numberOfIssues, numberOfUnreadIssues]
   ValueNotifier<int> get triggerReloadMessages;
 
-  Future<IssueDetails> getDetails(String issueID, int total);
+  Future<IssueDetails> getDetails(String issueID);
   Future<List<Issue>> getIssues();
   Future<PostedMessageResponse> createIssue(
       String reportIssueType, String message, List<SendAttachment> attachments);
@@ -44,19 +45,16 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     return issues;
   }
 
-  Future<IssueDetails> getDetails(String issueID, int total) async {
-    return await _customerSupportApi.getDetails(issueID, total);
+  Future<IssueDetails> getDetails(String issueID) async {
+    return await _customerSupportApi.getDetails(issueID);
   }
 
   Future<PostedMessageResponse> createIssue(String reportIssueType,
       String message, List<SendAttachment> attachments) async {
-    // add log file
-    final logFilePath = await logUtil.getLatestLogFile();
-    File file = File(logFilePath);
-    final log = base64Encode(await file.readAsBytes());
-    final fileName = logFilePath.split('/').last;
-
-    attachments.add(SendAttachment(data: log, title: fileName));
+    var title = message;
+    if (title.isEmpty) {
+      title = attachments.first.title;
+    }
 
     // add tags
     var tags = [reportIssueType];
@@ -64,16 +62,16 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     final deviceID = await getDeviceID();
     if (deviceID != null) {
       tags.add(deviceID);
-
-      if (Platform.isIOS) {
-        tags.add("iOS");
-      } else if (Platform.isAndroid) {
-        tags.add("android");
-      }
-      tags.add((await PackageInfo.fromPlatform()).version);
     }
 
-    var title = message;
+    if (Platform.isIOS) {
+      tags.add("iOS");
+    } else if (Platform.isAndroid) {
+      tags.add("android");
+    }
+    tags.add((await PackageInfo.fromPlatform()).version);
+    tags.add(await isAppCenterBuild() ? 'dev' : 'prod');
+
     if (title.length > 170) {
       title = title.substring(0, 170);
     }
@@ -81,7 +79,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     final payload = {
       'attachments': attachments,
       'title': title,
-      'message': message,
+      'message': attachments.length > 0 ? '' : message,
       'tags': tags,
     };
 

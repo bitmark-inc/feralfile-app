@@ -79,6 +79,22 @@ class ReceiveAttachment {
       _$ReceiveAttachmentFromJson(json);
 
   Map<String, dynamic> toJson() => _$ReceiveAttachmentToJson(this);
+
+  // Because logs are big and aren't valueable for user. I don't store  the local logs files
+  // I join the size of file inside the attachment's title
+  static List<dynamic> extractSizeAndRealTitle(String title) {
+    final fileInfos = title.split('_');
+    final maybeSize = fileInfos.removeAt(0);
+    final size = int.tryParse(maybeSize);
+    if (size == null) {
+      fileInfos.insert(0, maybeSize);
+    }
+
+    return [
+      size,
+      fileInfos.join('_'),
+    ];
+  }
 }
 
 @JsonSerializable()
@@ -110,12 +126,14 @@ class SendMessage {
   String message;
   List<SendAttachment> attachments;
   DateTime timestamp;
+  String? issueTitle;
 
   SendMessage({
     required this.id,
     required this.message,
     required this.attachments,
     required this.timestamp,
+    this.issueTitle,
   });
 }
 

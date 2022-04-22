@@ -10,7 +10,6 @@ import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 class SupportListPage extends StatefulWidget {
   const SupportListPage({Key? key}) : super(key: key);
@@ -50,9 +49,12 @@ class _SupportListPageState extends State<SupportListPage>
 
   void loadIssues() async {
     final issues = await injector<CustomerSupportService>().getIssues();
-    setState(() {
-      _issues = issues;
-    });
+    issues.sort((a, b) => (b.lastMessage?.timestamp ?? b.timestamp)
+        .compareTo(a.lastMessage?.timestamp ?? a.timestamp));
+    if (mounted)
+      setState(() {
+        _issues = issues;
+      });
   }
 
   @override
@@ -137,7 +139,7 @@ class _SupportListPageState extends State<SupportListPage>
                 Text(getVerboseDateTimeRepresentation(
                     issue.lastMessage?.timestamp.toLocal() ??
                         issue.timestamp.toLocal())),
-                SizedBox(width: 20),
+                SizedBox(width: 14),
                 SvgPicture.asset('assets/images/iconForward.svg'),
               ],
             ),
@@ -145,7 +147,7 @@ class _SupportListPageState extends State<SupportListPage>
         ),
         SizedBox(height: 17),
         Padding(
-          padding: const EdgeInsets.only(right: 20),
+          padding: const EdgeInsets.only(right: 14),
           child: Text(
             getLastMessage(issue),
             maxLines: 2,
@@ -165,10 +167,12 @@ class _SupportListPageState extends State<SupportListPage>
     if (lastMessage.message.isNotEmpty) return lastMessage.message;
 
     final attachment = lastMessage.attachments.last;
+    final attachmentTitle =
+        ReceiveAttachment.extractSizeAndRealTitle(attachment.title)[1];
     if (attachment.contentType.contains('image')) {
-      return 'Image sent: ${attachment.title}';
+      return 'Image sent: $attachmentTitle';
     } else {
-      return 'File sent: ${attachment.title}';
+      return 'File sent: $attachmentTitle';
     }
   }
 }

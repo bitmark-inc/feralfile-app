@@ -8,7 +8,7 @@ import 'package:uuid/uuid.dart';
 abstract class AuditService {
   void auditFirstLog();
   Future audiPersonaAction(String action, Persona? persona);
-  Future<String> export();
+  Future<List<int>> export();
 }
 
 class AuditCategory {
@@ -73,8 +73,8 @@ class AuditServiceImpl extends AuditService {
     await _cloudDB.auditDao.insertAudit(audit);
   }
 
-  Future<String> export() async {
+  Future<List<int>> export() async {
     final audits = await _cloudDB.auditDao.getAudits();
-    return base64Encode(utf8.encode(jsonEncode(audits)));
+    return utf8.encode(jsonEncode(audits));
   }
 }
