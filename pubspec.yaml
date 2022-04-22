@@ -34,7 +34,6 @@ dependencies:
   dio: ^4.0.4
   dio_http2_adapter: ^2.0.0
   easy_debounce: ^2.0.2+1
-  file_picker: ^4.4.0
   floor: ^1.2.0
   flutter:
     sdk: flutter
@@ -75,14 +74,12 @@ dependencies:
   logging: ^1.0.2
   modal_bottom_sheet: ^2.0.0
   onesignal_flutter: ^3.3.0
-  open_file: ^3.2.1
   open_settings: ^2.0.2
   overlay_support: ^1.2.1
   package_info_plus: ^1.4.0
   page_transition: ^2.0.5
   path_provider: ^2.0.9
   permission_handler: ^8.1.6
-  pull_to_refresh: ^2.0.0
   qr_code_scanner: ^0.6.1
   qr_flutter: ^4.0.0
   retrofit: null
