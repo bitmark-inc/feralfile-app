@@ -1,18 +1,15 @@
 import 'dart:convert';
-import 'dart:developer';
 import 'dart:io';
-import 'dart:typed_data';
 
-import 'package:autonomy_flutter/util/custom_exception.dart';
+import 'package:autonomy_flutter/util/device.dart';
+import 'package:autonomy_flutter/util/log.dart' as logUtil;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle;
-import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
-import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 
 import 'package:autonomy_flutter/gateway/customer_support_api.dart';
 import 'package:autonomy_flutter/model/customer_support.dart';
-import 'package:logging/logging.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:autonomy_flutter/util/log.dart';
 
 abstract class CustomerSupportService {
   ValueNotifier<List<int>?>
@@ -53,6 +50,29 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
 
   Future<PostedMessageResponse> createIssue(String reportIssueType,
       String message, List<SendAttachment> attachments) async {
+    // add log file
+    final logFilePath = await logUtil.getLatestLogFile();
+    File file = File(logFilePath);
+    final log = base64Encode(await file.readAsBytes());
+    final fileName = logFilePath.split('/').last;
+
+    attachments.add(SendAttachment(data: log, title: fileName));
+
+    // add tags
+    var tags = [reportIssueType];
+
+    final deviceID = await getDeviceID();
+    if (deviceID != null) {
+      tags.add(deviceID);
+
+      if (Platform.isIOS) {
+        tags.add("iOS");
+      } else if (Platform.isAndroid) {
+        tags.add("android");
+      }
+      tags.add((await PackageInfo.fromPlatform()).version);
+    }
+
     var title = message;
     if (title.length > 170) {
       title = title.substring(0, 170);
@@ -62,7 +82,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
       'attachments': attachments,
       'title': title,
       'message': message,
-      'tags': [reportIssueType]
+      'tags': tags,
     };
 
     return await _customerSupportApi.createIssue(payload);
@@ -85,14 +105,14 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
   }
 
   Future storeFile(String filename, List<int> bytes) async {
-    log('[start] storeFile $filename');
+    log.info('[start] storeFile $filename');
     final directory = await getStoredDirectory();
     String filePath = '$directory/$filename'; // 3
 
     File file = File(filePath);
     await file.create(recursive: true);
     await file.writeAsBytes(bytes);
-    log('[done] storeFile $filename');
+    log.info('[done] storeFile $filename');
   }
 
   Future reopen(String issueID) async {
