@@ -1,4 +1,5 @@
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -16,11 +17,30 @@ class SupportCustomerPage extends StatefulWidget {
   State<SupportCustomerPage> createState() => _SupportCustomerPageState();
 }
 
-class _SupportCustomerPageState extends State<SupportCustomerPage> {
+class _SupportCustomerPageState extends State<SupportCustomerPage>
+    with RouteAware, WidgetsBindingObserver {
   @override
   void initState() {
     injector<CustomerSupportService>().getIssues();
     super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+  }
+
+  @override
+  void didPopNext() {
+    injector<CustomerSupportService>().getIssues();
+    super.didPopNext();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    routeObserver.unsubscribe(this);
   }
 
   @override
