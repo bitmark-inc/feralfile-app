@@ -4,6 +4,7 @@ import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -38,6 +39,7 @@ abstract class IAPService {
   Future<void> purchase(ProductDetails product);
   Future<void> restore();
   Future<bool> renewJWT();
+  Future<bool> isSubscribed();
 }
 
 class IAPServiceImpl implements IAPService {
@@ -178,6 +180,12 @@ class IAPServiceImpl implements IAPService {
       }
       purchases.notifyListeners();
     });
+  }
+
+  Future<bool> isSubscribed() async {
+    return (_configurationService.getIAPJWT() != null &&
+            _configurationService.getIAPReceipt() != null) ||
+        await isAppCenterBuild();
   }
 }
 

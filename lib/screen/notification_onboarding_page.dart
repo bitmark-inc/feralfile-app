@@ -61,8 +61,11 @@ class NotificationOnboardingPage extends StatelessWidget {
                           .getThemeData(AppTheme.markdownThemeBlack)),
                     ),
                     Center(
-                        child: SvgPicture.asset(
-                            'assets/images/notification_onboarding.svg'))
+                        child: Padding(
+                      child: SvgPicture.asset(
+                          'assets/images/notification_onboarding.svg'),
+                      padding: EdgeInsets.only(left: 25),
+                    ))
                   ],
                 ),
               ),
