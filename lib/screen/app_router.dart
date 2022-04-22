@@ -212,6 +212,7 @@ class AppRouter {
                 create: (_) => PersonaBloc(
                       injector<CloudDatabase>(),
                       injector(),
+                      injector(),
                       injector<AuditService>(),
                     ),
                 child: NewAccountPage()));
@@ -222,6 +223,7 @@ class AppRouter {
             pageBuilder: (context, animetion1, animation2) => BlocProvider(
                 create: (_) => PersonaBloc(
                       injector<CloudDatabase>(),
+                      injector(),
                       injector(),
                       injector<AuditService>(),
                     ),
@@ -234,6 +236,7 @@ class AppRouter {
             builder: (context) => BlocProvider(
                 create: (_) => PersonaBloc(
                       injector<CloudDatabase>(),
+                      injector(),
                       injector(),
                       injector<AuditService>(),
                     ),
@@ -253,6 +256,7 @@ class AppRouter {
                   BlocProvider(
                     create: (_) => PersonaBloc(
                       injector<CloudDatabase>(),
+                      injector(),
                       injector(),
                       injector<AuditService>(),
                     ),
@@ -330,6 +334,7 @@ class AppRouter {
                   create: (_) => PersonaBloc(
                     injector<CloudDatabase>(),
                     injector(),
+                    injector(),
                     injector<AuditService>(),
                   ),
                   child: NamePersonaPage(uuid: settings.arguments as String),
@@ -360,6 +365,7 @@ class AppRouter {
                             create: (_) => PersonaBloc(
                               injector<CloudDatabase>(),
                               injector(),
+                              injector(),
                               injector<AuditService>(),
                             ),
                           ),
@@ -377,6 +383,7 @@ class AppRouter {
                     BlocProvider(
                       create: (_) => PersonaBloc(
                         injector<CloudDatabase>(),
+                        injector(),
                         injector(),
                         injector<AuditService>(),
                       ),
@@ -435,6 +442,7 @@ class AppRouter {
                   BlocProvider(
                       create: (_) => PersonaBloc(
                             injector<CloudDatabase>(),
+                            injector(),
                             injector(),
                             injector<AuditService>(),
                           )),
@@ -618,6 +626,7 @@ class AppRouter {
                   BlocProvider(
                     create: (_) => PersonaBloc(
                       injector<CloudDatabase>(),
+                      injector(),
                       injector(),
                       injector<AuditService>(),
                     ),
