@@ -687,7 +687,9 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
               ),
             ],
           ),
-        ));
+        ),
+      isDismissible: true,
+    );
   }
 }
 
