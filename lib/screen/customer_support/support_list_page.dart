@@ -49,7 +49,6 @@ class _SupportListPageState extends State<SupportListPage>
   }
 
   void loadIssues() async {
-    print("LOAD ISSUE");
     final issues = await injector<CustomerSupportService>().getIssues();
     setState(() {
       _issues = issues;
