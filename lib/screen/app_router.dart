@@ -66,6 +66,7 @@ import 'package:autonomy_flutter/screen/settings/settings_page.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_sign_message_page.dart';
+import 'package:autonomy_flutter/screen/unsafe_web_wallet_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_bloc.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
@@ -119,6 +120,7 @@ class AppRouter {
   static const cloudAndroidPage = 'cloud_android_page';
   static const linkManually = 'link_manually';
   static const autonomySecurityPage = 'autonomy_security';
+  static const unsafeWebWalletPage = 'unsafeWebWalletPage';
   static const releaseNotesPage = 'releaseNotesPage';
   static const hiddenArtworksPage = 'hidden_artworks';
   static const supportCustomerPage = 'supportCustomerPage';
@@ -634,6 +636,10 @@ class AppRouter {
       case autonomySecurityPage:
         return CupertinoPageRoute(
             settings: settings, builder: (context) => AutonomySecurityPage());
+
+      case unsafeWebWalletPage:
+        return CupertinoPageRoute(
+            settings: settings, builder: (context) => UnsafeWebWalletPage());
 
       case releaseNotesPage:
         return PageTransition(

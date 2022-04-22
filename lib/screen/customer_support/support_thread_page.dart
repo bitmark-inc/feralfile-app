@@ -81,6 +81,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     injector<CustomerSupportService>()
         .triggerReloadMessages
         .removeListener(_loadIssueDetails);
+    memoryValues.viewingSupportThreadIssueID = null;
     super.dispose();
   }
 
