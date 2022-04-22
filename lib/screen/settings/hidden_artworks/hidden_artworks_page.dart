@@ -62,7 +62,7 @@ class _HiddenArtworksPageState extends State<HiddenArtworksPage> {
       slivers: [
         SliverToBoxAdapter(
           child: Container(
-            padding: EdgeInsets.fromLTRB(14, 0, 24, 14),
+            padding: EdgeInsets.fromLTRB(14, 24, 24, 14),
             child: Text(
               "Hidden",
               style: appTextTheme.headline1,
