@@ -1,5 +1,4 @@
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -48,17 +47,17 @@ AppBar getBackAppBar(BuildContext context,
             textAlign: TextAlign.center,
           ),
         ),
-        SizedBox(width: 60),
+        action != null
+            ? IconButton(
+                constraints: BoxConstraints(maxWidth: 36.0),
+                onPressed: action,
+                icon: Icon(
+                  Icons.more_horiz,
+                  color: Colors.black,
+                ))
+            : SizedBox(width: 60),
       ],
     ),
-    actions: action != null ? [
-      IconButton(
-          onPressed: action,
-          icon: Icon(
-            Icons.more_horiz,
-            color: Colors.black,
-          ))
-    ] : null,
     backgroundColor: Colors.transparent,
     shadowColor: Colors.transparent,
     elevation: 0,
