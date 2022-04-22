@@ -62,7 +62,7 @@ const bodySmall = TextStyle(
 const linkStyle = TextStyle(
   color: Colors.transparent,
   fontSize: 14,
-  fontFamily: "AtlasGrotesk",
+  fontFamily: "AtlasGrotesk-Medium",
   height: 1.377,
   shadows: [Shadow(color: Colors.black, offset: Offset(0, -2))],
   decoration: TextDecoration.underline,
@@ -70,6 +70,25 @@ const linkStyle = TextStyle(
   decorationColor: Colors.black,
   decorationThickness: 1.2,
 );
+
+const whitelinkStyle = TextStyle(
+  color: Colors.transparent,
+  fontSize: 14,
+  fontFamily: "AtlasGrotesk-Medium",
+  height: 1.377,
+  shadows: [Shadow(color: Colors.white, offset: Offset(0, -2))],
+  decoration: TextDecoration.underline,
+  decorationStyle: TextDecorationStyle.solid,
+  decorationColor: Colors.white,
+  decorationThickness: 1.2,
+);
+
+ButtonStyle get textButtonNoPadding {
+  return TextButton.styleFrom(
+      minimumSize: Size.zero,
+      padding: EdgeInsets.zero,
+      tapTargetSize: MaterialTapTargetSize.shrinkWrap);
+}
 
 const paragraph = TextStyle(
     color: AppColorTheme.secondaryDimGrey,
@@ -123,6 +142,9 @@ class AppColorTheme {
   static const secondaryDimGrey = Color(0xFF6D6B6B);
   static const secondaryDimGreyBackground = Color(0xFFEDEDED);
   static const secondarySpanishGrey = Color(0xFF999999);
+  static const chatDateDividerColor = Color(0xFFC2C2C2);
+  static const chatSecondaryColor = Color(0xFF6D6B6B);
+  static const chatPrimaryColor = Color(0xFFEDEDED);
 }
 
 final grantPermissions = const [

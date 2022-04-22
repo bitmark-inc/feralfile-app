@@ -9,9 +9,11 @@ import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
+import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tokens_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
@@ -62,6 +64,12 @@ class _HomePageState extends State<HomePage>
     context.read<HomeBloc>().add(ReindexIndexerEvent());
     OneSignal.shared
         .setNotificationWillShowInForegroundHandler(_shouldShowNotifications);
+    injector<AuditService>().auditFirstLog();
+    OneSignal.shared.setNotificationOpenedHandler((openedResult) {
+      Future.delayed(Duration(milliseconds: 500), () {
+        _handleNotificationClicked(openedResult.notification);
+      });
+    });
 
     _gallerySortBy = injector<ConfigurationService>().getGallerySortBy() ??
         GallerySortProperty.Source;
@@ -92,10 +100,10 @@ class _HomePageState extends State<HomePage>
   void didPopNext() async {
     super.didPopNext();
     final connectivityResult = await (Connectivity().checkConnectivity());
+
+    context.read<HomeBloc>().add(RefreshTokensEvent());
     if (connectivityResult == ConnectivityResult.mobile ||
         connectivityResult == ConnectivityResult.wifi) {
-      context.read<HomeBloc>().add(RefreshTokensEvent());
-
       Future.delayed(const Duration(milliseconds: 1000), () {
         context.read<HomeBloc>().add(ReindexIndexerEvent());
       });
@@ -114,7 +122,7 @@ class _HomePageState extends State<HomePage>
 
     final shouldShowMainView = tokens != null && tokens.isNotEmpty;
     IdentityState? identityState;
-    if (_gallerySortBy == GallerySortProperty.ArtistName) {
+    if (_gallerySortBy == GallerySortProperty.Artist) {
       identityState = context.watch<IdentityBloc>().state;
     }
 
@@ -182,8 +190,8 @@ class _HomePageState extends State<HomePage>
       switch (_gallerySortBy) {
         case GallerySortProperty.Medium:
           return obj.medium?.capitalize() ?? "";
-        case GallerySortProperty.ArtistName:
-          return obj.artistName?.toIdentityOrMask(identityMap) ?? "";
+        case GallerySortProperty.Artist:
+          return obj.artistName?.toIdentityOrMask(identityMap) ?? "Unknown";
         case GallerySortProperty.Chain:
           return obj.blockchain.capitalize();
         default:
@@ -193,6 +201,8 @@ class _HomePageState extends State<HomePage>
 
     var keys = groupByProperty.keys.toList();
     keys.sort((a, b) {
+      if (a == 'Unknown') return 1;
+      if (b == 'Unknown') return -1;
       if (a.startsWith('[') && !b.startsWith('[')) {
         return 1;
       } else if (!a.startsWith('[') && b.startsWith('[')) {
@@ -390,8 +400,48 @@ class _HomePageState extends State<HomePage>
 
   void _shouldShowNotifications(OSNotificationReceivedEvent event) {
     log.info("Receive notification: ${event.notification}");
-    showNotifications(event.notification);
+    final notificationIssueID =
+        '${event.notification.additionalData?['issue_id']}';
+    if (notificationIssueID == memoryValues.viewingSupportThreadIssueID) {
+      injector<CustomerSupportService>().triggerReloadMessages.value += 1;
+      injector<CustomerSupportService>().getIssues();
+      event.complete(null);
+      return;
+    }
+
+    showNotifications(event.notification,
+        notificationOpenedHandler: _handleNotificationClicked);
     event.complete(null);
+  }
+
+  void _handleNotificationClicked(OSNotification notification) {
+    if (notification.additionalData == null) {
+      // Skip handling the notification without data
+      return;
+    }
+
+    log.info(
+        "Tap to notification: ${notification.body ?? "empty"} \nAddtional data: ${notification.additionalData!}");
+
+    final notificationType = notification.additionalData!["notification_type"];
+    switch (notificationType) {
+      case "customer_support_new_message":
+      case "customer_support_close_issue":
+        final issueID = '${notification.additionalData!["issue_id"]}';
+        Navigator.of(context).pushNamedAndRemoveUntil(
+            AppRouter.supportThreadPage,
+            ((route) =>
+                route.settings.name == AppRouter.homePage ||
+                route.settings.name == AppRouter.homePageNoTransition),
+            arguments: [
+              "",
+              '$issueID',
+            ]);
+        break;
+      default:
+        log.warning("unhandled notification type: $notificationType");
+        break;
+    }
   }
 
   void _handleForeground() {
@@ -411,6 +461,7 @@ class _HomePageState extends State<HomePage>
     });
 
     injector<VersionService>().checkForUpdate();
+    injector<CustomerSupportService>().getIssues();
   }
 
   void _handleBackground() {

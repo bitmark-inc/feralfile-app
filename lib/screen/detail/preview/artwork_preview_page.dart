@@ -293,12 +293,14 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
               overflow: TextOverflow.ellipsis,
               style: titleStyle,
             ),
-            SizedBox(height: 4.0),
-            Text(
-              "by $artistName",
-              overflow: TextOverflow.ellipsis,
-              style: artistNameStyle,
-            )
+            if (artistName != null) ...[
+              SizedBox(height: 4.0),
+              Text(
+                "by $artistName",
+                overflow: TextOverflow.ellipsis,
+                style: artistNameStyle,
+              )
+            ]
           ],
         ),
         onTap: () {

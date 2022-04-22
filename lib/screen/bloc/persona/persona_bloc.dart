@@ -1,7 +1,7 @@
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
-import 'package:autonomy_flutter/model/p2p_peer.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
@@ -10,20 +10,17 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:bloc/bloc.dart';
-import 'package:libauk_dart/libauk_dart.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
-import 'package:uuid/uuid.dart';
-import 'package:wallet_connect/wallet_connect.dart';
 
 part 'persona_state.dart';
 
 class PersonaBloc extends Bloc<PersonaEvent, PersonaState> {
   CloudDatabase _cloudDB;
   AccountService _accountService;
+  AuditService _auditService;
   ConfigurationService _configurationService;
 
-  PersonaBloc(
-      this._cloudDB, this._accountService, this._configurationService)
+  PersonaBloc(this._cloudDB, this._accountService, this._configurationService,
+      this._auditService)
       : super(PersonaState()) {
     on<CreatePersonaEvent>((event, emit) async {
       emit(PersonaState(createAccountState: ActionState.loading));
@@ -32,14 +29,12 @@ class PersonaBloc extends Bloc<PersonaEvent, PersonaState> {
       if (!_configurationService.isDoneOnboarding()) {
         final account = await _accountService.getDefaultAccount();
         final persona = await _cloudDB.personaDao.findById(account.uuid);
-        emit(
-            PersonaState(
-                createAccountState: ActionState.done, persona: persona));
+        emit(PersonaState(
+            createAccountState: ActionState.done, persona: persona));
       } else {
         final persona = await _accountService.createPersona();
-        emit(
-            PersonaState(
-                createAccountState: ActionState.done, persona: persona));
+        emit(PersonaState(
+            createAccountState: ActionState.done, persona: persona));
       }
 
       await Future.delayed(Duration(microseconds: 500), () {
@@ -77,6 +72,7 @@ class PersonaBloc extends Bloc<PersonaEvent, PersonaState> {
       await oldPersona.wallet().updateName(event.name);
       final updatedPersona = oldPersona.copyWith(name: event.name);
       await _cloudDB.personaDao.updatePersona(updatedPersona);
+      await _auditService.audiPersonaAction('name', updatedPersona);
 
       emit(state.copyWith(
           namePersonaState: ActionState.done, persona: updatedPersona));

@@ -73,6 +73,8 @@
 	<string>Allow Autonomy to use Face ID to authenticate.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Viewing artwork with microphone enable.</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>This app requires access to the photo library.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>
