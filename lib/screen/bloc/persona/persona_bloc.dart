@@ -2,6 +2,7 @@ import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/model/p2p_peer.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -19,18 +20,27 @@ part 'persona_state.dart';
 class PersonaBloc extends Bloc<PersonaEvent, PersonaState> {
   CloudDatabase _cloudDB;
   AccountService _accountService;
+  ConfigurationService _configurationService;
 
   PersonaBloc(
-      this._cloudDB, this._accountService)
+      this._cloudDB, this._accountService, this._configurationService)
       : super(PersonaState()) {
     on<CreatePersonaEvent>((event, emit) async {
       emit(PersonaState(createAccountState: ActionState.loading));
       // await Future.delayed(SHOW_DIALOG_DURATION);
 
-      final persona = await _accountService.createPersona();
-
-      emit(
-          PersonaState(createAccountState: ActionState.done, persona: persona));
+      if (!_configurationService.isDoneOnboarding()) {
+        final account = await _accountService.getDefaultAccount();
+        final persona = await _cloudDB.personaDao.findById(account.uuid);
+        emit(
+            PersonaState(
+                createAccountState: ActionState.done, persona: persona));
+      } else {
+        final persona = await _accountService.createPersona();
+        emit(
+            PersonaState(
+                createAccountState: ActionState.done, persona: persona));
+      }
 
       await Future.delayed(Duration(microseconds: 500), () {
         emit(state.copyWith(createAccountState: ActionState.notRequested));
