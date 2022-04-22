@@ -100,6 +100,8 @@ dependencies:
     git: 
       url: https://github.com/autonomy-system/flutter_to_airplay.git
       ref: 0bd6ff556a664d3f8881f1a570f4d2028b7101dd
+  cast: ^1.1.0
+  mime: ^1.0.1
 
 dependency_overrides:
   # Error using when import photo_view from dependencies:
