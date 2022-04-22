@@ -95,9 +95,9 @@ class ConfigurationServiceImpl implements ConfigurationService {
   Future<void> setIAPReceipt(String? value) async {
     if (value != null) {
       await _preferences.setString(KEY_IAP_RECEIPT, value);
+    } else {
+      await _preferences.remove(KEY_IAP_RECEIPT);
     }
-
-    await _preferences.remove(KEY_IAP_RECEIPT);
   }
 
   @override
