@@ -430,7 +430,16 @@ wantMoreSecurityWidget(BuildContext context, WalletApp walletApp) {
             SizedBox(height: 5),
             Text(introText, style: bodySmall),
             SizedBox(height: 10),
-            learnMoreAboutAutonomySecurityWidget(context),
+            TextButton(
+                onPressed: () => Navigator.of(context)
+                    .pushNamed(AppRouter.unsafeWebWalletPage),
+                child: Text('Learn why browse-extension wallets are unsafe...',
+                    style: linkStyle),
+                style: TextButton.styleFrom(
+                  minimumSize: Size.zero,
+                  padding: EdgeInsets.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                )),
           ]),
     ),
   );
