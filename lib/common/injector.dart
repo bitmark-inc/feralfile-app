@@ -25,6 +25,7 @@ import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_dapp_service/wallet_connect_dapp_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/au_cached_manager.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
 import 'package:dio/dio.dart';
 import 'package:sentry_dio/sentry_dio.dart';
@@ -133,10 +134,15 @@ Future<void> setup() async {
       () => CurrencyServiceImpl(injector()));
   injector.registerLazySingleton(
       () => VersionService(PubdocAPI(dio), injector(), injector()));
-  injector.registerLazySingleton<CustomerSupportService>(
-      () => CustomerSupportServiceImpl(
-            CustomerSupportApi(authenticatedDio),
-          ));
+
+  final customerSupportBaseURL = await isAppCenterBuild()
+      ? 'https://support.test.autonomy.io'
+      : 'https://support.autonomy.io';
+  injector.registerLazySingleton<CustomerSupportService>(() =>
+      CustomerSupportServiceImpl(
+        CustomerSupportApi(authenticatedDio, baseUrl: customerSupportBaseURL),
+      ));
+
   injector.registerLazySingleton<AuditService>(() => auditService);
 
   final cloudService = CloudService();
