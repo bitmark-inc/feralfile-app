@@ -96,7 +96,7 @@ class _IndexerApi implements IndexerApi {
     final _result = await _dio.fetch<Map<String, dynamic>>(
         _setStreamType<BlockchainIdentity>(
             Options(method: 'GET', headers: _headers, extra: _extra)
-                .compose(_dio.options, '/identity/$accountNumber',
+                .compose(_dio.options, '/identity/${accountNumber}',
                     queryParameters: queryParameters, data: _data)
                 .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
     final value = BlockchainIdentity.fromJson(_result.data!);

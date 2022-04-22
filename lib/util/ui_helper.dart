@@ -12,6 +12,8 @@ import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
+import 'package:intl/intl.dart';
+import 'package:jiffy/jiffy.dart';
 import 'package:share/share.dart';
 
 enum ActionState { notRequested, loading, error, done }
@@ -428,8 +430,46 @@ wantMoreSecurityWidget(BuildContext context, WalletApp walletApp) {
             SizedBox(height: 5),
             Text(introText, style: bodySmall),
             SizedBox(height: 10),
-            learnMoreAboutAutonomySecurityWidget(context),
+            TextButton(
+                onPressed: () => Navigator.of(context)
+                    .pushNamed(AppRouter.unsafeWebWalletPage),
+                child: Text('Learn why browse-extension wallets are unsafe...',
+                    style: linkStyle),
+                style: TextButton.styleFrom(
+                  minimumSize: Size.zero,
+                  padding: EdgeInsets.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                )),
           ]),
     ),
   );
+}
+
+// From chat_ui/util
+String getVerboseDateTimeRepresentation(
+  DateTime dateTime, {
+  DateFormat? dateFormat,
+  String? dateLocale,
+  DateFormat? timeFormat,
+}) {
+  final formattedDate = dateFormat != null
+      ? dateFormat.format(dateTime)
+      : DateFormat.MMMd(dateLocale).format(dateTime);
+  final formattedTime = timeFormat != null
+      ? timeFormat.format(dateTime)
+      : DateFormat.Hm(dateLocale).format(dateTime);
+  final localDateTime = dateTime.toLocal();
+  final now = DateTime.now();
+
+  if (localDateTime.day == now.day &&
+      localDateTime.month == now.month &&
+      localDateTime.year == now.year) {
+    return formattedTime;
+  }
+
+  if (Jiffy(localDateTime).week == Jiffy(now).week) {
+    return Jiffy(localDateTime).format("EE");
+  }
+
+  return '$formattedDate, $formattedTime';
 }

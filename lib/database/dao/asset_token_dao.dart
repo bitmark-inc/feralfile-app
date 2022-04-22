@@ -3,14 +3,16 @@ import 'package:floor/floor.dart';
 
 @dao
 abstract class AssetTokenDao {
-  @Query('SELECT * FROM AssetToken ORDER BY lastActivityTime DESC')
+  @Query(
+      'SELECT * FROM AssetToken ORDER BY lastActivityTime DESC, title, assetID')
   Future<List<AssetToken>> findAllAssetTokens();
 
   @Query(
-      'SELECT * FROM AssetToken WHERE ownerAddress NOT IN (:owners) AND hidden is NULL ORDER BY lastActivityTime DESC')
+      'SELECT * FROM AssetToken WHERE ownerAddress NOT IN (:owners) AND hidden is NULL ORDER BY lastActivityTime DESC, title, assetID')
   Future<List<AssetToken>> findAllAssetTokensWhereNot(List<String> owners);
 
-  @Query('SELECT * FROM AssetToken WHERE blockchain = :blockchain AND hidden is NULL')
+  @Query(
+      'SELECT * FROM AssetToken WHERE blockchain = :blockchain AND hidden is NULL')
   Future<List<AssetToken>> findAssetTokensByBlockchain(String blockchain);
 
   @Query('SELECT * FROM AssetToken WHERE id = :id')

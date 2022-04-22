@@ -227,7 +227,7 @@ class _$AssetTokenDao extends AssetTokenDao {
   @override
   Future<List<AssetToken>> findAllAssetTokens() async {
     return _queryAdapter.queryList(
-        'SELECT * FROM AssetToken ORDER BY lastActivityTime DESC',
+        'SELECT * FROM AssetToken ORDER BY lastActivityTime DESC, title, assetID',
         mapper: (Map<String, Object?> row) => AssetToken(
             artistName: row['artistName'] as String?,
             artistURL: row['artistURL'] as String?,
@@ -266,33 +266,8 @@ class _$AssetTokenDao extends AssetTokenDao {
     return _queryAdapter.queryList(
         'SELECT * FROM AssetToken WHERE ownerAddress NOT IN (' +
             _sqliteVariablesForOwners +
-            ') AND hidden is NULL ORDER BY lastActivityTime DESC',
-        mapper: (Map<String, Object?> row) => AssetToken(
-            artistName: row['artistName'] as String?,
-            artistURL: row['artistURL'] as String?,
-            assetData: row['assetData'] as String?,
-            assetID: row['assetID'] as String?,
-            assetURL: row['assetURL'] as String?,
-            basePrice: row['basePrice'] as double?,
-            baseCurrency: row['baseCurrency'] as String?,
-            blockchain: row['blockchain'] as String,
-            contractType: row['contractType'] as String?,
-            desc: row['desc'] as String?,
-            edition: row['edition'] as int,
-            id: row['id'] as String,
-            maxEdition: row['maxEdition'] as int?,
-            medium: row['medium'] as String?,
-            mintedAt: row['mintedAt'] as String?,
-            previewURL: row['previewURL'] as String?,
-            source: row['source'] as String?,
-            sourceURL: row['sourceURL'] as String?,
-            thumbnailURL: row['thumbnailURL'] as String?,
-            galleryThumbnailURL: row['galleryThumbnailURL'] as String?,
-            title: row['title'] as String,
-            ownerAddress: row['ownerAddress'] as String?,
-            lastActivityTime:
-                _dateTimeConverter.decode(row['lastActivityTime'] as int),
-            hidden: row['hidden'] as int?),
+            ') AND hidden is NULL ORDER BY lastActivityTime DESC, title, assetID',
+        mapper: (Map<String, Object?> row) => AssetToken(artistName: row['artistName'] as String?, artistURL: row['artistURL'] as String?, assetData: row['assetData'] as String?, assetID: row['assetID'] as String?, assetURL: row['assetURL'] as String?, basePrice: row['basePrice'] as double?, baseCurrency: row['baseCurrency'] as String?, blockchain: row['blockchain'] as String, contractType: row['contractType'] as String?, desc: row['desc'] as String?, edition: row['edition'] as int, id: row['id'] as String, maxEdition: row['maxEdition'] as int?, medium: row['medium'] as String?, mintedAt: row['mintedAt'] as String?, previewURL: row['previewURL'] as String?, source: row['source'] as String?, sourceURL: row['sourceURL'] as String?, thumbnailURL: row['thumbnailURL'] as String?, galleryThumbnailURL: row['galleryThumbnailURL'] as String?, title: row['title'] as String, ownerAddress: row['ownerAddress'] as String?, lastActivityTime: _dateTimeConverter.decode(row['lastActivityTime'] as int), hidden: row['hidden'] as int?),
         arguments: [...owners]);
   }
 

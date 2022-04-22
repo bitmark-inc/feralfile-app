@@ -37,6 +37,8 @@ import 'package:autonomy_flutter/screen/bloc/router/router_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
 import 'package:autonomy_flutter/screen/cloud/cloud_android_page.dart';
 import 'package:autonomy_flutter/screen/cloud/cloud_page.dart';
+import 'package:autonomy_flutter/screen/customer_support/support_customer_page.dart';
+import 'package:autonomy_flutter/screen/customer_support/support_list_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_bloc.dart';
@@ -61,13 +63,16 @@ import 'package:autonomy_flutter/screen/settings/hidden_artworks/hidden_artworks
 import 'package:autonomy_flutter/screen/settings/networks/select_network_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/networks/select_network_page.dart';
 import 'package:autonomy_flutter/screen/settings/settings_page.dart';
+import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_sign_message_page.dart';
+import 'package:autonomy_flutter/screen/unsafe_web_wallet_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_bloc.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_disconnect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
+import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -115,24 +120,35 @@ class AppRouter {
   static const cloudAndroidPage = 'cloud_android_page';
   static const linkManually = 'link_manually';
   static const autonomySecurityPage = 'autonomy_security';
+  static const unsafeWebWalletPage = 'unsafeWebWalletPage';
   static const releaseNotesPage = 'releaseNotesPage';
   static const hiddenArtworksPage = 'hidden_artworks';
+  static const supportCustomerPage = 'supportCustomerPage';
+  static const supportListPage = 'supportListPage';
+  static const supportThreadPage = 'supportThreadPage';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final networkInjector = injector<NetworkConfigInjector>();
 
     final ethereumBloc = EthereumBloc(injector(), networkInjector.I());
     final tezosBloc = TezosBloc(injector(), networkInjector.I());
-    final accountsBloc =
-        AccountsBloc(injector(), injector<CloudDatabase>(), injector());
+    final accountsBloc = AccountsBloc(injector(), injector<CloudDatabase>(),
+        injector(), injector<AuditService>());
 
     switch (settings.name) {
       case onboardingPage:
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider(
-                create: (_) => RouterBloc(injector(), injector(), injector(),
-                    injector<CloudDatabase>(), injector(), injector()),
+                create: (_) => RouterBloc(
+                      injector(),
+                      injector(),
+                      injector(),
+                      injector<CloudDatabase>(),
+                      injector(),
+                      injector(),
+                      injector<AuditService>(),
+                    ),
                 child: OnboardingPage()));
 
       case homePageNoTransition:
@@ -197,6 +213,7 @@ class AppRouter {
                       injector<CloudDatabase>(),
                       injector(),
                       injector(),
+                      injector<AuditService>(),
                     ),
                 child: NewAccountPage()));
 
@@ -208,6 +225,7 @@ class AppRouter {
                       injector<CloudDatabase>(),
                       injector(),
                       injector(),
+                      injector<AuditService>(),
                     ),
                 child: NewAccountPage()),
             transitionDuration: Duration(seconds: 0));
@@ -220,6 +238,7 @@ class AppRouter {
                       injector<CloudDatabase>(),
                       injector(),
                       injector(),
+                      injector<AuditService>(),
                     ),
                 child: AddAccountPage()));
 
@@ -235,11 +254,13 @@ class AppRouter {
             builder: (context) => MultiBlocProvider(providers: [
                   BlocProvider.value(value: accountsBloc),
                   BlocProvider(
-                      create: (_) => PersonaBloc(
-                            injector<CloudDatabase>(),
-                            injector(),
-                            injector(),
-                          )),
+                    create: (_) => PersonaBloc(
+                      injector<CloudDatabase>(),
+                      injector(),
+                      injector(),
+                      injector<AuditService>(),
+                    ),
+                  ),
                 ], child: AccountsPreviewPage()));
 
       case linkFeralFilePage:
@@ -314,6 +335,7 @@ class AppRouter {
                     injector<CloudDatabase>(),
                     injector(),
                     injector(),
+                    injector<AuditService>(),
                   ),
                   child: NamePersonaPage(uuid: settings.arguments as String),
                 ));
@@ -344,6 +366,7 @@ class AppRouter {
                               injector<CloudDatabase>(),
                               injector(),
                               injector(),
+                              injector<AuditService>(),
                             ),
                           ),
                         ],
@@ -362,6 +385,7 @@ class AppRouter {
                         injector<CloudDatabase>(),
                         injector(),
                         injector(),
+                        injector<AuditService>(),
                       ),
                     ),
                   ],
@@ -420,6 +444,7 @@ class AppRouter {
                             injector<CloudDatabase>(),
                             injector(),
                             injector(),
+                            injector<AuditService>(),
                           )),
                   BlocProvider.value(value: ethereumBloc),
                   BlocProvider.value(value: tezosBloc),
@@ -594,22 +619,21 @@ class AppRouter {
                 ));
 
       case globalReceivePage:
-        return PageTransition(
-            type: PageTransitionType.topToBottom,
-            curve: Curves.easeIn,
-            duration: Duration(milliseconds: 250),
-            child: MultiBlocProvider(providers: [
-              BlocProvider.value(value: accountsBloc),
-              BlocProvider(
-                create: (_) => PersonaBloc(
-                  injector<CloudDatabase>(),
-                  injector(),
-                  injector(),
-                ),
-              ),
-              BlocProvider.value(value: ethereumBloc),
-              BlocProvider.value(value: tezosBloc),
-            ], child: GlobalReceivePage()));
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => MultiBlocProvider(providers: [
+                  BlocProvider.value(value: accountsBloc),
+                  BlocProvider(
+                    create: (_) => PersonaBloc(
+                      injector<CloudDatabase>(),
+                      injector(),
+                      injector(),
+                      injector<AuditService>(),
+                    ),
+                  ),
+                  BlocProvider.value(value: ethereumBloc),
+                  BlocProvider.value(value: tezosBloc),
+                ], child: GlobalReceivePage()));
 
       case GlobalReceiveDetailPage.tag:
         return CupertinoPageRoute(
@@ -622,6 +646,10 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings, builder: (context) => AutonomySecurityPage());
 
+      case unsafeWebWalletPage:
+        return CupertinoPageRoute(
+            settings: settings, builder: (context) => UnsafeWebWalletPage());
+
       case releaseNotesPage:
         return PageTransition(
             type: PageTransitionType.bottomToTop,
@@ -630,6 +658,26 @@ class AppRouter {
             child: ReleaseNotesPage(
               releaseNotes: settings.arguments as String,
             ));
+
+      case supportCustomerPage:
+        return PageTransition(
+            type: PageTransitionType.topToBottom,
+            curve: Curves.easeIn,
+            duration: Duration(milliseconds: 250),
+            child: SupportCustomerPage());
+
+      case supportListPage:
+        return CupertinoPageRoute(
+            settings: settings, builder: (context) => SupportListPage());
+
+      case supportThreadPage:
+        final args = settings.arguments as List<dynamic>;
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => SupportThreadPage(
+                  reportIssueType: args[0] as String,
+                  issueID: args[1] as String?,
+                ));
 
       case linkManually:
         return CupertinoPageRoute(
@@ -642,9 +690,9 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider(
-              create: (_) => HiddenArtworksBloc(networkInjector.I()),
-              child: HiddenArtworksPage(),
-            ));
+                  create: (_) => HiddenArtworksBloc(networkInjector.I()),
+                  child: HiddenArtworksPage(),
+                ));
 
       default:
         throw Exception('Invalid route: ${settings.name}');

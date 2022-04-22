@@ -65,10 +65,12 @@ class _$CloudDatabase extends CloudDatabase {
 
   ConnectionDao? _connectionDaoInstance;
 
+  AuditDao? _auditDaoInstance;
+
   Future<sqflite.Database> open(String path, List<Migration> migrations,
       [Callback? callback]) async {
     final databaseOptions = sqflite.OpenDatabaseOptions(
-      version: 1,
+      version: 2,
       onConfigure: (database) async {
         await database.execute('PRAGMA foreign_keys = ON');
         await callback?.onConfigure?.call(database);
@@ -87,6 +89,8 @@ class _$CloudDatabase extends CloudDatabase {
             'CREATE TABLE IF NOT EXISTS `Persona` (`uuid` TEXT NOT NULL, `name` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, PRIMARY KEY (`uuid`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `Connection` (`key` TEXT NOT NULL, `name` TEXT NOT NULL, `data` TEXT NOT NULL, `connectionType` TEXT NOT NULL, `accountNumber` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, PRIMARY KEY (`key`))');
+        await database.execute(
+            'CREATE TABLE IF NOT EXISTS `Audit` (`uuid` TEXT NOT NULL, `category` TEXT NOT NULL, `action` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `metadata` TEXT NOT NULL, PRIMARY KEY (`uuid`))');
 
         await callback?.onCreate?.call(database, version);
       },
@@ -102,6 +106,11 @@ class _$CloudDatabase extends CloudDatabase {
   @override
   ConnectionDao get connectionDao {
     return _connectionDaoInstance ??= _$ConnectionDao(database, changeListener);
+  }
+
+  @override
+  AuditDao get auditDao {
+    return _auditDaoInstance ??= _$AuditDao(database, changeListener);
   }
 }
 
@@ -356,6 +365,58 @@ class _$ConnectionDao extends ConnectionDao {
   @override
   Future<void> deleteConnection(Connection connection) async {
     await _connectionDeletionAdapter.delete(connection);
+  }
+}
+
+class _$AuditDao extends AuditDao {
+  _$AuditDao(this.database, this.changeListener)
+      : _queryAdapter = QueryAdapter(database),
+        _auditInsertionAdapter = InsertionAdapter(
+            database,
+            'Audit',
+            (Audit item) => <String, Object?>{
+                  'uuid': item.uuid,
+                  'category': item.category,
+                  'action': item.action,
+                  'createdAt': _dateTimeConverter.encode(item.createdAt),
+                  'metadata': item.metadata
+                });
+
+  final sqflite.DatabaseExecutor database;
+
+  final StreamController<String> changeListener;
+
+  final QueryAdapter _queryAdapter;
+
+  final InsertionAdapter<Audit> _auditInsertionAdapter;
+
+  @override
+  Future<List<Audit>> getAudits() async {
+    return _queryAdapter.queryList('SELECT * FROM Audit',
+        mapper: (Map<String, Object?> row) => Audit(
+            uuid: row['uuid'] as String,
+            category: row['category'] as String,
+            action: row['action'] as String,
+            createdAt: _dateTimeConverter.decode(row['createdAt'] as int),
+            metadata: row['metadata'] as String));
+  }
+
+  @override
+  Future<List<Audit>> getAuditsBy(String category, String action) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM Audit WHERE category = (?1) AND action = (?2)',
+        mapper: (Map<String, Object?> row) => Audit(
+            uuid: row['uuid'] as String,
+            category: row['category'] as String,
+            action: row['action'] as String,
+            createdAt: _dateTimeConverter.decode(row['createdAt'] as int),
+            metadata: row['metadata'] as String),
+        arguments: [category, action]);
+  }
+
+  @override
+  Future<void> insertAudit(Audit audit) async {
+    await _auditInsertionAdapter.insert(audit, OnConflictStrategy.replace);
   }
 }
 
