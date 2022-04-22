@@ -125,7 +125,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     disableLandscapeMode();
     routeObserver.unsubscribe(this);
     WidgetsBinding.instance?.removeObserver(this);
-    _stopAllChromecastDevice();
+    _stopAllChromecastDevices();
     _controller?.dispose();
     _controller = null;
     _webViewController = null;
@@ -191,7 +191,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                                       ? widget.payload.ids.length - 1
                                       : currentIndex - 1;
                                   final id = widget.payload.ids[currentIndex];
-                                  _stopAllChromecastDevice();
+                                  _stopAllChromecastDevices();
                                   context.read<ArtworkPreviewBloc>().add(
                                       ArtworkPreviewGetAssetTokenEvent(id));
                                 },
@@ -207,7 +207,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                                       ? 0
                                       : currentIndex + 1;
                                   final id = widget.payload.ids[currentIndex];
-                                  _stopAllChromecastDevice();
+                                  _stopAllChromecastDevices();
                                   context.read<ArtworkPreviewBloc>().add(
                                       ArtworkPreviewGetAssetTokenEvent(id));
                                 },
@@ -704,7 +704,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     session?.close();
   }
 
-  void _stopAllChromecastDevice() {
+  void _stopAllChromecastDevices() {
     _castDevices.forEach((element) {
       element.chromecastSession?.close();
     });
