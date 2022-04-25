@@ -158,22 +158,23 @@ platform :ios do
 	end
 
 	lane :build_testflight do
+		app_identifier = 'com.bitmark.autonomywallet'
 		old_build_number = latest_testflight_build_number(
 			version: ENV["APP_VERSION"],
 			initial_build_number: 0,
-			api_key_path: "key.json"
+			app_identifier: app_identifier,
+			api_key_path: "fastlane/key.json"
 		)
 		next_build_number = old_build_number.to_i + 1
 		increment_build_number(build_number: next_build_number)
 		dep_start = Time.now.to_i
-		app_identifier = 'com.bitmark.autonomywallet'
 
 		increment_version_number(
   			version_number: ENV["APP_VERSION"]
 		)
 
 		build_app(
-			scheme: "Runner",
+			scheme: "prd",
 			export_method: "app-store",
 			workspace: "Runner.xcworkspace",
 			include_bitcode: false,
@@ -190,7 +191,7 @@ platform :ios do
 			output_directory: "./ipas")
 
 		upload_to_testflight(
-			api_key_path: "key.json",
+			api_key_path: "fastlane/key.json",
 			app_version: ENV["APP_VERSION"],
 			build_number: next_build_number.to_s,
 			notify_external_testers: false
