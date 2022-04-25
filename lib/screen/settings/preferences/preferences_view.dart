@@ -81,18 +81,21 @@ class PreferenceView extends StatelessWidget {
               },
             ),
             addDivider(),
-            InkWell(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text("Hidden artworks", style: appTextTheme.headline4),
-                  Icon(Icons.navigate_next, color: Colors.black),
-                ],
-              ),
-              onTap: () {
-                Navigator.of(context).pushNamed(AppRouter.hiddenArtworksPage);
-              },
-            ),
+            state.hasHiddenArtworks
+                ? InkWell(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text("Hidden artworks", style: appTextTheme.headline4),
+                        Icon(Icons.navigate_next, color: Colors.black),
+                      ],
+                    ),
+                    onTap: () {
+                      Navigator.of(context)
+                          .pushNamed(AppRouter.hiddenArtworksPage);
+                    },
+                  )
+                : SizedBox(),
           ],
         ),
       );

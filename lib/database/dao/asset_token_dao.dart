@@ -24,6 +24,9 @@ abstract class AssetTokenDao {
   @Query('SELECT * FROM AssetToken WHERE hidden = 1')
   Future<List<AssetToken>> findAllHiddenAssets();
 
+  @Query('SELECT COUNT(*) FROM AssetToken WHERE hidden = 1')
+  Future<int?> findNumOfHiddenAssets();
+
   @Insert(onConflict: OnConflictStrategy.replace)
   Future<void> insertAsset(AssetToken asset);
 

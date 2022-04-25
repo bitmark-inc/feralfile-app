@@ -171,7 +171,8 @@ class SendCryptoBloc extends Bloc<SendCryptoEvent, SendCryptoState> {
       newState.fee = fee;
 
       if (state.balance != null) {
-        final maxAllow = state.balance! - fee;
+        var maxAllow = state.balance! - fee;
+        if (maxAllow < BigInt.zero) maxAllow = BigInt.zero;
         newState.maxAllow = maxAllow;
         newState.address = cachedAddress;
         newState.amount = cachedAmount;

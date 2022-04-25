@@ -1,4 +1,6 @@
 import 'dart:io';
+
+import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/biometrics_util.dart';
@@ -10,11 +12,12 @@ import 'package:permission_handler/permission_handler.dart';
 
 class PreferencesBloc extends Bloc<PreferenceEvent, PreferenceState> {
   ConfigurationService _configurationService;
+  AppDatabase _appDatabase;
   LocalAuthentication _localAuth = LocalAuthentication();
   List<BiometricType> _availableBiometrics = List.empty();
 
-  PreferencesBloc(this._configurationService)
-      : super(PreferenceState("", false, false, false, false, "")) {
+  PreferencesBloc(this._configurationService, this._appDatabase)
+      : super(PreferenceState("", false, false, false, false, "", false)) {
     on<PreferenceInfoEvent>((event, emit) async {
       final gallerySortBy = _configurationService.getGallerySortBy();
       final isImmediatePlaybackEnabled =
@@ -28,13 +31,20 @@ class PreferencesBloc extends Bloc<PreferenceEvent, PreferenceState> {
           _configurationService.isNotificationEnabled() ?? false;
       final analyticsEnabled = _configurationService.isAnalyticsEnabled();
 
+      final numOfHiddenArtworks =
+          await _appDatabase.assetDao.findNumOfHiddenAssets();
+
+      final hasHiddenArtwork =
+          numOfHiddenArtworks != null && numOfHiddenArtworks > 0;
+
       emit(PreferenceState(
           gallerySortBy,
           isImmediatePlaybackEnabled,
           passcodeEnabled && canCheckBiometrics,
           notificationEnabled,
           analyticsEnabled,
-          _authMethodTitle()));
+          _authMethodTitle(),
+          hasHiddenArtwork));
     });
 
     on<PreferenceUpdateEvent>((event, emit) async {
