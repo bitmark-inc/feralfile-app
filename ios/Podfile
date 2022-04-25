@@ -41,12 +41,6 @@ target 'Runner Inhouse' do
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
 end
 
-post_install do |installer|
-  installer.pods_project.targets.each do |target|
-    flutter_additional_ios_build_settings(target)
-  end
-end
-
 def one_signal_notification_service_extension
   use_frameworks!
   pod 'OneSignalXCFramework', '>= 3.4.3', '< 4.0'
@@ -58,4 +52,10 @@ end
 
 target 'Runner Inhouse Notification' do
   one_signal_notification_service_extension
+end
+
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    flutter_additional_ios_build_settings(target)
+  end
 end
