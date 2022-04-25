@@ -3,14 +3,16 @@ import 'package:floor/floor.dart';
 
 @dao
 abstract class AssetTokenDao {
-  @Query('SELECT * FROM AssetToken ORDER BY lastActivityTime DESC')
+  @Query(
+      'SELECT * FROM AssetToken ORDER BY lastActivityTime DESC, title, assetID')
   Future<List<AssetToken>> findAllAssetTokens();
 
   @Query(
-      'SELECT * FROM AssetToken WHERE ownerAddress NOT IN (:owners) ORDER BY lastActivityTime DESC')
+      'SELECT * FROM AssetToken WHERE ownerAddress NOT IN (:owners) AND hidden is NULL ORDER BY lastActivityTime DESC, title, assetID')
   Future<List<AssetToken>> findAllAssetTokensWhereNot(List<String> owners);
 
-  @Query('SELECT * FROM AssetToken WHERE blockchain = :blockchain')
+  @Query(
+      'SELECT * FROM AssetToken WHERE blockchain = :blockchain AND hidden is NULL')
   Future<List<AssetToken>> findAssetTokensByBlockchain(String blockchain);
 
   @Query('SELECT * FROM AssetToken WHERE id = :id')
@@ -19,11 +21,20 @@ abstract class AssetTokenDao {
   @Query('SELECT id FROM AssetToken')
   Future<List<String>> findAllAssetTokenIDs();
 
+  @Query('SELECT * FROM AssetToken WHERE hidden = 1')
+  Future<List<AssetToken>> findAllHiddenAssets();
+
   @Insert(onConflict: OnConflictStrategy.replace)
   Future<void> insertAsset(AssetToken asset);
 
   @Insert(onConflict: OnConflictStrategy.replace)
   Future<void> insertAssets(List<AssetToken> assets);
+
+  @Query('UPDATE AssetToken SET hidden = 1 WHERE id IN (:ids)')
+  Future<void> updateHiddenAssets(List<String> ids);
+
+  @update
+  Future<void> updateAsset(AssetToken asset);
 
   @delete
   Future<void> deleteAsset(AssetToken asset);

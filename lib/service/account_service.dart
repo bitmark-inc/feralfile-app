@@ -1,15 +1,19 @@
 import 'dart:io';
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/model/p2p_peer.dart';
+import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/android_backup_channel.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
+import 'package:autonomy_flutter/util/migration/migration_util.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:uuid/uuid.dart';
@@ -23,18 +27,20 @@ class AccountService {
   final TezosBeaconService _tezosBeaconService;
   final ConfigurationService _configurationService;
   final AndroidBackupChannel _backupChannel = AndroidBackupChannel();
+  final AuditService _auditService;
 
   AccountService(this._cloudDB, this._walletConnectService,
-      this._tezosBeaconService, this._configurationService);
+      this._tezosBeaconService, this._configurationService, this._auditService);
 
-  Future<Persona> createPersona() async {
+  Future<Persona> createPersona({String name = ""}) async {
     final uuid = Uuid().v4();
     final walletStorage = LibAukDart.getWallet(uuid);
-    await walletStorage.createKey("");
+    await walletStorage.createKey(name);
 
     final persona = Persona.newPersona(uuid: uuid, name: "");
     await _cloudDB.personaDao.insertPersona(persona);
     await androidBackupKeys();
+    await _auditService.audiPersonaAction('create', persona);
 
     return persona;
   }
@@ -48,16 +54,27 @@ class AccountService {
     final persona = Persona.newPersona(uuid: uuid, name: "");
     await _cloudDB.personaDao.insertPersona(persona);
     await androidBackupKeys();
+    await _auditService.audiPersonaAction('import', persona);
 
     return persona;
   }
 
   Future<WalletStorage> getDefaultAccount() async {
-    final personas = await _cloudDB.personaDao.getPersonas();
+    var personas = await _cloudDB.personaDao.getPersonas();
+
+    if (personas.isEmpty) {
+      await MigrationUtil(_configurationService, _cloudDB, this,
+              injector<NavigationService>(), injector(), _auditService)
+          .migrationFromKeychain(Platform.isIOS);
+      await androidRestoreKeys();
+
+      await Future.delayed(Duration(seconds: 1));
+      personas = await _cloudDB.personaDao.getPersonas();
+    }
 
     final Persona defaultPersona;
     if (personas.isEmpty) {
-      defaultPersona = await createPersona();
+      defaultPersona = await createPersona(name: "Default");
     } else {
       defaultPersona = personas.first;
     }
@@ -69,6 +86,7 @@ class AccountService {
     await _cloudDB.personaDao.deletePersona(persona);
     await LibAukDart.getWallet(persona.uuid).removeKeys();
     await androidBackupKeys();
+    await _auditService.audiPersonaAction('delete', persona);
 
     final connections = await _cloudDB.connectionDao.getConnections();
     Set<WCPeerMeta> wcPeers = {};
@@ -213,6 +231,8 @@ class AccountService {
       personas.forEach((persona) async {
         if (!accounts.any((element) => element.uuid == persona.uuid)) {
           await _cloudDB.personaDao.deletePersona(persona);
+          await _auditService.audiPersonaAction(
+              '[androidRestoreKeys] delete', persona);
         }
       });
 
@@ -221,10 +241,13 @@ class AccountService {
         final existingAccount =
             await _cloudDB.personaDao.findById(account.uuid);
         if (existingAccount == null) {
-          _cloudDB.personaDao.insertPersona(Persona(
+          final persona = Persona(
               uuid: account.uuid,
               name: account.name,
-              createdAt: DateTime.now()));
+              createdAt: DateTime.now());
+          await _cloudDB.personaDao.insertPersona(persona);
+          await _auditService.audiPersonaAction(
+              '[androidRestoreKeys] insert', persona);
         }
       });
     }
@@ -234,6 +257,7 @@ class AccountService {
     await persona.wallet().updateName(name);
     final updatedPersona = persona.copyWith(name: name);
     await _cloudDB.personaDao.updatePersona(updatedPersona);
+    await _auditService.audiPersonaAction('name', updatedPersona);
 
     return updatedPersona;
   }

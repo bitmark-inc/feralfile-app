@@ -1,3 +1,6 @@
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/gateway/iap_api.dart';
+import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:dio/dio.dart';
 import 'package:sentry/sentry.dart';
@@ -96,5 +99,20 @@ class SentryInterceptor extends InterceptorsWrapper {
       ),
     );
     super.onError(err, handler);
+  }
+}
+
+class AutonomyAuthInterceptor extends Interceptor {
+  AutonomyAuthInterceptor();
+
+  @override
+  void onRequest(
+      RequestOptions options, RequestInterceptorHandler handler) async {
+    if (options.path != IAPApi.authenticationPath) {
+      final jwt = await injector<AuthService>().getAuthToken();
+      options.headers["Authorization"] = "Bearer ${jwt.jwtToken}";
+    }
+
+    return handler.next(options);
   }
 }

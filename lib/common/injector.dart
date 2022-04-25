@@ -4,15 +4,18 @@ import 'package:autonomy_flutter/common/app_config.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/gateway/currency_exchange_api.dart';
+import 'package:autonomy_flutter/gateway/customer_support_api.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/gateway/pubdoc_api.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/cloud_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/currency_service.dart';
+import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/ledger_hardware/ledger_hardware_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -22,6 +25,7 @@ import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_dapp_service/wallet_connect_dapp_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/au_cached_manager.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
 import 'package:dio/dio.dart';
 import 'package:sentry_dio/sentry_dio.dart';
@@ -51,33 +55,45 @@ Future<void> setup() async {
   final sharedPreferences = await SharedPreferences.getInstance();
 
   final testnetDB = await $FloorAppDatabase
-      .databaseBuilder('app_database_testnet.db')
+      .databaseBuilder('app_database_mainnet.db')
       .addMigrations([
-    migrationToV1ToV2,
-    migrationToV2ToV3,
-    migrationToV3ToV4,
-    migrationToV4ToV5,
+    migrateV1ToV2,
+    migrateV2ToV3,
+    migrateV3ToV4,
+    migrateV4ToV5,
+    migrateV5ToV6
   ]).build();
 
   final mainnetDB = await $FloorAppDatabase
       .databaseBuilder('app_database_testnet.db')
       .addMigrations([
-    migrationToV1ToV2,
-    migrationToV2ToV3,
-    migrationToV3ToV4,
-    migrationToV4ToV5,
+    migrateV1ToV2,
+    migrateV2ToV3,
+    migrateV3ToV4,
+    migrateV4ToV5,
+    migrateV5ToV6
   ]).build();
 
-  final cloudDB =
-      await $FloorCloudDatabase.databaseBuilder('cloud_database.db').build();
+  final cloudDB = await $FloorCloudDatabase
+      .databaseBuilder('cloud_database.db')
+      .addMigrations([
+    migrateCloudV1ToV2,
+  ]).build();
 
   injector.registerLazySingleton(() => cloudDB);
 
-  final dio = Dio(); // Provide a dio instance
+  final dio = Dio(); // Default a dio instance
   dio.interceptors.add(LoggingInterceptor());
-  // dio.interceptors.add(SentryInterceptor());
   (dio.transformer as DefaultTransformer).jsonDecodeCallback = parseJson;
   dio.addSentry(captureFailedRequests: true);
+
+  final authenticatedDio = Dio(); // Authenticated dio instance for AU servers
+  authenticatedDio.interceptors.add(AutonomyAuthInterceptor());
+  authenticatedDio.interceptors.add(LoggingInterceptor());
+  (authenticatedDio.transformer as DefaultTransformer).jsonDecodeCallback =
+      parseJson;
+  authenticatedDio.addSentry(captureFailedRequests: true);
+  authenticatedDio.options = BaseOptions(followRedirects: true);
 
   final dioHTTP2 = Dio(); // Provide a dio instance
   dioHTTP2.interceptors.add(LoggingInterceptor());
@@ -85,6 +101,8 @@ Future<void> setup() async {
   dioHTTP2.httpClientAdapter =
       Http2Adapter(ConnectionManager(idleTimeout: 10000));
   dioHTTP2.addSentry(captureFailedRequests: true);
+
+  final auditService = AuditServiceImpl(cloudDB);
 
   injector.registerSingleton<ConfigurationService>(
       ConfigurationServiceImpl(sharedPreferences));
@@ -98,11 +116,14 @@ Future<void> setup() async {
       () => WalletConnectService(injector(), injector()));
   injector.registerLazySingleton(() => AUCacheManager());
   injector.registerLazySingleton(() => WalletConnectDappService(injector()));
+  injector.registerLazySingleton(() => AccountService(
+      cloudDB, injector(), injector(), injector(), auditService));
+
+  final autonomyAuthURL = await AppConfig.autonomyAuthURL;
   injector.registerLazySingleton(
-      () => AccountService(cloudDB, injector(), injector(), injector()));
+      () => IAPApi(authenticatedDio, baseUrl: autonomyAuthURL));
   injector.registerLazySingleton(
-      () => IAPApi(dio, baseUrl: AppConfig.mainNetworkConfig.autonomyAuthUrl));
-  injector.registerLazySingleton(() => AuthService(injector(), injector()));
+      () => AuthService(injector(), injector(), injector()));
   injector.registerLazySingleton(() => BackupService(injector(), injector()));
   injector.registerLazySingleton<IAPService>(
       () => IAPServiceImpl(injector(), injector()));
@@ -115,6 +136,14 @@ Future<void> setup() async {
       () => CurrencyServiceImpl(injector()));
   injector.registerLazySingleton(
       () => VersionService(PubdocAPI(dio), injector(), injector()));
+
+  final customerSupportURL = await AppConfig.customerSupportURL;
+  injector.registerLazySingleton<CustomerSupportService>(
+      () => CustomerSupportServiceImpl(
+            CustomerSupportApi(authenticatedDio, baseUrl: customerSupportURL),
+          ));
+
+  injector.registerLazySingleton<AuditService>(() => auditService);
 
   final cloudService = CloudService();
   injector.registerLazySingleton(() => cloudService);

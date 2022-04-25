@@ -11,4 +11,12 @@ extension StringExtension on String {
     if (this.contains(' ')) return this;
     return (this.length >= 36) ? this.mask(4) : this;
   }
+
+  String? toIdentityOrMask(Map<String, String>? identityMap) {
+    if (this.isEmpty) return null;
+    final identity = identityMap?[this];
+    return (identity != null && identity.isNotEmpty)
+        ? identity
+        : this.maskIfNeeded();
+  }
 }

@@ -1,11 +1,10 @@
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 AppBar getBackAppBar(BuildContext context,
-    {String title = "", required Function()? onBack}) {
+    {String title = "", required Function()? onBack, Function()? action}) {
   return AppBar(
     systemOverlayStyle: SystemUiOverlayStyle(
       statusBarColor: Colors.white,
@@ -48,7 +47,15 @@ AppBar getBackAppBar(BuildContext context,
             textAlign: TextAlign.center,
           ),
         ),
-        SizedBox(width: 60),
+        action != null
+            ? IconButton(
+                constraints: BoxConstraints(maxWidth: 36.0),
+                onPressed: action,
+                icon: Icon(
+                  Icons.more_horiz,
+                  color: Colors.black,
+                ))
+            : SizedBox(width: 60),
       ],
     ),
     backgroundColor: Colors.transparent,

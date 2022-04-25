@@ -21,7 +21,10 @@ class ArtworkPreviewBloc
           if (response.statusCode == 520) {
             asset.previewURL = asset.previewURL!.replaceRange(
                 0, CLOUDFLARE_IPFS_PREFIX.length, DEFAULT_IPFS_PREFIX);
+            final hiddenAssets = await _assetTokenDao.findAllHiddenAssets();
+            final hiddenIds = hiddenAssets.map((e) => e.id).toList();
             _assetTokenDao.insertAsset(asset);
+            await _assetTokenDao.updateHiddenAssets(hiddenIds);
             emit(ArtworkPreviewState(asset: asset));
           }
         }

@@ -5,6 +5,7 @@ import 'package:autonomy_flutter/common/app_config.dart';
 import 'package:autonomy_flutter/gateway/feralfile_api.dart';
 import 'package:autonomy_flutter/model/asset_price.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
+import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:web3dart/credentials.dart';
 
@@ -54,14 +55,13 @@ class FeralFileServiceImpl extends FeralFileService {
   }
 
   Future<String> _getToken(WalletStorage wallet) async {
-    final address = await wallet.getETHAddress();
-    final eip55Address = EthereumAddress.fromHex(address).hexEip55;
+    final address = await wallet.getETHEip55Address();
     final timestamp =
         (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
     final message = AppConfig.ffAuthorizationPrefix + timestamp;
     final signature = await wallet
         .signPersonalMessage(Uint8List.fromList(utf8.encode(message)));
-    final rawToken = "$eip55Address|$message|$signature";
+    final rawToken = "$address|$message|$signature";
     final bytes = utf8.encode(rawToken);
     return base64.encode(bytes);
   }

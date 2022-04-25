@@ -9,14 +9,17 @@ import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
-import 'package:autonomy_flutter/service/auth_service.dart';
+import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tokens_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/au_cached_manager.dart';
+import 'package:autonomy_flutter/util/inapp_notifications.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -30,6 +33,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:path/path.dart' as p;
 import 'package:uni_links/uni_links.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -47,7 +51,7 @@ class _HomePageState extends State<HomePage>
   StreamSubscription<FGBGType>? _fgbgSubscription;
   late ScrollController _controller;
   int _cachedImageSize = 0;
-  String _gallerySortBy = GallerySortProperty.Platform;
+  String _gallerySortBy = GallerySortProperty.Source;
 
   @override
   void initState() {
@@ -58,9 +62,17 @@ class _HomePageState extends State<HomePage>
     _controller = ScrollController();
     context.read<HomeBloc>().add(RefreshTokensEvent());
     context.read<HomeBloc>().add(ReindexIndexerEvent());
+    OneSignal.shared
+        .setNotificationWillShowInForegroundHandler(_shouldShowNotifications);
+    injector<AuditService>().auditFirstLog();
+    OneSignal.shared.setNotificationOpenedHandler((openedResult) {
+      Future.delayed(Duration(milliseconds: 500), () {
+        _handleNotificationClicked(openedResult.notification);
+      });
+    });
 
     _gallerySortBy = injector<ConfigurationService>().getGallerySortBy() ??
-        GallerySortProperty.Platform;
+        GallerySortProperty.Source;
   }
 
   @override
@@ -88,10 +100,10 @@ class _HomePageState extends State<HomePage>
   void didPopNext() async {
     super.didPopNext();
     final connectivityResult = await (Connectivity().checkConnectivity());
+
+    context.read<HomeBloc>().add(RefreshTokensEvent());
     if (connectivityResult == ConnectivityResult.mobile ||
         connectivityResult == ConnectivityResult.wifi) {
-      context.read<HomeBloc>().add(RefreshTokensEvent());
-
       Future.delayed(const Duration(milliseconds: 1000), () {
         context.read<HomeBloc>().add(ReindexIndexerEvent());
       });
@@ -99,7 +111,7 @@ class _HomePageState extends State<HomePage>
 
     setState(() {
       _gallerySortBy = injector<ConfigurationService>().getGallerySortBy() ??
-          GallerySortProperty.Platform;
+          GallerySortProperty.Source;
     });
   }
 
@@ -110,7 +122,7 @@ class _HomePageState extends State<HomePage>
 
     final shouldShowMainView = tokens != null && tokens.isNotEmpty;
     IdentityState? identityState;
-    if (_gallerySortBy == GallerySortProperty.ArtistName) {
+    if (_gallerySortBy == GallerySortProperty.Artist) {
       identityState = context.watch<IdentityBloc>().state;
     }
 
@@ -177,22 +189,35 @@ class _HomePageState extends State<HomePage>
     final groupByProperty = groupBy(tokens, (AssetToken obj) {
       switch (_gallerySortBy) {
         case GallerySortProperty.Medium:
-          return obj.medium?.capitalize();
-        case GallerySortProperty.ArtistName:
-          return obj.artistName;
+          return obj.medium?.capitalize() ?? "";
+        case GallerySortProperty.Artist:
+          return obj.artistName?.toIdentityOrMask(identityMap) ?? "Unknown";
         case GallerySortProperty.Chain:
           return obj.blockchain.capitalize();
         default:
           return polishSource(obj.source ?? "");
       }
     });
-    var sortedKeys = groupByProperty.keys.toList()..sort();
-    final tokenIDs = sortedKeys
+
+    var keys = groupByProperty.keys.toList();
+    keys.sort((a, b) {
+      if (a == 'Unknown') return 1;
+      if (b == 'Unknown') return -1;
+      if (a.startsWith('[') && !b.startsWith('[')) {
+        return 1;
+      } else if (!a.startsWith('[') && b.startsWith('[')) {
+        return -1;
+      } else {
+        return a.toLowerCase().compareTo(b.toLowerCase());
+      }
+    });
+
+    final tokenIDs = keys
         .map((e) => groupByProperty[e] ?? [])
         .expand((element) => element.map((e) => e.id))
         .toList();
 
-    var sources = sortedKeys.map((sortingPropertyValue) {
+    var sources = keys.map((sortingPropertyValue) {
       final assets = groupByProperty[sortingPropertyValue] ?? [];
       const int cellPerRow = 3;
       const double cellSpacing = 3.0;
@@ -203,21 +228,12 @@ class _HomePageState extends State<HomePage>
         _cachedImageSize = (estimatedCellWidth * 3).ceil();
       }
 
-      var _sortingPropertyValue = sortingPropertyValue;
-      if (_sortingPropertyValue != null &&
-          _gallerySortBy == GallerySortProperty.ArtistName) {
-        final identity = identityMap?[_sortingPropertyValue];
-        _sortingPropertyValue = (identity != null && identity.isNotEmpty)
-            ? identity
-            : _sortingPropertyValue.maskIfNeeded();
-      }
-
       return <Widget>[
         SliverToBoxAdapter(
           child: Container(
             padding: EdgeInsets.fromLTRB(14, 0, 24, 14),
             child: Text(
-              _sortingPropertyValue ?? '',
+              sortingPropertyValue,
               style: appTextTheme.headline1,
             ),
           ),
@@ -382,6 +398,52 @@ class _HomePageState extends State<HomePage>
     }
   }
 
+  void _shouldShowNotifications(OSNotificationReceivedEvent event) {
+    log.info("Receive notification: ${event.notification}");
+    final notificationIssueID =
+        '${event.notification.additionalData?['issue_id']}';
+    if (notificationIssueID == memoryValues.viewingSupportThreadIssueID) {
+      injector<CustomerSupportService>().triggerReloadMessages.value += 1;
+      injector<CustomerSupportService>().getIssues();
+      event.complete(null);
+      return;
+    }
+
+    showNotifications(event.notification,
+        notificationOpenedHandler: _handleNotificationClicked);
+    event.complete(null);
+  }
+
+  void _handleNotificationClicked(OSNotification notification) {
+    if (notification.additionalData == null) {
+      // Skip handling the notification without data
+      return;
+    }
+
+    log.info(
+        "Tap to notification: ${notification.body ?? "empty"} \nAddtional data: ${notification.additionalData!}");
+
+    final notificationType = notification.additionalData!["notification_type"];
+    switch (notificationType) {
+      case "customer_support_new_message":
+      case "customer_support_close_issue":
+        final issueID = '${notification.additionalData!["issue_id"]}';
+        Navigator.of(context).pushNamedAndRemoveUntil(
+            AppRouter.supportThreadPage,
+            ((route) =>
+                route.settings.name == AppRouter.homePage ||
+                route.settings.name == AppRouter.homePageNoTransition),
+            arguments: [
+              "",
+              '$issueID',
+            ]);
+        break;
+      default:
+        log.warning("unhandled notification type: $notificationType");
+        break;
+    }
+  }
+
   void _handleForeground() {
     if (injector<ConfigurationService>().isDevicePasscodeEnabled()) {
       injector<NavigationService>()
@@ -399,6 +461,7 @@ class _HomePageState extends State<HomePage>
     });
 
     injector<VersionService>().checkForUpdate();
+    injector<CustomerSupportService>().getIssues();
   }
 
   void _handleBackground() {

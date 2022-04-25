@@ -12,6 +12,8 @@ import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
+import 'package:intl/intl.dart';
+import 'package:jiffy/jiffy.dart';
 import 'package:share/share.dart';
 
 enum ActionState { notRequested, loading, error, done }
@@ -43,11 +45,12 @@ class UIHelper {
     await showModalBottomSheet<dynamic>(
         context: context,
         isDismissible: isDismissible,
+        backgroundColor: Colors.transparent,
         enableDrag: false,
         isScrollControlled: true,
         builder: (context) {
           return Container(
-            color: Color(0xFF737373),
+            color: Colors.transparent,
             child: ClipPath(
               clipper: AutonomyTopRightRectangleClipper(),
               child: Container(
@@ -234,6 +237,66 @@ class UIHelper {
         isDismissible: false);
   }
 
+  static showHideArtworkResultDialog(BuildContext context, bool isHidden,
+      {required Function() onOK}) {
+    final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
+
+    showDialog(
+        context,
+        isHidden ? "Artwork hidden" : "Artwork unhidden",
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            isHidden
+                ? RichText(
+                    text: TextSpan(children: [
+                      TextSpan(
+                        style: theme.textTheme.bodyText1,
+                        text:
+                            "This artwork will no longer appear in your gallery. You can still find it in the ",
+                      ),
+                      TextSpan(
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontFamily: "AtlasGrotesk-Light",
+                            fontWeight: FontWeight.w700,
+                            height: 1.377),
+                        text: "Hidden artworks >",
+                      ),
+                      TextSpan(
+                        style: theme.textTheme.bodyText1,
+                        text:
+                            " section of settings if you want to view it or unhide it.",
+                      ),
+                    ]),
+                  )
+                : Text(
+                    "This artwork will now be visible in your gallery.",
+                    style: theme.textTheme.bodyText1,
+                  ),
+            SizedBox(height: 40),
+            Row(
+              children: [
+                Expanded(
+                  child: AuFilledButton(
+                    text: "OK",
+                    onPress: onOK,
+                    color: theme.primaryColor,
+                    textStyle: TextStyle(
+                        color: theme.backgroundColor,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        fontFamily: "IBMPlexMono"),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 15),
+          ],
+        ));
+  }
+
   static showIdentityDetailDialog(BuildContext context,
       {required String name, required String address}) {
     final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
@@ -367,8 +430,46 @@ wantMoreSecurityWidget(BuildContext context, WalletApp walletApp) {
             SizedBox(height: 5),
             Text(introText, style: bodySmall),
             SizedBox(height: 10),
-            learnMoreAboutAutonomySecurityWidget(context),
+            TextButton(
+                onPressed: () => Navigator.of(context)
+                    .pushNamed(AppRouter.unsafeWebWalletPage),
+                child: Text('Learn why browse-extension wallets are unsafe...',
+                    style: linkStyle),
+                style: TextButton.styleFrom(
+                  minimumSize: Size.zero,
+                  padding: EdgeInsets.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                )),
           ]),
     ),
   );
+}
+
+// From chat_ui/util
+String getVerboseDateTimeRepresentation(
+  DateTime dateTime, {
+  DateFormat? dateFormat,
+  String? dateLocale,
+  DateFormat? timeFormat,
+}) {
+  final formattedDate = dateFormat != null
+      ? dateFormat.format(dateTime)
+      : DateFormat.MMMd(dateLocale).format(dateTime);
+  final formattedTime = timeFormat != null
+      ? timeFormat.format(dateTime)
+      : DateFormat.Hm(dateLocale).format(dateTime);
+  final localDateTime = dateTime.toLocal();
+  final now = DateTime.now();
+
+  if (localDateTime.day == now.day &&
+      localDateTime.month == now.month &&
+      localDateTime.year == now.year) {
+    return formattedTime;
+  }
+
+  if (Jiffy(localDateTime).week == Jiffy(now).week) {
+    return Jiffy(localDateTime).format("EE");
+  }
+
+  return '$formattedDate, $formattedTime';
 }

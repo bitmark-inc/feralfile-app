@@ -1,24 +1,18 @@
 import 'dart:collection';
 
-import 'package:autonomy_flutter/model/provenance.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:html_unescape/html_unescape.dart';
-import 'package:path/path.dart' as p;
-import 'package:url_launcher/url_launcher.dart';
-
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/common/network_config_injector.dart';
+import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/model/asset_price.dart';
+import 'package:autonomy_flutter/model/provenance.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
 import 'package:autonomy_flutter/screen/detail/report_rendering_issue_widget.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/au_cached_manager.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -27,6 +21,14 @@ import 'package:autonomy_flutter/util/theme_manager.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_outlined_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/gestures.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:html_unescape/html_unescape.dart';
+import 'package:path/path.dart' as p;
+import 'package:url_launcher/url_launcher.dart';
 
 class ArtworkDetailPage extends StatefulWidget {
   final ArtworkDetailPayload payload;
@@ -41,6 +43,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
   late ScrollController _scrollController;
   bool _showArtwortReportProblemContainer = true;
   HashSet<String> _accountNumberHash = HashSet.identity();
+  AssetToken? currentAsset;
 
   @override
   void initState() {
@@ -86,10 +89,12 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
       fit: StackFit.loose,
       children: [
         Scaffold(
-          appBar: getBackAppBar(
-            context,
-            onBack: () => Navigator.of(context).pop(),
-          ),
+          appBar: getBackAppBar(context,
+              onBack: () => Navigator.of(context).pop(),
+              action: () {
+                if (currentAsset == null) return;
+                _showArtworkOptionsDialog(currentAsset!);
+              }),
           body: BlocConsumer<ArtworkDetailBloc, ArtworkDetailState>(
               listener: (context, state) {
             final identitiesList =
@@ -98,16 +103,22 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
                 state.asset!.artistName!.length > 20) {
               identitiesList.add(state.asset!.artistName!);
             }
+            currentAsset = state.asset;
             context.read<IdentityBloc>().add(GetIdentityEvent(identitiesList));
           }, builder: (context, state) {
             if (state.asset != null) {
+              final identityState = context.watch<IdentityBloc>().state;
+
               final asset = state.asset!;
               final screenWidth = MediaQuery.of(context).size.width;
               final screenHeight = MediaQuery.of(context).size.height;
 
+              final artistName =
+                  asset.artistName?.toIdentityOrMask(identityState.identityMap);
+
               var subTitle = "";
-              if (asset.artistName != null && asset.artistName!.isNotEmpty) {
-                subTitle = "by ${asset.artistName!.maskIfNeeded()}";
+              if (artistName != null && artistName.isNotEmpty) {
+                subTitle = "by $artistName";
               }
 
               if (asset.edition != 0)
@@ -189,9 +200,14 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
                               child: AuOutlinedButton(
                                   text: "VIEW ARTWORK",
                                   onPress: () {
-                                    Navigator.of(context).pushNamed(
-                                        AppRouter.artworkPreviewPage,
-                                        arguments: widget.payload);
+                                    if (injector<ConfigurationService>()
+                                        .isImmediatePlaybackEnabled()) {
+                                      Navigator.of(context).pop();
+                                    } else {
+                                      Navigator.of(context).pushNamed(
+                                          AppRouter.artworkPreviewPage,
+                                          arguments: widget.payload);
+                                    }
                                   }),
                             ),
                             SizedBox(height: 40.0),
@@ -221,7 +237,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
                                   )
                                 : SizedBox(),
                             SizedBox(height: 40.0),
-                            _metadataView(context, asset),
+                            _metadataView(context, asset, artistName),
                             state.provenances.isNotEmpty
                                 ? Column(
                                     crossAxisAlignment:
@@ -397,14 +413,8 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
     );
   }
 
-  Widget _metadataView(BuildContext context, AssetToken asset) {
-    final identityState = context.watch<IdentityBloc>().state;
-
-    final identity = identityState.identityMap[asset.artistName];
-    final artistName = (identity != null && identity.isNotEmpty)
-        ? identity
-        : asset.artistName?.maskIfNeeded();
-
+  Widget _metadataView(
+      BuildContext context, AssetToken asset, String? artistName) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -414,15 +424,17 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
         ),
         SizedBox(height: 16.0),
         _rowItem(context, "Title", asset.title),
-        Divider(height: 32.0),
-        _rowItem(
-          context,
-          "Artist",
-          artistName,
-          // some FF's artist set multiple links
-          // Discussion thread: https://bitmark.slack.com/archives/C01EPPD07HU/p1648698027564299
-          tapLink: asset.artistURL?.split(" & ").first,
-        ),
+        if (artistName != null) ...[
+          Divider(height: 32.0),
+          _rowItem(
+            context,
+            "Artist",
+            artistName,
+            // some FF's artist set multiple links
+            // Discussion thread: https://bitmark.slack.com/archives/C01EPPD07HU/p1648698027564299
+            tapLink: asset.artistURL?.split(" & ").first,
+          ),
+        ],
         (asset.maxEdition ?? 0) > 0
             ? Column(
                 children: [
@@ -484,12 +496,10 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
                   ...provenances.map((el) {
                     final identity = identityState.identityMap[el.owner];
                     final identityTitle =
-                        (identity != null && identity.isNotEmpty)
-                            ? identity
-                            : el.owner.maskIfNeeded();
+                        el.owner.toIdentityOrMask(identityState.identityMap);
                     final youTitle =
                         _accountNumberHash.contains(el.owner) ? " (You)" : "";
-                    final provenanceTitle = identityTitle + youTitle;
+                    final provenanceTitle = identityTitle ?? '' + youTitle;
                     final onNameTap = () => identity != null
                         ? UIHelper.showIdentityDetailDialog(context,
                             name: identity, address: el.owner)
@@ -627,6 +637,62 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
           },
         ),
         isDismissible: true);
+  }
+
+  void _showArtworkOptionsDialog(AssetToken asset) {
+    final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
+
+    UIHelper.showDialog(
+        context,
+        "Options",
+        Container(
+          child: Column(
+            children: [
+              InkWell(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(asset.isHidden() ? 'Unhide artwork' : 'Hide artwork',
+                        style: theme.textTheme.headline4),
+                    Icon(Icons.navigate_next, color: Colors.white),
+                  ],
+                ),
+                onTap: () async {
+                  final appDatabase =
+                      injector<NetworkConfigInjector>().I<AppDatabase>();
+                  if (asset.isHidden()) {
+                    asset.hidden = null;
+                  } else {
+                    asset.hidden = 1;
+                  }
+                  await appDatabase.assetDao.updateAsset(asset);
+
+                  Navigator.of(context).pop();
+                  UIHelper.showHideArtworkResultDialog(
+                      context, asset.isHidden(), onOK: () {
+                    Navigator.of(context).popUntil((route) =>
+                        route.settings.name == AppRouter.homePage ||
+                        route.settings.name == AppRouter.homePageNoTransition);
+                  });
+                },
+              ),
+              Divider(height: 20, color: Colors.white),
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(
+                  "CANCEL",
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      fontFamily: "IBMPlexMono"),
+                ),
+              ),
+            ],
+          ),
+        ),
+      isDismissible: true,
+    );
   }
 }
 
