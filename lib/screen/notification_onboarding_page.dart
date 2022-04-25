@@ -1,8 +1,6 @@
-import 'package:autonomy_flutter/gateway/iap_api.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/util/constants.dart';
+import 'dart:io';
+
+import 'package:autonomy_flutter/util/notification_util.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/theme_manager.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
@@ -13,14 +11,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 
 class NotificationOnboardingPage extends StatelessWidget {
-  final IAPApi _iapApi;
-  final AccountService _accountService;
-  final ConfigurationService _configurationService;
-
-  const NotificationOnboardingPage(
-      this._iapApi, this._accountService, this._configurationService,
-      {Key? key})
-      : super(key: key);
+  const NotificationOnboardingPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -49,11 +40,10 @@ class NotificationOnboardingPage extends StatelessWidget {
                     Markdown(
                       data:
                           '''**Grant Autonomy permission to notify you when:** 
-* An NFT is added to your collection or someone sends you an NFT 
-* You receive a signing requests from a dapp or service 
+* An NFT is added to your collection or someone sends you an NFT (coming soon)
+* You receive a signing requests from a dapp or service (coming soon)
 * You receive a customer support message 
-
-**We promise to never spam you.**''',
+''',
                       softLineBreak: true,
                       padding: EdgeInsets.only(bottom: 50),
                       shrinkWrap: true,
@@ -76,17 +66,13 @@ class NotificationOnboardingPage extends StatelessWidget {
                 AuFilledButton(
                   text: "ENABLE NOTIFICATIONS".toUpperCase(),
                   onPress: () async {
-                    final environment = await getAppVariant();
-                    final identityHash = (await _iapApi
-                            .generateIdentityHash({"environment": environment}))
-                        .hash;
-                    final defaultDID =
-                        await (await _accountService.getDefaultAccount())
-                            .getAccountDID();
-                    await OneSignal.shared
-                        .setExternalUserId(defaultDID, identityHash);
-                    _configurationService.setNotificationEnabled(true);
+                    if (Platform.isIOS &&
+                        !await OneSignal.shared
+                            .promptUserForPushNotificationPermission()) {
+                      return;
+                    }
                     Navigator.of(context).pop();
+                    registerPushNotifications();
                   },
                 ),
                 TextButton(

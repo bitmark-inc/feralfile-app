@@ -130,7 +130,9 @@ class IAPServiceImpl implements IAPService {
   }
 
   Future<void> restore() async {
-    if (await _inAppPurchase.isAvailable() == false || kDebugMode) return;
+    if (await _inAppPurchase.isAvailable() == false ||
+        kDebugMode ||
+        await isAppCenterBuild()) return;
     await _inAppPurchase.restorePurchases();
   }
 
