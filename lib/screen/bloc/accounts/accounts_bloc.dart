@@ -2,8 +2,11 @@ import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/model/network.dart';
+import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 part 'accounts_state.dart';
@@ -12,8 +15,10 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
   ConfigurationService _configurationService;
   CloudDatabase _cloudDB;
   BackupService _backupService;
+  AuditService _auditService;
 
-  AccountsBloc(this._configurationService, this._cloudDB, this._backupService)
+  AccountsBloc(this._configurationService, this._cloudDB, this._backupService,
+      this._auditService)
       : super(AccountsState()) {
     on<ResetEventEvent>((event, emit) async {
       emit(state.setEvent(null));
@@ -26,7 +31,7 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
       List<Account> accounts = [];
 
       for (var persona in personas) {
-        final ethAddress = await persona.wallet().getETHAddress();
+        final ethAddress = await persona.wallet().getETHEip55Address();
         if (ethAddress.isEmpty) continue;
         var name = await persona.wallet().getName();
 
@@ -84,6 +89,7 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
         await _backupService.deleteAllProfiles();
         await _cloudDB.personaDao.removeAll();
         await _cloudDB.connectionDao.removeAll();
+        await _auditService.audiPersonaAction('cleanUp', null);
       }
 
       accounts.sort((a, b) => a.createdAt.compareTo(b.createdAt));
@@ -99,7 +105,7 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
 
       for (var persona in personas) {
         final bitmarkAddress = await persona.wallet().getBitmarkAddress();
-        final ethAddress = await persona.wallet().getETHAddress();
+        final ethAddress = await persona.wallet().getETHEip55Address();
         final xtzAddress = (await persona.wallet().getTezosWallet()).address;
         var name = await persona.wallet().getName();
 
@@ -210,14 +216,14 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
     on<FetchAllAddressesEvent>((event, emit) async {
       List<String> addresses = [];
       if (_configurationService.isDemoArtworksMode()) {
-        addresses = ['demo'];
+        addresses = [await getDemoAccount()];
       } else {
         final personas = await _cloudDB.personaDao.getPersonas();
 
         for (var persona in personas) {
           final wallet = persona.wallet();
           final tzWallet = await wallet.getTezosWallet();
-          final ethAddress = await wallet.getETHAddress();
+          final ethAddress = await wallet.getETHEip55Address();
           final tzAddress = tzWallet.address;
 
           addresses.add(ethAddress);

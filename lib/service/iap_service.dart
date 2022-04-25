@@ -2,9 +2,12 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
+import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 
 import 'dart:io';
 import 'package:in_app_purchase/in_app_purchase.dart';
@@ -36,18 +39,21 @@ abstract class IAPService {
   Future<void> purchase(ProductDetails product);
   Future<void> restore();
   Future<bool> renewJWT();
+  Future<bool> isSubscribed();
 }
 
 class IAPServiceImpl implements IAPService {
   ConfigurationService _configurationService;
-  IAPApi _iapApi;
+  AuthService _authService;
   final InAppPurchase _inAppPurchase = InAppPurchase.instance;
   late StreamSubscription<List<PurchaseDetails>> _subscription;
 
   ValueNotifier<Map<String, ProductDetails>> products = ValueNotifier({});
   ValueNotifier<Map<String, IAPProductStatus>> purchases = ValueNotifier({});
 
-  IAPServiceImpl(this._configurationService, this._iapApi);
+  IAPServiceImpl(this._configurationService, this._authService) {
+    setup();
+  }
   String? _receiptData;
 
   Future<void> setup() async {
@@ -105,6 +111,7 @@ class IAPServiceImpl implements IAPService {
   }
 
   Future<void> purchase(ProductDetails product) async {
+    if (await _inAppPurchase.isAvailable() == false) return;
     final purchaseParam = PurchaseParam(
       productDetails: product,
       applicationUserName: null,
@@ -123,22 +130,19 @@ class IAPServiceImpl implements IAPService {
   }
 
   Future<void> restore() async {
+    if (await _inAppPurchase.isAvailable() == false ||
+        kDebugMode ||
+        await isAppCenterBuild()) return;
     await _inAppPurchase.restorePurchases();
   }
 
   Future<JWT?> _verifyPurchase(String receiptData) async {
-    final platform;
-    if (Platform.isIOS) {
-      platform = 'apple';
-    } else {
-      platform = 'google';
-    }
     try {
-      final jwt = await _iapApi
-          .verifyIAP({'platform': platform, 'receipt_data': receiptData});
+      final jwt = await _authService.getAuthToken(receiptData: receiptData);
       return jwt;
     } catch (error) {
       log.info("error when verifying receipt", error);
+      _configurationService.setIAPReceipt(null);
       return null;
     }
   }
@@ -165,10 +169,10 @@ class IAPServiceImpl implements IAPService {
             purchases.value[purchaseDetails.productID] =
                 IAPProductStatus.completed;
             _configurationService.setIAPJWT(jwt);
-            _configurationService.setIAPReceipt(receiptData);
           } else {
             purchases.value[purchaseDetails.productID] =
                 IAPProductStatus.expired;
+            _configurationService.setIAPJWT(null);
             return;
           }
         }
@@ -178,6 +182,12 @@ class IAPServiceImpl implements IAPService {
       }
       purchases.notifyListeners();
     });
+  }
+
+  Future<bool> isSubscribed() async {
+    return (_configurationService.getIAPJWT() != null &&
+            _configurationService.getIAPReceipt() != null) ||
+        await isAppCenterBuild();
   }
 }
 

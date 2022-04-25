@@ -7,6 +7,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:bloc/bloc.dart';
 import 'package:dio/dio.dart';
 import 'package:libauk_dart/libauk_dart.dart';
@@ -22,7 +23,7 @@ class FeralfileBloc extends Bloc<FeralFileEvent, FeralFileState> {
   Future<Persona?> getPersonaFromETHAddress(String address) async {
     final personas = await _cloudDB.personaDao.getPersonas();
     for (var persona in personas) {
-      final ethAddress = await persona.wallet().getETHAddress();
+      final ethAddress = await persona.wallet().getETHEip55Address();
       if (ethAddress == address) {
         return persona;
       }
@@ -75,7 +76,7 @@ class FeralfileBloc extends Bloc<FeralFileEvent, FeralFileState> {
 
       while (true) {
         try {
-          final personaAddress = await event.wallet.getETHAddress();
+          final personaAddress = await event.wallet.getETHEip55Address();
           final ffAccount =
               await _feralFileService.getWeb3Account(event.wallet);
 

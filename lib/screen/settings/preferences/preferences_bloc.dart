@@ -1,8 +1,9 @@
 import 'dart:io';
-
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/biometrics_util.dart';
+import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/notification_util.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -23,7 +24,8 @@ class PreferencesBloc extends Bloc<PreferenceEvent, PreferenceState> {
       final canCheckBiometrics = await authenticateIsAvailable();
 
       final passcodeEnabled = _configurationService.isDevicePasscodeEnabled();
-      final notificationEnabled = _configurationService.isNotificationEnabled();
+      final notificationEnabled =
+          _configurationService.isNotificationEnabled() ?? false;
       final analyticsEnabled = _configurationService.isAnalyticsEnabled();
 
       emit(PreferenceState(
@@ -72,8 +74,19 @@ class PreferencesBloc extends Bloc<PreferenceEvent, PreferenceState> {
       }
 
       if (event.newState.isNotificationEnabled != state.isNotificationEnabled) {
-        await _configurationService
-            .setNotificationEnabled(event.newState.isNotificationEnabled);
+        try {
+          if (event.newState.isNotificationEnabled == true) {
+            registerPushNotifications(askPermission: true)
+                .then((value) => event.newState.isNotificationEnabled == value);
+          } else {
+            deregisterPushNotification();
+          }
+
+          await _configurationService
+              .setNotificationEnabled(event.newState.isNotificationEnabled);
+        } catch (error) {
+          log.warning("Error when setting notification: $error");
+        }
       }
 
       if (event.newState.isAnalyticEnabled != state.isAnalyticEnabled) {

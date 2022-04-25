@@ -76,14 +76,7 @@ class BackupService {
 
     String? deviceId = await getBackupId();
 
-    final endpoint;
-
-    if (_configurationService.getNetwork() == Network.TESTNET) {
-      endpoint = AppConfig.testNetworkConfig.autonomyAuthUrl;
-    } else {
-      endpoint = AppConfig.mainNetworkConfig.autonomyAuthUrl;
-    }
-
+    final endpoint = await AppConfig.autonomyAuthURL;
     final response = await http.get(
         Uri.parse(
             "$endpoint/apis/v1/premium/profile-data?filename=$filename&appVersion=$version"),

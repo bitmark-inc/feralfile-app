@@ -59,40 +59,30 @@ class _AccountsViewState extends State<AccountsView> {
             ...accounts
                 .map((account) => Column(
                       children: [
-                        accounts.indexOf(account) != firstPersonaIndex
-                            ? Slidable(
-                                key: UniqueKey(),
-                                groupTag: 'accountsView',
-                                closeOnScroll: true,
-                                endActionPane: ActionPane(
-                                  motion: const DrawerMotion(),
-                                  dragDismissible: false,
-                                  children: slidableActions(account),
-                                ),
-                                child: Column(
-                                  children: [
-                                    SizedBox(height: 16),
-                                    if (_editingAccountKey == null ||
-                                        _editingAccountKey != account.key) ...[
-                                      _viewAccountItem(account),
-                                    ] else ...[
-                                      _editAccountItem(account),
-                                    ],
-                                    SizedBox(height: 16),
-                                  ],
-                                ))
-                            : Column(
-                                children: [
-                                  SizedBox(height: 16),
-                                  if (_editingAccountKey == null ||
-                                      _editingAccountKey != account.key) ...[
-                                    _viewAccountItem(account),
-                                  ] else ...[
-                                    _editAccountItem(account),
-                                  ],
-                                  SizedBox(height: 16),
+                        Slidable(
+                            key: UniqueKey(),
+                            groupTag: 'accountsView',
+                            closeOnScroll: true,
+                            endActionPane: ActionPane(
+                              motion: const DrawerMotion(),
+                              dragDismissible: false,
+                              children: slidableActions(
+                                  account,
+                                  accounts.indexOf(account) ==
+                                      firstPersonaIndex),
+                            ),
+                            child: Column(
+                              children: [
+                                SizedBox(height: 16),
+                                if (_editingAccountKey == null ||
+                                    _editingAccountKey != account.key) ...[
+                                  _viewAccountItem(account),
+                                ] else ...[
+                                  _editAccountItem(account),
                                 ],
-                              ),
+                                SizedBox(height: 16),
+                              ],
+                            )),
                         Divider(
                             height: 1.0,
                             thickness: 1.0,
@@ -109,8 +99,8 @@ class _AccountsViewState extends State<AccountsView> {
     });
   }
 
-  List<SlidableAction> slidableActions(Account account) {
-    return [
+  List<SlidableAction> slidableActions(Account account, bool isDefault) {
+    var actions = [
       SlidableAction(
         backgroundColor: AppColorTheme.secondarySpanishGrey,
         foregroundColor: Colors.white,
@@ -121,16 +111,20 @@ class _AccountsViewState extends State<AccountsView> {
             _editingAccountKey = account.key;
           });
         },
-      ),
-      SlidableAction(
+      )
+    ];
+
+    if (!isDefault) {
+      actions.add(SlidableAction(
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
         icon: CupertinoIcons.delete,
         onPressed: (_) {
           _showDeleteAccountConfirmation(context, account);
         },
-      ),
-    ];
+      ));
+    }
+    return actions;
   }
 
   Widget _noEditAccountsListWidget(List<Account> accounts) {

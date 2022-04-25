@@ -4,12 +4,16 @@ import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/model/connection_supports.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/util/android_backup_channel.dart';
+import 'package:autonomy_flutter/service/iap_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/migration/migration_data.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
@@ -18,8 +22,12 @@ class MigrationUtil {
   ConfigurationService _configurationService;
   CloudDatabase _cloudDB;
   AccountService _accountService;
+  NavigationService _navigationService;
+  IAPService _iapService;
+  AuditService _auditService;
 
-  MigrationUtil(this._configurationService, this._cloudDB, this._accountService);
+  MigrationUtil(this._configurationService, this._cloudDB, this._accountService,
+      this._navigationService, this._iapService, this._auditService);
 
   Future<void> migrateIfNeeded() async {
     if (Platform.isIOS) {
@@ -27,6 +35,9 @@ class MigrationUtil {
     } else {
       await _migrationAndroid();
     }
+    await _askForNotification();
+    _iapService.restore();
+    log.info("[migration] finished");
   }
 
   Future<void> migrationFromKeychain(bool isIOS) async {
@@ -68,6 +79,7 @@ class MigrationUtil {
           uuid: mPersona.uuid, name: name, createdAt: mPersona.createdAt);
 
       await _cloudDB.personaDao.insertPersona(persona);
+      await _auditService.audiPersonaAction('[_migrationData] insert', persona);
     }
 
     for (var con in migrationData.ffTokenConnections) {
@@ -156,6 +168,25 @@ class MigrationUtil {
           Persona(uuid: uuid, name: name, createdAt: DateTime.now());
 
       await _cloudDB.personaDao.insertPersona(persona);
+      await _auditService.audiPersonaAction(
+          '[_migrationkeychain] insert', persona);
     }
+  }
+
+  Future _askForNotification() async {
+    if ((await _cloudDB.personaDao.getPersonas()).isEmpty ||
+        _configurationService.isNotificationEnabled() != null) {
+      // Skip asking for notifications
+      return;
+    }
+
+    await Future<dynamic>.delayed(Duration(seconds: 1), () async {
+      final context = _navigationService.navigatorKey.currentContext;
+      if (context == null) return null;
+
+      return await Navigator.of(context).pushNamed(
+          AppRouter.notificationOnboardingPage,
+          arguments: {"isOnboarding": false});
+    });
   }
 }

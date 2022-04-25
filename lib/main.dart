@@ -7,6 +7,7 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/au_cached_manager.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -19,6 +20,8 @@ import 'package:overlay_support/overlay_support.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
+import 'package:overlay_support/overlay_support.dart';
 
 void main() async {
   await SentryFlutter.init((options) {
@@ -41,6 +44,9 @@ void main() async {
     await Hive.initFlutter();
     FlutterDownloader.registerCallback(downloadCallback);
     AUCacheManager().setup();
+
+    OneSignal.shared.setLogLevel(OSLogLevel.error, OSLogLevel.error);
+    OneSignal.shared.setAppId(await getOneSignalAppID());
 
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
       statusBarColor: Colors.white,
@@ -122,13 +128,15 @@ class AppBlocObserver extends BlocObserver {
 final RouteObserver<ModalRoute<void>> routeObserver =
     RouteObserver<ModalRoute<void>>();
 
-var memoryValues = MemoryValues(scopedPersona: null);
+var memoryValues = MemoryValues();
 
 class MemoryValues {
   String? scopedPersona;
+  String? viewingSupportThreadIssueID;
 
   MemoryValues({
     this.scopedPersona,
+    this.viewingSupportThreadIssueID,
   });
 
   MemoryValues copyWith({

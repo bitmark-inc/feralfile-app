@@ -1,4 +1,5 @@
 import 'package:autonomy_flutter/model/network.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 
 class AppConfig {
   static const String ffAuthorizationPrefix =
@@ -9,7 +10,6 @@ class AppConfig {
     "https://hangzhounet.smartpy.io",
     "https://api.test.bitmark.com",
     "https://indexer.test.autonomy.io",
-    "https://accounts.test.autonomy.io",
     "https://feralfile1.dev.bitmark.com",
     "https://connect.test.autonomy.io",
     "wss://connect.test.autonomy.io/ws",
@@ -19,7 +19,6 @@ class AppConfig {
     "https://rpc.tzbeta.net",
     "https://api.bitmark.com",
     "https://indexer.autonomy.io",
-    "https://accounts.test.autonomy.io",
     "https://feralfile.com",
     "https://connect.autonomy.io",
     "wss://connect.autonomy.io/ws",
@@ -42,6 +41,18 @@ class AppConfig {
         return testNetworkConfig.extensionSupportUrl;
     }
   }
+
+  static Future<String> get autonomyAuthURL async {
+    return await isAppCenterBuild()
+        ? 'https://autonomy-auth.test.bitmark.com'
+        : 'https://autonomy-auth.bitmark.com';
+  }
+
+  static Future<String> get customerSupportURL async {
+    return await isAppCenterBuild()
+        ? 'https://support.test.autonomy.io'
+        : 'https://support.autonomy.io';
+  }
 }
 
 class AppConfigNetwork {
@@ -49,7 +60,6 @@ class AppConfigNetwork {
   final String tezosNodeClientUrl;
   final String bitmarkApiUrl;
   final String indexerApiUrl;
-  final String autonomyAuthUrl;
   final String feralFileApiUrl;
   final String extensionSupportUrl;
   final String websocketUrl;
@@ -59,7 +69,6 @@ class AppConfigNetwork {
       this.tezosNodeClientUrl,
       this.bitmarkApiUrl,
       this.indexerApiUrl,
-      this.autonomyAuthUrl,
       this.feralFileApiUrl,
       this.extensionSupportUrl,
       this.websocketUrl);

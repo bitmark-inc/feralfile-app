@@ -22,7 +22,7 @@ abstract class ConfigurationService {
   Future<void> setDevicePasscodeEnabled(bool value);
   bool isDevicePasscodeEnabled();
   Future<void> setNotificationEnabled(bool value);
-  bool isNotificationEnabled();
+  bool? isNotificationEnabled();
   Future<void> setAnalyticEnabled(bool value);
   bool isAnalyticsEnabled();
   Future<void> setDoneOnboarding(bool value);
@@ -95,9 +95,9 @@ class ConfigurationServiceImpl implements ConfigurationService {
   Future<void> setIAPReceipt(String? value) async {
     if (value != null) {
       await _preferences.setString(KEY_IAP_RECEIPT, value);
+    } else {
+      await _preferences.remove(KEY_IAP_RECEIPT);
     }
-
-    await _preferences.remove(KEY_IAP_RECEIPT);
   }
 
   @override
@@ -200,8 +200,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  bool isNotificationEnabled() {
-    return _preferences.getBool(KEY_NOTIFICATION) ?? true;
+  bool? isNotificationEnabled() {
+    return _preferences.getBool(KEY_NOTIFICATION);
   }
 
   @override
