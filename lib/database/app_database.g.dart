@@ -375,6 +375,13 @@ class _$AssetTokenDao extends AssetTokenDao {
   }
 
   @override
+  Future<int?> findNumOfHiddenAssets() async {
+    return _queryAdapter.query(
+        'SELECT COUNT(*) FROM AssetToken WHERE hidden = 1',
+        mapper: (Map<String, Object?> row) => row['COUNT(*)'] as int);
+  }
+
+  @override
   Future<void> updateHiddenAssets(List<String> ids) async {
     const offset = 1;
     final _sqliteVariablesForIds =
