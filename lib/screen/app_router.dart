@@ -202,8 +202,7 @@ class AppRouter {
         return CupertinoPageRoute(
           settings: settings,
           fullscreenDialog: true,
-          builder: (context) =>
-              NotificationOnboardingPage(injector(), injector(), injector()),
+          builder: (context) => NotificationOnboardingPage(),
         );
       case newAccountPage:
         return CupertinoPageRoute(
