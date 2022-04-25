@@ -164,7 +164,8 @@ class _SupportListPageState extends State<SupportListPage>
     final lastMessage = issue.lastMessage;
     if (lastMessage == null) return '';
 
-    if (lastMessage.message.isNotEmpty) return lastMessage.message;
+    if (lastMessage.message.isNotEmpty &&
+        lastMessage.message != EMPTY_ISSUE_MESSAGE) return lastMessage.message;
 
     final attachment = lastMessage.attachments.last;
     final attachmentTitle =
