@@ -15,6 +15,7 @@ class PreferenceState {
   bool isNotificationEnabled;
   final bool isAnalyticEnabled;
   final String authMethodName;
+  final bool hasHiddenArtworks;
 
   PreferenceState(
     this.gallerySortBy,
@@ -23,6 +24,7 @@ class PreferenceState {
     this.isNotificationEnabled,
     this.isAnalyticEnabled,
     this.authMethodName,
+    this.hasHiddenArtworks,
   );
 
   PreferenceState copyWith({
@@ -32,6 +34,7 @@ class PreferenceState {
     bool? isNotificationEnabled,
     bool? isAnalyticEnabled,
     String? authMethodName,
+    bool? hasHiddenArtworks,
   }) {
     return PreferenceState(
       gallerySortBy ?? this.gallerySortBy,
@@ -40,6 +43,7 @@ class PreferenceState {
       isNotificationEnabled ?? this.isNotificationEnabled,
       isAnalyticEnabled ?? this.isAnalyticEnabled,
       authMethodName ?? this.authMethodName,
+      hasHiddenArtworks ?? this.hasHiddenArtworks,
     );
   }
 }
