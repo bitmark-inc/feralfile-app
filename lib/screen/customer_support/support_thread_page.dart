@@ -395,7 +395,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       return [];
     }
 
-    if (text is String && text.isNotEmpty) {
+    if (text is String && text.isNotEmpty && text != EMPTY_ISSUE_MESSAGE) {
       return [
         types.TextMessage(
           id: id,

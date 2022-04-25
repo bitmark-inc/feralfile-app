@@ -6,6 +6,7 @@ const CLOUDFLAREIMAGEURLPREFIX =
 const AUTONOMY_TV_PEER_NAME = 'Autonomy TV';
 const DEFAULT_IPFS_PREFIX = 'https://ipfs.io';
 const CLOUDFLARE_IPFS_PREFIX = 'https://cloudflare-ipfs.com';
+const EMPTY_ISSUE_MESSAGE = 'NO MESSAGE BODY WAS PROVIDED';
 
 Future<bool> isAppCenterBuild() async {
   final PackageInfo info = await PackageInfo.fromPlatform();

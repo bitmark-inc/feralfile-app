@@ -118,8 +118,10 @@ Future<void> setup() async {
   injector.registerLazySingleton(() => WalletConnectDappService(injector()));
   injector.registerLazySingleton(() => AccountService(
       cloudDB, injector(), injector(), injector(), auditService));
-  injector.registerLazySingleton(() => IAPApi(authenticatedDio,
-      baseUrl: AppConfig.mainNetworkConfig.autonomyAuthUrl));
+
+  final autonomyAuthURL = await AppConfig.autonomyAuthURL;
+  injector.registerLazySingleton(
+      () => IAPApi(authenticatedDio, baseUrl: autonomyAuthURL));
   injector.registerLazySingleton(
       () => AuthService(injector(), injector(), injector()));
   injector.registerLazySingleton(() => BackupService(injector(), injector()));
@@ -135,13 +137,11 @@ Future<void> setup() async {
   injector.registerLazySingleton(
       () => VersionService(PubdocAPI(dio), injector(), injector()));
 
-  final customerSupportBaseURL = await isAppCenterBuild()
-      ? 'https://support.test.autonomy.io'
-      : 'https://support.autonomy.io';
-  injector.registerLazySingleton<CustomerSupportService>(() =>
-      CustomerSupportServiceImpl(
-        CustomerSupportApi(authenticatedDio, baseUrl: customerSupportBaseURL),
-      ));
+  final customerSupportURL = await AppConfig.customerSupportURL;
+  injector.registerLazySingleton<CustomerSupportService>(
+      () => CustomerSupportServiceImpl(
+            CustomerSupportApi(authenticatedDio, baseUrl: customerSupportURL),
+          ));
 
   injector.registerLazySingleton<AuditService>(() => auditService);
 
