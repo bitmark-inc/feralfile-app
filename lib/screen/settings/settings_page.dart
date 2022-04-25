@@ -130,8 +130,7 @@ class _SettingsPageState extends State<SettingsPage>
               ),
               SizedBox(height: 40),
               BlocProvider(
-                create: (_) =>
-                    PreferencesBloc(injector(), injector(), injector()),
+                create: (_) => PreferencesBloc(injector()),
                 child: PreferenceView(),
               ),
               SizedBox(height: 40.0),

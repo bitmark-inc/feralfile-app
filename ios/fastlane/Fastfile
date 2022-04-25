@@ -46,12 +46,12 @@ platform :ios do
 		increment_build_number(build_number: next_build_number)
 		app_identifier = 'com.bitmark.autonomy.inhouse'
 
-		# increment_version_number(
-  		# 	version_number: ENV["APP_VERSION"]
-		# )
+		increment_version_number(
+  			version_number: ENV["APP_VERSION"]
+		)
 
 		build_app(
-			scheme: "Runner Inhouse",
+			scheme: "inhouse",
 			export_method: "enterprise",
 			workspace: "Runner.xcworkspace",
 			cloned_source_packages_path: "SourcePackages",
