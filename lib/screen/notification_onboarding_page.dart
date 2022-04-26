@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/notification_util.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/theme_manager.dart';
@@ -77,6 +79,8 @@ class NotificationOnboardingPage extends StatelessWidget {
                 ),
                 TextButton(
                   onPressed: () {
+                    injector<ConfigurationService>()
+                        .setNotificationEnabled(false);
                     Navigator.of(context).pop();
                   },
                   child: Text(
