@@ -1,11 +1,7 @@
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_state.dart';
-import 'package:autonomy_flutter/screen/settings/preferences/select_gallery_sorting_widget.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -26,8 +22,6 @@ class PreferenceView extends StatelessWidget {
               style: appTextTheme.headline1,
             ),
             SizedBox(height: 24),
-            _gallerySortingByWidget(context, state.gallerySortBy),
-            addDivider(),
             _preferenceItem(
               context,
               'Immediate playback',
@@ -127,26 +121,5 @@ class PreferenceView extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  Widget _gallerySortingByWidget(BuildContext context, String? gallerySortBy) {
-    return TappableForwardRowWithContent(
-      leftWidget: Text('Sort gallery by:', style: appTextTheme.headline4),
-      bottomWidget: Text(
-        gallerySortBy ?? 'Source (default)',
-        style: appTextTheme.bodyText1,
-      ),
-      onTap: () => showSelectGallerySortingDialog(context, gallerySortBy),
-    );
-  }
-
-  void showSelectGallerySortingDialog(
-      BuildContext context, String? gallerySortBy) {
-    UIHelper.showDialog(
-        context,
-        'Gallery sorting',
-        SelectGallerySortingWidget(
-            sortBy: gallerySortBy ?? GallerySortProperty.Source),
-        isDismissible: true);
   }
 }
