@@ -7,6 +7,8 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.Result
 import io.github.novacrypto.base58.Base58
+import it.airgap.beaconsdk.blockchain.substrate.substrate
+import it.airgap.beaconsdk.blockchain.tezos.data.TezosAccount
 import it.airgap.beaconsdk.blockchain.tezos.data.TezosAppMetadata
 import it.airgap.beaconsdk.blockchain.tezos.data.TezosNetwork
 import it.airgap.beaconsdk.blockchain.tezos.data.TezosPermission
@@ -256,13 +258,11 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
         CoroutineScope(Dispatchers.IO).launch {
             beaconClient = BeaconWalletClient(
                 "Autonomy",
-                listOf(
-                    tezos(),
-                ),
             ) {
-                addConnections(
-                    P2P(p2pMatrix()),
-                )
+                support(tezos(), substrate())
+                use(p2pMatrix())
+
+                ignoreUnsupportedBlockchains = true
             }
 
             launch {
@@ -272,17 +272,18 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
                         result.getOrNull()?.let {
                             when (it) {
                                 is PermissionTezosResponse -> {
-                                    val publicKey = it.publicKey
                                     val peerPublicKey = it.requestOrigin.id
 
                                     val peer =
                                         dependencyRegistry.storageManager.findPeer { peer -> peer.publicKey == peerPublicKey }
-                                    val address = TezosWallet(
-                                        dependencyRegistry.crypto,
-                                        dependencyRegistry.base58Check
-                                    ).address(publicKey).getOrDefault("")
 
-                                    eventPublisher.emit(TezosWalletConnection(address, peer, it))
+                                    eventPublisher.emit(
+                                        TezosWalletConnection(
+                                            it.account.address,
+                                            peer,
+                                            it
+                                        )
+                                    )
                                 }
                                 is BeaconRequest -> {
                                     requestPublisher.emit(it)
@@ -429,10 +430,7 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
 
                 val permissionTezosResponse = postMessageResponse.convertToPermissionResponse()
 
-                val tzAddress = TezosWallet(
-                    dependencyRegistry.crypto,
-                    dependencyRegistry.base58Check
-                ).address(permissionTezosResponse.publicKey).getOrDefault("")
+                val tzAddress = permissionTezosResponse.account.address
 
                 val rev: HashMap<String, Any> = HashMap()
                 rev["error"] = 0
@@ -475,7 +473,23 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
                     val publicKey: String? = call.argument("publicKey")
 
                     publicKey?.let {
-                        PermissionTezosResponse.from(request, it)
+                        val tzAddress = TezosWallet(
+                            dependencyRegistry.crypto,
+                            dependencyRegistry.base58Check
+                        ).address(it).getOrDefault("")
+
+                        PermissionTezosResponse.from(
+                            request,
+                            TezosAccount(
+                                publicKey = it,
+                                address = tzAddress,
+                                network = TezosNetwork.Mainnet(),
+                            ),
+                            listOf(
+                                TezosPermission.Scope.Sign,
+                                TezosPermission.Scope.OperationRequest
+                            )
+                        )
                     } ?: ErrorBeaconResponse.from(request, BeaconError.Aborted)
                 }
                 is OperationTezosRequest -> {
@@ -675,8 +689,19 @@ data class PostMessageResponse(
             origin = Origin.P2P(senderId),
             senderId = senderId
         )
+        val tzAddress = TezosWallet(
+            dependencyRegistry.crypto,
+            dependencyRegistry.base58Check
+        ).address(publicKey).getOrDefault("")
+
         return PermissionTezosResponse.from(
-            request, publicKey, network, scopes
+            request,
+            TezosAccount(
+                publicKey = publicKey,
+                address = tzAddress,
+                network = network
+            ),
+            scopes
         )
     }
 }
