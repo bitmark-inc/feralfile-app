@@ -22,7 +22,6 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_outlined_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -281,32 +280,21 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
           style: appTextTheme.headline2,
         ),
         SizedBox(height: 16.0),
-        RichText(
-          text: TextSpan(children: [
-            TextSpan(
-              style: appTextTheme.bodyText1,
-              text:
-                  "Feral File protects artist and collector rights. Learn more on the ",
-            ),
-            TextSpan(
-              style: TextStyle(
-                  color: Color(0xFF5B5BFF),
-                  fontSize: 16,
-                  fontFamily: "AtlasGrotesk",
-                  height: 1.377),
-              text: "Artist + Collector Rights",
-              recognizer: TapGestureRecognizer()
-                ..onTap = () {
-                  launch("https://feralfile.com/docs/artist-collector-rights");
-                },
-            ),
-            TextSpan(
-              style: appTextTheme.bodyText1,
-              text: " page.",
-            ),
-          ]),
+        Text(
+          "Feral File protects artist and collector rights.",
+          style: appTextTheme.bodyText1,
         ),
-        SizedBox(height: 16.0),
+        SizedBox(height: 18.0),
+        TextButton(
+          style: textButtonNoPadding,
+          onPressed: () =>
+              launch("https://feralfile.com/docs/artist-collector-rights"),
+          child: Text('Learn more on the Artist + Collector Rights page...',
+              style: linkStyle.copyWith(
+                fontWeight: FontWeight.w500,
+              )),
+        ),
+        SizedBox(height: 23.0),
         _artworkRightItem(context, "Download",
             "As a collector, you have access to a permanent link where you can download the work’s original, full-resolution files and technical details."),
         Divider(height: 32.0),
@@ -643,54 +631,54 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
     final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
 
     UIHelper.showDialog(
-        context,
-        "Options",
-        Container(
-          child: Column(
-            children: [
-              InkWell(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(asset.isHidden() ? 'Unhide artwork' : 'Hide artwork',
-                        style: theme.textTheme.headline4),
-                    Icon(Icons.navigate_next, color: Colors.white),
-                  ],
-                ),
-                onTap: () async {
-                  final appDatabase =
-                      injector<NetworkConfigInjector>().I<AppDatabase>();
-                  if (asset.isHidden()) {
-                    asset.hidden = null;
-                  } else {
-                    asset.hidden = 1;
-                  }
-                  await appDatabase.assetDao.updateAsset(asset);
+      context,
+      "Options",
+      Container(
+        child: Column(
+          children: [
+            InkWell(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(asset.isHidden() ? 'Unhide artwork' : 'Hide artwork',
+                      style: theme.textTheme.headline4),
+                  Icon(Icons.navigate_next, color: Colors.white),
+                ],
+              ),
+              onTap: () async {
+                final appDatabase =
+                    injector<NetworkConfigInjector>().I<AppDatabase>();
+                if (asset.isHidden()) {
+                  asset.hidden = null;
+                } else {
+                  asset.hidden = 1;
+                }
+                await appDatabase.assetDao.updateAsset(asset);
 
-                  Navigator.of(context).pop();
-                  UIHelper.showHideArtworkResultDialog(
-                      context, asset.isHidden(), onOK: () {
-                    Navigator.of(context).popUntil((route) =>
-                        route.settings.name == AppRouter.homePage ||
-                        route.settings.name == AppRouter.homePageNoTransition);
-                  });
-                },
+                Navigator.of(context).pop();
+                UIHelper.showHideArtworkResultDialog(context, asset.isHidden(),
+                    onOK: () {
+                  Navigator.of(context).popUntil((route) =>
+                      route.settings.name == AppRouter.homePage ||
+                      route.settings.name == AppRouter.homePageNoTransition);
+                });
+              },
+            ),
+            Divider(height: 20, color: Colors.white),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                "CANCEL",
+                style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    fontFamily: "IBMPlexMono"),
               ),
-              Divider(height: 20, color: Colors.white),
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text(
-                  "CANCEL",
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      fontFamily: "IBMPlexMono"),
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
+      ),
       isDismissible: true,
     );
   }
