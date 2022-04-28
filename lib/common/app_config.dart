@@ -44,8 +44,8 @@ class AppConfig {
 
   static Future<String> get autonomyAuthURL async {
     return await isAppCenterBuild()
-        ? 'https://autonomy-auth.test.bitmark.com'
-        : 'https://autonomy-auth.bitmark.com';
+        ? 'https://accounts.test.autonomy.io'
+        : 'https://accounts.autonomy.io';
   }
 
   static Future<String> get customerSupportURL async {
