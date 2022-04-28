@@ -224,7 +224,6 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
           timestamp: DateTime.now()),
     );
 
-    await _addAppLogsIfNeeded(message.text);
     await _convertPendingChatMessages();
     setState(() {
       _sendIcon = "assets/images/sendMessage.svg";
@@ -232,9 +231,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     _postMessageToServer();
   }
 
-  Future _addAppLogsIfNeeded(String issueTitle) async {
-    if (_issueID != null || _pendingSendMessages.length != 1) return;
-    // add log file
+  Future _addAppLogs() async {
     final logFilePath = await logUtil.getLatestLogFile();
     File file = File(logFilePath);
     final bytes = await file.readAsBytes();
@@ -252,7 +249,6 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
         ),
       ],
       timestamp: DateTime.now(),
-      issueTitle: issueTitle,
     ));
   }
 
@@ -301,7 +297,6 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
                     timestamp: DateTime.now()),
               );
 
-              await _addAppLogsIfNeeded(accountLogTitle);
               await _convertPendingChatMessages();
               setState(() {
                 _forceAccountsViewRedraw = Object();
@@ -313,6 +308,23 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
               alignment: Alignment.centerLeft,
               child:
                   Text('Attach accounts log', style: theme.textTheme.headline4),
+            ),
+          ),
+          addDialogDivider(),
+          TextButton(
+            style: textButtonNoPadding,
+            onPressed: () async {
+              await _addAppLogs();
+              await _convertPendingChatMessages();
+              setState(() {
+                _forceAccountsViewRedraw = Object();
+              });
+              Navigator.pop(context);
+              _postMessageToServer();
+            },
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text('Attach app log', style: theme.textTheme.headline4),
             ),
           ),
           SizedBox(height: 40),
@@ -355,7 +367,6 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
           timestamp: DateTime.now()),
     );
 
-    await _addAppLogsIfNeeded(attachments.first.title);
     await _convertPendingChatMessages();
     setState(() {
       _forceAccountsViewRedraw = Object();
@@ -471,7 +482,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     if (_issueID == null) {
       final result = await injector<CustomerSupportService>().createIssue(
         widget.reportIssueType,
-        message.issueTitle ?? message.message,
+        message.message,
         message.attachments,
       );
       _issueID = result.issueID;
