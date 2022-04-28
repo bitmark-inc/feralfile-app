@@ -17,7 +17,6 @@ class ArtworkPreviewBloc
       try {
         if (asset?.previewURL != null) {
           final response = await callRequest(Uri.parse(asset!.previewURL!));
-          print(response.statusCode);
           if (response.statusCode == 520) {
             asset.previewURL = asset.previewURL!.replaceRange(
                 0, CLOUDFLARE_IPFS_PREFIX.length, DEFAULT_IPFS_PREFIX);

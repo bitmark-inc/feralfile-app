@@ -15,8 +15,6 @@ enum OnboardingStep {
   startScreen,
   newAccountPage,
   restore,
-  iCloud,
-  security,
   dashboard,
 }
 

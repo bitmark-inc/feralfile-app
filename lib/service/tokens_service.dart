@@ -166,7 +166,7 @@ class TokensService {
     _isolateSendPort = sendPort;
   }
 
-  void _handleMessageInMain(dynamic message) {
+  void _handleMessageInMain(dynamic message) async {
     if (message is SendPort) {
       _sendPort = message;
       _isolateReady.complete();
@@ -180,14 +180,16 @@ class TokensService {
       switch (message[0]) {
         case REFRESH_ALL_TOKENS:
           if (result is FetchTokensSuccess) {
-            insertAssetsWithProvenance(result.assets);
+            await insertAssetsWithProvenance(result.assets);
             log.info(
                 "[REFRESH_ALL_TOKENS] receive ${result.assets.length} tokens");
-          } else if (result is FetchTokensDone) {
-            _configurationService.setLatestRefreshTokens(DateTime.now());
-            _refreshAllTokensWorker?.complete();
-            disposeIsolate();
-            log.info("[REFRESH_ALL_TOKENS][end]");
+
+            if (result.done) {
+              _configurationService.setLatestRefreshTokens(DateTime.now());
+              _refreshAllTokensWorker?.complete();
+              disposeIsolate();
+              log.info("[REFRESH_ALL_TOKENS][end]");
+            }
           } else if (result is FetchTokenFailure) {
             Sentry.captureException(result.exception);
             disposeIsolate();
@@ -254,13 +256,13 @@ class TokensService {
       Set<String> tokenIDs = {};
 
       while (true) {
-        print("[_refreshAllTokens] $owners - offset: $offset");
         final assets = await _isolateIndexerAPI.getNftTokensByOwner(
             owners, offset, INDEXER_TOKENS_MAXIMUM);
         tokenIDs.addAll(assets.map((e) => e.id));
-        _isolateSendPort?.send([key, keyUUID, FetchTokensSuccess(assets)]);
 
         if (assets.length < INDEXER_TOKENS_MAXIMUM) {
+          _isolateSendPort
+              ?.send([key, keyUUID, FetchTokensSuccess(assets, true)]);
           break;
         }
 
@@ -268,14 +270,16 @@ class TokensService {
           expectedNewTokenIDs.difference(tokenIDs);
           if (assets.last.lastActivityTime.compareTo(latestRefreshToken) < 0 &&
               expectedNewTokenIDs.isEmpty) {
+            _isolateSendPort
+                ?.send([key, keyUUID, FetchTokensSuccess(assets, true)]);
             break;
           }
         }
 
+        _isolateSendPort
+            ?.send([key, keyUUID, FetchTokensSuccess(assets, false)]);
         offset += INDEXER_TOKENS_MAXIMUM;
       }
-
-      _isolateSendPort?.send([key, keyUUID, FetchTokensDone()]);
     } catch (exception) {
       _isolateSendPort?.send([key, keyUUID, FetchTokenFailure(exception)]);
     }
@@ -286,8 +290,9 @@ abstract class TokensServiceResult {}
 
 class FetchTokensSuccess extends TokensServiceResult {
   final List<Asset> assets;
+  bool done;
 
-  FetchTokensSuccess(this.assets);
+  FetchTokensSuccess(this.assets, this.done);
 }
 
 class FetchTokenFailure extends TokensServiceResult {

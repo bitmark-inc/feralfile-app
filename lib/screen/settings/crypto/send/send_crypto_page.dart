@@ -88,7 +88,6 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                             arguments: type == CryptoType.ETH
                                 ? ScannerItem.ETH_ADDRESS
                                 : ScannerItem.XTZ_ADDRESS);
-                        print(address);
                         if (address != null && address is String) {
                           _addressController.text = address;
                           context
