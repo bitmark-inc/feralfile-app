@@ -120,6 +120,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           log.info("[HomeBloc] _tokensService.refreshTokensInIsolate");
 
           await _tokensService.refreshTokensInIsolate(allAccountNumbers);
+          log.info("[HomeBloc][end] _tokensService.refreshTokensInIsolate");
+
           emit(state.copyWith(
               tokens: await _assetTokenDao
                   .findAllAssetTokensWhereNot(hiddenOwners)));
