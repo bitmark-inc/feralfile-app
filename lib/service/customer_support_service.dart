@@ -90,7 +90,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
       String issueID, String message, List<SendAttachment> attachments) async {
     final payload = {
       'attachments': attachments,
-      'message': message,
+      'message': attachments.length > 0 ? '' : message,
     };
 
     return await _customerSupportApi.commentIssue(issueID, payload);
