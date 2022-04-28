@@ -3,6 +3,8 @@ import 'dart:developer';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/router/router_bloc.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
@@ -17,17 +19,26 @@ class OnboardingPage extends StatefulWidget {
 
 class _OnboardingPageState extends State<OnboardingPage> {
   @override
-  void initState() {
-    super.initState();
-
-    injector<VersionService>().checkForUpdate();
-  }
-
-  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     log("DefineViewRoutingEvent");
     context.read<RouterBloc>().add(DefineViewRoutingEvent());
+  }
+
+  Future _askForNotification() async {
+    if (injector<ConfigurationService>().isNotificationEnabled() != null) {
+      // Skip asking for notifications
+      return;
+    }
+
+    await Future<dynamic>.delayed(Duration(seconds: 1), () async {
+      final context = injector<NavigationService>().navigatorKey.currentContext;
+      if (context == null) return null;
+
+      return await Navigator.of(context).pushNamed(
+          AppRouter.notificationOnboardingPage,
+          arguments: {"isOnboarding": false});
+    });
   }
 
   // @override
@@ -72,11 +83,12 @@ class _OnboardingPageState extends State<OnboardingPage> {
           eulaAndPrivacyView(),
           SizedBox(height: 32.0),
           BlocConsumer<RouterBloc, RouterState>(
-            listener: (context, state) {
+            listener: (context, state) async {
               switch (state.onboardingStep) {
                 case OnboardingStep.dashboard:
                   Navigator.of(context)
                       .pushReplacementNamed(AppRouter.homePageNoTransition);
+                  await _askForNotification();
                   break;
 
                 case OnboardingStep.newAccountPage:
@@ -87,6 +99,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
                 default:
                   break;
               }
+
+              injector<VersionService>().checkForUpdate();
             },
             builder: (context, state) {
               switch (state.onboardingStep) {
