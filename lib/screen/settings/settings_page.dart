@@ -10,7 +10,6 @@ import 'package:autonomy_flutter/screen/settings/preferences/preferences_view.da
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_view.dart';
-import 'package:autonomy_flutter/screen/settings/support/support_view.dart';
 import 'package:autonomy_flutter/service/cloud_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
@@ -131,7 +130,8 @@ class _SettingsPageState extends State<SettingsPage>
               ),
               SizedBox(height: 40),
               BlocProvider(
-                create: (_) => PreferencesBloc(injector(), injector<NetworkConfigInjector>().I()),
+                create: (_) => PreferencesBloc(
+                    injector(), injector<NetworkConfigInjector>().I()),
                 child: PreferenceView(),
               ),
               SizedBox(height: 40.0),
@@ -154,8 +154,6 @@ class _SettingsPageState extends State<SettingsPage>
                       : "Main network", () async {
                 await Navigator.of(context).pushNamed(SelectNetworkPage.tag);
               }),
-              SizedBox(height: 40),
-              SupportView(),
               SizedBox(height: 56),
               Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
                 if (_packageInfo != null)

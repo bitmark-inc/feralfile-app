@@ -126,14 +126,12 @@ class SendMessage {
   String message;
   List<SendAttachment> attachments;
   DateTime timestamp;
-  String? issueTitle;
 
   SendMessage({
     required this.id,
     required this.message,
     required this.attachments,
     required this.timestamp,
-    this.issueTitle,
   });
 }
 
