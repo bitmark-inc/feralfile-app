@@ -70,7 +70,6 @@ class FileLogger {
     final directory = await getLogFolderPath();
     final fileName =
         "${await getDeviceID() ?? ""}_${now.year}${now.month}${now.day}.log";
-    print(directory);
     _logFile = await _createLogFile("$directory/$fileName");
     final text = '${new DateTime.now()}: LOGGING STARTED\n';
 
