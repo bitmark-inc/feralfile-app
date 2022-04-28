@@ -256,7 +256,6 @@ class TokensService {
       Set<String> tokenIDs = {};
 
       while (true) {
-        print("[_refreshAllTokens] $owners - offset: $offset");
         final assets = await _isolateIndexerAPI.getNftTokensByOwner(
             owners, offset, INDEXER_TOKENS_MAXIMUM);
         tokenIDs.addAll(assets.map((e) => e.id));
