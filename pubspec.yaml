@@ -151,8 +151,6 @@ flutter:
     - assets/images/iconCloudOff.svg
     - assets/images/iconCustomerSupport.svg
     - assets/images/iconForward.svg
-    - assets/images/iconFile.svg
-    - assets/images/iconFile.png
     - assets/images/iconSharpFeedback.svg
     - assets/images/cil_external-link.svg
     - assets/images/tezos_social_icon.svg
@@ -181,6 +179,7 @@ flutter:
     - assets/images/sendMessage.svg
     - assets/images/sendMessageFilled.svg
     - assets/images/icloudKeychainGuide.svg
+    - assets/images/chatFileIcon.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

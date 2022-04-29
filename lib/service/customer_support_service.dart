@@ -20,7 +20,12 @@ abstract class CustomerSupportService {
   Future<IssueDetails> getDetails(String issueID);
   Future<List<Issue>> getIssues();
   Future<PostedMessageResponse> createIssue(
-      String reportIssueType, String message, List<SendAttachment> attachments);
+    String reportIssueType,
+    String message,
+    List<SendAttachment> attachments, {
+    String? title,
+    List<String>? mutedText,
+  });
   Future<PostedMessageResponse> commentIssue(
       String issueID, String message, List<SendAttachment> attachments);
   Future<String> getStoredDirectory();
@@ -49,37 +54,49 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     return await _customerSupportApi.getDetails(issueID);
   }
 
-  Future<PostedMessageResponse> createIssue(String reportIssueType,
-      String message, List<SendAttachment> attachments) async {
-    var title = message;
-    if (title.isEmpty) {
-      title = attachments.first.title;
+  Future<PostedMessageResponse> createIssue(
+    String reportIssueType,
+    String message,
+    List<SendAttachment> attachments, {
+    String? title,
+    List<String>? mutedText,
+  }) async {
+    var issueTitle = title ?? message;
+    if (issueTitle.isEmpty) {
+      issueTitle = attachments.first.title;
     }
 
     // add tags
     var tags = [reportIssueType];
-
-    final deviceID = await getDeviceID();
-    if (deviceID != null) {
-      tags.add(deviceID);
-    }
-
     if (Platform.isIOS) {
       tags.add("iOS");
     } else if (Platform.isAndroid) {
       tags.add("android");
     }
-    tags.add((await PackageInfo.fromPlatform()).version);
-    tags.add(await isAppCenterBuild() ? 'dev' : 'prod');
 
-    if (title.length > 170) {
-      title = title.substring(0, 170);
+    // Muted Message
+    var mutedMessage = "";
+    final deviceID = await getDeviceID();
+    if (deviceID != null) {
+      mutedMessage += "**DeviceID**: $deviceID\n";
+    }
+
+    final version = (await PackageInfo.fromPlatform()).version;
+    mutedMessage += "**Version**: $version\n";
+
+    for (var mutedMsg in (mutedText ?? [])) {
+      mutedMessage += "$mutedMsg\n";
+    }
+    final submitMessage = "[MUTED]\n$mutedMessage[/MUTED]\n\n$message";
+
+    if (issueTitle.length > 170) {
+      issueTitle = issueTitle.substring(0, 170);
     }
 
     final payload = {
       'attachments': attachments,
-      'title': title,
-      'message': attachments.length > 0 ? '' : message,
+      'title': issueTitle,
+      'message': submitMessage,
       'tags': tags,
     };
 

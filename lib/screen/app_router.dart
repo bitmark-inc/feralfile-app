@@ -50,7 +50,6 @@ import 'package:autonomy_flutter/screen/home/home_page.dart';
 import 'package:autonomy_flutter/screen/notification_onboarding_page.dart';
 import 'package:autonomy_flutter/screen/onboarding_page.dart';
 import 'package:autonomy_flutter/screen/release_notes_page.dart';
-import 'package:autonomy_flutter/screen/report/sentry_report_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/receive_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_bloc.dart';
@@ -609,14 +608,6 @@ class AppRouter {
                   isEncryptionAvailable: settings.arguments as bool?,
                 ));
 
-      case SentryReportPage.tag:
-        return CupertinoPageRoute(
-            settings: settings,
-            fullscreenDialog: true,
-            builder: (context) => SentryReportPage(
-                  payload: settings.arguments,
-                ));
-
       case globalReceivePage:
         return CupertinoPageRoute(
             settings: settings,
@@ -670,13 +661,10 @@ class AppRouter {
             settings: settings, builder: (context) => SupportListPage());
 
       case supportThreadPage:
-        final args = settings.arguments as List<dynamic>;
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => SupportThreadPage(
-                  reportIssueType: args[0] as String,
-                  issueID: args[1] as String?,
-                ));
+                payload: settings.arguments as SupportThreadPayload));
 
       case linkManually:
         return CupertinoPageRoute(

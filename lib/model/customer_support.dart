@@ -115,6 +115,13 @@ class Message {
     required this.timestamp,
   });
 
+  String get filteredMessage {
+    if (message.isEmpty || message == EMPTY_ISSUE_MESSAGE) return "";
+    return message
+        .replaceAll(new RegExp(r"\[MUTED\](.|\n)*\[/MUTED\]"), '')
+        .replaceAll(RegExp(r"^(\n)*"), "");
+  }
+
   factory Message.fromJson(Map<String, dynamic> json) =>
       _$MessageFromJson(json);
 
