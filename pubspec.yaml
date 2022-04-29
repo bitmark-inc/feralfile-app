@@ -180,6 +180,7 @@ flutter:
     - assets/images/joinFile.svg
     - assets/images/sendMessage.svg
     - assets/images/sendMessageFilled.svg
+    - assets/images/icloudKeychainGuide.svg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

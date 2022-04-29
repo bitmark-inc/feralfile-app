@@ -65,10 +65,11 @@ class CloudPage extends StatelessWidget {
                               "iCloud is currently turned off on your device. We recommend you enable it so we can safely back up your account.",
                               style: appTextTheme.headline4,
                             ),
-                            SizedBox(height: 40),
+                            SizedBox(height: section == "settings" ? 40 : 80),
                             Center(
                                 child: SvgPicture.asset(
-                                    "assets/images/cloudOff.svg")),
+                                    "assets/images/icloudKeychainGuide.svg")),
+                            SizedBox(height: 20),
                           ],
                         ]),
                   ),
