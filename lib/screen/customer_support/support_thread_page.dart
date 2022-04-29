@@ -1,17 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/model/customer_support.dart' as app;
-import 'package:autonomy_flutter/model/customer_support.dart';
-import 'package:autonomy_flutter/service/audit_service.dart';
-import 'package:autonomy_flutter/service/customer_support_service.dart';
-import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/theme_manager.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:bubble/bubble.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
@@ -19,17 +9,53 @@ import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
-import 'package:bubble/bubble.dart';
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/model/customer_support.dart' as app;
+import 'package:autonomy_flutter/model/customer_support.dart';
+import 'package:autonomy_flutter/service/audit_service.dart';
+import 'package:autonomy_flutter/service/customer_support_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart' as logUtil;
+import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/theme_manager.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/view/back_appbar.dart';
+
+abstract class SupportThreadPayload {}
+
+class NewIssuePayload extends SupportThreadPayload {
+  final String reportIssueType;
+
+  NewIssuePayload({
+    required this.reportIssueType,
+  });
+}
+
+class DetailIssuePayload extends SupportThreadPayload {
+  final String reportIssueType;
+  final String issueID;
+
+  DetailIssuePayload({
+    required this.reportIssueType,
+    required this.issueID,
+  });
+}
+
+class ExceptionErrorPayload extends SupportThreadPayload {
+  final String sentryID;
+
+  ExceptionErrorPayload({
+    required this.sentryID,
+  });
+}
 
 class SupportThreadPage extends StatefulWidget {
-  final String reportIssueType;
-  final String? issueID;
+  final SupportThreadPayload payload;
 
   const SupportThreadPage({
     Key? key,
-    required this.reportIssueType,
-    this.issueID,
+    required this.payload,
   }) : super(key: key);
 
   @override
@@ -37,16 +63,19 @@ class SupportThreadPage extends StatefulWidget {
 }
 
 class _SupportThreadPageState extends State<SupportThreadPage> {
+  String _reportIssueType = '';
+  String? _issueID;
+
   List<types.Message> _messages = [];
   List<types.Message> _pendingMessages = [];
   List<app.SendMessage> _pendingSendMessages = [];
   bool _isPostMessageRunning = false;
   final _user = const types.User(id: 'user');
   final _bitmark = const types.User(id: 'bitmark');
-  String _reportIssueType = '';
+
   String _status = '';
-  String? _issueID;
-  var _forceAccountsViewRedraw;
+
+  late var _forceAccountsViewRedraw;
   var _sendIcon = "assets/images/sendMessage.svg";
   final _introMessagerID = const Uuid().v4();
   final _resolvedMessagerID = const Uuid().v4();
@@ -68,8 +97,17 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     injector<CustomerSupportService>()
         .triggerReloadMessages
         .addListener(_loadIssueDetails);
-    _reportIssueType = widget.reportIssueType;
-    _issueID = widget.issueID;
+
+    final payload = widget.payload;
+    if (payload is NewIssuePayload) {
+      _reportIssueType = payload.reportIssueType;
+    } else if (payload is DetailIssuePayload) {
+      _reportIssueType = payload.reportIssueType;
+      _issueID = payload.issueID;
+    } else if (payload is ExceptionErrorPayload) {
+      _reportIssueType = ReportIssueType.Exception;
+    }
+
     memoryValues.viewingSupportThreadIssueID = _issueID;
     _forceAccountsViewRedraw = Object();
     super.initState();
@@ -393,7 +431,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       author = message.from.contains("did:key") ? _user : _bitmark;
       status = types.Status.delivered;
       createdAt = message.timestamp;
-      text = message.message;
+      text = message.filteredMessage;
       //
     } else if (message is app.SendMessage) {
       id = message.id;
@@ -406,84 +444,93 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       return [];
     }
 
+    List<types.Message> result = [];
+
     if (text is String && text.isNotEmpty && text != EMPTY_ISSUE_MESSAGE) {
-      return [
-        types.TextMessage(
-          id: id,
+      result.add(types.TextMessage(
+        id: id,
+        author: author,
+        createdAt: createdAt.millisecondsSinceEpoch,
+        text: text,
+        status: status,
+        showStatus: true,
+      ));
+    }
+
+    final storedDirectory =
+        await injector<CustomerSupportService>().getStoredDirectory();
+    List<String> titles = [];
+    List<String> uris = [];
+    List<String> contentTypes = [];
+
+    if (message is app.Message) {
+      for (var attachment in message.attachments) {
+        titles.add(attachment.title);
+        uris.add(storedDirectory + "/" + attachment.name);
+        contentTypes.add(attachment.contentType);
+      }
+      //
+    } else if (message is app.SendMessage) {
+      for (var attachment in message.attachments) {
+        titles.add(attachment.title);
+        uris.add(attachment.path);
+        contentTypes.add(attachment.contentType);
+      }
+    }
+
+    for (var i = 0; i < titles.length; i += 1) {
+      if (contentTypes[i].contains("image")) {
+        result.add(types.ImageMessage(
+          id: id + '$i',
           author: author,
           createdAt: createdAt.millisecondsSinceEpoch,
-          text: text,
           status: status,
           showStatus: true,
-        )
-      ];
-    } else {
-      List<types.Message> messages = [];
-      final storedDirectory =
-          await injector<CustomerSupportService>().getStoredDirectory();
-      List<String> titles = [];
-      List<String> uris = [];
-      List<String> contentTypes = [];
-
-      if (message is app.Message) {
-        for (var attachment in message.attachments) {
-          titles.add(attachment.title);
-          uris.add(storedDirectory + "/" + attachment.name);
-          contentTypes.add(attachment.contentType);
-        }
-        //
-      } else if (message is app.SendMessage) {
-        for (var attachment in message.attachments) {
-          titles.add(attachment.title);
-          uris.add(attachment.path);
-          contentTypes.add(attachment.contentType);
-        }
+          name: titles[i],
+          size: 0,
+          uri: uris[i],
+        ));
+      } else {
+        final sizeAndRealTitle =
+            ReceiveAttachment.extractSizeAndRealTitle(titles[i]);
+        result.add(types.FileMessage(
+          id: id + '$i',
+          author: author,
+          createdAt: createdAt.millisecondsSinceEpoch,
+          status: status,
+          showStatus: true,
+          name: sizeAndRealTitle[1],
+          size: sizeAndRealTitle[0] ?? 0,
+          uri: uris[i],
+        ));
       }
-
-      for (var i = 0; i < titles.length; i += 1) {
-        if (contentTypes[i].contains("image")) {
-          messages.add(types.ImageMessage(
-            id: id + '$i',
-            author: author,
-            createdAt: createdAt.millisecondsSinceEpoch,
-            status: status,
-            showStatus: true,
-            name: titles[i],
-            size: 0,
-            uri: uris[i],
-          ));
-        } else {
-          final sizeAndRealTitle =
-              ReceiveAttachment.extractSizeAndRealTitle(titles[i]);
-          messages.add(types.FileMessage(
-            id: id + '$i',
-            author: author,
-            createdAt: createdAt.millisecondsSinceEpoch,
-            status: status,
-            showStatus: true,
-            name: sizeAndRealTitle[1],
-            size: sizeAndRealTitle[0] ?? 0,
-            uri: uris[i],
-          ));
-        }
-      }
-
-      return messages;
     }
+
+    return result;
   }
 
   void _postMessageToServer() async {
-    // return;
     if (_isPostMessageRunning || _pendingSendMessages.length == 0) return;
     final message = _pendingSendMessages.last;
     _isPostMessageRunning = true;
     app.Message postedMessage;
 
     if (_issueID == null) {
+      String _sentryID = "";
+      final payload = widget.payload;
+      if (payload is ExceptionErrorPayload) {
+        _sentryID = payload.sentryID;
+      }
+
       final result = await injector<CustomerSupportService>().createIssue(
-        widget.reportIssueType,
+        _reportIssueType,
         message.message,
         message.attachments,
+        mutedText: _sentryID.isNotEmpty
+            ? [
+                "[SENTRY REPORT $_sentryID](https://sentry.io/organizations/bitmark-inc/issues/?query=$_sentryID)"
+              ]
+            : [],
       );
       _issueID = result.issueID;
       memoryValues.viewingSupportThreadIssueID = _issueID;
@@ -576,7 +623,8 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       receivedMessageDocumentIconColor: Colors.white,
       sentMessageDocumentIconColor: Colors.white,
       documentIcon: Image.asset(
-        "assets/images/iconFile.png",
+        "assets/images/chatFileIcon.png",
+        width: 20,
       ),
       sentMessageCaptionTextStyle: TextStyle(
           color: Colors.black,
