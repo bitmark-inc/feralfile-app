@@ -2,6 +2,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/customer_support.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -92,11 +93,11 @@ class _SupportListPageState extends State<SupportListPage>
             child: GestureDetector(
               behavior: HitTestBehavior.translucent,
               child: _contentRow(issue),
-              onTap: () => Navigator.of(context)
-                  .pushNamed(AppRouter.supportThreadPage, arguments: [
-                issue.reportIssueType,
-                issue.issueID,
-              ]),
+              onTap: () => Navigator.of(context).pushNamed(
+                  AppRouter.supportThreadPage,
+                  arguments: DetailIssuePayload(
+                      reportIssueType: issue.reportIssueType,
+                      issueID: issue.issueID)),
             ),
           );
         },
@@ -164,8 +165,8 @@ class _SupportListPageState extends State<SupportListPage>
     final lastMessage = issue.lastMessage;
     if (lastMessage == null) return '';
 
-    if (lastMessage.message.isNotEmpty &&
-        lastMessage.message != EMPTY_ISSUE_MESSAGE) return lastMessage.message;
+    if (lastMessage.filteredMessage.isNotEmpty)
+      return lastMessage.filteredMessage;
 
     final attachment = lastMessage.attachments.last;
     final attachmentTitle =

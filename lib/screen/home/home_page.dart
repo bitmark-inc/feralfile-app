@@ -5,6 +5,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
@@ -394,10 +395,8 @@ class _HomePageState extends State<HomePage>
             ((route) =>
                 route.settings.name == AppRouter.homePage ||
                 route.settings.name == AppRouter.homePageNoTransition),
-            arguments: [
-              "",
-              '$issueID',
-            ]);
+            arguments:
+                DetailIssuePayload(reportIssueType: "", issueID: '$issueID'));
         break;
       default:
         log.warning("unhandled notification type: $notificationType");

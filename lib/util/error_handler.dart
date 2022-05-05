@@ -1,5 +1,7 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
+import 'package:autonomy_flutter/screen/report/sentry_report.dart';
 import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
@@ -17,10 +19,8 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:tezart/tezart.dart';
 
-import '../screen/report/sentry_report_page.dart';
-
 enum ErrorItemState {
-  suggestReportIssue,
+  getReport,
   report,
   thanks,
   close,
@@ -50,27 +50,22 @@ ErrorEvent? translateError(Object exception) {
   } else if (exception is CameraException) {
     return ErrorEvent(null, "Enable camera",
         "QR code scanning requires camera access.", ErrorItemState.camera);
-  } else if (exception is TezartNodeError || exception is TezartHttpError) {
-    return ErrorEvent(
-        exception,
-        "Uh oh!",
-        "Cannot connect to the Tezos node at the moment.\nPlease try later.",
-        ErrorItemState.suggestReportIssue);
   } else if (exception is PlatformException) {
     switch (exception.code) {
       case 'invalidDeeplink':
-        return ErrorEvent(exception, "Uh oh!", "The link is not valid",
-            ErrorItemState.suggestReportIssue);
+        return ErrorEvent(
+            exception, "😵", "The link is not valid", ErrorItemState.close);
       default:
         break;
     }
   }
 
   return ErrorEvent(
-      exception,
-      "Uh oh!",
-      "Autonomy has encountered an unexpected problem. Please report the issue so that we can work on a fix.",
-      ErrorItemState.suggestReportIssue);
+    exception,
+    "😵",
+    "Autonomy has encountered an unexpected problem. We have automatically filed a crash report, and we will look into it. If you require further support or want to tell us more about the issue, please tap the button below.",
+    ErrorItemState.getReport,
+  );
 }
 
 DateTime? isShowErrorDialogWorking;
@@ -178,10 +173,12 @@ void showErrorDiablog(
     case ErrorItemState.close:
       defaultButton = "CLOSE";
       break;
-    case ErrorItemState.suggestReportIssue:
-      defaultButton = "REPORT ISSUE";
-      cancelButton = "IGNORE";
+
+    case ErrorItemState.getReport:
+      defaultButton = "GET SUPPORT";
+      cancelButton = "CONTINUE";
       break;
+
     case ErrorItemState.tryAgain:
       defaultButton = "TRY AGAIN";
       break;
@@ -204,7 +201,7 @@ void showErrorDiablog(
 }
 
 void showErrorDialogFromException(Object exception,
-    {StackTrace? stackTrace, String? library}) {
+    {StackTrace? stackTrace, String? library}) async {
   final context = injector<NavigationService>().navigatorKey.currentContext;
 
   if (exception is PlatformException) {
@@ -233,12 +230,24 @@ void showErrorDialogFromException(Object exception,
   final event = translateError(exception);
 
   if (context != null && event != null) {
-    showErrorDiablog(
-      context,
-      event,
-      defaultAction: () => Navigator.of(context).pushNamed(SentryReportPage.tag,
-          arguments: {"exception": exception, "stackTrace": stackTrace}),
-    );
+    if (event.state == ErrorItemState.getReport) {
+      final sentryID = await reportSentry(
+          {"exception": exception, "stackTrace": stackTrace});
+      showErrorDiablog(
+        context,
+        event,
+        defaultAction: () => Navigator.of(context).pushNamed(
+          AppRouter.supportThreadPage,
+          arguments: ExceptionErrorPayload(sentryID: sentryID),
+        ),
+      );
+    } else {
+      showErrorDiablog(
+        context,
+        event,
+        defaultAction: null,
+      );
+    }
   }
 }
 

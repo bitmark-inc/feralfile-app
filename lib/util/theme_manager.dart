@@ -28,6 +28,7 @@ class AuThemeManager {
   final ThemeData sheetTheme = ThemeData(
     backgroundColor: Colors.black,
     primaryColor: Colors.white,
+    disabledColor: Color(0xFF999999),
     textTheme: ThemeData.light().textTheme.copyWith(
           headline1: appTextTheme.headline1?.copyWith(color: Colors.white),
           headline2: appTextTheme.headline2?.copyWith(color: Colors.white),
