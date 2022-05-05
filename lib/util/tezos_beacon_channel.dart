@@ -126,7 +126,7 @@ class TezosBeaconChannel {
                 final String? gasLimit = element["gasLimit"];
                 final String? fee = element["fee"];
                 final String? entrypoint = element["entrypoint"];
-                final Map<String, dynamic> parameters =
+                final dynamic parameters =
                     json.decode(json.encode(element["parameters"]));
 
                 operations.add(TransactionOperation(
