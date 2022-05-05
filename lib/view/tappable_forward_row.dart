@@ -20,21 +20,24 @@ class TappableForwardRow extends StatelessWidget {
   }
 
   Widget _contentRow() {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        leftWidget ?? SizedBox(),
-        Row(
-          children: [
-            rightWidget ?? SizedBox(),
-            if (onTap != null) ...[
-              SizedBox(width: 8.0),
-              SvgPicture.asset('assets/images/iconForward.svg'),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          leftWidget ?? SizedBox(),
+          Row(
+            children: [
+              rightWidget ?? SizedBox(),
+              if (onTap != null) ...[
+                SizedBox(width: 8.0),
+                SvgPicture.asset('assets/images/iconForward.svg'),
+              ],
             ],
-          ],
-        )
-      ],
+          )
+        ],
+      ),
     );
   }
 }
