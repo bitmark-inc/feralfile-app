@@ -73,14 +73,12 @@ class _AccountsViewState extends State<AccountsView> {
                             ),
                             child: Column(
                               children: [
-                                SizedBox(height: 16),
                                 if (_editingAccountKey == null ||
                                     _editingAccountKey != account.key) ...[
                                   _viewAccountItem(account),
                                 ] else ...[
                                   _editAccountItem(account),
                                 ],
-                                SizedBox(height: 16),
                               ],
                             )),
                         Divider(

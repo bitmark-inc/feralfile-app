@@ -143,15 +143,13 @@ class _LinkLedgerPageState extends State<LinkLedgerPage> {
     return ListView.separated(
         shrinkWrap: true,
         itemBuilder: ((context, index) {
-          return Container(
-              padding: EdgeInsets.symmetric(vertical: 16),
-              child: TappableForwardRow(
-                leftWidget: Text(
-                  list[index].name,
-                  style: appTextTheme.bodyText1,
-                ),
-                onTap: () => _onDeviceTap(context, list[index]),
-              ));
+          return TappableForwardRow(
+            leftWidget: Text(
+              list[index].name,
+              style: appTextTheme.bodyText1,
+            ),
+            onTap: () => _onDeviceTap(context, list[index]),
+          );
         }),
         separatorBuilder: (context, index) => Divider(),
         itemCount: list.length);

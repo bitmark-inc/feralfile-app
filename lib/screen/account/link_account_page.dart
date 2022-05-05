@@ -74,8 +74,8 @@ class _LinkAccountPageState extends State<LinkAccountPage>
                   style: appTextTheme.bodyText1),
               SizedBox(height: 24),
               _bitmarkLinkView(context),
-              addDivider(),
-              SizedBox(height: 24),
+              addOnlyDivider(),
+              SizedBox(height: 40),
               _ethereumLinkView(context),
               SizedBox(height: 40),
               _tezosLinkView(context),
@@ -94,9 +94,6 @@ class _LinkAccountPageState extends State<LinkAccountPage>
         Text(
           "BITMARK",
           style: appTextTheme.headline4,
-        ),
-        SizedBox(
-          height: 16,
         ),
         TappableForwardRow(
             leftWidget: Row(
@@ -122,7 +119,7 @@ class _LinkAccountPageState extends State<LinkAccountPage>
           style: appTextTheme.headline4,
         ),
         SizedBox(
-          height: 20,
+          height: 4,
         ),
         TappableForwardRow(
           leftWidget: Row(
@@ -137,7 +134,7 @@ class _LinkAccountPageState extends State<LinkAccountPage>
               arguments: WalletApp.MetaMask.toString()),
         ),
         _linkLedger("Ethereum"),
-        addDivider(),
+        addOnlyDivider(),
         TappableForwardRow(
             leftWidget: Row(
               children: [
@@ -176,7 +173,7 @@ class _LinkAccountPageState extends State<LinkAccountPage>
             onTap: () => Navigator.of(context).pushNamed(
                 AppRouter.accessMethodPage,
                 arguments: WalletApp.Kukai.toString())),
-        addDivider(),
+        addOnlyDivider(),
         TappableForwardRow(
             leftWidget: Row(
               children: [
@@ -189,7 +186,7 @@ class _LinkAccountPageState extends State<LinkAccountPage>
                 AppRouter.accessMethodPage,
                 arguments: WalletApp.Temple.toString())),
         _linkLedger("Tezos"),
-        addDivider(),
+        addOnlyDivider(),
         TappableForwardRow(
             leftWidget: Row(
               children: [
@@ -210,7 +207,7 @@ class _LinkAccountPageState extends State<LinkAccountPage>
   Widget _linkLedger(String blockchain) {
     return Column(
       children: [
-        addDivider(),
+        addOnlyDivider(),
         TappableForwardRow(
             leftWidget: Row(
               children: [

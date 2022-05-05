@@ -46,9 +46,9 @@ class _LinkAppOptionsPageState extends State<LinkAppOptionsPage> {
               ),
               addTitleSpace(),
               _mobileAppOnThisDeviceOptionWidget(context),
-              addDivider(),
+              addOnlyDivider(),
               _browserExtensionOptionWidget(context),
-              addDivider(),
+              addOnlyDivider(),
             ]),
           ))
         ]),

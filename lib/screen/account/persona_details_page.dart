@@ -188,7 +188,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
           style: appTextTheme.headline1,
         ),
         SizedBox(
-          height: 24,
+          height: 8,
         ),
         Column(
           children: [
@@ -213,7 +213,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
                         ));
               },
             ),
-            addDivider(),
+            addOnlyDivider(),
             BlocBuilder<TezosBloc, TezosState>(
               builder: (context, state) {
                 final tezosAddress = state.personaAddresses?[uuid];
@@ -237,7 +237,6 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
             ),
           ],
         ),
-        SizedBox(height: 16),
       ],
     );
   }
@@ -288,7 +287,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
         style: appTextTheme.headline1,
       ),
       SizedBox(
-        height: 24,
+        height: 8,
       ),
       TappableForwardRow(
           leftWidget: Text(
