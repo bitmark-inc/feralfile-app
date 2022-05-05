@@ -17,6 +17,12 @@ abstract class CloudDatabase extends FloorDatabase {
   PersonaDao get personaDao;
   ConnectionDao get connectionDao;
   AuditDao get auditDao;
+
+  Future<dynamic> removeAll() async {
+    await personaDao.removeAll();
+    await connectionDao.removeAll();
+    await auditDao.removeAll();
+  }
 }
 
 final migrateCloudV1ToV2 = Migration(1, 2, (database) async {

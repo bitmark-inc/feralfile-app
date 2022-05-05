@@ -3,11 +3,13 @@ import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/connection/accounts_view.dart';
+import 'package:autonomy_flutter/screen/settings/forget_exist/forget_exist_bloc.dart';
+import 'package:autonomy_flutter/screen/settings/forget_exist/forget_exist_view.dart';
 import 'package:autonomy_flutter/screen/settings/networks/select_network_page.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_view.dart';
-import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_view.dart';
 import 'package:autonomy_flutter/service/cloud_service.dart';
@@ -154,6 +156,17 @@ class _SettingsPageState extends State<SettingsPage>
                       : "Main network", () async {
                 await Navigator.of(context).pushNamed(SelectNetworkPage.tag);
               }),
+              SizedBox(height: 40.0),
+              Text(
+                "Data privacy",
+                style: appTextTheme.headline1,
+              ),
+              SizedBox(height: 24.0),
+              _settingItem(context, "Forget I exist", "",
+                  () => _showForgetIExistDialog()),
+              Text(
+                  'Erase all information about me and delete my keys from my cloud backup.',
+                  style: appTextTheme.bodyText1),
               SizedBox(height: 56),
               Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
                 if (_packageInfo != null)
@@ -248,5 +261,22 @@ class _SettingsPageState extends State<SettingsPage>
             );
           }
         });
+  }
+
+  void _showForgetIExistDialog() {
+    UIHelper.showDialog(
+      context,
+      "Forget I exist",
+      BlocProvider(
+        create: (_) => ForgetExistBloc(
+            injector(),
+            injector(),
+            injector<NetworkConfigInjector>().mainnetInjector(),
+            injector<NetworkConfigInjector>().testnetInjector(),
+            injector()),
+        child: ForgetExistView(),
+      ),
+      isDismissible: false,
+    );
   }
 }

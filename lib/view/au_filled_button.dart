@@ -7,12 +7,14 @@ class AuFilledButton extends StatelessWidget {
   final Function()? onPress;
   final Color color;
   final TextStyle? textStyle;
+  final bool isProcessing;
 
   const AuFilledButton(
       {Key? key,
       required this.text,
       required this.onPress,
       this.color = Colors.black,
+      this.isProcessing = false,
       this.textStyle})
       : super(key: key);
 
@@ -27,9 +29,26 @@ class AuFilledButton extends StatelessWidget {
               borderRadius: BorderRadius.zero,
             ),
             padding: const EdgeInsets.symmetric(vertical: 14)),
-        child: Text(
-          text.toUpperCase(),
-          style: textStyle ?? appTextTheme.button,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            isProcessing
+                ? Container(
+                    child: CircularProgressIndicator(
+                      color: Colors.black,
+                      backgroundColor: Colors.grey,
+                      strokeWidth: 2.0,
+                    ),
+                    height: 14.0,
+                    width: 14.0,
+                    margin: EdgeInsets.only(right: 8.0),
+                  )
+                : SizedBox(),
+            Text(
+              text.toUpperCase(),
+              style: textStyle ?? appTextTheme.button,
+            ),
+          ],
         ),
         onPressed: onPress,
       ),
