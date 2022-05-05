@@ -30,31 +30,6 @@ Future<String> reportSentry(Map payload) async {
   return sentryId.toString();
 }
 
-Future reportRenderingIssue(String tokenID, List<String> issuedTopics) async {
-  final title = "[RenderingIssue] Token $tokenID";
-
-  final deviceID = await getDeviceID();
-
-  SentryId sentryId =
-      await Sentry.captureMessage(title + " $deviceID", withScope: (scope) {
-    _addAttachment(scope);
-    scope.fingerprint = [tokenID + issuedTopics.join(",")];
-    scope.setTag("issuedToken", tokenID);
-    for (var topic in issuedTopics) {
-      var topicTag = topic
-          .replaceAll("(", "")
-          .replaceAll(')', ""); // invalid character in tag
-      scope.setTag("issuedTopics-$topicTag", 'true');
-    }
-  });
-
-  final message =
-      "Issues Token: $tokenID \n Issued Topics: ${issuedTopics.join(', ')}";
-  final feedback = SentryUserFeedback(eventId: sentryId, comments: message);
-
-  Sentry.captureUserFeedback(feedback);
-}
-
 Future _addAttachment(Scope scope) async {
   final logFilePath = await getLatestLogFile();
   final attachment =

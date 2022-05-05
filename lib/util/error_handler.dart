@@ -54,7 +54,7 @@ ErrorEvent? translateError(Object exception) {
     switch (exception.code) {
       case 'invalidDeeplink':
         return ErrorEvent(
-            exception, "Uh oh!", "The link is not valid", ErrorItemState.close);
+            exception, "😵", "The link is not valid", ErrorItemState.close);
       default:
         break;
     }
@@ -62,7 +62,7 @@ ErrorEvent? translateError(Object exception) {
 
   return ErrorEvent(
     exception,
-    "Uh oh!",
+    "😵",
     "Autonomy has encountered an unexpected problem. We have automatically filed a crash report, and we will look into it. If you require further support or want to tell us more about the issue, please tap the button below.",
     ErrorItemState.getReport,
   );
