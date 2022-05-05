@@ -184,7 +184,7 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
                   .map((connectionItem) => Column(
                         children: [
                           _connectionItemWidget(connectionItem),
-                          addDivider(),
+                          addOnlyDivider(),
                         ],
                       ))
                   .toList(),

@@ -120,6 +120,13 @@ Divider addDivider() {
   );
 }
 
+Divider addOnlyDivider() {
+  return Divider(
+    height: 1.0,
+    thickness: 1.0,
+  );
+}
+
 Divider addDialogDivider({double height = 32}) {
   return Divider(
     height: height,
