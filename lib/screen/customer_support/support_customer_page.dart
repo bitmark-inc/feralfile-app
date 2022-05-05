@@ -75,7 +75,7 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
   Widget _reportItemsWidget(BuildContext context) {
     return Column(
       children: [
-        ...ReportIssueType.getList.map((item) {
+        ...ReportIssueType.getSuggestList.map((item) {
           return Column(
             children: [
               TappableForwardRow(

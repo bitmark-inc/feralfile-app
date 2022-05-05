@@ -56,6 +56,7 @@ class ReportIssueType {
 
   static List<String> get getList =>
       [Feature, Bug, Feedback, Other, Exception, ReportNFTIssue];
+  static List<String> get getSuggestList => [Feature, Bug, Feedback, Other];
 
   static String toTitle(String item) {
     switch (item) {
