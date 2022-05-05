@@ -53,6 +53,7 @@ abstract class ConfigurationService {
 
   // Reload
   Future<void> reload();
+  Future<void> removeAll();
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
@@ -361,4 +362,10 @@ class ConfigurationServiceImpl implements ConfigurationService {
   String? getPreviousBuildNumber() {
     return _preferences.getString(KEY_PREVIOUS_BUILD_NUMBER);
   }
+
+  @override
+  Future<void> removeAll() {
+    return _preferences.clear();
+  }
+
 }

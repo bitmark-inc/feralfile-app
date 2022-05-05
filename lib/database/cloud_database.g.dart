@@ -415,6 +415,11 @@ class _$AuditDao extends AuditDao {
   }
 
   @override
+  Future<void> removeAll() async {
+    await _queryAdapter.queryNoReturn('DELETE FROM Audit');
+  }
+
+  @override
   Future<void> insertAudit(Audit audit) async {
     await _auditInsertionAdapter.insert(audit, OnConflictStrategy.replace);
   }

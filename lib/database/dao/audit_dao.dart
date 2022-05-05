@@ -12,4 +12,7 @@ abstract class AuditDao {
   @Query(
       'SELECT * FROM Audit WHERE category = (:category) AND action = (:action)')
   Future<List<Audit>> getAuditsBy(String category, String action);
+
+  @Query('DELETE FROM Audit')
+  Future<void> removeAll();
 }
