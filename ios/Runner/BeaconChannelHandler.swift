@@ -286,7 +286,7 @@ extension BeaconChannelHandler: FlutterStreamHandler {
                                     entrypoint = ""
                                 }
                                 
-                                func getParams(value: Micheline.MichelsonV1Expression) -> [String: Any] {
+                                func getParams(value: Micheline.MichelsonV1Expression) -> Any {
                                     var params: [String: Any] = [:]
 
                                     switch value {
@@ -302,14 +302,20 @@ extension BeaconChannelHandler: FlutterStreamHandler {
                                     case let .prim(prim):
                                         params["prim"] = prim.prim
                                         params["args"] = prim.args?.map({ getParams(value: $0) })
-                                    case .sequence(_):
-                                        break
+                                    case .sequence(let array):
+                                        var result = [Any]()
+                                        for mv1e in array {
+                                            result.append(getParams(value: mv1e))
+                                        }
+                                        params["bytes"] = array
+
+                                        return result
                                     }
                                     
                                     return params
                                 }
                                 
-                                let params: [String: Any]
+                                let params: Any
                                 if let value = transaction.parameters?.value {
                                     params = getParams(value: value)
                                 } else {
