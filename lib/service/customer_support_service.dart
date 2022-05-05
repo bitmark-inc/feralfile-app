@@ -89,10 +89,6 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     }
     final submitMessage = "[MUTED]\n$mutedMessage[/MUTED]\n\n$message";
 
-    if (issueTitle.length > 170) {
-      issueTitle = issueTitle.substring(0, 170);
-    }
-
     final payload = {
       'attachments': attachments,
       'title': issueTitle,

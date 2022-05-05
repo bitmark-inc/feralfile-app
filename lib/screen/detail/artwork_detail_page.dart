@@ -9,12 +9,15 @@ import 'package:autonomy_flutter/model/provenance.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
+import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
 import 'package:autonomy_flutter/screen/detail/report_rendering_issue_widget.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/au_cached_manager.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
+import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/theme_manager.dart';
@@ -596,32 +599,26 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
 
   // MARK: REPORT RENDERING ISSUE
   void _showReportIssueDialog() {
-    final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
-    final tokenID = widget.payload.ids[widget.payload.currentIndex];
-
+    if (currentAsset == null) return;
     UIHelper.showDialog(
         context,
         "Report issue?",
         ReportRenderingIssueWidget(
-          tokenID: tokenID,
-          onReported: () {
-            UIHelper.showDialog(
-                context,
-                "Issue reported",
-                Column(
-                  children: [
-                    Text(
-                        'Thank you for helping make Autonomy better. Our support team will examine your report attentively and work to fix it.',
-                        style: theme.textTheme.bodyText1),
-                    SizedBox(height: 35),
-                    TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: Text("CLOSE",
-                            style: appTextTheme.button
-                                ?.copyWith(color: Colors.white))),
-                  ],
-                ),
-                isDismissible: true);
+          token: currentAsset!,
+          onReported: (issueID) {
+            showErrorDialog(
+              context,
+              "🤔",
+              "We have automatically filed the rendering issue, and we will look into it. If you require further support or want to tell us more about the problem, please tap the button below.",
+              "GET SUPPORT",
+              () => Navigator.of(context).pushNamed(
+                AppRouter.supportThreadPage,
+                arguments: DetailIssuePayload(
+                    reportIssueType: ReportIssueType.ReportNFTIssue,
+                    issueID: issueID),
+              ),
+              "CLOSE",
+            );
           },
         ),
         isDismissible: true);
