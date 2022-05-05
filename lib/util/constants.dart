@@ -51,8 +51,12 @@ class ReportIssueType {
   static const Bug = 'bug';
   static const Feedback = 'feedback';
   static const Other = 'other';
+  static const Exception = 'exception';
+  static const ReportNFTIssue = 'report nft issue';
 
-  static List<String> get getList => [Feature, Bug, Feedback, Other];
+  static List<String> get getList =>
+      [Feature, Bug, Feedback, Other, Exception, ReportNFTIssue];
+  static List<String> get getSuggestList => [Feature, Bug, Feedback, Other];
 
   static String toTitle(String item) {
     switch (item) {
@@ -62,6 +66,10 @@ class ReportIssueType {
         return 'Report a bug';
       case Feedback:
         return 'Share feedback';
+      case Exception:
+        return 'Report a bug';
+      case ReportNFTIssue:
+        return 'Report NFT issue';
       default:
         return 'Something else?';
     }
@@ -75,6 +83,10 @@ class ReportIssueType {
         return 'We’re sorry to hear you’ve experienced a problem using Autonomy. Thanks for taking the time to help us improve. Please describe the bug for us.';
       case Feedback:
         return 'Thanks for taking the time to share your feedback with us. What’s on your mind?';
+      case Exception:
+        return 'Thanks for taking the time to help improve Autonomy. We’ve received your automatic crash report and are looking into it. How else can we help?';
+      case ReportNFTIssue:
+        return 'Thanks for taking the time to help improve Autonomy. We’ve received your NFT issue and are looking into it. How else can we help?';
       default:
         return 'Thanks for reaching out to the Autonomy team! What’s on your mind?';
     }

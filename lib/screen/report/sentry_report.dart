@@ -3,7 +3,7 @@ import 'package:sentry/sentry_io.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:path/path.dart';
 
-Future reportSentry(Map payload, String comments) async {
+Future<String> reportSentry(Map payload) async {
   SentryId sentryId;
   if (payload["exception"] != null) {
     sentryId = await Sentry.captureException(
@@ -17,36 +17,17 @@ Future reportSentry(Map payload, String comments) async {
         await Sentry.captureMessage(deviceID ?? "", withScope: _addAttachment);
   }
 
+  /*
+  Don't send userFeedback anymore
   final feedback = SentryUserFeedback(
     eventId: sentryId,
     comments: comments,
   );
-  Sentry.captureUserFeedback(feedback);
-}
-
-Future reportRenderingIssue(String tokenID, List<String> issuedTopics) async {
-  final title = "[RenderingIssue] Token $tokenID";
-
-  final deviceID = await getDeviceID();
-
-  SentryId sentryId =
-      await Sentry.captureMessage(title + " $deviceID", withScope: (scope) {
-    _addAttachment(scope);
-    scope.fingerprint = [tokenID + issuedTopics.join(",")];
-    scope.setTag("issuedToken", tokenID);
-    for (var topic in issuedTopics) {
-      var topicTag = topic
-          .replaceAll("(", "")
-          .replaceAll(')', ""); // invalid character in tag
-      scope.setTag("issuedTopics-$topicTag", 'true');
-    }
-  });
-
-  final message =
-      "Issues Token: $tokenID \n Issued Topics: ${issuedTopics.join(', ')}";
-  final feedback = SentryUserFeedback(eventId: sentryId, comments: message);
 
   Sentry.captureUserFeedback(feedback);
+  */
+
+  return sentryId.toString();
 }
 
 Future _addAttachment(Scope scope) async {
