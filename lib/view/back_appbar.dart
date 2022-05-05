@@ -16,27 +16,31 @@ AppBar getBackAppBar(BuildContext context,
     automaticallyImplyLeading: true,
     title: Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         GestureDetector(
           behavior: HitTestBehavior.translucent,
           onTap: onBack,
-          child: Row(
-            children: [
-              if (onBack != null) ...[
-                Row(
-                  children: [
-                    SvgPicture.asset('assets/images/nav-arrow-left.svg'),
-                    SizedBox(width: 7),
-                    Text(
-                      "BACK",
-                      style: appTextTheme.caption,
-                    ),
-                  ],
-                ),
-              ] else ...[
-                SizedBox(width: 60),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(0, 7, 18, 8),
+            child: Row(
+              children: [
+                if (onBack != null) ...[
+                  Row(
+                    children: [
+                      SvgPicture.asset('assets/images/nav-arrow-left.svg'),
+                      SizedBox(width: 7),
+                      Text(
+                        "BACK",
+                        style: appTextTheme.caption,
+                      ),
+                    ],
+                  ),
+                ] else ...[
+                  SizedBox(width: 60),
+                ],
               ],
-            ],
+            ),
           ),
         ),
         Expanded(
@@ -82,7 +86,10 @@ AppBar getCloseAppBar(BuildContext context,
           behavior: HitTestBehavior.translucent,
           onTap: onBack,
           child: onBack != null
-              ? SvgPicture.asset('assets/images/iconClose.svg')
+              ? Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 7, 18, 8),
+                  child: SvgPicture.asset('assets/images/iconClose.svg'),
+                )
               : SizedBox(width: 60),
         ),
         Expanded(

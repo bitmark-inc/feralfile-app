@@ -86,7 +86,7 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
                     arguments: NewIssuePayload(reportIssueType: item)),
               ),
               if (item != ReportIssueType.Other) ...[
-                addDivider(),
+                addOnlyDivider(),
               ]
             ],
           );
@@ -118,7 +118,7 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
                       : null,
                   onTap: () => Navigator.of(context)
                       .pushNamed(AppRouter.supportListPage)),
-              addDivider(),
+              addOnlyDivider(),
             ],
           );
         });
