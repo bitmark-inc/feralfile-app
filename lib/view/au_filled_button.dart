@@ -6,6 +6,7 @@ class AuFilledButton extends StatelessWidget {
   final String text;
   final Function()? onPress;
   final Color color;
+  final bool enabled;
   final TextStyle? textStyle;
   final bool isProcessing;
 
@@ -13,6 +14,7 @@ class AuFilledButton extends StatelessWidget {
       {Key? key,
       required this.text,
       required this.onPress,
+      this.enabled = true,
       this.color = Colors.black,
       this.isProcessing = false,
       this.textStyle})
@@ -51,7 +53,7 @@ class AuFilledButton extends StatelessWidget {
             ),
           ],
         ),
-        onPressed: onPress,
+        onPressed: enabled ? onPress : null,
       ),
     );
   }

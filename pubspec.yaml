@@ -104,6 +104,7 @@ dependencies:
   webview_flutter: ^3.0.0
   cast: ^1.1.0
   mime: ^1.0.1
+  crypto: ^3.0.2
 
 dependency_overrides:
   # Error using when import photo_view from dependencies:
@@ -180,6 +181,8 @@ flutter:
     - assets/images/sendMessageFilled.svg
     - assets/images/icloudKeychainGuide.svg
     - assets/images/chatFileIcon.png
+    - assets/images/radio_unselected.svg
+    - assets/images/radio_selected.svg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

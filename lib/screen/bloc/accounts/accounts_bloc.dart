@@ -1,8 +1,10 @@
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
+import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -201,6 +203,12 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
 
       _cloudDB.connectionDao.insertConnection(connection);
       emit(state.setEvent(LinkAccountSuccess(connection)));
+
+      injector<AWSService>().storeEventWithDeviceData(
+        "link_ledger",
+        data: {"blockchain": event.blockchain},
+        hashingData: {"address": event.address},
+      );
 
       add(GetAccountsEvent());
     });

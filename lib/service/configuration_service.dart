@@ -46,6 +46,8 @@ abstract class ConfigurationService {
   String getReadReleaseNotesVersion();
   String? getPreviousBuildNumber();
   Future<void> setPreviousBuildNumber(String value);
+  List<String> getFinishedSurveys();
+  Future<void> setFinishedSurvey(String surveyName);
 
   // ----- App Setting -----
   bool isDemoArtworksMode();
@@ -74,6 +76,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
       'hidden_linked_accounts_in_gallery';
   static const String KEY_READ_RELEASE_NOTES_VERSION =
       'read_release_notes_version';
+  static const String KEY_FINISHED_SURVEYS = "finished_surveys";
 
   // keys for WalletConnect dapp side
   static const String KEY_WC_DAPP_SESSION = "wc_dapp_store";
@@ -364,8 +367,19 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
+  List<String> getFinishedSurveys() {
+    return _preferences.getStringList(KEY_FINISHED_SURVEYS) ?? [];
+  }
+
+  @override
+  Future<void> setFinishedSurvey(String surveyName) {
+    var finishedSurveys = getFinishedSurveys();
+    finishedSurveys.add(surveyName);
+    return _preferences.setStringList(KEY_FINISHED_SURVEYS, finishedSurveys);
+  }
+
+  @override
   Future<void> removeAll() {
     return _preferences.clear();
   }
-
 }

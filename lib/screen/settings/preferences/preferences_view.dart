@@ -1,4 +1,5 @@
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/github_doc.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_state.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -49,12 +50,33 @@ class PreferenceView extends StatelessWidget {
               },
             ),
             addDivider(),
-            _preferenceItem(
+            _preferenceItemWithBuilder(
               context,
               "Notifications",
-              "Receive alerts about your transactions and other activities in your wallet.",
-              state.isNotificationEnabled,
-              (value) {
+              description: (context) => Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Contribute anonymized, aggregate usage data to help improve Autonomy.",
+                    style: appTextTheme.bodyText1,
+                  ),
+                  SizedBox(height: 10),
+                  GestureDetector(
+                      child: Text("Learn how we anonymize your data...",
+                          textAlign: TextAlign.left,
+                          style: appTextTheme.bodyText1
+                              ?.copyWith(decoration: TextDecoration.underline)),
+                      onTap: () => Navigator.of(context).pushNamed(
+                            GithubDocPage.tag,
+                            arguments: {
+                              "document": "protect_your_usage_data.md",
+                              "title": "How we protect your usage data"
+                            },
+                          )),
+                ],
+              ),
+              isEnabled: state.isNotificationEnabled,
+              onChanged: (value) {
                 final newState = state.copyWith(isNotificationEnabled: value);
                 context
                     .read<PreferencesBloc>()
@@ -118,6 +140,32 @@ class PreferenceView extends StatelessWidget {
             description,
             style: appTextTheme.bodyText1,
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _preferenceItemWithBuilder(BuildContext context, String title,
+      {bool isEnabled = false,
+      WidgetBuilder? description,
+      ValueChanged<bool>? onChanged}) {
+    return Container(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(title, style: appTextTheme.headline4),
+              CupertinoSwitch(
+                value: isEnabled,
+                onChanged: onChanged,
+                activeColor: Colors.black,
+              )
+            ],
+          ),
+          SizedBox(height: 7),
+          if (description != null) description(context),
         ],
       ),
     );

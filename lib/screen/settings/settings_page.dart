@@ -273,6 +273,7 @@ class _SettingsPageState extends State<SettingsPage>
             injector(),
             injector<NetworkConfigInjector>().mainnetInjector(),
             injector<NetworkConfigInjector>().testnetInjector(),
+            injector(),
             injector()),
         child: ForgetExistView(),
       ),
