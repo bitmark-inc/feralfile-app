@@ -82,7 +82,8 @@ class AWSService {
   }
 
   Future<void> storeEventWithDeviceData(String name,
-      {Map<String, dynamic> data = const {}}) async {
+      {Map<String, dynamic> data = const {},
+      Map<String, dynamic> hashingData = const {}}) async {
     if (_configurationService.isAnalyticsEnabled() == false) {
       return;
     }
@@ -96,6 +97,12 @@ class AWSService {
     additionalData["platform"] = Platform.operatingSystem;
     additionalData["version"] = _packageInfo?.version ?? "unknown";
     additionalData["internal_build"] = _isAppcenterBuild;
+
+    final hashedData = hashingData.map((key, value) =>
+        MapEntry(key, sha224.convert(utf8.encode(value)).toString()));
+    additionalData.addAll(hashedData);
+
+    log.info("store event: $name, data: $additionalData");
 
     await _recordFirehoseEvent(additionalData);
   }

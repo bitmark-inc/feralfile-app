@@ -6,6 +6,7 @@ import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/model/p2p_peer.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
+import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
@@ -55,6 +56,8 @@ class AccountService {
     await _cloudDB.personaDao.insertPersona(persona);
     await androidBackupKeys();
     await _auditService.audiPersonaAction('import', persona);
+    injector<AWSService>().storeEventWithDeviceData("create_full_account",
+        hashingData: {"id": uuid});
 
     return persona;
   }
@@ -129,12 +132,17 @@ class AccountService {
     } catch (exception) {
       Sentry.captureException(exception);
     }
+
+    injector<AWSService>().storeEventWithDeviceData("delete_full_account",
+        hashingData: {"id": persona.uuid});
   }
 
   Future deleteLinkedAccount(Connection connection) async {
     await _cloudDB.connectionDao
         .deleteConnectionsByAccountNumber(connection.accountNumber);
     await setHideLinkedAccountInGallery(connection.accountNumber, false);
+    injector<AWSService>().storeEventWithDeviceData("delete_linked_account",
+        hashingData: {"address": connection.accountNumber});
   }
 
   Future linkManuallyAddress(String address) async {
@@ -172,6 +180,8 @@ class AccountService {
     }
 
     await _cloudDB.connectionDao.insertConnection(connection);
+    injector<AWSService>().storeEventWithDeviceData("link_eth_wallet",
+        hashingData: {"address": connection.accountNumber});
     return connection;
   }
 
@@ -192,6 +202,8 @@ class AccountService {
     );
 
     await _cloudDB.connectionDao.insertConnection(connection);
+    injector<AWSService>().storeEventWithDeviceData("link_eth_wallet_browser",
+        hashingData: {"address": connection.accountNumber});
     return connection;
   }
 
@@ -209,6 +221,8 @@ class AccountService {
 
   Future setHideLinkedAccountInGallery(String address, bool isEnabled) async {
     _configurationService.setHideLinkedAccountInGallery(address, isEnabled);
+    injector<AWSService>().storeEventWithDeviceData("hide_linked_account",
+        hashingData: {"address": address});
   }
 
   Future androidBackupKeys() async {
