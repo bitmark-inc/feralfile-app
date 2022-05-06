@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dar
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
+import 'package:autonomy_flutter/screen/survey/survey.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
@@ -79,6 +80,7 @@ class _HomePageState extends State<HomePage>
   void afterFirstLayout(BuildContext context) {
     _cloudBackup();
     _handleForeground();
+    Future.delayed(Duration(seconds: 1), _handleShowingSurveys);
   }
 
   @override
@@ -429,5 +431,21 @@ class _HomePageState extends State<HomePage>
     injector<TokensService>().disposeIsolate();
     _deeplinkSubscription?.pause();
     _cloudBackup();
+  }
+
+  void _handleShowingSurveys() {
+    const onboardingSurveyKey = "onboarding_survey";
+
+    final finishedSurveys =
+        injector<ConfigurationService>().getFinishedSurveys();
+    if (finishedSurveys.contains(onboardingSurveyKey)) {
+      return;
+    }
+
+    showCustomNotifications(
+        "Take a 1-minute survey and be entered to win a Feral File artwork",
+        Key(onboardingSurveyKey),
+        notificationOpenedHandler: () =>
+            Navigator.of(context).pushNamed(SurveyPage.tag, arguments: null));
   }
 }

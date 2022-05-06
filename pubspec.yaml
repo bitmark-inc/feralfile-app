@@ -180,6 +180,8 @@ flutter:
     - assets/images/sendMessageFilled.svg
     - assets/images/icloudKeychainGuide.svg
     - assets/images/chatFileIcon.png
+    - assets/images/radio_unselected.svg
+    - assets/images/radio_selected.svg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

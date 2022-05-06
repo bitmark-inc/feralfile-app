@@ -8,22 +8,33 @@ import 'package:overlay_support/src/overlay_state_finder.dart';
 
 Widget _notificationToast(OSNotification notification,
     {Function(OSNotification notification)? notificationOpenedHandler}) {
+  return _simpleNotificationToast(
+      notification.body ?? "", Key(notification.notificationId),
+      notificationOpenedHandler: () {
+    if (notificationOpenedHandler != null) {
+      notificationOpenedHandler(notification);
+    }
+  });
+}
+
+Widget _simpleNotificationToast(String notification, Key key,
+    {Function()? notificationOpenedHandler}) {
   return ClipPath(
       clipper: AutonomyButtonClipper(),
       child: ConstrainedBox(
           constraints: BoxConstraints(minHeight: 68),
           child: GestureDetector(
               onTap: () {
-                hideOverlay(Key(notification.notificationId));
+                hideOverlay(key);
                 if (notificationOpenedHandler != null)
-                  notificationOpenedHandler(notification);
+                  notificationOpenedHandler();
               },
               child: Container(
                 color: Colors.black.withOpacity(0.8),
                 padding: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
                 child: Center(
                     child: Text(
-                  notification.body?.toUpperCase() ?? "",
+                  notification,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                       color: Colors.white,
@@ -44,6 +55,19 @@ void showNotifications(OSNotification notification,
       elevation: 0,
       autoDismiss: true,
       key: Key(notification.notificationId),
+      slideDismissDirection: DismissDirection.up);
+  Vibrate.feedback(FeedbackType.warning);
+}
+
+void showCustomNotifications(String notification, Key key,
+    {Function()? notificationOpenedHandler}) {
+  showSimpleNotification(
+      _simpleNotificationToast(notification, key,
+          notificationOpenedHandler: notificationOpenedHandler),
+      background: Colors.transparent,
+      elevation: 0,
+      autoDismiss: false,
+      key: key,
       slideDismissDirection: DismissDirection.up);
   Vibrate.feedback(FeedbackType.warning);
 }
