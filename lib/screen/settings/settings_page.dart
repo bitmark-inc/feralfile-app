@@ -271,9 +271,9 @@ class _SettingsPageState extends State<SettingsPage>
         create: (_) => ForgetExistBloc(
             injector(),
             injector(),
+            injector(),
             injector<NetworkConfigInjector>().mainnetInjector(),
             injector<NetworkConfigInjector>().testnetInjector(),
-            injector(),
             injector()),
         child: ForgetExistView(),
       ),
