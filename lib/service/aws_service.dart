@@ -2,22 +2,30 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:aws_firehose_api/firehose-2015-08-04.dart';
 import 'package:aws_cognito_identity_api/cognito-identity-2014-06-30.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:crypto/crypto.dart';
 
 class AWSService {
   static const region = 'us-east-1';
   static const deliveryStream = 'autonomy-analytic-data-stream';
   final _cognitoService = CognitoIdentity(region: region);
   ConfigurationService _configurationService;
+  AccountService _accountService;
   PackageInfo? _packageInfo;
   Firehose? _firehoseService;
 
-  AWSService(this._configurationService);
+  AWSService(this._configurationService, this._accountService);
+
+  late String _hashedUserID;
+  late String _hashedDeviceID;
+  late bool _isAppcenterBuild;
 
   Future<void> initServices() async {
     // get an identity id from pool
@@ -45,6 +53,13 @@ class AWSService {
       }
 
       _packageInfo = await PackageInfo.fromPlatform();
+      _isAppcenterBuild = await isAppCenterBuild();
+
+      final defaultDID =
+          await (await _accountService.getDefaultAccount()).getAccountDID();
+      final deviceID = await getDeviceID() ?? "unknown";
+      _hashedUserID = sha224.convert(utf8.encode(defaultDID)).toString();
+      _hashedDeviceID = sha224.convert(utf8.encode(deviceID)).toString();
     }
   }
 
@@ -75,10 +90,12 @@ class AWSService {
     var additionalData = new Map<String, dynamic>.from(data);
 
     additionalData["name"] = name;
-    additionalData["device_id"] = await getDeviceID() ?? "unknown";
+    additionalData["user_id"] = _hashedUserID;
+    additionalData["device_id"] = _hashedDeviceID;
     additionalData["timestamp"] = DateTime.now().millisecondsSinceEpoch;
     additionalData["platform"] = Platform.operatingSystem;
     additionalData["version"] = _packageInfo?.version ?? "unknown";
+    additionalData["internal_build"] = _isAppcenterBuild;
 
     await _recordFirehoseEvent(additionalData);
   }

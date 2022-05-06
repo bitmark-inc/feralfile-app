@@ -109,7 +109,7 @@ Future<void> setup() async {
 
   injector.registerLazySingleton(() => Client());
   injector.registerLazySingleton(() => NavigationService());
-  injector.registerLazySingleton(() => AWSService(injector()));
+  injector.registerLazySingleton(() => AWSService(injector(), injector()));
   injector.registerLazySingleton(() => LedgerHardwareService());
 
   injector.registerLazySingleton(
