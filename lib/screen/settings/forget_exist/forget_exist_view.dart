@@ -21,9 +21,61 @@ class ForgetExistView extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              "• This action is irrevocable. It will completely delete all cryptographic keys and other data managed by Autonomy from your device and your device’s cloud backup. Autonomy will not be able to help you recover your deleted keys or data.\n• Linked accounts will be disconnected from Autonomy but not affected in any other way. You will continue to manage your keys in their respective wallets.\n• If you have an active subscription to Autonomy, you will need to manually cancel it in your device’s account settings.",
-              style: theme.textTheme.bodyText1,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "• ",
+                  style: theme.textTheme.bodyText1,
+                ),
+                Expanded(
+                  child: RichText(
+                    text: TextSpan(
+                      style: theme.textTheme.bodyText1,
+                      children: <TextSpan>[
+                        TextSpan(
+                            text: "This action is irrevocable.",
+                            style:
+                                const TextStyle(fontWeight: FontWeight.bold)),
+                        TextSpan(
+                          text:
+                              " Your accounts and data from your device and your cloud backup will be deleted. Autonomy will not be able to help you recover access.",
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "• ",
+                  style: theme.textTheme.bodyText1,
+                ),
+                Expanded(
+                  child: Text(
+                    "This will not affect private keys of linked accounts",
+                    style: theme.textTheme.bodyText1,
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "• ",
+                  style: theme.textTheme.bodyText1,
+                ),
+                Expanded(
+                  child: Text(
+                    "If you have an active subscription, you will need to manually cancel it in your device’s settings.",
+                    style: theme.textTheme.bodyText1,
+                  ),
+                ),
+              ],
             ),
             SizedBox(
               height: 16,
@@ -37,7 +89,6 @@ class ForgetExistView extends StatelessWidget {
                   value: state.isChecked,
                   shape: CircleBorder(),
                   onChanged: (bool? value) {
-                    print(value);
                     context
                         .read<ForgetExistBloc>()
                         .add(UpdateCheckEvent(value ?? false));
@@ -48,7 +99,7 @@ class ForgetExistView extends StatelessWidget {
                 ),
                 Expanded(
                     child: Text(
-                  "I understand that deleted accounts and keys are not recoverable and that I can’t undo this action.",
+                  "I understand that this action cannot be undone.",
                   style: TextStyle(
                       color: Colors.white,
                       fontSize: 12,
@@ -62,10 +113,14 @@ class ForgetExistView extends StatelessWidget {
               height: 40,
             ),
             AuFilledButton(
-              text: "CONFIRM",
-              onPress: () => context
-                  .read<ForgetExistBloc>()
-                  .add(ConfirmForgetExistEvent()),
+              text: state.isProcessing == true ? "FORGETTING…" : "CONFIRM",
+              onPress: state.isProcessing == null && state.isChecked
+                  ? () {
+                      context
+                          .read<ForgetExistBloc>()
+                          .add(ConfirmForgetExistEvent());
+                    }
+                  : null,
               color: theme.primaryColor,
               isProcessing: state.isProcessing == true,
               textStyle: TextStyle(
