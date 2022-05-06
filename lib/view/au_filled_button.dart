@@ -29,6 +29,7 @@ class AuFilledButton extends StatelessWidget {
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
             primary: enabled ? color : disabledColor,
+            onSurface: color,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.zero,
             ),
