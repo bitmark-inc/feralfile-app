@@ -43,6 +43,7 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_page.dart';
+import 'package:autonomy_flutter/screen/github_doc.dart';
 import 'package:autonomy_flutter/screen/global_receive/receive_detail_page.dart';
 import 'package:autonomy_flutter/screen/global_receive/receive_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
@@ -691,6 +692,12 @@ class AppRouter {
       case SurveyThankyouPage.tag:
         return CupertinoPageRoute(
             settings: settings, builder: (context) => SurveyThankyouPage());
+
+      case GithubDocPage.tag:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => GithubDocPage(
+                payload: settings.arguments as Map<String, String>));
 
       default:
         throw Exception('Invalid route: ${settings.name}');
