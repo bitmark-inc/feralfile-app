@@ -6,6 +6,8 @@ class AuFilledButton extends StatelessWidget {
   final String text;
   final Function()? onPress;
   final Color color;
+  final Color disabledColor;
+  final bool enabled;
   final TextStyle? textStyle;
   final bool isProcessing;
 
@@ -13,8 +15,10 @@ class AuFilledButton extends StatelessWidget {
       {Key? key,
       required this.text,
       required this.onPress,
+      this.enabled = true,
       this.color = Colors.black,
       this.isProcessing = false,
+      this.disabledColor = AppColorTheme.secondarySpanishGrey,
       this.textStyle})
       : super(key: key);
 
@@ -24,7 +28,7 @@ class AuFilledButton extends StatelessWidget {
       clipper: AutonomyButtonClipper(),
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-            primary: color,
+            primary: enabled ? color : disabledColor,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.zero,
             ),
@@ -50,7 +54,7 @@ class AuFilledButton extends StatelessWidget {
             ),
           ],
         ),
-        onPressed: onPress,
+        onPressed: enabled ? onPress : null,
       ),
     );
   }
