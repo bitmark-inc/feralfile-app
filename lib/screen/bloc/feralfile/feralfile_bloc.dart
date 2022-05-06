@@ -1,8 +1,10 @@
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/network.dart';
+import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -101,7 +103,8 @@ class FeralfileBloc extends Bloc<FeralFileEvent, FeralFileState> {
             if (code == null) rethrow;
 
             final apiError = getAPIErrorCode(code);
-            if (apiError == APIErrorCode.ffNotConnected || apiError == APIErrorCode.notLoggedIn) {
+            if (apiError == APIErrorCode.ffNotConnected ||
+                apiError == APIErrorCode.notLoggedIn) {
               emit(state.setEvent(FFNotConnected()));
               return;
             }
@@ -128,6 +131,11 @@ class FeralfileBloc extends Bloc<FeralFileEvent, FeralFileState> {
         }
 
         final connection = Connection.fromFFToken(ffToken, source, ffAccount);
+
+        injector<AWSService>().storeEventWithDeviceData(
+          "link_feralfile",
+          hashingData: {"address": ffAccount.accountNumber},
+        );
 
         _cloudDB.connectionDao.insertConnection(connection);
         emit(state.setEvent(LinkAccountSuccess(connection)));
