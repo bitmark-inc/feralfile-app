@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ffi';
 import 'dart:isolate';
 
 import 'package:autonomy_flutter/common/app_config.dart';
@@ -17,20 +18,29 @@ import 'package:dio/dio.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:uuid/uuid.dart';
 
-class TokensService {
+abstract class TokensService {
+  Future fetchTokensForAddresses(List<String> addresses);
+  Future<Stream<int>> refreshTokensInIsolate(List<String> addresses);
+  Future insertAssetsWithProvenance(List<Asset> assets);
+  Future<List<Asset>> fetchLatestAssets(List<String> addresses, int size);
+  void disposeIsolate();
+  Future purgeCachedGallery();
+}
+
+class TokensServiceImpl extends TokensService {
   NetworkConfigInjector _networkConfigInjector;
   ConfigurationService _configurationService;
 
   static const REFRESH_ALL_TOKENS = '_refreshAllTokens';
   static const FETCH_TOKENS = '_fetchTokens';
 
-  TokensService(this._networkConfigInjector, this._configurationService);
+  TokensServiceImpl(this._networkConfigInjector, this._configurationService);
 
   SendPort? _sendPort;
   ReceivePort? _receivePort;
   Isolate? _isolate;
   var _isolateReady = Completer<void>();
-  Completer<void>? _refreshAllTokensWorker;
+  StreamController<int>? _refreshAllTokensWorker;
   List<String>? _currentAddresses;
   Map<String, Completer<void>> _fetchTokensCompleters = {};
   Future<void> get isolateReady => _isolateReady.future;
@@ -59,11 +69,21 @@ class TokensService {
     log.info("[TokensService][disposeIsolate] Done");
   }
 
-  Future<void> refreshTokensInIsolate(List<String> addresses) async {
+  Future purgeCachedGallery() async {
+    disposeIsolate();
+    final hiddenAssets = await _assetDao.findAllHiddenAssets();
+    final hiddenIds = hiddenAssets.map((e) => e.id).toList();
+
+    _configurationService.updateTempStorageHiddenTokenIDs(hiddenIds, true);
+    _configurationService.setLatestRefreshTokens(null);
+    await _assetDao.removeAll();
+  }
+
+  Future<Stream<int>> refreshTokensInIsolate(List<String> addresses) async {
     if (_currentAddresses != null) {
       if (_currentAddresses?.join(",") == addresses.join(",")) {
         log.info("[refreshTokensInIsolate] skip because worker is running");
-        return _refreshAllTokensWorker?.future;
+        return _refreshAllTokensWorker!.stream;
       } else {
         log.info("[refreshTokensInIsolate] kill the obsolete worker");
         disposeIsolate();
@@ -81,14 +101,10 @@ class TokensService {
         .I<AppDatabase>()
         .assetDao
         .deleteAssetsNotIn(tokenIDs);
-    await _networkConfigInjector
-        .I<AppDatabase>()
-        .provenanceDao
-        .deleteProvenanceNotBelongs(tokenIDs);
 
     final dbTokenIDs = (await _assetDao.findAllAssetTokenIDs()).toSet();
 
-    _refreshAllTokensWorker = Completer();
+    _refreshAllTokensWorker = StreamController<int>();
     _currentAddresses = addresses;
 
     _sendPort?.send([
@@ -100,7 +116,7 @@ class TokensService {
     ]);
     log.info("[REFRESH_ALL_TOKENS][start]");
 
-    return _refreshAllTokensWorker!.future;
+    return _refreshAllTokensWorker!.stream;
   }
 
   String get _indexerURL =>
@@ -120,15 +136,22 @@ class TokensService {
     List<AssetToken> tokens = [];
     List<Provenance> provenance = [];
 
+    final dbHiddenAssets = await _assetDao.findAllHiddenAssets();
+    final dbHiddenIds = dbHiddenAssets.map((e) => e.id).toList();
+
+    final hiddenAsseIDs =
+        _configurationService.getTempStorageHiddenTokenIDs() + dbHiddenIds;
+
     for (var asset in assets) {
-      tokens.add(AssetToken.fromAsset(asset));
+      var token = AssetToken.fromAsset(asset);
+      if (hiddenAsseIDs.contains(token.id)) {
+        token.hidden = 1;
+      }
+      tokens.add(token);
       provenance.addAll(asset.provenance);
     }
 
-    final hiddenAssets = await _assetDao.findAllHiddenAssets();
-    final hiddenIds = hiddenAssets.map((e) => e.id).toList();
     await _assetDao.insertAssets(tokens);
-    await _assetDao.updateHiddenAssets(hiddenIds);
 
     await _networkConfigInjector
         .I<AppDatabase>()
@@ -184,10 +207,13 @@ class TokensService {
             log.info(
                 "[REFRESH_ALL_TOKENS] receive ${result.assets.length} tokens");
 
-            if (result.done) {
+            if (!result.done) {
+              _refreshAllTokensWorker?.sink.add(1);
+            } else {
               _configurationService.setLatestRefreshTokens(DateTime.now());
-              _refreshAllTokensWorker?.complete();
+              _refreshAllTokensWorker?.close();
               disposeIsolate();
+              _configurationService.removeTempStorageHiddenTokenIDs();
               log.info("[REFRESH_ALL_TOKENS][end]");
             }
           } else if (result is FetchTokenFailure) {
