@@ -17,6 +17,8 @@ class HomeConnectTZEvent extends HomeEvent {
 
 class RefreshTokensEvent extends HomeEvent {}
 
+class SubRefreshTokensEvent extends HomeEvent {}
+
 class ReindexIndexerEvent extends HomeEvent {}
 
 class HomeState {
