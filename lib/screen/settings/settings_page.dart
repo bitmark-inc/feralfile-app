@@ -1,3 +1,4 @@
+import 'package:autonomy_flutter/common/app_config.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
@@ -26,6 +27,7 @@ import 'package:autonomy_flutter/view/penrose_top_bar_view.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
@@ -103,6 +105,8 @@ class _SettingsPageState extends State<SettingsPage>
                   SizedBox(height: 24),
                   Text(
                       'Autonomy accounts are full, multi-chain accounts. Linked accounts link to single-chain accounts from other wallets.',
+                      style: appTextTheme.bodyText1),
+                  Text(Environment.indexerMainnetURL,
                       style: appTextTheme.bodyText1),
                   SizedBox(height: 16),
                   Row(

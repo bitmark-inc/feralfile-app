@@ -20,6 +20,32 @@ jobs:
         run: |
           echo "FLUTTER_VERSION_NAME=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
           echo "FLUTTER_VERSION_CODE=$(( ${{ github.run_number}} + 9 ))" >> $GITHUB_ENV
+      - name: Create env file
+        uses: SpicyPizza/create-envfile@v1.3
+        with:
+          envkey_INDEXER_MAINNET_API_URL: ${{ secrets.INDEXER_MAINNET_API_URL }}
+          envkey_INDEXER_TESTNET_API_URL: ${{ secrets.INDEXER_TESTNET_API_URL }}
+          envkey_WEB3_RPC_MAINNET_URL: ${{ secrets.WEB3_RPC_MAINNET_URL }}
+          envkey_WEB3_RPC_TESTNET_URL: ${{ secrets.WEB3_RPC_TESTNET_URL }}
+          envkey_TEZOS_NODE_CLIENT_MAINNET_URL: ${{ secrets.TEZOS_NODE_CLIENT_MAINNET_URL }}
+          envkey_TEZOS_NODE_CLIENT_TESTNET_URL: ${{ secrets.TEZOS_NODE_CLIENT_TESTNET_URL }}
+          envkey_BITMARK_API_MAINNET_URL: ${{ secrets.BITMARK_API_MAINNET_URL }}
+          envkey_BITMARK_API_TESTNET_URL: ${{ secrets.BITMARK_API_TESTNET_URL }}
+          envkey_FERAL_FILE_API_MAINNET_URL: ${{ secrets.FERAL_FILE_API_MAINNET_URL }}
+          envkey_FERAL_FILE_API_TESTNET_URL: ${{ secrets.FERAL_FILE_API_TESTNET_URL }}
+          envkey_EXTENSION_SUPPORT_MAINNET_URL: ${{ secrets.EXTENSION_SUPPORT_MAINNET_URL }}
+          envkey_EXTENSION_SUPPORT_TESTNET_URL: ${{ secrets.EXTENSION_SUPPORT_TESTNET_URL }}
+          envkey_CONNECT_WEBSOCKET_MAINNET_URL: ${{ secrets.CONNECT_WEBSOCKET_MAINNET_URL }}
+          envkey_CONNECT_WEBSOCKET_TESTNET_URL: ${{ secrets.CONNECT_WEBSOCKET_TESTNET_URL }}
+          envkey_AUTONOMY_AUTH_URL: ${{ secrets.AUTONOMY_AUTH_DEV_URL }}
+          envkey_CUSTOMER_SUPPORT_URL: ${{ secrets.CUSTOMER_SUPPORT_DEV_URL }}
+          envkey_CURRENCY_EXCHANGE_URL: ${{ secrets.CURRENCY_EXCHANGE_URL }}
+          envkey_AUTONOMY_PUBDOC_URL: ${{ secrets.AUTONOMY_PUBDOC_URL }}
+          envkey_FERAL_FILE_AUTHORIZATION_PREFIX: ${{ secrets.FERAL_FILE_AUTHORIZATION_PREFIX }}
+          envkey_SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          envkey_ONESIGNAL_APP_ID: ${{ secrets.ONESIGNAL_DEV_APP_ID }}
+          file_name: .env
+
       - run: flutter pub get
       - run: flutter build apk --flavor inhouse
       - name: upload artifact to App Center
