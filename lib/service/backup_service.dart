@@ -76,7 +76,7 @@ class BackupService {
 
     String? deviceId = await getBackupId();
 
-    final endpoint = await AppConfig.autonomyAuthURL;
+    final endpoint = Environment.autonomyAuthURL;
     final response = await http.get(
         Uri.parse(
             "$endpoint/apis/v1/premium/profile-data?filename=$filename&appVersion=$version"),

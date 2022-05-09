@@ -27,45 +27,43 @@ class NetworkConfigInjector {
       AppDatabase testnetDB, AppDatabase mainnetDB) {
     //Test network
     testnetInjector.registerLazySingleton(
-        () => Web3Client(AppConfig.testNetworkConfig.web3RpcUrl, injector()));
+        () => Web3Client(Environment.web3RpcTestnetURL, injector()));
     testnetInjector.registerLazySingleton(
-        () => TezartClient(AppConfig.testNetworkConfig.tezosNodeClientUrl));
-    testnetInjector.registerLazySingleton<FeralFileApi>(() => FeralFileApi(_dio,
-        baseUrl: AppConfig.testNetworkConfig.feralFileApiUrl));
-    testnetInjector.registerLazySingleton<BitmarkApi>(() =>
-        BitmarkApi(_dio, baseUrl: AppConfig.testNetworkConfig.bitmarkApiUrl));
-    testnetInjector.registerLazySingleton<IndexerApi>(() => IndexerApi(
-        _dioHTTP2,
-        baseUrl: AppConfig.testNetworkConfig.indexerApiUrl));
+        () => TezartClient(Environment.tezosNodeClientTestnetURL));
+    testnetInjector.registerLazySingleton<FeralFileApi>(
+        () => FeralFileApi(_dio, baseUrl: Environment.feralFileAPITestnetURL));
+    testnetInjector.registerLazySingleton<BitmarkApi>(
+        () => BitmarkApi(_dio, baseUrl: Environment.bitmarkAPITestnetURL));
+    testnetInjector.registerLazySingleton<IndexerApi>(
+        () => IndexerApi(_dioHTTP2, baseUrl: Environment.indexerTestnetURL));
 
     testnetInjector.registerLazySingleton<EthereumService>(
         () => EthereumServiceImpl(testnetInjector()));
     testnetInjector.registerLazySingleton<TezosService>(
         () => TezosServiceImpl(testnetInjector()));
     testnetInjector.registerLazySingleton<AppDatabase>(() => testnetDB);
-    testnetInjector.registerLazySingleton<FeralFileService>(() =>
-        FeralFileServiceImpl(testnetInjector()));
+    testnetInjector.registerLazySingleton<FeralFileService>(
+        () => FeralFileServiceImpl(testnetInjector()));
 
     //Main network
     mainnetInjector.registerLazySingleton(
-        () => Web3Client(AppConfig.mainNetworkConfig.web3RpcUrl, injector()));
+        () => Web3Client(Environment.web3RpcMainnetURL, injector()));
     mainnetInjector.registerLazySingleton(
-        () => TezartClient(AppConfig.mainNetworkConfig.tezosNodeClientUrl));
-    mainnetInjector.registerLazySingleton<FeralFileApi>(() => FeralFileApi(_dio,
-        baseUrl: AppConfig.mainNetworkConfig.feralFileApiUrl));
-    mainnetInjector.registerLazySingleton<BitmarkApi>(() =>
-        BitmarkApi(_dio, baseUrl: AppConfig.mainNetworkConfig.bitmarkApiUrl));
-    mainnetInjector.registerLazySingleton<IndexerApi>(() => IndexerApi(
-        _dioHTTP2,
-        baseUrl: AppConfig.mainNetworkConfig.indexerApiUrl));
+        () => TezartClient(Environment.tezosNodeClientMainnetURL));
+    mainnetInjector.registerLazySingleton<FeralFileApi>(
+        () => FeralFileApi(_dio, baseUrl: Environment.feralFileAPIMainnetURL));
+    mainnetInjector.registerLazySingleton<BitmarkApi>(
+        () => BitmarkApi(_dio, baseUrl: Environment.bitmarkAPIMainnetURL));
+    mainnetInjector.registerLazySingleton<IndexerApi>(
+        () => IndexerApi(_dioHTTP2, baseUrl: Environment.indexerMainnetURL));
 
     mainnetInjector.registerLazySingleton<EthereumService>(
         () => EthereumServiceImpl(mainnetInjector()));
     mainnetInjector.registerLazySingleton<TezosService>(
         () => TezosServiceImpl(mainnetInjector()));
     mainnetInjector.registerLazySingleton<AppDatabase>(() => mainnetDB);
-    mainnetInjector.registerLazySingleton<FeralFileService>(() =>
-        FeralFileServiceImpl(mainnetInjector()));
+    mainnetInjector.registerLazySingleton<FeralFileService>(
+        () => FeralFileServiceImpl(mainnetInjector()));
   }
 
   GetIt get I => _configurationService.getNetwork() == Network.MAINNET

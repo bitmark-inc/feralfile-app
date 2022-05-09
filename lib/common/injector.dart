@@ -25,7 +25,6 @@ import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_dapp_service/wallet_connect_dapp_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/au_cached_manager.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
 import 'package:dio/dio.dart';
 import 'package:sentry_dio/sentry_dio.dart';
@@ -125,9 +124,8 @@ Future<void> setup() async {
   injector.registerLazySingleton(() => AccountService(
       cloudDB, injector(), injector(), injector(), auditService));
 
-  final autonomyAuthURL = await AppConfig.autonomyAuthURL;
   injector.registerLazySingleton(
-      () => IAPApi(authenticatedDio, baseUrl: autonomyAuthURL));
+      () => IAPApi(authenticatedDio, baseUrl: Environment.autonomyAuthURL));
   injector.registerLazySingleton(
       () => AuthService(injector(), injector(), injector()));
   injector.registerLazySingleton(() => BackupService(injector(), injector()));
@@ -137,16 +135,16 @@ Future<void> setup() async {
   injector
       .registerLazySingleton(() => TezosBeaconService(injector(), injector()));
   injector.registerLazySingleton<CurrencyExchangeApi>(
-      () => CurrencyExchangeApi(dio));
+      () => CurrencyExchangeApi(dio, baseUrl: Environment.currencyExchangeURL));
   injector.registerLazySingleton<CurrencyService>(
       () => CurrencyServiceImpl(injector()));
-  injector.registerLazySingleton(
-      () => VersionService(PubdocAPI(dio), injector(), injector()));
+  injector.registerLazySingleton(() => VersionService(
+      PubdocAPI(dio, baseUrl: Environment.pubdocURL), injector(), injector()));
 
-  final customerSupportURL = await AppConfig.customerSupportURL;
   injector.registerLazySingleton<CustomerSupportService>(
       () => CustomerSupportServiceImpl(
-            CustomerSupportApi(authenticatedDio, baseUrl: customerSupportURL),
+            CustomerSupportApi(authenticatedDio,
+                baseUrl: Environment.customerSupportURL),
           ));
 
   injector.registerLazySingleton<AuditService>(() => auditService);
