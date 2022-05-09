@@ -15,6 +15,12 @@ class _IndexerApi implements IndexerApi {
 
   String? baseUrl;
 
+  Network get _networkFromBaseURL {
+    return baseUrl?.contains("test") ?? true
+        ? Network.TESTNET
+        : Network.MAINNET;
+  }
+
   @override
   Future<List<Asset>> getNftTokens(ids) async {
     const _extra = <String, dynamic>{};
@@ -28,7 +34,8 @@ class _IndexerApi implements IndexerApi {
                 queryParameters: queryParameters, data: _data)
             .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
     var value = _result.data!
-        .map((dynamic i) => Asset.fromJson(i as Map<String, dynamic>))
+        .map((dynamic i) =>
+            Asset.fromJson(i as Map<String, dynamic>, _networkFromBaseURL))
         .toList();
     return value;
   }
@@ -45,7 +52,8 @@ class _IndexerApi implements IndexerApi {
                 queryParameters: queryParameters, data: _data)
             .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
     var value = _result.data!
-        .map((dynamic i) => Asset.fromJson(i as Map<String, dynamic>))
+        .map((dynamic i) =>
+            Asset.fromJson(i as Map<String, dynamic>, _networkFromBaseURL))
         .toList();
     return value;
   }
@@ -66,7 +74,8 @@ class _IndexerApi implements IndexerApi {
                 queryParameters: queryParameters, data: _data)
             .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
     var value = _result.data!
-        .map((dynamic i) => Asset.fromJson(i as Map<String, dynamic>))
+        .map((dynamic i) =>
+            Asset.fromJson(i as Map<String, dynamic>, _networkFromBaseURL))
         .toList();
     return value;
   }
