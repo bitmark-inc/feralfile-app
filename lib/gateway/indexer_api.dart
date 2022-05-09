@@ -1,5 +1,6 @@
 import 'package:autonomy_flutter/model/asset.dart';
 import 'package:autonomy_flutter/model/identity.dart';
+import 'package:autonomy_flutter/model/network.dart';
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 

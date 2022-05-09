@@ -3,7 +3,11 @@ import 'package:floor/floor.dart';
 
 @Entity(tableName: 'Provenance', foreignKeys: [
   ForeignKey(
-      childColumns: ['tokenID'], parentColumns: ['id'], entity: AssetToken),
+    childColumns: ['tokenID'],
+    parentColumns: ['id'],
+    entity: AssetToken,
+    onDelete: ForeignKeyAction.cascade,
+  )
 ], indices: [
   Index(value: ['tokenID'])
 ])

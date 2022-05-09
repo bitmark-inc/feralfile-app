@@ -61,7 +61,10 @@ Future<void> setup() async {
     migrateV2ToV3,
     migrateV3ToV4,
     migrateV4ToV5,
-    migrateV5ToV6
+    migrateV5ToV6,
+    migrateV6ToV7,
+    migrateV7ToV8,
+    migrateV8ToV9,
   ]).build();
 
   final mainnetDB = await $FloorAppDatabase
@@ -71,7 +74,10 @@ Future<void> setup() async {
     migrateV2ToV3,
     migrateV3ToV4,
     migrateV4ToV5,
-    migrateV5ToV6
+    migrateV5ToV6,
+    migrateV6ToV7,
+    migrateV7ToV8,
+    migrateV8ToV9,
   ]).build();
 
   final cloudDB = await $FloorCloudDatabase
@@ -151,8 +157,8 @@ Future<void> setup() async {
   injector.registerLazySingleton(() =>
       NetworkConfigInjector(injector(), dio, dioHTTP2, testnetDB, mainnetDB));
 
-  injector.registerLazySingleton(
-      () => TokensService(injector<NetworkConfigInjector>(), injector()));
+  injector.registerLazySingleton<TokensService>(
+      () => TokensServiceImpl(injector<NetworkConfigInjector>(), injector()));
 }
 
 // Must be top-level function

@@ -35,6 +35,9 @@ abstract class ConfigurationService {
   Future<void> setHideLinkedAccountInGallery(String address, bool isEnabled);
   List<String> getLinkedAccountsHiddenInGallery();
   bool isLinkedAccountHiddenInGallery(String value);
+  List<String> getTempStorageHiddenTokenIDs();
+  Future updateTempStorageHiddenTokenIDs(List<String> tokenID, bool isAdd);
+  Future removeTempStorageHiddenTokenIDs();
   bool matchFeralFileSourceInNetwork(String source);
   Future<void> setWCDappSession(String? value);
   String? getWCDappSession();
@@ -74,6 +77,10 @@ class ConfigurationServiceImpl implements ConfigurationService {
       'hidden_personas_in_gallery';
   static const String KEY_HIDDEN_LINKED_ACCOUNTS_IN_GALLERY =
       'hidden_linked_accounts_in_gallery';
+  static const String KEY_TEMP_STORAGE_HIDDEN_TOKEN_IDS_MAINNET =
+      'temp_storage_hidden_token_ids_mainnet';
+  static const String KEY_TEMP_STORAGE_HIDDEN_TOKEN_IDS_TESTNET =
+      'temp_storage_hidden_token_ids_testnet';
   static const String KEY_READ_RELEASE_NOTES_VERSION =
       'read_release_notes_version';
   static const String KEY_FINISHED_SURVEYS = "finished_surveys";
@@ -85,7 +92,10 @@ class ConfigurationServiceImpl implements ConfigurationService {
   // ----- App Setting -----
   static const String KEY_APP_SETTING_DEMO_ARTWORKS =
       "show_demo_artworks_preference";
-  static const String KEY_LASTEST_REFRESH_TOKENS = "latest_refresh_tokens_3";
+  static const String KEY_LASTEST_REFRESH_TOKENS_MAINNET =
+      "latest_refresh_tokens_mainnet";
+  static const String KEY_LASTEST_REFRESH_TOKENS_TESTNET =
+      "latest_refresh_tokens_testnet";
   static const String KEY_PREVIOUS_BUILD_NUMBER = "previous_build_number";
 
   SharedPreferences _preferences;
@@ -276,6 +286,34 @@ class ConfigurationServiceImpl implements ConfigurationService {
     return hiddenLinkedAccounts.contains(value);
   }
 
+  List<String> getTempStorageHiddenTokenIDs() {
+    final key = getNetwork() == Network.MAINNET
+        ? KEY_TEMP_STORAGE_HIDDEN_TOKEN_IDS_MAINNET
+        : KEY_TEMP_STORAGE_HIDDEN_TOKEN_IDS_TESTNET;
+    return _preferences.getStringList(key) ?? [];
+  }
+
+  Future updateTempStorageHiddenTokenIDs(
+      List<String> tokenIDs, bool isAdd) async {
+    final key = getNetwork() == Network.MAINNET
+        ? KEY_TEMP_STORAGE_HIDDEN_TOKEN_IDS_MAINNET
+        : KEY_TEMP_STORAGE_HIDDEN_TOKEN_IDS_TESTNET;
+    var tempHiddenTokenIDs = _preferences.getStringList(key) ?? [];
+
+    isAdd
+        ? tempHiddenTokenIDs.addAll(tokenIDs)
+        : tempHiddenTokenIDs
+            .removeWhere((element) => tokenIDs.contains(element));
+    await _preferences.setStringList(key, tempHiddenTokenIDs);
+  }
+
+  Future removeTempStorageHiddenTokenIDs() {
+    final key = getNetwork() == Network.MAINNET
+        ? KEY_TEMP_STORAGE_HIDDEN_TOKEN_IDS_MAINNET
+        : KEY_TEMP_STORAGE_HIDDEN_TOKEN_IDS_TESTNET;
+    return _preferences.remove(key);
+  }
+
   @override
   bool matchFeralFileSourceInNetwork(String source) {
     final network = getNetwork();
@@ -343,17 +381,25 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
   @override
   DateTime? getLatestRefreshTokens() {
-    final time = _preferences.getInt(KEY_LASTEST_REFRESH_TOKENS);
+    final key = getNetwork() == Network.MAINNET
+        ? KEY_LASTEST_REFRESH_TOKENS_MAINNET
+        : KEY_LASTEST_REFRESH_TOKENS_TESTNET;
+    final time = _preferences.getInt(key);
+
     if (time == null) return null;
     return DateTime.fromMillisecondsSinceEpoch(time);
   }
 
   Future<bool> setLatestRefreshTokens(DateTime? value) {
+    final key = getNetwork() == Network.MAINNET
+        ? KEY_LASTEST_REFRESH_TOKENS_MAINNET
+        : KEY_LASTEST_REFRESH_TOKENS_TESTNET;
+
     if (value == null) {
-      return _preferences.remove(KEY_LASTEST_REFRESH_TOKENS);
+      return _preferences.remove(key);
     }
-    return _preferences.setInt(
-        KEY_LASTEST_REFRESH_TOKENS, value.millisecondsSinceEpoch);
+
+    return _preferences.setInt(key, value.millisecondsSinceEpoch);
   }
 
   @override
