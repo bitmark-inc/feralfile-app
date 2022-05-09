@@ -219,7 +219,7 @@ class TokensServiceImpl extends TokensService {
           } else if (result is FetchTokenFailure) {
             Sentry.captureException(result.exception);
             disposeIsolate();
-            log.info("[REFRESH_ALL_TOKENS] end in error");
+            log.info("[REFRESH_ALL_TOKENS] end in error ${result.exception}");
           }
           break;
 
@@ -236,7 +236,7 @@ class TokensServiceImpl extends TokensService {
           } else if (result is FetchTokenFailure) {
             Sentry.captureException(result.exception);
             disposeIsolate();
-            log.info("[FETCH_TOKENS] end in error");
+            log.info("[FETCH_TOKENS] end in error ${result.exception}");
           }
 
           break;

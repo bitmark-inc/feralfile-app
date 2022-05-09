@@ -12,6 +12,7 @@ class AssetToken {
   String? baseCurrency;
   String blockchain;
   String? contractType;
+  String? blockchainURL;
   String? desc;
   int edition;
   @primaryKey
@@ -29,32 +30,32 @@ class AssetToken {
   DateTime lastActivityTime;
   int? hidden;
 
-  AssetToken({
-    required this.artistName,
-    required this.artistURL,
-    required this.assetData,
-    required this.assetID,
-    required this.assetURL,
-    required this.basePrice,
-    required this.baseCurrency,
-    required this.blockchain,
-    required this.contractType,
-    required this.desc,
-    required this.edition,
-    required this.id,
-    required this.maxEdition,
-    required this.medium,
-    required this.mintedAt,
-    required this.previewURL,
-    required this.source,
-    required this.sourceURL,
-    required this.thumbnailURL,
-    required this.galleryThumbnailURL,
-    required this.title,
-    required this.ownerAddress,
-    required this.lastActivityTime,
-    this.hidden
-  });
+  AssetToken(
+      {required this.artistName,
+      required this.artistURL,
+      required this.assetData,
+      required this.assetID,
+      required this.assetURL,
+      required this.basePrice,
+      required this.baseCurrency,
+      required this.blockchain,
+      required this.contractType,
+      required this.blockchainURL,
+      required this.desc,
+      required this.edition,
+      required this.id,
+      required this.maxEdition,
+      required this.medium,
+      required this.mintedAt,
+      required this.previewURL,
+      required this.source,
+      required this.sourceURL,
+      required this.thumbnailURL,
+      required this.galleryThumbnailURL,
+      required this.title,
+      required this.ownerAddress,
+      required this.lastActivityTime,
+      this.hidden});
 
   factory AssetToken.fromAsset(Asset asset) => AssetToken(
         artistName: asset.projectMetadata.latest.artistName,
@@ -66,6 +67,7 @@ class AssetToken {
         baseCurrency: asset.projectMetadata.latest.baseCurrency,
         blockchain: asset.blockchain,
         contractType: asset.contractType,
+        blockchainURL: asset.blockchainURL,
         desc: asset.projectMetadata.latest.description,
         edition: asset.edition,
         id: asset.id,
