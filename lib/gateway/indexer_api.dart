@@ -6,7 +6,7 @@ import 'package:retrofit/retrofit.dart';
 
 part 'indexer_api.g.dart';
 
-@RestApi(baseUrl: "https://nft-indexer.test.bitmark.com/")
+@RestApi(baseUrl: "")
 abstract class IndexerApi {
   factory IndexerApi(Dio dio, {String baseUrl}) = _IndexerApi;
 

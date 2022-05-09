@@ -7,9 +7,7 @@ part of 'indexer_api.dart';
 // **************************************************************************
 
 class _IndexerApi implements IndexerApi {
-  _IndexerApi(this._dio, {this.baseUrl}) {
-    baseUrl ??= 'https://nft-indexer.test.bitmark.com/';
-  }
+  _IndexerApi(this._dio, {this.baseUrl});
 
   final Dio _dio;
 

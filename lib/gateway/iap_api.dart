@@ -7,7 +7,7 @@ import 'package:retrofit/retrofit.dart';
 
 part 'iap_api.g.dart';
 
-@RestApi(baseUrl: "https://autonomy-auth.test.bitmark.com")
+@RestApi(baseUrl: "")
 abstract class IAPApi {
   static const authenticationPath = "/apis/v1/auth";
 

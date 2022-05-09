@@ -4,7 +4,7 @@ import 'package:retrofit/retrofit.dart';
 
 part 'customer_support_api.g.dart';
 
-@RestApi(baseUrl: "https://support.test.autonomy.io")
+@RestApi(baseUrl: "")
 abstract class CustomerSupportApi {
   factory CustomerSupportApi(Dio dio, {String baseUrl}) = _CustomerSupportApi;
 

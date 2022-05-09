@@ -5,7 +5,7 @@ import 'package:retrofit/retrofit.dart';
 
 part 'feralfile_api.g.dart';
 
-@RestApi(baseUrl: "https://feralfile1.dev.bitmark.com/")
+@RestApi(baseUrl: "")
 abstract class FeralFileApi {
   factory FeralFileApi(Dio dio, {String baseUrl}) = _FeralFileApi;
 

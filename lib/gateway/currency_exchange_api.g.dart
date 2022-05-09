@@ -7,9 +7,7 @@ part of 'currency_exchange_api.dart';
 // **************************************************************************
 
 class _CurrencyExchangeApi implements CurrencyExchangeApi {
-  _CurrencyExchangeApi(this._dio, {this.baseUrl}) {
-    baseUrl ??= 'https://api.coinbase.com';
-  }
+  _CurrencyExchangeApi(this._dio, {this.baseUrl});
 
   final Dio _dio;
 

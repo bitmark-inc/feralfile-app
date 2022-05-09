@@ -6,8 +6,7 @@ import 'package:retrofit/retrofit.dart';
 
 part 'pubdoc_api.g.dart';
 
-@RestApi(
-    baseUrl: "https://raw.githubusercontent.com/bitmark-inc/autonomy-apps/main")
+@RestApi(baseUrl: "")
 abstract class PubdocAPI {
   factory PubdocAPI(Dio dio, {String baseUrl}) = _PubdocAPI;
 

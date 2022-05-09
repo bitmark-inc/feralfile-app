@@ -2,17 +2,19 @@ import 'dart:async';
 import 'dart:isolate';
 import 'dart:ui';
 
+import 'package:autonomy_flutter/common/app_config.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/au_cached_manager.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -21,12 +23,13 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
-import 'package:overlay_support/overlay_support.dart';
 
 void main() async {
+  await dotenv.load(
+      fileName: kReleaseMode ? ".env.production" : ".env.development");
+
   await SentryFlutter.init((options) {
-    options.dsn =
-        'https://3327d497b7324d2e9824c88bec2235e2@o142150.ingest.sentry.io/6088804';
+    options.dsn = Environment.sentryDSN;
     // Set tracesSampleRate to 1.0 to capture 100% of transactions for performance monitoring.
     // We recommend adjusting this value in production.
     options.tracesSampleRate = 1.0;
@@ -46,7 +49,7 @@ void main() async {
     AUCacheManager().setup();
 
     OneSignal.shared.setLogLevel(OSLogLevel.error, OSLogLevel.error);
-    OneSignal.shared.setAppId(await getOneSignalAppID());
+    OneSignal.shared.setAppId(Environment.onesignalAppID);
 
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
       statusBarColor: Colors.white,

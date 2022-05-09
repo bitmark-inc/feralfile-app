@@ -17,12 +17,6 @@ Future<String> getDemoAccount() async {
   return await isAppCenterBuild() ? "demo" : "demo2";
 }
 
-Future<String> getOneSignalAppID() async {
-  return await isAppCenterBuild()
-      ? "d7a33375-97d4-45b8-8e45-09e3ce0aa25b"
-      : "60c6ff6b-b7af-44ad-b924-5e674e7d54c4";
-}
-
 Future<String> getAppVariant() async {
   return await isAppCenterBuild() ? "inhouse" : "production";
 }

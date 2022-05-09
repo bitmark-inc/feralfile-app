@@ -7,10 +7,7 @@ part of 'pubdoc_api.dart';
 // **************************************************************************
 
 class _PubdocAPI implements PubdocAPI {
-  _PubdocAPI(this._dio, {this.baseUrl}) {
-    baseUrl ??=
-        'https://raw.githubusercontent.com/bitmark-inc/autonomy-apps/main';
-  }
+  _PubdocAPI(this._dio, {this.baseUrl});
 
   final Dio _dio;
 

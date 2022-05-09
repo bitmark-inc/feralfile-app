@@ -7,9 +7,7 @@ part of 'bitmark_api.dart';
 // **************************************************************************
 
 class _BitmarkApi implements BitmarkApi {
-  _BitmarkApi(this._dio, {this.baseUrl}) {
-    baseUrl ??= 'https://api.test.bitmark.com/';
-  }
+  _BitmarkApi(this._dio, {this.baseUrl});
 
   final Dio _dio;
 

@@ -4,7 +4,7 @@ import 'package:retrofit/retrofit.dart';
 
 part 'currency_exchange_api.g.dart';
 
-@RestApi(baseUrl: "https://api.coinbase.com")
+@RestApi(baseUrl: "")
 abstract class CurrencyExchangeApi {
   factory CurrencyExchangeApi(Dio dio, {String baseUrl}) = _CurrencyExchangeApi;
 

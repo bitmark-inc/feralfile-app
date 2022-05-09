@@ -7,9 +7,7 @@ part of 'customer_support_api.dart';
 // **************************************************************************
 
 class _CustomerSupportApi implements CustomerSupportApi {
-  _CustomerSupportApi(this._dio, {this.baseUrl}) {
-    baseUrl ??= 'https://support.test.autonomy.io';
-  }
+  _CustomerSupportApi(this._dio, {this.baseUrl});
 
   final Dio _dio;
 

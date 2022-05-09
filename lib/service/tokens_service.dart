@@ -121,8 +121,8 @@ class TokensServiceImpl extends TokensService {
 
   String get _indexerURL =>
       _configurationService.getNetwork() == Network.MAINNET
-          ? AppConfig.mainNetworkConfig.indexerApiUrl
-          : AppConfig.testNetworkConfig.indexerApiUrl;
+          ? Environment.indexerMainnetURL
+          : Environment.indexerTestnetURL;
 
   Future<List<Asset>> fetchLatestAssets(
       List<String> addresses, int size) async {

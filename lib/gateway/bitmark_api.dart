@@ -4,7 +4,7 @@ import 'package:retrofit/retrofit.dart';
 
 part 'bitmark_api.g.dart';
 
-@RestApi(baseUrl: "https://api.test.bitmark.com/")
+@RestApi(baseUrl: "")
 abstract class BitmarkApi {
   factory BitmarkApi(Dio dio, {String baseUrl}) = _BitmarkApi;
 

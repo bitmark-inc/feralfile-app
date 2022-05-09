@@ -7,9 +7,7 @@ part of 'iap_api.dart';
 // **************************************************************************
 
 class _IAPApi implements IAPApi {
-  _IAPApi(this._dio, {this.baseUrl}) {
-    baseUrl ??= 'https://autonomy-auth.test.bitmark.com';
-  }
+  _IAPApi(this._dio, {this.baseUrl});
 
   final Dio _dio;
 
