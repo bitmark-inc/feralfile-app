@@ -1,5 +1,6 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/common/network_config_injector.dart';
+import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -14,12 +15,15 @@ import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart'
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_view.dart';
 import 'package:autonomy_flutter/service/cloud_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/tokens_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
+import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_outlined_button.dart';
 import 'package:autonomy_flutter/view/eula_privacy.dart';
 import 'package:autonomy_flutter/view/penrose_top_bar_view.dart';
+import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -158,15 +162,29 @@ class _SettingsPageState extends State<SettingsPage>
               }),
               SizedBox(height: 40.0),
               Text(
-                "Data privacy",
+                "Data management",
                 style: appTextTheme.headline1,
               ),
               SizedBox(height: 24.0),
-              _settingItem(context, "Forget I exist", "",
-                  () => _showForgetIExistDialog()),
-              Text(
-                  'Erase all information about me and delete my keys from my cloud backup.',
-                  style: appTextTheme.bodyText1),
+              TappableForwardRowWithContent(
+                  leftWidget: Text(
+                    'Rebuild metadata',
+                    style: appTextTheme.headline4,
+                  ),
+                  bottomWidget: Text(
+                      'Clear local cache and re-download all artwork metadata.',
+                      style: appTextTheme.bodyText1),
+                  onTap: () => _showRebuildGalleryDialog()),
+              addDivider(),
+              TappableForwardRowWithContent(
+                  leftWidget: Text(
+                    'Forget I exist',
+                    style: appTextTheme.headline4,
+                  ),
+                  bottomWidget: Text(
+                      'Erase all information about me and delete my keys from my cloud backup.',
+                      style: appTextTheme.bodyText1),
+                  onTap: () => _showForgetIExistDialog()),
               SizedBox(height: 56),
               Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
                 if (_packageInfo != null)
@@ -278,6 +296,23 @@ class _SettingsPageState extends State<SettingsPage>
         child: ForgetExistView(),
       ),
       isDismissible: false,
+    );
+  }
+
+  void _showRebuildGalleryDialog() {
+    showErrorDialog(
+      context,
+      "Rebuild metadata",
+      "This action will safely clear local cache and\nre-download all artwork metadata. We recommend only doing this if instructed to do so by customer support to resolve a problem.",
+      "REBUILD",
+      () async {
+        await injector<TokensService>().purgeCachedGallery();
+
+        Navigator.of(context).popUntil((route) =>
+            route.settings.name == AppRouter.homePage ||
+            route.settings.name == AppRouter.homePageNoTransition);
+      },
+      "CANCEL",
     );
   }
 }
