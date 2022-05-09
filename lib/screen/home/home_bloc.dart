@@ -31,6 +31,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       _networkConfigInjector.I<AppDatabase>().provenanceDao;
   IndexerApi get _indexerApi => _networkConfigInjector.I<IndexerApi>();
 
+  List<String> _hiddenOwners = [];
+
   Future fetchManuallyTokens() async {
     final tokenIndexerIDs = (await _cloudDB.connectionDao.getConnectionsByType(
             ConnectionType.manuallyIndexerTokenID.rawValue))
@@ -61,8 +63,16 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       _tezosBeaconService.addPeer(event.uri);
     });
 
+    on<SubRefreshTokensEvent>((event, emit) async {
+      final assetTokens =
+          await _assetTokenDao.findAllAssetTokensWhereNot(_hiddenOwners);
+      emit(state.copyWith(tokens: assetTokens));
+      log.info('[SubRefreshTokensEvent] load ${assetTokens.length} tokens');
+    });
+
     on<RefreshTokensEvent>((event, emit) async {
       log.info("[HomeBloc] RefreshTokensEvent start");
+
       try {
         late List<String> allAccountNumbers;
         if (_configurationService.isDemoArtworksMode()) {
@@ -82,21 +92,17 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
         await _assetTokenDao.deleteAssetsNotBelongs(allAccountNumbers);
 
-        final hiddenOwners = await _getHiddenAddressesInGallery();
+        _hiddenOwners = await _getHiddenAddressesInGallery();
 
-        final assetTokens =
-            await _assetTokenDao.findAllAssetTokensWhereNot(hiddenOwners);
-        emit(state.copyWith(tokens: assetTokens));
-
-        final firstTokensSize = assetTokens.isEmpty ? 20 : 50;
+        add(SubRefreshTokensEvent());
 
         final latestAssets = await _tokensService.fetchLatestAssets(
-            allAccountNumbers, firstTokensSize);
+            allAccountNumbers, INDEXER_TOKENS_MAXIMUM);
         await _tokensService.insertAssetsWithProvenance(latestAssets);
 
         log.info("[HomeBloc] fetch ${latestAssets.length} latest NFTs");
 
-        if (latestAssets.length < firstTokensSize) {
+        if (latestAssets.length < INDEXER_TOKENS_MAXIMUM) {
           // Delete obsoleted assets
           if (latestAssets.isNotEmpty) {
             final tokenIDs = latestAssets.map((e) => e.id).toList();
@@ -109,22 +115,21 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
           await fetchManuallyTokens();
 
-          emit(state.copyWith(
-              tokens: await _assetTokenDao
-                  .findAllAssetTokensWhereNot(hiddenOwners)));
+          add(SubRefreshTokensEvent());
         } else {
           await fetchManuallyTokens();
-          emit(state.copyWith(
-              tokens: await _assetTokenDao
-                  .findAllAssetTokensWhereNot(hiddenOwners)));
-          log.info("[HomeBloc] _tokensService.refreshTokensInIsolate");
+          add(SubRefreshTokensEvent());
+          log.info("[HomeBloc][start] _tokensService.refreshTokensInIsolate");
 
-          await _tokensService.refreshTokensInIsolate(allAccountNumbers);
-          log.info("[HomeBloc][end] _tokensService.refreshTokensInIsolate");
-
-          emit(state.copyWith(
-              tokens: await _assetTokenDao
-                  .findAllAssetTokensWhereNot(hiddenOwners)));
+          final stream =
+              await _tokensService.refreshTokensInIsolate(allAccountNumbers);
+          stream.listen((event) async {
+            log.info("[Stream.refreshTokensInIsolate] getEVent");
+            add(SubRefreshTokensEvent());
+          }, onDone: () async {
+            log.info("[Stream.refreshTokensInIsolate] getEVent Done");
+            add(SubRefreshTokensEvent());
+          });
         }
       } catch (exception) {
         if ((state.tokens ?? []).isEmpty) {

@@ -1,3 +1,4 @@
+import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/model/provenance.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 
@@ -8,6 +9,7 @@ class Asset {
     required this.blockchain,
     required this.mintedAt,
     required this.contractType,
+    required this.blockchainURL,
     required this.owner,
     required this.thumbnailID,
     required this.projectMetadata,
@@ -20,28 +22,61 @@ class Asset {
   String blockchain;
   DateTime mintedAt;
   String contractType;
+  String? blockchainURL;
   String owner;
   String thumbnailID;
   ProjectMetadata projectMetadata;
   DateTime lastActivityTime;
   List<Provenance> provenance;
 
-  factory Asset.fromJson(Map<String, dynamic> json) => Asset(
-        id: json["indexID"],
-        edition: json["edition"],
-        blockchain: json["blockchain"],
-        mintedAt: DateTime.parse(json["mintedAt"]),
-        contractType: json["contractType"],
-        owner: json["owner"],
-        thumbnailID: json["thumbnailID"],
-        projectMetadata: ProjectMetadata.fromJsonModified(
-            json["projectMetadata"], json["thumbnailID"]),
-        lastActivityTime: DateTime.parse(json['lastActivityTime']),
-        provenance: json["provenance"] != null
-            ? List<Provenance>.from(json["provenance"]
-                .map((x) => Provenance.fromJson(x, json["indexID"])))
-            : [],
-      );
+  factory Asset.fromJson(Map<String, dynamic> json, Network network) {
+    String? blockchainURL = json["blockchainURL"];
+
+    if (blockchainURL == null || blockchainURL.isEmpty) {
+      switch ("${network.rawValue}_${json["blockchain"]}") {
+        case "MAINNET_ethereum":
+          blockchainURL =
+              "https://etherscan.io/address/${json['contractAddress']}";
+          break;
+
+        case "TESTNET_ethereum":
+          blockchainURL =
+              "https://rinkeby.etherscan.io/address/${json['contractAddress']}";
+          break;
+
+        case "MAINNET_tezos":
+        case "TESTNET_tezos":
+          blockchainURL = "https://tzkt.io/${json['contractAddress']}";
+          break;
+
+        case "MAINNET_bitmark":
+          blockchainURL = "https://registry.bitmark.com/bitmark/${json['id']}";
+          break;
+        case "TESTNET_bitmark":
+          blockchainURL =
+              "https://registry.test.bitmark.com/bitmark/${json['id']}";
+          break;
+      }
+    }
+
+    return Asset(
+      id: json["indexID"],
+      edition: json["edition"],
+      blockchain: json["blockchain"],
+      mintedAt: DateTime.parse(json["mintedAt"]),
+      contractType: json["contractType"],
+      blockchainURL: blockchainURL,
+      owner: json["owner"],
+      thumbnailID: json["thumbnailID"],
+      projectMetadata: ProjectMetadata.fromJsonModified(
+          json["projectMetadata"], json["thumbnailID"]),
+      lastActivityTime: DateTime.parse(json['lastActivityTime']),
+      provenance: json["provenance"] != null
+          ? List<Provenance>.from(json["provenance"]
+              .map((x) => Provenance.fromJson(x, json["indexID"])))
+          : [],
+    );
+  }
 }
 
 class ProjectMetadata {
