@@ -166,11 +166,11 @@ class _SettingsPageState extends State<SettingsPage>
               SizedBox(height: 24.0),
               TappableForwardRowWithContent(
                   leftWidget: Text(
-                    'Rebuild gallery',
+                    'Rebuild metadata',
                     style: appTextTheme.headline4,
                   ),
                   bottomWidget: Text(
-                      'Clears your gallery data cache then rebuilds it.',
+                      'Clear local cache and re-download all artwork metadata.',
                       style: appTextTheme.bodyText1),
                   onTap: () => _showRebuildGalleryDialog()),
               SizedBox(height: 56),
@@ -272,8 +272,8 @@ class _SettingsPageState extends State<SettingsPage>
   void _showRebuildGalleryDialog() {
     showErrorDialog(
       context,
-      "Rebuild gallery",
-      "This action will safely clear your gallery’s local data cache then rebuild it. We recommend only doing this if instructed to do so by customer support to resolve a problem. ",
+      "Rebuild metadata",
+      "This action will safely clear local cache and\nre-download all artwork metadata. We recommend only doing this if instructed to do so by customer support to resolve a problem.",
       "REBUILD",
       () async {
         await injector<TokensService>().purgeCachedGallery();
