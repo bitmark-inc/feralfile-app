@@ -47,6 +47,7 @@ jobs:
           echo FERAL_FILE_AUTHORIZATION_PREFIX=${{ secrets.FERAL_FILE_AUTHORIZATION_PREFIX }} >> .env
           echo SENTRY_DSN=${{ secrets.SENTRY_DSN }} >> .env
           echo ONESIGNAL_APP_ID=${{ secrets.ONESIGNAL_APP_ID }} >> .env
+          echo AWS_IDENTITY_POOL_ID=${{ secrets.AWS_IDENTITY_POOL_ID }} >> .env
           cat .env
 
       - run: flutter pub get
