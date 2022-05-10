@@ -49,6 +49,34 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.KEY_VAULT_DEPLOYMENT_KEY }}
 
+      - name: Create env file
+        run: |
+          touch .env
+          echo INDEXER_MAINNET_API_URL=${{ secrets.INDEXER_MAINNET_API_URL }} >> .env
+          echo INDEXER_TESTNET_API_URL=${{ secrets.INDEXER_TESTNET_API_URL }} >> .env
+          echo WEB3_RPC_MAINNET_URL=${{ secrets.WEB3_RPC_MAINNET_URL }} >> .env
+          echo WEB3_RPC_TESTNET_URL=${{ secrets.WEB3_RPC_TESTNET_URL }} >> .env
+          echo TEZOS_NODE_CLIENT_MAINNET_URL=${{ secrets.TEZOS_NODE_CLIENT_MAINNET_URL }} >> .env
+          echo TEZOS_NODE_CLIENT_TESTNET_URL=${{ secrets.TEZOS_NODE_CLIENT_TESTNET_URL }} >> .env
+          echo BITMARK_API_MAINNET_URL=${{ secrets.BITMARK_API_MAINNET_URL }} >> .env
+          echo BITMARK_API_TESTNET_URL=${{ secrets.BITMARK_API_TESTNET_URL }} >> .env
+          echo FERAL_FILE_API_MAINNET_URL=${{ secrets.FERAL_FILE_API_MAINNET_URL }} >> .env
+          echo FERAL_FILE_API_TESTNET_URL=${{ secrets.FERAL_FILE_API_TESTNET_URL }} >> .env
+          echo EXTENSION_SUPPORT_MAINNET_URL=${{ secrets.EXTENSION_SUPPORT_MAINNET_URL }} >> .env
+          echo EXTENSION_SUPPORT_TESTNET_URL=${{ secrets.EXTENSION_SUPPORT_TESTNET_URL }} >> .env
+          echo CONNECT_WEBSOCKET_MAINNET_URL=${{ secrets.CONNECT_WEBSOCKET_MAINNET_URL }} >> .env
+          echo CONNECT_WEBSOCKET_TESTNET_URL=${{ secrets.CONNECT_WEBSOCKET_TESTNET_URL }} >> .env
+
+          echo AUTONOMY_AUTH_URL=${{ secrets.AUTONOMY_AUTH_URL }} >> .env
+          echo CUSTOMER_SUPPORT_URL=${{ secrets.CUSTOMER_SUPPORT_URL }} >> .env
+          echo CURRENCY_EXCHANGE_URL=${{ secrets.CURRENCY_EXCHANGE_URL }} >> .env
+          echo AUTONOMY_PUBDOC_URL=${{ secrets.AUTONOMY_PUBDOC_URL }} >> .env
+
+          echo FERAL_FILE_AUTHORIZATION_PREFIX=${{ secrets.FERAL_FILE_AUTHORIZATION_PREFIX }} >> .env
+          echo SENTRY_DSN=${{ secrets.SENTRY_DSN }} >> .env
+          echo ONESIGNAL_APP_ID=${{ secrets.ONESIGNAL_APP_ID }} >> .env
+          cat .env
+
       - name: Flutter doctor
         run: flutter doctor
 
