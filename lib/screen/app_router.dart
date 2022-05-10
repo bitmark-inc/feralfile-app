@@ -49,6 +49,8 @@ import 'package:autonomy_flutter/screen/global_receive/receive_detail_page.dart'
 import 'package:autonomy_flutter/screen/global_receive/receive_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_page.dart';
+import 'package:autonomy_flutter/screen/migration/key_sync_bloc.dart';
+import 'package:autonomy_flutter/screen/migration/key_sync_page.dart';
 import 'package:autonomy_flutter/screen/notification_onboarding_page.dart';
 import 'package:autonomy_flutter/screen/onboarding_page.dart';
 import 'package:autonomy_flutter/screen/participate_user_test_page.dart';
@@ -132,6 +134,7 @@ class AppRouter {
   static const supportThreadPage = 'supportThreadPage';
   static const bugBountyPage = 'bugBountyPage';
   static const participateUserTestPage = 'participateUserTestPage';
+  static const keySyncPage = 'key_sync_page';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final networkInjector = injector<NetworkConfigInjector>();
@@ -139,7 +142,7 @@ class AppRouter {
     final ethereumBloc = EthereumBloc(injector(), networkInjector.I());
     final tezosBloc = TezosBloc(injector(), networkInjector.I());
     final accountsBloc = AccountsBloc(injector(), injector<CloudDatabase>(),
-        injector(), injector<AuditService>());
+        injector(), injector<AuditService>(), injector());
 
     switch (settings.name) {
       case onboardingPage:
@@ -715,6 +718,14 @@ class AppRouter {
             settings: settings,
             builder: (context) => GithubDocPage(
                 payload: settings.arguments as Map<String, String>));
+
+      case keySyncPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => BlocProvider(
+              create: (_) => KeySyncBloc(injector(), injector()),
+              child: KeySyncPage(),
+            ));
 
       default:
         throw Exception('Invalid route: ${settings.name}');

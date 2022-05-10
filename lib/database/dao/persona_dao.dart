@@ -3,8 +3,11 @@ import 'package:floor/floor.dart';
 
 @dao
 abstract class PersonaDao {
-  @Query('SELECT * FROM Persona')
+  @Query('SELECT * FROM Persona ORDER BY defaultAccount')
   Future<List<Persona>> getPersonas();
+
+  @Query('SELECT * FROM Persona WHERE defaultAccount=1')
+  Future<List<Persona>> getDefaultPersonas();
 
   @Query('SELECT COUNT(*) FROM Persona')
   Future<int?> getPersonasCount();

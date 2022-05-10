@@ -24,6 +24,9 @@ abstract class ConnectionDao {
   @Insert(onConflict: OnConflictStrategy.replace)
   Future<void> insertConnection(Connection connection);
 
+  @Insert(onConflict: OnConflictStrategy.replace)
+  Future<void> insertConnections(List<Connection> connections);
+
   @Query('SELECT * FROM Connection WHERE key = :key')
   Future<Connection?> findById(String key);
 

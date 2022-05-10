@@ -1,11 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/model/connection_supports.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
+import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -23,9 +25,16 @@ class MigrationUtil {
   NavigationService _navigationService;
   IAPService _iapService;
   AuditService _auditService;
+  BackupService _backupService;
 
-  MigrationUtil(this._configurationService, this._cloudDB, this._accountService,
-      this._navigationService, this._iapService, this._auditService);
+  MigrationUtil(
+      this._configurationService,
+      this._cloudDB,
+      this._accountService,
+      this._navigationService,
+      this._iapService,
+      this._auditService,
+      this._backupService);
 
   Future<void> migrateIfNeeded() async {
     if (Platform.isIOS) {
@@ -67,17 +76,21 @@ class MigrationUtil {
     final migrationData = MigrationData.fromJson(jsonData);
 
     for (var mPersona in migrationData.personas) {
-      final wallet = Persona.newPersona(uuid: mPersona.uuid).wallet();
-      final address = await wallet.getETHAddress();
+      final uuid = mPersona.uuid.toLowerCase();
+      final existingPersona = await _cloudDB.personaDao.findById(uuid);
+      if (existingPersona == null) {
+        final wallet = Persona.newPersona(uuid: uuid).wallet();
+        final address = await wallet.getETHAddress();
 
-      if (address.isEmpty) continue;
-      final name = await wallet.getName();
+        if (address.isEmpty) continue;
+        final name = await wallet.getName();
 
-      final persona = Persona(
-          uuid: mPersona.uuid, name: name, createdAt: mPersona.createdAt);
+        final persona = Persona(
+            uuid: uuid, name: name, createdAt: mPersona.createdAt);
 
-      await _cloudDB.personaDao.insertPersona(persona);
-      await _auditService.audiPersonaAction('[_migrationData] insert', persona);
+        await _cloudDB.personaDao.insertPersona(persona);
+        await _auditService.audiPersonaAction('[_migrationData] insert', persona);
+      }
     }
 
     for (var con in migrationData.ffTokenConnections) {
@@ -159,15 +172,26 @@ class MigrationUtil {
 
     log.info(
         "[_migrationFromKeychain] personaUUIDs from Keychain: $personaUUIDs");
-    for (var uuid in personaUUIDs) {
-      final wallet = Persona.newPersona(uuid: uuid).wallet();
-      final name = await wallet.getName();
-      final persona =
-          Persona(uuid: uuid, name: name, createdAt: DateTime.now());
+    for (var personaUUID in personaUUIDs) {
+      final uuid = personaUUID.toLowerCase();
+      final existingPersona = await _cloudDB.personaDao.findById(uuid);
+      if (existingPersona == null) {
+        final wallet = Persona.newPersona(uuid: uuid).wallet();
+        final name = await wallet.getName();
 
-      await _cloudDB.personaDao.insertPersona(persona);
-      await _auditService.audiPersonaAction(
-          '[_migrationkeychain] insert', persona);
+        final backupVersion = await _backupService.fetchBackupVersion(wallet);
+        final defaultAccount = backupVersion.isNotEmpty ? 1 : null;
+
+        final persona = Persona.newPersona(
+            uuid: uuid,
+            name: name,
+            createdAt: DateTime.now(),
+            defaultAccount: defaultAccount);
+
+        await _cloudDB.personaDao.insertPersona(persona);
+        await _auditService.audiPersonaAction(
+            '[_migrationkeychain] insert', persona);
+      }
     }
   }
 }

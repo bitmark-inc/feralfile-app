@@ -85,6 +85,7 @@ Future<void> setup() async {
       .databaseBuilder('cloud_database.db')
       .addMigrations([
     migrateCloudV1ToV2,
+    migrateCloudV2ToV3,
   ]).build();
 
   injector.registerLazySingleton(() => cloudDB);
@@ -126,7 +127,7 @@ Future<void> setup() async {
   injector.registerLazySingleton(() => AUCacheManager());
   injector.registerLazySingleton(() => WalletConnectDappService(injector()));
   injector.registerLazySingleton<AccountService>(() => AccountServiceImpl(
-      cloudDB, injector(), injector(), injector(), auditService, injector()));
+      cloudDB, injector(), injector(), injector(), auditService, injector(), injector()));
 
   injector.registerLazySingleton(
       () => IAPApi(authenticatedDio, baseUrl: Environment.autonomyAuthURL));
@@ -134,7 +135,7 @@ Future<void> setup() async {
       AutonomyApi(authenticatedDio, baseUrl: Environment.autonomyAuthURL));
   injector.registerLazySingleton(
       () => AuthService(injector(), injector(), injector()));
-  injector.registerLazySingleton(() => BackupService(injector(), injector()));
+  injector.registerLazySingleton(() => BackupService(injector()));
   injector.registerLazySingleton<IAPService>(
       () => IAPServiceImpl(injector(), injector()));
 
