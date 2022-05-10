@@ -161,6 +161,19 @@ class _SettingsPageState extends State<SettingsPage>
                 await Navigator.of(context).pushNamed(SelectNetworkPage.tag);
               }),
               SizedBox(height: 40.0),
+              // START HELP US IMPROVE
+              Text(
+                "Help us improve",
+                style: appTextTheme.headline1,
+              ),
+              SizedBox(height: 8.0),
+              TappableForwardRow(
+                  leftWidget: Text('Participate in bug bounty ',
+                      style: appTextTheme.headline4),
+                  onTap: () =>
+                      Navigator.of(context).pushNamed(AppRouter.bugBountyPage)),
+              // END HELP US IMPROVE
+              SizedBox(height: 40.0),
               Text(
                 "Data management",
                 style: appTextTheme.headline1,

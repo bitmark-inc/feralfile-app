@@ -24,6 +24,7 @@ import 'package:autonomy_flutter/screen/account/new_account_page.dart';
 import 'package:autonomy_flutter/screen/autonomy_security_page.dart';
 import 'package:autonomy_flutter/screen/bloc/connections/connections_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
+import 'package:autonomy_flutter/screen/bug_bounty_page.dart';
 import 'package:autonomy_flutter/screen/connection/connection_details_page.dart';
 import 'package:autonomy_flutter/screen/connection/persona_connections_page.dart';
 import 'package:autonomy_flutter/screen/account/persona_details_page.dart';
@@ -128,6 +129,7 @@ class AppRouter {
   static const supportCustomerPage = 'supportCustomerPage';
   static const supportListPage = 'supportListPage';
   static const supportThreadPage = 'supportThreadPage';
+  static const bugBountyPage = 'bugBountyPage';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final networkInjector = injector<NetworkConfigInjector>();
@@ -668,6 +670,10 @@ class AppRouter {
             settings: settings,
             builder: (context) => SupportThreadPage(
                 payload: settings.arguments as SupportThreadPayload));
+
+      case bugBountyPage:
+        return CupertinoPageRoute(
+            settings: settings, builder: (context) => BugBountyPage());
 
       case linkManually:
         return CupertinoPageRoute(
