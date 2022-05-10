@@ -42,6 +42,8 @@ class AccountService {
     await _cloudDB.personaDao.insertPersona(persona);
     await androidBackupKeys();
     await _auditService.audiPersonaAction('create', persona);
+    injector<AWSService>().storeEventWithDeviceData("create_full_account",
+        hashingData: {"id": uuid});
 
     return persona;
   }
@@ -56,7 +58,7 @@ class AccountService {
     await _cloudDB.personaDao.insertPersona(persona);
     await androidBackupKeys();
     await _auditService.audiPersonaAction('import', persona);
-    injector<AWSService>().storeEventWithDeviceData("create_full_account",
+    injector<AWSService>().storeEventWithDeviceData("import_full_account",
         hashingData: {"id": uuid});
 
     return persona;
