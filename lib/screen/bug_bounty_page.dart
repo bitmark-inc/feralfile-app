@@ -4,7 +4,9 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class BugBountyPage extends StatelessWidget {
   const BugBountyPage({Key? key}) : super(key: key);
@@ -43,12 +45,27 @@ class BugBountyPage extends StatelessWidget {
                 SizedBox(height: 32),
                 Text('Scope', style: appTextTheme.headline4),
                 SizedBox(height: 16),
-                Text(
-                    'We only accept new bug reports for our iPhone or Android Apps; please check our Known Bugs before submitting. Bug reports for web applications or any other projects are out of scope and will not be considered for rewards.',
-                    style: appTextTheme.bodyText1),
+                RichText(
+                    text: TextSpan(
+                        style: appTextTheme.bodyText1,
+                        children: <TextSpan>[
+                      TextSpan(
+                        text:
+                            'We only accept new bug reports for our iPhone or Android Apps; please check our ',
+                      ),
+                      TextSpan(
+                          recognizer: new TapGestureRecognizer()
+                            ..onTap = () =>
+                                launch(KNOWN_BUGS_LINK, forceSafariVC: true),
+                          text: 'Known Bugs',
+                          style: linkStyle),
+                      TextSpan(
+                        text:
+                            ' before submitting. Bug reports for web applications or any other projects are out of scope and will not be considered for rewards.',
+                      ),
+                    ])),
                 SizedBox(height: 32),
                 Text('Rewards', style: appTextTheme.headline4),
-                SizedBox(height: 16),
                 Text(
                   'We pay rewards ranging from \$10 to \$5,000, administered according to the following guidelines:',
                   style: appTextTheme.bodyText1,

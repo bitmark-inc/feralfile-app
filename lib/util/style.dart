@@ -64,11 +64,12 @@ const linkStyle = TextStyle(
   fontSize: 14,
   fontFamily: "AtlasGrotesk-Medium",
   height: 1.377,
-  shadows: [Shadow(color: Colors.black, offset: Offset(0, -2))],
+  fontWeight: FontWeight.w400,
+  shadows: [Shadow(color: Colors.black, offset: Offset(0, -1))],
   decoration: TextDecoration.underline,
   decorationStyle: TextDecorationStyle.solid,
   decorationColor: Colors.black,
-  decorationThickness: 1.2,
+  decorationThickness: 1.1,
 );
 
 const whitelinkStyle = TextStyle(
@@ -76,11 +77,11 @@ const whitelinkStyle = TextStyle(
   fontSize: 14,
   fontFamily: "AtlasGrotesk-Medium",
   height: 1.377,
-  shadows: [Shadow(color: Colors.white, offset: Offset(0, -2))],
+  shadows: [Shadow(color: Colors.white, offset: Offset(0, -1))],
   decoration: TextDecoration.underline,
   decorationStyle: TextDecorationStyle.solid,
   decorationColor: Colors.white,
-  decorationThickness: 1.2,
+  decorationThickness: 1.1,
 );
 
 ButtonStyle get textButtonNoPadding {
