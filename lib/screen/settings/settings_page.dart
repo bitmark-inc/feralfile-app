@@ -168,7 +168,7 @@ class _SettingsPageState extends State<SettingsPage>
               ),
               SizedBox(height: 8.0),
               TappableForwardRow(
-                  leftWidget: Text('Participate in bug bounty ',
+                  leftWidget: Text('Participate in bug bounty',
                       style: appTextTheme.headline4),
                   onTap: () =>
                       Navigator.of(context).pushNamed(AppRouter.bugBountyPage)),
