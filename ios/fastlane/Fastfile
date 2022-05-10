@@ -65,9 +65,8 @@ platform :ios do
 				},
 				iCloudContainerEnvironment: 'Production'
 			},
-			configuration: "release",
+			configuration: "Release-inhouse",
 			skip_profile_detection: true,
-			codesigning_identity: "iPhone Distribution: Bitmark Inc.",
 			output_directory: "./ipas")
 
 		appcenter_upload(
@@ -85,6 +84,13 @@ platform :ios do
 			version: ENV["APP_VERSION"],
 			build: next_build_number.to_s,
 			app_identifier: app_identifier
+		)
+
+		sentry_upload_dsym(
+			auth_token: ENV["SENTRY_AUTH"],
+			org_slug: 'bitmark-inc',
+			project_slug: 'autonomy-ios',
+			dsym_path: './ipas/Runner Inhouse.app.dSYM.zip'
 		)
 
 		sentry_upload_dsym(
@@ -121,15 +127,6 @@ platform :ios do
 		keychainName = "TravisKeychain"
 	  	keychainPath = "keychains/keychain-db"
 		keychainPassword = SecureRandom.base64
-
-		create_keychain(
-			name: keychainName,
-			default_keychain: true,
-			unlock: true,
-			timeout: 3600,
-			lock_when_sleeps: true,
-			password: keychainPassword
-			)
 
 		create_keychain(
 			name: keychainName,
@@ -220,7 +217,7 @@ platform :ios do
 			auth_token: ENV["SENTRY_AUTH"],
 			org_slug: 'bitmark-inc',
 			project_slug: 'autonomy-ios',
-			info_plist: 'Autonomy/Info.plist'
+			dsym_path: './ipas/Runner.app.dSYM.zip'
 		)
 
 		sentry_create_deploy(
