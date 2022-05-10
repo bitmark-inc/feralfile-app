@@ -172,6 +172,12 @@ class _SettingsPageState extends State<SettingsPage>
                       style: appTextTheme.headline4),
                   onTap: () =>
                       Navigator.of(context).pushNamed(AppRouter.bugBountyPage)),
+              addOnlyDivider(),
+              TappableForwardRow(
+                  leftWidget: Text('Participate in a user test',
+                      style: appTextTheme.headline4),
+                  onTap: () => Navigator.of(context)
+                      .pushNamed(AppRouter.participateUserTestPage)),
               // END HELP US IMPROVE
               SizedBox(height: 40.0),
               Text(

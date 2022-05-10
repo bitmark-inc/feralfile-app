@@ -51,6 +51,7 @@ import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_page.dart';
 import 'package:autonomy_flutter/screen/notification_onboarding_page.dart';
 import 'package:autonomy_flutter/screen/onboarding_page.dart';
+import 'package:autonomy_flutter/screen/participate_user_test_page.dart';
 import 'package:autonomy_flutter/screen/release_notes_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/receive_page.dart';
@@ -130,6 +131,7 @@ class AppRouter {
   static const supportListPage = 'supportListPage';
   static const supportThreadPage = 'supportThreadPage';
   static const bugBountyPage = 'bugBountyPage';
+  static const participateUserTestPage = 'participateUserTestPage';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final networkInjector = injector<NetworkConfigInjector>();
@@ -678,6 +680,11 @@ class AppRouter {
       case bugBountyPage:
         return CupertinoPageRoute(
             settings: settings, builder: (context) => BugBountyPage());
+
+      case participateUserTestPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => ParticipateUserTestPage());
 
       case linkManually:
         return CupertinoPageRoute(
