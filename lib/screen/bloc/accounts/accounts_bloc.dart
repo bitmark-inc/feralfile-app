@@ -3,6 +3,7 @@ import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/model/network.dart';
+import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
@@ -18,9 +19,10 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
   CloudDatabase _cloudDB;
   BackupService _backupService;
   AuditService _auditService;
+  AccountService _accountService;
 
   AccountsBloc(this._configurationService, this._cloudDB, this._backupService,
-      this._auditService)
+      this._auditService, this._accountService)
       : super(AccountsState()) {
     on<ResetEventEvent>((event, emit) async {
       emit(state.setEvent(null));
@@ -88,7 +90,8 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
       }
 
       if (accounts.isEmpty) {
-        await _backupService.deleteAllProfiles();
+        await _backupService
+            .deleteAllProfiles(await _accountService.getDefaultAccount());
         await _cloudDB.personaDao.removeAll();
         await _cloudDB.connectionDao.removeAll();
         await _auditService.audiPersonaAction('cleanUp', null);

@@ -70,7 +70,7 @@ class _$CloudDatabase extends CloudDatabase {
   Future<sqflite.Database> open(String path, List<Migration> migrations,
       [Callback? callback]) async {
     final databaseOptions = sqflite.OpenDatabaseOptions(
-      version: 2,
+      version: 3,
       onConfigure: (database) async {
         await database.execute('PRAGMA foreign_keys = ON');
         await callback?.onConfigure?.call(database);
@@ -86,7 +86,7 @@ class _$CloudDatabase extends CloudDatabase {
       },
       onCreate: (database, version) async {
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `Persona` (`uuid` TEXT NOT NULL, `name` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, PRIMARY KEY (`uuid`))');
+            'CREATE TABLE IF NOT EXISTS `Persona` (`uuid` TEXT NOT NULL, `name` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `defaultAccount` INTEGER, PRIMARY KEY (`uuid`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `Connection` (`key` TEXT NOT NULL, `name` TEXT NOT NULL, `data` TEXT NOT NULL, `connectionType` TEXT NOT NULL, `accountNumber` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, PRIMARY KEY (`key`))');
         await database.execute(
@@ -123,7 +123,8 @@ class _$PersonaDao extends PersonaDao {
             (Persona item) => <String, Object?>{
                   'uuid': item.uuid,
                   'name': item.name,
-                  'createdAt': _dateTimeConverter.encode(item.createdAt)
+                  'createdAt': _dateTimeConverter.encode(item.createdAt),
+                  'defaultAccount': item.defaultAccount
                 }),
         _personaUpdateAdapter = UpdateAdapter(
             database,
@@ -132,7 +133,8 @@ class _$PersonaDao extends PersonaDao {
             (Persona item) => <String, Object?>{
                   'uuid': item.uuid,
                   'name': item.name,
-                  'createdAt': _dateTimeConverter.encode(item.createdAt)
+                  'createdAt': _dateTimeConverter.encode(item.createdAt),
+                  'defaultAccount': item.defaultAccount
                 }),
         _personaDeletionAdapter = DeletionAdapter(
             database,
@@ -141,7 +143,8 @@ class _$PersonaDao extends PersonaDao {
             (Persona item) => <String, Object?>{
                   'uuid': item.uuid,
                   'name': item.name,
-                  'createdAt': _dateTimeConverter.encode(item.createdAt)
+                  'createdAt': _dateTimeConverter.encode(item.createdAt),
+                  'defaultAccount': item.defaultAccount
                 });
 
   final sqflite.DatabaseExecutor database;
@@ -158,11 +161,24 @@ class _$PersonaDao extends PersonaDao {
 
   @override
   Future<List<Persona>> getPersonas() async {
-    return _queryAdapter.queryList('SELECT * FROM Persona',
+    return _queryAdapter.queryList(
+        "SELECT * FROM Persona",
         mapper: (Map<String, Object?> row) => Persona(
             uuid: row['uuid'] as String,
             name: row['name'] as String,
-            createdAt: _dateTimeConverter.decode(row['createdAt'] as int)));
+            createdAt: _dateTimeConverter.decode(row['createdAt'] as int),
+            defaultAccount: row['defaultAccount'] as int?));
+  }
+
+  @override
+  Future<List<Persona>> getDefaultPersonas() async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM Persona WHERE defaultAccount=1',
+        mapper: (Map<String, Object?> row) => Persona(
+            uuid: row['uuid'] as String,
+            name: row['name'] as String,
+            createdAt: _dateTimeConverter.decode(row['createdAt'] as int),
+            defaultAccount: row['defaultAccount'] as int?));
   }
 
   @override
@@ -176,7 +192,8 @@ class _$PersonaDao extends PersonaDao {
         mapper: (Map<String, Object?> row) => Persona(
             uuid: row['uuid'] as String,
             name: row['name'] as String,
-            createdAt: _dateTimeConverter.decode(row['createdAt'] as int)),
+            createdAt: _dateTimeConverter.decode(row['createdAt'] as int),
+            defaultAccount: row['defaultAccount'] as int?),
         arguments: [uuid]);
   }
 
@@ -355,6 +372,12 @@ class _$ConnectionDao extends ConnectionDao {
   Future<void> insertConnection(Connection connection) async {
     await _connectionInsertionAdapter.insert(
         connection, OnConflictStrategy.replace);
+  }
+
+  @override
+  Future<void> insertConnections(List<Connection> connections) async {
+    await _connectionInsertionAdapter.insertList(
+        connections, OnConflictStrategy.replace);
   }
 
   @override

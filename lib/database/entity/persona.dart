@@ -19,14 +19,16 @@ class Persona {
   String uuid;
   String name;
   DateTime createdAt;
+  int? defaultAccount;
 
   Persona({
     required this.uuid,
     required this.name,
     required this.createdAt,
+    this.defaultAccount
   });
 
-  Persona.newPersona({required this.uuid, this.name = "", DateTime? createdAt})
+  Persona.newPersona({required this.uuid, this.name = "", this.defaultAccount, DateTime? createdAt})
       : createdAt = createdAt ?? DateTime.now();
 
   Persona copyWith({
@@ -36,10 +38,13 @@ class Persona {
     return Persona(
         uuid: this.uuid,
         name: name ?? this.name,
+        defaultAccount: this.defaultAccount,
         createdAt: createdAt ?? this.createdAt);
   }
 
   WalletStorage wallet() {
     return LibAukDart.getWallet(uuid);
   }
+
+  bool isDefault() => defaultAccount == 1;
 }

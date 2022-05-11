@@ -6,6 +6,9 @@ abstract class PersonaDao {
   @Query('SELECT * FROM Persona')
   Future<List<Persona>> getPersonas();
 
+  @Query('SELECT * FROM Persona WHERE defaultAccount=1')
+  Future<List<Persona>> getDefaultPersonas();
+
   @Query('SELECT COUNT(*) FROM Persona')
   Future<int?> getPersonasCount();
 

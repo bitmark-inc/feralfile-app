@@ -12,7 +12,7 @@ import 'package:sqflite/sqflite.dart' as sqflite;
 part 'cloud_database.g.dart'; // the generated code will be there
 
 @TypeConverters([DateTimeConverter])
-@Database(version: 2, entities: [Persona, Connection, Audit])
+@Database(version: 3, entities: [Persona, Connection, Audit])
 abstract class CloudDatabase extends FloorDatabase {
   PersonaDao get personaDao;
   ConnectionDao get connectionDao;
@@ -28,4 +28,12 @@ abstract class CloudDatabase extends FloorDatabase {
 final migrateCloudV1ToV2 = Migration(1, 2, (database) async {
   await database.execute(
       'CREATE TABLE IF NOT EXISTS `Audit` (`uuid` TEXT NOT NULL, `category` TEXT NOT NULL, `action` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `metadata` TEXT NOT NULL, PRIMARY KEY (`uuid`))');
+});
+
+final migrateCloudV2ToV3 = Migration(2, 3, (database) async {
+  await database
+      .execute("""
+      ALTER TABLE Persona ADD COLUMN defaultAccount int DEFAULT(NULL);
+      UPDATE Persona SET defaultAccount=1 ORDER BY id LIMIT 1;
+      """);
 });

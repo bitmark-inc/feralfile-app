@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -55,6 +56,7 @@ class _HomePageState extends State<HomePage>
   @override
   void initState() {
     super.initState();
+    _checkForKeySync();
     _initUniLinks();
     WidgetsBinding.instance?.addObserver(this);
     _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
@@ -293,6 +295,15 @@ class _HomePageState extends State<HomePage>
 
       _deeplinkSubscription = linkStream.listen(_handleDeeplink);
     } on PlatformException {}
+  }
+
+  Future<void> _checkForKeySync() async {
+    final cloudDatabase = injector<CloudDatabase>();
+    final defaultAccounts = await cloudDatabase.personaDao.getDefaultPersonas();
+
+    if (defaultAccounts.length >= 2) {
+      Navigator.of(context).pushNamed(AppRouter.keySyncPage);
+    }
   }
 
   void _handleDeeplink(String? link) {

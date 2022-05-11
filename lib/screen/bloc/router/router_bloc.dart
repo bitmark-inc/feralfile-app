@@ -1,8 +1,10 @@
 import 'dart:io';
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
+import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
@@ -37,29 +39,32 @@ class RouterBloc extends Bloc<RouterEvent, RouterState> {
       this._iapService,
       this._auditService)
       : super(RouterState(onboardingStep: OnboardingStep.undefined)) {
+    final migrationUtil = MigrationUtil(_configurationService, _cloudDB, _accountService,
+        _navigationService, _iapService, _auditService, _backupService);
+
     on<DefineViewRoutingEvent>((event, emit) async {
       if (state.onboardingStep != OnboardingStep.undefined) return;
 
-      await MigrationUtil(_configurationService, _cloudDB, _accountService,
-              _navigationService, _iapService, _auditService)
-          .migrateIfNeeded();
+      await migrationUtil.migrateIfNeeded();
+
+      // Check and restore full accounts from cloud if existing
+      await migrationUtil.migrationFromKeychain(Platform.isIOS);
+      await _accountService.androidRestoreKeys();
 
       if (_configurationService.isDoneOnboarding()) {
         emit(RouterState(onboardingStep: OnboardingStep.dashboard));
         return;
       }
 
-      // Check and restore full accounts from cloud if existing
-      await MigrationUtil(_configurationService, _cloudDB, _accountService,
-              _navigationService, _iapService, _auditService)
-          .migrationFromKeychain(Platform.isIOS);
-      await _accountService.androidRestoreKeys();
-
       //Soft delay 1s waiting for database synchronizing
       await Future.delayed(Duration(seconds: 1));
 
       if (await hasAccounts()) {
-        final backupVersion = await _backupService.fetchBackupVersion();
+        final backupVersion = await _backupService
+            .fetchBackupVersion(await _accountService.getDefaultAccount());
+
+        await injector<AWSService>().initServices();
+
         if (backupVersion.isNotEmpty) {
           log.info("[DefineViewRoutingEvent] have backup version");
           //restore backup database
@@ -87,7 +92,8 @@ class RouterBloc extends Bloc<RouterEvent, RouterState> {
           backupVersion: state.backupVersion,
           isLoading: true));
 
-      await _backupService.restoreCloudDatabase(event.version);
+      await _backupService.restoreCloudDatabase(
+          await _accountService.getDefaultAccount(), event.version);
       await _accountService.androidRestoreKeys();
 
       final personas = await _cloudDB.personaDao.getPersonas();
@@ -99,9 +105,7 @@ class RouterBloc extends Bloc<RouterEvent, RouterState> {
         _configurationService.setDoneOnboarding(true);
         emit(RouterState(onboardingStep: OnboardingStep.dashboard));
       }
-      await MigrationUtil(_configurationService, _cloudDB, _accountService,
-              _navigationService, _iapService, _auditService)
-          .migrateIfNeeded();
+      await migrationUtil.migrateIfNeeded();
     });
   }
 }
