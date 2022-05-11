@@ -24,7 +24,7 @@ class WalletConnectDappService {
 
   WalletConnectDappService(this._configurationService);
 
-  start() async {
+  Future start() async {
     _wcClient = WCClient(
       onSessionRequest: _onSessionRequest,
       onSessionUpdate: _onSessionUpdate,
@@ -138,12 +138,18 @@ class WalletConnectDappService {
           peerId: _wcClient.peerId!,
           remotePeerId: response.peerId);
 
-      final eip55Accounts = response.accounts
-          .map((e) => EthereumAddress.fromHex(e).hexEip55)
-          .toList();
+      late List<String> accounts;
+      try {
+        accounts = response.accounts
+            .map((e) => EthereumAddress.fromHex(e).hexEip55)
+            .toList();
+      } catch (error) {
+        log.shout(error);
+        accounts = response.accounts;
+      }
 
-      final connectedSession = WCConnectedSession(
-          sessionStore: _wcSessionStore, accounts: eip55Accounts);
+      final connectedSession =
+          WCConnectedSession(sessionStore: _wcSessionStore, accounts: accounts);
 
       remotePeerAccount.value = connectedSession;
     }

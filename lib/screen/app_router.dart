@@ -248,8 +248,12 @@ class AppRouter {
       case AppRouter.linkAccountpage:
         return CupertinoPageRoute(
             settings: settings,
-            builder: (context) => BlocProvider.value(
-                value: accountsBloc, child: LinkAccountPage()));
+            builder: (context) => MultiBlocProvider(providers: [
+                  BlocProvider.value(value: accountsBloc),
+                  BlocProvider(
+                      create: (_) => FeralfileBloc(injector(),
+                          networkInjector.I(), injector<CloudDatabase>())),
+                ], child: LinkAccountPage()));
 
       case accountsPreviewPage:
         return CupertinoPageRoute(

@@ -16,6 +16,12 @@ class Environment {
         : Environment.extensionSupportTestnetURL;
   }
 
+  static String networkedFeralFileWebsiteURL(Network network) {
+    return network == Network.MAINNET
+        ? Environment.feralFileAPIMainnetURL
+        : Environment.feralFileAPITestnetURL;
+  }
+
   static String get indexerMainnetURL =>
       dotenv.env['INDEXER_MAINNET_API_URL'] ?? '';
   static String get indexerTestnetURL =>
