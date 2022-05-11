@@ -6,6 +6,7 @@ import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/model/p2p_peer.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
+import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -22,16 +23,44 @@ import 'package:wallet_connect/wallet_connect.dart';
 
 import 'wallet_connect_dapp_service/wc_connected_session.dart';
 
-class AccountService {
+abstract class AccountService {
+  Future<WalletStorage> getDefaultAccount();
+  Future androidBackupKeys();
+  Future<bool?> isAndroidEndToEndEncryptionAvailable();
+  Future androidRestoreKeys();
+  Future<Persona> createPersona({String name = ""});
+  Future<Persona> importPersona(String words);
+  Future<Persona> namePersona(Persona persona, String name);
+  Future<Connection> nameLinkedAccount(Connection connection, String name);
+  Future<Connection> linkETHWallet(WCConnectedSession session);
+  Future<Connection> linkETHBrowserWallet(String address, WalletApp walletApp);
+  Future linkManuallyAddress(String address);
+  Future deletePersona(Persona persona);
+  Future deleteLinkedAccount(Connection connection);
+  Future linkIndexerTokenID(String indexerTokenID);
+
+  Future setHidePersonaInGallery(String personaUUID, bool isEnabled);
+  Future setHideLinkedAccountInGallery(String address, bool isEnabled);
+  bool isPersonaHiddenInGallery(String personaUUID);
+  bool isLinkedAccountHiddenInGallery(String address);
+}
+
+class AccountServiceImpl extends AccountService {
   final CloudDatabase _cloudDB;
   final WalletConnectService _walletConnectService;
   final TezosBeaconService _tezosBeaconService;
   final ConfigurationService _configurationService;
   final AndroidBackupChannel _backupChannel = AndroidBackupChannel();
   final AuditService _auditService;
+  final AutonomyService _autonomyService;
 
-  AccountService(this._cloudDB, this._walletConnectService,
-      this._tezosBeaconService, this._configurationService, this._auditService);
+  AccountServiceImpl(
+      this._cloudDB,
+      this._walletConnectService,
+      this._tezosBeaconService,
+      this._configurationService,
+      this._auditService,
+      this._autonomyService);
 
   Future<Persona> createPersona({String name = ""}) async {
     final uuid = Uuid().v4();
@@ -44,6 +73,7 @@ class AccountService {
     await _auditService.audiPersonaAction('create', persona);
     injector<AWSService>().storeEventWithDeviceData("create_full_account",
         hashingData: {"id": uuid});
+    _autonomyService.postLinkedAddresses();
 
     return persona;
   }
@@ -60,6 +90,7 @@ class AccountService {
     await _auditService.audiPersonaAction('import', persona);
     injector<AWSService>().storeEventWithDeviceData("import_full_account",
         hashingData: {"id": uuid});
+    _autonomyService.postLinkedAddresses();
 
     return persona;
   }
@@ -137,6 +168,7 @@ class AccountService {
 
     injector<AWSService>().storeEventWithDeviceData("delete_full_account",
         hashingData: {"id": persona.uuid});
+    _autonomyService.postLinkedAddresses();
   }
 
   Future deleteLinkedAccount(Connection connection) async {
@@ -145,6 +177,7 @@ class AccountService {
     await setHideLinkedAccountInGallery(connection.accountNumber, false);
     injector<AWSService>().storeEventWithDeviceData("delete_linked_account",
         hashingData: {"address": connection.accountNumber});
+    _autonomyService.postLinkedAddresses();
   }
 
   Future linkManuallyAddress(String address) async {
@@ -158,6 +191,7 @@ class AccountService {
     );
 
     await _cloudDB.connectionDao.insertConnection(connection);
+    _autonomyService.postLinkedAddresses();
   }
 
   Future linkIndexerTokenID(String indexerTokenID) async {
@@ -184,6 +218,7 @@ class AccountService {
     await _cloudDB.connectionDao.insertConnection(connection);
     injector<AWSService>().storeEventWithDeviceData("link_eth_wallet",
         hashingData: {"address": connection.accountNumber});
+    _autonomyService.postLinkedAddresses();
     return connection;
   }
 
@@ -206,6 +241,7 @@ class AccountService {
     await _cloudDB.connectionDao.insertConnection(connection);
     injector<AWSService>().storeEventWithDeviceData("link_eth_wallet_browser",
         hashingData: {"address": connection.accountNumber});
+    _autonomyService.postLinkedAddresses();
     return connection;
   }
 

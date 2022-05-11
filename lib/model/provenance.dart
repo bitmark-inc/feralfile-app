@@ -38,7 +38,7 @@ class Provenance {
         txID: json['txid'] as String,
         owner: json['owner'] as String,
         timestamp: DateTime.parse(json['timestamp'] as String),
-        txURL: json['txURL'] as String,
+        txURL: (json['txURL'] as String?) ?? '',
         tokenID: tokenID,
       );
 }

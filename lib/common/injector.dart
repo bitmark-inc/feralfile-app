@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
+import 'package:autonomy_flutter/gateway/autonomy_api.dart';
 import 'package:autonomy_flutter/gateway/currency_exchange_api.dart';
 import 'package:autonomy_flutter/gateway/customer_support_api.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
@@ -10,6 +11,7 @@ import 'package:autonomy_flutter/gateway/pubdoc_api.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
+import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/cloud_service.dart';
@@ -116,16 +118,20 @@ Future<void> setup() async {
   injector.registerLazySingleton(() => NavigationService());
   injector.registerLazySingleton(() => AWSService(injector(), injector()));
   injector.registerLazySingleton(() => LedgerHardwareService());
+  injector.registerLazySingleton<AutonomyService>(
+      () => AutonomyServiceImpl(injector(), injector()));
 
   injector.registerLazySingleton(
       () => WalletConnectService(injector(), injector()));
   injector.registerLazySingleton(() => AUCacheManager());
   injector.registerLazySingleton(() => WalletConnectDappService(injector()));
-  injector.registerLazySingleton(() => AccountService(
-      cloudDB, injector(), injector(), injector(), auditService));
+  injector.registerLazySingleton<AccountService>(() => AccountServiceImpl(
+      cloudDB, injector(), injector(), injector(), auditService, injector()));
 
   injector.registerLazySingleton(
       () => IAPApi(authenticatedDio, baseUrl: Environment.autonomyAuthURL));
+  injector.registerLazySingleton(() =>
+      AutonomyApi(authenticatedDio, baseUrl: Environment.autonomyAuthURL));
   injector.registerLazySingleton(
       () => AuthService(injector(), injector(), injector()));
   injector.registerLazySingleton(() => BackupService(injector(), injector()));
