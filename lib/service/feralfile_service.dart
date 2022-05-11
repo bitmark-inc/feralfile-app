@@ -58,7 +58,7 @@ class FeralFileServiceImpl extends FeralFileService {
     final address = await wallet.getETHEip55Address();
     final timestamp =
         (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
-    final message = AppConfig.ffAuthorizationPrefix + timestamp;
+    final message = Secret.ffAuthorizationPrefix + timestamp;
     final signature = await wallet
         .signPersonalMessage(Uint8List.fromList(utf8.encode(message)));
     final rawToken = "$address|$message|$signature";

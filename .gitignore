@@ -49,3 +49,8 @@ app.*.map.json
 
 */fastlane/*.env
 */fastlane/key.json
+
+# app environment variables
+.env
+.env.development
+.env.production

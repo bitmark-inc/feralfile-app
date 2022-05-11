@@ -27,8 +27,10 @@ dependencies:
   aws_firehose_api: ^1.2.0
   bubble: ^1.2.1
   cached_network_image: ^3.2.0
+  cast: ^1.1.0
   collection: ^1.15.0
   connectivity_plus: ^2.2.1
+  crypto: ^3.0.2
   cupertino_icons: ^1.0.2
   device_info_plus: ^3.2.1
   dio: ^4.0.4
@@ -44,6 +46,7 @@ dependencies:
       ref: bd2e4d6eddaea45ad80461ed78062f11f7df7c5b
   flutter_chat_types: ^3.3.1
   flutter_chat_ui: ^1.5.8
+  flutter_dotenv: ^5.0.2
   flutter_downloader: ^1.7.3
   flutter_email_sender: ^5.1.0
   flutter_fgbg: ^0.1.0
@@ -72,6 +75,7 @@ dependencies:
       ref: edd3354bf2db2394a3ba1bb8a3202b5035e9177e
   local_auth: ^1.1.10
   logging: ^1.0.2
+  mime: ^1.0.1
   modal_bottom_sheet: ^2.0.0
   onesignal_flutter: ^3.3.0
   open_settings: ^2.0.2
@@ -102,9 +106,6 @@ dependencies:
   web3dart: ^2.3.3
   web_socket_channel: ^2.1.0
   webview_flutter: ^3.0.0
-  cast: ^1.1.0
-  mime: ^1.0.1
-  crypto: ^3.0.2
 
 dependency_overrides:
   # Error using when import photo_view from dependencies:
@@ -135,6 +136,7 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
+    - .env
     - assets/images/penrose.svg
     - assets/images/penrose_appcenter.svg
     - assets/images/lock_penrose.svg
