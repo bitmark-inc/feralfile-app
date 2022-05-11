@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:autonomy_flutter/common/app_config.dart';
+import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -125,11 +125,11 @@ class _LinkMetamaskPageState extends State<LinkMetamaskPage> {
     final sessionID = Uuid().v4();
 
     final network = injector<ConfigurationService>().getNetwork();
-    final link = AppConfig.networkedExtensionSupportURL(network) +
+    final link = Environment.networkedExtensionSupportURL(network) +
         "/metamask-wallet?session_id=$sessionID";
 
     _websocketChannel = WebSocketChannel.connect(
-      Uri.parse(AppConfig.networkedWebsocketURL(network) +
+      Uri.parse(Environment.networkedWebsocketURL(network) +
           '/init?session_id=$sessionID'),
     );
 

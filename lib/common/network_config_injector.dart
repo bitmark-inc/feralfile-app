@@ -1,4 +1,4 @@
-import 'package:autonomy_flutter/common/app_config.dart';
+import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/gateway/bitmark_api.dart';
 import 'package:autonomy_flutter/gateway/feralfile_api.dart';

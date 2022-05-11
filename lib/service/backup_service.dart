@@ -1,8 +1,7 @@
 import 'dart:io';
 
-import 'package:autonomy_flutter/common/app_config.dart';
+import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
-import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/helpers.dart';
 import 'package:autonomy_flutter/util/log.dart';

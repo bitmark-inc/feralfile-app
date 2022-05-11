@@ -1,8 +1,7 @@
 import 'package:autonomy_flutter/model/network.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-class AppConfig {
+class Environment {
   static const String openSeaApiKey = "";
 
   static String networkedWebsocketURL(Network network) {
@@ -16,9 +15,7 @@ class AppConfig {
         ? Environment.extensionSupportMainnetURL
         : Environment.extensionSupportTestnetURL;
   }
-}
 
-class Environment {
   static String get indexerMainnetURL =>
       dotenv.env['INDEXER_MAINNET_API_URL'] ?? '';
   static String get indexerTestnetURL =>

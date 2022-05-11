@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:autonomy_flutter/common/app_config.dart';
+import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/tezos_connection.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -135,11 +135,11 @@ class _LinkTezosTemplePageState extends State<LinkTezosTemplePage> {
 
     final network = injector<ConfigurationService>().getNetwork();
 
-    final link = AppConfig.networkedExtensionSupportURL(network) +
+    final link = Environment.networkedExtensionSupportURL(network) +
         "?session_id=$sessionID&data=$payload";
 
     _websocketChannel = WebSocketChannel.connect(
-      Uri.parse(AppConfig.networkedWebsocketURL(network) +
+      Uri.parse(Environment.networkedWebsocketURL(network) +
           '/init?session_id=$sessionID'),
     );
 
