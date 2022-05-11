@@ -96,14 +96,14 @@
 /* Begin PBXCopyFilesBuildPhase section */
 		588939C3280525C200FE3313 /* Embed App Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
+			buildActionMask = 8;
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
 				588939C2280525C200FE3313 /* Runner Inhouse Notification.appex in Embed App Extensions */,
 			);
 			name = "Embed App Extensions";
-			runOnlyForDeploymentPostprocessing = 0;
+			runOnlyForDeploymentPostprocessing = 1;
 		};
 		588939D828052E3E00FE3313 /* Embed App Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -1497,7 +1497,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = InhouseAppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = "Runner/Runner InhouseDebug.entitlements";
-				CODE_SIGN_IDENTITY = "iPhone Distribution";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
 				DEVELOPMENT_TEAM = A52M7AQ8B2;
 				ENABLE_BITCODE = NO;
@@ -1510,7 +1510,7 @@
 				MARKETING_VERSION = 0.25.6;
 				PRODUCT_BUNDLE_IDENTIFIER = com.bitmark.autonomy.inhouse;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "Autonomy Inhouse";
+				PROVISIONING_PROFILE_SPECIFIER = "Autonomy Dev Inhouse";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = INHOUSE;
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
