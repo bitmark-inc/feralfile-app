@@ -1,8 +1,10 @@
 import 'dart:io';
 
+import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/bloc/feralfile/feralfile_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tokens_service.dart';
@@ -16,7 +18,11 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:url_launcher/url_launcher_string.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/util/error_handler.dart';
 
 class LinkAccountPage extends StatefulWidget {
   const LinkAccountPage({Key? key}) : super(key: key);
@@ -39,14 +45,14 @@ class _LinkAccountPageState extends State<LinkAccountPage>
   void initState() {
     super.initState();
 
-    _registerLinkedETHWalletListener();
+    _registerLinkedWalletConnectListener();
   }
 
   @override
   void dispose() {
     super.dispose();
     routeObserver.unsubscribe(this);
-    _removeLinkedETHWalletListener();
+    _removeLinkedWalletConnectListener();
   }
 
   @override
@@ -95,17 +101,82 @@ class _LinkAccountPageState extends State<LinkAccountPage>
           "BITMARK",
           style: appTextTheme.headline4,
         ),
-        TappableForwardRow(
-            leftWidget: Row(
-              children: [
-                SvgPicture.asset("assets/images/feralfileAppIcon.svg"),
-                SizedBox(width: 16),
-                Text("Feral File", style: appTextTheme.headline4),
-              ],
-            ),
-            onTap: () {
-              Navigator.of(context).pushNamed(AppRouter.linkFeralFilePage);
-            }),
+        BlocConsumer<FeralfileBloc, FeralFileState>(
+            listener: (context, state) async {
+          final event = state.event;
+          if (event == null) return;
+
+          if (event is LinkAccountSuccess) {
+            // SideEffect: pre-fetch tokens
+            injector<TokensService>()
+                .fetchTokensForAddresses([event.connection.accountNumber]);
+            UIHelper.hideInfoDialog(context);
+            await Future.delayed(Duration(milliseconds: 200));
+            UIHelper.showInfoDialog(context, 'Account linked',
+                'Autonomy has received autorization to link to your Feral File account ${event.connection.name}');
+
+            await Future.delayed(SHORT_SHOW_DIALOG_DURATION, () {
+              if (injector<ConfigurationService>().isDoneOnboarding()) {
+                Navigator.of(context).popUntil(
+                    (route) => route.settings.name == AppRouter.settingsPage);
+              } else {
+                doneOnboarding(context);
+              }
+            });
+
+            return;
+          } else if (event is AlreadyLinkedError) {
+            UIHelper.hideInfoDialog(context);
+            await Future.delayed(Duration(milliseconds: 200));
+            showErrorDiablog(
+                context,
+                ErrorEvent(
+                    null,
+                    "Already linked",
+                    "You’ve already linked this account to Autonomy.",
+                    ErrorItemState.seeAccount), defaultAction: () {
+              Navigator.of(context).pushReplacementNamed(
+                  AppRouter.linkedAccountDetailsPage,
+                  arguments: event.connection);
+            });
+            return;
+          }
+        }, builder: (context, state) {
+          return TappableForwardRow(
+              leftWidget: Row(
+                children: [
+                  SvgPicture.asset("assets/images/feralfileAppIcon.svg"),
+                  SizedBox(width: 16),
+                  Text("Feral File", style: appTextTheme.headline4),
+                ],
+              ),
+              onTap: () async {
+                // Navigator.of(context).pushNamed(AppRouter.linkFeralFilePage);
+                final walletConnectService =
+                    injector<WalletConnectDappService>();
+                await walletConnectService.start();
+                walletConnectService.connect();
+                var wcURI = walletConnectService.wcURI.value;
+                if (wcURI == null) {
+                  return;
+                }
+                wcURI = Uri.encodeQueryComponent(wcURI);
+
+                final network = injector<ConfigurationService>().getNetwork();
+                final url = Environment.networkedFeralFileWebsiteURL(network) +
+                    '/exhibitions?callbackUrl=autonomy%3A%2F%2F&wc=$wcURI';
+
+                UIHelper.showInfoDialog(
+                  context,
+                  'Link requested',
+                  'Autonomy has sent a request to Feral File in your mobile browser to link to your account. Please make sure you are signed in and authorize the request. ',
+                  isDismissible: true,
+                );
+
+                await launchUrlString(url,
+                    mode: LaunchMode.externalApplication);
+              });
+        }),
       ],
     );
   }
@@ -224,7 +295,7 @@ class _LinkAccountPageState extends State<LinkAccountPage>
   }
 
   // MARK: - Handlers
-  void _registerLinkedETHWalletListener() {
+  void _registerLinkedWalletConnectListener() {
     if (_remotePeerWCAccountListener != null) return;
     // Link Successfully
     _remotePeerWCAccountListener = () async {
@@ -233,7 +304,11 @@ class _LinkAccountPageState extends State<LinkAccountPage>
           injector<WalletConnectDappService>().remotePeerAccount.value;
       if (connectedSession == null) return;
 
-      _handleLinkETHWallet(connectedSession);
+      if (connectedSession.sessionStore.remotePeerMeta.name == "Feral File") {
+        _handleLinkFeralFile(connectedSession);
+      } else {
+        _handleLinkETHWallet(connectedSession);
+      }
     };
 
     injector<WalletConnectDappService>()
@@ -241,7 +316,7 @@ class _LinkAccountPageState extends State<LinkAccountPage>
         .addListener(_remotePeerWCAccountListener!);
   }
 
-  void _removeLinkedETHWalletListener() {
+  void _removeLinkedWalletConnectListener() {
     if (_remotePeerWCAccountListener == null) return;
 
     injector<WalletConnectDappService>()
@@ -250,6 +325,15 @@ class _LinkAccountPageState extends State<LinkAccountPage>
   }
 
   bool _isLinking = false;
+
+  Future _handleLinkFeralFile(WCConnectedSession session) async {
+    if (_isLinking) return;
+    _isLinking = true;
+
+    final apiToken = session.accounts.first.replaceFirst("feralfile-api:", "");
+
+    context.read<FeralfileBloc>().add(LinkFFAccountInfoEvent(apiToken));
+  }
 
   Future _handleLinkETHWallet(WCConnectedSession session) async {
     if (_isLinking) return;

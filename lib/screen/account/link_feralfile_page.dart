@@ -15,6 +15,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+// TODO: remove this page after the final decision for desktop connection
+
 class LinkFeralFilePage extends StatefulWidget {
   const LinkFeralFilePage({Key? key}) : super(key: key);
 
