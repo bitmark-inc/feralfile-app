@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/screen/survey/survey.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
+import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -80,6 +81,7 @@ class _HomePageState extends State<HomePage>
   void afterFirstLayout(BuildContext context) {
     _cloudBackup();
     _handleForeground();
+    injector<AutonomyService>().postLinkedAddresses();
     Future.delayed(Duration(seconds: 1), _handleShowingSurveys);
   }
 
@@ -364,13 +366,20 @@ class _HomePageState extends State<HomePage>
 
   void _shouldShowNotifications(OSNotificationReceivedEvent event) {
     log.info("Receive notification: ${event.notification}");
-    final notificationIssueID =
-        '${event.notification.additionalData?['issue_id']}';
-    if (notificationIssueID == memoryValues.viewingSupportThreadIssueID) {
-      injector<CustomerSupportService>().triggerReloadMessages.value += 1;
-      injector<CustomerSupportService>().getIssues();
-      event.complete(null);
-      return;
+    final data = event.notification.additionalData;
+    if (data == null) return;
+
+    switch (data['notification_type']) {
+      case "customer_support_new_message":
+      case "customer_support_close_issue":
+        final notificationIssueID =
+            '${event.notification.additionalData?['issue_id']}';
+        if (notificationIssueID == memoryValues.viewingSupportThreadIssueID) {
+          injector<CustomerSupportService>().triggerReloadMessages.value += 1;
+          injector<CustomerSupportService>().getIssues();
+          event.complete(null);
+          return;
+        }
     }
 
     showNotifications(event.notification,
@@ -389,6 +398,12 @@ class _HomePageState extends State<HomePage>
 
     final notificationType = notification.additionalData!["notification_type"];
     switch (notificationType) {
+      case "gallery_new_nft":
+        Navigator.of(context).popUntil((route) =>
+            route.settings.name == AppRouter.homePage ||
+            route.settings.name == AppRouter.homePageNoTransition);
+        break;
+
       case "customer_support_new_message":
       case "customer_support_close_issue":
         final issueID = '${notification.additionalData!["issue_id"]}';
