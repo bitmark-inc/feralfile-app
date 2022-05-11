@@ -56,7 +56,7 @@ class _HomePageState extends State<HomePage>
   @override
   void initState() {
     super.initState();
-    checkForKeySync();
+    _checkForKeySync();
     _initUniLinks();
     WidgetsBinding.instance?.addObserver(this);
     _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
@@ -297,11 +297,11 @@ class _HomePageState extends State<HomePage>
     } on PlatformException {}
   }
 
-  Future<void> checkForKeySync() async {
+  Future<void> _checkForKeySync() async {
     final cloudDatabase = injector<CloudDatabase>();
     final defaultAccounts = await cloudDatabase.personaDao.getDefaultPersonas();
 
-    if (defaultAccounts.length > 2) {
+    if (defaultAccounts.length >= 2) {
       Navigator.of(context).pushNamed(AppRouter.keySyncPage);
     }
   }

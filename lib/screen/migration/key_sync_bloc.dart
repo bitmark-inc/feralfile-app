@@ -25,7 +25,7 @@ class KeySyncBloc extends Bloc<KeySyncEvent, KeySyncState> {
 
       if (cloudBackupVersion.isNotEmpty) {
         final tmpCloudDbName = 'tmp_cloud_database.db';
-        _backupService.restoreCloudDatabase(cloudWallet, cloudBackupVersion, dbName: tmpCloudDbName);
+        await _backupService.restoreCloudDatabase(cloudWallet, cloudBackupVersion, dbName: tmpCloudDbName);
 
         final tmpCloudDb = await $FloorCloudDatabase
             .databaseBuilder(tmpCloudDbName)
@@ -37,7 +37,6 @@ class KeySyncBloc extends Bloc<KeySyncEvent, KeySyncState> {
         final connections = await tmpCloudDb.connectionDao.getConnections();
         await _cloudDatabase.connectionDao.insertConnections(connections);
       }
-
 
       if (state.isLocalSelected) {
         final cloudDefaultPersona = accounts[1];

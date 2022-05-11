@@ -311,19 +311,13 @@ class AccountServiceImpl extends AccountService {
       });
 
       //Import persona to database if needed
-      accounts.forEach((account) async {
+      for (var account in accounts) {
         final existingAccount =
             await _cloudDB.personaDao.findById(account.uuid);
         if (existingAccount == null) {
-          final count = (await _cloudDB.personaDao.getPersonas()).length;
-          int? defaultAccount;
-          if (count == 0) {
-            defaultAccount = 1;
-          } else {
-            final backupVersion = await _backupService
-                .fetchBackupVersion(LibAukDart.getWallet(account.uuid));
-            defaultAccount = backupVersion.isNotEmpty ? 1 : null;
-          }
+          final backupVersion = await _backupService
+              .fetchBackupVersion(LibAukDart.getWallet(account.uuid));
+          final defaultAccount = backupVersion.isNotEmpty ? 1 : null;
 
           final persona = Persona.newPersona(
             uuid: account.uuid,
@@ -334,13 +328,8 @@ class AccountServiceImpl extends AccountService {
           await _cloudDB.personaDao.insertPersona(persona);
           await _auditService.audiPersonaAction(
               '[androidRestoreKeys] insert', persona);
-        } else {
-          final backupVersion = await _backupService
-              .fetchBackupVersion(LibAukDart.getWallet(account.uuid));
-          existingAccount.defaultAccount = backupVersion.isNotEmpty ? 1 : null;
-          await _cloudDB.personaDao.updatePersona(existingAccount);
         }
-      });
+      }
     }
   }
 

@@ -52,7 +52,7 @@ class KeySyncPage extends StatelessWidget {
                         ListTile(
                           contentPadding: EdgeInsets.zero,
                           title: Text(
-                            "Cloud keychain",
+                            "Device keychain",
                             style: appTextTheme.headline4,
                           ),
                           trailing: Transform.scale(
@@ -76,7 +76,7 @@ class KeySyncPage extends StatelessWidget {
                         ListTile(
                           contentPadding: EdgeInsets.zero,
                           title: Text(
-                            'Device keychain',
+                            'Cloud keychain',
                             style: appTextTheme.headline4,
                           ),
                           trailing: Transform.scale(
