@@ -146,6 +146,13 @@ class IAPServiceImpl implements IAPService {
   }
 
   void _listenToPurchaseUpdated(List<PurchaseDetails> purchaseDetailsList) {
+    if (purchaseDetailsList.isEmpty) {
+      // Remove purchase status
+      _configurationService.setIAPJWT(null);
+      _configurationService.setIAPReceipt(null);
+      return;
+    }
+
     purchaseDetailsList.forEach((PurchaseDetails purchaseDetails) async {
       if (purchaseDetails.status == PurchaseStatus.pending) {
         purchases.value[purchaseDetails.productID] = IAPProductStatus.pending;

@@ -38,7 +38,7 @@ class NetworkConfigInjector {
         () => IndexerApi(_dioHTTP2, baseUrl: Environment.indexerTestnetURL));
 
     testnetInjector.registerLazySingleton<EthereumService>(
-        () => EthereumServiceImpl(testnetInjector()));
+        () => EthereumServiceImpl(testnetInjector(), _configurationService));
     testnetInjector.registerLazySingleton<TezosService>(
         () => TezosServiceImpl(testnetInjector()));
     testnetInjector.registerLazySingleton<AppDatabase>(() => testnetDB);
@@ -58,7 +58,7 @@ class NetworkConfigInjector {
         () => IndexerApi(_dioHTTP2, baseUrl: Environment.indexerMainnetURL));
 
     mainnetInjector.registerLazySingleton<EthereumService>(
-        () => EthereumServiceImpl(mainnetInjector()));
+        () => EthereumServiceImpl(mainnetInjector(), _configurationService));
     mainnetInjector.registerLazySingleton<TezosService>(
         () => TezosServiceImpl(mainnetInjector()));
     mainnetInjector.registerLazySingleton<AppDatabase>(() => mainnetDB);
