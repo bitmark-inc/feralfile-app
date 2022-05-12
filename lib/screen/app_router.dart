@@ -75,6 +75,7 @@ import 'package:autonomy_flutter/screen/tezos_beacon/tb_sign_message_page.dart';
 import 'package:autonomy_flutter/screen/unsafe_web_wallet_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_bloc.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
+import 'package:autonomy_flutter/screen/wallet_connect/tv_connect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_disconnect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
@@ -135,6 +136,7 @@ class AppRouter {
   static const bugBountyPage = 'bugBountyPage';
   static const participateUserTestPage = 'participateUserTestPage';
   static const keySyncPage = 'key_sync_page';
+  static const tvConnectPage = 'tv_connect';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final networkInjector = injector<NetworkConfigInjector>();
@@ -726,6 +728,24 @@ class AppRouter {
               create: (_) => KeySyncBloc(injector(), injector()),
               child: KeySyncPage(),
             ));
+
+      case tvConnectPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => MultiBlocProvider(
+                providers: [
+                  BlocProvider.value(value: accountsBloc),
+                  BlocProvider(
+                    create: (_) => PersonaBloc(
+                      injector<CloudDatabase>(),
+                      injector(),
+                      injector(),
+                      injector<AuditService>(),
+                    ),
+                  ),
+                ],
+                child: TVConnectPage(
+                    wcConnectArgs: settings.arguments as WCConnectPageArgs)));
 
       default:
         throw Exception('Invalid route: ${settings.name}');

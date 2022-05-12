@@ -38,6 +38,7 @@ class AuThemeManager {
           bodyText1: appTextTheme.bodyText1?.copyWith(color: Colors.white),
           bodyText2: appTextTheme.bodyText2?.copyWith(color: Colors.white),
           button: appTextTheme.bodyText2?.copyWith(color: Colors.white),
+          caption: appTextTheme.caption?.copyWith(color: Colors.white),
         ),
   );
 

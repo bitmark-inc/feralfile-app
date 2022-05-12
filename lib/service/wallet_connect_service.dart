@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/model/connection_supports.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
@@ -147,8 +148,13 @@ class WalletConnectService {
       },
       onSessionRequest: (id, peerMeta) {
         currentPeerMeta = peerMeta;
-        _navigationService.navigateTo(WCConnectPage.tag,
-            arguments: WCConnectPageArgs(id, peerMeta));
+        if (peerMeta.name == AUTONOMY_TV_PEER_NAME) {
+          _navigationService.navigateTo(AppRouter.tvConnectPage,
+              arguments: WCConnectPageArgs(id, peerMeta));
+        } else {
+          _navigationService.navigateTo(AppRouter.wcConnectPage,
+              arguments: WCConnectPageArgs(id, peerMeta));
+        }
       },
       onEthSign: (id, message) async {
         String? uuid = wcConnection?.personaUuid ?? tmpUuids[currentPeerMeta!];
