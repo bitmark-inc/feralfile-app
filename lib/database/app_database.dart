@@ -1,9 +1,11 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/database/dao/asset_token_dao.dart';
+import 'package:autonomy_flutter/database/dao/draft_customer_support_dao.dart';
 import 'package:autonomy_flutter/database/dao/identity_dao.dart';
 import 'package:autonomy_flutter/database/dao/provenance_dao.dart';
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
+import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
 import 'package:autonomy_flutter/database/entity/identity.dart';
 import 'package:autonomy_flutter/model/provenance.dart';
 import 'package:floor/floor.dart';
@@ -12,16 +14,20 @@ import 'package:sqflite/sqflite.dart' as sqflite;
 part 'app_database.g.dart'; // the generated code will be there
 
 @TypeConverters([DateTimeConverter])
-@Database(version: 9, entities: [AssetToken, Identity, Provenance])
+@Database(
+    version: 10,
+    entities: [AssetToken, Identity, Provenance, DraftCustomerSupport])
 abstract class AppDatabase extends FloorDatabase {
   AssetTokenDao get assetDao;
   IdentityDao get identityDao;
   ProvenanceDao get provenanceDao;
+  DraftCustomerSupportDao get draftCustomerSupportDao;
 
   Future<dynamic> removeAll() async {
     await provenanceDao.removeAll();
     await assetDao.removeAll();
     await identityDao.removeAll();
+    await draftCustomerSupportDao.removeAll();
   }
 }
 
@@ -68,5 +74,11 @@ final migrateV7ToV8 = Migration(7, 8, (database) async {
 final migrateV8ToV9 = Migration(8, 9, (database) async {
   await database.execute("""
     ALTER TABLE AssetToken ADD COLUMN blockchainURL TEXT;
+  """);
+});
+
+final migrateV9ToV10 = Migration(9, 10, (database) async {
+  await database.execute("""
+    CREATE TABLE IF NOT EXISTS `DraftCustomerSupport` (`uuid` TEXT NOT NULL, `issueID` TEXT NOT NULL, `type` TEXT NOT NULL, `data` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `reportIssueType` TEXT NOT NULL, `mutedMessages` TEXT NOT NULL, PRIMARY KEY (`uuid`));
   """);
 });

@@ -75,6 +75,6 @@ class AuditServiceImpl extends AuditService {
 
   Future<List<int>> export() async {
     final audits = await _cloudDB.auditDao.getAudits();
-    return utf8.encode(jsonEncode(audits));
+    return utf8.encode('\n -- ACCOUNT AUDITS --\n' + jsonEncode(audits));
   }
 }

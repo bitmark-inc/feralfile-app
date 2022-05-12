@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
 import 'package:bubble/bubble.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -67,9 +68,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   String? _issueID;
 
   List<types.Message> _messages = [];
-  List<types.Message> _pendingMessages = [];
-  List<app.SendMessage> _pendingSendMessages = [];
-  bool _isPostMessageRunning = false;
+  List<types.Message> _draftMessages = [];
   final _user = const types.User(id: 'user');
   final _bitmark = const types.User(id: 'bitmark');
 
@@ -94,16 +93,23 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
 
   @override
   void initState() {
+    injector<CustomerSupportService>().processMessages();
     injector<CustomerSupportService>()
         .triggerReloadMessages
         .addListener(_loadIssueDetails);
+
+    injector<CustomerSupportService>()
+        .customerSupportUpdate
+        .addListener(_loadCustomerSupportUpdates);
 
     final payload = widget.payload;
     if (payload is NewIssuePayload) {
       _reportIssueType = payload.reportIssueType;
     } else if (payload is DetailIssuePayload) {
       _reportIssueType = payload.reportIssueType;
-      _issueID = payload.issueID;
+      _issueID =
+          injector<CustomerSupportService>().tempIssueIDMap[payload.issueID] ??
+              payload.issueID;
     } else if (payload is ExceptionErrorPayload) {
       _reportIssueType = ReportIssueType.Exception;
     }
@@ -112,7 +118,9 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     _forceAccountsViewRedraw = Object();
     super.initState();
 
-    if (_issueID != null) {
+    _loadDrafts();
+
+    if (_issueID != null && !_issueID!.startsWith("TEMP")) {
       _loadIssueDetails();
     }
   }
@@ -122,13 +130,17 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     injector<CustomerSupportService>()
         .triggerReloadMessages
         .removeListener(_loadIssueDetails);
+    injector<CustomerSupportService>()
+        .customerSupportUpdate
+        .removeListener(_loadCustomerSupportUpdates);
+
     memoryValues.viewingSupportThreadIssueID = null;
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    List<types.Message> messages = (_pendingMessages + _messages);
+    List<types.Message> messages = (_draftMessages + _messages);
     if (_status == 'closed' || _status == 'clickToReopen') {
       messages.insert(0, _resolvedMessager);
     }
@@ -252,42 +264,108 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       });
   }
 
-  void _handleSendPressed(types.PartialText message) async {
-    _pendingSendMessages.insert(
-      0,
-      app.SendMessage(
-          id: const Uuid().v4(),
-          message: message.text,
-          attachments: [],
-          timestamp: DateTime.now()),
+  Future _loadDrafts() async {
+    if (_issueID == null) return;
+    final drafts =
+        await injector<CustomerSupportService>().getDrafts(_issueID!);
+    final draftMessages =
+        (await Future.wait(drafts.map((e) => _convertChatMessage(e, null))))
+            .expand((i) => i)
+            .toList();
+
+    if (mounted)
+      setState(() {
+        _draftMessages = draftMessages;
+      });
+  }
+
+  void _loadCustomerSupportUpdates() async {
+    final update =
+        injector<CustomerSupportService>().customerSupportUpdate.value;
+    if (update == null) return;
+    if (update.draft.issueID != _issueID) return;
+
+    _issueID = update.response.issueID;
+    memoryValues.viewingSupportThreadIssueID = _issueID;
+    final newMessages =
+        await _convertChatMessage(update.response.message, update.draft.uuid);
+
+    setState(() {
+      _draftMessages
+          .removeWhere((element) => element.id.startsWith(update.draft.uuid));
+      _messages.insertAll(0, newMessages);
+    });
+  }
+
+  Future _submit(String messageType, DraftCustomerSupportData data) async {
+    logUtil.log.info('[CS-Thread][start] _submit $messageType - $data');
+    String _sentryID = "";
+    if (_issueID == null) {
+      messageType = CSMessageType.CreateIssue.rawValue;
+      _issueID = "TEMP-" + Uuid().v4();
+
+      final payload = widget.payload;
+      if (payload is ExceptionErrorPayload) {
+        _sentryID = payload.sentryID;
+      }
+    }
+
+    final draft = DraftCustomerSupport(
+      uuid: Uuid().v4(),
+      issueID: _issueID!,
+      type: messageType,
+      data: json.encode(data),
+      createdAt: DateTime.now(),
+      reportIssueType: _reportIssueType,
+      mutedMessages: _sentryID.isNotEmpty
+          ? "[SENTRY REPORT $_sentryID](https://sentry.io/organizations/bitmark-inc/issues/?query=$_sentryID)"
+          : "",
     );
 
-    await _convertPendingChatMessages();
+    _draftMessages.insertAll(0, await _convertChatMessage(draft, null));
+
+    if (_issueID != null && _status == 'clickToReopen') {
+      setState(() {
+        _status = "reopening";
+      });
+      await injector<CustomerSupportService>().reopen(_issueID!);
+      _status = "open";
+    }
+
+    await injector<CustomerSupportService>().draftMessage(draft);
     setState(() {
       _sendIcon = "assets/images/sendMessage.svg";
+      _forceAccountsViewRedraw = Object();
     });
-    _postMessageToServer();
+  }
+
+  void _handleSendPressed(types.PartialText message) async {
+    _submit(
+      CSMessageType.PostMessage.rawValue,
+      DraftCustomerSupportData(text: message.text, attachments: null),
+    );
   }
 
   Future _addAppLogs() async {
     final logFilePath = await logUtil.getLatestLogFile();
     File file = File(logFilePath);
     final bytes = await file.readAsBytes();
-    final log = base64Encode(bytes);
-    final fileName = logFilePath.split('/').last;
+    final auditBytes = await injector<AuditService>().export();
+    final combinedBytes = bytes + auditBytes;
+    final filename =
+        "${combinedBytes.length}_${DateTime.now().microsecondsSinceEpoch}.logs";
 
-    _pendingSendMessages.add(app.SendMessage(
-      id: const Uuid().v4(),
-      message: '',
-      attachments: [
-        app.SendAttachment(
-          data: log,
-          title: "${bytes.length}_$fileName",
-          contentType: 'file',
-        ),
-      ],
-      timestamp: DateTime.now(),
-    ));
+    final localPath = await injector<CustomerSupportService>()
+        .storeFile(filename, combinedBytes);
+
+    await _submit(
+        CSMessageType.PostLogs.rawValue,
+        DraftCustomerSupportData(
+          text: null,
+          attachments: [LocalAttachment(fileName: filename, path: localPath)],
+        ));
+
+    Navigator.pop(context);
   }
 
   void _handleAtachmentPressed() {
@@ -302,8 +380,8 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
           TextButton(
             style: textButtonNoPadding,
             onPressed: () {
-              Navigator.of(context).pop();
               _handleImageSelection();
+              Navigator.of(context).pop();
             },
             child: Align(
               alignment: Alignment.centerLeft,
@@ -314,55 +392,11 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
           TextButton(
             style: textButtonNoPadding,
             onPressed: () async {
-              final accountAuditLogsBytes =
-                  await injector<AuditService>().export();
-              final accountLogTitle =
-                  'account_audit-${DateTime.now().microsecondsSinceEpoch}.logs';
-
-              _pendingSendMessages.insert(
-                0,
-                app.SendMessage(
-                    id: const Uuid().v4(),
-                    message: '',
-                    attachments: [
-                      app.SendAttachment(
-                        data: base64Encode(accountAuditLogsBytes),
-                        title: "${accountAuditLogsBytes.length}_" +
-                            accountLogTitle,
-                        contentType: 'file',
-                      ),
-                    ],
-                    timestamp: DateTime.now()),
-              );
-
-              await _convertPendingChatMessages();
-              setState(() {
-                _forceAccountsViewRedraw = Object();
-              });
-              Navigator.pop(context);
-              _postMessageToServer();
-            },
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child:
-                  Text('Attach accounts log', style: theme.textTheme.headline4),
-            ),
-          ),
-          addDialogDivider(),
-          TextButton(
-            style: textButtonNoPadding,
-            onPressed: () async {
               await _addAppLogs();
-              await _convertPendingChatMessages();
-              setState(() {
-                _forceAccountsViewRedraw = Object();
-              });
-              Navigator.pop(context);
-              _postMessageToServer();
             },
             child: Align(
               alignment: Alignment.centerLeft,
-              child: Text('Attach app log', style: theme.textTheme.headline4),
+              child: Text('Debug Log', style: theme.textTheme.headline4),
             ),
           ),
           SizedBox(height: 40),
@@ -382,44 +416,24 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   }
 
   void _handleImageSelection() async {
+    logUtil.log.info('[_handleImageSelection] begin');
     final result = await ImagePicker().pickMultiImage();
-
     if (result == null) return;
 
     final attachments = await Future.wait(result.map((element) async {
       final bytes = await element.readAsBytes();
-      return app.SendAttachment(
-        data: base64Encode(bytes),
-        title: "${bytes.length}_${element.name}",
-        path: element.path,
-        contentType: 'image',
-      );
+      final fileName = "${bytes.length}_${element.name}";
+      final localPath =
+          await injector<CustomerSupportService>().storeFile(fileName, bytes);
+      return LocalAttachment(path: localPath, fileName: fileName);
     }));
 
-    _pendingSendMessages.insert(
-      0,
-      app.SendMessage(
-          id: const Uuid().v4(),
-          message: '',
+    await _submit(
+        CSMessageType.PostPhotos.rawValue,
+        DraftCustomerSupportData(
+          text: null,
           attachments: attachments,
-          timestamp: DateTime.now()),
-    );
-
-    await _convertPendingChatMessages();
-    setState(() {
-      _forceAccountsViewRedraw = Object();
-    });
-
-    _postMessageToServer();
-  }
-
-  Future _convertPendingChatMessages() async {
-    final _parsedSendMessages = (await Future.wait(
-            _pendingSendMessages.map((e) => _convertChatMessage(e, null))))
-        .expand((i) => i)
-        .toList();
-
-    _pendingMessages = _parsedSendMessages;
+        ));
   }
 
   Future<List<types.Message>> _convertChatMessage(
@@ -433,12 +447,12 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       createdAt = message.timestamp;
       text = message.filteredMessage;
       //
-    } else if (message is app.SendMessage) {
-      id = message.id;
+    } else if (message is DraftCustomerSupport) {
+      id = message.uuid;
       author = _user;
       status = types.Status.sending;
-      createdAt = message.timestamp;
-      text = message.message;
+      createdAt = message.createdAt;
+      text = message.draftData.text;
       //
     } else {
       return [];
@@ -466,15 +480,17 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     if (message is app.Message) {
       for (var attachment in message.attachments) {
         titles.add(attachment.title);
-        uris.add(storedDirectory + "/" + attachment.name);
+        uris.add(storedDirectory + "/" + attachment.title);
         contentTypes.add(attachment.contentType);
       }
       //
-    } else if (message is app.SendMessage) {
-      for (var attachment in message.attachments) {
-        titles.add(attachment.title);
+    } else if (message is DraftCustomerSupport) {
+      for (var attachment in message.draftData.attachments ?? []) {
+        titles.add(attachment.fileName);
         uris.add(attachment.path);
-        contentTypes.add(attachment.contentType);
+        contentTypes.add(message.type == CSMessageType.PostPhotos.rawValue
+            ? 'image'
+            : 'logs');
       }
     }
 
@@ -507,77 +523,6 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     }
 
     return result;
-  }
-
-  void _postMessageToServer() async {
-    if (_isPostMessageRunning || _pendingSendMessages.length == 0) return;
-    final message = _pendingSendMessages.last;
-    _isPostMessageRunning = true;
-    app.Message postedMessage;
-
-    if (_issueID == null) {
-      String _sentryID = "";
-      final payload = widget.payload;
-      if (payload is ExceptionErrorPayload) {
-        _sentryID = payload.sentryID;
-      }
-
-      final result = await injector<CustomerSupportService>().createIssue(
-        _reportIssueType,
-        message.message,
-        message.attachments,
-        mutedText: _sentryID.isNotEmpty
-            ? [
-                "[SENTRY REPORT $_sentryID](https://sentry.io/organizations/bitmark-inc/issues/?query=$_sentryID)"
-              ]
-            : [],
-      );
-      _issueID = result.issueID;
-      memoryValues.viewingSupportThreadIssueID = _issueID;
-      injector<CustomerSupportService>()
-          .triggerReloadMessages
-          .addListener(_loadIssueDetails);
-      postedMessage = result.message;
-
-      //
-    } else {
-      if (_status == 'closed' || _status == 'clickToReopen') {
-        setState(() {
-          _status = "reopening";
-        });
-        await injector<CustomerSupportService>().reopen(_issueID!);
-      }
-
-      final result = await injector<CustomerSupportService>()
-          .commentIssue(_issueID!, message.message, message.attachments);
-      postedMessage = result.message;
-    }
-
-    final _pendingSendMessage = _pendingSendMessages.removeLast();
-    if (message.attachments.length > 0 &&
-        message.attachments.length == postedMessage.attachments.length) {
-      for (var i = 0; i < message.attachments.length; i += 1) {
-        final attachment = postedMessage.attachments[i];
-
-        // only local backup image for now
-        if (attachment.contentType.contains('image')) {
-          await injector<CustomerSupportService>().storeFile(
-              postedMessage.attachments[i].name,
-              base64Decode(message.attachments[i].data));
-        }
-      }
-    }
-
-    await _convertPendingChatMessages();
-    final newMessages =
-        await _convertChatMessage(postedMessage, _pendingSendMessage.id);
-
-    setState(() {
-      _messages.insertAll(0, newMessages);
-    });
-
-    _isPostMessageRunning = false;
-    _postMessageToServer();
   }
 
   DefaultChatTheme get _chatTheme {

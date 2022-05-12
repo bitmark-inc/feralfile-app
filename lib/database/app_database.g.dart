@@ -67,10 +67,12 @@ class _$AppDatabase extends AppDatabase {
 
   ProvenanceDao? _provenanceDaoInstance;
 
+  DraftCustomerSupportDao? _draftCustomerSupportDaoInstance;
+
   Future<sqflite.Database> open(String path, List<Migration> migrations,
       [Callback? callback]) async {
     final databaseOptions = sqflite.OpenDatabaseOptions(
-      version: 9,
+      version: 10,
       onConfigure: (database) async {
         await database.execute('PRAGMA foreign_keys = ON');
         await callback?.onConfigure?.call(database);
@@ -91,6 +93,8 @@ class _$AppDatabase extends AppDatabase {
             'CREATE TABLE IF NOT EXISTS `Identity` (`accountNumber` TEXT NOT NULL, `blockchain` TEXT NOT NULL, `name` TEXT NOT NULL, `queriedAt` INTEGER NOT NULL, PRIMARY KEY (`accountNumber`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `Provenance` (`txID` TEXT NOT NULL, `type` TEXT NOT NULL, `blockchain` TEXT NOT NULL, `owner` TEXT NOT NULL, `timestamp` INTEGER NOT NULL, `txURL` TEXT NOT NULL, `tokenID` TEXT NOT NULL, FOREIGN KEY (`tokenID`) REFERENCES `AssetToken` (`id`) ON UPDATE NO ACTION ON DELETE CASCADE, PRIMARY KEY (`txID`))');
+        await database.execute(
+            'CREATE TABLE IF NOT EXISTS `DraftCustomerSupport` (`uuid` TEXT NOT NULL, `issueID` TEXT NOT NULL, `type` TEXT NOT NULL, `data` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `reportIssueType` TEXT NOT NULL, `mutedMessages` TEXT NOT NULL, PRIMARY KEY (`uuid`))');
         await database.execute(
             'CREATE INDEX `index_Provenance_tokenID` ON `Provenance` (`tokenID`)');
 
@@ -113,6 +117,12 @@ class _$AppDatabase extends AppDatabase {
   @override
   ProvenanceDao get provenanceDao {
     return _provenanceDaoInstance ??= _$ProvenanceDao(database, changeListener);
+  }
+
+  @override
+  DraftCustomerSupportDao get draftCustomerSupportDao {
+    return _draftCustomerSupportDaoInstance ??=
+        _$DraftCustomerSupportDao(database, changeListener);
   }
 }
 
@@ -602,6 +612,108 @@ class _$ProvenanceDao extends ProvenanceDao {
   Future<void> insertProvenance(List<Provenance> provenance) async {
     await _provenanceInsertionAdapter.insertList(
         provenance, OnConflictStrategy.replace);
+  }
+}
+
+class _$DraftCustomerSupportDao extends DraftCustomerSupportDao {
+  _$DraftCustomerSupportDao(this.database, this.changeListener)
+      : _queryAdapter = QueryAdapter(database),
+        _draftCustomerSupportInsertionAdapter = InsertionAdapter(
+            database,
+            'DraftCustomerSupport',
+            (DraftCustomerSupport item) => <String, Object?>{
+                  'uuid': item.uuid,
+                  'issueID': item.issueID,
+                  'type': item.type,
+                  'data': item.data,
+                  'createdAt': _dateTimeConverter.encode(item.createdAt),
+                  'reportIssueType': item.reportIssueType,
+                  'mutedMessages': item.mutedMessages
+                }),
+        _draftCustomerSupportDeletionAdapter = DeletionAdapter(
+            database,
+            'DraftCustomerSupport',
+            ['uuid'],
+            (DraftCustomerSupport item) => <String, Object?>{
+                  'uuid': item.uuid,
+                  'issueID': item.issueID,
+                  'type': item.type,
+                  'data': item.data,
+                  'createdAt': _dateTimeConverter.encode(item.createdAt),
+                  'reportIssueType': item.reportIssueType,
+                  'mutedMessages': item.mutedMessages
+                });
+
+  final sqflite.DatabaseExecutor database;
+
+  final StreamController<String> changeListener;
+
+  final QueryAdapter _queryAdapter;
+
+  final InsertionAdapter<DraftCustomerSupport>
+      _draftCustomerSupportInsertionAdapter;
+
+  final DeletionAdapter<DraftCustomerSupport>
+      _draftCustomerSupportDeletionAdapter;
+
+  @override
+  Future<List<DraftCustomerSupport>> fetchDrafts(int limit) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM DraftCustomerSupport ORDER BY createdAt LIMIT ?1',
+        mapper: (Map<String, Object?> row) => DraftCustomerSupport(
+            uuid: row['uuid'] as String,
+            issueID: row['issueID'] as String,
+            type: row['type'] as String,
+            data: row['data'] as String,
+            createdAt: _dateTimeConverter.decode(row['createdAt'] as int),
+            reportIssueType: row['reportIssueType'] as String,
+            mutedMessages: row['mutedMessages'] as String),
+        arguments: [limit]);
+  }
+
+  @override
+  Future<List<DraftCustomerSupport>> getDrafts(String issueID) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM DraftCustomerSupport WHERE issueID = ?1 ORDER BY createdAt DESC',
+        mapper: (Map<String, Object?> row) => DraftCustomerSupport(uuid: row['uuid'] as String, issueID: row['issueID'] as String, type: row['type'] as String, data: row['data'] as String, createdAt: _dateTimeConverter.decode(row['createdAt'] as int), reportIssueType: row['reportIssueType'] as String, mutedMessages: row['mutedMessages'] as String),
+        arguments: [issueID]);
+  }
+
+  @override
+  Future<List<DraftCustomerSupport>> getAllDrafts() async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM DraftCustomerSupport ORDER BY createdAt DESC',
+        mapper: (Map<String, Object?> row) => DraftCustomerSupport(
+            uuid: row['uuid'] as String,
+            issueID: row['issueID'] as String,
+            type: row['type'] as String,
+            data: row['data'] as String,
+            createdAt: _dateTimeConverter.decode(row['createdAt'] as int),
+            reportIssueType: row['reportIssueType'] as String,
+            mutedMessages: row['mutedMessages'] as String));
+  }
+
+  @override
+  Future<void> updateIssueID(String oldIssueID, String newIssueID) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE DraftCustomerSupport SET issueID = ?2 WHERE issueID = ?1',
+        arguments: [oldIssueID, newIssueID]);
+  }
+
+  @override
+  Future<void> removeAll() async {
+    await _queryAdapter.queryNoReturn('DELETE FROM DraftCustomerSupport');
+  }
+
+  @override
+  Future<void> insertDraft(DraftCustomerSupport draft) async {
+    await _draftCustomerSupportInsertionAdapter.insert(
+        draft, OnConflictStrategy.replace);
+  }
+
+  @override
+  Future<void> deleteDraft(DraftCustomerSupport draft) async {
+    await _draftCustomerSupportDeletionAdapter.delete(draft);
   }
 }
 

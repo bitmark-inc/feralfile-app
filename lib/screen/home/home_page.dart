@@ -391,6 +391,11 @@ class _HomePageState extends State<HomePage>
           event.complete(null);
           return;
         }
+        break;
+
+      case 'gallery_new_nft':
+        context.read<HomeBloc>().add(RefreshTokensEvent());
+        break;
     }
 
     showNotifications(event.notification,
@@ -450,6 +455,7 @@ class _HomePageState extends State<HomePage>
 
     injector<VersionService>().checkForUpdate();
     injector<CustomerSupportService>().getIssues();
+    injector<CustomerSupportService>().processMessages();
   }
 
   void _handleBackground() {

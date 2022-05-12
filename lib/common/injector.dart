@@ -66,6 +66,7 @@ Future<void> setup() async {
     migrateV6ToV7,
     migrateV7ToV8,
     migrateV8ToV9,
+    migrateV9ToV10,
   ]).build();
 
   final mainnetDB = await $FloorAppDatabase
@@ -79,6 +80,7 @@ Future<void> setup() async {
     migrateV6ToV7,
     migrateV7ToV8,
     migrateV8ToV9,
+    migrateV9ToV10,
   ]).build();
 
   final cloudDB = await $FloorCloudDatabase
@@ -150,6 +152,7 @@ Future<void> setup() async {
 
   injector.registerLazySingleton<CustomerSupportService>(
       () => CustomerSupportServiceImpl(
+            mainnetDB.draftCustomerSupportDao,
             CustomerSupportApi(authenticatedDio,
                 baseUrl: Environment.customerSupportURL),
           ));
