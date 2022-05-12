@@ -26,7 +26,11 @@ class UpgradesBloc extends Bloc<UpgradeEvent, UpgradeState> {
               null));
         }
       } else {
-        emit(UpgradeState(IAPProductStatus.loading, null));
+        if (_iapService.products.value.isEmpty) {
+          emit(UpgradeState(IAPProductStatus.loading, null));
+        } else {
+          _onNewIAPEventFunc();
+        }
       }
     });
 
