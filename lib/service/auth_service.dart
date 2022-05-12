@@ -13,8 +13,8 @@ class AuthService {
 
   AuthService(this._authApi, this._accountService, this._configurationService);
 
-  Future<JWT> getAuthToken({String? receiptData}) async {
-    if (_jwt != null && _jwt!.isValid()) {
+  Future<JWT> getAuthToken({String? receiptData, bool forceRefresh = true}) async {
+    if (!forceRefresh && _jwt != null && _jwt!.isValid()) {
       return _jwt!;
     }
 
