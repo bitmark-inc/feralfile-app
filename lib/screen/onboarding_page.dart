@@ -89,6 +89,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                   Navigator.of(context)
                       .pushReplacementNamed(AppRouter.homePageNoTransition);
                   await _askForNotification();
+                  injector<VersionService>().checkForUpdate(true);
                   break;
 
                 case OnboardingStep.newAccountPage:
@@ -100,7 +101,9 @@ class _OnboardingPageState extends State<OnboardingPage> {
                   break;
               }
 
-              injector<VersionService>().checkForUpdate();
+              if (state.onboardingStep != OnboardingStep.dashboard) {
+                injector<VersionService>().checkForUpdate(false);
+              }
             },
             builder: (context, state) {
               switch (state.onboardingStep) {

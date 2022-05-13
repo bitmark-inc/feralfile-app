@@ -23,7 +23,7 @@ class VersionService {
   VersionService(
       this._pubdocAPI, this._configurationService, this._navigationService);
 
-  void checkForUpdate() async {
+  void checkForUpdate(bool inDashboard) async {
     if (kDebugMode) return;
     if (UIHelper.currentDialogTitle == "Update Required") return;
 
@@ -34,8 +34,11 @@ class VersionService {
     if (compareVersion(versionInfo.requiredVersion, currentVersion) > 0) {
       showForceUpdateDialog(versionInfo.link);
     } else {
-      // check to show Release Notes
-      showReleaseNotes(onlyWhenUnread: true);
+      // = not show What's new to new customer
+      if (inDashboard) {
+        // check to show Release Notes
+        showReleaseNotes(onlyWhenUnread: true);
+      }
     }
   }
 
