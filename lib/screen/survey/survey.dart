@@ -61,7 +61,7 @@ class _SurveyPageState extends State<SurveyPage> {
                   const onboardingSurveyKey = "onboarding_survey";
                   injector<AWSService>().storeEventWithDeviceData(
                       onboardingSurveyKey,
-                      data: {"answer": _surveyAnswer});
+                      message: _surveyAnswer);
                   injector<ConfigurationService>()
                       .setFinishedSurvey(onboardingSurveyKey);
                   Navigator.of(context)
