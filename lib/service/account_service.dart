@@ -30,6 +30,7 @@ abstract class AccountService {
   Future androidBackupKeys();
   Future<bool?> isAndroidEndToEndEncryptionAvailable();
   Future androidRestoreKeys();
+  Future<List<Persona>> getPersonas();
   Future<Persona> createPersona({String name = ""});
   Future<Persona> importPersona(String words);
   Future<Persona> namePersona(Persona persona, String name);
@@ -65,6 +66,10 @@ class AccountServiceImpl extends AccountService {
       this._auditService,
       this._autonomyService,
       this._backupService);
+
+  Future<List<Persona>> getPersonas() {
+    return _cloudDB.personaDao.getPersonas();
+  }
 
   Future<Persona> createPersona(
       {String name = "", bool isDefault = false}) async {
@@ -190,7 +195,6 @@ class AccountServiceImpl extends AccountService {
 
     injector<AWSService>().storeEventWithDeviceData("delete_full_account",
         hashingData: {"id": persona.uuid});
-    _autonomyService.postLinkedAddresses();
   }
 
   Future deleteLinkedAccount(Connection connection) async {
@@ -199,7 +203,6 @@ class AccountServiceImpl extends AccountService {
     await setHideLinkedAccountInGallery(connection.accountNumber, false);
     injector<AWSService>().storeEventWithDeviceData("delete_linked_account",
         hashingData: {"address": connection.accountNumber});
-    _autonomyService.postLinkedAddresses();
   }
 
   Future linkManuallyAddress(String address) async {

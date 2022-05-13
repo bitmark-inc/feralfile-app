@@ -2,6 +2,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -63,8 +64,7 @@ class _AccountsViewState extends State<AccountsView> {
                             endActionPane: ActionPane(
                               motion: const DrawerMotion(),
                               dragDismissible: false,
-                              children: slidableActions(
-                                  account,
+                              children: slidableActions(account,
                                   account.persona?.defaultAccount == 1),
                             ),
                             child: Column(
@@ -291,5 +291,7 @@ class _AccountsViewState extends State<AccountsView> {
     if (connection != null) {
       await injector<AccountService>().deleteLinkedAccount(connection);
     }
+
+    injector<AutonomyService>().postLinkedAddresses();
   }
 }
