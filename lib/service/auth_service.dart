@@ -48,7 +48,7 @@ class AuthService {
         platform = 'google';
       }
       payload.addAll({
-        "receipt": {'platform': platform, 'receipt_data': receiptData}
+        "receipt": {'platform': platform, 'receipt_data': savedReceiptData}
       });
     }
 
