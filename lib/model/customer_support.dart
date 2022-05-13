@@ -1,6 +1,5 @@
-import 'package:flutter/material.dart';
+import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
 import 'package:json_annotation/json_annotation.dart';
-
 import 'package:autonomy_flutter/util/constants.dart';
 
 part 'customer_support.g.dart';
@@ -17,6 +16,9 @@ class Issue {
   int unread;
   @JsonKey(name: 'last_message')
   Message? lastMessage;
+  // only on local
+  @JsonKey(ignore: true)
+  DraftCustomerSupport? draft;
 
   Issue({
     required this.issueID,
@@ -27,6 +29,7 @@ class Issue {
     required this.total,
     required this.unread,
     required this.lastMessage,
+    this.draft,
   });
 
   factory Issue.fromJson(Map<String, dynamic> json) => _$IssueFromJson(json);
@@ -126,20 +129,6 @@ class Message {
       _$MessageFromJson(json);
 
   Map<String, dynamic> toJson() => _$MessageToJson(this);
-}
-
-class SendMessage {
-  String id;
-  String message;
-  List<SendAttachment> attachments;
-  DateTime timestamp;
-
-  SendMessage({
-    required this.id,
-    required this.message,
-    required this.attachments,
-    required this.timestamp,
-  });
 }
 
 @JsonSerializable()

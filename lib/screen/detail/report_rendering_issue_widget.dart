@@ -1,7 +1,8 @@
+import 'dart:convert';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
-import 'package:autonomy_flutter/model/asset.dart';
-import 'package:autonomy_flutter/screen/report/sentry_report.dart';
+import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -9,6 +10,7 @@ import 'package:autonomy_flutter/util/theme_manager.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:flutter/material.dart';
 import 'package:roundcheckbox/roundcheckbox.dart';
+import 'package:uuid/uuid.dart';
 
 class ReportRenderingIssueWidget extends StatefulWidget {
   final AssetToken token;
@@ -139,19 +141,29 @@ class _ReportRenderingIssueWidgetState
     });
 
     final regardingTopics = _selectedTopices.join(", ");
-    final result = await injector<CustomerSupportService>().createIssue(
-      ReportIssueType.ReportNFTIssue,
-      'Hi, I want to report rendering issue on the NFT ${widget.token.title} regarding $regardingTopics.',
-      [],
+    final tempIssueID = 'TEMP-' + Uuid().v4();
+    final data = DraftCustomerSupportData(
+      text:
+          'Hi, I want to report rendering issue on the NFT ${widget.token.title} regarding $regardingTopics.',
       title:
           'Rendering issue on ${widget.token.id} regarding $regardingTopics.',
-      mutedText: [
+    );
+    final draft = DraftCustomerSupport(
+      uuid: Uuid().v4(),
+      issueID: tempIssueID,
+      type: CSMessageType.CreateIssue.rawValue,
+      data: json.encode(data),
+      createdAt: DateTime.now(),
+      reportIssueType: ReportIssueType.ReportNFTIssue,
+      mutedMessages: [
         "**IndexerID**: ${widget.token.id}",
         "**TokenURL**: ${widget.token.assetURL}",
-      ],
+      ].join('[SEPARATOR]'),
     );
 
+    injector<CustomerSupportService>().draftMessage(draft);
+
     Navigator.pop(context);
-    widget.onReported(result.issueID);
+    widget.onReported(tempIssueID);
   }
 }

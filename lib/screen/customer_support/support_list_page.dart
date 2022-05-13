@@ -1,10 +1,12 @@
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/customer_support.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/rand.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -50,8 +52,10 @@ class _SupportListPageState extends State<SupportListPage>
 
   void loadIssues() async {
     final issues = await injector<CustomerSupportService>().getIssues();
-    issues.sort((a, b) => (b.lastMessage?.timestamp ?? b.timestamp)
-        .compareTo(a.lastMessage?.timestamp ?? a.timestamp));
+    issues.sort((a, b) =>
+        (b.draft?.createdAt ?? b.lastMessage?.timestamp ?? b.timestamp)
+            .compareTo(
+                a.draft?.createdAt ?? a.lastMessage?.timestamp ?? a.timestamp));
     if (mounted)
       setState(() {
         _issues = issues;
@@ -162,7 +166,35 @@ class _SupportListPageState extends State<SupportListPage>
   }
 
   String getLastMessage(Issue issue) {
-    final lastMessage = issue.lastMessage;
+    var lastMessage = issue.lastMessage;
+
+    if (issue.draft != null) {
+      final draft = issue.draft!;
+      final draftData = draft.draftData;
+
+      List<ReceiveAttachment> attachments = [];
+      if (draftData.attachments != null) {
+        final contentType =
+            draft.type == CSMessageType.PostPhotos.rawValue ? 'image' : 'logs';
+        attachments = draftData.attachments!
+            .map((e) => ReceiveAttachment(
+                  title: e.fileName,
+                  name: '',
+                  contentType: contentType,
+                ))
+            .toList();
+      }
+
+      lastMessage = Message(
+        id: random.nextInt(100000),
+        read: true,
+        from: "did:key:user",
+        message: draftData.text ?? '',
+        attachments: attachments,
+        timestamp: draft.createdAt,
+      );
+    }
+
     if (lastMessage == null) return '';
 
     if (lastMessage.filteredMessage.isNotEmpty)
