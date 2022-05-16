@@ -54,14 +54,17 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> {
             padding: EdgeInsets.fromLTRB(7, 42, 12, 90),
             child: Row(
               children: [
-                IconButton(
-                  constraints: BoxConstraints(),
-                  icon: SvgPicture.asset("assets/images/iconQr.svg"),
-                  onPressed: () {
-                    if (_opacity == 0) return;
-                    Navigator.of(context).pushNamed(AppRouter.scanQRPage,
-                        arguments: ScannerItem.GLOBAL);
-                  },
+                Container(
+                  padding: EdgeInsets.fromLTRB(0, 0, 12, 12),
+                  child: IconButton(
+                    constraints: BoxConstraints(),
+                    icon: SvgPicture.asset("assets/images/iconQr.svg"),
+                    onPressed: () {
+                      if (_opacity == 0) return;
+                      Navigator.of(context).pushNamed(AppRouter.scanQRPage,
+                          arguments: ScannerItem.GLOBAL);
+                    },
+                  ),
                 ),
                 Spacer(),
                 _customerSupportIconWidget(),
@@ -103,23 +106,24 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> {
             Widget? child) {
           final unreadIssues = numberOfIssuesInfo?[1] ?? 0;
           return GestureDetector(
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Positioned(
-                    // top: 3,
-                    child: SvgPicture.asset(
-                        "assets/images/iconCustomerSupport.svg")),
-                if (unreadIssues != 0) ...[
-                  Positioned(
-                      top: -3,
-                      left: 12,
-                      child: Align(
-                        alignment: Alignment.topRight,
-                        child: BadgeView(number: unreadIssues),
-                      )),
-                ]
-              ],
+            behavior: HitTestBehavior.translucent,
+            child: Container(
+              padding: EdgeInsets.fromLTRB(20, 10, 0, 20),
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  SvgPicture.asset("assets/images/iconCustomerSupport.svg"),
+                  if (unreadIssues == 0) ...[
+                    Positioned(
+                        top: -5,
+                        left: 15,
+                        child: Align(
+                          alignment: Alignment.topRight,
+                          child: BadgeView(number: unreadIssues),
+                        )),
+                  ]
+                ],
+              ),
             ),
             onTap: () {
               if (_opacity == 0) return;
