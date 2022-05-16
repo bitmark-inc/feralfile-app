@@ -368,15 +368,8 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
           "Value",
           style: appTextTheme.headline2,
         ),
-        SizedBox(height: 16.0),
-        _rowItem(
-            context,
-            "Initial price",
-            asset.basePrice != null
-                ? "${asset.basePrice} ${asset.baseCurrency?.toUpperCase()}"
-                : "N/A"),
         if (assetPrice != null) ...[
-          Divider(height: 32.0),
+          SizedBox(height: 16.0),
           _rowItem(context, "Purchase price",
               "${assetPrice.purchasedPrice} ${assetPrice.currency.toUpperCase()}")
         ],

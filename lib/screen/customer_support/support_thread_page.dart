@@ -373,7 +373,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
 
     UIHelper.showDialog(
       context,
-      "Join file",
+      "Attach file",
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -385,7 +385,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
             },
             child: Align(
               alignment: Alignment.centerLeft,
-              child: Text('Upload photo', style: theme.textTheme.headline4),
+              child: Text('Photo', style: theme.textTheme.headline4),
             ),
           ),
           addDialogDivider(),
