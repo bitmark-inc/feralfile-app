@@ -1,3 +1,4 @@
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -5,17 +6,18 @@ const eulaURL = "https://bitmark.com/terms";
 const privacyURL = "https://bitmark.com/privacy";
 
 Widget eulaAndPrivacyView() {
+  final customLinkStyle = linkStyle.copyWith(
+    fontSize: 12,
+    fontWeight: FontWeight.w500,
+  );
+
   return Row(
     mainAxisAlignment: MainAxisAlignment.center,
     children: [
       GestureDetector(
         child: Text(
           "EULA",
-          style: TextStyle(
-              fontFamily: "AtlasGrotesk",
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: Colors.black),
+          style: customLinkStyle,
         ),
         onTap: () => launch(eulaURL, forceSafariVC: true),
       ),
@@ -27,11 +29,7 @@ Widget eulaAndPrivacyView() {
       GestureDetector(
         child: Text(
           "Privacy Policy",
-          style: TextStyle(
-              fontFamily: "AtlasGrotesk",
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: Colors.black),
+          style: customLinkStyle,
         ),
         onTap: () => launch(privacyURL, forceSafariVC: true),
       ),
