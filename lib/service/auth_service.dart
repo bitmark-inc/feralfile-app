@@ -60,7 +60,7 @@ class AuthService {
     // Save the receipt data if the jwt is valid
     if (savedReceiptData != null) {
       if (newJwt.isValid(withSubscription: true)) {
-        _configurationService.setIAPReceipt(receiptData);
+        _configurationService.setIAPReceipt(savedReceiptData);
       } else {
         _configurationService.setIAPReceipt(null);
         _configurationService.setIAPJWT(null);
