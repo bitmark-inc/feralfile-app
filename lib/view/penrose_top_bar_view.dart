@@ -113,7 +113,7 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> {
                 clipBehavior: Clip.none,
                 children: [
                   SvgPicture.asset("assets/images/iconCustomerSupport.svg"),
-                  if (unreadIssues == 0) ...[
+                  if (unreadIssues != 0) ...[
                     Positioned(
                         top: -5,
                         left: 15,
