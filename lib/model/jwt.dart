@@ -15,11 +15,17 @@ class JWT {
         'jwt_token': jwtToken,
       };
 
-  bool isValid() {
+  bool isValid({bool withSubscription = false}) {
     final claim = parseJwt(jwtToken);
     final exp = (claim['exp'] ?? 0) as int;
     final expDate = DateTime.fromMillisecondsSinceEpoch(exp * 1000);
     final value = expDate.compareTo(DateTime.now());
+
+    if (withSubscription) {
+      final plan = claim['plan'] as String;
+      return value > 0 && plan == "autonomy-premium";
+    }
+
     return value > 0;
   }
 }

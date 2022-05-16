@@ -13,7 +13,8 @@ class AuthService {
 
   AuthService(this._authApi, this._accountService, this._configurationService);
 
-  Future<JWT> getAuthToken({String? receiptData, bool forceRefresh = true}) async {
+  Future<JWT> getAuthToken(
+      {String? receiptData, bool forceRefresh = true}) async {
     if (!forceRefresh && _jwt != null && _jwt!.isValid()) {
       return _jwt!;
     }
@@ -57,8 +58,13 @@ class AuthService {
     _jwt = newJwt;
 
     // Save the receipt data if the jwt is valid
-    if (receiptData != null) {
-      _configurationService.setIAPReceipt(receiptData);
+    if (savedReceiptData != null) {
+      if (newJwt.isValid(withSubscription: true)) {
+        _configurationService.setIAPReceipt(receiptData);
+      } else {
+        _configurationService.setIAPReceipt(null);
+        _configurationService.setIAPJWT(null);
+      }
     }
 
     return newJwt;

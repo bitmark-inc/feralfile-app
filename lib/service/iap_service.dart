@@ -100,7 +100,7 @@ class IAPServiceImpl implements IAPService {
     }
 
     final jwt = await _verifyPurchase(receiptData);
-    if (jwt == null) {
+    if (jwt == null || !jwt.isValid(withSubscription: true)) {
       _configurationService.setIAPJWT(null);
       return false;
     }
