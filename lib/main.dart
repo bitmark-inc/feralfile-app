@@ -63,10 +63,7 @@ void main() async {
           stackTrace: details.stack, library: details.library);
     };
 
-    final persona = await injector<CloudDatabase>().personaDao.getDefaultPersonas();
-    if (persona.length > 0) {
-      await injector<AWSService>().initServices();
-    }
+    await injector<AWSService>().initServices();
 
     BlocOverrides.runZoned(
       () => runApp(OverlaySupport.global(child: AutonomyApp())),
