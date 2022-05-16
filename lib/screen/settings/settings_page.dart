@@ -86,162 +86,168 @@ class _SettingsPageState extends State<SettingsPage>
           SingleChildScrollView(
             padding: EdgeInsets.symmetric(horizontal: 15),
             controller: _controller,
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              SizedBox(height: 160),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "Accounts",
-                        style: appTextTheme.headline1,
-                      ),
-                      _cloudAvailabilityWidget(),
-                    ],
-                  ),
-                  SizedBox(height: 24),
-                  Text(
-                      'Autonomy accounts are full, multi-chain accounts. Linked accounts link to single-chain accounts from other wallets.',
-                      style: appTextTheme.bodyText1),
-                  SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: AuOutlinedButton(
-                          text: "RECEIVE".toUpperCase(),
-                          onPress: () => Navigator.of(context)
-                              .pushNamed(AppRouter.globalReceivePage),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(height: 160),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "Accounts",
+                          style: appTextTheme.headline1,
                         ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 10),
-                  AccountsView(
-                      key: ValueKey(_forceAccountsViewRedraw),
-                      isInSettingsPage: true),
-                ],
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                      onPressed: () => Navigator.of(context)
-                          .pushNamed(AppRouter.addAccountPage),
-                      child: Text('+ Add',
-                          style: appTextTheme.bodyText2
-                              ?.copyWith(color: Colors.black))),
-                  SizedBox(width: 13),
-                ],
-              ),
-              SizedBox(height: 40),
-              BlocProvider(
-                create: (_) => PreferencesBloc(
-                    injector(), injector<NetworkConfigInjector>().I()),
-                child: PreferenceView(),
-              ),
-              SizedBox(height: 40.0),
-              BlocProvider(
-                create: (_) => _upgradesBloc,
-                child: UpgradesView(),
-              ),
-              SizedBox(height: 40),
-              Text(
-                "Networks",
-                style: appTextTheme.headline1,
-              ),
-              SizedBox(height: 24.0),
-              _settingItem(
-                  context,
-                  "Select network",
-                  injector<ConfigurationService>().getNetwork() ==
-                          Network.TESTNET
-                      ? "Test network"
-                      : "Main network", () async {
-                await Navigator.of(context).pushNamed(SelectNetworkPage.tag);
-              }),
-              SizedBox(height: 40.0),
-              // START HELP US IMPROVE
-              Text(
-                "Help us improve",
-                style: appTextTheme.headline1,
-              ),
-              SizedBox(height: 8.0),
-              TappableForwardRow(
-                  leftWidget: Text('Participate in bug bounty',
-                      style: appTextTheme.headline4),
-                  onTap: () =>
-                      Navigator.of(context).pushNamed(AppRouter.bugBountyPage)),
-              addOnlyDivider(),
-              TappableForwardRow(
-                  leftWidget: Text('Participate in a user test',
-                      style: appTextTheme.headline4),
-                  onTap: () => Navigator.of(context)
-                      .pushNamed(AppRouter.participateUserTestPage)),
-              // END HELP US IMPROVE
-              SizedBox(height: 40.0),
-              Text(
-                "Data management",
-                style: appTextTheme.headline1,
-              ),
-              SizedBox(height: 24.0),
-              TappableForwardRowWithContent(
-                  leftWidget: Text(
-                    'Rebuild metadata',
-                    style: appTextTheme.headline4,
-                  ),
-                  bottomWidget: Text(
-                      'Clear local cache and re-download all artwork metadata.',
-                      style: appTextTheme.bodyText1),
-                  onTap: () => _showRebuildGalleryDialog()),
-              addDivider(),
-              TappableForwardRowWithContent(
-                  leftWidget: Text(
-                    'Forget I exist',
-                    style: appTextTheme.headline4,
-                  ),
-                  bottomWidget: Text(
-                      'Erase all information about me and delete my keys from my cloud backup.',
-                      style: appTextTheme.bodyText1),
-                  onTap: () => _showForgetIExistDialog()),
-              SizedBox(height: 56),
-              Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
-                if (_packageInfo != null)
-                  GestureDetector(
-                      child: Text(
-                        "Version ${_packageInfo!.version}(${_packageInfo!.buildNumber})",
-                        style: appTextTheme.headline5,
-                      ),
-                      onTap: () async {
-                        int now = DateTime.now().millisecondsSinceEpoch;
-                        if (now - _lastTap < 1000) {
-                          print("Consecutive tap");
-                          _consecutiveTaps++;
-                          print("taps = " + _consecutiveTaps.toString());
-                          if (_consecutiveTaps == 3) {
-                            final newValue =
-                                await injector<ConfigurationService>()
-                                    .toggleDemoArtworksMode();
-                            await UIHelper.showInfoDialog(context, "Demo mode",
-                                "Demo mode ${newValue ? 'enabled' : 'disabled'}!",
-                                autoDismissAfter: 1);
-                          }
-                        } else {
-                          _consecutiveTaps = 0;
-                        }
-                        _lastTap = now;
-                      }),
-                TextButton(
-                    onPressed: () => injector<VersionService>()
-                        .showReleaseNotes(onlyWhenUnread: false),
-                    child: Text("Release notes", style: linkStyle)),
-                SizedBox(height: 10),
-                eulaAndPrivacyView(),
-              ]),
-              SizedBox(height: 60),
-            ]),
+                        _cloudAvailabilityWidget(),
+                      ],
+                    ),
+                    SizedBox(height: 24),
+                    Text(
+                        'Autonomy accounts are full, multi-chain accounts. Linked accounts link to single-chain accounts from other wallets.',
+                        style: appTextTheme.bodyText1),
+                    SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: AuOutlinedButton(
+                            text: "RECEIVE".toUpperCase(),
+                            onPress: () => Navigator.of(context)
+                                .pushNamed(AppRouter.globalReceivePage),
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 10),
+                    AccountsView(
+                        key: ValueKey(_forceAccountsViewRedraw),
+                        isInSettingsPage: true),
+                  ],
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                        onPressed: () => Navigator.of(context)
+                            .pushNamed(AppRouter.addAccountPage),
+                        child: Text('+ Add',
+                            style: appTextTheme.bodyText2
+                                ?.copyWith(color: Colors.black))),
+                    SizedBox(width: 13),
+                  ],
+                ),
+                SizedBox(height: 40),
+                BlocProvider(
+                  create: (_) => PreferencesBloc(
+                      injector(), injector<NetworkConfigInjector>().I()),
+                  child: PreferenceView(),
+                ),
+                SizedBox(height: 40.0),
+                BlocProvider.value(
+                  value: _upgradesBloc,
+                  child: UpgradesView(),
+                ),
+                SizedBox(height: 40),
+                Text(
+                  "Networks",
+                  style: appTextTheme.headline1,
+                ),
+                SizedBox(height: 24.0),
+                _settingItem(
+                    context,
+                    "Select network",
+                    injector<ConfigurationService>().getNetwork() ==
+                            Network.TESTNET
+                        ? "Test network"
+                        : "Main network", () async {
+                  await Navigator.of(context).pushNamed(SelectNetworkPage.tag);
+                }),
+                SizedBox(height: 40.0),
+                // START HELP US IMPROVE
+                Text(
+                  "Help us improve",
+                  style: appTextTheme.headline1,
+                ),
+                SizedBox(height: 8.0),
+                TappableForwardRow(
+                    leftWidget: Text('Participate in bug bounty',
+                        style: appTextTheme.headline4),
+                    onTap: () => Navigator.of(context)
+                        .pushNamed(AppRouter.bugBountyPage)),
+                addOnlyDivider(),
+                TappableForwardRow(
+                    leftWidget: Text('Participate in a user test',
+                        style: appTextTheme.headline4),
+                    onTap: () => Navigator.of(context)
+                        .pushNamed(AppRouter.participateUserTestPage)),
+                // END HELP US IMPROVE
+                SizedBox(height: 40.0),
+                Text(
+                  "Data management",
+                  style: appTextTheme.headline1,
+                ),
+                SizedBox(height: 24.0),
+                TappableForwardRowWithContent(
+                    leftWidget: Text(
+                      'Rebuild metadata',
+                      style: appTextTheme.headline4,
+                    ),
+                    bottomWidget: Text(
+                        'Clear local cache and re-download all artwork metadata.',
+                        style: appTextTheme.bodyText1),
+                    onTap: () => _showRebuildGalleryDialog()),
+                addDivider(),
+                TappableForwardRowWithContent(
+                    leftWidget: Text(
+                      'Forget I exist',
+                      style: appTextTheme.headline4,
+                    ),
+                    bottomWidget: Text(
+                        'Erase all information about me and delete my keys from my cloud backup.',
+                        style: appTextTheme.bodyText1),
+                    onTap: () => _showForgetIExistDialog()),
+                SizedBox(height: 56),
+                Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      if (_packageInfo != null)
+                        GestureDetector(
+                            child: Text(
+                              "Version ${_packageInfo!.version}(${_packageInfo!.buildNumber})",
+                              style: appTextTheme.headline5,
+                            ),
+                            onTap: () async {
+                              int now = DateTime.now().millisecondsSinceEpoch;
+                              if (now - _lastTap < 1000) {
+                                print("Consecutive tap");
+                                _consecutiveTaps++;
+                                print("taps = " + _consecutiveTaps.toString());
+                                if (_consecutiveTaps == 3) {
+                                  final newValue =
+                                      await injector<ConfigurationService>()
+                                          .toggleDemoArtworksMode();
+                                  await UIHelper.showInfoDialog(
+                                      context,
+                                      "Demo mode",
+                                      "Demo mode ${newValue ? 'enabled' : 'disabled'}!",
+                                      autoDismissAfter: 1);
+                                }
+                              } else {
+                                _consecutiveTaps = 0;
+                              }
+                              _lastTap = now;
+                            }),
+                      TextButton(
+                          onPressed: () => injector<VersionService>()
+                              .showReleaseNotes(onlyWhenUnread: false),
+                          child: Text("Release notes", style: linkStyle)),
+                      SizedBox(height: 10),
+                      eulaAndPrivacyView(),
+                    ]),
+                SizedBox(height: 60),
+              ],
+            ),
           ),
           PenroseTopBarView(false, _controller),
         ],
