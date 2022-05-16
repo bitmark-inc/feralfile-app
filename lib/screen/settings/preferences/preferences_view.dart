@@ -50,9 +50,22 @@ class PreferenceView extends StatelessWidget {
               },
             ),
             addDivider(),
-            _preferenceItemWithBuilder(
+            _preferenceItem(
               context,
               "Notifications",
+              "Receive notifications when you get new NFTs, signing requests, or customer support messages.",
+              state.isNotificationEnabled,
+              (value) {
+                final newState = state.copyWith(isNotificationEnabled: value);
+                context
+                    .read<PreferencesBloc>()
+                    .add(PreferenceUpdateEvent(newState));
+              },
+            ),
+            addDivider(),
+            _preferenceItemWithBuilder(
+              context,
+              "Analytics",
               description: (context) => Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -75,21 +88,8 @@ class PreferenceView extends StatelessWidget {
                           )),
                 ],
               ),
-              isEnabled: state.isNotificationEnabled,
+              isEnabled: state.isAnalyticEnabled,
               onChanged: (value) {
-                final newState = state.copyWith(isNotificationEnabled: value);
-                context
-                    .read<PreferencesBloc>()
-                    .add(PreferenceUpdateEvent(newState));
-              },
-            ),
-            addDivider(),
-            _preferenceItem(
-              context,
-              "Analytics",
-              "Contribute anonymized, aggregate usage data to help improve Autonomy.",
-              state.isAnalyticEnabled,
-              (value) {
                 final newState = state.copyWith(isAnalyticEnabled: value);
                 context
                     .read<PreferencesBloc>()
