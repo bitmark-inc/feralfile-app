@@ -38,6 +38,7 @@ class _SettingsPageState extends State<SettingsPage>
     with RouteAware, WidgetsBindingObserver {
   PackageInfo? _packageInfo;
   late ScrollController _controller;
+  late final UpgradesBloc _upgradesBloc = UpgradesBloc(injector(), injector());
   int _lastTap = 0;
   int _consecutiveTaps = 0;
   var _forceAccountsViewRedraw;
@@ -82,10 +83,11 @@ class _SettingsPageState extends State<SettingsPage>
           body: Stack(
         fit: StackFit.loose,
         children: [
-          ListView(
+          SingleChildScrollView(
             padding: EdgeInsets.symmetric(horizontal: 15),
             controller: _controller,
-            children: [
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               SizedBox(height: 160),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -142,7 +144,7 @@ class _SettingsPageState extends State<SettingsPage>
               ),
               SizedBox(height: 40.0),
               BlocProvider(
-                create: (_) => UpgradesBloc(injector(), injector()),
+                create: (_) => _upgradesBloc,
                 child: UpgradesView(),
               ),
               SizedBox(height: 40),
@@ -239,7 +241,7 @@ class _SettingsPageState extends State<SettingsPage>
                 eulaAndPrivacyView(),
               ]),
               SizedBox(height: 60),
-            ],
+            ]),
           ),
           PenroseTopBarView(false, _controller),
         ],

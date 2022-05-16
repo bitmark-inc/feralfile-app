@@ -79,7 +79,9 @@ class UpgradesBloc extends Bloc<UpgradeEvent, UpgradeState> {
   }
 
   void _onNewIAPEventFunc() {
-    add(UpgradeIAPInfoEvent());
+    if (!this.isClosed) {
+      add(UpgradeIAPInfoEvent());
+    }
   }
 
   @override
