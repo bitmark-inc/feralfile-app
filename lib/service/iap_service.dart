@@ -56,7 +56,7 @@ class IAPServiceImpl implements IAPService {
 
   Future<void> setup() async {
     final jwt = _configurationService.getIAPJWT();
-    if (jwt != null && jwt.isValid()) {}
+    if (jwt != null && jwt.isValid(withSubscription: true)) {}
     final Stream<List<PurchaseDetails>> purchaseUpdated =
         _inAppPurchase.purchaseStream;
     _subscription = purchaseUpdated.listen((purchaseDetailsList) {
@@ -170,7 +170,7 @@ class IAPServiceImpl implements IAPService {
 
           _receiptData = receiptData;
           final jwt = await _verifyPurchase(receiptData);
-          if (jwt != null && jwt.isValid()) {
+          if (jwt != null && jwt.isValid(withSubscription: true)) {
             purchases.value[purchaseDetails.productID] =
                 IAPProductStatus.completed;
             _configurationService.setIAPJWT(jwt);
@@ -190,8 +190,8 @@ class IAPServiceImpl implements IAPService {
   }
 
   Future<bool> isSubscribed() async {
-    return (_configurationService.getIAPJWT() != null &&
-            _configurationService.getIAPReceipt() != null) ||
+    final jwt = _configurationService.getIAPJWT();
+    return (jwt != null && jwt.isValid(withSubscription: true)) ||
         await isAppCenterBuild();
   }
 }
