@@ -108,14 +108,14 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> {
           return GestureDetector(
             behavior: HitTestBehavior.translucent,
             child: Container(
-              padding: EdgeInsets.fromLTRB(20, 10, 0, 20),
+              padding: EdgeInsets.fromLTRB(20, 8, 0, 20),
               child: Stack(
                 clipBehavior: Clip.none,
                 children: [
                   SvgPicture.asset("assets/images/iconCustomerSupport.svg"),
                   if (unreadIssues != 0) ...[
                     Positioned(
-                        top: -5,
+                        top: -3,
                         left: 15,
                         child: Align(
                           alignment: Alignment.topRight,
