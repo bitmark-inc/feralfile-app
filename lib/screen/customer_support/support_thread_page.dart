@@ -396,7 +396,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
             },
             child: Align(
               alignment: Alignment.centerLeft,
-              child: Text('Debug Log', style: theme.textTheme.headline4),
+              child: Text('Debug log', style: theme.textTheme.headline4),
             ),
           ),
           SizedBox(height: 40),
