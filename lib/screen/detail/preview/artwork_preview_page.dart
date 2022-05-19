@@ -356,6 +356,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
             key: Key(asset.assetID ?? asset.id),
             initialUrl: asset.previewURL,
             zoomEnabled: false,
+            initialMediaPlaybackPolicy: AutoMediaPlaybackPolicy.always_allow,
             onWebViewCreated: (WebViewController webViewController) {
               _webViewController = webViewController;
               Sentry.getSpan()?.setTag("url", asset.previewURL!);
