@@ -26,7 +26,7 @@ class RouterBloc extends Bloc<RouterEvent, RouterState> {
 
   Future<bool> hasAccounts() async {
     final personas = await _cloudDB.personaDao.getPersonas();
-    final connections = await _cloudDB.connectionDao.getLinkedAccounts();
+    final connections = await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
     return personas.isNotEmpty || connections.isNotEmpty;
   }
 
@@ -39,8 +39,14 @@ class RouterBloc extends Bloc<RouterEvent, RouterState> {
       this._iapService,
       this._auditService)
       : super(RouterState(onboardingStep: OnboardingStep.undefined)) {
-    final migrationUtil = MigrationUtil(_configurationService, _cloudDB, _accountService,
-        _navigationService, _iapService, _auditService, _backupService);
+    final migrationUtil = MigrationUtil(
+        _configurationService,
+        _cloudDB,
+        _accountService,
+        _navigationService,
+        _iapService,
+        _auditService,
+        _backupService);
 
     on<DefineViewRoutingEvent>((event, emit) async {
       if (state.onboardingStep != OnboardingStep.undefined) return;
@@ -97,7 +103,8 @@ class RouterBloc extends Bloc<RouterEvent, RouterState> {
       await _accountService.androidRestoreKeys();
 
       final personas = await _cloudDB.personaDao.getPersonas();
-      final connections = await _cloudDB.connectionDao.getLinkedAccounts();
+      final connections =
+          await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
       if (personas.isEmpty && connections.isEmpty) {
         _configurationService.setDoneOnboarding(false);
         emit(RouterState(onboardingStep: OnboardingStep.startScreen));

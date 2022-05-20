@@ -30,7 +30,8 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
 
     on<GetAccountsEvent>((event, emit) async {
       final personas = await _cloudDB.personaDao.getPersonas();
-      final connections = await _cloudDB.connectionDao.getLinkedAccounts();
+      final connections =
+          await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
 
       List<Account> accounts = [];
 
@@ -104,7 +105,8 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
 
     on<GetCategorizedAccountsEvent>((event, emit) async {
       final personas = await _cloudDB.personaDao.getPersonas();
-      final connections = await _cloudDB.connectionDao.getLinkedAccounts();
+      final connections =
+          await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
 
       List<CategorizedAccounts> categorizedAccounts = [];
 

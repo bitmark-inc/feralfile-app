@@ -80,7 +80,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         } else {
           final allAddresses = await _getPersonaAddresses();
           final linkedAccounts =
-              await _cloudDB.connectionDao.getLinkedAccounts();
+              await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
           var linkedAccountNumbers =
               linkedAccounts.map((e) => e.accountNumber).toList();
 
@@ -155,7 +155,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
               .requestIndex({"owner": tezosAddress, "blockchain": "tezos"});
         }
 
-        final linkedAccounts = await _cloudDB.connectionDao.getLinkedAccounts();
+        final linkedAccounts =
+            await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
 
         for (var linkAccount in linkedAccounts) {
           switch (linkAccount.connectionType) {

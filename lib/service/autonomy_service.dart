@@ -31,7 +31,8 @@ class AutonomyServiceImpl extends AutonomyService {
       addresses.add(await persona.wallet().getBitmarkAddress());
     }
 
-    final linkedAccounts = await _cloudDB.connectionDao.getLinkedAccounts();
+    final linkedAccounts =
+        await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
     var linkedAccountNumbers =
         linkedAccounts.map((e) => e.accountNumber).toList();
 

@@ -11,3 +11,9 @@ extension StringExtension on WalletStorage {
     }
   }
 }
+
+extension StringHelper on String {
+  String getETHEip55Address() {
+    return EthereumAddress.fromHex(this).hexEip55;
+  }
+}
