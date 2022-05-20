@@ -1,5 +1,6 @@
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:floor/floor.dart';
+import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 
 @dao
 abstract class ConnectionDao {
@@ -9,6 +10,23 @@ abstract class ConnectionDao {
   @Query(
       'SELECT * FROM Connection WHERE connectionType NOT IN ("dappConnect", "beaconP2PPeer", "manuallyIndexerTokenID")')
   Future<List<Connection>> getLinkedAccounts();
+
+  // getUpdatedLinkedAccounts:
+  //   - format ETH address as checksum address
+  Future<List<Connection>> getUpdatedLinkedAccounts() async {
+    final linkedAccounts = await getLinkedAccounts();
+    return linkedAccounts.map((e) {
+      switch (e.connectionType) {
+        case 'walletConnect':
+        case 'walletBrowserConnect':
+        case 'ledgerEthereum':
+          return e.copyWith(
+              accountNumber: e.accountNumber.getETHEip55Address());
+        default:
+          return e;
+      }
+    }).toList();
+  }
 
   @Query(
       'SELECT * FROM Connection WHERE connectionType IN ("dappConnect", "beaconP2PPeer")')
