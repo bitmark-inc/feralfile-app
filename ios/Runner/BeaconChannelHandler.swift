@@ -297,7 +297,7 @@ extension BeaconChannelHandler: FlutterStreamHandler {
                                         case .int(let value):
                                             params["int"] = value
                                         case .bytes(let array):
-                                            params["bytes"] = array
+                                            params["bytes"] = HexString(from: array).asString(withPrefix: false)
                                         }
                                     case let .prim(prim):
                                         params["prim"] = prim.prim

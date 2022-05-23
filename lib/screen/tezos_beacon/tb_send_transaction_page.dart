@@ -5,9 +5,11 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/biometrics_util.dart';
+import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -15,6 +17,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:tezart/tezart.dart';
 
 class TBSendTransactionPage extends StatefulWidget {
   static const String tag = 'tb_send_transaction';
@@ -206,17 +209,30 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                                   }
                                 }
 
-                                final txHash =
-                                    await injector<NetworkConfigInjector>()
-                                        .I<TezosService>()
-                                        .sendOperationTransaction(
-                                            _currentWallet!,
-                                            widget.request.operations!);
+                                try {
+                                  final txHash =
+                                      await injector<NetworkConfigInjector>()
+                                          .I<TezosService>()
+                                          .sendOperationTransaction(
+                                              _currentWallet!,
+                                              widget.request.operations!);
 
-                                injector<TezosBeaconService>()
-                                    .operationResponse(
-                                        widget.request.id, txHash);
-                                Navigator.of(context).pop();
+                                  injector<TezosBeaconService>()
+                                      .operationResponse(
+                                          widget.request.id, txHash);
+                                  Navigator.of(context).pop();
+                                } on TezartNodeError catch (err) {
+                                  log.info(err);
+                                  UIHelper.showInfoDialog(
+                                    context,
+                                    "Operation failed",
+                                    "The operation cannot be completed. Please make sure your have enough crypto to complete this action.",
+                                    isDismissible: true,
+                                  );
+                                } catch (err) {
+                                  showErrorDialogFromException(err);
+                                  log.warning(err);
+                                }
 
                                 setState(() {
                                   _isSending = false;
