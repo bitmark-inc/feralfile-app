@@ -157,19 +157,17 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
                             tag: asset.id,
                             child: ext == ".svg"
                                 ? Center(
-                                    child:
-                                        SvgPicture.network(asset.thumbnailURL!))
+                                    child: SvgPicture.network(
+                                        asset.thumbnailURL!,
+                                        placeholderBuilder: (context) =>
+                                            _placeholder()))
                                 : CachedNetworkImage(
                                     imageUrl: asset.thumbnailURL!,
                                     width: double.infinity,
                                     memCacheWidth: (screenWidth * 3).floor(),
                                     cacheManager: injector<AUCacheManager>(),
-                                    placeholder: (context, url) => AspectRatio(
-                                      aspectRatio: 1,
-                                      child: Container(
-                                          color:
-                                              Color.fromRGBO(227, 227, 227, 1)),
-                                    ),
+                                    placeholder: (context, url) =>
+                                        _placeholder(),
                                     placeholderFadeInDuration:
                                         Duration(milliseconds: 300),
                                     fit: BoxFit.cover,
@@ -675,6 +673,13 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
         ),
       ),
       isDismissible: true,
+    );
+  }
+
+  Widget _placeholder() {
+    return AspectRatio(
+      aspectRatio: 1,
+      child: Container(color: Color.fromRGBO(227, 227, 227, 1)),
     );
   }
 }

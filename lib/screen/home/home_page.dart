@@ -223,7 +223,9 @@ class _HomePageState extends State<HomePage>
                   child: Hero(
                     tag: asset.id,
                     child: ext == ".svg"
-                        ? SvgPicture.network(asset.galleryThumbnailURL!)
+                        ? SvgPicture.network(asset.galleryThumbnailURL!,
+                            placeholderBuilder: (context) => Container(
+                                color: Color.fromRGBO(227, 227, 227, 1)))
                         : CachedNetworkImage(
                             imageUrl: asset.galleryThumbnailURL!,
                             fit: BoxFit.cover,
