@@ -19,13 +19,16 @@ class WalletConnectService {
   final List<WCClient> wcClients = List.empty(growable: true);
   Map<WCPeerMeta, String> tmpUuids = Map();
 
-  WalletConnectService(this._navigationService, this._cloudDB) {
-    initSessions();
-  }
+  WalletConnectService(this._navigationService, this._cloudDB);
 
-  Future initSessions() async {
+  Future initSessions({bool forced = false}) async {
     final wcConnections = await _cloudDB.connectionDao
         .getConnectionsByType(ConnectionType.dappConnect.rawValue);
+    // check if the service is already initiate
+    if (wcClients.isNotEmpty && !forced) {
+      return;
+    }
+
     wcConnections.forEach((element) {
       final WCClient? wcClient = _createWCClient(null, element);
       final sessionStore = element.wcConnection?.sessionStore;
