@@ -116,6 +116,8 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   void didPopNext() {
     enableLandscapeMode();
     _controller?.play();
+    _webViewController
+        ?.runJavascript("document.getElementsByTagName('video')[0].play()");
     super.didPopNext();
   }
 
@@ -248,8 +250,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                       : SizedBox(),
                   Expanded(
                     child: Center(
-                      child:
-                          Hero(tag: asset!.id, child: _getArtworkView(asset!)),
+                      child: _getArtworkView(asset!),
                     ),
                   ),
                 ],
@@ -350,8 +351,6 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
           return SizedBox();
         }
       default:
-        _webViewController?.loadUrl(asset.previewURL!);
-
         return WebView(
             key: Key(asset.assetID ?? asset.id),
             initialUrl: asset.previewURL,
@@ -458,6 +457,8 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
 
   Future<bool> _clearPrevious() async {
     await _controller?.pause();
+    await _webViewController
+        ?.runJavascript("document.getElementsByTagName('video')[0].pause()");
     return true;
   }
 
