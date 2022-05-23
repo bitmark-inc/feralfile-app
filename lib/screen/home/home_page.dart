@@ -20,6 +20,7 @@ import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tokens_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
+import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/au_cached_manager.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -85,6 +86,7 @@ class _HomePageState extends State<HomePage>
     _handleForeground();
     injector<AutonomyService>().postLinkedAddresses();
     Future.delayed(Duration(seconds: 1), _handleShowingSurveys);
+    injector<WalletConnectService>().initSessions(forced: true);
   }
 
   @override
@@ -221,7 +223,9 @@ class _HomePageState extends State<HomePage>
                   child: Hero(
                     tag: asset.id,
                     child: ext == ".svg"
-                        ? SvgPicture.network(asset.galleryThumbnailURL!)
+                        ? SvgPicture.network(asset.galleryThumbnailURL!,
+                            placeholderBuilder: (context) => Container(
+                                color: Color.fromRGBO(227, 227, 227, 1)))
                         : CachedNetworkImage(
                             imageUrl: asset.galleryThumbnailURL!,
                             fit: BoxFit.cover,
@@ -475,7 +479,7 @@ class _HomePageState extends State<HomePage>
     }
 
     showCustomNotifications(
-        "Take a 1-minute survey and be entered to win a Feral File artwork",
+        "Take a 5-second survey and be entered to win a Feral File artwork.",
         Key(onboardingSurveyKey),
         notificationOpenedHandler: () =>
             Navigator.of(context).pushNamed(SurveyPage.tag, arguments: null));

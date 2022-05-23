@@ -21,9 +21,8 @@ class NetworkConfigInjector {
 
   final ConfigurationService _configurationService;
   final Dio _dio;
-  final Dio _dioHTTP2;
 
-  NetworkConfigInjector(this._configurationService, this._dio, this._dioHTTP2,
+  NetworkConfigInjector(this._configurationService, this._dio,
       AppDatabase testnetDB, AppDatabase mainnetDB) {
     //Test network
     testnetInjector.registerLazySingleton(
@@ -35,7 +34,7 @@ class NetworkConfigInjector {
     testnetInjector.registerLazySingleton<BitmarkApi>(
         () => BitmarkApi(_dio, baseUrl: Environment.bitmarkAPITestnetURL));
     testnetInjector.registerLazySingleton<IndexerApi>(
-        () => IndexerApi(_dioHTTP2, baseUrl: Environment.indexerTestnetURL));
+        () => IndexerApi(_dio, baseUrl: Environment.indexerTestnetURL));
 
     testnetInjector.registerLazySingleton<EthereumService>(
         () => EthereumServiceImpl(testnetInjector(), _configurationService));
@@ -55,7 +54,7 @@ class NetworkConfigInjector {
     mainnetInjector.registerLazySingleton<BitmarkApi>(
         () => BitmarkApi(_dio, baseUrl: Environment.bitmarkAPIMainnetURL));
     mainnetInjector.registerLazySingleton<IndexerApi>(
-        () => IndexerApi(_dioHTTP2, baseUrl: Environment.indexerMainnetURL));
+        () => IndexerApi(_dio, baseUrl: Environment.indexerMainnetURL));
 
     mainnetInjector.registerLazySingleton<EthereumService>(
         () => EthereumServiceImpl(mainnetInjector(), _configurationService));

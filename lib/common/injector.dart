@@ -30,7 +30,7 @@ import 'package:autonomy_flutter/util/au_cached_manager.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
 import 'package:dio/dio.dart';
 import 'package:sentry_dio/sentry_dio.dart';
-import 'package:dio_http2_adapter/dio_http2_adapter.dart';
+import 'package:dio_smart_retry/dio_smart_retry.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart';
@@ -102,15 +102,21 @@ Future<void> setup() async {
   authenticatedDio.interceptors.add(LoggingInterceptor());
   (authenticatedDio.transformer as DefaultTransformer).jsonDecodeCallback =
       parseJson;
+  dio.interceptors.add(RetryInterceptor(
+    dio: dio,
+    logPrint: (message) {
+      log.warning("[request retry] $message");
+    },
+    retries: 3,
+    retryDelays: const [
+      // set delays between retries
+      Duration(seconds: 1),
+      Duration(seconds: 2),
+      Duration(seconds: 3),
+    ],
+  ));
   authenticatedDio.addSentry(captureFailedRequests: true);
   authenticatedDio.options = BaseOptions(followRedirects: true);
-
-  final dioHTTP2 = Dio(); // Provide a dio instance
-  dioHTTP2.interceptors.add(LoggingInterceptor());
-  dioHTTP2.interceptors.add(SentryInterceptor());
-  dioHTTP2.httpClientAdapter =
-      Http2Adapter(ConnectionManager(idleTimeout: 10000));
-  dioHTTP2.addSentry(captureFailedRequests: true);
 
   final auditService = AuditServiceImpl(cloudDB);
 
@@ -129,7 +135,13 @@ Future<void> setup() async {
   injector.registerLazySingleton(() => AUCacheManager());
   injector.registerLazySingleton(() => WalletConnectDappService(injector()));
   injector.registerLazySingleton<AccountService>(() => AccountServiceImpl(
-      cloudDB, injector(), injector(), injector(), auditService, injector(), injector()));
+      cloudDB,
+      injector(),
+      injector(),
+      injector(),
+      auditService,
+      injector(),
+      injector()));
 
   injector.registerLazySingleton(
       () => IAPApi(authenticatedDio, baseUrl: Environment.autonomyAuthURL));
@@ -162,8 +174,8 @@ Future<void> setup() async {
   final cloudService = CloudService();
   injector.registerLazySingleton(() => cloudService);
 
-  injector.registerLazySingleton(() =>
-      NetworkConfigInjector(injector(), dio, dioHTTP2, testnetDB, mainnetDB));
+  injector.registerLazySingleton(
+      () => NetworkConfigInjector(injector(), dio, testnetDB, mainnetDB));
 
   injector.registerLazySingleton<TokensService>(
       () => TokensServiceImpl(injector<NetworkConfigInjector>(), injector()));

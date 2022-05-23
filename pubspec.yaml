@@ -33,8 +33,8 @@ dependencies:
   crypto: ^3.0.2
   cupertino_icons: ^1.0.2
   device_info_plus: ^3.2.1
-  dio: ^4.0.4
-  dio_http2_adapter: ^2.0.0
+  dio: ^4.0.6
+  dio_smart_retry: ^1.2.0
   easy_debounce: ^2.0.2+1
   floor: ^1.2.0
   flutter:

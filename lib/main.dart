@@ -46,7 +46,7 @@ void main() async {
     FlutterDownloader.registerCallback(downloadCallback);
     AUCacheManager().setup();
 
-    OneSignal.shared.setLogLevel(OSLogLevel.error, OSLogLevel.error);
+    OneSignal.shared.setLogLevel(OSLogLevel.error, OSLogLevel.none);
     OneSignal.shared.setAppId(Environment.onesignalAppID);
 
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
