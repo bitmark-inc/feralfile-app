@@ -475,7 +475,7 @@ class _HomePageState extends State<HomePage>
     }
 
     showCustomNotifications(
-        "Take a 1-minute survey and be entered to win a Feral File artwork",
+        "Take a 5-second survey and be entered to win a Feral File artwork.",
         Key(onboardingSurveyKey),
         notificationOpenedHandler: () =>
             Navigator.of(context).pushNamed(SurveyPage.tag, arguments: null));
