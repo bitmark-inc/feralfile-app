@@ -19,9 +19,13 @@ class IdentityBloc extends Bloc<IdentityEvent, IdentityState> {
         List<String> unknownIdentities = [];
 
         // Try to get from the database first.
-        await Future.forEach(event.addresses, (address) async {
+        await Future.forEach<String>(event.addresses, (address) async {
+          if (address.contains(' ') || address.length < 36) {
+            return;
+          }
+
           final identity =
-              await _appDB.identityDao.findByAccountNumber(address as String);
+              await _appDB.identityDao.findByAccountNumber(address);
           if (identity != null) {
             if (identity.queriedAt
                     .add(localIdentityCacheDuration)
