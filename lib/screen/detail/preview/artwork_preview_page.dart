@@ -138,6 +138,14 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     super.dispose();
   }
 
+  void _disposeCurrentDisplay() {
+    _stopAllChromecastDevices();
+    _controller?.dispose();
+    _controller = null;
+    loadedPath = null;
+    _webViewController = null;
+  }
+
   @override
   void didChangeMetrics() {
     super.didChangeMetrics();
@@ -192,7 +200,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                                       ? widget.payload.ids.length - 1
                                       : currentIndex - 1;
                                   final id = widget.payload.ids[currentIndex];
-                                  _stopAllChromecastDevices();
+                                  _disposeCurrentDisplay();
                                   context.read<ArtworkPreviewBloc>().add(
                                       ArtworkPreviewGetAssetTokenEvent(id));
                                 },
@@ -208,7 +216,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                                       ? 0
                                       : currentIndex + 1;
                                   final id = widget.payload.ids[currentIndex];
-                                  _stopAllChromecastDevices();
+                                  _disposeCurrentDisplay();
                                   context.read<ArtworkPreviewBloc>().add(
                                       ArtworkPreviewGetAssetTokenEvent(id));
                                 },
