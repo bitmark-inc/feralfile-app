@@ -139,12 +139,12 @@ class TokensServiceImpl extends TokensService {
     final dbHiddenAssets = await _assetDao.findAllHiddenAssets();
     final dbHiddenIds = dbHiddenAssets.map((e) => e.id).toList();
 
-    final hiddenAsseIDs =
+    final hiddenAssetIDs =
         _configurationService.getTempStorageHiddenTokenIDs() + dbHiddenIds;
 
     for (var asset in assets) {
       var token = AssetToken.fromAsset(asset);
-      if (hiddenAsseIDs.contains(token.id)) {
+      if (hiddenAssetIDs.contains(token.id)) {
         token.hidden = 1;
       }
       tokens.add(token);
@@ -227,7 +227,7 @@ class TokensServiceImpl extends TokensService {
           final uuid = message[1];
 
           if (result is FetchTokensSuccess) {
-            insertAssetsWithProvenance(result.assets);
+            await insertAssetsWithProvenance(result.assets);
             log.info("[FETCH_TOKENS] receive ${result.assets.length} tokens");
           } else if (result is FetchTokensDone) {
             _fetchTokensCompleters[uuid]?.complete();
