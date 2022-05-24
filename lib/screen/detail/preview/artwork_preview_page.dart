@@ -33,6 +33,7 @@ import 'package:easy_debounce/easy_debounce.dart';
 import 'package:path/path.dart' as p;
 import 'package:cast/cast.dart';
 import 'package:mime/mime.dart';
+import 'package:wakelock/wakelock.dart';
 
 enum AUCastDeviceType { Airplay, Chromecast }
 
@@ -109,12 +110,14 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   void didChangeDependencies() {
     routeObserver.subscribe(this, ModalRoute.of(context)!);
     enableLandscapeMode();
+    Wakelock.enable();
     super.didChangeDependencies();
   }
 
   @override
   void didPopNext() {
     enableLandscapeMode();
+    Wakelock.enable();
     _controller?.play();
     _webViewController
         ?.runJavascript("document.getElementsByTagName('video')[0].play()");
@@ -124,6 +127,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   @override
   void dispose() async {
     disableLandscapeMode();
+    Wakelock.disable();
     routeObserver.unsubscribe(this);
     WidgetsBinding.instance?.removeObserver(this);
     _stopAllChromecastDevices();
@@ -316,6 +320,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
           final currentIndex = widget.payload.ids.indexOf(asset.id);
 
           disableLandscapeMode();
+          Wakelock.disable();
           _clearPrevious();
           Navigator.of(context).pushNamed(AppRouter.artworkDetailsPage,
               arguments: widget.payload.copyWith(currentIndex: currentIndex));
