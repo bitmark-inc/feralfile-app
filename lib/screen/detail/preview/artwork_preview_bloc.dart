@@ -1,5 +1,6 @@
 import 'package:autonomy_flutter/database/dao/asset_token_dao.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_state.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/helpers.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -7,8 +8,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 class ArtworkPreviewBloc
     extends Bloc<ArtworkPreviewEvent, ArtworkPreviewState> {
   AssetTokenDao _assetTokenDao;
+  ConfigurationService _configurationService;
 
-  ArtworkPreviewBloc(this._assetTokenDao) : super(ArtworkPreviewState()) {
+  ArtworkPreviewBloc(this._assetTokenDao, this._configurationService)
+      : super(ArtworkPreviewState()) {
     on<ArtworkPreviewGetAssetTokenEvent>((event, emit) async {
       final asset = await _assetTokenDao.findAssetTokenById(event.id);
       emit(ArtworkPreviewState(asset: asset));
@@ -21,9 +24,13 @@ class ArtworkPreviewBloc
             asset.previewURL = asset.previewURL!.replaceRange(
                 0, CLOUDFLARE_IPFS_PREFIX.length, DEFAULT_IPFS_PREFIX);
             final hiddenAssets = await _assetTokenDao.findAllHiddenAssets();
-            final hiddenIds = hiddenAssets.map((e) => e.id).toList();
-            _assetTokenDao.insertAsset(asset);
-            await _assetTokenDao.updateHiddenAssets(hiddenIds);
+            final hiddenIds =
+                _configurationService.getTempStorageHiddenTokenIDs() +
+                    hiddenAssets.map((e) => e.id).toList();
+            if (hiddenIds.contains(asset.id)) {
+              asset.hidden = 1;
+            }
+            await _assetTokenDao.insertAsset(asset);
             emit(ArtworkPreviewState(asset: asset));
           }
         }

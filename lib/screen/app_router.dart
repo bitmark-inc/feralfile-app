@@ -552,7 +552,7 @@ class AppRouter {
               providers: [
                 BlocProvider(
                     create: (_) => ArtworkPreviewBloc(
-                        networkInjector.I<AppDatabase>().assetDao)),
+                        networkInjector.I<AppDatabase>().assetDao, injector())),
                 BlocProvider(
                     create: (_) => IdentityBloc(
                         networkInjector.I<AppDatabase>(), networkInjector.I())),
