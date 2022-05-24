@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dar
 import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
 import 'package:autonomy_flutter/screen/detail/report_rendering_issue_widget.dart';
+import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/au_cached_manager.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -26,8 +27,10 @@ import 'package:autonomy_flutter/view/au_outlined_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:html_unescape/html_unescape.dart';
 import 'package:path/path.dart' as p;
 import 'package:url_launcher/url_launcher.dart';
@@ -188,6 +191,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
                             AppRouter.artworkPreviewPage,
                             arguments: widget.payload),
                       ),
+                      _debugInfoWidget(),
                       SizedBox(height: 16.0),
                       Padding(
                         padding: EdgeInsets.symmetric(horizontal: 16.0),
@@ -270,6 +274,52 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
         ),
       ],
     );
+  }
+
+  Widget _debugInfoWidget() {
+    final asset = currentAsset;
+    if (asset == null) return SizedBox();
+
+    return FutureBuilder<bool>(
+        future: isAppCenterBuild().then((value) {
+          if (value == false) return Future.value(false);
+
+          return injector<AccountService>().isLinkedIndexerTokenID(asset.id);
+        }),
+        builder: (context, snapshot) {
+          if (snapshot.data == false) return SizedBox();
+
+          TextButton _buildInfo(String text, String value) {
+            return TextButton(
+              onPressed: () async {
+                Vibrate.feedback(FeedbackType.light);
+
+                if (await canLaunch(value)) {
+                  launch(value, forceSafariVC: false);
+                } else {
+                  Clipboard.setData(ClipboardData(text: value));
+                }
+              },
+              child: Text('$text:  $value'),
+            );
+          }
+
+          return Column(
+            children: [
+              addDivider(),
+              Text(
+                "DEBUG INFO",
+                style: appTextTheme.headline4,
+              ),
+              _buildInfo('IndexerID', asset.id),
+              _buildInfo(
+                  'galleryThumbnailURL', asset.galleryThumbnailURL ?? ''),
+              _buildInfo('thumbnailURL', asset.thumbnailURL ?? ''),
+              _buildInfo('previewURL', asset.previewURL ?? ''),
+              addDivider(),
+            ],
+          );
+        });
   }
 
   Widget _artworkRightView(BuildContext context) {

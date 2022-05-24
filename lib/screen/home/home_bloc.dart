@@ -33,16 +33,17 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
   List<String> _hiddenOwners = [];
 
-  Future fetchManuallyTokens() async {
+  Future<List<String>> fetchManuallyTokens() async {
     final tokenIndexerIDs = (await _cloudDB.connectionDao.getConnectionsByType(
             ConnectionType.manuallyIndexerTokenID.rawValue))
         .map((e) => e.key)
         .toList();
-    if (tokenIndexerIDs.isEmpty) return;
+    if (tokenIndexerIDs.isEmpty) return [];
 
     final manuallyAssets =
         (await _indexerApi.getNftTokens({"ids": tokenIndexerIDs}));
     await _tokensService.insertAssetsWithProvenance(manuallyAssets);
+    return tokenIndexerIDs;
   }
 
   HomeBloc(
@@ -117,12 +118,12 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
           add(SubRefreshTokensEvent());
         } else {
-          await fetchManuallyTokens();
+          final debutTokenIDs = await fetchManuallyTokens();
           add(SubRefreshTokensEvent());
           log.info("[HomeBloc][start] _tokensService.refreshTokensInIsolate");
 
-          final stream =
-              await _tokensService.refreshTokensInIsolate(allAccountNumbers);
+          final stream = await _tokensService.refreshTokensInIsolate(
+              allAccountNumbers, debutTokenIDs);
           stream.listen((event) async {
             log.info("[Stream.refreshTokensInIsolate] getEVent");
             add(SubRefreshTokensEvent());

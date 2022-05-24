@@ -20,7 +20,8 @@ import 'package:uuid/uuid.dart';
 
 abstract class TokensService {
   Future fetchTokensForAddresses(List<String> addresses);
-  Future<Stream<int>> refreshTokensInIsolate(List<String> addresses);
+  Future<Stream<int>> refreshTokensInIsolate(
+      List<String> addresses, List<String> debugTokenIDs);
   Future insertAssetsWithProvenance(List<Asset> assets);
   Future<List<Asset>> fetchLatestAssets(List<String> addresses, int size);
   void disposeIsolate();
@@ -79,7 +80,8 @@ class TokensServiceImpl extends TokensService {
     await _assetDao.removeAll();
   }
 
-  Future<Stream<int>> refreshTokensInIsolate(List<String> addresses) async {
+  Future<Stream<int>> refreshTokensInIsolate(
+      List<String> addresses, List<String> debugTokenIDs) async {
     if (_currentAddresses != null) {
       if (_currentAddresses?.join(",") == addresses.join(",")) {
         log.info("[refreshTokensInIsolate] skip because worker is running");
@@ -100,7 +102,7 @@ class TokensServiceImpl extends TokensService {
     await _networkConfigInjector
         .I<AppDatabase>()
         .assetDao
-        .deleteAssetsNotIn(tokenIDs);
+        .deleteAssetsNotIn(tokenIDs + debugTokenIDs);
 
     final dbTokenIDs = (await _assetDao.findAllAssetTokenIDs()).toSet();
 
