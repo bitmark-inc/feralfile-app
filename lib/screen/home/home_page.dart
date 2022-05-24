@@ -85,7 +85,7 @@ class _HomePageState extends State<HomePage>
     _cloudBackup();
     _handleForeground();
     injector<AutonomyService>().postLinkedAddresses();
-    Future.delayed(Duration(seconds: 1), _handleShowingSurveys);
+    Future.delayed(SHORT_SHOW_DIALOG_DURATION, _handleShowingSurveys);
     injector<WalletConnectService>().initSessions(forced: true);
   }
 
@@ -470,6 +470,11 @@ class _HomePageState extends State<HomePage>
   }
 
   void _handleShowingSurveys() {
+    if (!injector<ConfigurationService>().isDoneOnboarding()) {
+      // If the onboarding is not finished, skip this time.
+      return;
+    }
+
     const onboardingSurveyKey = "onboarding_survey";
 
     final finishedSurveys =
