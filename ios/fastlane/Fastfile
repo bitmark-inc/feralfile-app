@@ -97,8 +97,6 @@ platform :ios do
 			auth_token: ENV["SENTRY_AUTH"],
 			org_slug: 'bitmark-inc',
 			project_slug: 'autonomy-ios',
-			version: ENV["APP_VERSION"],
-			build: next_build_number.to_s,
 			app_identifier: app_identifier
 		)
 
