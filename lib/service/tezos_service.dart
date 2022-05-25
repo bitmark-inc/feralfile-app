@@ -21,6 +21,8 @@ abstract class TezosService {
       TezosWallet wallet, List<TransactionOperation> operation);
 
   Future<String?> sendTransaction(TezosWallet wallet, String to, int amount);
+
+  Future<String> signMessage(TezosWallet wallet, Uint8List message);
 }
 
 class TezosServiceImpl extends TezosService {
@@ -136,6 +138,15 @@ class TezosServiceImpl extends TezosService {
     await operation.monitor();
 
     return operation.result.blockHash;
+  }
+
+  @override
+  Future<String> signMessage(TezosWallet wallet, Uint8List message) async {
+    final keystore = _getKeystore(wallet);
+
+    final signature = keystore.signBytes(message);
+
+    return signature.edsig;
   }
 
   Keystore _getKeystore(TezosWallet wallet) {
