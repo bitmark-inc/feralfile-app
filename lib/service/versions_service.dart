@@ -23,7 +23,7 @@ class VersionService {
   VersionService(
       this._pubdocAPI, this._configurationService, this._navigationService);
 
-  void checkForUpdate(bool inDashboard) async {
+  Future checkForUpdate(bool inDashboard) async {
     if (kDebugMode) return;
     if (UIHelper.currentDialogTitle == "Update Required") return;
 
@@ -32,12 +32,12 @@ class VersionService {
     String currentVersion = packageInfo.version;
 
     if (compareVersion(versionInfo.requiredVersion, currentVersion) > 0) {
-      showForceUpdateDialog(versionInfo.link);
+      await showForceUpdateDialog(versionInfo.link);
     } else {
       // = not show What's new to new customer
       if (inDashboard) {
         // check to show Release Notes
-        showReleaseNotes(onlyWhenUnread: true);
+        await showReleaseNotes(onlyWhenUnread: true);
       }
     }
   }
@@ -54,7 +54,7 @@ class VersionService {
     final releaseNotes = await getReleaseNotes(currentVersion);
     if (onlyWhenUnread && releaseNotes == "TBD") return;
 
-    showReleaseNodeDialog(releaseNotes, currentVersion);
+    await showReleaseNodeDialog(releaseNotes, currentVersion);
   }
 
   Future<VersionInfo> getVersionInfo() async {
@@ -111,12 +111,12 @@ class VersionService {
     return releaseNotes;
   }
 
-  void showForceUpdateDialog(String link) {
+  Future showForceUpdateDialog(String link) async {
     final context = _navigationService.navigatorKey.currentContext;
     if (context == null) return;
 
     final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
-    UIHelper.showDialog(
+    await UIHelper.showDialog(
         context,
         "Update Required",
         Column(children: [
@@ -145,7 +145,8 @@ class VersionService {
         ]));
   }
 
-  void showReleaseNodeDialog(String releaseNotes, String currentVersion) {
+  Future showReleaseNodeDialog(
+      String releaseNotes, String currentVersion) async {
     final screenKey =
         "What’s new?"; // avoid showing multiple what's new screens
     if (UIHelper.currentDialogTitle == screenKey) return;
@@ -153,8 +154,8 @@ class VersionService {
     releaseNotes = "[$currentVersion]\n\n" + releaseNotes;
     UIHelper.currentDialogTitle = screenKey;
 
-    _configurationService.setReadReleaseNotesInVersion(currentVersion);
-    _navigationService.navigateTo(AppRouter.releaseNotesPage,
+    await _configurationService.setReadReleaseNotesInVersion(currentVersion);
+    await _navigationService.navigateTo(AppRouter.releaseNotesPage,
         arguments: releaseNotes);
   }
 }

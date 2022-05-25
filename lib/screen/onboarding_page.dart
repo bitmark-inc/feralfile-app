@@ -11,6 +11,10 @@ import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/eula_privacy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:autonomy_flutter/screen/survey/survey.dart';
+import 'package:autonomy_flutter/util/inapp_notifications.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 
 class OnboardingPage extends StatefulWidget {
   @override
@@ -39,6 +43,27 @@ class _OnboardingPageState extends State<OnboardingPage> {
           AppRouter.notificationOnboardingPage,
           arguments: {"isOnboarding": false});
     });
+  }
+
+  void _handleShowingSurveys() {
+    if (!injector<ConfigurationService>().isDoneOnboarding()) {
+      // If the onboarding is not finished, skip this time.
+      return;
+    }
+
+    const onboardingSurveyKey = "onboarding_survey";
+
+    final finishedSurveys =
+        injector<ConfigurationService>().getFinishedSurveys();
+    if (finishedSurveys.contains(onboardingSurveyKey)) {
+      return;
+    }
+
+    showCustomNotifications(
+        "Take a 5-second survey and be entered to win a Feral File artwork.",
+        Key(onboardingSurveyKey),
+        notificationOpenedHandler: () =>
+            Navigator.of(context).pushNamed(SurveyPage.tag, arguments: null));
   }
 
   // @override
@@ -89,7 +114,9 @@ class _OnboardingPageState extends State<OnboardingPage> {
                   Navigator.of(context)
                       .pushReplacementNamed(AppRouter.homePageNoTransition);
                   await _askForNotification();
-                  injector<VersionService>().checkForUpdate(true);
+                  await injector<VersionService>().checkForUpdate(true);
+                  await Future.delayed(
+                      SHORT_SHOW_DIALOG_DURATION, _handleShowingSurveys);
                   break;
 
                 case OnboardingStep.newAccountPage:
@@ -102,8 +129,9 @@ class _OnboardingPageState extends State<OnboardingPage> {
               }
 
               if (state.onboardingStep != OnboardingStep.dashboard) {
-                injector<VersionService>().checkForUpdate(false);
+                await injector<VersionService>().checkForUpdate(false);
               }
+              injector<WalletConnectService>().initSessions(forced: true);
             },
             builder: (context, state) {
               switch (state.onboardingStep) {
