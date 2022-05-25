@@ -18,7 +18,7 @@ class SurveyPage extends StatefulWidget {
 
 class _SurveyPageState extends State<SurveyPage> {
   final PageController _pageController = PageController();
-  int _currentPage = 1;
+  int _currentPage = 0;
   String? _surveyAnswer;
 
   _SurveyPageState();
@@ -28,7 +28,11 @@ class _SurveyPageState extends State<SurveyPage> {
       appBar: getCloseAppBar(
         context,
         onBack: () {
-          Navigator.of(context).pop();
+          if (_currentPage > 0) {
+            _moveToPage(_currentPage - 1);
+          } else {
+            Navigator.of(context).pop();
+          }
         },
       ),
       body: Container(
@@ -37,7 +41,7 @@ class _SurveyPageState extends State<SurveyPage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              _currentPage == 1
+              _currentPage == 0
                   ? "How did you hear about Autonomy? "
                   : "Which NFT marketplace? ",
               style: appTextTheme.headline1,
@@ -86,7 +90,7 @@ class _SurveyPageState extends State<SurveyPage> {
       questionItems: surveyItems,
       onItemSelected: (index) {
         if (index == 3) {
-          _moveToPage(2);
+          _moveToPage(1);
         } else {
           setState(() {
             _surveyAnswer = surveyItems[index];
@@ -126,7 +130,7 @@ class _SurveyPageState extends State<SurveyPage> {
   }
 
   Future<void> _moveToPage(int page) async {
-    await _pageController.nextPage(
+    await _pageController.animateToPage(page,
         duration: Duration(milliseconds: 200), curve: Curves.easeInOut);
     setState(() {
       _currentPage = page;

@@ -63,7 +63,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
         "Take a 5-second survey and be entered to win a Feral File artwork.",
         Key(onboardingSurveyKey),
         notificationOpenedHandler: () =>
-            Navigator.of(context).pushNamed(SurveyPage.tag, arguments: null));
+            injector<NavigationService>().navigateTo(SurveyPage.tag));
   }
 
   // @override
