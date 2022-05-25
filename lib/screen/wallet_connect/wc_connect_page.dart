@@ -21,6 +21,7 @@ import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -251,10 +252,15 @@ class _WCConnectPageState extends State<WCConnectPage>
         Row(
           children: [
             if (peerMeta.icons.isNotEmpty) ...[
-              Image.network(
-                peerMeta.icons.first,
+              CachedNetworkImage(
+                imageUrl: peerMeta.icons.first,
                 width: 64.0,
                 height: 64.0,
+                errorWidget: (context, url, error) => Container(
+                    width: 64,
+                    height: 64,
+                    child: Image.asset(
+                        "assets/images/walletconnect-alternative.png")),
               ),
             ] else ...[
               Container(
@@ -288,10 +294,15 @@ class _WCConnectPageState extends State<WCConnectPage>
         Row(
           children: [
             request.icon != null
-                ? Image.network(
-                    request.icon!,
+                ? CachedNetworkImage(
+                    imageUrl: request.icon!,
                     width: 64.0,
                     height: 64.0,
+                    errorWidget: (context, url, error) => SvgPicture.asset(
+                      "assets/images/tezos_social_icon.svg",
+                      width: 64.0,
+                      height: 64.0,
+                    ),
                   )
                 : SvgPicture.asset(
                     "assets/images/tezos_social_icon.svg",
