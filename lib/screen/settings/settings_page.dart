@@ -108,18 +108,6 @@ class _SettingsPageState extends State<SettingsPage>
                         'Autonomy accounts are full, multi-chain accounts. Linked accounts link to single-chain accounts from other wallets.',
                         style: appTextTheme.bodyText1),
                     SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: AuOutlinedButton(
-                            text: "RECEIVE".toUpperCase(),
-                            onPress: () => Navigator.of(context)
-                                .pushNamed(AppRouter.globalReceivePage),
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 10),
                     AccountsView(
                         key: ValueKey(_forceAccountsViewRedraw),
                         isInSettingsPage: true),

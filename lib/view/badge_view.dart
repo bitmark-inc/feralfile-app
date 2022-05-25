@@ -9,7 +9,11 @@ class BadgeView extends StatelessWidget {
     return Container(
         width: 16,
         height: 16,
-        decoration: BoxDecoration(color: Colors.black, shape: BoxShape.circle),
+        decoration: BoxDecoration(
+            color: Colors.black,
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white)),
+        alignment: Alignment.center,
         child: Text(
           '$number',
           textAlign: TextAlign.center,
@@ -18,7 +22,7 @@ class BadgeView extends StatelessWidget {
               fontSize: 10,
               fontFamily: "AtlasGrotesk",
               fontWeight: FontWeight.w700,
-              height: 1.377),
+              height: 1.33),
         ));
   }
 }

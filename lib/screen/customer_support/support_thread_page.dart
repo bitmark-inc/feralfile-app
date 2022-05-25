@@ -158,6 +158,9 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
         body: Container(
             margin: EdgeInsets.zero,
             child: Chat(
+              l10n: const ChatL10nEn(
+                inputPlaceholder: 'Write a message',
+              ),
               bubbleBuilder: _bubbleBuilder,
               theme: _chatTheme,
               sendButtonVisibilityMode: SendButtonVisibilityMode.always,
@@ -533,13 +536,12 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       inputMargin: EdgeInsets.zero,
       backgroundColor: Colors.transparent,
       inputBackgroundColor: Colors.black,
-      inputTextStyle: TextStyle(
-          fontSize: 16,
-          fontFamily: "AtlasGrotesk-Medium",
-          fontWeight: FontWeight.w500,
-          height: 1.377),
+      inputTextStyle: appTextTheme.bodyText1!,
       inputTextColor: Colors.white,
-      attachmentButtonIcon: SvgPicture.asset("assets/images/joinFile.svg"),
+      attachmentButtonIcon: SvgPicture.asset(
+        "assets/images/joinFile.svg",
+        color: Colors.white,
+      ),
       inputBorderRadius: BorderRadius.zero,
       sendButtonIcon: SvgPicture.asset(
         _sendIcon,
