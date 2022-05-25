@@ -20,9 +20,6 @@ abstract class IAPApi {
 
   factory IAPApi(Dio dio, {String baseUrl}) = _IAPApi;
 
-  @POST("/auth")
-  Future<JWT> verifyIAP(@Body() Map<String, String> body);
-
   @POST(authenticationPath)
   Future<JWT> auth(@Body() Map<String, dynamic> body);
 
