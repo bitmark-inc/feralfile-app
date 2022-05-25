@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/theme_manager.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
@@ -126,10 +127,15 @@ class UIHelper {
               child:
                   Image.asset("assets/images/walletconnect-alternative.png"));
         } else {
-          return Image.network(
-            appIcons.first,
+          return CachedNetworkImage(
+            imageUrl: appIcons.first,
             width: size,
             height: size,
+            errorWidget: (context, url, error) => Container(
+              width: size,
+              height: size,
+              child: Image.asset("assets/images/walletconnect-alternative.png"),
+            ),
           );
         }
 
@@ -142,10 +148,15 @@ class UIHelper {
             height: size,
           );
         } else {
-          return Image.network(
-            appIcon,
+          return CachedNetworkImage(
+            imageUrl: appIcon,
             width: size,
             height: size,
+            errorWidget: (context, url, error) => SvgPicture.asset(
+              "assets/images/tezos_social_icon.svg",
+              width: size,
+              height: size,
+            ),
           );
         }
 
