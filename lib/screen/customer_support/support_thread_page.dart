@@ -539,7 +539,10 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
           fontWeight: FontWeight.w500,
           height: 1.377),
       inputTextColor: Colors.white,
-      attachmentButtonIcon: SvgPicture.asset("assets/images/joinFile.svg"),
+      attachmentButtonIcon: SvgPicture.asset(
+        "assets/images/joinFile.svg",
+        color: Colors.white,
+      ),
       inputBorderRadius: BorderRadius.zero,
       sendButtonIcon: SvgPicture.asset(
         _sendIcon,

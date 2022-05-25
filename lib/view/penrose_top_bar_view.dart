@@ -116,7 +116,7 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> {
                   if (unreadIssues != 0) ...[
                     Positioned(
                         top: -3,
-                        left: 15,
+                        left: 13,
                         child: Align(
                           alignment: Alignment.topRight,
                           child: BadgeView(number: unreadIssues),
