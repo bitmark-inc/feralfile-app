@@ -10,7 +10,6 @@ import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dar
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
-import 'package:autonomy_flutter/screen/survey/survey.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/aws_service.dart';
@@ -20,7 +19,6 @@ import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tokens_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
-import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/au_cached_manager.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -85,8 +83,6 @@ class _HomePageState extends State<HomePage>
     _cloudBackup();
     _handleForeground();
     injector<AutonomyService>().postLinkedAddresses();
-    Future.delayed(SHORT_SHOW_DIALOG_DURATION, _handleShowingSurveys);
-    injector<WalletConnectService>().initSessions(forced: true);
   }
 
   @override
@@ -467,26 +463,5 @@ class _HomePageState extends State<HomePage>
     injector<TokensService>().disposeIsolate();
     _deeplinkSubscription?.pause();
     _cloudBackup();
-  }
-
-  void _handleShowingSurveys() {
-    if (!injector<ConfigurationService>().isDoneOnboarding()) {
-      // If the onboarding is not finished, skip this time.
-      return;
-    }
-
-    const onboardingSurveyKey = "onboarding_survey";
-
-    final finishedSurveys =
-        injector<ConfigurationService>().getFinishedSurveys();
-    if (finishedSurveys.contains(onboardingSurveyKey)) {
-      return;
-    }
-
-    showCustomNotifications(
-        "Take a 5-second survey and be entered to win a Feral File artwork.",
-        Key(onboardingSurveyKey),
-        notificationOpenedHandler: () =>
-            Navigator.of(context).pushNamed(SurveyPage.tag, arguments: null));
   }
 }

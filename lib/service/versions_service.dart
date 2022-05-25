@@ -23,7 +23,7 @@ class VersionService {
   VersionService(
       this._pubdocAPI, this._configurationService, this._navigationService);
 
-  void checkForUpdate(bool inDashboard) async {
+  Future checkForUpdate(bool inDashboard) async {
     if (kDebugMode) return;
     if (UIHelper.currentDialogTitle == "Update Required") return;
 
