@@ -173,6 +173,12 @@ class MigrationUtil {
     log.info(
         "[_migrationFromKeychain] personaUUIDs from Keychain: $personaUUIDs");
     for (var personaUUID in personaUUIDs) {
+      //Cleanup duplicated persona
+      final oldPersona = await _cloudDB.personaDao.findById(personaUUID);
+      if (oldPersona != null) {
+        await _cloudDB.personaDao.deletePersona(oldPersona);
+      }
+
       final uuid = personaUUID.toLowerCase();
       final existingPersona = await _cloudDB.personaDao.findById(uuid);
       if (existingPersona == null) {
