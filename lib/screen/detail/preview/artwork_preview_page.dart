@@ -336,9 +336,11 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
         return ext == ".svg"
             ? AspectRatio(
                 aspectRatio: 1,
-                child: SvgPicture.network(
-                  asset.thumbnailURL!,
-                ))
+                child: Container(
+                    color: Colors.white,
+                    child: SvgPicture.network(
+                      asset.thumbnailURL!,
+                    )))
             : CachedNetworkImage(
                 imageUrl: asset.thumbnailURL!,
                 imageBuilder: (context, imageProvider) => PhotoView(
