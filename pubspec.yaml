@@ -172,6 +172,7 @@ flutter:
     - assets/images/temple_wallet.png
     - assets/images/tezos_wallet.png
     - assets/images/premium_comparation.svg
+    - assets/images/premium_comparation_light.svg
     - assets/images/face_id.svg
     - assets/images/touch_id.svg
     - assets/images/cloudOff.svg
