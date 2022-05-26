@@ -83,8 +83,7 @@ class UXGuideView extends StatelessWidget {
                   Align(
                     alignment: Alignment.topCenter,
                     child: Padding(
-                      padding: EdgeInsets.only(
-                          top: MediaQuery.of(context).padding.top + 12),
+                      padding: EdgeInsets.only(top: 62),
                       child:
                           SvgPicture.asset("assets/images/guidedPenrose.svg"),
                     ),
@@ -99,7 +98,7 @@ class UXGuideView extends StatelessWidget {
                   Text(
                     'Access\nsettings',
                     style: theme.textTheme.bodyText1,
-                    textAlign: TextAlign.right,
+                    textAlign: TextAlign.center,
                   ),
                 ],
               ),
