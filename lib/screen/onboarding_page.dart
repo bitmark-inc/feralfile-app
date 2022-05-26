@@ -122,6 +122,12 @@ class _OnboardingPageState extends State<OnboardingPage> {
                       .pushReplacementNamed(AppRouter.homePageNoTransition);
                   await _askForNotification();
                   await injector<VersionService>().checkForUpdate(true);
+                  if (injector<ConfigurationService>().getUXGuideStep() ==
+                      null) {
+                    await injector<NavigationService>()
+                        .navigateTo(AppRouter.uxGuidePage);
+                  }
+
                   await Future.delayed(
                       SHORT_SHOW_DIALOG_DURATION, _handleShowingSurveys);
                   break;

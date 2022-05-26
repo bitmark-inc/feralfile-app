@@ -90,10 +90,6 @@ class _HomePageState extends State<HomePage>
     _cloudBackup();
     _handleForeground();
     injector<AutonomyService>().postLinkedAddresses();
-
-    if (injector<ConfigurationService>().getUXGuideStep() == null) {
-      injector<NavigationService>().navigateTo(AppRouter.uxGuidePage);
-    }
   }
 
   @override
