@@ -90,6 +90,10 @@ class _HomePageState extends State<HomePage>
     _cloudBackup();
     _handleForeground();
     injector<AutonomyService>().postLinkedAddresses();
+
+    if (injector<ConfigurationService>().getUXGuideStep() == null) {
+      injector<NavigationService>().navigateTo(AppRouter.uxGuidePage);
+    }
   }
 
   @override
@@ -132,7 +136,9 @@ class _HomePageState extends State<HomePage>
           fit: StackFit.loose,
           children: [
             assetsWidget,
-            PenroseTopBarView(true, _controller),
+            if (injector<ConfigurationService>().getUXGuideStep() != null) ...[
+              PenroseTopBarView(true, _controller),
+            ],
             if (state.fetchTokenState == ActionState.loading) ...[
               Align(
                 alignment: Alignment.topRight,
