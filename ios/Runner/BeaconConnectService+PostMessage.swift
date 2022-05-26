@@ -5,13 +5,6 @@
 //  that can be found in the LICENSE file.
 //
 
-//
-//  BeaconConnectService+PostMessage.swift
-//  Runner
-//
-//  Created by Thuyên Trương on 08/03/2022.
-//
-
 import Combine
 import Foundation
 import BeaconCore

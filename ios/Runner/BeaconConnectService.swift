@@ -5,13 +5,6 @@
 //  that can be found in the LICENSE file.
 //
 
-//
-//  BeaconConnect.swift
-//  Runner
-//
-//  Created by Ho Hien on 08/02/2022.
-//
-
 import Foundation
 import Combine
 import BeaconBlockchainTezos

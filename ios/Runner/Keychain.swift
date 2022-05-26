@@ -5,13 +5,6 @@
 //  that can be found in the LICENSE file.
 //
 
-//
-//  Keychain.swift
-//  Runner
-//
-//  Created by Ho Hien on 11/03/2022.
-//
-
 import Foundation
 
 class Keychain {

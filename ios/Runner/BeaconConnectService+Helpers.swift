@@ -5,13 +5,6 @@
 //  that can be found in the LICENSE file.
 //
 
-//
-//  BeaconConnectService+Helpers.swift
-//  Runner
-//
-//  Created by Ho Hien on 10/02/2022.
-//
-
 import Combine
 import Foundation
 import BeaconCore

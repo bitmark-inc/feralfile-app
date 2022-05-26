@@ -5,13 +5,6 @@
 //  that can be found in the LICENSE file.
 //
 
-//
-//  Result+Helpers.swift
-//  Runner
-//
-//  Created by Thuyên Trương on 09/03/2022.
-//
-
 import Foundation
 
 extension Result {

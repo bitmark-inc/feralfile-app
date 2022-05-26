@@ -5,13 +5,6 @@
 //  that can be found in the LICENSE file.
 //
 
-//
-//  Logger.swift
-//  Runner
-//
-//  Created by Ho Hien on 23/03/2022.
-//
-
 import Foundation
 import Sentry
 

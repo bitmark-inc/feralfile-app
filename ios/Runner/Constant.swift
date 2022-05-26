@@ -5,13 +5,6 @@
 //  that can be found in the LICENSE file.
 //
 
-//
-//  Constant.swift
-//  Runner
-//
-//  Created by Thuyên Trương on 04/03/2022.
-//
-
 import Foundation
 
 struct Constant {

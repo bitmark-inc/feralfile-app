@@ -5,13 +5,6 @@
 //  that can be found in the LICENSE file.
 //
 
-//
-//  SystemChannelHandler.swift
-//  Runner
-//
-//  Created by Thuyên Trương on 24/02/2022.
-//
-
 import Foundation
 import Flutter
 import Combine

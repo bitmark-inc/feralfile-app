@@ -5,13 +5,6 @@
 //  that can be found in the LICENSE file.
 //
 
-//
-//  ErrorHandler.swift
-//  Runner
-//
-//  Created by Thuyên Trương on 10/03/2022.
-//
-
 import Foundation
 
 enum AppError: String, Error {

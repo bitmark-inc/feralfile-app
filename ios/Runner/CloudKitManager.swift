@@ -5,13 +5,6 @@
 //  that can be found in the LICENSE file.
 //
 
-//
-//  CloudKitManager.swift
-//  Runner
-//
-//  Created by Thuyên Trương on 01/03/2022.
-//
-
 import CloudKit
 import Combine
 

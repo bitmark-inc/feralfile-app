@@ -5,13 +5,6 @@
 //  that can be found in the LICENSE file.
 //
 
-//
-//  CloudChannelHandler.swift
-//  Runner
-//
-//  Created by Thuyên Trương on 01/03/2022.
-//
-
 import Foundation
 import Combine
 import CloudKit

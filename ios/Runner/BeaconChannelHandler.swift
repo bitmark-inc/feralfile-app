@@ -5,13 +5,6 @@
 //  that can be found in the LICENSE file.
 //
 
-//
-//  BeaconChannelHandler.swift
-//  Runner
-//
-//  Created by Ho Hien on 08/02/2022.
-//
-
 import Combine
 import Flutter
 import BeaconBlockchainTezos
