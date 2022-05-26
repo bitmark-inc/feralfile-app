@@ -445,13 +445,7 @@ class _HomePageState extends State<HomePage>
   }
 
   void _handleForeground() {
-    if (injector<ConfigurationService>().isDevicePasscodeEnabled()) {
-      injector<NavigationService>()
-          .lockScreen()
-          ?.then((_) => _deeplinkSubscription?.resume());
-    } else {
-      _deeplinkSubscription?.resume();
-    }
+    _deeplinkSubscription?.resume();
     injector<ConfigurationService>().reload();
     Future.delayed(const Duration(milliseconds: 3500), () async {
       context.read<HomeBloc>().add(RefreshTokensEvent());

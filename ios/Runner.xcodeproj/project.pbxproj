@@ -19,6 +19,8 @@
 		588939C2280525C200FE3313 /* Runner Inhouse Notification.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 588939BB280525C200FE3313 /* Runner Inhouse Notification.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		588939CF28052E3E00FE3313 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 588939CE28052E3E00FE3313 /* NotificationService.swift */; };
 		588939D328052E3E00FE3313 /* Runner Notification.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 588939CC28052E3E00FE3313 /* Runner Notification.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		58958D69283F6C2100D698AD /* BiometricAuthentication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58958D68283F6C2100D698AD /* BiometricAuthentication.swift */; };
+		58958D6A283F6C2100D698AD /* BiometricAuthentication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58958D68283F6C2100D698AD /* BiometricAuthentication.swift */; };
 		58A4B4F627E33A99001F30D2 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 58A4B4F527E33A8B001F30D2 /* libsqlite3.tbd */; };
 		58A4B4F727E33AA0001F30D2 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 58A4B4F527E33A8B001F30D2 /* libsqlite3.tbd */; };
 		630DA1EE27DB5A4600586F70 /* Keychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 630DA1ED27DB5A4600586F70 /* Keychain.swift */; };
@@ -167,6 +169,7 @@
 		588939DA28052FC800FE3313 /* Runner NotificationDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Runner NotificationDebug.entitlements"; sourceTree = "<group>"; };
 		588939DB2805306500FE3313 /* Runner InhouseDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Runner InhouseDebug.entitlements"; sourceTree = "<group>"; };
 		588939DC2805307600FE3313 /* Runner Inhouse Notification.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Runner Inhouse Notification.entitlements"; sourceTree = "<group>"; };
+		58958D68283F6C2100D698AD /* BiometricAuthentication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricAuthentication.swift; sourceTree = "<group>"; };
 		58A4B4F527E33A8B001F30D2 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
 		630DA1ED27DB5A4600586F70 /* Keychain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Keychain.swift; sourceTree = "<group>"; };
 		632FC2F527B4F51E00336DCE /* BeaconConnectService+Helpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BeaconConnectService+Helpers.swift"; sourceTree = "<group>"; };
@@ -424,6 +427,7 @@
 				764F859A27D810EB00B67672 /* Result+Helpers.swift */,
 				764F859D27D9E19400B67672 /* ErrorHandler.swift */,
 				630DA1ED27DB5A4600586F70 /* Keychain.swift */,
+				58958D68283F6C2100D698AD /* BiometricAuthentication.swift */,
 			);
 			path = Runner;
 			sourceTree = "<group>";
@@ -563,7 +567,7 @@
 			);
 			mainGroup = 97C146E51CF9000F007C117D;
 			packageReferences = (
-				63CED4A627AE9DFC00699ED5 /* XCRemoteSwiftPackageReference "libauk-swift.git" */,
+				63CED4A627AE9DFC00699ED5 /* XCRemoteSwiftPackageReference "libauk-swift" */,
 				63F1664927B2509F00451AAA /* XCRemoteSwiftPackageReference "beacon-ios-sdk" */,
 			);
 			productRefGroup = 97C146EF1CF9000F007C117D /* Products */;
@@ -829,6 +833,7 @@
 				76F3289627D1EC1C00C3B9FA /* CloudKitManager.swift in Sources */,
 				76F3289727D1EC1C00C3B9FA /* CloudChannelHandler.swift in Sources */,
 				76F3289827D1EC1C00C3B9FA /* BeaconConnectService+Helpers.swift in Sources */,
+				58958D6A283F6C2100D698AD /* BiometricAuthentication.swift in Sources */,
 				630DA1EF27DB616E00586F70 /* Keychain.swift in Sources */,
 				76F3289927D1EC1C00C3B9FA /* BeaconConnectService.swift in Sources */,
 				636F522227E0A064006A9101 /* BeaconConnectService+PostMessage.swift in Sources */,
@@ -851,6 +856,7 @@
 				768E7EEB27CE4C5D00585D12 /* CloudKitManager.swift in Sources */,
 				768E7EED27CE506600585D12 /* CloudChannelHandler.swift in Sources */,
 				764F859E27D9E19400B67672 /* ErrorHandler.swift in Sources */,
+				58958D69283F6C2100D698AD /* BiometricAuthentication.swift in Sources */,
 				632FC2F627B4F51E00336DCE /* BeaconConnectService+Helpers.swift in Sources */,
 				630DA1EE27DB5A4600586F70 /* Keychain.swift in Sources */,
 				63F1665327B250D600451AAA /* BeaconConnectService.swift in Sources */,
@@ -1928,7 +1934,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		63CED4A627AE9DFC00699ED5 /* XCRemoteSwiftPackageReference "libauk-swift.git" */ = {
+		63CED4A627AE9DFC00699ED5 /* XCRemoteSwiftPackageReference "libauk-swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/bitmark-inc/libauk-swift.git";
 			requirement = {
@@ -1944,7 +1950,7 @@
 				revision = 140c4a1526fee625641f5e8d2beafafd037abd22;
 			};
 		};
-		76F3288B27D1EC1C00C3B9FA /* XCRemoteSwiftPackageReference "libauk-swift.git" */ = {
+		76F3288B27D1EC1C00C3B9FA /* XCRemoteSwiftPackageReference "libauk-swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/bitmark-inc/libauk-swift.git";
 			requirement = {
@@ -1965,7 +1971,7 @@
 /* Begin XCSwiftPackageProductDependency section */
 		63CED4A727AE9DFC00699ED5 /* LibAuk */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 63CED4A627AE9DFC00699ED5 /* XCRemoteSwiftPackageReference "libauk-swift.git" */;
+			package = 63CED4A627AE9DFC00699ED5 /* XCRemoteSwiftPackageReference "libauk-swift" */;
 			productName = LibAuk;
 		};
 		63F1664A27B2509F00451AAA /* BeaconBlockchainTezos */ = {
@@ -2000,7 +2006,7 @@
 		};
 		76F3288A27D1EC1C00C3B9FA /* LibAuk */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 76F3288B27D1EC1C00C3B9FA /* XCRemoteSwiftPackageReference "libauk-swift.git" */;
+			package = 76F3288B27D1EC1C00C3B9FA /* XCRemoteSwiftPackageReference "libauk-swift" */;
 			productName = LibAuk;
 		};
 		76F3288C27D1EC1C00C3B9FA /* BeaconBlockchainTezos */ = {

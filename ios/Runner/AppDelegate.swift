@@ -19,6 +19,7 @@ import Sentry
 @objc class AppDelegate: FlutterAppDelegate {
     
     var cancelBag = Set<AnyCancellable>()
+    var authenticationVC = BiometricAuthenticationViewController()
     
     override func application(
         _ application: UIApplication,
@@ -26,6 +27,8 @@ import Sentry
     ) -> Bool {
         
         LibAuk.create(keyChainGroup: Constant.keychainGroup)
+        
+        authenticationVC.authenticationCallback = self.authenticationCompleted
         
         let controller : FlutterViewController = window?.rootViewController as! FlutterViewController
         let libaukChannel = FlutterMethodChannel(name: "libauk_dart",
@@ -130,7 +133,49 @@ import Sentry
                 FlutterDownloaderPlugin.register(with: registry.registrar(forPlugin: "FlutterDownloaderPlugin")!)
             }
         })
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) { [weak self] in
+            if UserDefaults.standard.bool(forKey: "flutter.device_passcode") == true {
+                self?.showAuthenticationOverlay()
+                self?.authenticationVC.authentication()
+            }
+        }
+        
         return super.application(application, didFinishLaunchingWithOptions: launchOptions)
     }
     
+    override func applicationWillEnterForeground(_ application: UIApplication) {
+        if UserDefaults.standard.bool(forKey: "flutter.device_passcode") == true {
+            authenticationVC.authentication()
+        }
+    }
+    
+    override func applicationDidEnterBackground(_ application: UIApplication) {
+        if UserDefaults.standard.bool(forKey: "flutter.device_passcode") == true {
+            showAuthenticationOverlay()
+        }
+    }
+    
+    func authenticationCompleted(success: Bool) {
+        if success {
+            hideAuthenticationOverlay()
+        }
+    }
+}
+
+extension AppDelegate {
+    func showAuthenticationOverlay() {
+        authenticationVC.view.frame = window?.bounds ?? CGRect.zero
+        authenticationVC.view.alpha = 1
+        window?.addSubview(authenticationVC.view)
+        window?.bringSubviewToFront(authenticationVC.view)
+    }
+    
+    func hideAuthenticationOverlay() {
+        UIView.animate(withDuration: 0.3) { [weak self] in
+            self?.authenticationVC.view.alpha = 0
+        } completion: { [weak self] _ in
+            self?.authenticationVC.view.removeFromSuperview()
+        }
+    }
 }
