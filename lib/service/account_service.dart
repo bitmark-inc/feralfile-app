@@ -38,6 +38,7 @@ abstract class AccountService {
   Future<Connection> linkETHWallet(WCConnectedSession session);
   Future<Connection> linkETHBrowserWallet(String address, WalletApp walletApp);
   Future linkManuallyAddress(String address);
+  Future<bool> isLinkedIndexerTokenID(String indexerTokenID);
   Future deletePersona(Persona persona);
   Future deleteLinkedAccount(Connection connection);
   Future linkIndexerTokenID(String indexerTokenID);
@@ -230,6 +231,14 @@ class AccountServiceImpl extends AccountService {
     );
 
     await _cloudDB.connectionDao.insertConnection(connection);
+  }
+
+  Future<bool> isLinkedIndexerTokenID(String indexerTokenID) async {
+    final connection = await _cloudDB.connectionDao.findById(indexerTokenID);
+    if (connection == null) return false;
+
+    return connection.connectionType ==
+        ConnectionType.manuallyIndexerTokenID.rawValue;
   }
 
   Future<Connection> linkETHWallet(WCConnectedSession session) async {

@@ -44,10 +44,7 @@ class AddAccountPage extends StatelessWidget {
                     _importAccountOption(context),
                     addDivider(),
                     _createAccountOption(context),
-                    _linkAddressWidget(),
-                    if (kDebugMode) ...[
-                      _linkTokenIndexerIDWidget(context),
-                    ]
+                    _linkDebugWidget(),
                   ],
                 ),
               ),
@@ -58,7 +55,7 @@ class AddAccountPage extends StatelessWidget {
     );
   }
 
-  Widget _linkAddressWidget() {
+  Widget _linkDebugWidget() {
     return FutureBuilder<bool>(
         future: isAppCenterBuild(),
         builder: (context, snapshot) {
@@ -74,6 +71,7 @@ class AddAccountPage extends StatelessWidget {
                   onTap: () => Navigator.of(context)
                       .pushNamed(AppRouter.linkManually, arguments: 'address'),
                 ),
+                _linkTokenIndexerIDWidget(context),
               ],
             );
           }
@@ -99,7 +97,7 @@ class AddAccountPage extends StatelessWidget {
               injector<CloudDatabase>().connectionDao.deleteConnectionsByType(
                   ConnectionType.manuallyIndexerTokenID.rawValue);
             },
-            child: Text("DELETE ALL")),
+            child: Text("Delete All Debug Linked IndexerTokenIDs")),
       ],
     );
   }
