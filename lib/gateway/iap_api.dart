@@ -1,3 +1,10 @@
+//
+//  SPDX-License-Identifier: BSD-2-Clause-Patent
+//  Copyright © 2022 Bitmark. All rights reserved.
+//  Use of this source code is governed by the BSD-2-Clause Plus Patent License
+//  that can be found in the LICENSE file.
+//
+
 import 'dart:io';
 
 import 'package:autonomy_flutter/model/backup_versions.dart';
@@ -12,9 +19,6 @@ abstract class IAPApi {
   static const authenticationPath = "/apis/v1/auth";
 
   factory IAPApi(Dio dio, {String baseUrl}) = _IAPApi;
-
-  @POST("/auth")
-  Future<JWT> verifyIAP(@Body() Map<String, String> body);
 
   @POST(authenticationPath)
   Future<JWT> auth(@Body() Map<String, dynamic> body);
