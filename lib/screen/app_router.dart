@@ -51,6 +51,7 @@ import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_page.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_bloc.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_page.dart';
+import 'package:autonomy_flutter/screen/more_autonomy_page.dart';
 import 'package:autonomy_flutter/screen/notification_onboarding_page.dart';
 import 'package:autonomy_flutter/screen/onboarding_page.dart';
 import 'package:autonomy_flutter/screen/participate_user_test_page.dart';
@@ -68,6 +69,7 @@ import 'package:autonomy_flutter/screen/settings/networks/select_network_bloc.da
 import 'package:autonomy_flutter/screen/settings/networks/select_network_page.dart';
 import 'package:autonomy_flutter/screen/settings/settings_page.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
+import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/screen/survey/survey.dart';
 import 'package:autonomy_flutter/screen/survey/survey_thankyou.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_send_transaction_page.dart';
@@ -91,6 +93,7 @@ import 'package:page_transition/page_transition.dart';
 class AppRouter {
   static const onboardingPage = "onboarding";
   static const beOwnGalleryPage = 'be_own_gallery';
+  static const moreAutonomyPage = 'more_autonomy';
   static const notificationOnboardingPage = 'notification_onboarding';
   static const newAccountPage = "new_account";
   static const addAccountPage = 'add_account';
@@ -208,6 +211,14 @@ class AppRouter {
         return CupertinoPageRoute(
           settings: settings,
           builder: (context) => BeOwnGalleryPage(),
+        );
+      case moreAutonomyPage:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) => BlocProvider(
+            create: (_) => UpgradesBloc(injector(), injector()),
+            child: MoreAutonomyPage(),
+          ),
         );
       case notificationOnboardingPage:
         return CupertinoPageRoute(

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/main.dart';
@@ -8,6 +9,9 @@ import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_state.dart';
+import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
+import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
+import 'package:autonomy_flutter/screen/settings/subscription/upgrade_view.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -17,23 +21,22 @@ import 'package:autonomy_flutter/util/theme_manager.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cast/cast.dart';
+import 'package:easy_debounce/easy_debounce.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_to_airplay/airplay_route_picker_view.dart';
+import 'package:mime/mime.dart';
+import 'package:path/path.dart' as p;
 import 'package:photo_view/photo_view.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shake/shake.dart';
 import 'package:video_player/video_player.dart';
-import 'package:webview_flutter/webview_flutter.dart';
-import 'package:after_layout/after_layout.dart';
-import 'package:easy_debounce/easy_debounce.dart';
-import 'package:path/path.dart' as p;
-import 'package:cast/cast.dart';
-import 'package:mime/mime.dart';
 import 'package:wakelock/wakelock.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 enum AUCastDeviceType { Airplay, Chromecast }
 
@@ -511,24 +514,13 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   }
 
   Widget _castButton(BuildContext context) {
-    return FutureBuilder<bool>(
-        builder: (context, snapshot) {
-          if ((asset?.medium == "video" || asset?.medium == "image") &&
-              (snapshot.hasData && snapshot.data!)) {
-            return InkWell(
-              onTap: () => _showCastDialog(context),
-              child: SvgPicture.asset('assets/images/cast.svg'),
-            );
-          } else {
-            return SizedBox(
-              width: 25,
-            );
-          }
-        },
-        future: injector<IAPService>().isSubscribed());
+    return InkWell(
+      onTap: () => _showCastDialog(context),
+      child: SvgPicture.asset('assets/images/cast.svg'),
+    );
   }
 
-  Widget _airplayItem(BuildContext context) {
+  Widget _airplayItem(BuildContext context, bool isSubscribed) {
     final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
     return Padding(
         child: SizedBox(
@@ -542,24 +534,33 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                   padding: EdgeInsets.only(left: 41, bottom: 5),
                   child: Text(
                     "Airplay",
-                    style: theme.textTheme.headline4
-                        ?.copyWith(color: AppColorTheme.secondarySpanishGrey),
+                    style: theme.textTheme.headline4?.copyWith(
+                        color: isSubscribed
+                            ? Colors.white
+                            : AppColorTheme.secondaryDimGrey),
                   ),
                 ),
               ),
-              AirPlayRoutePickerView(
-                tintColor: Colors.white,
-                activeTintColor: Colors.white,
-                backgroundColor: Colors.transparent,
-                prioritizesVideoDevices: true,
-              ),
+              isSubscribed
+                  ? AirPlayRoutePickerView(
+                      tintColor: Colors.grey,
+                      activeTintColor: Colors.grey,
+                      backgroundColor: Colors.transparent,
+                      prioritizesVideoDevices: true,
+                    )
+                  : Align(
+                      alignment: Alignment.centerLeft,
+                      child: Icon(Icons.airplay_outlined,
+                          color: AppColorTheme.secondaryDimGrey),
+                    ),
             ],
           ),
         ),
         padding: EdgeInsets.symmetric(vertical: 6));
   }
 
-  Widget _castingListView(BuildContext context, List<AUCastDevice> devices) {
+  Widget _castingListView(
+      BuildContext context, List<AUCastDevice> devices, bool isSubscribed) {
     final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
     return ConstrainedBox(
         constraints: new BoxConstraints(
@@ -573,44 +574,50 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
 
               switch (device.type) {
                 case AUCastDeviceType.Airplay:
-                  return _airplayItem(context);
+                  return _airplayItem(context, isSubscribed);
                 case AUCastDeviceType.Chromecast:
                   return GestureDetector(
                     child: Padding(
                       child: Row(
                         children: [
-                          Icon(Icons.cast),
+                          Icon(Icons.cast,
+                              color: isSubscribed
+                                  ? Colors.white
+                                  : AppColorTheme.secondaryDimGrey),
                           SizedBox(width: 17),
                           Text(
                             device.chromecastDevice!.name,
                             style: theme.textTheme.headline4?.copyWith(
-                                color: device.isActivated
+                                color: isSubscribed
                                     ? Colors.white
-                                    : AppColorTheme.secondarySpanishGrey),
+                                    : AppColorTheme.secondaryDimGrey),
                           ),
                         ],
                       ),
-                      padding: EdgeInsets.symmetric(vertical: 19),
+                      padding: EdgeInsets.symmetric(vertical: 17),
                     ),
-                    onTap: () {
-                      UIHelper.hideInfoDialog(context);
-                      var copiedDevice = _castDevices[index];
-                      if (copiedDevice.isActivated) {
-                        _stopAndDisconnectChomecast(index);
-                      } else {
-                        _connectAndCast(index);
-                      }
+                    onTap: isSubscribed
+                        ? () {
+                            UIHelper.hideInfoDialog(context);
+                            var copiedDevice = _castDevices[index];
+                            if (copiedDevice.isActivated) {
+                              _stopAndDisconnectChomecast(index);
+                            } else {
+                              _connectAndCast(index);
+                            }
 
-                      // invert the state
-                      copiedDevice.isActivated = !copiedDevice.isActivated;
-                      _castDevices[index] = copiedDevice;
-                    },
+                            // invert the state
+                            copiedDevice.isActivated =
+                                !copiedDevice.isActivated;
+                            _castDevices[index] = copiedDevice;
+                          }
+                        : null,
                   );
               }
             }),
             separatorBuilder: ((context, index) => Divider(
                   thickness: 1,
-                  color: Colors.white,
+                  color: AppColorTheme.secondarySpanishGrey,
                 )),
             itemCount: devices.length));
   }
@@ -626,13 +633,9 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                 snapshot.data!.isEmpty ||
                 snapshot.hasError) {
               if (asset?.medium == "video") {
-                return _airplayItem(context);
-              } else {
-                return SizedBox(height: 44);
+                _castDevices = _defaultCastDevices;
               }
-            }
-
-            if (_castDevices.isEmpty) {
+            } else {
               _castDevices = (asset?.medium == "video"
                       ? _defaultCastDevices
                       : List<AUCastDevice>.empty()) +
@@ -649,7 +652,68 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                   .toList();
             }
 
-            return _castingListView(context, castDevices);
+            final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
+
+            return FutureBuilder<bool>(
+                builder: (context, snapshot) {
+                  if (snapshot.hasData && snapshot.data!) {
+                    return Column(
+                      children: [
+                        _castingListView(context, castDevices, true),
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: Text(
+                            "CANCEL",
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                fontFamily: "IBMPlexMono"),
+                          ),
+                        ),
+                        SizedBox(height: 20),
+                      ],
+                    );
+                  } else {
+                    return Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Get more Autonomy",
+                              style: theme.textTheme.headline4,
+                            ),
+                            BlocProvider.value(
+                              value: UpgradesBloc(injector(), injector()),
+                              child: _SubscribeView(),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 10),
+                        Text(
+                          "Subscribe to play your collection on external devices.",
+                          style: theme.textTheme.bodyText1,
+                        ),
+                        SizedBox(height: 20),
+                        _castingListView(context, castDevices, false),
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: Text(
+                            "CANCEL",
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                fontFamily: "IBMPlexMono"),
+                          ),
+                        ),
+                        SizedBox(height: 20),
+                      ],
+                    );
+                  }
+                },
+                future: injector<IAPService>().isSubscribed());
           },
         ),
         isDismissible: true);
@@ -697,7 +761,8 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
       // Here you can plug an URL to any mp4, webm, mp3 or jpg file with the proper contentType.
       'contentId': asset!.previewURL!,
       'contentType': lookupMimeType(asset!.previewURL!),
-      'streamType': 'BUFFERED', // or LIVE
+      'streamType': 'BUFFERED',
+      // or LIVE
 
       // Title and cover displayed while buffering
       'metadata': {
@@ -728,5 +793,37 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
       element.chromecastSession?.close();
     });
     _castDevices = [];
+  }
+}
+
+class _SubscribeView extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    context.read<UpgradesBloc>().add(UpgradeQueryInfoEvent());
+    return BlocBuilder<UpgradesBloc, UpgradeState>(builder: (context, state) {
+      return Container(
+          height: 24.0,
+          child: OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.zero, // <-- Radius
+                ),
+                side: BorderSide(width: 1.0, color: Colors.white),
+                // maximumSize: Size.fromHeight(30)
+              ),
+              onPressed: () => UpgradesView.showSubscriptionDialog(
+                      context, state.productDetails?.price, (() {
+                    context.read<UpgradesBloc>().add(UpgradePurchaseEvent());
+                    Navigator.of(context).pop();
+                  })),
+              child: Text(
+                "SUBSCRIBE",
+                style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w300,
+                    fontFamily: "IBMPlexMono"),
+              )));
+    });
   }
 }

@@ -70,7 +70,7 @@ class UpgradesView extends StatelessWidget {
       case IAPProductStatus.notPurchased:
       case IAPProductStatus.expired:
         return GestureDetector(
-          onTap: (() => _showSubscriptionDialog(
+          onTap: (() => showSubscriptionDialog(
                   context, state.productDetails?.price, (() {
                 context.read<UpgradesBloc>().add(UpgradePurchaseEvent());
               }))),
@@ -113,7 +113,7 @@ class UpgradesView extends StatelessWidget {
     }
   }
 
-  static _showSubscriptionDialog(
+  static showSubscriptionDialog(
       BuildContext context, String? price, Function()? onPressSubscribe) {
     final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
 
