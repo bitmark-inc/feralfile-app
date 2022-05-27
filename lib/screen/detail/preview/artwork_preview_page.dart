@@ -90,7 +90,8 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
         setState(() {
           isFullscreen = false;
           if (Platform.isAndroid) {
-            SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+            SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
+                overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom]);
           }
         });
       }
@@ -143,7 +144,8 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     _webViewController = null;
     _detector?.stopListening();
     if (Platform.isAndroid) {
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
+          overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom]);
     }
     Sentry.getSpan()?.finish(status: SpanStatus.ok());
     super.dispose();
@@ -186,9 +188,11 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
           final artistName =
               asset?.artistName?.toIdentityOrMask(identityState.identityMap);
 
-          return Container(
-              padding: MediaQuery.of(context).padding.copyWith(
-                  bottom: 0, top: isFullscreen ? 0 : null, left: 0, right: 0),
+          return SafeArea(
+              top: !isFullscreen,
+              bottom: !isFullscreen,
+              left: !isFullscreen,
+              right: !isFullscreen,
               child: Column(
                 children: [
                   !isFullscreen
@@ -245,7 +249,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
 
                                   if (Platform.isAndroid) {
                                     SystemChrome.setEnabledSystemUIMode(
-                                        SystemUiMode.immersive);
+                                        SystemUiMode.immersiveSticky);
                                   }
 
                                   if (injector<ConfigurationService>()
