@@ -21,6 +21,7 @@ import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
 import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
+import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -113,6 +114,23 @@ class TezosBeaconService implements BeaconHandler {
   @override
   Future<void> onLinked(TezosConnection tezosConnection) async {
     log.info("TezosBeaconService: ${tezosConnection.toJson()}");
+    final context = _navigationService.navigatorKey.currentContext!;
+
+    final alreadyLinkedAccount = await getExistingAccount(tezosConnection.address);
+    if (alreadyLinkedAccount != null) {
+      UIHelper.hideInfoDialog(context);
+      showErrorDiablog(
+          context,
+          ErrorEvent(
+              null,
+              "Already linked",
+              "You’ve already linked this account to Autonomy.",
+              ErrorItemState.seeAccount), defaultAction: () {
+        _navigationService.navigateTo(AppRouter.linkedAccountDetailsPage,
+            arguments: alreadyLinkedAccount);
+      });
+      return;
+    }
 
     final connection = Connection(
       key: tezosConnection.address,
@@ -130,7 +148,7 @@ class TezosBeaconService implements BeaconHandler {
       hashingData: {"address": tezosConnection.address},
     );
 
-    UIHelper.hideInfoDialog(_navigationService.navigatorKey.currentContext!);
+    UIHelper.hideInfoDialog(context);
     _navigationService.navigateTo(AppRouter.nameLinkedAccountPage,
         arguments: connection);
   }
