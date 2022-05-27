@@ -13,6 +13,8 @@
 		1F16F41836304671E2A6E53A /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A451CD8AF50E41359BCF628F /* Pods_Runner.framework */; };
 		271BD52B9B8D3E51B9B24252 /* Pods_Runner_Notification.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 33F41EBC488C94C81BC6F7A7 /* Pods_Runner_Notification.framework */; };
 		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
+		580C5D012840773200112C28 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
+		580C5D022840773C00112C28 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		581747E427D7131D0070EB48 /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 581747E327D7131D0070EB48 /* Settings.bundle */; };
 		581747E527D7131D0070EB48 /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 581747E327D7131D0070EB48 /* Settings.bundle */; };
 		588939BE280525C200FE3313 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 588939BD280525C200FE3313 /* NotificationService.swift */; };
@@ -68,12 +70,10 @@
 		76F328A327D1EC1C00C3B9FA /* BeaconCore in Frameworks */ = {isa = PBXBuildFile; productRef = 76F3288F27D1EC1C00C3B9FA /* BeaconCore */; };
 		76F328A627D1EC1C00C3B9FA /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
 		76F328A727D1EC1C00C3B9FA /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
-		76F328A827D1EC1C00C3B9FA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		76F328A927D1EC1C00C3B9FA /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		76F328B427D1EEAA00C3B9FA /* Constant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76F328B327D1EEAA00C3B9FA /* Constant.swift */; };
 		76F328B527D1EEAE00C3B9FA /* Constant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76F328B327D1EEAA00C3B9FA /* Constant.swift */; };
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
-		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
 		C577A25E2C1FF997DB2CF183 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A451CD8AF50E41359BCF628F /* Pods_Runner.framework */; };
 /* End PBXBuildFile section */
@@ -605,7 +605,7 @@
 				768D9FDC27F5669D0016928E /* LaunchScreenInhouse.storyboard in Resources */,
 				76F328A727D1EC1C00C3B9FA /* AppFrameworkInfo.plist in Resources */,
 				581747E527D7131D0070EB48 /* Settings.bundle in Resources */,
-				76F328A827D1EC1C00C3B9FA /* Assets.xcassets in Resources */,
+				580C5D012840773200112C28 /* Assets.xcassets in Resources */,
 				76F328A927D1EC1C00C3B9FA /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -618,7 +618,7 @@
 				76B4E10527F585BA00FB762F /* LaunchScreenInhouse.storyboard in Resources */,
 				3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */,
 				581747E427D7131D0070EB48 /* Settings.bundle in Resources */,
-				97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */,
+				580C5D022840773C00112C28 /* Assets.xcassets in Resources */,
 				97C146FC1CF9000F007C117D /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -977,6 +977,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.bitmark.autonomywallet;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "Autonomy Wallet Appstore";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = prod;
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
@@ -1060,6 +1061,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.bitmark.autonomywallet;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "Autonomy Wallet Appstore Dev";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = prod;
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -1254,6 +1256,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.bitmark.autonomywallet;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "Autonomy Wallet Appstore";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = prod;
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;

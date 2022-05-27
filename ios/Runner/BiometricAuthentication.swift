@@ -12,7 +12,12 @@ class BiometricAuthenticationViewController: UIViewController {
     
     var authenticationCallback: ((Bool) -> Void)?
     lazy var logoImageView: UIImageView = {
-        let img = Bundle.main.icon
+        let img: UIImage?
+    #if prod
+        img = UIImage(named: "penrose")
+    #else
+        img = UIImage(named: "penrose-black")
+    #endif
         let imgView = UIImageView(image: img)
         imgView.frame.size = CGSize(width: 143, height: 143)
         return imgView
@@ -89,17 +94,5 @@ extension BiometricAuthenticationViewController {
             let alert = UIAlertController(title: "Authentication error", message: "No device authentication method were found. Please enable FaceID, TouchID or Device Passcode to continue", preferredStyle: .alert)
             self.present(alert, animated: true)
         }
-    }
-}
-
-extension Bundle {
-    public var icon: UIImage? {
-        if let icons = infoDictionary?["CFBundleIcons"] as? [String: Any],
-            let primaryIcon = icons["CFBundlePrimaryIcon"] as? [String: Any],
-            let iconFiles = primaryIcon["CFBundleIconFiles"] as? [String],
-            let lastIcon = iconFiles.last {
-            return UIImage(named: lastIcon)
-        }
-        return nil
     }
 }
