@@ -58,6 +58,8 @@ abstract class ConfigurationService {
   Future<void> setPreviousBuildNumber(String value);
   List<String> getFinishedSurveys();
   Future<void> setFinishedSurvey(String surveyName);
+  int? getUXGuideStep();
+  Future<void> setUXGuideStep(int uxGuideStep);
 
   // ----- App Setting -----
   bool isDemoArtworksMode();
@@ -104,6 +106,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_LASTEST_REFRESH_TOKENS_TESTNET =
       "latest_refresh_tokens_testnet";
   static const String KEY_PREVIOUS_BUILD_NUMBER = "previous_build_number";
+  static const String KEY_GUIDED_STEP = "guided_step";
 
   SharedPreferences _preferences;
 
@@ -429,6 +432,14 @@ class ConfigurationServiceImpl implements ConfigurationService {
     var finishedSurveys = getFinishedSurveys();
     finishedSurveys.add(surveyName);
     return _preferences.setStringList(KEY_FINISHED_SURVEYS, finishedSurveys);
+  }
+
+  int? getUXGuideStep() {
+    return _preferences.getInt(KEY_GUIDED_STEP);
+  }
+
+  Future<void> setUXGuideStep(int uxGuideStep) async {
+    await _preferences.setInt(KEY_GUIDED_STEP, uxGuideStep);
   }
 
   @override

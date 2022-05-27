@@ -87,7 +87,6 @@ dependencies:
   page_transition: ^2.0.5
   path_provider: ^2.0.9
   permission_handler: ^9.2.0
-  qr_code_scanner: ^0.7.0
   qr_flutter: ^4.0.0
   retrofit: null
   roundcheckbox: ^2.0.4+1
@@ -118,6 +117,10 @@ dependency_overrides:
     git:
       url: https://github.com/bluefireteam/photo_view
       ref: master
+  qr_code_scanner:
+      git:
+          url: https://github.com/X-SLAYER/qr_code_scanner.git
+          ref: flutter-beta
 
 dev_dependencies:
   build_runner: null
@@ -141,12 +144,15 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - .env
+    - assets/images/arrow.svg
+    - assets/images/arrow_2.svg
     - assets/images/penrose.svg
     - assets/images/penrose_appcenter.svg
     - assets/images/lock_penrose.svg
     - assets/images/lock_penrose_appcenter.png
     - assets/images/penrose_onboarding.png
     - assets/images/penrose_onboarding_appcenter.png
+    - assets/images/guidedPenrose.svg
     - assets/images/iconQr.svg
     - assets/images/iconEth.svg
     - assets/images/iconUsd.svg
