@@ -1937,7 +1937,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		63CED4A627AE9DFC00699ED5 /* XCRemoteSwiftPackageReference "libauk-swift" */ = {
+		63CED4A627AE9DFC00699ED5 /* XCRemoteSwiftPackageReference "libauk-swift.git" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/bitmark-inc/libauk-swift.git";
 			requirement = {
@@ -1953,7 +1953,7 @@
 				revision = 140c4a1526fee625641f5e8d2beafafd037abd22;
 			};
 		};
-		76F3288B27D1EC1C00C3B9FA /* XCRemoteSwiftPackageReference "libauk-swift" */ = {
+		76F3288B27D1EC1C00C3B9FA /* XCRemoteSwiftPackageReference "libauk-swift.git" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/bitmark-inc/libauk-swift.git";
 			requirement = {
@@ -1974,7 +1974,7 @@
 /* Begin XCSwiftPackageProductDependency section */
 		63CED4A727AE9DFC00699ED5 /* LibAuk */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 63CED4A627AE9DFC00699ED5 /* XCRemoteSwiftPackageReference "libauk-swift" */;
+			package = 63CED4A627AE9DFC00699ED5 /* XCRemoteSwiftPackageReference "libauk-swift.git" */;
 			productName = LibAuk;
 		};
 		63F1664A27B2509F00451AAA /* BeaconBlockchainTezos */ = {
@@ -2009,7 +2009,7 @@
 		};
 		76F3288A27D1EC1C00C3B9FA /* LibAuk */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 76F3288B27D1EC1C00C3B9FA /* XCRemoteSwiftPackageReference "libauk-swift" */;
+			package = 76F3288B27D1EC1C00C3B9FA /* XCRemoteSwiftPackageReference "libauk-swift.git" */;
 			productName = LibAuk;
 		};
 		76F3288C27D1EC1C00C3B9FA /* BeaconBlockchainTezos */ = {
