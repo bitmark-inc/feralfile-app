@@ -190,7 +190,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
 
           return SafeArea(
               top: !isFullscreen,
-              bottom: !isFullscreen,
+              bottom: false,
               left: !isFullscreen,
               right: !isFullscreen,
               child: Column(
