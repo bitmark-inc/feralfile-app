@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/survey/survey_thankyou.dart';
 import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -74,7 +75,8 @@ class _SurveyPageState extends State<SurveyPage> {
                       onboardingSurveyKey,
                       message: _surveyAnswer);
                   injector<ConfigurationService>()
-                      .setFinishedSurvey(onboardingSurveyKey);
+                      .setFinishedSurvey([onboardingSurveyKey]);
+                  injector<SettingsDataService>().backup();
                   Navigator.of(context)
                       .pushReplacementNamed(SurveyThankyouPage.tag);
                 }),

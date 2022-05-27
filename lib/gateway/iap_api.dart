@@ -38,6 +38,13 @@ abstract class IAPApi {
     @Query("filename") String filename,
   );
 
+  @GET("/apis/v1/premium/profile-data")
+  Future<dynamic> getProfileData(
+    @Header("requester") String requester,
+    @Query("filename") String filename,
+    @Query("appVersion") String version,
+  );
+
   @DELETE("/apis/v1/premium/profile-data")
   Future deleteAllProfiles(
     @Header("requester") String requester,

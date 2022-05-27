@@ -36,15 +36,19 @@ abstract class ConfigurationService {
   bool isDoneOnboardingOnce();
   Future<void> setFullscreenIntroEnable(bool value);
   bool isFullscreenIntroEnabled();
-  Future<void> setHidePersonaInGallery(String personaUUID, bool isEnabled);
+  Future<void> setHidePersonaInGallery(
+      List<String> personaUUIDs, bool isEnabled,
+      {bool override = false});
   List<String> getPersonaUUIDsHiddenInGallery();
   bool isPersonaHiddenInGallery(String value);
-  Future<void> setHideLinkedAccountInGallery(String address, bool isEnabled);
+  Future<void> setHideLinkedAccountInGallery(
+      List<String> address, bool isEnabled,
+      {bool override = false});
   List<String> getLinkedAccountsHiddenInGallery();
   bool isLinkedAccountHiddenInGallery(String value);
-  List<String> getTempStorageHiddenTokenIDs();
-  Future updateTempStorageHiddenTokenIDs(List<String> tokenID, bool isAdd);
-  Future removeTempStorageHiddenTokenIDs();
+  List<String> getTempStorageHiddenTokenIDs({Network? network});
+  Future updateTempStorageHiddenTokenIDs(List<String> tokenIDs, bool isAdd,
+      {Network? network, bool override = false});
   bool matchFeralFileSourceInNetwork(String source);
   Future<void> setWCDappSession(String? value);
   String? getWCDappSession();
@@ -57,7 +61,7 @@ abstract class ConfigurationService {
   String? getPreviousBuildNumber();
   Future<void> setPreviousBuildNumber(String value);
   List<String> getFinishedSurveys();
-  Future<void> setFinishedSurvey(String surveyName);
+  Future<void> setFinishedSurvey(List<String> surveyNames);
   int? getUXGuideStep();
   Future<void> setUXGuideStep(int uxGuideStep);
 
@@ -256,15 +260,21 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   Future<void> setHidePersonaInGallery(
-      String personaUUID, bool isEnabled) async {
-    var personaUUIDs =
-        _preferences.getStringList(KEY_HIDDEN_PERSONAS_IN_GALLERY) ?? [];
+      List<String> personaUUIDs, bool isEnabled,
+      {bool override = false}) async {
+    if (override && isEnabled) {
+      await _preferences.setStringList(
+          KEY_HIDDEN_PERSONAS_IN_GALLERY, personaUUIDs);
+    } else {
+      var currentPersonaUUIDs =
+          _preferences.getStringList(KEY_HIDDEN_PERSONAS_IN_GALLERY) ?? [];
 
-    isEnabled
-        ? personaUUIDs.add(personaUUID)
-        : personaUUIDs.remove(personaUUID);
-    await _preferences.setStringList(
-        KEY_HIDDEN_PERSONAS_IN_GALLERY, personaUUIDs);
+      isEnabled
+          ? currentPersonaUUIDs.addAll(personaUUIDs)
+          : currentPersonaUUIDs.removeWhere((i) => personaUUIDs.contains(i));
+      await _preferences.setStringList(
+          KEY_HIDDEN_PERSONAS_IN_GALLERY, currentPersonaUUIDs);
+    }
   }
 
   List<String> getPersonaUUIDsHiddenInGallery() {
@@ -277,13 +287,22 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   Future<void> setHideLinkedAccountInGallery(
-      String address, bool isEnabled) async {
-    var linkedAccounts =
-        _preferences.getStringList(KEY_HIDDEN_LINKED_ACCOUNTS_IN_GALLERY) ?? [];
+      List<String> addresses, bool isEnabled,
+      {bool override = false}) async {
+    if (override && isEnabled) {
+      await _preferences.setStringList(
+          KEY_HIDDEN_LINKED_ACCOUNTS_IN_GALLERY, addresses);
+    } else {
+      var linkedAccounts =
+          _preferences.getStringList(KEY_HIDDEN_LINKED_ACCOUNTS_IN_GALLERY) ??
+              [];
 
-    isEnabled ? linkedAccounts.add(address) : linkedAccounts.remove(address);
-    await _preferences.setStringList(
-        KEY_HIDDEN_LINKED_ACCOUNTS_IN_GALLERY, linkedAccounts);
+      isEnabled
+          ? linkedAccounts.addAll(addresses)
+          : linkedAccounts.removeWhere((i) => addresses.contains(i));
+      await _preferences.setStringList(
+          KEY_HIDDEN_LINKED_ACCOUNTS_IN_GALLERY, linkedAccounts);
+    }
   }
 
   List<String> getLinkedAccountsHiddenInGallery() {
@@ -296,32 +315,31 @@ class ConfigurationServiceImpl implements ConfigurationService {
     return hiddenLinkedAccounts.contains(value);
   }
 
-  List<String> getTempStorageHiddenTokenIDs() {
-    final key = getNetwork() == Network.MAINNET
+  List<String> getTempStorageHiddenTokenIDs({Network? network}) {
+    final key = (network ?? getNetwork()) == Network.MAINNET
         ? KEY_TEMP_STORAGE_HIDDEN_TOKEN_IDS_MAINNET
         : KEY_TEMP_STORAGE_HIDDEN_TOKEN_IDS_TESTNET;
     return _preferences.getStringList(key) ?? [];
   }
 
-  Future updateTempStorageHiddenTokenIDs(
-      List<String> tokenIDs, bool isAdd) async {
-    final key = getNetwork() == Network.MAINNET
+  Future updateTempStorageHiddenTokenIDs(List<String> tokenIDs, bool isAdd,
+      {Network? network, bool override = false}) async {
+    final key = (network ?? getNetwork()) == Network.MAINNET
         ? KEY_TEMP_STORAGE_HIDDEN_TOKEN_IDS_MAINNET
         : KEY_TEMP_STORAGE_HIDDEN_TOKEN_IDS_TESTNET;
-    var tempHiddenTokenIDs = _preferences.getStringList(key) ?? [];
 
-    isAdd
-        ? tempHiddenTokenIDs.addAll(tokenIDs)
-        : tempHiddenTokenIDs
-            .removeWhere((element) => tokenIDs.contains(element));
-    await _preferences.setStringList(key, tempHiddenTokenIDs);
-  }
+    if (override && isAdd) {
+      await _preferences.setStringList(key, tokenIDs);
+    } else {
+      var tempHiddenTokenIDs = _preferences.getStringList(key) ?? [];
 
-  Future removeTempStorageHiddenTokenIDs() {
-    final key = getNetwork() == Network.MAINNET
-        ? KEY_TEMP_STORAGE_HIDDEN_TOKEN_IDS_MAINNET
-        : KEY_TEMP_STORAGE_HIDDEN_TOKEN_IDS_TESTNET;
-    return _preferences.remove(key);
+      isAdd
+          ? tempHiddenTokenIDs.addAll(tokenIDs)
+          : tempHiddenTokenIDs
+              .removeWhere((element) => tokenIDs.contains(element));
+      await _preferences.setStringList(
+          key, tempHiddenTokenIDs.toSet().toList());
+    }
   }
 
   @override
@@ -428,10 +446,11 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  Future<void> setFinishedSurvey(String surveyName) {
+  Future<void> setFinishedSurvey(List<String> surveyNames) {
     var finishedSurveys = getFinishedSurveys();
-    finishedSurveys.add(surveyName);
-    return _preferences.setStringList(KEY_FINISHED_SURVEYS, finishedSurveys);
+    finishedSurveys.addAll(surveyNames);
+    return _preferences.setStringList(
+        KEY_FINISHED_SURVEYS, finishedSurveys.toSet().toList());
   }
 
   int? getUXGuideStep() {

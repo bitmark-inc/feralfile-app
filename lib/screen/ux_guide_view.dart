@@ -1,5 +1,6 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/theme_manager.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:flutter/material.dart';
@@ -119,6 +120,7 @@ class UXGuideView extends StatelessWidget {
                           fontFamily: "IBMPlexMono"),
                       onPress: () {
                         injector<ConfigurationService>().setUXGuideStep(2);
+                        injector<SettingsDataService>().backup();
                         Navigator.of(context).pop();
                       },
                     ),

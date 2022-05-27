@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/router/router_bloc.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
@@ -22,6 +23,7 @@ import 'package:autonomy_flutter/screen/survey/survey.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 class OnboardingPage extends StatefulWidget {
   @override
@@ -67,7 +69,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
     }
 
     showCustomNotifications(
-        "Take a 5-second survey and be entered to win a Feral File artwork.",
+        "Take a one-question survey and be entered to win a Feral File artwork.",
         Key(onboardingSurveyKey),
         notificationOpenedHandler: () =>
             injector<NavigationService>().navigateTo(SurveyPage.tag));
@@ -118,6 +120,12 @@ class _OnboardingPageState extends State<OnboardingPage> {
             listener: (context, state) async {
               switch (state.onboardingStep) {
                 case OnboardingStep.dashboard:
+                  try {
+                    await injector<SettingsDataService>().restoreSettingsData();
+                  } catch (_) {
+                    // just ignore this so that user can go through onboarding
+                  }
+
                   Navigator.of(context)
                       .pushReplacementNamed(AppRouter.homePageNoTransition);
                   await _askForNotification();

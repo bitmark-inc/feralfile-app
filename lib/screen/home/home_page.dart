@@ -24,6 +24,7 @@ import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tokens_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/au_cached_manager.dart';
@@ -35,6 +36,7 @@ import 'package:autonomy_flutter/view/penrose_top_bar_view.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import "package:collection/collection.dart";
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -43,6 +45,7 @@ import 'package:flutter_fgbg/flutter_fgbg.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:path/path.dart' as p;
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:uni_links/uni_links.dart';
 
 class HomePage extends StatefulWidget {
@@ -446,7 +449,7 @@ class _HomePageState extends State<HomePage>
     }
   }
 
-  void _handleForeground() {
+  void _handleForeground() async {
     if (injector<ConfigurationService>().isDevicePasscodeEnabled()) {
       injector<NavigationService>()
           .lockScreen()
@@ -454,7 +457,17 @@ class _HomePageState extends State<HomePage>
     } else {
       _deeplinkSubscription?.resume();
     }
-    injector<ConfigurationService>().reload();
+    await injector<ConfigurationService>().reload();
+    try {
+      await injector<SettingsDataService>().restoreSettingsData();
+    } catch (exception) {
+      if (exception is DioError && exception.response?.statusCode == 404) {
+        // if there is no backup, upload one.
+        await injector<SettingsDataService>().backup();
+      } else {
+        Sentry.captureException(exception);
+      }
+    }
     Future.delayed(const Duration(milliseconds: 3500), () async {
       context.read<HomeBloc>().add(RefreshTokensEvent());
       context.read<HomeBloc>().add(ReindexIndexerEvent());

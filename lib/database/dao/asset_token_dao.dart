@@ -31,6 +31,9 @@ abstract class AssetTokenDao {
   @Query('SELECT * FROM AssetToken WHERE hidden = 1')
   Future<List<AssetToken>> findAllHiddenAssets();
 
+  @Query('SELECT id FROM AssetToken WHERE hidden = 1')
+  Future<List<String>> findAllHiddenTokenIDs();
+
   @Query('SELECT COUNT(*) FROM AssetToken WHERE hidden = 1')
   Future<int?> findNumOfHiddenAssets();
 
