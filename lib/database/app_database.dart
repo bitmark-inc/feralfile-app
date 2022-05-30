@@ -22,7 +22,7 @@ part 'app_database.g.dart'; // the generated code will be there
 
 @TypeConverters([DateTimeConverter])
 @Database(
-    version: 10,
+    version: 11,
     entities: [AssetToken, Identity, Provenance, DraftCustomerSupport])
 abstract class AppDatabase extends FloorDatabase {
   AssetTokenDao get assetDao;
@@ -87,5 +87,11 @@ final migrateV8ToV9 = Migration(8, 9, (database) async {
 final migrateV9ToV10 = Migration(9, 10, (database) async {
   await database.execute("""
     CREATE TABLE IF NOT EXISTS `DraftCustomerSupport` (`uuid` TEXT NOT NULL, `issueID` TEXT NOT NULL, `type` TEXT NOT NULL, `data` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `reportIssueType` TEXT NOT NULL, `mutedMessages` TEXT NOT NULL, PRIMARY KEY (`uuid`));
+  """);
+});
+
+final migrateV10ToV11 = Migration(10, 11, (database) async {
+  await database.execute("""
+    ALTER TABLE AssetToken ADD COLUMN mimeType TEXT;
   """);
 });

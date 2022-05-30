@@ -95,6 +95,7 @@ dependencies:
   shake: ^2.0.0
   share: ^2.0.4
   shared_preferences: ^2.0.0
+  syncfusion_flutter_pdfviewer: ^20.1.57-beta
   tezart:
     git:
       url: https://github.com/autonomy-system/tezart.git

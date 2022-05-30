@@ -44,6 +44,7 @@ import 'package:shake/shake.dart';
 import 'package:video_player/video_player.dart';
 import 'package:wakelock/wakelock.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
 enum AUCastDeviceType { Airplay, Chromecast }
 
@@ -93,7 +94,8 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
         setState(() {
           isFullscreen = false;
           if (Platform.isAndroid) {
-            SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+            SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
+                overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom]);
           }
         });
       }
@@ -146,7 +148,8 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     _webViewController = null;
     _detector?.stopListening();
     if (Platform.isAndroid) {
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
+          overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom]);
     }
     Sentry.getSpan()?.finish(status: SpanStatus.ok());
     super.dispose();
@@ -189,9 +192,11 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
           final artistName =
               asset?.artistName?.toIdentityOrMask(identityState.identityMap);
 
-          return Container(
-              padding: MediaQuery.of(context).padding.copyWith(
-                  bottom: 0, top: isFullscreen ? 0 : null, left: 0, right: 0),
+          return SafeArea(
+              top: !isFullscreen,
+              bottom: false,
+              left: !isFullscreen,
+              right: !isFullscreen,
               child: Column(
                 children: [
                   !isFullscreen
@@ -248,7 +253,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
 
                                   if (Platform.isAndroid) {
                                     SystemChrome.setEnabledSystemUIMode(
-                                        SystemUiMode.immersive);
+                                        SystemUiMode.immersiveSticky);
                                   }
 
                                   if (injector<ConfigurationService>()
@@ -342,21 +347,22 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   Widget _getArtworkView(AssetToken asset) {
     switch (asset.medium) {
       case "image":
-        final ext = p.extension(asset.thumbnailURL!);
+        final ext = p.extension(asset.previewURL!);
         return ext == ".svg"
             ? AspectRatio(
                 aspectRatio: 1,
                 child: Container(
                     color: Colors.white,
                     child: SvgPicture.network(
-                      asset.thumbnailURL!,
+                      asset.previewURL!,
+                      placeholderBuilder: (context) => _previewPlaceholder,
                     )))
             : CachedNetworkImage(
-                imageUrl: asset.thumbnailURL!,
+                imageUrl: asset.previewURL!,
                 imageBuilder: (context, imageProvider) => PhotoView(
                   imageProvider: imageProvider,
                 ),
-                placeholder: (context, url) => Container(),
+                placeholder: (context, url) => _previewPlaceholder,
                 placeholderFadeInDuration: Duration(milliseconds: 300),
                 errorWidget: (context, url, error) => Center(
                   child: SvgPicture.asset(
@@ -377,34 +383,47 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
           return SizedBox();
         }
       default:
-        return WebView(
-            key: Key(asset.assetID ?? asset.id),
-            initialUrl: asset.previewURL,
-            zoomEnabled: false,
-            initialMediaPlaybackPolicy: AutoMediaPlaybackPolicy.always_allow,
-            onWebViewCreated: (WebViewController webViewController) {
-              _webViewController = webViewController;
-              Sentry.getSpan()?.setTag("url", asset.previewURL!);
-            },
-            onWebResourceError: (WebResourceError error) {
-              Sentry.getSpan()?.throwable = error;
-              Sentry.getSpan()?.finish(status: SpanStatus.internalError());
-            },
-            onPageFinished: (some) async {
-              Sentry.getSpan()?.finish(status: SpanStatus.ok());
-              final javascriptString = '''
+        switch (asset.mimeType) {
+          case "application/pdf":
+            return SfPdfViewer.network(asset.previewURL!,
+                key: Key(asset.assetID ?? asset.id));
+          default:
+            return WebView(
+                key: Key(asset.assetID ?? asset.id),
+                initialUrl: asset.previewURL,
+                zoomEnabled: false,
+                initialMediaPlaybackPolicy:
+                    AutoMediaPlaybackPolicy.always_allow,
+                onWebViewCreated: (WebViewController webViewController) {
+                  _webViewController = webViewController;
+                  Sentry.getSpan()?.setTag("url", asset.previewURL!);
+                },
+                onWebResourceError: (WebResourceError error) {
+                  Sentry.getSpan()?.throwable = error;
+                  Sentry.getSpan()?.finish(status: SpanStatus.internalError());
+                },
+                onPageFinished: (some) async {
+                  Sentry.getSpan()?.finish(status: SpanStatus.ok());
+                  final javascriptString = '''
                 var meta = document.createElement('meta');
                             meta.setAttribute('name', 'viewport');
                             meta.setAttribute('content', 'width=device-width');
                             document.getElementsByTagName('head')[0].appendChild(meta);
                             document.body.style.overflow = 'hidden';
                 ''';
-              await _webViewController?.runJavascript(javascriptString);
-            },
-            javascriptMode: JavascriptMode.unrestricted,
-            allowsInlineMediaPlayback: true,
-            backgroundColor: Colors.black);
+                  await _webViewController?.runJavascript(javascriptString);
+                },
+                javascriptMode: JavascriptMode.unrestricted,
+                allowsInlineMediaPlayback: true,
+                backgroundColor: Colors.black);
+        }
     }
+  }
+
+  Widget get _previewPlaceholder {
+    return Center(
+      child: CupertinoActivityIndicator(color: Colors.white, radius: 16),
+    );
   }
 
   Widget _fullscreenIntroPopup() {
@@ -777,7 +796,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
         'metadataType': 0,
         'title': asset!.title,
         'images': [
-          {'url': asset!.thumbnailURL!}
+          {'url': asset!.previewURL!}
         ]
       }
     };
