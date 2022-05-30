@@ -123,6 +123,7 @@ class ProjectMetadataData {
     required this.title,
     required this.description,
     required this.medium,
+    required this.mimeType,
     required this.maxEdition,
     required this.baseCurrency,
     required this.basePrice,
@@ -143,6 +144,7 @@ class ProjectMetadataData {
   String title;
   String? description;
   String? medium;
+  String? mimeType;
   int? maxEdition;
   String? baseCurrency;
   double? basePrice;
@@ -164,6 +166,7 @@ class ProjectMetadataData {
         title: json["title"],
         description: json["description"],
         medium: json["medium"],
+        mimeType: json["mimeType"],
         maxEdition: json["maxEdition"],
         baseCurrency: json["baseCurrency"],
         basePrice: json["basePrice"]?.toDouble(),
@@ -187,6 +190,7 @@ class ProjectMetadataData {
         title: json["title"],
         description: json["description"],
         medium: json["medium"],
+        mimeType: json["mimeType"],
         maxEdition: json["maxEdition"],
         baseCurrency: json["baseCurrency"],
         basePrice: json["basePrice"]?.toDouble(),

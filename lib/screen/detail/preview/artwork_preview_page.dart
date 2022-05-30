@@ -41,6 +41,7 @@ import 'package:path/path.dart' as p;
 import 'package:cast/cast.dart';
 import 'package:mime/mime.dart';
 import 'package:wakelock/wakelock.dart';
+import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
 enum AUCastDeviceType { Airplay, Chromecast }
 
@@ -378,33 +379,40 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
           return SizedBox();
         }
       default:
-        return WebView(
-            key: Key(asset.assetID ?? asset.id),
-            initialUrl: asset.previewURL,
-            zoomEnabled: false,
-            initialMediaPlaybackPolicy: AutoMediaPlaybackPolicy.always_allow,
-            onWebViewCreated: (WebViewController webViewController) {
-              _webViewController = webViewController;
-              Sentry.getSpan()?.setTag("url", asset.previewURL!);
-            },
-            onWebResourceError: (WebResourceError error) {
-              Sentry.getSpan()?.throwable = error;
-              Sentry.getSpan()?.finish(status: SpanStatus.internalError());
-            },
-            onPageFinished: (some) async {
-              Sentry.getSpan()?.finish(status: SpanStatus.ok());
-              final javascriptString = '''
+        switch (asset.mimeType) {
+          case "application/pdf":
+            return SfPdfViewer.network(asset.previewURL!,
+                key: Key(asset.assetID ?? asset.id));
+          default:
+            return WebView(
+                key: Key(asset.assetID ?? asset.id),
+                initialUrl: asset.previewURL,
+                zoomEnabled: false,
+                initialMediaPlaybackPolicy:
+                    AutoMediaPlaybackPolicy.always_allow,
+                onWebViewCreated: (WebViewController webViewController) {
+                  _webViewController = webViewController;
+                  Sentry.getSpan()?.setTag("url", asset.previewURL!);
+                },
+                onWebResourceError: (WebResourceError error) {
+                  Sentry.getSpan()?.throwable = error;
+                  Sentry.getSpan()?.finish(status: SpanStatus.internalError());
+                },
+                onPageFinished: (some) async {
+                  Sentry.getSpan()?.finish(status: SpanStatus.ok());
+                  final javascriptString = '''
                 var meta = document.createElement('meta');
                             meta.setAttribute('name', 'viewport');
                             meta.setAttribute('content', 'width=device-width');
                             document.getElementsByTagName('head')[0].appendChild(meta);
                             document.body.style.overflow = 'hidden';
                 ''';
-              await _webViewController?.runJavascript(javascriptString);
-            },
-            javascriptMode: JavascriptMode.unrestricted,
-            allowsInlineMediaPlayback: true,
-            backgroundColor: Colors.black);
+                  await _webViewController?.runJavascript(javascriptString);
+                },
+                javascriptMode: JavascriptMode.unrestricted,
+                allowsInlineMediaPlayback: true,
+                backgroundColor: Colors.black);
+        }
     }
   }
 
