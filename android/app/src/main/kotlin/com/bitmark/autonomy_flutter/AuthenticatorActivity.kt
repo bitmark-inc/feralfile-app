@@ -1,6 +1,7 @@
 package com.bitmark.autonomy_flutter
 
 import android.os.Bundle
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
@@ -19,11 +20,10 @@ class AuthenticatorActivity : AppCompatActivity() {
 
         setupBiometricPrompt()
 
-        val biometricManager = BiometricManager.from(this)
-        when (biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)) {
-            BiometricManager.BIOMETRIC_SUCCESS -> biometricPrompt.authenticate(promptInfo)
-            else -> {
-            }
+        authenticate()
+
+        findViewById<View>(R.id.enter_passcode).setOnClickListener {
+            authenticate()
         }
     }
 
@@ -46,5 +46,14 @@ class AuthenticatorActivity : AppCompatActivity() {
             .setNegativeButtonText("Use PIN")
             .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
             .build()
+    }
+
+    private fun authenticate() {
+        val biometricManager = BiometricManager.from(this)
+        when (biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)) {
+            BiometricManager.BIOMETRIC_SUCCESS -> biometricPrompt.authenticate(promptInfo)
+            else -> {
+            }
+        }
     }
 }
