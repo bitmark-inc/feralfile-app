@@ -63,19 +63,14 @@ class PreferencesBloc extends Bloc<PreferenceEvent, PreferenceState> {
           state.isDevicePasscodeEnabled) {
         final canCheckBiometrics = await authenticateIsAvailable();
         if (canCheckBiometrics) {
-          if (state.isDevicePasscodeEnabled) {
-            final didAuthenticate = await _localAuth.authenticate(
-                localizedReason: 'Authentication for "Autonomy"');
-            if (didAuthenticate) {
-              await _configurationService.setDevicePasscodeEnabled(
-                  event.newState.isDevicePasscodeEnabled);
-            } else {
-              event.newState.isDevicePasscodeEnabled =
-                  state.isDevicePasscodeEnabled;
-            }
-          } else {
+          final didAuthenticate = await _localAuth.authenticate(
+              localizedReason: 'Authentication for "Autonomy"');
+          if (didAuthenticate) {
             await _configurationService.setDevicePasscodeEnabled(
                 event.newState.isDevicePasscodeEnabled);
+          } else {
+            event.newState.isDevicePasscodeEnabled =
+                state.isDevicePasscodeEnabled;
           }
         } else {
           event.newState.isDevicePasscodeEnabled = false;
