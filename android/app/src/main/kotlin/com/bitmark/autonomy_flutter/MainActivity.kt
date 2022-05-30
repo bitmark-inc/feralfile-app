@@ -8,14 +8,20 @@ package com.bitmark.autonomy_flutter
 
 import TezosBeaconDartPlugin
 import android.content.Context
+import android.content.Intent
+import android.content.SharedPreferences
 import androidx.annotation.NonNull
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterFragmentActivity() {
+    companion object {
+        var isAuthenticate: Boolean = false
+        private const val CHANNEL = "migration_util"
+    }
 
-    private val CHANNEL = "migration_util"
+    var flutterSharedPreferences: SharedPreferences? = null
 
     override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -42,4 +48,23 @@ class MainActivity : FlutterFragmentActivity() {
         return sharedPreferences.getString("persona_uuids", "") ?: ""
     }
 
+    override fun onResume() {
+        super.onResume()
+
+        val sharedPreferences = flutterSharedPreferences ?: this.getSharedPreferences(
+            "FlutterSharedPreferences",
+            Context.MODE_PRIVATE
+        )
+        val isEnabled = sharedPreferences.getBoolean("flutter.device_passcode", false);
+
+        if (isEnabled && !isAuthenticate) {
+            val intent = Intent(this@MainActivity, AuthenticatorActivity::class.java)
+            startActivity(intent)
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        isAuthenticate = false
+    }
 }
