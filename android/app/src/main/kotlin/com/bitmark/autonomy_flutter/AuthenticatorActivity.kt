@@ -40,19 +40,35 @@ class AuthenticatorActivity : AppCompatActivity() {
                 }
             })
 
-        promptInfo = BiometricPrompt.PromptInfo.Builder()
-            .setTitle("Authentication required")
-            .setDescription("Authentication for \"Autonomy\"")
-            .setNegativeButtonText("CANCEL")
-            .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
-            .build()
+        promptInfo = if (android.os.Build.VERSION.SDK_INT >= 30) {
+            BiometricPrompt.PromptInfo.Builder()
+                .setTitle("Authentication required")
+                .setDescription("Authentication for \"Autonomy\"")
+                .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.DEVICE_CREDENTIAL)
+                .build()
+        } else {
+            BiometricPrompt.PromptInfo.Builder()
+                .setTitle("Authentication required")
+                .setDescription("Authentication for \"Autonomy\"")
+                .setDeviceCredentialAllowed(true)
+                .build()
+        }
     }
 
     private fun authenticate() {
-        val biometricManager = BiometricManager.from(this)
-        when (biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)) {
-            BiometricManager.BIOMETRIC_SUCCESS -> biometricPrompt.authenticate(promptInfo)
-            else -> {
+        if (android.os.Build.VERSION.SDK_INT >= 30) {
+            val biometricManager = BiometricManager.from(this)
+            when (biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.DEVICE_CREDENTIAL)) {
+                BiometricManager.BIOMETRIC_SUCCESS -> biometricPrompt.authenticate(promptInfo)
+                else -> {
+                }
+            }
+        } else {
+            val biometricManager = BiometricManager.from(this)
+            when (biometricManager.canAuthenticate()) {
+                BiometricManager.BIOMETRIC_SUCCESS -> biometricPrompt.authenticate(promptInfo)
+                else -> {
+                }
             }
         }
     }
