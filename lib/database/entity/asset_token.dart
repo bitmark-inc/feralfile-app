@@ -26,6 +26,7 @@ class AssetToken {
   String id;
   int? maxEdition;
   String? medium;
+  String? mimeType;
   String? mintedAt;
   String? previewURL;
   String? source;
@@ -53,6 +54,7 @@ class AssetToken {
       required this.id,
       required this.maxEdition,
       required this.medium,
+      required this.mimeType,
       required this.mintedAt,
       required this.previewURL,
       required this.source,
@@ -80,6 +82,7 @@ class AssetToken {
         id: asset.id,
         maxEdition: asset.projectMetadata.latest.maxEdition,
         medium: asset.projectMetadata.latest.medium,
+        mimeType: asset.projectMetadata.latest.mimeType,
         mintedAt: asset.mintedAt.toIso8601String(),
         previewURL: asset.projectMetadata.latest.previewUrl,
         source: asset.projectMetadata.latest.source,
