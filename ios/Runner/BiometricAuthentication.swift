@@ -82,7 +82,7 @@ extension BiometricAuthenticationViewController {
         authContext.localizedFallbackTitle = "Use Passcode"
 
         var authError: NSError?
-        let reasonString = "Access to the Autonomy app."
+        let reasonString = "Authentication for \"Autonomy\""
 
         if authContext.canEvaluatePolicy(.deviceOwnerAuthentication, error: &authError) {
             authContext.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: reasonString) { [weak self] success, evaluateError in
