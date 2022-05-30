@@ -43,7 +43,7 @@ class AuthenticatorActivity : AppCompatActivity() {
         promptInfo = BiometricPrompt.PromptInfo.Builder()
             .setTitle("Authentication required")
             .setDescription("Authentication for \"Autonomy\"")
-            .setNegativeButtonText("Use PIN")
+            .setNegativeButtonText("CANCEL")
             .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
             .build()
     }
