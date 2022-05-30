@@ -11,10 +11,21 @@ import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 
-class ReleaseNotesPage extends StatelessWidget {
+class ReleaseNotesPage extends StatefulWidget {
   final String releaseNotes;
   const ReleaseNotesPage({required this.releaseNotes, Key? key})
       : super(key: key);
+
+  @override
+  State<ReleaseNotesPage> createState() => _ReleaseNotesPageState();
+}
+
+class _ReleaseNotesPageState extends State<ReleaseNotesPage> {
+  @override
+  void dispose() {
+    super.dispose();
+    UIHelper.currentDialogTitle = '';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +43,7 @@ class ReleaseNotesPage extends StatelessWidget {
           SizedBox(height: 40),
           Expanded(
             child: Markdown(
-              data: releaseNotes.replaceAll('\n', '\u3164\n'),
+              data: widget.releaseNotes.replaceAll('\n', '\u3164\n'),
               softLineBreak: true,
               padding: EdgeInsets.only(bottom: 50),
               styleSheet: MarkdownStyleSheet.fromTheme(
@@ -45,10 +56,7 @@ class ReleaseNotesPage extends StatelessWidget {
               Expanded(
                 child: AuFilledButton(
                   text: "CLOSE",
-                  onPress: () {
-                    UIHelper.currentDialogTitle = '';
-                    Navigator.of(context).pop();
-                  },
+                  onPress: () => Navigator.of(context).pop(),
                   color: theme.primaryColor,
                   textStyle: TextStyle(
                       color: theme.backgroundColor,
