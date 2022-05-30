@@ -344,21 +344,22 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   Widget _getArtworkView(AssetToken asset) {
     switch (asset.medium) {
       case "image":
-        final ext = p.extension(asset.thumbnailURL!);
+        final ext = p.extension(asset.previewURL!);
         return ext == ".svg"
             ? AspectRatio(
                 aspectRatio: 1,
                 child: Container(
                     color: Colors.white,
                     child: SvgPicture.network(
-                      asset.thumbnailURL!,
+                      asset.previewURL!,
+                      placeholderBuilder: (context) => _previewPlaceholder,
                     )))
             : CachedNetworkImage(
-                imageUrl: asset.thumbnailURL!,
+                imageUrl: asset.previewURL!,
                 imageBuilder: (context, imageProvider) => PhotoView(
                   imageProvider: imageProvider,
                 ),
-                placeholder: (context, url) => Container(),
+                placeholder: (context, url) => _previewPlaceholder,
                 placeholderFadeInDuration: Duration(milliseconds: 300),
                 errorWidget: (context, url, error) => Center(
                   child: SvgPicture.asset(
@@ -414,6 +415,12 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                 backgroundColor: Colors.black);
         }
     }
+  }
+
+  Widget get _previewPlaceholder {
+    return Center(
+      child: CupertinoActivityIndicator(color: Colors.white, radius: 16),
+    );
   }
 
   Widget _fullscreenIntroPopup() {
@@ -724,7 +731,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
         'metadataType': 0,
         'title': asset!.title,
         'images': [
-          {'url': asset!.thumbnailURL!}
+          {'url': asset!.previewURL!}
         ]
       }
     };
