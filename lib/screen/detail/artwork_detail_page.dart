@@ -22,6 +22,7 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
 import 'package:autonomy_flutter/screen/detail/report_rendering_issue_widget.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/au_cached_manager.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
@@ -704,6 +705,10 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
                   asset.hidden = 1;
                 }
                 await appDatabase.assetDao.updateAsset(asset);
+                await injector<ConfigurationService>()
+                    .updateTempStorageHiddenTokenIDs(
+                        [asset.id], asset.hidden == 1);
+                injector<SettingsDataService>().backup();
 
                 Navigator.of(context).pop();
                 UIHelper.showHideArtworkResultDialog(context, asset.isHidden(),

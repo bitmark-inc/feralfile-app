@@ -72,6 +72,25 @@ class _IAPApi implements IAPApi {
   }
 
   @override
+  Future<dynamic> getProfileData(requester, filename, version) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      r'filename': filename,
+      r'appVersion': version
+    };
+    final _headers = <String, dynamic>{r'requester': requester};
+    _headers.removeWhere((k, v) => v == null);
+    final _data = <String, dynamic>{};
+    final _result = await _dio.fetch(_setStreamType<dynamic>(
+        Options(method: 'GET', headers: _headers, extra: _extra)
+            .compose(_dio.options, '/apis/v1/premium/profile-data',
+                queryParameters: queryParameters, data: _data)
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+    final value = _result.data;
+    return value;
+  }
+
+  @override
   Future<dynamic> deleteAllProfiles(requester) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};

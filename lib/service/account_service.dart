@@ -18,6 +18,7 @@ import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/android_backup_channel.dart';
@@ -295,11 +296,15 @@ class AccountServiceImpl extends AccountService {
   }
 
   Future setHidePersonaInGallery(String personaUUID, bool isEnabled) async {
-    _configurationService.setHidePersonaInGallery(personaUUID, isEnabled);
+    await _configurationService
+        .setHidePersonaInGallery([personaUUID], isEnabled);
+    injector<SettingsDataService>().backup();
   }
 
   Future setHideLinkedAccountInGallery(String address, bool isEnabled) async {
-    _configurationService.setHideLinkedAccountInGallery(address, isEnabled);
+    await _configurationService
+        .setHideLinkedAccountInGallery([address], isEnabled);
+    injector<SettingsDataService>().backup();
     injector<AWSService>().storeEventWithDeviceData("hide_linked_account",
         hashingData: {"address": address});
   }

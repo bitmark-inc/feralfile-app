@@ -222,7 +222,6 @@ class TokensServiceImpl extends TokensService {
               _configurationService.setLatestRefreshTokens(DateTime.now());
               _refreshAllTokensWorker?.close();
               disposeIsolate();
-              _configurationService.removeTempStorageHiddenTokenIDs();
               log.info("[REFRESH_ALL_TOKENS][end]");
             }
           } else if (result is FetchTokenFailure) {
