@@ -106,9 +106,9 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_APP_SETTING_DEMO_ARTWORKS =
       "show_demo_artworks_preference";
   static const String KEY_LASTEST_REFRESH_TOKENS_MAINNET =
-      "latest_refresh_tokens_mainnet";
+      "latest_refresh_tokens_mainnet_1";
   static const String KEY_LASTEST_REFRESH_TOKENS_TESTNET =
-      "latest_refresh_tokens_testnet";
+      "latest_refresh_tokens_testnet_1";
   static const String KEY_PREVIOUS_BUILD_NUMBER = "previous_build_number";
   static const String KEY_GUIDED_STEP = "guided_step";
 

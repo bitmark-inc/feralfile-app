@@ -21,7 +21,6 @@ import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_view.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -539,11 +538,6 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   }
 
   Future<void> _initializePlay(String videoPath) async {
-    if (Platform.isIOS) {
-      videoPath =
-          videoPath.replacePrefix(CLOUDFLARE_IPFS_PREFIX, DEFAULT_IPFS_PREFIX);
-    }
-
     log.info("Load videoPath: $videoPath");
 
     _controller = VideoPlayerController.network(videoPath);
