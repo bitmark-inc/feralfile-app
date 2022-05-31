@@ -179,8 +179,8 @@ class _HomePageState extends State<HomePage>
 
     var keys = groupByProperty.keys.toList();
     keys.sort((a, b) {
-      if (a == 'Unknown') return 1;
-      if (b == 'Unknown') return -1;
+      if (a.toLowerCase() == 'unknown') return 1;
+      if (b.toLowerCase() == 'unknown') return -1;
       if (a.startsWith('[') && !b.startsWith('[')) {
         return 1;
       } else if (!a.startsWith('[') && b.startsWith('[')) {

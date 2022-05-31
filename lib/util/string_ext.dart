@@ -26,4 +26,11 @@ extension StringExtension on String {
         ? identity
         : this.maskIfNeeded();
   }
+
+  String replacePrefix(String from, String to) {
+    if (this.startsWith(from)) {
+      return this.replaceRange(0, from.length, to);
+    }
+    return this;
+  }
 }
