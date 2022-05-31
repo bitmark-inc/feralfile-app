@@ -21,6 +21,7 @@ import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_view.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -77,6 +78,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   late int currentIndex;
   WebViewController? _webViewController;
   Future<List<CastDevice>> _castDevicesFuture = CastDiscoveryService().search();
+  bool _isPreviewLoaded = false;
 
   static List<AUCastDevice> _defaultCastDevices = [
     AUCastDevice(AUCastDeviceType.Airplay)
@@ -157,6 +159,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
 
   void _disposeCurrentDisplay() {
     _stopAllChromecastDevices();
+    _isPreviewLoaded = false;
     _controller?.dispose();
     _controller = null;
     loadedPath = null;
@@ -375,10 +378,14 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
               );
       case "video":
         if (_controller != null) {
-          return AspectRatio(
-            aspectRatio: _controller!.value.aspectRatio,
-            child: VideoPlayer(_controller!),
-          );
+          if (_isPreviewLoaded) {
+            return AspectRatio(
+              aspectRatio: _controller!.value.aspectRatio,
+              child: VideoPlayer(_controller!),
+            );
+          } else {
+            return _previewPlaceholder;
+          }
         } else {
           return SizedBox();
         }
@@ -388,34 +395,47 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
             return SfPdfViewer.network(asset.previewURL!,
                 key: Key(asset.assetID ?? asset.id));
           default:
-            return WebView(
-                key: Key(asset.assetID ?? asset.id),
-                initialUrl: asset.previewURL,
-                zoomEnabled: false,
-                initialMediaPlaybackPolicy:
-                    AutoMediaPlaybackPolicy.always_allow,
-                onWebViewCreated: (WebViewController webViewController) {
-                  _webViewController = webViewController;
-                  Sentry.getSpan()?.setTag("url", asset.previewURL!);
-                },
-                onWebResourceError: (WebResourceError error) {
-                  Sentry.getSpan()?.throwable = error;
-                  Sentry.getSpan()?.finish(status: SpanStatus.internalError());
-                },
-                onPageFinished: (some) async {
-                  Sentry.getSpan()?.finish(status: SpanStatus.ok());
-                  final javascriptString = '''
+            return Stack(
+              fit: StackFit.loose,
+              children: [
+                WebView(
+                    key: Key(asset.assetID ?? asset.id),
+                    initialUrl: asset.previewURL,
+                    zoomEnabled: false,
+                    initialMediaPlaybackPolicy:
+                        AutoMediaPlaybackPolicy.always_allow,
+                    onWebViewCreated: (WebViewController webViewController) {
+                      _webViewController = webViewController;
+                      Sentry.getSpan()?.setTag("url", asset.previewURL!);
+                    },
+                    onWebResourceError: (WebResourceError error) {
+                      Sentry.getSpan()?.throwable = error;
+                      Sentry.getSpan()
+                          ?.finish(status: SpanStatus.internalError());
+                    },
+                    onPageFinished: (some) async {
+                      print("FINISHE HERE ");
+                      setState(() {
+                        _isPreviewLoaded = true;
+                      });
+                      Sentry.getSpan()?.finish(status: SpanStatus.ok());
+                      final javascriptString = '''
                 var meta = document.createElement('meta');
                             meta.setAttribute('name', 'viewport');
                             meta.setAttribute('content', 'width=device-width');
                             document.getElementsByTagName('head')[0].appendChild(meta);
                             document.body.style.overflow = 'hidden';
                 ''';
-                  await _webViewController?.runJavascript(javascriptString);
-                },
-                javascriptMode: JavascriptMode.unrestricted,
-                allowsInlineMediaPlayback: true,
-                backgroundColor: Colors.black);
+                      await _webViewController?.runJavascript(javascriptString);
+                    },
+                    javascriptMode: JavascriptMode.unrestricted,
+                    allowsInlineMediaPlayback: true,
+                    backgroundColor: Colors.black),
+                if (!_isPreviewLoaded) ...[
+                  _previewPlaceholder,
+                ]
+              ],
+            );
         }
     }
   }
@@ -519,9 +539,19 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   }
 
   Future<void> _initializePlay(String videoPath) async {
+    if (Platform.isIOS) {
+      videoPath =
+          videoPath.replacePrefix(CLOUDFLARE_IPFS_PREFIX, DEFAULT_IPFS_PREFIX);
+    }
+
+    log.info("Load videoPath: $videoPath");
+
     _controller = VideoPlayerController.network(videoPath);
     Sentry.getSpan()?.setTag("url", videoPath);
     _controller!.initialize().then((_) {
+      setState(() {
+        _isPreviewLoaded = true;
+      });
       _controller?.play();
       _controller?.setLooping(true);
       setState(() {});
