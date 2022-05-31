@@ -16,11 +16,10 @@ import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_state.dart';
-import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
-import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
-import 'package:autonomy_flutter/screen/settings/subscription/upgrade_view.dart';
+import 'package:autonomy_flutter/screen/settings/subscription/upgrade_box_view.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -727,25 +726,8 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                   } else {
                     return Column(
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "Get more Autonomy",
-                              style: theme.textTheme.headline4,
-                            ),
-                            BlocProvider.value(
-                              value: UpgradesBloc(injector(), injector()),
-                              child: _SubscribeView(),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 10),
-                        Text(
-                          "Subscribe to play your collection on external devices.",
-                          style: theme.textTheme.bodyText1,
-                        ),
-                        SizedBox(height: 20),
+                        UpgradeBoxView.getMoreAutonomyWidget(
+                            theme, PremiumFeature.AutonomyTV),
                         _castingListView(context, castDevices, false),
                         TextButton(
                           onPressed: () => Navigator.pop(context),
@@ -843,37 +825,5 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
       element.chromecastSession?.close();
     });
     _castDevices = [];
-  }
-}
-
-class _SubscribeView extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    context.read<UpgradesBloc>().add(UpgradeQueryInfoEvent());
-    return BlocBuilder<UpgradesBloc, UpgradeState>(builder: (context, state) {
-      return Container(
-          height: 24.0,
-          child: OutlinedButton(
-              style: OutlinedButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.zero, // <-- Radius
-                ),
-                side: BorderSide(width: 1.0, color: Colors.white),
-                // maximumSize: Size.fromHeight(30)
-              ),
-              onPressed: () => UpgradesView.showSubscriptionDialog(
-                      context, state.productDetails?.price, (() {
-                    context.read<UpgradesBloc>().add(UpgradePurchaseEvent());
-                    Navigator.of(context).pop();
-                  })),
-              child: Text(
-                "SUBSCRIBE",
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w300,
-                    fontFamily: "IBMPlexMono"),
-              )));
-    });
   }
 }

@@ -38,6 +38,7 @@ class MoreAutonomyPage extends StatelessWidget {
               children: [
                 Text("More Autonomy", style: appTextTheme.headline1),
                 SizedBox(height: 40),
+                Text('Upgrading gives you:', style: appTextTheme.bodyText1),
                 SvgPicture.asset(
                   'assets/images/premium_comparation_light.svg',
                   height: 320,

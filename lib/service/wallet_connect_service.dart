@@ -14,19 +14,26 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:wallet_connect/wallet_connect.dart';
 
 class WalletConnectService {
   final NavigationService _navigationService;
   final CloudDatabase _cloudDB;
+  final ConfigurationService _configurationService;
 
   final List<WCClient> wcClients = List.empty(growable: true);
   Map<WCPeerMeta, String> tmpUuids = Map();
 
-  WalletConnectService(this._navigationService, this._cloudDB);
+  WalletConnectService(
+    this._navigationService,
+    this._cloudDB,
+    this._configurationService,
+  );
 
   Future initSessions({bool forced = false}) async {
     final wcConnections = await _cloudDB.connectionDao
@@ -159,8 +166,13 @@ class WalletConnectService {
       onSessionRequest: (id, peerMeta) {
         currentPeerMeta = peerMeta;
         if (peerMeta.name == AUTONOMY_TV_PEER_NAME) {
-          _navigationService.navigateTo(AppRouter.tvConnectPage,
-              arguments: WCConnectPageArgs(id, peerMeta));
+          final jwt = _configurationService.getIAPJWT();
+          if (jwt != null && jwt.isValid(withSubscription: true)) {
+            _navigationService.navigateTo(AppRouter.tvConnectPage,
+                arguments: WCConnectPageArgs(id, peerMeta));
+          } else {
+            throw RequiredPremiumFeature(feature: PremiumFeature.AutonomyTV);
+          }
         } else {
           _navigationService.navigateTo(AppRouter.wcConnectPage,
               arguments: WCConnectPageArgs(id, peerMeta));

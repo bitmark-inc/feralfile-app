@@ -221,6 +221,9 @@ void showErrorDialogFromException(Object exception,
         context, "Aborted", "The action was aborted by the user.",
         isDismissible: true, autoDismissAfter: 3);
     return;
+  } else if (context != null && exception is RequiredPremiumFeature) {
+    UIHelper.showFeatureRequiresSubscriptionDialog(context, exception.feature);
+    return;
   }
   log.warning("Unhandled error: $exception", exception);
   injector<AWSService>().storeEventWithDeviceData("unhandled_error",

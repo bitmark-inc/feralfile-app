@@ -141,7 +141,7 @@ Future<void> setup() async {
       () => AutonomyServiceImpl(injector(), injector()));
 
   injector.registerLazySingleton(
-      () => WalletConnectService(injector(), injector()));
+      () => WalletConnectService(injector(), injector(), injector()));
   injector.registerLazySingleton(() => AUCacheManager());
   injector.registerLazySingleton(() => WalletConnectDappService(injector()));
   injector.registerLazySingleton<AccountService>(() => AccountServiceImpl(
