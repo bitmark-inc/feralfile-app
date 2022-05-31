@@ -64,6 +64,12 @@ class _ScanQRPageState extends State<ScanQRPage> {
 
     if (status.isPermanentlyDenied) {
       openAppSettings();
+    } else {
+      if (Platform.isAndroid) {
+        Future.delayed(Duration(seconds: 1), () {
+          controller.resumeCamera();
+        });
+      }
     }
   }
 
