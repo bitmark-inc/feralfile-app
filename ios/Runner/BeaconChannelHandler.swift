@@ -307,7 +307,6 @@ extension BeaconChannelHandler: FlutterStreamHandler {
                                         for mv1e in array {
                                             result.append(getParams(value: mv1e))
                                         }
-                                        params["bytes"] = array
 
                                         return result
                                     }
