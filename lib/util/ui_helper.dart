@@ -121,11 +121,7 @@ class UIHelper {
     Navigator.popUntil(context, (route) => route.settings.name != null);
   }
 
-  static Future<void> showLinkRequestedDialog(
-    BuildContext context,
-    String url, {
-    Function()? onURLPressed,
-  }) {
+  static Future<void> showLinkRequestedDialog(BuildContext context) {
     final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
     return showDialog(
         context,

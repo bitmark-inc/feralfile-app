@@ -176,12 +176,7 @@ class _LinkAccountPageState extends State<LinkAccountPage>
                 await launchUrlString(url,
                     mode: LaunchMode.externalApplication);
 
-                UIHelper.showLinkRequestedDialog(
-                  context,
-                  'Link requested',
-                  onURLPressed: (() => launchUrlString(url,
-                      mode: LaunchMode.externalApplication)),
-                );
+                UIHelper.showLinkRequestedDialog(context);
               });
         }),
       ],
