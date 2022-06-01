@@ -173,15 +173,10 @@ class _LinkAccountPageState extends State<LinkAccountPage>
                 final url = Environment.networkedFeralFileWebsiteURL(network) +
                     '/exhibitions?callbackUrl=autonomy%3A%2F%2F&wc=$wcURI';
 
-                UIHelper.showInfoDialog(
-                  context,
-                  'Link requested',
-                  'Autonomy has sent a request to Feral File in your mobile browser to link to your account. Please make sure you are signed in and authorize the request. ',
-                  isDismissible: true,
-                );
-
                 await launchUrlString(url,
                     mode: LaunchMode.externalApplication);
+
+                UIHelper.showLinkRequestedDialog(context);
               });
         }),
       ],

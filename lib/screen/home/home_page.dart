@@ -451,14 +451,7 @@ class _HomePageState extends State<HomePage>
 
   void _handleForeground() async {
     memoryValues.inForegroundAt = DateTime.now();
-
-    if (injector<ConfigurationService>().isDevicePasscodeEnabled()) {
-      injector<NavigationService>()
-          .lockScreen()
-          ?.then((_) => _deeplinkSubscription?.resume());
-    } else {
-      _deeplinkSubscription?.resume();
-    }
+    _deeplinkSubscription?.resume();
     await injector<ConfigurationService>().reload();
     try {
       await injector<SettingsDataService>().restoreSettingsData();

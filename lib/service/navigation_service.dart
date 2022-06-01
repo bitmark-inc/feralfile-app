@@ -8,7 +8,6 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/biometric_lock/lock_page.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter/material.dart';
 
@@ -30,10 +29,6 @@ class NavigationService {
 
     return navigatorKey.currentState
         ?.pushNamed(routeName, arguments: arguments);
-  }
-
-  Future<dynamic>? lockScreen() async {
-    return showOverlayLockingScreen();
   }
 
   void goBack() {

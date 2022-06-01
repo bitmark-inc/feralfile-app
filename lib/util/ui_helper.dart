@@ -121,6 +121,42 @@ class UIHelper {
     Navigator.popUntil(context, (route) => route.settings.name != null);
   }
 
+  static Future<void> showLinkRequestedDialog(BuildContext context) {
+    final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
+    return showDialog(
+        context,
+        'Link requested',
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            RichText(
+              text: TextSpan(children: [
+                TextSpan(
+                  style: theme.textTheme.bodyText1,
+                  text: "Autonomy has sent a request to ",
+                ),
+                TextSpan(
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontFamily: "AtlasGrotesk-Light",
+                      fontWeight: FontWeight.w700,
+                      height: 1.377),
+                  text: "Feral File",
+                ),
+                TextSpan(
+                  style: theme.textTheme.bodyText1,
+                  text:
+                      " in your mobile browser to link to your account. Please make sure you are signed in and authorize the request.",
+                ),
+              ]),
+            ),
+            SizedBox(height: 67),
+          ],
+        ),
+        isDismissible: true);
+  }
+
   // MARK: - Connection
   static Widget buildConnectionAppWidget(Connection connection, double size) {
     switch (connection.connectionType) {
