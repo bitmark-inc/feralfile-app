@@ -96,17 +96,9 @@ class TezosServiceImpl extends TezosService {
       operationList.prependOperation(RevealOperation());
     }
 
-    await operationList.execute();
+    await operationList.executeAndMonitor();
 
-    /**
-    * Temporary remove monitor to fetch block hash due to library error
-    * when parsing response.
-    await operationList.monitor();
-
-    return operationList.result.blockHash;
-     */
-
-    return operationList.result.signature?.edsig;
+    return operationList.result.id;
   }
 
   @override

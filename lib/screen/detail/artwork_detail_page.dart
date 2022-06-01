@@ -407,7 +407,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
     if (assetPrice != null && assetPrice.minPrice != 0) {
       final changedPrice = assetPrice.minPrice - assetPrice.purchasedPrice;
       changedPriceText =
-          "${changedPrice >= 0 ? "+" : ""}$changedPrice ${assetPrice.currency.toUpperCase()}";
+          "${changedPrice >= 0 ? "+" : ""}${changedPrice.toStringAsFixed(2)} ${assetPrice.currency.toUpperCase()}";
 
       if (assetPrice.purchasedPrice == 0) {
         roiText = "+100%";
@@ -427,19 +427,19 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
         if (assetPrice != null) ...[
           SizedBox(height: 16.0),
           _rowItem(context, "Purchase price",
-              "${assetPrice.purchasedPrice} ${assetPrice.currency.toUpperCase()}")
+              "${assetPrice.purchasedPrice.toStringAsFixed(2)} ${assetPrice.currency.toUpperCase()}")
         ],
         if (assetPrice != null &&
             assetPrice.listingPrice > 0 &&
             assetPrice.onSale == true) ...[
           Divider(height: 32.0),
           _rowItem(context, "Listed for resale",
-              "${assetPrice.listingPrice} ${assetPrice.currency.toUpperCase()}"),
+              "${assetPrice.listingPrice.toStringAsFixed(2)} ${assetPrice.currency.toUpperCase()}"),
         ],
         if (assetPrice != null && assetPrice.minPrice != 0) ...[
           Divider(height: 32.0),
           _rowItem(context, "Estimated value\n(floor price)",
-              "${assetPrice.minPrice} ${assetPrice.currency.toUpperCase()}"),
+              "${assetPrice.minPrice.toStringAsFixed(2)} ${assetPrice.currency.toUpperCase()}"),
         ],
         if (changedPriceText.isNotEmpty) ...[
           Divider(height: 32.0),
