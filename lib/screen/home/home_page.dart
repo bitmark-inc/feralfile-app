@@ -450,6 +450,8 @@ class _HomePageState extends State<HomePage>
   }
 
   void _handleForeground() async {
+    memoryValues.inForegroundAt = DateTime.now();
+
     if (injector<ConfigurationService>().isDevicePasscodeEnabled()) {
       injector<NavigationService>()
           .lockScreen()
