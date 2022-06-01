@@ -450,6 +450,7 @@ class _HomePageState extends State<HomePage>
   }
 
   void _handleForeground() async {
+    memoryValues.inForegroundAt = DateTime.now();
     _deeplinkSubscription?.resume();
     await injector<ConfigurationService>().reload();
     try {

@@ -142,10 +142,12 @@ var memoryValues = MemoryValues();
 class MemoryValues {
   String? scopedPersona;
   String? viewingSupportThreadIssueID;
+  DateTime? inForegroundAt;
 
   MemoryValues({
     this.scopedPersona,
     this.viewingSupportThreadIssueID,
+    this.inForegroundAt,
   });
 
   MemoryValues copyWith({

@@ -6,6 +6,7 @@
 //
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/screen/report/sentry_report.dart';
@@ -209,6 +210,18 @@ void showErrorDiablog(
 
 void showErrorDialogFromException(Object exception,
     {StackTrace? stackTrace, String? library}) async {
+  // avoid to bother user when user has just foregrounded the app.
+  if (memoryValues.inForegroundAt != null &&
+      DateTime.now()
+              .subtract(Duration(seconds: 5))
+              .compareTo(memoryValues.inForegroundAt!) <
+          0) {
+    Sentry.captureException(exception,
+        stackTrace: stackTrace,
+        withScope: (Scope? scope) => scope?.setTag("library", library ?? ''));
+    return;
+  }
+
   final context = injector<NavigationService>().navigatorKey.currentContext;
 
   if (exception is PlatformException) {

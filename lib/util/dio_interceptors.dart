@@ -18,6 +18,8 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 class LoggingInterceptor extends Interceptor {
   LoggingInterceptor();
 
+  final logFilterRegex = [RegExp(r'.*\/nft.*')];
+
   @override
   void onError(DioError err, ErrorInterceptorHandler handler) {
     final curl = cURLRepresentation(err.requestOptions);
@@ -33,7 +35,13 @@ class LoggingInterceptor extends Interceptor {
     final curl = cURLRepresentation(response.requestOptions);
     final message = response.toString();
     apiLog.info("API Request: $curl");
-    apiLog.info("API Response: $message");
+
+    try {
+      final _ = logFilterRegex.firstWhere((regex) => regex.hasMatch(curl));
+      apiLog.info("API Response Status: ${response.statusCode}");
+    } catch (_) {
+      apiLog.info("API Response: $message");
+    }
 
     return handler.next(response);
   }
