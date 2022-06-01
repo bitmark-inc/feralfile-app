@@ -85,7 +85,7 @@ class _GithubDocPageState extends State<GithubDocPage> {
               physics: NeverScrollableScrollPhysics(),
               padding: EdgeInsets.only(bottom: 50),
               styleSheet: MarkdownStyleSheet.fromTheme(
-                  AuThemeManager().getThemeData(AppTheme.markdownThemeBlack))));
+                  AuThemeManager.get(AppTheme.markdownThemeBlack))));
     } else if (snapshot.hasError ||
         (snapshot.data != null && snapshot.data?.statusCode != 200)) {
       return SliverFillRemaining(

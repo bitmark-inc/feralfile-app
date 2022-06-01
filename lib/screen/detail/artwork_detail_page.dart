@@ -16,17 +16,15 @@ import 'package:autonomy_flutter/model/provenance.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
-import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
-import 'package:autonomy_flutter/screen/detail/report_rendering_issue_widget.dart';
+import 'package:autonomy_flutter/screen/detail/report_rendering_issue/any_problem_nft_widget.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/au_cached_manager.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
-import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/theme_manager.dart';
@@ -116,7 +114,10 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
                 state.asset!.artistName!.length > 20) {
               identitiesList.add(state.asset!.artistName!);
             }
-            currentAsset = state.asset;
+            setState(() {
+              currentAsset = state.asset;
+            });
+
             context.read<IdentityBloc>().add(GetIdentityEvent(identitiesList));
           }, builder: (context, state) {
             if (state.asset != null) {
@@ -627,59 +628,19 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
   }
 
   Widget _reportNFTProblemContainer() {
-    return GestureDetector(
-      onTap: () => _showReportIssueDialog(),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        height: _showArtwortReportProblemContainer ? 50 : 0,
-        child: Container(
-          alignment: Alignment.bottomCenter,
-          padding: EdgeInsets.fromLTRB(0, 15, 0, 18),
-          color: Color(0xFFEDEDED),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text('ANY PROBLEMS WITH THIS NFT?', style: appTextTheme.caption),
-              SizedBox(
-                width: 4,
-              ),
-              SvgPicture.asset("assets/images/iconSharpFeedback.svg"),
-            ],
-          ),
-        ),
+    if (currentAsset == null) return SizedBox();
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      height: _showArtwortReportProblemContainer ? 62 : 0,
+      child: AnyProblemNFTWidget(
+        asset: currentAsset!,
+        theme: AuThemeManager.get(AppTheme.anyProblemNFTTheme),
       ),
     );
   }
 
-  // MARK: REPORT RENDERING ISSUE
-  void _showReportIssueDialog() {
-    if (currentAsset == null) return;
-    UIHelper.showDialog(
-        context,
-        "Report issue?",
-        ReportRenderingIssueWidget(
-          token: currentAsset!,
-          onReported: (issueID) {
-            showErrorDialog(
-              context,
-              "🤔",
-              "We have automatically filed the rendering issue, and we will look into it. If you require further support or want to tell us more about the problem, please tap the button below.",
-              "GET SUPPORT",
-              () => Navigator.of(context).pushNamed(
-                AppRouter.supportThreadPage,
-                arguments: DetailIssuePayload(
-                    reportIssueType: ReportIssueType.ReportNFTIssue,
-                    issueID: issueID),
-              ),
-              "CLOSE",
-            );
-          },
-        ),
-        isDismissible: true);
-  }
-
   void _showArtworkOptionsDialog(AssetToken asset) {
-    final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
+    final theme = AuThemeManager.get(AppTheme.sheetTheme);
 
     UIHelper.showDialog(
       context,

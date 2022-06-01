@@ -165,6 +165,7 @@ flutter:
     - assets/images/iconCloudOff.svg
     - assets/images/iconCustomerSupport.svg
     - assets/images/iconForward.svg
+    - assets/images/iconInfo.svg
     - assets/images/iconSharpFeedback.svg
     - assets/images/cil_external-link.svg
     - assets/images/tezos_social_icon.svg
@@ -187,7 +188,7 @@ flutter:
     - assets/images/cloudEncryption.svg
     - assets/images/nav-arrow-left.svg
     - assets/images/image_error.svg
-    - assets/images/cast.svg
+    - assets/images/chromecast.svg
     - assets/images/notification_onboarding.svg
     #   - images/a_dot_ham.jpeg
     - assets/images/joinFile.svg
@@ -222,3 +223,4 @@ flutter:
         - asset: fonts/IBMPlexMono/IBMPlexMono-Regular.ttf
         - asset: fonts/IBMPlexMono/IBMPlexMono-Bold.ttf
           weight: 700
+        - asset: fonts/IBMPlexMono/IBMPlexMono-SemiBold.ttf

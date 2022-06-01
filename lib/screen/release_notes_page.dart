@@ -29,7 +29,7 @@ class _ReleaseNotesPageState extends State<ReleaseNotesPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
+    final theme = AuThemeManager.get(AppTheme.sheetTheme);
 
     return Container(
       color: theme.backgroundColor,
@@ -47,7 +47,7 @@ class _ReleaseNotesPageState extends State<ReleaseNotesPage> {
               softLineBreak: true,
               padding: EdgeInsets.only(bottom: 50),
               styleSheet: MarkdownStyleSheet.fromTheme(
-                  AuThemeManager().getThemeData(AppTheme.markdownTheme)),
+                  AuThemeManager.get(AppTheme.markdownTheme)),
             ),
           ),
           SizedBox(height: 35),

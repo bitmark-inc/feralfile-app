@@ -123,7 +123,7 @@ class UpgradesView extends StatelessWidget {
 
   static showSubscriptionDialog(BuildContext context, String? price,
       PremiumFeature? feature, Function()? onPressSubscribe) {
-    final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
+    final theme = AuThemeManager.get(AppTheme.sheetTheme);
 
     UIHelper.showDialog(
       context,

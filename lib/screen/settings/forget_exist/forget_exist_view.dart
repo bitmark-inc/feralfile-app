@@ -16,7 +16,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 class ForgetExistView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
+    final theme = AuThemeManager.get(AppTheme.sheetTheme);
 
     return BlocConsumer<ForgetExistBloc, ForgetExistState>(
         listener: (context, state) async {

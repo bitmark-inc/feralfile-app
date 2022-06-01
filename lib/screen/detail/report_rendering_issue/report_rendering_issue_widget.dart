@@ -37,7 +37,7 @@ class _ReportRenderingIssueWidgetState
   List<String> _selectedTopices = [];
   bool _isSubmissionEnabled = false;
 
-  final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
+  final theme = AuThemeManager.get(AppTheme.sheetTheme);
 
   @override
   Widget build(BuildContext context) {

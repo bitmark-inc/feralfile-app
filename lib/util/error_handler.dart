@@ -93,7 +93,7 @@ Future showErrorDialog(BuildContext context, String title, String description,
   }
 
   isShowErrorDialogWorking = DateTime.now();
-  final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
+  final theme = AuThemeManager.get(AppTheme.sheetTheme);
 
   var cuttedColor = Color(0xFF737373);
   if (ModalRoute.of(context)?.settings.name == AppRouter.scanQRPage) {

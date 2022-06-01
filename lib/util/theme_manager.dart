@@ -8,10 +8,17 @@
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:flutter/material.dart';
 
-enum AppTheme { mainTheme, sheetTheme, markdownTheme, markdownThemeBlack }
+enum AppTheme {
+  mainTheme,
+  sheetTheme,
+  markdownTheme,
+  markdownThemeBlack,
+  anyProblemNFTTheme,
+  anyProblemNFTDarkTheme,
+}
 
 class AuThemeManager {
-  ThemeData getThemeData(AppTheme theme) {
+  static ThemeData get(AppTheme theme) {
     switch (theme) {
       case AppTheme.mainTheme:
         return mainTheme;
@@ -19,12 +26,16 @@ class AuThemeManager {
         return markdownTheme;
       case AppTheme.markdownThemeBlack:
         return markdownThemeBlack;
+      case AppTheme.anyProblemNFTTheme:
+        return anyProblemNFTTheme;
+      case AppTheme.anyProblemNFTDarkTheme:
+        return anyProblemNFTDarkTheme;
       default:
         return sheetTheme;
     }
   }
 
-  final ThemeData mainTheme = ThemeData(
+  static final ThemeData mainTheme = ThemeData(
     scaffoldBackgroundColor: Colors.white,
     primarySwatch: Colors.grey,
     secondaryHeaderColor: Color(0xFF6D6B6B),
@@ -32,7 +43,7 @@ class AuThemeManager {
     textTheme: appTextTheme,
   );
 
-  final ThemeData sheetTheme = ThemeData(
+  static final ThemeData sheetTheme = ThemeData(
     backgroundColor: Colors.black,
     primaryColor: Colors.white,
     disabledColor: Color(0xFF999999),
@@ -49,15 +60,34 @@ class AuThemeManager {
         ),
   );
 
-  final ThemeData markdownTheme = ThemeData(
+  static final ThemeData markdownTheme = ThemeData(
       backgroundColor: Colors.black,
       primaryColor: Colors.white,
       textTheme: ThemeData.dark().textTheme.copyWith(
           bodyText2: appTextTheme.bodyText1?.copyWith(color: Colors.white)));
 
-  final ThemeData markdownThemeBlack = ThemeData(
+  static final ThemeData markdownThemeBlack = ThemeData(
       backgroundColor: Colors.black,
       primaryColor: Colors.white,
       textTheme: ThemeData.dark().textTheme.copyWith(
           bodyText2: appTextTheme.bodyText1?.copyWith(color: Colors.black)));
+
+  static final ThemeData anyProblemNFTTheme = ThemeData(
+      backgroundColor: Color(0xFFEDEDED),
+      primaryColor: Colors.black,
+      textTheme: TextTheme(
+          bodyText1: TextStyle(
+              color: Colors.black,
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              fontFamily: "IBMPlexMono-SemiBold")));
+
+  static final ThemeData anyProblemNFTDarkTheme = ThemeData(
+      backgroundColor: Colors.black,
+      textTheme: TextTheme(
+          bodyText1: TextStyle(
+              color: Color(0xFFEDEDED),
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              fontFamily: "IBMPlexMono-SemiBold")));
 }

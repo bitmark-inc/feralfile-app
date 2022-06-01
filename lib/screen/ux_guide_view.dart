@@ -11,7 +11,7 @@ class UXGuideView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
+    final theme = AuThemeManager.get(AppTheme.sheetTheme);
 
     return Stack(
       children: [

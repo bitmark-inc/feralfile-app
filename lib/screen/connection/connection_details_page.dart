@@ -100,7 +100,7 @@ class ConnectionDetailsPage extends StatelessWidget {
   }
 
   void _showDeleteConnectionConfiguration(BuildContext pageContext) {
-    final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
+    final theme = AuThemeManager.get(AppTheme.sheetTheme);
     final connection = connectionItem.representative;
 
     showModalBottomSheet(
