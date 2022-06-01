@@ -243,7 +243,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     for (var mutedMsg in (mutedText ?? [])) {
       mutedMessage += "$mutedMsg\n";
     }
-    final submitMessage = "[MUTED]\n$mutedMessage[/MUTED]\n\n$message";
+    final submitMessage = "[MUTED]\n$mutedMessage[/MUTED]\n\n${message ?? ''}";
 
     final payload = {
       'attachments': attachments ?? [],
