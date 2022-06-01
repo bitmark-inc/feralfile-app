@@ -8,6 +8,7 @@
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/theme_manager.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -78,7 +79,7 @@ class UpgradesView extends StatelessWidget {
       case IAPProductStatus.expired:
         return GestureDetector(
           onTap: (() => showSubscriptionDialog(
-                  context, state.productDetails?.price, (() {
+                  context, state.productDetails?.price, null, (() {
                 context.read<UpgradesBloc>().add(UpgradePurchaseEvent());
               }))),
           child: Column(
@@ -120,8 +121,8 @@ class UpgradesView extends StatelessWidget {
     }
   }
 
-  static showSubscriptionDialog(
-      BuildContext context, String? price, Function()? onPressSubscribe) {
+  static showSubscriptionDialog(BuildContext context, String? price,
+      PremiumFeature? feature, Function()? onPressSubscribe) {
     final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
 
     UIHelper.showDialog(
@@ -131,6 +132,12 @@ class UpgradesView extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          if (feature != null) ...[
+            Text(feature.moreAutonomyDescription,
+                style: theme.textTheme.bodyText1),
+            SizedBox(height: 16),
+          ],
+          Text('Upgrading gives you:', style: theme.textTheme.bodyText1),
           SvgPicture.asset(
             'assets/images/premium_comparation.svg',
             height: 320,

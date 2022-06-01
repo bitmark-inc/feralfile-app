@@ -8,6 +8,7 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/settings/subscription/upgrade_box_view.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
@@ -406,6 +407,44 @@ class UIHelper {
     UIHelper.showInfoDialog(
         context, "Aborted", "The action was aborted by the user.",
         isDismissible: true, autoDismissAfter: 3);
+  }
+
+  static Future showFeatureRequiresSubscriptionDialog(
+      BuildContext context, PremiumFeature feature) {
+    final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
+
+    return showDialog(
+        context,
+        "Subscribe",
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('This feature requires subscription',
+                style: theme.textTheme.bodyText1),
+            SizedBox(height: 40),
+            UpgradeBoxView.getMoreAutonomyWidget(theme, feature),
+            SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text(
+                      "CANCEL",
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          fontFamily: "IBMPlexMono"),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 20),
+          ],
+        ),
+        isDismissible: true);
   }
 }
 

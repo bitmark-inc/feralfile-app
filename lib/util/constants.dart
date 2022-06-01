@@ -96,3 +96,30 @@ class ReportIssueType {
     }
   }
 }
+
+// Premium Features
+enum PremiumFeature {
+  AutonomyTV,
+}
+
+extension PremiumFeatureExtension on PremiumFeature {
+  String get rawValue => this.toString().split('.').last;
+
+  String get description {
+    switch (rawValue) {
+      case 'AutonomyTV':
+        return 'Subscribe to play your collection on external devices.';
+      default:
+        return '';
+    }
+  }
+
+  String get moreAutonomyDescription {
+    switch (rawValue) {
+      case 'AutonomyTV':
+        return 'You must upgrade to an Autonomy subscription to connect to Autonomy on TV.';
+      default:
+        return '';
+    }
+  }
+}
