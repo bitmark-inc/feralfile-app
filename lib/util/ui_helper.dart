@@ -45,7 +45,7 @@ class UIHelper {
       FeedbackType? feedback = FeedbackType.selection}) async {
     log.info("[UIHelper] showInfoDialog: $title");
     currentDialogTitle = title;
-    final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
+    final theme = AuThemeManager.get(AppTheme.sheetTheme);
 
     if (feedback != null) {
       Vibrate.feedback(feedback);
@@ -89,7 +89,7 @@ class UIHelper {
       int autoDismissAfter = 0,
       FeedbackType? feedback = FeedbackType.selection}) async {
     log.info("[UIHelper] showInfoDialog: $title, $description");
-    final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
+    final theme = AuThemeManager.get(AppTheme.sheetTheme);
 
     if (autoDismissAfter > 0) {
       Future.delayed(
@@ -122,7 +122,7 @@ class UIHelper {
   }
 
   static Future<void> showLinkRequestedDialog(BuildContext context) {
-    final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
+    final theme = AuThemeManager.get(AppTheme.sheetTheme);
     return showDialog(
         context,
         'Link requested',
@@ -212,7 +212,7 @@ class UIHelper {
   // MARK: - Persona
   static showGeneratedPersonaDialog(BuildContext context,
       {required Function() onContinue}) {
-    final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
+    final theme = AuThemeManager.get(AppTheme.sheetTheme);
 
     showDialog(
         context,
@@ -253,7 +253,7 @@ class UIHelper {
 
   static showImportedPersonaDialog(BuildContext context,
       {required Function() onContinue}) {
-    final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
+    final theme = AuThemeManager.get(AppTheme.sheetTheme);
 
     showDialog(
         context,
@@ -294,7 +294,7 @@ class UIHelper {
 
   static showHideArtworkResultDialog(BuildContext context, bool isHidden,
       {required Function() onOK}) {
-    final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
+    final theme = AuThemeManager.get(AppTheme.sheetTheme);
 
     showDialog(
         context,
@@ -354,7 +354,7 @@ class UIHelper {
 
   static showIdentityDetailDialog(BuildContext context,
       {required String name, required String address}) {
-    final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
+    final theme = AuThemeManager.get(AppTheme.sheetTheme);
 
     showDialog(
         context,
@@ -447,7 +447,7 @@ class UIHelper {
 
   static Future showFeatureRequiresSubscriptionDialog(
       BuildContext context, PremiumFeature feature) {
-    final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
+    final theme = AuThemeManager.get(AppTheme.sheetTheme);
 
     return showDialog(
         context,

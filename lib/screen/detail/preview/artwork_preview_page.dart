@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_state.dart';
+import 'package:autonomy_flutter/screen/detail/report_rendering_issue/any_problem_nft_widget.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_box_view.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
@@ -77,6 +78,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   WebViewController? _webViewController;
   Future<List<CastDevice>> _castDevicesFuture = CastDiscoveryService().search();
   bool _isPreviewLoaded = false;
+  String? swipeDirection;
 
   static List<AUCastDevice> _defaultCastDevices = [
     AUCastDevice(AUCastDeviceType.Airplay)
@@ -131,8 +133,8 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     enableLandscapeMode();
     Wakelock.enable();
     _controller?.play();
-    _webViewController
-        ?.runJavascript("document.getElementsByTagName('video')[0].play()");
+    _webViewController?.runJavascript(
+        "var video = document.getElementsByTagName('video')[0]; if(video != undefined) { video.play(); }");
     super.didPopNext();
   }
 
@@ -189,96 +191,66 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
             _startPlay(asset!.previewURL!);
           }
 
-          final identityState = context.watch<IdentityBloc>().state;
-          final artistName =
-              asset?.artistName?.toIdentityOrMask(identityState.identityMap);
-
           return SafeArea(
-              top: !isFullscreen,
+              top: false,
               bottom: false,
               left: !isFullscreen,
               right: !isFullscreen,
               child: Column(
                 children: [
-                  !isFullscreen
-                      ? Container(
-                          child: Row(
-                            children: [
-                              IconButton(
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                },
-                                icon: Icon(
-                                  Icons.close,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              _titleAndArtistNameWidget(asset!, artistName),
-                              IconButton(
-                                onPressed: () {
-                                  currentIndex = currentIndex <= 0
-                                      ? widget.payload.ids.length - 1
-                                      : currentIndex - 1;
-                                  final id = widget.payload.ids[currentIndex];
-                                  _disposeCurrentDisplay();
-                                  context.read<ArtworkPreviewBloc>().add(
-                                      ArtworkPreviewGetAssetTokenEvent(id));
-                                },
-                                icon: Icon(
-                                  CupertinoIcons.back,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              IconButton(
-                                onPressed: () {
-                                  currentIndex = currentIndex >=
-                                          widget.payload.ids.length - 1
-                                      ? 0
-                                      : currentIndex + 1;
-                                  final id = widget.payload.ids[currentIndex];
-                                  _disposeCurrentDisplay();
-                                  context.read<ArtworkPreviewBloc>().add(
-                                      ArtworkPreviewGetAssetTokenEvent(id));
-                                },
-                                icon: Icon(
-                                  CupertinoIcons.forward,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              _castButton(context),
-                              IconButton(
-                                onPressed: () async {
-                                  setState(() {
-                                    isFullscreen = true;
-                                  });
-
-                                  if (Platform.isAndroid) {
-                                    SystemChrome.setEnabledSystemUIMode(
-                                        SystemUiMode.immersiveSticky);
-                                  }
-
-                                  if (injector<ConfigurationService>()
-                                      .isFullscreenIntroEnabled()) {
-                                    showModalBottomSheet<void>(
-                                      context: context,
-                                      builder: (BuildContext context) {
-                                        return _fullscreenIntroPopup();
-                                      },
-                                    );
-                                  }
-                                },
-                                icon: Icon(
-                                  Icons.fullscreen,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
-                          ),
-                        )
-                      : SizedBox(),
                   Expanded(
-                    child: Center(
-                      child: _getArtworkView(asset!),
+                    child: Stack(
+                      fit: StackFit.loose,
+                      children: [
+                        GestureDetector(
+                          behavior: HitTestBehavior.translucent,
+                          onPanUpdate: (details) {
+                            if (details.delta.dx <= -8) {
+                              swipeDirection = 'left';
+                            } else if (details.delta.dx >= 8) {
+                              swipeDirection = 'right';
+                            }
+                          },
+                          onPanEnd: (details) {
+                            if (swipeDirection == null || isFullscreen) return;
+                            if (swipeDirection == 'left') {
+                              _moveNextToken();
+                            }
+                            if (swipeDirection == 'right') {
+                              _movePreviousToken();
+                            }
+
+                            swipeDirection = null;
+                          },
+                          child: Center(
+                            child: _getArtworkView(asset!),
+                          ),
+                        ),
+                        // ),
+                        Align(
+                          alignment: Alignment.topCenter,
+                          child: Opacity(
+                              opacity: isFullscreen ? 0 : 1,
+                              child: _controlView(asset!)),
+                        ),
+
+                        if (!isFullscreen) ...[
+                          Align(
+                            alignment: Alignment.bottomCenter,
+                            child: Opacity(
+                              // height: !isFullscreen ? 64 : 0,
+                              opacity: isFullscreen ? 0 : 1,
+                              child: Container(
+                                height: 64,
+                                child: AnyProblemNFTWidget(
+                                    asset: asset!,
+                                    theme: AuThemeManager.get(
+                                        AppTheme.anyProblemNFTDarkTheme)),
+                              ),
+                            ),
+                          )
+                        ]
+                      ],
                     ),
                   ),
                 ],
@@ -290,10 +262,98 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     );
   }
 
-  Widget _titleAndArtistNameWidget(AssetToken asset, String? artistName) {
-    final isImmediatePlaybackEnabled =
-        injector<ConfigurationService>().isImmediatePlaybackEnabled();
+  Widget _controlView(AssetToken asset) {
+    final identityState = context.watch<IdentityBloc>().state;
+    final artistName =
+        asset.artistName?.toIdentityOrMask(identityState.identityMap);
+    double safeAreaTop = MediaQuery.of(context).padding.top;
 
+    return Container(
+      color: Colors.black,
+      height: safeAreaTop + 52,
+      padding: EdgeInsets.only(top: safeAreaTop),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          IconButton(
+              onPressed: () => _moveToInfo(asset),
+              icon: SvgPicture.asset("assets/images/iconInfo.svg",
+                  color: Colors.white)),
+          _titleAndArtistNameWidget(asset, artistName),
+          _castButton(context),
+          SizedBox(width: 8),
+          IconButton(
+            onPressed: () async {
+              setState(() {
+                isFullscreen = true;
+              });
+
+              if (Platform.isAndroid) {
+                SystemChrome.setEnabledSystemUIMode(
+                    SystemUiMode.immersiveSticky);
+              }
+
+              if (injector<ConfigurationService>().isFullscreenIntroEnabled()) {
+                showModalBottomSheet<void>(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return _fullscreenIntroPopup();
+                  },
+                );
+              }
+            },
+            icon: Icon(
+              Icons.fullscreen,
+              color: Colors.white,
+              size: 32,
+            ),
+          ),
+          IconButton(
+            onPressed: () => Navigator.of(context).pop(),
+            icon: Icon(
+              Icons.close,
+              color: Colors.white,
+              size: 32,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future _moveToInfo(AssetToken asset) async {
+    if (!injector<ConfigurationService>().isImmediatePlaybackEnabled()) return;
+    final currentIndex = widget.payload.ids.indexOf(asset.id);
+
+    disableLandscapeMode();
+    Wakelock.disable();
+    _clearPrevious();
+    Navigator.of(context).pushNamed(AppRouter.artworkDetailsPage,
+        arguments: widget.payload.copyWith(currentIndex: currentIndex));
+  }
+
+  Future _movePreviousToken() async {
+    currentIndex =
+        currentIndex <= 0 ? widget.payload.ids.length - 1 : currentIndex - 1;
+    final id = widget.payload.ids[currentIndex];
+    _disposeCurrentDisplay();
+    context
+        .read<ArtworkPreviewBloc>()
+        .add(ArtworkPreviewGetAssetTokenEvent(id));
+  }
+
+  Future _moveNextToken() async {
+    currentIndex =
+        currentIndex >= widget.payload.ids.length - 1 ? 0 : currentIndex + 1;
+    final id = widget.payload.ids[currentIndex];
+    _disposeCurrentDisplay();
+    context
+        .read<ArtworkPreviewBloc>()
+        .add(ArtworkPreviewGetAssetTokenEvent(id));
+  }
+
+  Widget _titleAndArtistNameWidget(AssetToken asset, String? artistName) {
     var titleStyle = TextStyle(
         color: Colors.white,
         fontWeight: FontWeight.w700,
@@ -305,42 +365,25 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
         fontSize: 12,
         fontFamily: "AtlasGrotesk");
 
-    if (isImmediatePlaybackEnabled) {
-      titleStyle = makeLinkStyle(titleStyle);
-      artistNameStyle = makeLinkStyle(artistNameStyle);
-    }
-
     return Expanded(
-      child: GestureDetector(
-        behavior: HitTestBehavior.translucent,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            asset.title,
+            overflow: TextOverflow.ellipsis,
+            style: titleStyle,
+          ),
+          if (artistName != null) ...[
+            SizedBox(height: 4.0),
             Text(
-              asset.title,
+              "by $artistName",
               overflow: TextOverflow.ellipsis,
-              style: titleStyle,
-            ),
-            if (artistName != null) ...[
-              SizedBox(height: 4.0),
-              Text(
-                "by $artistName",
-                overflow: TextOverflow.ellipsis,
-                style: artistNameStyle,
-              )
-            ]
-          ],
-        ),
-        onTap: () {
-          if (!isImmediatePlaybackEnabled) return;
-          final currentIndex = widget.payload.ids.indexOf(asset.id);
-
-          disableLandscapeMode();
-          Wakelock.disable();
-          _clearPrevious();
-          Navigator.of(context).pushNamed(AppRouter.artworkDetailsPage,
-              arguments: widget.payload.copyWith(currentIndex: currentIndex));
-        },
+              style: artistNameStyle,
+            )
+          ]
+        ],
       ),
     );
   }
@@ -412,7 +455,6 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                           ?.finish(status: SpanStatus.internalError());
                     },
                     onPageFinished: (some) async {
-                      print("FINISHE HERE ");
                       setState(() {
                         _isPreviewLoaded = true;
                       });
@@ -520,8 +562,8 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
 
   Future<bool> _clearPrevious() async {
     await _controller?.pause();
-    await _webViewController
-        ?.runJavascript("document.getElementsByTagName('video')[0].pause()");
+    await _webViewController?.runJavascript(
+        "var video = document.getElementsByTagName('video')[0]; if(video != undefined) { video.pause(); }");
     return true;
   }
 
@@ -565,12 +607,12 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   Widget _castButton(BuildContext context) {
     return InkWell(
       onTap: () => _showCastDialog(context),
-      child: SvgPicture.asset('assets/images/cast.svg'),
+      child: SvgPicture.asset('assets/images/chromecast.svg'),
     );
   }
 
   Widget _airplayItem(BuildContext context, bool isSubscribed) {
-    final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
+    final theme = AuThemeManager.get(AppTheme.sheetTheme);
     return Padding(
         child: SizedBox(
           height: 44,
@@ -610,7 +652,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
 
   Widget _castingListView(
       BuildContext context, List<AUCastDevice> devices, bool isSubscribed) {
-    final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
+    final theme = AuThemeManager.get(AppTheme.sheetTheme);
     return ConstrainedBox(
         constraints: new BoxConstraints(
           minHeight: 35.0,
@@ -701,7 +743,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                   .toList();
             }
 
-            final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
+            final theme = AuThemeManager.get(AppTheme.sheetTheme);
 
             return FutureBuilder<bool>(
                 builder: (context, snapshot) {

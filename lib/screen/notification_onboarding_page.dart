@@ -56,8 +56,8 @@ class NotificationOnboardingPage extends StatelessWidget {
                       softLineBreak: true,
                       padding: EdgeInsets.only(bottom: 50),
                       shrinkWrap: true,
-                      styleSheet: MarkdownStyleSheet.fromTheme(AuThemeManager()
-                          .getThemeData(AppTheme.markdownThemeBlack)),
+                      styleSheet: MarkdownStyleSheet.fromTheme(
+                          AuThemeManager.get(AppTheme.markdownThemeBlack)),
                     ),
                     Center(
                         child: Padding(

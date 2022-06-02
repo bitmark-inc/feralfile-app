@@ -379,7 +379,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   }
 
   void _handleAtachmentPressed() {
-    final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
+    final theme = AuThemeManager.get(AppTheme.sheetTheme);
 
     UIHelper.showDialog(
       context,
