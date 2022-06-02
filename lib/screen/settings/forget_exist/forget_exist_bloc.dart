@@ -14,8 +14,11 @@ import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/migration/migration_util.dart';
+import 'package:autonomy_flutter/util/notification_util.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ForgetExistBloc extends Bloc<ForgetExistEvent, ForgetExistState> {
@@ -43,11 +46,13 @@ class ForgetExistBloc extends Bloc<ForgetExistEvent, ForgetExistState> {
     on<ConfirmForgetExistEvent>((event, emit) async {
       emit(ForgetExistState(state.isChecked, true));
 
+      deregisterPushNotification();
       await _autonomyService.clearLinkedAddresses();
       PackageInfo packageInfo = await PackageInfo.fromPlatform();
       String? deviceId = await MigrationUtil.getBackupDeviceID();
       final requester = "$deviceId\_${packageInfo.packageName}";
       await _iapApi.deleteAllProfiles(requester);
+      await _iapApi.deleteUserData();
 
       final List<Persona> personas =
           await _cloudDatabase.personaDao.getPersonas();
