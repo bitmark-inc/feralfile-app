@@ -67,7 +67,7 @@ class _HomePageState extends State<HomePage>
     super.initState();
     _checkForKeySync();
     _initUniLinks();
-    WidgetsBinding.instance?.addObserver(this);
+    WidgetsBinding.instance.addObserver(this);
     _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
     _controller = ScrollController();
     context.read<HomeBloc>().add(RefreshTokensEvent());
@@ -97,7 +97,7 @@ class _HomePageState extends State<HomePage>
 
   @override
   void dispose() {
-    WidgetsBinding.instance?.removeObserver(this);
+    WidgetsBinding.instance.removeObserver(this);
     routeObserver.unsubscribe(this);
     _deeplinkSubscription?.cancel();
     _fgbgSubscription?.cancel();

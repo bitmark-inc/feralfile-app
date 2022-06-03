@@ -53,7 +53,7 @@ class _SettingsPageState extends State<SettingsPage>
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance?.addObserver(this);
+    WidgetsBinding.instance.addObserver(this);
     _loadPackageInfo();
     context.read<AccountsBloc>().add(GetAccountsEvent());
     _controller = ScrollController();
@@ -68,7 +68,7 @@ class _SettingsPageState extends State<SettingsPage>
 
   @override
   void dispose() {
-    WidgetsBinding.instance?.removeObserver(this);
+    WidgetsBinding.instance.removeObserver(this);
     routeObserver.unsubscribe(this);
     super.dispose();
   }

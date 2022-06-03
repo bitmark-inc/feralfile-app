@@ -183,6 +183,9 @@ class _SendReviewPageState extends State<SendReviewPage> {
 
                                     Navigator.of(context).pop(sig);
                                     break;
+                                  case CryptoType.BITMARK:
+                                    // TODO: Handle this case.
+                                    break;
                                 }
 
                                 setState(() {
