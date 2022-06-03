@@ -41,7 +41,7 @@ fileprivate extension CloudKitManager {
     func requestAccountStatus() {
         container.accountStatus { [unowned self] (accountStatus, error) in
             if let error = error {
-                print("[Critical][CloudKitManager] Error: \(error)")
+                logger.info("[Critical][CloudKitManager] Error: \(error)")
             }
 
             DispatchQueue.main.async { [weak self] in

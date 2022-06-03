@@ -42,14 +42,10 @@ APIErrorCode? getAPIErrorCode(int code) {
   }
 }
 
-Future<String> getLogFolderPath() async {
-  Directory tempDir = await getTemporaryDirectory();
-  return tempDir.path + "/logs";
-}
-
 Future<File> getLogFile() async {
-  final directory = await getLogFolderPath();
-  final fileName = "${await getDeviceID() ?? "unknown"}_1.log";
+  final directory = (await getTemporaryDirectory()).path;
+  final fileName = "app.log";
+
   return _createLogFile("$directory/$fileName");
 }
 
@@ -90,8 +86,6 @@ class FileLogger {
     return _lock.synchronized(() async {
       await _logFile.writeAsString("${record.time}: $text",
           mode: FileMode.append, flush: true);
-
-      print((await _logFile.readAsBytes()).length);
     });
   }
 }

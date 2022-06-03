@@ -43,18 +43,18 @@ class BeaconConnectService {
             ) { result in
                 switch result {
                 case let .success(client):
-                    print("[TezosBeaconService]  Beacon client created")
+                    logger.info("[TezosBeaconService]  Beacon client created")
                     self.beaconClient = client
                     self.listenForRequests()
 
                 case let .failure(error):
-                    print("[TezosBeaconService] Could not create Beacon client")
-                    Logger.error("Error: \(error)")
+                    logger.info("[TezosBeaconService] Could not create Beacon client")
+                    logger.error("Error: \(error)")
                 }
             }
         } catch {
-            print("[TezosBeaconService] Could not create Beacon client")
-            print("Error: \(error)")
+            logger.info("[TezosBeaconService] Could not create Beacon client")
+            logger.info("Error: \(error)")
         }
     }
     
@@ -62,8 +62,8 @@ class BeaconConnectService {
         startOpenChannelListener(completion: { result in
             switch result {
             case let .failure(error):
-                print("[TezosBeaconService] Error while startOpenChannelListener")
-                Logger.error("Error: \(error)")
+                logger.info("[TezosBeaconService] Error while startOpenChannelListener")
+                logger.error("Error: \(error)")
             default:
                 break
             }
@@ -73,12 +73,12 @@ class BeaconConnectService {
             guard let self = self else { return }
             switch result {
             case .success(_):
-                print("[TezosBeaconService] Beacon client connected")
+                logger.info("[TezosBeaconService] Beacon client connected")
                 self.beaconClient?.listen(onRequest: self.onBeaconRequest)
 
             case let .failure(error):
-                print("[TezosBeaconService] Error while connecting for messages")
-                Logger.error("Error: \(error)")
+                logger.info("[TezosBeaconService] Error while connecting for messages")
+                logger.error("Error: \(error)")
             }
         }
     }
@@ -131,8 +131,8 @@ class BeaconConnectService {
             }
 
         case let .failure(error):
-            print("Error while processing incoming messages")
-            Logger.error("Error: \(error)")
+            logger.info("Error while processing incoming messages")
+            logger.error("Error: \(error)")
         }
     }
     
@@ -155,18 +155,21 @@ class BeaconConnectService {
                             throw BeaconConnectError.pendingBeaconClient
                         }
 
+                        logger.info("[TezosBeaconService] addPear \(peer) ")
+
                         beaconClient.add([.p2p(peer)]) { result in
                             switch result {
                             case .success(_):
-                                print("[TezosBeaconService] Peer added")
+                                logger.info("[TezosBeaconService] Peer added")
                                 promise(.success(peer))
 
                             case let .failure(error):
+                                logger.error("[TezosBeaconService] addPeer Error: \(error)")
                                 promise(.failure(error))
                             }
                         }
                     } catch {
-                        Logger.error("Error: \(error)")
+                        logger.error("Error: \(error)")
                         promise(.failure(error))
                     }
                 }
@@ -181,7 +184,7 @@ class BeaconConnectService {
             self.beaconClient?.remove([.p2p(peer)]) { result in
                 switch result {
                 case .success(_):
-                    print("[TezosBeaconService] Peer removed")
+                    logger.info("[TezosBeaconService] Peer removed")
                     promise(.success(()))
 
                 case let .failure(error):
@@ -196,12 +199,12 @@ class BeaconConnectService {
         beaconClient?.respond(with: content, completion: { result in
             switch result {
             case .success(_):
-                print("[TezosBeaconService] response successfully")
+                logger.info("[TezosBeaconService] response successfully")
                 completion(.success(()))
 
             case let .failure(error):
-                print("[TezosBeaconService] response error")
-                Logger.error("Error: \(error)")
+                logger.info("[TezosBeaconService] response error")
+                logger.error("Error: \(error)")
                 completion(.failure(error))
             }
         })
@@ -209,13 +212,13 @@ class BeaconConnectService {
 
     func pause() {
         beaconClient?.pause {
-            print("[TezosBeaconService] Paused \($0)")
+            logger.info("[TezosBeaconService] Paused \($0)")
         }
     }
 
     func resume() {
         beaconClient?.resume {
-            print("[TezosBeaconService]] Resumed \($0)")
+            logger.info("[TezosBeaconService]] Resumed \($0)")
         }
     }
     
@@ -243,7 +246,7 @@ extension BeaconConnectService {
                     }
 
                 case let .failure(error):
-                    Logger.error("Error: \(error)")
+                    logger.error("Error: \(error)")
                     promise(.failure(error))
                 }
             }
@@ -259,7 +262,7 @@ extension BeaconConnectService {
         }
 
         beaconClient.connectionController.startOpenChannelListener { [weak self] (result: Result<Beacon.Peer, Swift.Error>) in
-            print("[startOpenChannelListener][event]")
+            logger.info("[startOpenChannelListener][event]")
             guard let newPeer = result.get(ifFailure: completion) else { return }
 
             beaconClient.getOwnAppMetadata { appMetadataResult in
@@ -287,7 +290,7 @@ extension BeaconConnectService {
                                     self.eventsSubject.send(.beaconRequestedPermission(newPeer.toP2P()))
 
                                 case let .failure(error):
-                                    Logger.error("Error: \(error)")
+                                    logger.error("Error: \(error)")
                                     completion(.failure(error))
                                 }
                             }
@@ -304,14 +307,14 @@ fileprivate extension BeaconConnectService {
     func extractPeer(from deeplink: String) throws -> Beacon.P2PPeer {
         guard let message = URLComponents(string: deeplink)?.queryItems?.first(where: { $0.name == "data" })?.value,
               let messageData = Base58.base58CheckDecode(message) else {
-            Logger.info("[invalidDeeplink] \(deeplink)")
+            logger.info("[invalidDeeplink] \(deeplink)")
             throw AppError.invalidDeeplink
         }
 
         let decoder = JSONDecoder()
         let data = Data(messageData)
         guard let peer = try? decoder.decode(Beacon.P2PPeer.self, from: data) else {
-            Logger.info("[invalidDeeplink] \(deeplink)")
+            logger.info("[invalidDeeplink] \(deeplink)")
             throw AppError.invalidDeeplink
         }
 
