@@ -50,6 +50,9 @@ abstract class IAPApi {
     @Header("requester") String requester,
   );
 
+  @DELETE("/apis/v1/me")
+  Future deleteUserData();
+
   @POST("/apis/v1/me/identity-hash")
   Future<OnesignalIdentityHash> generateIdentityHash(
       @Body() Map<String, String> body);

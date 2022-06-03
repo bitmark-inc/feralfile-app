@@ -144,7 +144,7 @@ class UpgradesView extends StatelessWidget {
           ),
           SizedBox(height: 16),
           Text(
-              "*Coming in May: View your collection on TVs and projectors. Preserve and authentificate your artworks for the long-term.",
+              "*Google TV app plus AirPlay & Chromecast streaming",
               style: theme.textTheme.headline5),
           SizedBox(height: 40),
           AuFilledButton(

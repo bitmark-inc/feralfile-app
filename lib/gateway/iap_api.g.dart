@@ -107,6 +107,21 @@ class _IAPApi implements IAPApi {
   }
 
   @override
+  Future<dynamic> deleteUserData() async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    final _data = <String, dynamic>{};
+    final _result = await _dio.fetch(_setStreamType<dynamic>(
+        Options(method: 'DELETE', headers: _headers, extra: _extra)
+            .compose(_dio.options, '/apis/v1/me',
+                queryParameters: queryParameters, data: _data)
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+    final value = _result.data;
+    return value;
+  }
+
+  @override
   Future<OnesignalIdentityHash> generateIdentityHash(body) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
