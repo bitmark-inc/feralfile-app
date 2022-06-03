@@ -10,6 +10,7 @@ import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_box_view.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -30,10 +31,14 @@ enum ActionState { notRequested, loading, error, done }
 const SHOW_DIALOG_DURATION = const Duration(seconds: 2);
 const SHORT_SHOW_DIALOG_DURATION = const Duration(seconds: 1);
 
-void doneOnboarding(BuildContext context) {
+void doneOnboarding(BuildContext context) async {
   injector<ConfigurationService>().setDoneOnboarding(true);
   Navigator.of(context)
       .pushNamedAndRemoveUntil(AppRouter.homePage, (route) => false);
+
+  if (injector<ConfigurationService>().getUXGuideStep() == null) {
+    await injector<NavigationService>().navigateTo(AppRouter.uxGuidePage);
+  }
 }
 
 class UIHelper {
