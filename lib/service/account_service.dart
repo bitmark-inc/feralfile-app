@@ -197,7 +197,9 @@ class AccountServiceImpl extends AccountService {
         await _tezosBeaconService.removePeer(peer);
       }
 
-      await setHidePersonaInGallery(persona.uuid, false);
+      if ((await _cloudDB.personaDao.getDefaultPersonas()).isNotEmpty) {
+        await setHidePersonaInGallery(persona.uuid, false);
+      }
     } catch (exception) {
       Sentry.captureException(exception);
     }

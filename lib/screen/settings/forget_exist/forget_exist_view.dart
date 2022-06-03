@@ -21,7 +21,7 @@ class ForgetExistView extends StatelessWidget {
     return BlocConsumer<ForgetExistBloc, ForgetExistState>(
         listener: (context, state) async {
       if (state.isProcessing == false) {
-        Navigator.of(context).pushReplacementNamed(AppRouter.onboardingPage);
+        Navigator.of(context).pushNamedAndRemoveUntil(AppRouter.onboardingPage, (_) => false);
       }
     }, builder: (context, state) {
       return Container(
