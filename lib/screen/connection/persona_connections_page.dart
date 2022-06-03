@@ -223,6 +223,9 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
               case CryptoType.XTZ:
                 scanItem = ScannerItem.BEACON_CONNECT;
                 break;
+              case CryptoType.BITMARK:
+                // TODO: Handle this case.
+                break;
             }
 
             Navigator.of(context)

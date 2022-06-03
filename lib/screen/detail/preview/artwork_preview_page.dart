@@ -105,7 +105,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
 
     _detector?.startListening();
 
-    WidgetsBinding.instance?.addObserver(this);
+    WidgetsBinding.instance.addObserver(this);
   }
 
   @override
@@ -143,7 +143,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     disableLandscapeMode();
     Wakelock.disable();
     routeObserver.unsubscribe(this);
-    WidgetsBinding.instance?.removeObserver(this);
+    WidgetsBinding.instance.removeObserver(this);
     _stopAllChromecastDevices();
     _controller?.dispose();
     _controller = null;

@@ -277,6 +277,9 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
             ? "${XtzAmountFormatter(fee.toInt()).format()} XTZ"
             : "${state.exchangeRate.xtzToUsd(fee.toInt())} USD";
         break;
+      case CryptoType.BITMARK:
+        // TODO: Handle this case.
+        break;
     }
     return text;
   }
