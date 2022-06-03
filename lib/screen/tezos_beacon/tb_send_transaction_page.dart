@@ -72,7 +72,16 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
       setState(() {
         _fee = fee;
       });
+    } on TezartNodeError catch (err) {
+      log.info(err);
+      UIHelper.showInfoDialog(
+        context,
+        "Estimation failed",
+        "The operation cannot be calculated. Please make sure your have enough crypto to perform this action.",
+        isDismissible: true,
+      );
     } catch (err) {
+      showErrorDialogFromException(err);
       log.warning(err);
     }
   }
