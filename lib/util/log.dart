@@ -47,18 +47,14 @@ Future<String> getLogFolderPath() async {
   return tempDir.path + "/logs";
 }
 
-Future<List<String>> getLogFiles() async {
+Future<File> getLogFile() async {
   final directory = await getLogFolderPath();
-  return Directory(directory).listSync().map((e) => e.path).toList();
+  final fileName = "${await getDeviceID() ?? "unknown"}_1.log";
+  return _createLogFile("$directory/$fileName");
 }
 
-Future<String> getLatestLogFile() async {
-  final directory = await getLogFolderPath();
-  final fileList = Directory(directory).listSync();
-  fileList.sort(((a, b) => b.path.compareTo(a.path)));
-
-  return fileList.map((e) => e.path).toList().first;
-}
+Future<File> _createLogFile(canonicalLogFileName) async =>
+    File(canonicalLogFileName).create(recursive: true);
 
 int? decodeErrorResponse(dynamic e) {
   if (e is DioError && e.type == DioErrorType.response) {
@@ -71,29 +67,33 @@ class FileLogger {
   static final _lock =
       synchronization.Lock(); // uses the “synchronized” package
   static late File _logFile;
+  static const shrinkSize = 2 * 1024 * 1024; // 2MB
 
   static Future initializeLogging() async {
-    DateTime now = new DateTime.now();
-    final directory = await getLogFolderPath();
-    final fileName =
-        "${await getDeviceID() ?? ""}_${now.year}${now.month}${now.day}.log";
-    _logFile = await _createLogFile("$directory/$fileName");
+    _logFile = await getLogFile();
+
+    final current = await _logFile.readAsBytes();
+    if (current.length > shrinkSize) {
+      _logFile.writeAsBytes(current.sublist(current.length - shrinkSize));
+    }
+
     final text = '${new DateTime.now()}: LOGGING STARTED\n';
 
     /// per its documentation, `writeAsString` “Opens the file, writes
     /// the string in the given encoding, and closes the file”
-    return _logFile.writeAsString(text, mode: FileMode.write, flush: true);
+    _logFile.writeAsString(text, mode: FileMode.append, flush: true);
+    return _logFile;
   }
 
   static Future log(LogRecord record) async {
     final text = '${record.toString()}\n';
     return _lock.synchronized(() async {
-      await _logFile.writeAsString(text, mode: FileMode.append, flush: true);
+      await _logFile.writeAsString("${record.time}: $text",
+          mode: FileMode.append, flush: true);
+
+      print((await _logFile.readAsBytes()).length);
     });
   }
-
-  static Future<File> _createLogFile(canonicalLogFileName) async =>
-      File(canonicalLogFileName).create(recursive: true);
 }
 
 class SentryBreadcrumbLogger {
