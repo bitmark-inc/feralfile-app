@@ -10,6 +10,7 @@ import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:sentry/sentry.dart';
 import 'dart:convert';
 
@@ -37,7 +38,9 @@ class LoggingInterceptor extends Interceptor {
       Response response, ResponseInterceptorHandler handler) async {
     final curl = cURLRepresentation(response.requestOptions);
     final message = response.toString();
-    if (RegExp(r'.*support.*\/issues.*').hasMatch(curl)) {
+    bool _isHasMatchRegexCurl = await compute(computeHasMatchRegexCurl, curl);
+
+    if (_isHasMatchRegexCurl) {
       final request = response.requestOptions;
       apiLog.info("API Request: ${request.method} ${request.uri.toString()}");
     } else {
@@ -45,8 +48,8 @@ class LoggingInterceptor extends Interceptor {
     }
 
     try {
-      final _ =
-          logFilterResponseRegex.firstWhere((regex) => regex.hasMatch(curl));
+      final _ = await compute(computeFilterRegexCurl, curl);
+
       apiLog.info("API Response Status: ${response.statusCode}");
     } catch (_) {
       apiLog.info("API Response: $message");
@@ -139,4 +142,17 @@ class AutonomyAuthInterceptor extends Interceptor {
 
     return handler.next(options);
   }
+}
+
+// use isolate for expensive task
+Future<RegExp> computeFilterRegexCurl(dynamic curl) async {
+  List<RegExp> _logFilterRegex = [RegExp(r'.*\/nft.*')];
+  RegExp _regExp = _logFilterRegex.firstWhere((regex) => regex.hasMatch(curl));
+  return _regExp;
+}
+
+// use isolate for expensive task
+Future<bool> computeHasMatchRegexCurl(dynamic curl) async {
+  bool _isCurlHasMatch = RegExp(r'.*support.*\/issues.*').hasMatch(curl);
+  return _isCurlHasMatch;
 }
