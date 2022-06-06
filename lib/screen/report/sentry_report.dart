@@ -38,7 +38,7 @@ Future<String> reportSentry(Map payload) async {
 }
 
 Future _addAttachment(Scope scope) async {
-  final logFilePath = await getLatestLogFile();
+  final logFilePath = (await getLogFile()).path;
   final attachment =
       IoSentryAttachment.fromPath(logFilePath, filename: basename(logFilePath));
   scope.addAttachment(attachment);

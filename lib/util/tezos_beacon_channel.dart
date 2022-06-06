@@ -133,19 +133,23 @@ class TezosBeaconChannel {
                 final String? gasLimit = element["gasLimit"];
                 final String? fee = element["fee"];
                 final String? entrypoint = element["entrypoint"];
+                final String? counter = element["counter"];
                 final dynamic parameters =
                     json.decode(json.encode(element["parameters"]));
 
-                operations.add(TransactionOperation(
+                var operation = TransactionOperation(
                     amount: int.parse(amount),
                     destination: destination,
                     entrypoint: entrypoint,
                     params: parameters,
                     customFee: fee != null ? int.parse(fee) : null,
                     customGasLimit:
-                        gasLimit != null ? int.parse(gasLimit) : 100000,
+                        gasLimit != null ? int.parse(gasLimit) : 1000000,
                     customStorageLimit:
-                        storageLimit != null ? int.parse(storageLimit) : 1000));
+                        storageLimit != null ? int.parse(storageLimit) : 10000);
+                operation.counter = int.tryParse(counter ?? "");
+
+                operations.add(operation);
               });
 
               request.operations = operations;

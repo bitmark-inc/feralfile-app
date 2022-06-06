@@ -10,6 +10,7 @@ import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:sentry/sentry.dart';
 import 'dart:convert';
 
@@ -17,8 +18,6 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 
 class LoggingInterceptor extends Interceptor {
   LoggingInterceptor();
-
-  final logFilterRegex = [RegExp(r'.*\/nft.*')];
 
   @override
   void onError(DioError err, ErrorInterceptorHandler handler) {
@@ -34,12 +33,19 @@ class LoggingInterceptor extends Interceptor {
       Response response, ResponseInterceptorHandler handler) async {
     final curl = cURLRepresentation(response.requestOptions);
     final message = response.toString();
-    apiLog.info("API Request: $curl");
+    bool _shortCurlLog = await compute(shortCurlLog, curl);
 
-    try {
-      final _ = logFilterRegex.firstWhere((regex) => regex.hasMatch(curl));
+    if (_shortCurlLog) {
+      final request = response.requestOptions;
+      apiLog.info("API Request: ${request.method} ${request.uri.toString()}");
+    } else {
+      apiLog.info("API Request: $curl");
+    }
+
+    bool _shortAPIResponseLog = await compute(shortAPIResponseLog, curl);
+    if (_shortAPIResponseLog) {
       apiLog.info("API Response Status: ${response.statusCode}");
-    } catch (_) {
+    } else {
       apiLog.info("API Response: $message");
     }
 
@@ -130,4 +136,27 @@ class AutonomyAuthInterceptor extends Interceptor {
 
     return handler.next(options);
   }
+}
+
+// use isolate for expensive task
+Future<bool> shortAPIResponseLog(dynamic curl) async {
+  bool _regExp;
+  try {
+    List<RegExp> _logFilterRegex = [
+      RegExp(r'.*\/nft.*'),
+      RegExp(r'.*support.*\/issues.*'),
+    ];
+
+    _logFilterRegex.firstWhere((regex) => regex.hasMatch(curl));
+    _regExp = true;
+  } catch (_) {
+    _regExp = false;
+  }
+  return _regExp;
+}
+
+// use isolate for expensive task
+Future<bool> shortCurlLog(dynamic curl) async {
+  bool _isCurlHasMatch = RegExp(r'.*support.*\/issues.*').hasMatch(curl);
+  return _isCurlHasMatch;
 }
