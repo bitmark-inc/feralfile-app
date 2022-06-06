@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
+import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:bubble/bubble.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -21,7 +22,6 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/customer_support.dart' as app;
 import 'package:autonomy_flutter/model/customer_support.dart';
-import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart' as logUtil;
@@ -357,8 +357,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   }
 
   Future _addAppLogs() async {
-    final logFilePath = await logUtil.getLatestLogFile();
-    File file = File(logFilePath);
+    final file = await logUtil.getLogFile();
     final bytes = await file.readAsBytes();
     final auditBytes = await injector<AuditService>().export();
     final combinedBytes = bytes + auditBytes;

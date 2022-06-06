@@ -45,6 +45,10 @@
 		764F859B27D810EB00B67672 /* Result+Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764F859A27D810EB00B67672 /* Result+Helpers.swift */; };
 		764F859C27D810EB00B67672 /* Result+Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764F859A27D810EB00B67672 /* Result+Helpers.swift */; };
 		764F859E27D9E19400B67672 /* ErrorHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764F859D27D9E19400B67672 /* ErrorHandler.swift */; };
+		766DF45E2849FC0E00731ADE /* FileLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 766DF45D2849FC0E00731ADE /* FileLogger.swift */; };
+		766DF45F2849FC0E00731ADE /* FileLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 766DF45D2849FC0E00731ADE /* FileLogger.swift */; };
+		766DF4622849FCD700731ADE /* Logging in Frameworks */ = {isa = PBXBuildFile; productRef = 766DF4612849FCD700731ADE /* Logging */; };
+		766DF4642849FCEF00731ADE /* Logging in Frameworks */ = {isa = PBXBuildFile; productRef = 766DF4632849FCEF00731ADE /* Logging */; };
 		768D9FDC27F5669D0016928E /* LaunchScreenInhouse.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 768D9FDA27F566950016928E /* LaunchScreenInhouse.storyboard */; };
 		768E7EE927C770D000585D12 /* SystemChannelHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 768E7EE827C770D000585D12 /* SystemChannelHandler.swift */; };
 		768E7EEB27CE4C5D00585D12 /* CloudKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 768E7EEA27CE4C5D00585D12 /* CloudKitManager.swift */; };
@@ -187,6 +191,7 @@
 		764F859827D7348000B67672 /* BeaconConnectService+PostMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BeaconConnectService+PostMessage.swift"; sourceTree = "<group>"; };
 		764F859A27D810EB00B67672 /* Result+Helpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Result+Helpers.swift"; sourceTree = "<group>"; };
 		764F859D27D9E19400B67672 /* ErrorHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorHandler.swift; sourceTree = "<group>"; };
+		766DF45D2849FC0E00731ADE /* FileLogger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FileLogger.swift; sourceTree = "<group>"; };
 		768D9FDA27F566950016928E /* LaunchScreenInhouse.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreenInhouse.storyboard; sourceTree = "<group>"; };
 		768E7EE827C770D000585D12 /* SystemChannelHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemChannelHandler.swift; sourceTree = "<group>"; };
 		768E7EEA27CE4C5D00585D12 /* CloudKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudKitManager.swift; sourceTree = "<group>"; };
@@ -255,6 +260,7 @@
 				76F3289F27D1EC1C00C3B9FA /* BeaconBlockchainTezos in Frameworks */,
 				58A4B4F727E33AA0001F30D2 /* libsqlite3.tbd in Frameworks */,
 				76F328A027D1EC1C00C3B9FA /* LibAuk in Frameworks */,
+				766DF4642849FCEF00731ADE /* Logging in Frameworks */,
 				76AA1D4D280787D800E21A83 /* BeaconBlockchainSubstrate in Frameworks */,
 				76F328A127D1EC1C00C3B9FA /* BeaconTransportP2PMatrix in Frameworks */,
 				76F328A227D1EC1C00C3B9FA /* BeaconClientWallet in Frameworks */,
@@ -274,6 +280,7 @@
 				76AA1D4B2806E79000E21A83 /* BeaconBlockchainSubstrate in Frameworks */,
 				63F1665127B2509F00451AAA /* BeaconTransportP2PMatrix in Frameworks */,
 				63F1664D27B2509F00451AAA /* BeaconClientWallet in Frameworks */,
+				766DF4622849FCD700731ADE /* Logging in Frameworks */,
 				63F1664F27B2509F00451AAA /* BeaconCore in Frameworks */,
 				C577A25E2C1FF997DB2CF183 /* Pods_Runner.framework in Frameworks */,
 				1F16F41836304671E2A6E53A /* Pods_Runner.framework in Frameworks */,
@@ -361,6 +368,15 @@
 			path = "Runner Notification";
 			sourceTree = "<group>";
 		};
+		766DF45C2849FBF900731ADE /* Logger */ = {
+			isa = PBXGroup;
+			children = (
+				63A61E1A27EAD2B3005684DD /* Logger.swift */,
+				766DF45D2849FC0E00731ADE /* FileLogger.swift */,
+			);
+			path = Logger;
+			sourceTree = "<group>";
+		};
 		9740EEB11CF90186004384FC /* Flutter */ = {
 			isa = PBXGroup;
 			children = (
@@ -399,6 +415,7 @@
 		97C146F01CF9000F007C117D /* Runner */ = {
 			isa = PBXGroup;
 			children = (
+				766DF45C2849FBF900731ADE /* Logger */,
 				581747E327D7131D0070EB48 /* Settings.bundle */,
 				63BF0E5F27B0270E00E8B299 /* Runner.entitlements */,
 				588939D928052F8C00FE3313 /* RunnerDebug.entitlements */,
@@ -414,7 +431,6 @@
 				1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */,
 				74858FAE1ED2DC5600515810 /* AppDelegate.swift */,
 				768E7EE827C770D000585D12 /* SystemChannelHandler.swift */,
-				63A61E1A27EAD2B3005684DD /* Logger.swift */,
 				63F1665227B250D600451AAA /* BeaconConnectService.swift */,
 				632FC2F527B4F51E00336DCE /* BeaconConnectService+Helpers.swift */,
 				6399594127B2C2FA002653E7 /* BeaconChannelHandler.swift */,
@@ -498,6 +514,7 @@
 				76F3288F27D1EC1C00C3B9FA /* BeaconCore */,
 				76F3289027D1EC1C00C3B9FA /* BeaconTransportP2PMatrix */,
 				76AA1D4C280787D800E21A83 /* BeaconBlockchainSubstrate */,
+				766DF4632849FCEF00731ADE /* Logging */,
 			);
 			productName = Runner;
 			productReference = 76F328B127D1EC1C00C3B9FA /* Runner Inhouse.app */;
@@ -530,6 +547,7 @@
 				63F1664E27B2509F00451AAA /* BeaconCore */,
 				63F1665027B2509F00451AAA /* BeaconTransportP2PMatrix */,
 				76AA1D4A2806E79000E21A83 /* BeaconBlockchainSubstrate */,
+				766DF4612849FCD700731ADE /* Logging */,
 			);
 			productName = Runner;
 			productReference = 97C146EE1CF9000F007C117D /* Runner.app */;
@@ -569,6 +587,7 @@
 			packageReferences = (
 				63CED4A627AE9DFC00699ED5 /* XCRemoteSwiftPackageReference "libauk-swift" */,
 				63F1664927B2509F00451AAA /* XCRemoteSwiftPackageReference "beacon-ios-sdk" */,
+				766DF4602849FCD700731ADE /* XCRemoteSwiftPackageReference "swift-log" */,
 			);
 			productRefGroup = 97C146EF1CF9000F007C117D /* Products */;
 			projectDirPath = "";
@@ -829,6 +848,7 @@
 			files = (
 				76F3289427D1EC1C00C3B9FA /* BeaconChannelHandler.swift in Sources */,
 				636F522327E0A06C006A9101 /* ErrorHandler.swift in Sources */,
+				766DF45F2849FC0E00731ADE /* FileLogger.swift in Sources */,
 				76F3289527D1EC1C00C3B9FA /* AppDelegate.swift in Sources */,
 				76F3289627D1EC1C00C3B9FA /* CloudKitManager.swift in Sources */,
 				76F3289727D1EC1C00C3B9FA /* CloudChannelHandler.swift in Sources */,
@@ -852,6 +872,7 @@
 			files = (
 				6399594227B2C2FA002653E7 /* BeaconChannelHandler.swift in Sources */,
 				74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */,
+				766DF45E2849FC0E00731ADE /* FileLogger.swift in Sources */,
 				764F859927D7348000B67672 /* BeaconConnectService+PostMessage.swift in Sources */,
 				768E7EEB27CE4C5D00585D12 /* CloudKitManager.swift in Sources */,
 				768E7EED27CE506600585D12 /* CloudChannelHandler.swift in Sources */,
@@ -1953,6 +1974,14 @@
 				revision = 140c4a1526fee625641f5e8d2beafafd037abd22;
 			};
 		};
+		766DF4602849FCD700731ADE /* XCRemoteSwiftPackageReference "swift-log" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-log.git";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
 		76F3288B27D1EC1C00C3B9FA /* XCRemoteSwiftPackageReference "libauk-swift.git" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/bitmark-inc/libauk-swift.git";
@@ -1996,6 +2025,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 63F1664927B2509F00451AAA /* XCRemoteSwiftPackageReference "beacon-ios-sdk" */;
 			productName = BeaconTransportP2PMatrix;
+		};
+		766DF4612849FCD700731ADE /* Logging */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 766DF4602849FCD700731ADE /* XCRemoteSwiftPackageReference "swift-log" */;
+			productName = Logging;
+		};
+		766DF4632849FCEF00731ADE /* Logging */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 766DF4602849FCD700731ADE /* XCRemoteSwiftPackageReference "swift-log" */;
+			productName = Logging;
 		};
 		76AA1D4A2806E79000E21A83 /* BeaconBlockchainSubstrate */ = {
 			isa = XCSwiftPackageProductDependency;
