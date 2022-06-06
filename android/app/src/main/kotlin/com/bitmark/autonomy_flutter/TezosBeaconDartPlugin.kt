@@ -30,6 +30,7 @@ import it.airgap.beaconsdk.blockchain.tezos.message.response.SignPayloadTezosRes
 import it.airgap.beaconsdk.blockchain.tezos.tezos
 import it.airgap.beaconsdk.client.wallet.BeaconWalletClient
 import it.airgap.beaconsdk.core.data.*
+import it.airgap.beaconsdk.core.internal.data.HexString
 import it.airgap.beaconsdk.core.internal.utils.*
 import it.airgap.beaconsdk.core.message.*
 import it.airgap.beaconsdk.transport.p2p.matrix.p2pMatrix
@@ -129,13 +130,13 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
                             params["appName"] = operationRequest.appMetadata?.name ?: ""
                             params["sourceAddress"] = operationRequest.sourceAddress
 
-                            fun getParams(value: MichelineMichelsonV1Expression): Map<String, Any> {
+                            fun getParams(value: MichelineMichelsonV1Expression): Any? {
                                 val result: HashMap<String, Any> = HashMap()
 
                                 when (value) {
                                     is MichelinePrimitiveApplication -> {
                                         result["prim"] = value.prim
-                                        value.args?.map { arg -> getParams(arg) }?.let {
+                                        value.args?.mapNotNull { arg -> getParams(arg) }?.let {
                                             result["args"] = it
                                         }
                                     }
@@ -146,11 +147,10 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
                                         result["string"] = value.string
                                     }
                                     is MichelinePrimitiveBytes -> {
-                                        result["bytes"] = value.bytes
+                                        result["bytes"] = HexString(value.bytes).asString(withPrefix = false)
                                     }
                                     is MichelineNode -> {
-                                        result["expressions"] =
-                                            value.expressions.map { arg -> getParams(arg) }
+                                        return value.expressions.map { arg -> getParams(arg) }
                                     }
                                 }
 
@@ -161,6 +161,9 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
                             operationRequest.operationDetails.forEach { operation ->
                                 (operation as? TezosTransactionOperation)?.let { transaction ->
                                     val detail: HashMap<String, Any> = HashMap()
+                                    transaction.destination.let {
+                                        detail["destination"] = it
+                                    }
                                     transaction.source?.let {
                                         detail["source"] = it
                                     }
