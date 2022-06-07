@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/database/dao/provenance_dao.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/gateway/indexer_api.dart';
+import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
@@ -72,6 +73,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     });
 
     on<SubRefreshTokensEvent>((event, emit) async {
+      if (!memoryValues.inGalleryView) return;
       final assetTokens =
           await _assetTokenDao.findAllAssetTokensWhereNot(_hiddenOwners);
       emit(state.copyWith(tokens: assetTokens));
