@@ -73,7 +73,7 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
                 handlePostMessageMessage(call, result)
             "addPeer" -> {
                 val link: String = call.argument("link") ?: ""
-                addPeer(link)
+                addPeer(link, result)
             }
             "removePeer" ->
                 removePeers()
@@ -526,13 +526,16 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
             }
             beaconClient?.respond(response)
             removeAwaitingRequest()
+            result.success(mapOf("error" to 0))
         }
     }
 
-    private fun addPeer(link: String) {
+    private fun addPeer(link: String, result: Result) {
         val peer = extractPeer(link)
         CoroutineScope(Dispatchers.IO).launch {
             beaconClient?.addPeers(peer)
+            val jsonPeer = jsonKT.encodeToString(peer)
+            result.success(mapOf("error" to 0, "result" to jsonPeer))
         }
     }
 
