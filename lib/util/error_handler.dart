@@ -242,11 +242,12 @@ void showErrorDialogFromException(Object exception,
   injector<AWSService>().storeEventWithDeviceData("unhandled_error",
       data: {"message": exception.toString()});
 
-  if (library != null) {
+  if (library != null ||
+      exception.toString().contains("Future already completed")) {
     // Send error directly to Sentry if it comes from specific libraries
     Sentry.captureException(exception,
         stackTrace: stackTrace,
-        withScope: (Scope? scope) => scope?.setTag("library", library));
+        withScope: (Scope? scope) => scope?.setTag("library", library ?? ''));
     return;
   }
 

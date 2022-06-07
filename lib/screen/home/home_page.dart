@@ -23,7 +23,6 @@ import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
-import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tokens_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
@@ -80,6 +79,7 @@ class _HomePageState extends State<HomePage>
         _handleNotificationClicked(openedResult.notification);
       });
     });
+    memoryValues.inGalleryView = true;
   }
 
   @override
@@ -116,6 +116,13 @@ class _HomePageState extends State<HomePage>
         context.read<HomeBloc>().add(ReindexIndexerEvent());
       });
     }
+    memoryValues.inGalleryView = true;
+  }
+
+  @override
+  void didPushNext() {
+    memoryValues.inGalleryView = false;
+    super.didPushNext();
   }
 
   @override
@@ -480,5 +487,6 @@ class _HomePageState extends State<HomePage>
     injector<TokensService>().disposeIsolate();
     _deeplinkSubscription?.pause();
     _cloudBackup();
+    FileLogger.shrinkLogFileIfNeeded();
   }
 }

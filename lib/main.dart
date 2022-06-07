@@ -143,11 +143,13 @@ class MemoryValues {
   String? scopedPersona;
   String? viewingSupportThreadIssueID;
   DateTime? inForegroundAt;
+  bool inGalleryView;
 
   MemoryValues({
     this.scopedPersona,
     this.viewingSupportThreadIssueID,
     this.inForegroundAt,
+    this.inGalleryView = true,
   });
 
   MemoryValues copyWith({

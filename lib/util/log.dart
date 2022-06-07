@@ -9,6 +9,7 @@ import 'dart:core';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -66,6 +67,10 @@ class FileLogger {
   static const shrinkSize = 2 * 1024 * 1024; // 2MB
 
   static Future initializeLogging() async {
+    shrinkLogFileIfNeeded();
+  }
+
+  static Future<File> shrinkLogFileIfNeeded() async {
     _logFile = await getLogFile();
 
     final current = await _logFile.readAsBytes();
@@ -78,6 +83,7 @@ class FileLogger {
     /// per its documentation, `writeAsString` “Opens the file, writes
     /// the string in the given encoding, and closes the file”
     _logFile.writeAsString(text, mode: FileMode.append, flush: true);
+
     return _logFile;
   }
 

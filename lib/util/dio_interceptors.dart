@@ -31,6 +31,11 @@ class LoggingInterceptor extends Interceptor {
   @override
   Future onResponse(
       Response response, ResponseInterceptorHandler handler) async {
+    handler.next(response);
+    writeAPILog(response);
+  }
+
+  Future writeAPILog(Response response) async {
     final curl = cURLRepresentation(response.requestOptions);
     final message = response.toString();
     bool _shortCurlLog = await compute(shortCurlLog, curl);
@@ -48,8 +53,6 @@ class LoggingInterceptor extends Interceptor {
     } else {
       apiLog.info("API Response: $message");
     }
-
-    return handler.next(response);
   }
 
   String cURLRepresentation(RequestOptions options) {
