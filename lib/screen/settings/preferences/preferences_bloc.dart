@@ -7,9 +7,11 @@
 
 import 'dart:io';
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/biometrics_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/notification_util.dart';
@@ -57,6 +59,7 @@ class PreferencesBloc extends Bloc<PreferenceEvent, PreferenceState> {
           state.isImmediatePlaybackEnabled) {
         await _configurationService.setImmediatePlaybackEnabled(
             event.newState.isImmediatePlaybackEnabled);
+        injector<SettingsDataService>().backup();
       }
 
       if (event.newState.isDevicePasscodeEnabled !=
@@ -97,6 +100,7 @@ class PreferencesBloc extends Bloc<PreferenceEvent, PreferenceState> {
       if (event.newState.isAnalyticEnabled != state.isAnalyticEnabled) {
         await _configurationService
             .setAnalyticEnabled(event.newState.isAnalyticEnabled);
+        injector<SettingsDataService>().backup();
       }
 
       emit(event.newState);

@@ -87,7 +87,6 @@ dependencies:
   page_transition: ^2.0.5
   path_provider: ^2.0.9
   permission_handler: ^9.2.0
-  qr_code_scanner: ^0.7.0
   qr_flutter: ^4.0.0
   retrofit: null
   roundcheckbox: ^2.0.4+1
@@ -104,7 +103,7 @@ dependencies:
   uni_links: ^0.5.1
   url_launcher: ^6.0.20
   uuid: ^3.0.5
-  video_player: ^2.2.19
+  video_player: ^2.4.2
   wallet_connect:
     git: https://github.com/autonomy-system/wallet-connect-dart.git
   web3dart: ^2.3.3
@@ -119,6 +118,10 @@ dependency_overrides:
     git:
       url: https://github.com/bluefireteam/photo_view
       ref: master
+  qr_code_scanner:
+      git:
+          url: https://github.com/X-SLAYER/qr_code_scanner.git
+          ref: flutter-beta
 
 dev_dependencies:
   build_runner: null
@@ -142,12 +145,15 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - .env
+    - assets/images/arrow.svg
+    - assets/images/arrow_2.svg
     - assets/images/penrose.svg
     - assets/images/penrose_appcenter.svg
     - assets/images/lock_penrose.svg
     - assets/images/lock_penrose_appcenter.png
     - assets/images/penrose_onboarding.png
     - assets/images/penrose_onboarding_appcenter.png
+    - assets/images/guidedPenrose.svg
     - assets/images/iconQr.svg
     - assets/images/iconEth.svg
     - assets/images/iconUsd.svg
@@ -159,6 +165,7 @@ flutter:
     - assets/images/iconCloudOff.svg
     - assets/images/iconCustomerSupport.svg
     - assets/images/iconForward.svg
+    - assets/images/iconInfo.svg
     - assets/images/iconSharpFeedback.svg
     - assets/images/cil_external-link.svg
     - assets/images/tezos_social_icon.svg
@@ -173,6 +180,7 @@ flutter:
     - assets/images/temple_wallet.png
     - assets/images/tezos_wallet.png
     - assets/images/premium_comparation.svg
+    - assets/images/premium_comparation_light.svg
     - assets/images/face_id.svg
     - assets/images/touch_id.svg
     - assets/images/cloudOff.svg
@@ -180,7 +188,7 @@ flutter:
     - assets/images/cloudEncryption.svg
     - assets/images/nav-arrow-left.svg
     - assets/images/image_error.svg
-    - assets/images/cast.svg
+    - assets/images/chromecast.svg
     - assets/images/notification_onboarding.svg
     #   - images/a_dot_ham.jpeg
     - assets/images/joinFile.svg
@@ -215,3 +223,4 @@ flutter:
         - asset: fonts/IBMPlexMono/IBMPlexMono-Regular.ttf
         - asset: fonts/IBMPlexMono/IBMPlexMono-Bold.ttf
           weight: 700
+        - asset: fonts/IBMPlexMono/IBMPlexMono-SemiBold.ttf

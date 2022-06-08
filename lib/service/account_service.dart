@@ -18,6 +18,7 @@ import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/android_backup_channel.dart';
@@ -45,6 +46,7 @@ abstract class AccountService {
   Future<Connection> linkETHWallet(WCConnectedSession session);
   Future<Connection> linkETHBrowserWallet(String address, WalletApp walletApp);
   Future linkManuallyAddress(String address);
+  Future<bool> isLinkedIndexerTokenID(String indexerTokenID);
   Future deletePersona(Persona persona);
   Future deleteLinkedAccount(Connection connection);
   Future linkIndexerTokenID(String indexerTokenID);
@@ -195,7 +197,9 @@ class AccountServiceImpl extends AccountService {
         await _tezosBeaconService.removePeer(peer);
       }
 
-      await setHidePersonaInGallery(persona.uuid, false);
+      if ((await _cloudDB.personaDao.getDefaultPersonas()).isNotEmpty) {
+        await setHidePersonaInGallery(persona.uuid, false);
+      }
     } catch (exception) {
       Sentry.captureException(exception);
     }
@@ -237,6 +241,14 @@ class AccountServiceImpl extends AccountService {
     );
 
     await _cloudDB.connectionDao.insertConnection(connection);
+  }
+
+  Future<bool> isLinkedIndexerTokenID(String indexerTokenID) async {
+    final connection = await _cloudDB.connectionDao.findById(indexerTokenID);
+    if (connection == null) return false;
+
+    return connection.connectionType ==
+        ConnectionType.manuallyIndexerTokenID.rawValue;
   }
 
   Future<Connection> linkETHWallet(WCConnectedSession session) async {
@@ -286,11 +298,15 @@ class AccountServiceImpl extends AccountService {
   }
 
   Future setHidePersonaInGallery(String personaUUID, bool isEnabled) async {
-    _configurationService.setHidePersonaInGallery(personaUUID, isEnabled);
+    await _configurationService
+        .setHidePersonaInGallery([personaUUID], isEnabled);
+    injector<SettingsDataService>().backup();
   }
 
   Future setHideLinkedAccountInGallery(String address, bool isEnabled) async {
-    _configurationService.setHideLinkedAccountInGallery(address, isEnabled);
+    await _configurationService
+        .setHideLinkedAccountInGallery([address], isEnabled);
+    injector<SettingsDataService>().backup();
     injector<AWSService>().storeEventWithDeviceData("hide_linked_account",
         hashingData: {"address": address});
   }

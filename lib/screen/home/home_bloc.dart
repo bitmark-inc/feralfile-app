@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/database/dao/provenance_dao.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/gateway/indexer_api.dart';
+import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
@@ -40,16 +41,17 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
   List<String> _hiddenOwners = [];
 
-  Future fetchManuallyTokens() async {
+  Future<List<String>> fetchManuallyTokens() async {
     final tokenIndexerIDs = (await _cloudDB.connectionDao.getConnectionsByType(
             ConnectionType.manuallyIndexerTokenID.rawValue))
         .map((e) => e.key)
         .toList();
-    if (tokenIndexerIDs.isEmpty) return;
+    if (tokenIndexerIDs.isEmpty) return [];
 
     final manuallyAssets =
         (await _indexerApi.getNftTokens({"ids": tokenIndexerIDs}));
     await _tokensService.insertAssetsWithProvenance(manuallyAssets);
+    return tokenIndexerIDs;
   }
 
   HomeBloc(
@@ -71,6 +73,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     });
 
     on<SubRefreshTokensEvent>((event, emit) async {
+      if (!memoryValues.inGalleryView) return;
       final assetTokens =
           await _assetTokenDao.findAllAssetTokensWhereNot(_hiddenOwners);
       emit(state.copyWith(tokens: assetTokens));
@@ -124,12 +127,12 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
           add(SubRefreshTokensEvent());
         } else {
-          await fetchManuallyTokens();
+          final debutTokenIDs = await fetchManuallyTokens();
           add(SubRefreshTokensEvent());
           log.info("[HomeBloc][start] _tokensService.refreshTokensInIsolate");
 
-          final stream =
-              await _tokensService.refreshTokensInIsolate(allAccountNumbers);
+          final stream = await _tokensService.refreshTokensInIsolate(
+              allAccountNumbers, debutTokenIDs);
           stream.listen((event) async {
             log.info("[Stream.refreshTokensInIsolate] getEVent");
             add(SubRefreshTokensEvent());

@@ -77,9 +77,9 @@ class _TVConnectPageState extends State<TVConnectPage>
     if (addresses.isEmpty) return;
 
     final chainId =
-    injector<ConfigurationService>().getNetwork() == Network.MAINNET
-        ? 1
-        : 4;
+        injector<ConfigurationService>().getNetwork() == Network.MAINNET
+            ? 1
+            : 4;
 
     var approvedAddresses = addresses;
     log.info(
@@ -88,15 +88,15 @@ class _TVConnectPageState extends State<TVConnectPage>
     final jwt = await injector<AuthService>().getAuthToken(forceRefresh: true);
     approvedAddresses.add(jwt.jwtToken);
 
-    await injector<WalletConnectService>()
-        .approveSession(Uuid().v4(), widget.wcConnectArgs.peerMeta, approvedAddresses, chainId);
+    await injector<WalletConnectService>().approveSession(
+        Uuid().v4(), widget.wcConnectArgs.peerMeta, approvedAddresses, chainId);
 
     Navigator.of(context).pop();
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
+    final theme = AuThemeManager.get(AppTheme.sheetTheme);
     final appTextTheme = theme.textTheme;
 
     return Scaffold(

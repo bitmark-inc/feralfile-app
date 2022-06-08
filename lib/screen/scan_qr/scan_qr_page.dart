@@ -15,7 +15,6 @@ import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -78,6 +77,9 @@ class _ScanQRPageState extends State<ScanQRPage> {
   Widget build(BuildContext context) {
     final qrSize = MediaQuery.of(context).size.width - 90;
 
+    var cutPaddingTop = qrSize + 430 - MediaQuery.of(context).size.height;
+    if (cutPaddingTop < 0) cutPaddingTop = 0;
+
     return BlocListener<FeralfileBloc, FeralFileState>(
       listener: (context, state) {
         final event = state.event;
@@ -111,35 +113,97 @@ class _ScanQRPageState extends State<ScanQRPage> {
               child: QRView(
                 key: qrKey,
                 overlay: QrScannerOverlayShape(
-                  borderColor: isScanDataError ? Colors.red : Colors.black,
+                  borderColor: isScanDataError ? Colors.red : Colors.white,
                   cutOutSize: qrSize,
-                  borderRadius: 20,
                   borderWidth: 8,
-                  borderLength: qrSize / 2,
+                  // borderRadius: 20,
+                  // borderLength: qrSize / 2,
+                  cutOutBottomOffset: cutPaddingTop,
                 ),
                 onQRViewCreated: _onQRViewCreated,
               ),
             ),
+            GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onTap: () => Navigator.of(context).pop(),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(15, 55, 15, 15),
+                  child: SvgPicture.asset('assets/images/iconClose_white.svg'),
+                )),
             Padding(
-              padding: const EdgeInsets.fromLTRB(15, 55, 15, 0),
-              child: GestureDetector(
-                  behavior: HitTestBehavior.translucent,
-                  onTap: () => Navigator.of(context).pop(),
-                  child: SvgPicture.asset('assets/images/iconClose_white.svg')),
-            ),
-            Padding(
-              padding: EdgeInsets.fromLTRB(0, qrSize + 40, 0, 0),
-              child: Center(
-                child: Text(
-                  "SCAN QR CODE",
-                  style: appTextTheme.button?.copyWith(color: Colors.white),
-                ),
-              ),
+              padding: EdgeInsets.fromLTRB(
+                  0,
+                  MediaQuery.of(context).size.height / 2 +
+                      qrSize / 2 +
+                      32 -
+                      cutPaddingTop,
+                  0,
+                  0),
+              child: Center(child: _instructionView()),
             ),
           ],
         ),
       ),
     );
+  }
+
+  Widget _instructionView() {
+    switch (widget.scannerItem) {
+      case ScannerItem.WALLET_CONNECT:
+      case ScannerItem.BEACON_CONNECT:
+      case ScannerItem.FERALFILE_TOKEN:
+      case ScannerItem.GLOBAL:
+        return Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              "Scan QR code to connect to".toUpperCase(),
+              style: appTextTheme.button?.copyWith(color: Colors.white),
+            ),
+            SizedBox(height: 24),
+            Text(
+              "Marketplaces",
+              style: appTextTheme.headline4
+                  ?.copyWith(color: Colors.white, fontSize: 12),
+            ),
+            Text('Such as OpenSea or objkt.com',
+                style: appTextTheme.bodyText1
+                    ?.copyWith(color: Colors.white, fontSize: 12)),
+            SizedBox(height: 16),
+            Text(
+              "Wallets",
+              style: appTextTheme.headline4
+                  ?.copyWith(color: Colors.white, fontSize: 12),
+            ),
+            Text('Such as MetaMask',
+                style: appTextTheme.bodyText1
+                    ?.copyWith(color: Colors.white, fontSize: 12)),
+            SizedBox(height: 16),
+            Text(
+              "Autonomy",
+              style: appTextTheme.headline4
+                  ?.copyWith(color: Colors.white, fontSize: 12),
+            ),
+            Text('on TV or desktop',
+                style: appTextTheme.bodyText1
+                    ?.copyWith(color: Colors.white, fontSize: 12)),
+          ],
+        );
+
+      case ScannerItem.ETH_ADDRESS:
+      case ScannerItem.XTZ_ADDRESS:
+        return Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              "SCAN QR CODE",
+              style: appTextTheme.button?.copyWith(color: Colors.white),
+            ),
+          ],
+        );
+    }
   }
 
   void _onQRViewCreated(QRViewController controller) {

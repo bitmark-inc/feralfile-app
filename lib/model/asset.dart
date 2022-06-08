@@ -5,9 +5,12 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:io';
+
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/model/provenance.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/string_ext.dart';
 
 class Asset {
   Asset({
@@ -196,7 +199,7 @@ class ProjectMetadataData {
         basePrice: json["basePrice"]?.toDouble(),
         source: json["source"],
         sourceUrl: json["sourceURL"],
-        previewUrl: _replaceIPFS(json["previewURL"]),
+        previewUrl: _replaceIPFSPreviewURL(json["previewURL"], json["medium"]),
         thumbnailUrl:
             _refineToCloudflareURL(json["thumbnailURL"], thumbailID, "preview"),
         galleryThumbnailUrl: _refineToCloudflareURL(
@@ -229,12 +232,19 @@ class ProjectMetadataData {
       };
 }
 
-String _replaceIPFS(String url) {
-  if (url.startsWith(DEFAULT_IPFS_PREFIX)) {
-    return url.replaceRange(
-        0, DEFAULT_IPFS_PREFIX.length, CLOUDFLARE_IPFS_PREFIX);
+String _replaceIPFSPreviewURL(String url, String medium) {
+  // Don't replace CloudflareIPFS in iOS
+  // iOS can't render a cloudfare video issue
+  // More information: https://stackoverflow.com/questions/33823411/avplayer-fails-to-play-video-sometimes
+  if (Platform.isIOS && medium == 'video') {
+    return url;
   }
-  return url;
+
+  return url.replacePrefix(DEFAULT_IPFS_PREFIX, CLOUDFLARE_IPFS_PREFIX);
+}
+
+String _replaceIPFS(String url) {
+  return url.replacePrefix(DEFAULT_IPFS_PREFIX, CLOUDFLARE_IPFS_PREFIX);
 }
 
 String _refineToCloudflareURL(String url, String thumbnailID, String variant) {

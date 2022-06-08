@@ -8,7 +8,9 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/settings/subscription/upgrade_box_view.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -29,10 +31,14 @@ enum ActionState { notRequested, loading, error, done }
 const SHOW_DIALOG_DURATION = const Duration(seconds: 2);
 const SHORT_SHOW_DIALOG_DURATION = const Duration(seconds: 1);
 
-void doneOnboarding(BuildContext context) {
+void doneOnboarding(BuildContext context) async {
   injector<ConfigurationService>().setDoneOnboarding(true);
   Navigator.of(context)
       .pushNamedAndRemoveUntil(AppRouter.homePage, (route) => false);
+
+  if (injector<ConfigurationService>().getUXGuideStep() == null) {
+    await injector<NavigationService>().navigateTo(AppRouter.uxGuidePage);
+  }
 }
 
 class UIHelper {
@@ -44,7 +50,7 @@ class UIHelper {
       FeedbackType? feedback = FeedbackType.selection}) async {
     log.info("[UIHelper] showInfoDialog: $title");
     currentDialogTitle = title;
-    final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
+    final theme = AuThemeManager.get(AppTheme.sheetTheme);
 
     if (feedback != null) {
       Vibrate.feedback(feedback);
@@ -88,7 +94,7 @@ class UIHelper {
       int autoDismissAfter = 0,
       FeedbackType? feedback = FeedbackType.selection}) async {
     log.info("[UIHelper] showInfoDialog: $title, $description");
-    final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
+    final theme = AuThemeManager.get(AppTheme.sheetTheme);
 
     if (autoDismissAfter > 0) {
       Future.delayed(
@@ -118,6 +124,42 @@ class UIHelper {
   static hideInfoDialog(BuildContext context) {
     currentDialogTitle = '';
     Navigator.popUntil(context, (route) => route.settings.name != null);
+  }
+
+  static Future<void> showLinkRequestedDialog(BuildContext context) {
+    final theme = AuThemeManager.get(AppTheme.sheetTheme);
+    return showDialog(
+        context,
+        'Link requested',
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            RichText(
+              text: TextSpan(children: [
+                TextSpan(
+                  style: theme.textTheme.bodyText1,
+                  text: "Autonomy has sent a request to ",
+                ),
+                TextSpan(
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontFamily: "AtlasGrotesk-Light",
+                      fontWeight: FontWeight.w700,
+                      height: 1.377),
+                  text: "Feral File",
+                ),
+                TextSpan(
+                  style: theme.textTheme.bodyText1,
+                  text:
+                      " in your mobile browser to link to your account. Please make sure you are signed in and authorize the request.",
+                ),
+              ]),
+            ),
+            SizedBox(height: 67),
+          ],
+        ),
+        isDismissible: true);
   }
 
   // MARK: - Connection
@@ -175,7 +217,7 @@ class UIHelper {
   // MARK: - Persona
   static showGeneratedPersonaDialog(BuildContext context,
       {required Function() onContinue}) {
-    final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
+    final theme = AuThemeManager.get(AppTheme.sheetTheme);
 
     showDialog(
         context,
@@ -216,7 +258,7 @@ class UIHelper {
 
   static showImportedPersonaDialog(BuildContext context,
       {required Function() onContinue}) {
-    final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
+    final theme = AuThemeManager.get(AppTheme.sheetTheme);
 
     showDialog(
         context,
@@ -257,7 +299,7 @@ class UIHelper {
 
   static showHideArtworkResultDialog(BuildContext context, bool isHidden,
       {required Function() onOK}) {
-    final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
+    final theme = AuThemeManager.get(AppTheme.sheetTheme);
 
     showDialog(
         context,
@@ -317,7 +359,7 @@ class UIHelper {
 
   static showIdentityDetailDialog(BuildContext context,
       {required String name, required String address}) {
-    final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
+    final theme = AuThemeManager.get(AppTheme.sheetTheme);
 
     showDialog(
         context,
@@ -406,6 +448,44 @@ class UIHelper {
     UIHelper.showInfoDialog(
         context, "Aborted", "The action was aborted by the user.",
         isDismissible: true, autoDismissAfter: 3);
+  }
+
+  static Future showFeatureRequiresSubscriptionDialog(
+      BuildContext context, PremiumFeature feature) {
+    final theme = AuThemeManager.get(AppTheme.sheetTheme);
+
+    return showDialog(
+        context,
+        "Subscribe",
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('This feature requires subscription',
+                style: theme.textTheme.bodyText1),
+            SizedBox(height: 40),
+            UpgradeBoxView.getMoreAutonomyWidget(theme, feature),
+            SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text(
+                      "CANCEL",
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          fontFamily: "IBMPlexMono"),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 20),
+          ],
+        ),
+        isDismissible: true);
   }
 }
 

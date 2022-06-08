@@ -53,7 +53,7 @@ class _SettingsPageState extends State<SettingsPage>
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance?.addObserver(this);
+    WidgetsBinding.instance.addObserver(this);
     _loadPackageInfo();
     context.read<AccountsBloc>().add(GetAccountsEvent());
     _controller = ScrollController();
@@ -68,7 +68,7 @@ class _SettingsPageState extends State<SettingsPage>
 
   @override
   void dispose() {
-    WidgetsBinding.instance?.removeObserver(this);
+    WidgetsBinding.instance.removeObserver(this);
     routeObserver.unsubscribe(this);
     super.dispose();
   }
@@ -192,7 +192,6 @@ class _SettingsPageState extends State<SettingsPage>
                         'Clear local cache and re-download all artwork metadata.',
                         style: appTextTheme.bodyText1),
                     onTap: () => _showRebuildGalleryDialog()),
-                /* MARK: - Temporarily hide it - waiting for server API
                 addDivider(),
                 TappableForwardRowWithContent(
                     leftWidget: Text(
@@ -203,7 +202,6 @@ class _SettingsPageState extends State<SettingsPage>
                         'Erase all information about me and delete my keys from my cloud backup.',
                         style: appTextTheme.bodyText1),
                     onTap: () => _showForgetIExistDialog()),
-                    */
                 SizedBox(height: 56),
                 Column(
                     crossAxisAlignment: CrossAxisAlignment.center,

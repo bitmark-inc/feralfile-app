@@ -60,6 +60,9 @@ class WalletDetailBloc extends Bloc<WalletDetailEvent, WalletDetailState> {
                   " USD";
 
           break;
+        case CryptoType.BITMARK:
+          // TODO: Handle this case.
+          break;
       }
 
       emit(newState);

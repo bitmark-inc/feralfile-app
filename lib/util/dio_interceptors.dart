@@ -19,11 +19,6 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 class LoggingInterceptor extends Interceptor {
   LoggingInterceptor();
 
-  final logFilterResponseRegex = [
-    RegExp(r'.*\/nft.*'),
-    RegExp(r'.*support.*\/issues.*'),
-  ];
-
   @override
   void onError(DioError err, ErrorInterceptorHandler handler) {
     final curl = cURLRepresentation(err.requestOptions);
@@ -36,6 +31,11 @@ class LoggingInterceptor extends Interceptor {
   @override
   Future onResponse(
       Response response, ResponseInterceptorHandler handler) async {
+    handler.next(response);
+    writeAPILog(response);
+  }
+
+  Future writeAPILog(Response response) async {
     final curl = cURLRepresentation(response.requestOptions);
     final message = response.toString();
     bool _shortCurlLog = await compute(shortCurlLog, curl);
@@ -53,8 +53,6 @@ class LoggingInterceptor extends Interceptor {
     } else {
       apiLog.info("API Response: $message");
     }
-
-    return handler.next(response);
   }
 
   String cURLRepresentation(RequestOptions options) {
@@ -147,7 +145,10 @@ class AutonomyAuthInterceptor extends Interceptor {
 Future<bool> shortAPIResponseLog(dynamic curl) async {
   bool _regExp;
   try {
-    List<RegExp> _logFilterRegex = [RegExp(r'.*\/nft.*')];
+    List<RegExp> _logFilterRegex = [
+      RegExp(r'.*\/nft.*'),
+      RegExp(r'.*support.*\/issues.*'),
+    ];
 
     _logFilterRegex.firstWhere((regex) => regex.hasMatch(curl));
     _regExp = true;

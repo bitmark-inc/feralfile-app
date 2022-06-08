@@ -7,6 +7,7 @@
 
 import 'dart:io';
 
+import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/main.dart';
@@ -15,8 +16,11 @@ import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_state.dart';
+import 'package:autonomy_flutter/screen/detail/report_rendering_issue/any_problem_nft_widget.dart';
+import 'package:autonomy_flutter/screen/settings/subscription/upgrade_box_view.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -24,23 +28,22 @@ import 'package:autonomy_flutter/util/theme_manager.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cast/cast.dart';
+import 'package:easy_debounce/easy_debounce.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_to_airplay/airplay_route_picker_view.dart';
+import 'package:mime/mime.dart';
+import 'package:path/path.dart' as p;
 import 'package:photo_view/photo_view.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shake/shake.dart';
 import 'package:video_player/video_player.dart';
-import 'package:webview_flutter/webview_flutter.dart';
-import 'package:after_layout/after_layout.dart';
-import 'package:easy_debounce/easy_debounce.dart';
-import 'package:path/path.dart' as p;
-import 'package:cast/cast.dart';
-import 'package:mime/mime.dart';
 import 'package:wakelock/wakelock.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
 enum AUCastDeviceType { Airplay, Chromecast }
@@ -74,6 +77,8 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   late int currentIndex;
   WebViewController? _webViewController;
   Future<List<CastDevice>> _castDevicesFuture = CastDiscoveryService().search();
+  bool _isPreviewLoaded = false;
+  String? swipeDirection;
 
   static List<AUCastDevice> _defaultCastDevices = [
     AUCastDevice(AUCastDeviceType.Airplay)
@@ -100,7 +105,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
 
     _detector?.startListening();
 
-    WidgetsBinding.instance?.addObserver(this);
+    WidgetsBinding.instance.addObserver(this);
   }
 
   @override
@@ -128,8 +133,8 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     enableLandscapeMode();
     Wakelock.enable();
     _controller?.play();
-    _webViewController
-        ?.runJavascript("document.getElementsByTagName('video')[0].play()");
+    _webViewController?.runJavascript(
+        "var video = document.getElementsByTagName('video')[0]; if(video != undefined) { video.play(); }");
     super.didPopNext();
   }
 
@@ -138,7 +143,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     disableLandscapeMode();
     Wakelock.disable();
     routeObserver.unsubscribe(this);
-    WidgetsBinding.instance?.removeObserver(this);
+    WidgetsBinding.instance.removeObserver(this);
     _stopAllChromecastDevices();
     _controller?.dispose();
     _controller = null;
@@ -154,6 +159,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
 
   void _disposeCurrentDisplay() {
     _stopAllChromecastDevices();
+    _isPreviewLoaded = false;
     _controller?.dispose();
     _controller = null;
     loadedPath = null;
@@ -185,96 +191,66 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
             _startPlay(asset!.previewURL!);
           }
 
-          final identityState = context.watch<IdentityBloc>().state;
-          final artistName =
-              asset?.artistName?.toIdentityOrMask(identityState.identityMap);
-
           return SafeArea(
-              top: !isFullscreen,
+              top: false,
               bottom: false,
               left: !isFullscreen,
               right: !isFullscreen,
               child: Column(
                 children: [
-                  !isFullscreen
-                      ? Container(
-                          child: Row(
-                            children: [
-                              IconButton(
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                },
-                                icon: Icon(
-                                  Icons.close,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              _titleAndArtistNameWidget(asset!, artistName),
-                              IconButton(
-                                onPressed: () {
-                                  currentIndex = currentIndex <= 0
-                                      ? widget.payload.ids.length - 1
-                                      : currentIndex - 1;
-                                  final id = widget.payload.ids[currentIndex];
-                                  _disposeCurrentDisplay();
-                                  context.read<ArtworkPreviewBloc>().add(
-                                      ArtworkPreviewGetAssetTokenEvent(id));
-                                },
-                                icon: Icon(
-                                  CupertinoIcons.back,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              IconButton(
-                                onPressed: () {
-                                  currentIndex = currentIndex >=
-                                          widget.payload.ids.length - 1
-                                      ? 0
-                                      : currentIndex + 1;
-                                  final id = widget.payload.ids[currentIndex];
-                                  _disposeCurrentDisplay();
-                                  context.read<ArtworkPreviewBloc>().add(
-                                      ArtworkPreviewGetAssetTokenEvent(id));
-                                },
-                                icon: Icon(
-                                  CupertinoIcons.forward,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              _castButton(context),
-                              IconButton(
-                                onPressed: () async {
-                                  setState(() {
-                                    isFullscreen = true;
-                                  });
-
-                                  if (Platform.isAndroid) {
-                                    SystemChrome.setEnabledSystemUIMode(
-                                        SystemUiMode.immersiveSticky);
-                                  }
-
-                                  if (injector<ConfigurationService>()
-                                      .isFullscreenIntroEnabled()) {
-                                    showModalBottomSheet<void>(
-                                      context: context,
-                                      builder: (BuildContext context) {
-                                        return _fullscreenIntroPopup();
-                                      },
-                                    );
-                                  }
-                                },
-                                icon: Icon(
-                                  Icons.fullscreen,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
-                          ),
-                        )
-                      : SizedBox(),
                   Expanded(
-                    child: Center(
-                      child: _getArtworkView(asset!),
+                    child: Stack(
+                      fit: StackFit.loose,
+                      children: [
+                        GestureDetector(
+                          behavior: HitTestBehavior.translucent,
+                          onPanUpdate: (details) {
+                            if (details.delta.dx <= -8) {
+                              swipeDirection = 'left';
+                            } else if (details.delta.dx >= 8) {
+                              swipeDirection = 'right';
+                            }
+                          },
+                          onPanEnd: (details) {
+                            if (swipeDirection == null || isFullscreen) return;
+                            if (swipeDirection == 'left') {
+                              _moveNextToken();
+                            }
+                            if (swipeDirection == 'right') {
+                              _movePreviousToken();
+                            }
+
+                            swipeDirection = null;
+                          },
+                          child: Center(
+                            child: _getArtworkView(asset!),
+                          ),
+                        ),
+                        // ),
+                        Align(
+                          alignment: Alignment.topCenter,
+                          child: Opacity(
+                              opacity: isFullscreen ? 0 : 1,
+                              child: _controlView(asset!)),
+                        ),
+
+                        if (!isFullscreen) ...[
+                          Align(
+                            alignment: Alignment.bottomCenter,
+                            child: Opacity(
+                              // height: !isFullscreen ? 64 : 0,
+                              opacity: isFullscreen ? 0 : 1,
+                              child: Container(
+                                height: 64,
+                                child: AnyProblemNFTWidget(
+                                    asset: asset!,
+                                    theme: AuThemeManager.get(
+                                        AppTheme.anyProblemNFTDarkTheme)),
+                              ),
+                            ),
+                          )
+                        ]
+                      ],
                     ),
                   ),
                 ],
@@ -286,10 +262,98 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     );
   }
 
-  Widget _titleAndArtistNameWidget(AssetToken asset, String? artistName) {
-    final isImmediatePlaybackEnabled =
-        injector<ConfigurationService>().isImmediatePlaybackEnabled();
+  Widget _controlView(AssetToken asset) {
+    final identityState = context.watch<IdentityBloc>().state;
+    final artistName =
+        asset.artistName?.toIdentityOrMask(identityState.identityMap);
+    double safeAreaTop = MediaQuery.of(context).padding.top;
 
+    return Container(
+      color: Colors.black,
+      height: safeAreaTop + 52,
+      padding: EdgeInsets.only(top: safeAreaTop),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          IconButton(
+              onPressed: () => _moveToInfo(asset),
+              icon: SvgPicture.asset("assets/images/iconInfo.svg",
+                  color: Colors.white)),
+          _titleAndArtistNameWidget(asset, artistName),
+          _castButton(context),
+          SizedBox(width: 8),
+          IconButton(
+            onPressed: () async {
+              setState(() {
+                isFullscreen = true;
+              });
+
+              if (Platform.isAndroid) {
+                SystemChrome.setEnabledSystemUIMode(
+                    SystemUiMode.immersiveSticky);
+              }
+
+              if (injector<ConfigurationService>().isFullscreenIntroEnabled()) {
+                showModalBottomSheet<void>(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return _fullscreenIntroPopup();
+                  },
+                );
+              }
+            },
+            icon: Icon(
+              Icons.fullscreen,
+              color: Colors.white,
+              size: 32,
+            ),
+          ),
+          IconButton(
+            onPressed: () => Navigator.of(context).pop(),
+            icon: Icon(
+              Icons.close,
+              color: Colors.white,
+              size: 32,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future _moveToInfo(AssetToken asset) async {
+    if (!injector<ConfigurationService>().isImmediatePlaybackEnabled()) return;
+    final currentIndex = widget.payload.ids.indexOf(asset.id);
+
+    disableLandscapeMode();
+    Wakelock.disable();
+    _clearPrevious();
+    Navigator.of(context).pushNamed(AppRouter.artworkDetailsPage,
+        arguments: widget.payload.copyWith(currentIndex: currentIndex));
+  }
+
+  Future _movePreviousToken() async {
+    currentIndex =
+        currentIndex <= 0 ? widget.payload.ids.length - 1 : currentIndex - 1;
+    final id = widget.payload.ids[currentIndex];
+    _disposeCurrentDisplay();
+    context
+        .read<ArtworkPreviewBloc>()
+        .add(ArtworkPreviewGetAssetTokenEvent(id));
+  }
+
+  Future _moveNextToken() async {
+    currentIndex =
+        currentIndex >= widget.payload.ids.length - 1 ? 0 : currentIndex + 1;
+    final id = widget.payload.ids[currentIndex];
+    _disposeCurrentDisplay();
+    context
+        .read<ArtworkPreviewBloc>()
+        .add(ArtworkPreviewGetAssetTokenEvent(id));
+  }
+
+  Widget _titleAndArtistNameWidget(AssetToken asset, String? artistName) {
     var titleStyle = TextStyle(
         color: Colors.white,
         fontWeight: FontWeight.w700,
@@ -301,42 +365,25 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
         fontSize: 12,
         fontFamily: "AtlasGrotesk");
 
-    if (isImmediatePlaybackEnabled) {
-      titleStyle = makeLinkStyle(titleStyle);
-      artistNameStyle = makeLinkStyle(artistNameStyle);
-    }
-
     return Expanded(
-      child: GestureDetector(
-        behavior: HitTestBehavior.translucent,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            asset.title,
+            overflow: TextOverflow.ellipsis,
+            style: titleStyle,
+          ),
+          if (artistName != null) ...[
+            SizedBox(height: 4.0),
             Text(
-              asset.title,
+              "by $artistName",
               overflow: TextOverflow.ellipsis,
-              style: titleStyle,
-            ),
-            if (artistName != null) ...[
-              SizedBox(height: 4.0),
-              Text(
-                "by $artistName",
-                overflow: TextOverflow.ellipsis,
-                style: artistNameStyle,
-              )
-            ]
-          ],
-        ),
-        onTap: () {
-          if (!isImmediatePlaybackEnabled) return;
-          final currentIndex = widget.payload.ids.indexOf(asset.id);
-
-          disableLandscapeMode();
-          Wakelock.disable();
-          _clearPrevious();
-          Navigator.of(context).pushNamed(AppRouter.artworkDetailsPage,
-              arguments: widget.payload.copyWith(currentIndex: currentIndex));
-        },
+              style: artistNameStyle,
+            )
+          ]
+        ],
       ),
     );
   }
@@ -372,10 +419,14 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
               );
       case "video":
         if (_controller != null) {
-          return AspectRatio(
-            aspectRatio: _controller!.value.aspectRatio,
-            child: VideoPlayer(_controller!),
-          );
+          if (_isPreviewLoaded) {
+            return AspectRatio(
+              aspectRatio: _controller!.value.aspectRatio,
+              child: VideoPlayer(_controller!),
+            );
+          } else {
+            return _previewPlaceholder;
+          }
         } else {
           return SizedBox();
         }
@@ -385,34 +436,46 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
             return SfPdfViewer.network(asset.previewURL!,
                 key: Key(asset.assetID ?? asset.id));
           default:
-            return WebView(
-                key: Key(asset.assetID ?? asset.id),
-                initialUrl: asset.previewURL,
-                zoomEnabled: false,
-                initialMediaPlaybackPolicy:
-                    AutoMediaPlaybackPolicy.always_allow,
-                onWebViewCreated: (WebViewController webViewController) {
-                  _webViewController = webViewController;
-                  Sentry.getSpan()?.setTag("url", asset.previewURL!);
-                },
-                onWebResourceError: (WebResourceError error) {
-                  Sentry.getSpan()?.throwable = error;
-                  Sentry.getSpan()?.finish(status: SpanStatus.internalError());
-                },
-                onPageFinished: (some) async {
-                  Sentry.getSpan()?.finish(status: SpanStatus.ok());
-                  final javascriptString = '''
+            return Stack(
+              fit: StackFit.loose,
+              children: [
+                WebView(
+                    key: Key(asset.assetID ?? asset.id),
+                    initialUrl: asset.previewURL,
+                    zoomEnabled: false,
+                    initialMediaPlaybackPolicy:
+                        AutoMediaPlaybackPolicy.always_allow,
+                    onWebViewCreated: (WebViewController webViewController) {
+                      _webViewController = webViewController;
+                      Sentry.getSpan()?.setTag("url", asset.previewURL!);
+                    },
+                    onWebResourceError: (WebResourceError error) {
+                      Sentry.getSpan()?.throwable = error;
+                      Sentry.getSpan()
+                          ?.finish(status: SpanStatus.internalError());
+                    },
+                    onPageFinished: (some) async {
+                      setState(() {
+                        _isPreviewLoaded = true;
+                      });
+                      Sentry.getSpan()?.finish(status: SpanStatus.ok());
+                      final javascriptString = '''
                 var meta = document.createElement('meta');
                             meta.setAttribute('name', 'viewport');
                             meta.setAttribute('content', 'width=device-width');
                             document.getElementsByTagName('head')[0].appendChild(meta);
                             document.body.style.overflow = 'hidden';
                 ''';
-                  await _webViewController?.runJavascript(javascriptString);
-                },
-                javascriptMode: JavascriptMode.unrestricted,
-                allowsInlineMediaPlayback: true,
-                backgroundColor: Colors.black);
+                      await _webViewController?.runJavascript(javascriptString);
+                    },
+                    javascriptMode: JavascriptMode.unrestricted,
+                    allowsInlineMediaPlayback: true,
+                    backgroundColor: Colors.black),
+                if (!_isPreviewLoaded) ...[
+                  _previewPlaceholder,
+                ]
+              ],
+            );
         }
     }
   }
@@ -499,8 +562,8 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
 
   Future<bool> _clearPrevious() async {
     await _controller?.pause();
-    await _webViewController
-        ?.runJavascript("document.getElementsByTagName('video')[0].pause()");
+    await _webViewController?.runJavascript(
+        "var video = document.getElementsByTagName('video')[0]; if(video != undefined) { video.pause(); }");
     return true;
   }
 
@@ -516,9 +579,14 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   }
 
   Future<void> _initializePlay(String videoPath) async {
+    log.info("Load videoPath: $videoPath");
+
     _controller = VideoPlayerController.network(videoPath);
     Sentry.getSpan()?.setTag("url", videoPath);
     _controller!.initialize().then((_) {
+      setState(() {
+        _isPreviewLoaded = true;
+      });
       _controller?.play();
       _controller?.setLooping(true);
       setState(() {});
@@ -537,25 +605,14 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   }
 
   Widget _castButton(BuildContext context) {
-    return FutureBuilder<bool>(
-        builder: (context, snapshot) {
-          if ((asset?.medium == "video" || asset?.medium == "image") &&
-              (snapshot.hasData && snapshot.data!)) {
-            return InkWell(
-              onTap: () => _showCastDialog(context),
-              child: SvgPicture.asset('assets/images/cast.svg'),
-            );
-          } else {
-            return SizedBox(
-              width: 25,
-            );
-          }
-        },
-        future: injector<IAPService>().isSubscribed());
+    return InkWell(
+      onTap: () => _showCastDialog(context),
+      child: SvgPicture.asset('assets/images/chromecast.svg'),
+    );
   }
 
-  Widget _airplayItem(BuildContext context) {
-    final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
+  Widget _airplayItem(BuildContext context, bool isSubscribed) {
+    final theme = AuThemeManager.get(AppTheme.sheetTheme);
     return Padding(
         child: SizedBox(
           height: 44,
@@ -568,25 +625,34 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                   padding: EdgeInsets.only(left: 41, bottom: 5),
                   child: Text(
                     "Airplay",
-                    style: theme.textTheme.headline4
-                        ?.copyWith(color: AppColorTheme.secondarySpanishGrey),
+                    style: theme.textTheme.headline4?.copyWith(
+                        color: isSubscribed
+                            ? Colors.white
+                            : AppColorTheme.secondaryDimGrey),
                   ),
                 ),
               ),
-              AirPlayRoutePickerView(
-                tintColor: Colors.white,
-                activeTintColor: Colors.white,
-                backgroundColor: Colors.transparent,
-                prioritizesVideoDevices: true,
-              ),
+              isSubscribed
+                  ? AirPlayRoutePickerView(
+                      tintColor: Colors.grey,
+                      activeTintColor: Colors.grey,
+                      backgroundColor: Colors.transparent,
+                      prioritizesVideoDevices: true,
+                    )
+                  : Align(
+                      alignment: Alignment.centerLeft,
+                      child: Icon(Icons.airplay_outlined,
+                          color: AppColorTheme.secondaryDimGrey),
+                    ),
             ],
           ),
         ),
         padding: EdgeInsets.symmetric(vertical: 6));
   }
 
-  Widget _castingListView(BuildContext context, List<AUCastDevice> devices) {
-    final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
+  Widget _castingListView(
+      BuildContext context, List<AUCastDevice> devices, bool isSubscribed) {
+    final theme = AuThemeManager.get(AppTheme.sheetTheme);
     return ConstrainedBox(
         constraints: new BoxConstraints(
           minHeight: 35.0,
@@ -599,44 +665,50 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
 
               switch (device.type) {
                 case AUCastDeviceType.Airplay:
-                  return _airplayItem(context);
+                  return _airplayItem(context, isSubscribed);
                 case AUCastDeviceType.Chromecast:
                   return GestureDetector(
                     child: Padding(
                       child: Row(
                         children: [
-                          Icon(Icons.cast),
+                          Icon(Icons.cast,
+                              color: isSubscribed
+                                  ? Colors.white
+                                  : AppColorTheme.secondaryDimGrey),
                           SizedBox(width: 17),
                           Text(
                             device.chromecastDevice!.name,
                             style: theme.textTheme.headline4?.copyWith(
-                                color: device.isActivated
+                                color: isSubscribed
                                     ? Colors.white
-                                    : AppColorTheme.secondarySpanishGrey),
+                                    : AppColorTheme.secondaryDimGrey),
                           ),
                         ],
                       ),
-                      padding: EdgeInsets.symmetric(vertical: 19),
+                      padding: EdgeInsets.symmetric(vertical: 17),
                     ),
-                    onTap: () {
-                      UIHelper.hideInfoDialog(context);
-                      var copiedDevice = _castDevices[index];
-                      if (copiedDevice.isActivated) {
-                        _stopAndDisconnectChomecast(index);
-                      } else {
-                        _connectAndCast(index);
-                      }
+                    onTap: isSubscribed
+                        ? () {
+                            UIHelper.hideInfoDialog(context);
+                            var copiedDevice = _castDevices[index];
+                            if (copiedDevice.isActivated) {
+                              _stopAndDisconnectChomecast(index);
+                            } else {
+                              _connectAndCast(index);
+                            }
 
-                      // invert the state
-                      copiedDevice.isActivated = !copiedDevice.isActivated;
-                      _castDevices[index] = copiedDevice;
-                    },
+                            // invert the state
+                            copiedDevice.isActivated =
+                                !copiedDevice.isActivated;
+                            _castDevices[index] = copiedDevice;
+                          }
+                        : null,
                   );
               }
             }),
             separatorBuilder: ((context, index) => Divider(
                   thickness: 1,
-                  color: Colors.white,
+                  color: AppColorTheme.secondarySpanishGrey,
                 )),
             itemCount: devices.length));
   }
@@ -652,13 +724,9 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                 snapshot.data!.isEmpty ||
                 snapshot.hasError) {
               if (asset?.medium == "video") {
-                return _airplayItem(context);
-              } else {
-                return SizedBox(height: 44);
+                _castDevices = _defaultCastDevices;
               }
-            }
-
-            if (_castDevices.isEmpty) {
+            } else {
               _castDevices = (asset?.medium == "video"
                       ? _defaultCastDevices
                       : List<AUCastDevice>.empty()) +
@@ -675,7 +743,51 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                   .toList();
             }
 
-            return _castingListView(context, castDevices);
+            final theme = AuThemeManager.get(AppTheme.sheetTheme);
+
+            return FutureBuilder<bool>(
+                builder: (context, snapshot) {
+                  if (snapshot.hasData && snapshot.data!) {
+                    return Column(
+                      children: [
+                        _castingListView(context, castDevices, true),
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: Text(
+                            "CANCEL",
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                fontFamily: "IBMPlexMono"),
+                          ),
+                        ),
+                        SizedBox(height: 20),
+                      ],
+                    );
+                  } else {
+                    return Column(
+                      children: [
+                        UpgradeBoxView.getMoreAutonomyWidget(
+                            theme, PremiumFeature.AutonomyTV),
+                        _castingListView(context, castDevices, false),
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: Text(
+                            "CANCEL",
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                fontFamily: "IBMPlexMono"),
+                          ),
+                        ),
+                        SizedBox(height: 20),
+                      ],
+                    );
+                  }
+                },
+                future: injector<IAPService>().isSubscribed());
           },
         ),
         isDismissible: true);
@@ -723,7 +835,8 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
       // Here you can plug an URL to any mp4, webm, mp3 or jpg file with the proper contentType.
       'contentId': asset!.previewURL!,
       'contentType': lookupMimeType(asset!.previewURL!),
-      'streamType': 'BUFFERED', // or LIVE
+      'streamType': 'BUFFERED',
+      // or LIVE
 
       // Title and cover displayed while buffering
       'metadata': {

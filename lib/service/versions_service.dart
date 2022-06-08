@@ -122,7 +122,7 @@ class VersionService {
     final context = _navigationService.navigatorKey.currentContext;
     if (context == null) return;
 
-    final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
+    final theme = AuThemeManager.get(AppTheme.sheetTheme);
     await UIHelper.showDialog(
         context,
         "Update Required",

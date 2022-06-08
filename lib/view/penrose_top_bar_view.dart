@@ -82,8 +82,7 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> {
         Align(
           alignment: Alignment.topCenter,
           child: Padding(
-            padding:
-                EdgeInsets.only(top: MediaQuery.of(context).padding.top + 12),
+            padding: EdgeInsets.only(top: 62),
             child: GestureDetector(
                 child: _logo(),
                 onTap: () => widget.pushToSettings

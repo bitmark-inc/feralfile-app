@@ -34,7 +34,7 @@ class _CloudAndroidPageState extends State<CloudAndroidPage>
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance?.addObserver(this);
+    WidgetsBinding.instance.addObserver(this);
 
     setState(() {
       isEncryptionAvailable = widget.isEncryptionAvailable;
@@ -43,7 +43,7 @@ class _CloudAndroidPageState extends State<CloudAndroidPage>
 
   @override
   void dispose() {
-    WidgetsBinding.instance?.removeObserver(this);
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 

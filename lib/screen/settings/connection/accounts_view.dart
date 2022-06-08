@@ -204,7 +204,7 @@ class _AccountsViewState extends State<AccountsView> {
 
   void _showDeleteAccountConfirmation(
       BuildContext pageContext, Account account) {
-    final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
+    final theme = AuThemeManager.get(AppTheme.sheetTheme);
     var accountName = account.name;
     if (accountName.isEmpty) {
       accountName = account.accountNumber.mask(4);

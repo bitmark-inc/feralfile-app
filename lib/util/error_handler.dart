@@ -6,6 +6,7 @@
 //
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/screen/report/sentry_report.dart';
@@ -92,7 +93,7 @@ Future showErrorDialog(BuildContext context, String title, String description,
   }
 
   isShowErrorDialogWorking = DateTime.now();
-  final theme = AuThemeManager().getThemeData(AppTheme.sheetTheme);
+  final theme = AuThemeManager.get(AppTheme.sheetTheme);
 
   var cuttedColor = Color(0xFF737373);
   if (ModalRoute.of(context)?.settings.name == AppRouter.scanQRPage) {
@@ -209,6 +210,18 @@ void showErrorDiablog(
 
 void showErrorDialogFromException(Object exception,
     {StackTrace? stackTrace, String? library}) async {
+  // avoid to bother user when user has just foregrounded the app.
+  if (memoryValues.inForegroundAt != null &&
+      DateTime.now()
+              .subtract(Duration(seconds: 5))
+              .compareTo(memoryValues.inForegroundAt!) <
+          0) {
+    Sentry.captureException(exception,
+        stackTrace: stackTrace,
+        withScope: (Scope? scope) => scope?.setTag("library", library ?? ''));
+    return;
+  }
+
   final context = injector<NavigationService>().navigatorKey.currentContext;
 
   if (exception is PlatformException) {
@@ -221,16 +234,20 @@ void showErrorDialogFromException(Object exception,
         context, "Aborted", "The action was aborted by the user.",
         isDismissible: true, autoDismissAfter: 3);
     return;
+  } else if (context != null && exception is RequiredPremiumFeature) {
+    UIHelper.showFeatureRequiresSubscriptionDialog(context, exception.feature);
+    return;
   }
   log.warning("Unhandled error: $exception", exception);
   injector<AWSService>().storeEventWithDeviceData("unhandled_error",
       data: {"message": exception.toString()});
 
-  if (library != null) {
+  if (library != null ||
+      exception.toString().contains("Future already completed")) {
     // Send error directly to Sentry if it comes from specific libraries
     Sentry.captureException(exception,
         stackTrace: stackTrace,
-        withScope: (Scope? scope) => scope?.setTag("library", library));
+        withScope: (Scope? scope) => scope?.setTag("library", library ?? ''));
     return;
   }
 

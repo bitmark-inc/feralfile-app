@@ -23,7 +23,7 @@ import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
-import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tokens_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/au_cached_manager.dart';
@@ -35,6 +35,7 @@ import 'package:autonomy_flutter/view/penrose_top_bar_view.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import "package:collection/collection.dart";
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -43,6 +44,7 @@ import 'package:flutter_fgbg/flutter_fgbg.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:path/path.dart' as p;
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:uni_links/uni_links.dart';
 
 class HomePage extends StatefulWidget {
@@ -64,7 +66,7 @@ class _HomePageState extends State<HomePage>
     super.initState();
     _checkForKeySync();
     _initUniLinks();
-    WidgetsBinding.instance?.addObserver(this);
+    WidgetsBinding.instance.addObserver(this);
     _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
     _controller = ScrollController();
     context.read<HomeBloc>().add(RefreshTokensEvent());
@@ -77,6 +79,7 @@ class _HomePageState extends State<HomePage>
         _handleNotificationClicked(openedResult.notification);
       });
     });
+    memoryValues.inGalleryView = true;
   }
 
   @override
@@ -94,7 +97,7 @@ class _HomePageState extends State<HomePage>
 
   @override
   void dispose() {
-    WidgetsBinding.instance?.removeObserver(this);
+    WidgetsBinding.instance.removeObserver(this);
     routeObserver.unsubscribe(this);
     _deeplinkSubscription?.cancel();
     _fgbgSubscription?.cancel();
@@ -113,6 +116,13 @@ class _HomePageState extends State<HomePage>
         context.read<HomeBloc>().add(ReindexIndexerEvent());
       });
     }
+    memoryValues.inGalleryView = true;
+  }
+
+  @override
+  void didPushNext() {
+    memoryValues.inGalleryView = false;
+    super.didPushNext();
   }
 
   @override
@@ -132,7 +142,9 @@ class _HomePageState extends State<HomePage>
           fit: StackFit.loose,
           children: [
             assetsWidget,
-            PenroseTopBarView(true, _controller),
+            if (injector<ConfigurationService>().getUXGuideStep() != null) ...[
+              PenroseTopBarView(true, _controller),
+            ],
             if (state.fetchTokenState == ActionState.loading) ...[
               Align(
                 alignment: Alignment.topRight,
@@ -174,8 +186,8 @@ class _HomePageState extends State<HomePage>
 
     var keys = groupByProperty.keys.toList();
     keys.sort((a, b) {
-      if (a == 'Unknown') return 1;
-      if (b == 'Unknown') return -1;
+      if (a.toLowerCase() == 'unknown') return 1;
+      if (b.toLowerCase() == 'unknown') return -1;
       if (a.startsWith('[') && !b.startsWith('[')) {
         return 1;
       } else if (!a.startsWith('[') && b.startsWith('[')) {
@@ -444,9 +456,20 @@ class _HomePageState extends State<HomePage>
     }
   }
 
-  void _handleForeground() {
+  void _handleForeground() async {
+    memoryValues.inForegroundAt = DateTime.now();
     _deeplinkSubscription?.resume();
-    injector<ConfigurationService>().reload();
+    await injector<ConfigurationService>().reload();
+    try {
+      await injector<SettingsDataService>().restoreSettingsData();
+    } catch (exception) {
+      if (exception is DioError && exception.response?.statusCode == 404) {
+        // if there is no backup, upload one.
+        await injector<SettingsDataService>().backup();
+      } else {
+        Sentry.captureException(exception);
+      }
+    }
     Future.delayed(const Duration(milliseconds: 3500), () async {
       context.read<HomeBloc>().add(RefreshTokensEvent());
       context.read<HomeBloc>().add(ReindexIndexerEvent());
@@ -464,5 +487,6 @@ class _HomePageState extends State<HomePage>
     injector<TokensService>().disposeIsolate();
     _deeplinkSubscription?.pause();
     _cloudBackup();
+    FileLogger.shrinkLogFileIfNeeded();
   }
 }
