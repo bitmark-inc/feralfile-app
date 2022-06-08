@@ -144,9 +144,9 @@ class TezosBeaconChannel {
                     params: parameters,
                     customFee: fee != null ? int.parse(fee) : null,
                     customGasLimit:
-                        gasLimit != null ? int.parse(gasLimit) : 1000000,
+                        gasLimit != null ? int.parse(gasLimit) : null,
                     customStorageLimit:
-                        storageLimit != null ? int.parse(storageLimit) : 10000);
+                        storageLimit != null ? int.parse(storageLimit) : null);
                 operation.counter = int.tryParse(counter ?? "");
 
                 operations.add(operation);
