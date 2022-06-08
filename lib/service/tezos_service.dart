@@ -96,7 +96,7 @@ class TezosServiceImpl extends TezosService {
       operationList.prependOperation(RevealOperation());
     }
 
-    await operationList.executeAndMonitor();
+    await operationList.execute();
 
     return operationList.result.id;
   }
@@ -110,8 +110,6 @@ class TezosServiceImpl extends TezosService {
       destination: to,
       amount: amount,
       reveal: true,
-      customGasLimit: 10500,
-      customStorageLimit: 257,
     );
     await operation.estimate();
 
@@ -130,13 +128,10 @@ class TezosServiceImpl extends TezosService {
       destination: to,
       amount: amount,
       reveal: true,
-      customGasLimit: 10500,
-      customStorageLimit: 257,
     );
     await operation.execute();
-    await operation.monitor();
 
-    return operation.result.blockHash;
+    return operation.result.id;
   }
 
   @override
