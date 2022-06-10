@@ -288,6 +288,10 @@ extension BeaconChannelHandler: FlutterStreamHandler {
                             case let .prim(prim):
                                 params["prim"] = prim.prim
                                 params["args"] = prim.args?.map({ getParams(value: $0) })
+                                if let annots = prim.annots {
+                                    params["annots"] = annots
+                                }
+                                
                             case .sequence(let array):
                                 var result = [Any]()
                                 for mv1e in array {

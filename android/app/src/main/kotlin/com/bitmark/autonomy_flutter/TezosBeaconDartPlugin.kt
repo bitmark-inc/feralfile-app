@@ -139,6 +139,9 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
                                         value.args?.map { arg -> getParams(arg) }?.let {
                                             result["args"] = it
                                         }
+                                        value.annots?.let {
+                                            result["annots"] = it
+                                        }
                                     }
                                     is MichelinePrimitiveInt -> {
                                         result["int"] = value.int
