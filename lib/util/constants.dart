@@ -123,3 +123,54 @@ extension PremiumFeatureExtension on PremiumFeature {
     }
   }
 }
+
+class ContextedAddress {
+  final CryptoType cryptoType;
+  final String address;
+
+  ContextedAddress(
+    this.cryptoType,
+    this.address,
+  );
+}
+
+enum CryptoType {
+  ETH,
+  XTZ,
+  BITMARK,
+}
+
+extension CryptoTypeHelpers on CryptoType {
+  String get code {
+    switch (this) {
+      case CryptoType.ETH:
+        return "ETH";
+      case CryptoType.XTZ:
+        return "XTZ";
+      case CryptoType.BITMARK:
+        return "USDC";
+    }
+  }
+
+  String get fullCode {
+    switch (this) {
+      case CryptoType.ETH:
+        return "Ethereum (ETH)";
+      case CryptoType.XTZ:
+        return "Tezos (XTZ)";
+      case CryptoType.BITMARK:
+        return "USD Coin (USDC)";
+    }
+  }
+
+  String get source {
+    switch (this) {
+      case CryptoType.ETH:
+        return "Ethereum";
+      case CryptoType.XTZ:
+        return "Tezos";
+      case CryptoType.BITMARK:
+        return "Bitmark";
+    }
+  }
+}

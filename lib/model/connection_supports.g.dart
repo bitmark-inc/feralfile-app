@@ -63,3 +63,23 @@ Map<String, dynamic> _$BeaconConnectConnectionToJson(
       'personaUuid': instance.personaUuid,
       'peer': instance.peer,
     };
+
+LedgerConnection _$LedgerConnectionFromJson(Map<String, dynamic> json) =>
+    LedgerConnection(
+      ledgerName: json['ledgerName'] as String,
+      ledgerUUID: json['ledgerUUID'] as String,
+      etheremAddress: (json['etheremAddress'] as List<dynamic>)
+          .map((e) => e as String)
+          .toList(),
+      tezosAddress: (json['tezosAddress'] as List<dynamic>)
+          .map((e) => e as String)
+          .toList(),
+    );
+
+Map<String, dynamic> _$LedgerConnectionToJson(LedgerConnection instance) =>
+    <String, dynamic>{
+      'ledgerName': instance.ledgerName,
+      'ledgerUUID': instance.ledgerUUID,
+      'etheremAddress': instance.etheremAddress,
+      'tezosAddress': instance.tezosAddress,
+    };

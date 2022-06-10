@@ -5,11 +5,10 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:libauk_dart/libauk_dart.dart';
-
-import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/receive_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_bloc.dart';
@@ -122,10 +121,4 @@ class WalletDetailsPayload {
     required this.type,
     required this.wallet,
   });
-}
-
-enum CryptoType {
-  ETH,
-  XTZ,
-  BITMARK,
 }

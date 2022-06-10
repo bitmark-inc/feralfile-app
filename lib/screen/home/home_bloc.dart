@@ -20,7 +20,9 @@ import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tokens_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -92,7 +94,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           final linkedAccounts =
               await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
           var linkedAccountNumbers =
-              linkedAccounts.map((e) => e.accountNumber).toList();
+              linkedAccounts.expand((e) => e.accountNumbers).toList();
 
           allAccountNumbers = List.from(linkedAccountNumbers)
             ..addAll(allAddresses['personaBitmark'] ?? [])
@@ -171,18 +173,35 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         for (var linkAccount in linkedAccounts) {
           switch (linkAccount.connectionType) {
             case 'walletConnect':
-            case 'ledgerEthereum':
               final ethAddress = linkAccount.accountNumber;
               log.info("[HomeBloc] RequestIndex for linked $ethAddress");
               _indexerApi.requestIndex({"owner": ethAddress});
               break;
 
             case 'walletBeacon':
-            case 'ledgerTezos':
               final tezosAddress = linkAccount.accountNumber;
               log.info("[HomeBloc] RequestIndex for linked $tezosAddress");
               _indexerApi
                   .requestIndex({"owner": tezosAddress, "blockchain": "tezos"});
+              break;
+
+            case 'ledger':
+              final data = linkAccount.ledgerConnection;
+              final ethAddress = data?.etheremAddress.firstOrNull;
+              final tezosAddress = data?.tezosAddress.firstOrNull;
+
+              if (ethAddress != null) {
+                log.info(
+                    "[HomeBloc] RequestIndex for linked ledger $ethAddress");
+                _indexerApi.requestIndex({"owner": ethAddress});
+              }
+
+              if (tezosAddress != null) {
+                log.info("[HomeBloc] RequestIndex for linked $tezosAddress");
+                _indexerApi.requestIndex(
+                    {"owner": tezosAddress, "blockchain": "tezos"});
+              }
+
               break;
 
             case 'manuallyAddress':
@@ -246,9 +265,22 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       hiddenAddresses.add(await personaWallet.getBitmarkAddress());
     }
 
-    final hiddenLinkedAccount =
+    final hiddenLinkedAccounts =
         _configurationService.getLinkedAccountsHiddenInGallery();
-    hiddenAddresses.addAll(hiddenLinkedAccount);
+
+    for (final hiddenLinkedAccount in hiddenLinkedAccounts) {
+      if (hiddenLinkedAccount.startsWith('ledger_')) {
+        final linkedLedgerKey =
+            hiddenLinkedAccount.replacePrefix('ledger_', '');
+        final connection =
+            await _cloudDB.connectionDao.findById(linkedLedgerKey);
+
+        if (connection != null)
+          hiddenAddresses.addAll(connection.accountNumbers);
+      } else {
+        hiddenAddresses.add(hiddenLinkedAccount);
+      }
+    }
 
     return hiddenAddresses;
   }

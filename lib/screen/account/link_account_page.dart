@@ -116,7 +116,7 @@ class _LinkAccountPageState extends State<LinkAccountPage>
           if (event is LinkAccountSuccess) {
             // SideEffect: pre-fetch tokens
             injector<TokensService>()
-                .fetchTokensForAddresses([event.connection.accountNumber]);
+                .fetchTokensForAddresses(event.connection.accountNumbers);
             UIHelper.hideInfoDialog(context);
             await Future.delayed(Duration(milliseconds: 200));
             UIHelper.showInfoDialog(context, 'Account linked',
@@ -284,7 +284,7 @@ class _LinkAccountPageState extends State<LinkAccountPage>
         TappableForwardRow(
             leftWidget: Row(
               children: [
-                Image.asset("assets/images/iconLedger.png"),
+                SvgPicture.asset("assets/images/iconLedger.svg"),
                 SizedBox(width: 16),
                 Text("Ledger", style: appTextTheme.headline4),
               ],
@@ -347,7 +347,7 @@ class _LinkAccountPageState extends State<LinkAccountPage>
 
       // SideEffect: pre-fetch tokens
       injector<TokensService>()
-          .fetchTokensForAddresses([linkedAccount.accountNumber]);
+          .fetchTokensForAddresses(linkedAccount.accountNumbers);
 
       final walletName =
           linkedAccount.wcConnectedSession?.sessionStore.remotePeerMeta.name ??
