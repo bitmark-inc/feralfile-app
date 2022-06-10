@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_det
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/biometrics_util.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
@@ -73,9 +74,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
       appBar: getBackAppBar(
         context,
         title: widget.persona.name,
-        onBack: () {
-          Navigator.of(context).pop();
-        },
+        onBack: () => Navigator.of(context).pop(),
       ),
       body: Container(
         margin: pageEdgeInsets,
@@ -138,18 +137,6 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
   }
 
   Widget _addressRow({required String address, required CryptoType type}) {
-    var typeText = "";
-    switch (type) {
-      case CryptoType.ETH:
-        typeText = "Ethereum";
-        break;
-      case CryptoType.XTZ:
-        typeText = "Tezos";
-        break;
-      case CryptoType.BITMARK:
-        typeText = "Bitmark";
-    }
-
     return GestureDetector(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -157,7 +144,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(typeText, style: appTextTheme.headline4),
+              Text(type.source, style: appTextTheme.headline4),
               SvgPicture.asset('assets/images/iconForward.svg'),
             ],
           ),
@@ -203,10 +190,11 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
               builder: (context, state) {
                 final ethAddress = state.personaAddresses?[uuid];
                 final ethBalance = state.ethBalances[network]?[ethAddress];
+                final cryptoType = CryptoType.ETH;
 
                 return TappableForwardRow(
-                    leftWidget:
-                        Text('Ethereum (ETH)', style: appTextTheme.headline4),
+                    leftWidget: Text(cryptoType.fullCode,
+                        style: appTextTheme.headline4),
                     rightWidget: Text(
                         ethBalance == null
                             ? "-- ETH"
@@ -225,10 +213,11 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
               builder: (context, state) {
                 final tezosAddress = state.personaAddresses?[uuid];
                 final xtzBalance = state.balances[network]?[tezosAddress];
+                final cryptoType = CryptoType.XTZ;
 
                 return TappableForwardRow(
-                    leftWidget:
-                        Text('Tezos (XTZ)', style: appTextTheme.headline4),
+                    leftWidget: Text(cryptoType.fullCode,
+                        style: appTextTheme.headline4),
                     rightWidget: Text(
                         xtzBalance == null
                             ? "-- XTZ"

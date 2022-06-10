@@ -192,9 +192,8 @@ Widget _appLogo(Connection connection) {
     case 'feralFileWeb3':
       return SvgPicture.asset("assets/images/feralfileAppIcon.svg");
 
-    case 'ledgerEthereum':
-    case 'ledgerTezos':
-      return Image.asset("assets/images/iconLedger.png");
+    case 'ledger':
+      return SvgPicture.asset("assets/images/iconLedger.svg");
 
     case 'walletConnect':
       final walletName =

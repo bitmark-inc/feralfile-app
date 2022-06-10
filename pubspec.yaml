@@ -172,7 +172,7 @@ flutter:
     - assets/images/feralfileAppIcon.svg
     - assets/images/autonomyIcon.png
     - assets/images/rainbow.png
-    - assets/images/iconLedger.png
+    - assets/images/iconLedger.svg
     - assets/images/trust-alternative.png
     - assets/images/metamask-alternative.png
     - assets/images/walletconnect-alternative.png

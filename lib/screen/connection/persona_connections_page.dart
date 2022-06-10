@@ -8,13 +8,12 @@
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/bloc/connections/connections_bloc.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:flutter/material.dart';
-
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -109,22 +108,8 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
   }
 
   Widget _addressSection() {
-    var typeText = "";
-    switch (widget.payload.type) {
-      case CryptoType.ETH:
-        typeText = "Ethereum";
-        break;
-      case CryptoType.XTZ:
-        typeText = "Tezos";
-        break;
-      case CryptoType.BITMARK:
-        typeText = "Bitmark";
-        break;
-      default:
-        break;
-    }
-
     var address = widget.payload.address;
+    final addressSource = widget.payload.type.source;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -140,9 +125,10 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(typeText, style: appTextTheme.headline4),
+                Text(addressSource, style: appTextTheme.headline4),
                 TextButton(
-                  onPressed: () => Share.share("$typeText address: $address"),
+                  onPressed: () =>
+                      Share.share("$addressSource address: $address"),
                   child: Text(
                     "Share",
                     style: TextStyle(

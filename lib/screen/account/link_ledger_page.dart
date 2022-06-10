@@ -6,7 +6,6 @@
 //
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -65,14 +64,15 @@ class _LinkLedgerPageState extends State<LinkLedgerPage> {
 
               if (event is LinkAccountSuccess) {
                 final linkedAccount = event.connection;
-                final walletName = linkedAccount.ledgerName;
+                final walletName =
+                    linkedAccount.ledgerConnection?.ledgerName ?? 'Ledger';
 
                 // SideEffect: pre-fetch tokens
                 injector<TokensService>()
-                    .fetchTokensForAddresses([linkedAccount.accountNumber]);
+                    .fetchTokensForAddresses(linkedAccount.accountNumbers);
 
                 UIHelper.showInfoDialog(context, "Account linked",
-                    "Autonomy has received autorization to link to your account ${linkedAccount.accountNumber.mask(4)} in $walletName.");
+                    "Autonomy has received autorization to link to your account ${linkedAccount.accountNumbers.last.mask(4)} in $walletName.");
 
                 final delay = 3;
 

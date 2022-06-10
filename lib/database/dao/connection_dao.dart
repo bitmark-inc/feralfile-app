@@ -5,7 +5,10 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:convert';
+
 import 'package:autonomy_flutter/database/entity/connection.dart';
+import 'package:autonomy_flutter/model/connection_supports.dart';
 import 'package:floor/floor.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 
@@ -22,13 +25,20 @@ abstract class ConnectionDao {
   //   - format ETH address as checksum address
   Future<List<Connection>> getUpdatedLinkedAccounts() async {
     final linkedAccounts = await getLinkedAccounts();
+
+    final deperatedLedgerConnections = linkedAccounts.where((element) =>
+        element.connectionType == 'ledgerEthereum' ||
+        element.connectionType == 'ledgerTezos');
+
+    if (deperatedLedgerConnections.isNotEmpty) {
+      await _migrateDeperatedLedger(deperatedLedgerConnections.toList());
+      return getUpdatedLinkedAccounts();
+    }
+
     return linkedAccounts.map((e) {
       switch (e.connectionType) {
         case 'walletConnect':
         case 'walletBrowserConnect':
-        case 'ledgerEthereum':
-          return e.copyWith(
-              accountNumber: e.accountNumber.getETHEip55Address());
         default:
           return e;
       }
@@ -70,4 +80,48 @@ abstract class ConnectionDao {
 
   @update
   Future<void> updateConnection(Connection connection);
+
+  // migrate: combine ledgerEthereum and ledgerTezos into ledger
+  Future _migrateDeperatedLedger(List<Connection> connections) async {
+    for (final oldConnection in connections) {
+      final jsonData = json.decode(oldConnection.data) as Map<String, dynamic>;
+      var ledgerName = jsonData['ledger'] ?? 'unknown';
+      var ledgerUUID = jsonData['ledger_uuid'] as String;
+
+      var data = LedgerConnection(
+          ledgerName: ledgerName,
+          ledgerUUID: ledgerUUID,
+          etheremAddress: [],
+          tezosAddress: []);
+
+      final existingConnection = await findById(ledgerUUID);
+      if (existingConnection != null) {
+        data = LedgerConnection.fromJson(json.decode(existingConnection.data));
+      }
+
+      switch (oldConnection.connectionType) {
+        case 'ledgerEthereum':
+          data.etheremAddress
+              .add(oldConnection.accountNumber.getETHEip55Address());
+          break;
+        case 'ledgerTezos':
+          data.tezosAddress.add(oldConnection.accountNumber);
+          break;
+        default:
+          break;
+      }
+
+      final newConnection = Connection(
+        key: ledgerUUID,
+        name: ledgerName,
+        data: json.encode(data),
+        connectionType: ConnectionType.ledger.rawValue,
+        accountNumber: (data.etheremAddress + data.tezosAddress).join("||"),
+        createdAt: existingConnection?.createdAt ?? DateTime.now(),
+      );
+
+      await deleteConnection(oldConnection);
+      await insertConnection(newConnection);
+    }
+  }
 }

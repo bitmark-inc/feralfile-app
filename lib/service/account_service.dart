@@ -209,9 +209,8 @@ class AccountServiceImpl extends AccountService {
   }
 
   Future deleteLinkedAccount(Connection connection) async {
-    await _cloudDB.connectionDao
-        .deleteConnectionsByAccountNumber(connection.accountNumber);
-    await setHideLinkedAccountInGallery(connection.accountNumber, false);
+    await _cloudDB.connectionDao.deleteConnection(connection);
+    await setHideLinkedAccountInGallery(connection.hiddenGalleryKey, false);
     injector<AWSService>().storeEventWithDeviceData("delete_linked_account",
         hashingData: {"address": connection.accountNumber});
   }

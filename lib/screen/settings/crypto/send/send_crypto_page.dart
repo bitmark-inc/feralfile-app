@@ -12,7 +12,7 @@ import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_state.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_review_page.dart';
-import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
