@@ -13,7 +13,7 @@ import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:convert/convert.dart';
 import 'package:tezart/tezart.dart';
 import 'package:async/async.dart';
-import 'package:flutter_blue/flutter_blue.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 // Ref: https://blog.ledger.com/btchip-doc/bitcoin-technical.html
 
@@ -212,7 +212,7 @@ class LedgerHardwareWallet {
     if (notifyCharacteristic == null) {
       throw ("notifyCharacteristic is null");
     }
-    final f = notifyCharacteristic!.nextValue();
+    final f = notifyCharacteristic!.read();
     await _send(data);
 
     final result = await f;
