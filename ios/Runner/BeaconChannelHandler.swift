@@ -271,6 +271,39 @@ extension BeaconChannelHandler: FlutterStreamHandler {
                         params["sourceAddress"] = operation.sourceAddress
                         
                         var operationDetails = [[String:Any?]]()
+                        
+                        func getParams(value: Micheline.MichelsonV1Expression) -> Any {
+                            var params: [String: Any] = [:]
+
+                            switch value {
+                            case let .literal(literal):
+                                switch literal {
+                                case .string(let string):
+                                    params["string"] = string
+                                case .int(let value):
+                                    params["int"] = value
+                                case .bytes(let array):
+                                    params["bytes"] = HexString(from: array).asString(withPrefix: false)
+                                }
+                            case let .prim(prim):
+                                params["prim"] = prim.prim
+                                params["args"] = prim.args?.map({ getParams(value: $0) })
+                                if let annots = prim.annots {
+                                    params["annots"] = annots
+                                }
+                                
+                            case .sequence(let array):
+                                var result = [Any]()
+                                for mv1e in array {
+                                    result.append(getParams(value: mv1e))
+                                }
+
+                                return result
+                            }
+                            
+                            return params
+                        }
+                        
                         operation.operationDetails.forEach({ operation in
                             switch operation {
                             case let .transaction(transaction):
@@ -286,43 +319,15 @@ extension BeaconChannelHandler: FlutterStreamHandler {
                                     entrypoint = ""
                                 }
                                 
-                                func getParams(value: Micheline.MichelsonV1Expression) -> Any {
-                                    var params: [String: Any] = [:]
-
-                                    switch value {
-                                    case let .literal(literal):
-                                        switch literal {
-                                        case .string(let string):
-                                            params["string"] = string
-                                        case .int(let value):
-                                            params["int"] = value
-                                        case .bytes(let array):
-                                            params["bytes"] = HexString(from: array).asString(withPrefix: false)
-                                        }
-                                    case let .prim(prim):
-                                        params["prim"] = prim.prim
-                                        params["args"] = prim.args?.map({ getParams(value: $0) })
-                                    case .sequence(let array):
-                                        var result = [Any]()
-                                        for mv1e in array {
-                                            result.append(getParams(value: mv1e))
-                                        }
-
-                                        return result
-                                    }
-                                    
-                                    return params
-                                }
-                                
                                 let params: Any
                                 if let value = transaction.parameters?.value {
                                     params = getParams(value: value)
                                 } else {
                                     params = [:]
                                 }
-
                                 
                                 let detail: [String : Any?] = [
+                                    "kind": "transaction",
                                     "source": transaction.source,
                                     "gasLimit": transaction.gasLimit,
                                     "storageLimit": transaction.storageLimit,
@@ -332,6 +337,22 @@ extension BeaconChannelHandler: FlutterStreamHandler {
                                     "destination": transaction.destination,
                                     "entrypoint": entrypoint,
                                     "parameters": params,
+                                ]
+                                operationDetails.append(detail)
+                            case let .origination(origination):
+                                let code = getParams(value: origination.script.code)
+                                let storage = getParams(value: origination.script.storage)
+                                
+                                let detail: [String : Any?] = [
+                                    "kind": "origination",
+                                    "source": origination.source,
+                                    "gasLimit": origination.gasLimit,
+                                    "storageLimit": origination.storageLimit,
+                                    "fee": origination.fee,
+                                    "balance": origination.balance,
+                                    "counter": origination.counter,
+                                    "code": code,
+                                    "storage": storage,
                                 ]
                                 operationDetails.append(detail)
                             default:

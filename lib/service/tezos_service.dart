@@ -20,12 +20,12 @@ abstract class TezosService {
   Future<int> getBalance(String address);
 
   Future<int> estimateOperationFee(
-      TezosWallet wallet, List<TransactionOperation> operation);
+      TezosWallet wallet, List<Operation> operation);
 
   Future<int> estimateFee(TezosWallet wallet, String to, int amount);
 
   Future<String?> sendOperationTransaction(
-      TezosWallet wallet, List<TransactionOperation> operation);
+      TezosWallet wallet, List<Operation> operation);
 
   Future<String?> sendTransaction(TezosWallet wallet, String to, int amount);
 
@@ -53,7 +53,7 @@ class TezosServiceImpl extends TezosService {
 
   @override
   Future<int> estimateOperationFee(
-      TezosWallet wallet, List<TransactionOperation> operations) async {
+      TezosWallet wallet, List<Operation> operations) async {
     log.info("TezosService.estimateOperationFee");
 
     final keystore = _getKeystore(wallet);
@@ -79,7 +79,7 @@ class TezosServiceImpl extends TezosService {
 
   @override
   Future<String?> sendOperationTransaction(
-      TezosWallet wallet, List<TransactionOperation> operations) async {
+      TezosWallet wallet, List<Operation> operations) async {
     log.info("TezosService.sendOperationTransaction");
 
     final keystore = _getKeystore(wallet);
@@ -96,7 +96,7 @@ class TezosServiceImpl extends TezosService {
       operationList.prependOperation(RevealOperation());
     }
 
-    await operationList.executeAndMonitor();
+    await operationList.execute();
 
     return operationList.result.id;
   }
@@ -110,8 +110,6 @@ class TezosServiceImpl extends TezosService {
       destination: to,
       amount: amount,
       reveal: true,
-      customGasLimit: 10500,
-      customStorageLimit: 257,
     );
     await operation.estimate();
 
@@ -130,13 +128,10 @@ class TezosServiceImpl extends TezosService {
       destination: to,
       amount: amount,
       reveal: true,
-      customGasLimit: 10500,
-      customStorageLimit: 257,
     );
     await operation.execute();
-    await operation.monitor();
 
-    return operation.result.blockHash;
+    return operation.result.id;
   }
 
   @override

@@ -96,7 +96,7 @@ class IAPServiceImpl implements IAPService {
     products.value = Map.fromIterable(productDetailResponse.productDetails,
         key: (e) => e.id, value: (e) => e);
 
-    // restore();
+    await _cleanupPendingTransactions();
   }
 
   Future<bool> renewJWT() async {
@@ -122,14 +122,7 @@ class IAPServiceImpl implements IAPService {
       applicationUserName: null,
     );
 
-    if (Platform.isIOS) {
-      var transactions = await SKPaymentQueueWrapper().transactions();
-      await Future.forEach(transactions,
-          (SKPaymentTransactionWrapper skPaymentTransactionWrapper) async {
-        await SKPaymentQueueWrapper()
-            .finishTransaction(skPaymentTransactionWrapper);
-      });
-    }
+    await _cleanupPendingTransactions();
 
     await _inAppPurchase.buyNonConsumable(purchaseParam: purchaseParam);
   }
@@ -200,6 +193,22 @@ class IAPServiceImpl implements IAPService {
     final jwt = _configurationService.getIAPJWT();
     return (jwt != null && jwt.isValid(withSubscription: true)) ||
         await isAppCenterBuild();
+  }
+
+  Future _cleanupPendingTransactions() async {
+    if (Platform.isIOS) {
+      var transactions = await SKPaymentQueueWrapper().transactions();
+
+      if (transactions.length > 0) {
+        await Future.forEach(transactions,
+            (SKPaymentTransactionWrapper skPaymentTransactionWrapper) async {
+          await SKPaymentQueueWrapper()
+              .finishTransaction(skPaymentTransactionWrapper);
+        });
+
+        await Future.delayed(Duration(seconds: 1));
+      }
+    }
   }
 }
 

@@ -125,31 +125,50 @@ class TezosBeaconChannel {
               final List operationsDetails = params["operationDetails"];
               final String? sourceAddress = params["sourceAddress"];
 
-              List<TransactionOperation> operations = [];
+              List<Operation> operations = [];
               operationsDetails.forEach((element) {
-                final String destination = element["destination"] ?? "";
-                final String amount = element["amount"] ?? "0";
+                final String? kind = element["kind"];
                 final String? storageLimit = element["storageLimit"];
                 final String? gasLimit = element["gasLimit"];
                 final String? fee = element["fee"];
-                final String? entrypoint = element["entrypoint"];
-                final String? counter = element["counter"];
-                final dynamic parameters =
-                    json.decode(json.encode(element["parameters"]));
 
-                var operation = TransactionOperation(
-                    amount: int.parse(amount),
-                    destination: destination,
-                    entrypoint: entrypoint,
-                    params: parameters,
+                if (kind == "origination") {
+                  final String balance = element["balance"] ?? "0";
+                  final List<dynamic> code = element["code"];
+                  final dynamic storage = element["storage"];
+
+                  final operation = OriginationOperation(
+                    balance: int.parse(balance),
+                    code: code.map((e) => Map<String, dynamic>.from(e)).toList(),
+                    storage: storage,
                     customFee: fee != null ? int.parse(fee) : null,
                     customGasLimit:
-                        gasLimit != null ? int.parse(gasLimit) : 1000000,
+                        gasLimit != null ? int.parse(gasLimit) : null,
                     customStorageLimit:
-                        storageLimit != null ? int.parse(storageLimit) : 10000);
-                operation.counter = int.tryParse(counter ?? "");
+                        storageLimit != null ? int.parse(storageLimit) : null,
+                  );
+                  operations.add(operation);
+                } else {
+                  final String destination = element["destination"] ?? "";
+                  final String amount = element["amount"] ?? "0";
+                  final String? entrypoint = element["entrypoint"];
+                  final dynamic parameters =
+                      json.decode(json.encode(element["parameters"]));
 
-                operations.add(operation);
+                  final operation = TransactionOperation(
+                      amount: int.parse(amount),
+                      destination: destination,
+                      entrypoint: entrypoint,
+                      params: parameters,
+                      customFee: fee != null ? int.parse(fee) : null,
+                      customGasLimit:
+                          gasLimit != null ? int.parse(gasLimit) : null,
+                      customStorageLimit: storageLimit != null
+                          ? int.parse(storageLimit)
+                          : null);
+
+                  operations.add(operation);
+                }
               });
 
               request.operations = operations;
@@ -185,8 +204,11 @@ class TezosBeaconChannel {
 
 abstract class BeaconHandler {
   void onRequest(BeaconRequest request);
+
   void onRequestedPermission(Peer peer);
+
   Future<void> onLinked(TezosConnection tezosConnection);
+
   void onAbort();
 }
 
@@ -199,7 +221,7 @@ class BeaconRequest {
   final String? appName;
   final String? icon;
 
-  List<TransactionOperation>? operations;
+  List<Operation>? operations;
   String? payload;
   String? sourceAddress;
 

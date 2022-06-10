@@ -24,6 +24,8 @@ class SendCryptoBloc extends Bloc<SendCryptoEvent, SendCryptoState> {
   String? cachedAddress;
   BigInt? cachedAmount;
 
+  final _safeBuffer = BigInt.from(10);
+
   SendCryptoBloc(
     this._ethereumService,
     this._tezosService,
@@ -45,7 +47,7 @@ class SendCryptoBloc extends Bloc<SendCryptoEvent, SendCryptoState> {
           newState.balance = balance.getInWei;
 
           if (state.fee != null) {
-            final maxAllow = balance.getInWei - state.fee!;
+            final maxAllow = balance.getInWei - state.fee! - _safeBuffer;
             newState.maxAllow = maxAllow;
             newState.isValid = _isValid(newState);
           }
@@ -57,7 +59,7 @@ class SendCryptoBloc extends Bloc<SendCryptoEvent, SendCryptoState> {
 
           newState.balance = BigInt.from(balance);
           if (state.fee != null) {
-            final maxAllow = newState.balance! - state.fee!;
+            final maxAllow = newState.balance! - state.fee! - _safeBuffer;
             newState.maxAllow = maxAllow;
             newState.isValid = _isValid(newState);
           }
@@ -178,7 +180,7 @@ class SendCryptoBloc extends Bloc<SendCryptoEvent, SendCryptoState> {
       newState.fee = fee;
 
       if (state.balance != null) {
-        var maxAllow = state.balance! - fee;
+        var maxAllow = state.balance! - fee - _safeBuffer;
         if (maxAllow < BigInt.zero) maxAllow = BigInt.zero;
         newState.maxAllow = maxAllow;
         newState.address = cachedAddress;
