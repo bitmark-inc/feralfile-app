@@ -316,9 +316,7 @@ class AccountServiceImpl extends AccountService {
       final accounts = await _cloudDB.personaDao.getPersonas();
       final uuids = accounts.map((e) => e.uuid).toList();
 
-      if (uuids.isNotEmpty) {
-        await _backupChannel.backupKeys(uuids);
-      }
+      await _backupChannel.backupKeys(uuids);
     }
   }
 
