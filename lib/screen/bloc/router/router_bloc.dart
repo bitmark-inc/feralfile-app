@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -30,6 +31,7 @@ class RouterBloc extends Bloc<RouterEvent, RouterState> {
   NavigationService _navigationService;
   IAPService _iapService;
   AuditService _auditService;
+  FeralFileService _feralFileService;
 
   Future<bool> hasAccounts() async {
     final personas = await _cloudDB.personaDao.getPersonas();
@@ -44,7 +46,8 @@ class RouterBloc extends Bloc<RouterEvent, RouterState> {
       this._cloudDB,
       this._navigationService,
       this._iapService,
-      this._auditService)
+      this._auditService,
+      this._feralFileService)
       : super(RouterState(onboardingStep: OnboardingStep.undefined)) {
     final migrationUtil = MigrationUtil(
         _configurationService,
@@ -53,7 +56,8 @@ class RouterBloc extends Bloc<RouterEvent, RouterState> {
         _navigationService,
         _iapService,
         _auditService,
-        _backupService);
+        _backupService,
+        _feralFileService);
 
     on<DefineViewRoutingEvent>((event, emit) async {
       if (state.onboardingStep != OnboardingStep.undefined) return;

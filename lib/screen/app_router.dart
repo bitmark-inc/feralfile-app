@@ -171,6 +171,7 @@ class AppRouter {
                       injector(),
                       injector(),
                       injector<AuditService>(),
+                      networkInjector.I(),
                     ),
                 child: OnboardingPage()));
 

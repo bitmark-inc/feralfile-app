@@ -71,7 +71,7 @@ class Connection {
       name: ffAccount.alias,
       data: json.encode(ffConnection),
       connectionType: ConnectionType.feralFileToken.rawValue,
-      accountNumber: ffAccount.accountNumber,
+      accountNumber: ffAccount.id,
       createdAt: DateTime.now(),
     );
   }
@@ -97,7 +97,7 @@ class Connection {
       name: ffAccount.alias,
       data: json.encode(ffWeb3Connection),
       connectionType: ConnectionType.feralFileWeb3.rawValue,
-      accountNumber: ffAccount.accountNumber,
+      accountNumber: ffAccount.id,
       createdAt: DateTime.now(),
     );
   }
@@ -174,9 +174,12 @@ class Connection {
 
   FeralFileConnection? get ffConnection {
     if (connectionType != ConnectionType.feralFileToken.rawValue) return null;
-
-    final jsonData = json.decode(this.data);
-    return FeralFileConnection.fromJson(jsonData);
+    try {
+      final jsonData = json.decode(this.data);
+      return FeralFileConnection.fromJson(jsonData);
+    } catch (_) {
+      return null;
+    }
   }
 
   FeralFileWeb3Connection? get ffWeb3Connection {

@@ -18,8 +18,10 @@ import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/util/migration/migration_data.dart';
 import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -33,6 +35,7 @@ class MigrationUtil {
   IAPService _iapService;
   AuditService _auditService;
   BackupService _backupService;
+  FeralFileService _feralFileService;
 
   MigrationUtil(
       this._configurationService,
@@ -41,7 +44,8 @@ class MigrationUtil {
       this._navigationService,
       this._iapService,
       this._auditService,
-      this._backupService);
+      this._backupService,
+      this._feralFileService);
 
   Future<void> migrateIfNeeded() async {
     if (Platform.isIOS) {
@@ -49,6 +53,8 @@ class MigrationUtil {
     } else {
       await _migrationAndroid();
     }
+
+    await _migrateFFConnection();
 
     _iapService.restore();
     log.info("[migration] finished");
@@ -92,11 +98,12 @@ class MigrationUtil {
         if (address.isEmpty) continue;
         final name = await wallet.getName();
 
-        final persona = Persona(
-            uuid: uuid, name: name, createdAt: mPersona.createdAt);
+        final persona =
+            Persona(uuid: uuid, name: name, createdAt: mPersona.createdAt);
 
         await _cloudDB.personaDao.insertPersona(persona);
-        await _auditService.audiPersonaAction('[_migrationData] insert', persona);
+        await _auditService.audiPersonaAction(
+            '[_migrationData] insert', persona);
       }
     }
 
@@ -108,7 +115,7 @@ class MigrationUtil {
         name: con.ffAccount.alias,
         data: json.encode(ffConnection),
         connectionType: ConnectionType.feralFileToken.rawValue,
-        accountNumber: con.ffAccount.accountNumber,
+        accountNumber: con.ffAccount.id,
         createdAt: con.createdAt,
       );
 
@@ -125,7 +132,7 @@ class MigrationUtil {
         name: con.ffAccount.alias,
         data: json.encode(ffWeb3Connection),
         connectionType: ConnectionType.feralFileWeb3.rawValue,
-        accountNumber: con.ffAccount.accountNumber,
+        accountNumber: con.ffAccount.id,
         createdAt: con.createdAt,
       );
 
@@ -205,6 +212,28 @@ class MigrationUtil {
         await _auditService.audiPersonaAction(
             '[_migrationkeychain] insert', persona);
       }
+    }
+  }
+
+  Future _migrateFFConnection() async {
+    for (var con in await _cloudDB.connectionDao.getConnections()) {
+      if (con.connectionType != ConnectionType.feralFileToken.rawValue) {
+        return;
+      }
+
+      if (con.ffConnection != null) {
+        return;
+      }
+
+      final ffAccount = await _feralFileService.getAccount(con.key);
+      final network = _configurationService.getNetwork();
+      final source = network == Network.MAINNET
+          ? "https://feralfile.com"
+          : "https://feralfile1.dev.bitmark.com";
+
+      final ffConnection = Connection.fromFFToken(con.key, source, ffAccount);
+
+      await _cloudDB.connectionDao.updateConnection(ffConnection);
     }
   }
 }

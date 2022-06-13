@@ -8,6 +8,7 @@
 import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
@@ -17,6 +18,7 @@ import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
@@ -66,6 +68,8 @@ class AccountServiceImpl extends AccountService {
   final AuditService _auditService;
   final AutonomyService _autonomyService;
   final BackupService _backupService;
+
+  final networkInjector = injector<NetworkConfigInjector>();
 
   AccountServiceImpl(
       this._cloudDB,
@@ -126,7 +130,8 @@ class AccountServiceImpl extends AccountService {
               injector<NavigationService>(),
               injector(),
               _auditService,
-              _backupService)
+              _backupService,
+              networkInjector.I())
           .migrationFromKeychain(Platform.isIOS);
       await androidRestoreKeys();
 
