@@ -324,16 +324,6 @@ class AccountServiceImpl extends AccountService {
     if (Platform.isAndroid) {
       final accounts = await _backupChannel.restoreKeys();
 
-      //Remove persona from database if keys not found
-      final personas = await _cloudDB.personaDao.getPersonas();
-      personas.forEach((persona) async {
-        if (!accounts.any((element) => element.uuid == persona.uuid)) {
-          await _cloudDB.personaDao.deletePersona(persona);
-          await _auditService.audiPersonaAction(
-              '[androidRestoreKeys] delete', persona);
-        }
-      });
-
       //Import persona to database if needed
       for (var account in accounts) {
         final existingAccount =
@@ -353,6 +343,20 @@ class AccountServiceImpl extends AccountService {
           await _auditService.audiPersonaAction(
               '[androidRestoreKeys] insert', persona);
         }
+      }
+
+      //Cleanup broken personas
+      final currentPersonas = await _cloudDB.personaDao.getPersonas();
+      var shouldBackup = false;
+      for (var persona in currentPersonas) {
+        if (!(await persona.wallet().isWalletCreated())) {
+          await _cloudDB.personaDao.deletePersona(persona);
+          shouldBackup = true;
+        }
+      }
+
+      if (shouldBackup) {
+        await androidBackupKeys();
       }
     }
   }
