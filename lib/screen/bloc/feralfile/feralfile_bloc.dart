@@ -120,44 +120,6 @@ class FeralfileBloc extends Bloc<FeralFileEvent, FeralFileState> {
         }
       }
     });
-
-    on<LinkFFAccountInfoEvent>((event, emit) async {
-      try {
-        final network = _configurationService.getNetwork();
-        final source = network == Network.MAINNET
-            ? "https://feralfile.com"
-            : "https://feralfile1.dev.bitmark.com";
-
-        final ffToken = event.token;
-        final ffAccount = await _feralFileService.getAccount(ffToken);
-
-        final alreadyLinkedAccount = await getExistingAccount(ffAccount);
-        if (alreadyLinkedAccount != null) {
-          emit(state.setEvent(AlreadyLinkedError(alreadyLinkedAccount)));
-          return;
-        }
-
-        final connection = Connection.fromFFToken(ffToken, source, ffAccount);
-
-        injector<AWSService>().storeEventWithDeviceData(
-          "link_feralfile",
-          hashingData: {"address": ffAccount.accountNumber},
-        );
-
-        _cloudDB.connectionDao.insertConnection(connection);
-        emit(state.setEvent(LinkAccountSuccess(connection)));
-      } on DioError catch (error) {
-        final code = decodeErrorResponse(error);
-        if (code == null) rethrow;
-
-        final apiError = getAPIErrorCode(code);
-        if (apiError == APIErrorCode.notLoggedIn) {
-          emit(state.setEvent(NotFFLoggedIn()));
-          return;
-        }
-        rethrow;
-      }
-    });
   }
 
   Future<Connection?> getExistingAccount(FFAccount ffAccount) async {

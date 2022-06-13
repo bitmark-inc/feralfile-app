@@ -91,11 +91,7 @@ class RouterBloc extends Bloc<RouterEvent, RouterState> {
           return;
         }
       } else {
-        if (_configurationService.isDoneOnboardingOnce()) {
-          emit(RouterState(onboardingStep: OnboardingStep.newAccountPage));
-        } else {
-          emit(RouterState(onboardingStep: OnboardingStep.startScreen));
-        }
+        emit(RouterState(onboardingStep: OnboardingStep.startScreen));
       }
     });
 

@@ -17,7 +17,6 @@ import 'package:autonomy_flutter/screen/account/add_account_page.dart';
 import 'package:autonomy_flutter/screen/account/import_account_page.dart';
 import 'package:autonomy_flutter/screen/account/link_account_page.dart';
 import 'package:autonomy_flutter/screen/account/link_app_options_page.dart';
-import 'package:autonomy_flutter/screen/account/link_feralfile_page.dart';
 import 'package:autonomy_flutter/screen/account/link_ledger_page.dart';
 import 'package:autonomy_flutter/screen/account/link_manually_page.dart';
 import 'package:autonomy_flutter/screen/account/link_metamask_page.dart';
@@ -110,7 +109,6 @@ class AppRouter {
   static const linkWalletConnectPage = "link_wallet_connect";
   static const linkBeaconConnectPage = "link_beacon_connect";
   static const accountsPreviewPage = 'accounts_preview';
-  static const linkFeralFilePage = "link_feralfile";
   static const accessMethodPage = 'access_method_page';
   static const linkAppOptionPage = 'link_app_option_page';
   static const linkMetamaskPage = 'link_metamask';
@@ -123,7 +121,6 @@ class AppRouter {
   static const homePageNoTransition = 'home_page_NoTransition';
   static const artworkPreviewPage = 'artwork_preview';
   static const artworkDetailsPage = 'artwork_detail';
-  static const newAccountPageNoTransition = 'new_account_page_NoTransition';
   static const settingsPage = "settings";
   static const personaDetailsPage = "persona_details";
   static const personaConnectionsPage = "persona_connections";
@@ -247,19 +244,6 @@ class AppRouter {
                     ),
                 child: NewAccountPage()));
 
-      case newAccountPageNoTransition:
-        return PageRouteBuilder(
-            settings: settings,
-            pageBuilder: (context, animetion1, animation2) => BlocProvider(
-                create: (_) => PersonaBloc(
-                      injector<CloudDatabase>(),
-                      injector(),
-                      injector(),
-                      injector<AuditService>(),
-                    ),
-                child: NewAccountPage()),
-            transitionDuration: Duration(seconds: 0));
-
       case addAccountPage:
         return CupertinoPageRoute(
             settings: settings,
@@ -296,14 +280,6 @@ class AppRouter {
                     ),
                   ),
                 ], child: AccountsPreviewPage()));
-
-      case linkFeralFilePage:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => BlocProvider(
-                create: (_) => FeralfileBloc(
-                    injector(), networkInjector.I(), injector<CloudDatabase>()),
-                child: LinkFeralFilePage()));
 
       case accessMethodPage:
         return CupertinoPageRoute(
@@ -464,7 +440,7 @@ class AppRouter {
             duration: Duration(milliseconds: 250),
             child: BlocProvider(
                 create: (_) => FeralfileBloc(
-                    injector(), networkInjector.I(), injector<CloudDatabase>()),
+                    injector(), injector(), injector<CloudDatabase>()),
                 child: ScanQRPage(
                     scannerItem: settings.arguments as ScannerItem)));
       case settingsPage:
@@ -525,8 +501,11 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider(
-                  create: (_) => FeralfileBloc(injector(), networkInjector.I(),
-                      injector<CloudDatabase>()),
+                  create: (_) => FeralfileBloc(
+                    injector(),
+                    injector(),
+                    injector(),
+                  ),
                   child: LinkedAccountDetailsPage(
                       connection: settings.arguments as Connection),
                 ));
@@ -745,27 +724,28 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider(
-              create: (_) => KeySyncBloc(injector(), injector()),
-              child: KeySyncPage(),
-            ));
+                  create: (_) => KeySyncBloc(injector(), injector()),
+                  child: KeySyncPage(),
+                ));
 
       case tvConnectPage:
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => MultiBlocProvider(
-                providers: [
-                  BlocProvider.value(value: accountsBloc),
-                  BlocProvider(
-                    create: (_) => PersonaBloc(
-                      injector<CloudDatabase>(),
-                      injector(),
-                      injector(),
-                      injector<AuditService>(),
-                    ),
-                  ),
-                ],
-                child: TVConnectPage(
-                    wcConnectArgs: settings.arguments as WCConnectPageArgs)));
+                    providers: [
+                      BlocProvider.value(value: accountsBloc),
+                      BlocProvider(
+                        create: (_) => PersonaBloc(
+                          injector<CloudDatabase>(),
+                          injector(),
+                          injector(),
+                          injector<AuditService>(),
+                        ),
+                      ),
+                    ],
+                    child: TVConnectPage(
+                        wcConnectArgs:
+                            settings.arguments as WCConnectPageArgs)));
 
       case uxGuidePage:
         return PageTransition(

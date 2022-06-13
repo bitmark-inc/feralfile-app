@@ -60,17 +60,15 @@ class _OnboardingPageState extends State<OnboardingPage> {
       return;
     }
 
-    const onboardingSurveyKey = "onboarding_survey";
-
     final finishedSurveys =
         injector<ConfigurationService>().getFinishedSurveys();
-    if (finishedSurveys.contains(onboardingSurveyKey)) {
+    if (finishedSurveys.contains(Survey.onboarding)) {
       return;
     }
 
     showCustomNotifications(
         "Take a one-question survey and be entered to win a Feral File artwork.",
-        Key(onboardingSurveyKey),
+        Key(Survey.onboarding),
         notificationOpenedHandler: () =>
             injector<NavigationService>().navigateTo(SurveyPage.tag));
   }
@@ -138,11 +136,6 @@ class _OnboardingPageState extends State<OnboardingPage> {
 
                   await Future.delayed(
                       SHORT_SHOW_DIALOG_DURATION, _handleShowingSurveys);
-                  break;
-
-                case OnboardingStep.newAccountPage:
-                  Navigator.of(context).pushReplacementNamed(
-                      AppRouter.newAccountPageNoTransition);
                   break;
 
                 default:

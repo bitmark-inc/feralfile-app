@@ -135,13 +135,8 @@ class _AccountsViewState extends State<AccountsView> {
         ...accounts
             .map((account) => Column(
                   children: [
-                    SizedBox(height: 16),
                     _viewAccountItem(account),
-                    SizedBox(height: 16),
-                    Divider(
-                      height: 1.0,
-                      thickness: 1.0,
-                    ),
+                    addOnlyDivider(),
                   ],
                 ))
             .toList(),

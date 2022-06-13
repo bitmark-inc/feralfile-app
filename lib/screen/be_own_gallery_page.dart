@@ -10,6 +10,7 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/material.dart';
@@ -67,8 +68,7 @@ class BeOwnGalleryPage extends StatelessWidget {
                       }
 
                       if (await injector<IAPService>().isSubscribed()) {
-                        await Navigator.of(context)
-                            .pushNamed(AppRouter.newAccountPage);
+                        await newAccountPageOrSkipInCondition(context);
                       } else {
                         await Navigator.of(context)
                             .pushNamed(AppRouter.moreAutonomyPage);

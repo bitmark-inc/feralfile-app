@@ -9,15 +9,29 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:autonomy_flutter/common/environment.dart';
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/database/entity/connection.dart';
+import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/service/aws_service.dart';
+import 'package:autonomy_flutter/service/tokens_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/log.dart';
+import 'package:collection/collection.dart';
+import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/gateway/feralfile_api.dart';
 import 'package:autonomy_flutter/model/asset_price.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
+import 'package:autonomy_flutter/model/network.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
+import 'package:dio/dio.dart';
 import 'package:libauk_dart/libauk_dart.dart';
-import 'package:web3dart/credentials.dart';
 
 // TODO:
 abstract class FeralFileService {
+  Future<Connection> linkFF(String token, {required bool delayLink});
+  Future completeDelayedFFConnections();
   Future<FFAccount> getAccount(String token);
 
   Future<FFAccount> getWeb3Account(WalletStorage wallet);
@@ -26,9 +40,91 @@ abstract class FeralFileService {
 }
 
 class FeralFileServiceImpl extends FeralFileService {
-  FeralFileApi _feralFileApi;
+  final ConfigurationService _configurationService;
+  final CloudDatabase _cloudDB;
+  final FeralFileApi _feralFileApi;
 
-  FeralFileServiceImpl(this._feralFileApi);
+  FeralFileServiceImpl(
+    this._configurationService,
+    this._cloudDB,
+    this._feralFileApi,
+  );
+
+  @override
+  Future<Connection> linkFF(String token, {required bool delayLink}) async {
+    log.info("[FeralFileService][start] linkFF");
+    late Connection connection;
+
+    try {
+      final network = _configurationService.getNetwork();
+      final ffSource = network == Network.MAINNET
+          ? Environment.feralFileAPIMainnetURL
+          : Environment.feralFileAPITestnetURL;
+
+      final ffAccount = await getAccount(token);
+      final alreadyLinkedAccount = (await _cloudDB.connectionDao
+              .getConnectionsByAccountNumber(ffAccount.accountNumber))
+          .firstOrNull;
+
+      if (alreadyLinkedAccount != null) {
+        throw AlreadyLinkedException(alreadyLinkedAccount);
+      }
+
+      connection = Connection.fromFFToken(token, ffSource, ffAccount);
+    } on DioError catch (error) {
+      final code = decodeErrorResponse(error);
+      if (code == null) rethrow;
+
+      final apiError = getAPIErrorCode(code);
+      if (apiError == APIErrorCode.notLoggedIn) {
+        throw InvalidDeeplink();
+      }
+      rethrow;
+    }
+
+    if (delayLink) {
+      memoryValues.linkedFFConnections =
+          (memoryValues.linkedFFConnections ?? []) + [connection];
+    } else {
+      await _cloudDB.connectionDao.insertConnection(connection);
+      injector<TokensService>()
+          .fetchTokensForAddresses(connection.accountNumbers);
+    }
+
+    // mark survey from FeralFile as referrer if user hasn't answerred
+    final finishedSurveys = _configurationService.getFinishedSurveys();
+    if (!finishedSurveys.contains(Survey.onboarding)) {
+      injector<AWSService>().storeEventWithDeviceData(
+        Survey.onboarding,
+        message: 'Feral File',
+      );
+      injector<ConfigurationService>().setFinishedSurvey([Survey.onboarding]);
+    }
+
+    injector<AWSService>().storeEventWithDeviceData(
+      "link_feralfile",
+      hashingData: {"address": connection.accountNumber},
+    );
+
+    log.info("[FeralFileService][end] linkFF");
+    return connection;
+  }
+
+  Future completeDelayedFFConnections() async {
+    log.info("[FeralFileService][Start] completeDelayedFFConnections");
+    for (var connection in memoryValues.linkedFFConnections ?? []) {
+      final alreadyLinkedAccount = (await _cloudDB.connectionDao
+              .getConnectionsByAccountNumber(connection.accountNumber))
+          .firstOrNull;
+
+      if (alreadyLinkedAccount == null) {
+        await _cloudDB.connectionDao.insertConnection(connection);
+      }
+    }
+
+    memoryValues.linkedFFConnections = [];
+    log.info("[FeralFileService][Done] completeDelayedFFConnections");
+  }
 
   @override
   Future<FFAccount> getAccount(String token) async {

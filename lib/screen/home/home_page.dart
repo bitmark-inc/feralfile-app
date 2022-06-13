@@ -23,6 +23,7 @@ import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
+import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tokens_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
@@ -38,14 +39,12 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:path/path.dart' as p;
 import 'package:sentry_flutter/sentry_flutter.dart';
-import 'package:uni_links/uni_links.dart';
 
 class HomePage extends StatefulWidget {
   static const tag = "home";
@@ -56,7 +55,6 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage>
     with RouteAware, WidgetsBindingObserver, AfterLayoutMixin<HomePage> {
-  StreamSubscription? _deeplinkSubscription;
   StreamSubscription<FGBGType>? _fgbgSubscription;
   late ScrollController _controller;
   int _cachedImageSize = 0;
@@ -65,7 +63,6 @@ class _HomePageState extends State<HomePage>
   void initState() {
     super.initState();
     _checkForKeySync();
-    _initUniLinks();
     WidgetsBinding.instance.addObserver(this);
     _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
     _controller = ScrollController();
@@ -90,6 +87,7 @@ class _HomePageState extends State<HomePage>
 
   @override
   void afterFirstLayout(BuildContext context) {
+    injector<FeralFileService>().completeDelayedFFConnections();
     _cloudBackup();
     _handleForeground();
     injector<AutonomyService>().postLinkedAddresses();
@@ -99,7 +97,6 @@ class _HomePageState extends State<HomePage>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     routeObserver.unsubscribe(this);
-    _deeplinkSubscription?.cancel();
     _fgbgSubscription?.cancel();
     super.dispose();
   }
@@ -307,79 +304,12 @@ class _HomePageState extends State<HomePage>
     await backup.backupCloudDatabase();
   }
 
-  Future<void> _initUniLinks() async {
-    try {
-      final initialLink = await getInitialLink();
-      _handleDeeplink(initialLink);
-
-      _deeplinkSubscription = linkStream.listen(_handleDeeplink);
-    } on PlatformException {}
-  }
-
   Future<void> _checkForKeySync() async {
     final cloudDatabase = injector<CloudDatabase>();
     final defaultAccounts = await cloudDatabase.personaDao.getDefaultPersonas();
 
     if (defaultAccounts.length >= 2) {
       Navigator.of(context).pushNamed(AppRouter.keySyncPage);
-    }
-  }
-
-  void _handleDeeplink(String? link) {
-    if (link == null) return;
-
-    final wcPrefixes = [
-      "https://au.bitmark.com/apps/wc?uri=",
-      "https://au.bitmark.com/apps/wc/wc?uri=", // maybe something wrong with WC register; fix by this for now
-      "https://autonomy.io/apps/wc?uri=",
-      "https://autonomy.io/apps/wc/wc?uri=",
-    ];
-
-    final tzPrefixes = [
-      "https://au.bitmark.com/apps/tezos?uri=",
-      "https://autonomy.io/apps/tezos?uri=",
-    ];
-
-    final wcDeeplinkPrefixes = [
-      'wc:',
-      'autonomy-wc:',
-    ];
-
-    final tbDeeplinkPrefixes = [
-      "tezos://",
-      "autonomy-tezos://",
-    ];
-
-    // Check Universal Link
-    final callingWCPrefix =
-        wcPrefixes.firstWhereOrNull((prefix) => link.startsWith(prefix));
-    if (callingWCPrefix != null) {
-      final wcUri = link.substring(callingWCPrefix.length);
-      final decodedWcUri = Uri.decodeFull(wcUri);
-      context.read<HomeBloc>().add(HomeConnectWCEvent(decodedWcUri));
-      return;
-    }
-
-    final callingTBPrefix =
-        tzPrefixes.firstWhereOrNull((prefix) => link.startsWith(prefix));
-    if (callingTBPrefix != null) {
-      final tzUri = link.substring(callingTBPrefix.length);
-      context.read<HomeBloc>().add(HomeConnectTZEvent(tzUri));
-      return;
-    }
-
-    final callingWCDeeplinkPrefix = wcDeeplinkPrefixes
-        .firstWhereOrNull((prefix) => link.startsWith(prefix));
-    if (callingWCDeeplinkPrefix != null) {
-      context.read<HomeBloc>().add(HomeConnectWCEvent(link));
-      return;
-    }
-
-    final callingTBDeeplinkPrefix = tbDeeplinkPrefixes
-        .firstWhereOrNull((prefix) => link.startsWith(prefix));
-    if (callingTBDeeplinkPrefix != null) {
-      context.read<HomeBloc>().add(HomeConnectTZEvent(link));
-      return;
     }
   }
 
@@ -458,7 +388,6 @@ class _HomePageState extends State<HomePage>
 
   void _handleForeground() async {
     memoryValues.inForegroundAt = DateTime.now();
-    _deeplinkSubscription?.resume();
     await injector<ConfigurationService>().reload();
     try {
       await injector<SettingsDataService>().restoreSettingsData();
@@ -485,7 +414,6 @@ class _HomePageState extends State<HomePage>
   void _handleBackground() {
     injector<AWSService>().storeEventWithDeviceData("device_background");
     injector<TokensService>().disposeIsolate();
-    _deeplinkSubscription?.pause();
     _cloudBackup();
     FileLogger.shrinkLogFileIfNeeded();
   }

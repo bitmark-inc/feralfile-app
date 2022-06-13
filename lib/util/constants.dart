@@ -17,6 +17,7 @@ const EMPTY_ISSUE_MESSAGE = 'NO MESSAGE BODY WAS PROVIDED';
 const KNOWN_BUGS_LINK = 'https://github.com/orgs/bitmark-inc/projects/16';
 const USER_TEST_CALENDAR_LINK =
     'https://calendly.com/anais-bitmark/usertesting';
+const FF_TOKEN_DEEPLINK_PREFIX = 'https://autonomy.io/apps/feralfile?token=';
 
 Future<bool> isAppCenterBuild() async {
   final PackageInfo info = await PackageInfo.fromPlatform();
@@ -35,6 +36,10 @@ enum WalletApp {
   MetaMask,
   Kukai,
   Temple,
+}
+
+class Survey {
+  static const onboarding = 'onboarding_survey';
 }
 
 class GallerySortProperty {

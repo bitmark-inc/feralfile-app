@@ -25,6 +25,8 @@ import 'package:autonomy_flutter/service/cloud_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/currency_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
+import 'package:autonomy_flutter/service/deeplink_service.dart';
+import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/ledger_hardware/ledger_hardware_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -128,6 +130,7 @@ Future<void> setup() async {
   authenticatedDio.addSentry(captureFailedRequests: true);
   authenticatedDio.options = BaseOptions(followRedirects: true);
 
+  // Services
   final auditService = AuditServiceImpl(cloudDB);
 
   injector.registerSingleton<ConfigurationService>(
@@ -196,6 +199,17 @@ Future<void> setup() async {
 
   injector.registerLazySingleton<TokensService>(
       () => TokensServiceImpl(injector<NetworkConfigInjector>(), injector()));
+
+  injector.registerLazySingleton<FeralFileService>(() => FeralFileServiceImpl(
+        injector(),
+        injector(),
+        injector<NetworkConfigInjector>().I(),
+      ));
+
+  // Deeplink
+  final deeplinkService = DeeplinkServiceImpl(
+      injector(), injector(), injector(), injector(), injector());
+  await deeplinkService.setup();
 }
 
 // Must be top-level function
