@@ -13,13 +13,14 @@ part 'ff_account.g.dart';
 
 @JsonSerializable()
 class FFAccount {
-  String accountNumber;
+  @JsonKey(name: "ID", defaultValue: '')
+  String id;
   String alias;
   String location;
   WyreWallet? wyreWallet;
 
   FFAccount(
-      {required this.accountNumber,
+      {required this.id,
       required this.alias,
       required this.location,
       required this.wyreWallet});

@@ -141,7 +141,7 @@ class FeralfileBloc extends Bloc<FeralFileEvent, FeralFileState> {
 
         injector<AWSService>().storeEventWithDeviceData(
           "link_feralfile",
-          hashingData: {"address": ffAccount.accountNumber},
+          hashingData: {"address": ffAccount.id},
         );
 
         _cloudDB.connectionDao.insertConnection(connection);
@@ -162,7 +162,7 @@ class FeralfileBloc extends Bloc<FeralFileEvent, FeralFileState> {
 
   Future<Connection?> getExistingAccount(FFAccount ffAccount) async {
     final existingConnections = await _cloudDB.connectionDao
-        .getConnectionsByAccountNumber(ffAccount.accountNumber);
+        .getConnectionsByAccountNumber(ffAccount.id);
 
     if (existingConnections.isEmpty) return null;
 
