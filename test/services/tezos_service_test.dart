@@ -22,7 +22,6 @@ main() {
     test('get public key', () async {
       final publicKey = await tezosService.getPublicKey(wallet);
 
-      print(publicKey);
       expect(
           publicKey, "edpkvB8a5H6uwbzKysXRzZ96EqT5pVouZFvz6Qye67sgcZFkSZS92x");
     });
