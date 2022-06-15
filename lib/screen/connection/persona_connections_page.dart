@@ -171,16 +171,20 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
         if (connectionItems.isEmpty) {
           return _emptyConnectionsWidget();
         } else {
+          int index = 0;
           return Column(
             children: [
-              ...connectionItems
-                  .map((connectionItem) => Column(
-                        children: [
-                          _connectionItemWidget(connectionItem),
-                          addOnlyDivider(),
-                        ],
-                      ))
-                  .toList(),
+              ...connectionItems.map((connectionItem) {
+                index++;
+                return Column(
+                  children: [
+                    _connectionItemWidget(connectionItem),
+                    index < connectionItems.length
+                        ? addOnlyDivider()
+                        : const SizedBox(),
+                  ],
+                );
+              }).toList(),
             ],
           );
         }
@@ -217,7 +221,6 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
             Navigator.of(context)
                 .pushNamed(AppRouter.scanQRPage, arguments: scanItem);
           }),
-      addDivider(),
     ]);
   }
 

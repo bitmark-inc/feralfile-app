@@ -680,7 +680,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
                 });
               },
             ),
-            Divider(height: 20, color: Colors.white),
             TextButton(
               onPressed: () => Navigator.pop(context),
               child: Text(
