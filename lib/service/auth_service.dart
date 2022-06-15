@@ -21,14 +21,14 @@ class AuthService {
   AuthService(this._authApi, this._accountService, this._configurationService);
 
   Future<JWT> getAuthToken(
-      {String? receiptData, bool forceRefresh = false}) async {
+      {String? messageToSign, String? receiptData, bool forceRefresh = false}) async {
     if (!forceRefresh && _jwt != null && _jwt!.isValid()) {
       return _jwt!;
     }
 
     final account = await this._accountService.getDefaultAccount();
 
-    final message = DateTime.now().millisecondsSinceEpoch.toString();
+    final message = messageToSign ?? DateTime.now().millisecondsSinceEpoch.toString();
     final accountDID = await account.getAccountDID();
     final signature = await account.getAccountDIDSignature(message);
 
