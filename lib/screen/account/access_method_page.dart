@@ -40,7 +40,6 @@ class AccessMethodPage extends StatelessWidget {
               _linkAccount(context),
               addDivider(),
               _importAccount(context),
-              addDivider(),
             ]),
           ))
         ]),

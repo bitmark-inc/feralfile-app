@@ -84,7 +84,6 @@ class _LinkAccountPageState extends State<LinkAccountPage>
                   style: appTextTheme.bodyText1),
               SizedBox(height: 24),
               _bitmarkLinkView(context),
-              addOnlyDivider(),
               SizedBox(height: 40),
               _ethereumLinkView(context),
               SizedBox(height: 40),
