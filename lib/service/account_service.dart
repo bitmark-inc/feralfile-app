@@ -315,25 +315,13 @@ class AccountServiceImpl extends AccountService {
       final accounts = await _cloudDB.personaDao.getPersonas();
       final uuids = accounts.map((e) => e.uuid).toList();
 
-      if (uuids.isNotEmpty) {
-        await _backupChannel.backupKeys(uuids);
-      }
+      await _backupChannel.backupKeys(uuids);
     }
   }
 
   Future androidRestoreKeys() async {
     if (Platform.isAndroid) {
       final accounts = await _backupChannel.restoreKeys();
-
-      //Remove persona from database if keys not found
-      final personas = await _cloudDB.personaDao.getPersonas();
-      personas.forEach((persona) async {
-        if (!accounts.any((element) => element.uuid == persona.uuid)) {
-          await _cloudDB.personaDao.deletePersona(persona);
-          await _auditService.audiPersonaAction(
-              '[androidRestoreKeys] delete', persona);
-        }
-      });
 
       //Import persona to database if needed
       for (var account in accounts) {
@@ -354,6 +342,20 @@ class AccountServiceImpl extends AccountService {
           await _auditService.audiPersonaAction(
               '[androidRestoreKeys] insert', persona);
         }
+      }
+
+      //Cleanup broken personas
+      final currentPersonas = await _cloudDB.personaDao.getPersonas();
+      var shouldBackup = false;
+      for (var persona in currentPersonas) {
+        if (!(await persona.wallet().isWalletCreated())) {
+          await _cloudDB.personaDao.deletePersona(persona);
+          shouldBackup = true;
+        }
+      }
+
+      if (shouldBackup) {
+        await androidBackupKeys();
       }
     }
   }

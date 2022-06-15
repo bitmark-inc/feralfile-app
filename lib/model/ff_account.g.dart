@@ -7,7 +7,7 @@ part of 'ff_account.dart';
 // **************************************************************************
 
 FFAccount _$FFAccountFromJson(Map<String, dynamic> json) => FFAccount(
-      accountNumber: json['accountNumber'] as String,
+      id: json['ID'] as String? ?? '',
       alias: json['alias'] as String,
       location: json['location'] as String,
       wyreWallet: json['wyreWallet'] == null
@@ -16,7 +16,7 @@ FFAccount _$FFAccountFromJson(Map<String, dynamic> json) => FFAccount(
     );
 
 Map<String, dynamic> _$FFAccountToJson(FFAccount instance) => <String, dynamic>{
-      'accountNumber': instance.accountNumber,
+      'ID': instance.id,
       'alias': instance.alias,
       'location': instance.location,
       'wyreWallet': instance.wyreWallet,

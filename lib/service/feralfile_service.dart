@@ -63,7 +63,7 @@ class FeralFileServiceImpl extends FeralFileService {
 
       final ffAccount = await getAccount(token);
       final alreadyLinkedAccount = (await _cloudDB.connectionDao
-              .getConnectionsByAccountNumber(ffAccount.accountNumber))
+              .getConnectionsByAccountNumber(ffAccount.id))
           .firstOrNull;
 
       if (alreadyLinkedAccount != null) {

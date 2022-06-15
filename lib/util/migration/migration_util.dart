@@ -92,11 +92,12 @@ class MigrationUtil {
         if (address.isEmpty) continue;
         final name = await wallet.getName();
 
-        final persona = Persona(
-            uuid: uuid, name: name, createdAt: mPersona.createdAt);
+        final persona =
+            Persona(uuid: uuid, name: name, createdAt: mPersona.createdAt);
 
         await _cloudDB.personaDao.insertPersona(persona);
-        await _auditService.audiPersonaAction('[_migrationData] insert', persona);
+        await _auditService.audiPersonaAction(
+            '[_migrationData] insert', persona);
       }
     }
 
@@ -108,7 +109,7 @@ class MigrationUtil {
         name: con.ffAccount.alias,
         data: json.encode(ffConnection),
         connectionType: ConnectionType.feralFileToken.rawValue,
-        accountNumber: con.ffAccount.accountNumber,
+        accountNumber: con.ffAccount.id,
         createdAt: con.createdAt,
       );
 
@@ -125,7 +126,7 @@ class MigrationUtil {
         name: con.ffAccount.alias,
         data: json.encode(ffWeb3Connection),
         connectionType: ConnectionType.feralFileWeb3.rawValue,
-        accountNumber: con.ffAccount.accountNumber,
+        accountNumber: con.ffAccount.id,
         createdAt: con.createdAt,
       );
 

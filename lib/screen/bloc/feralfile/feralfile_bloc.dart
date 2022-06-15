@@ -124,7 +124,7 @@ class FeralfileBloc extends Bloc<FeralFileEvent, FeralFileState> {
 
   Future<Connection?> getExistingAccount(FFAccount ffAccount) async {
     final existingConnections = await _cloudDB.connectionDao
-        .getConnectionsByAccountNumber(ffAccount.accountNumber);
+        .getConnectionsByAccountNumber(ffAccount.id);
 
     if (existingConnections.isEmpty) return null;
 
