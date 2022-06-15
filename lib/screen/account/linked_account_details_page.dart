@@ -54,19 +54,10 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
       case 'feralFileWeb3':
       case 'feralFileToken':
         _source = "FeralFile";
-        final feralFileState = context.watch<FeralfileBloc>().state;
         context
             .read<FeralfileBloc>()
             .add(GetFFAccountInfoEvent(widget.connection));
-
-        final wyreWallet =
-            feralFileState.connection?.ffConnection?.ffAccount.wyreWallet;
-        if (wyreWallet != null) {
-          setState(() {
-            _balances[address] =
-                "${wyreWallet.availableBalances['USDC'] ?? 0} USDC";
-          });
-        }
+        contextedAddresses.add(ContextedAddress(CryptoType.BITMARK, address));
         break;
 
       case "walletBeacon":
@@ -138,6 +129,22 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
 
   @override
   Widget build(BuildContext context) {
+    switch (widget.connection.connectionType) {
+      case 'feralFileWeb3':
+      case 'feralFileToken':
+        _source = "FeralFile";
+        final feralFileState = context.watch<FeralfileBloc>().state;
+        final wyreWallet =
+            feralFileState.connection?.ffConnection?.ffAccount.wyreWallet;
+        if (wyreWallet != null) {
+          setState(() {
+            _balances[widget.connection.accountNumber] =
+                "${wyreWallet.availableBalances['USDC'] ?? 0} USDC";
+          });
+        }
+        break;
+    }
+
     return Scaffold(
       appBar: getBackAppBar(
         context,

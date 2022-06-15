@@ -210,6 +210,33 @@ void showErrorDiablog(
 
 void showErrorDialogFromException(Object exception,
     {StackTrace? stackTrace, String? library}) async {
+  final context = injector<NavigationService>().navigatorKey.currentContext;
+
+  if (exception is PlatformException) {
+    if (lastException != null && lastException?.message == exception.message) {
+      return;
+    }
+    lastException = exception;
+  } else if (context != null) {
+    if (exception is AbortedException) {
+      UIHelper.showInfoDialog(
+          context, "Aborted", "The action was aborted by the user.",
+          isDismissible: true, autoDismissAfter: 3);
+      return;
+    } else if (exception is RequiredPremiumFeature) {
+      UIHelper.showFeatureRequiresSubscriptionDialog(
+          context, exception.feature);
+      return;
+    } else if (exception is AlreadyLinkedException) {
+      UIHelper.showAlreadyLinked(context, exception.connection);
+      return;
+    } else if (exception is InvalidDeeplink) {
+      UIHelper.showInfoDialog(context, "😵", "The link is not valid",
+          isDismissible: true, autoDismissAfter: 3);
+      return;
+    }
+  }
+
   // avoid to bother user when user has just foregrounded the app.
   if (memoryValues.inForegroundAt != null &&
       DateTime.now()
@@ -222,22 +249,6 @@ void showErrorDialogFromException(Object exception,
     return;
   }
 
-  final context = injector<NavigationService>().navigatorKey.currentContext;
-
-  if (exception is PlatformException) {
-    if (lastException != null && lastException?.message == exception.message) {
-      return;
-    }
-    lastException = exception;
-  } else if (context != null && exception is AbortedException) {
-    UIHelper.showInfoDialog(
-        context, "Aborted", "The action was aborted by the user.",
-        isDismissible: true, autoDismissAfter: 3);
-    return;
-  } else if (context != null && exception is RequiredPremiumFeature) {
-    UIHelper.showFeatureRequiresSubscriptionDialog(context, exception.feature);
-    return;
-  }
   log.warning("Unhandled error: $exception", exception);
   injector<AWSService>().storeEventWithDeviceData("unhandled_error",
       data: {"message": exception.toString()});

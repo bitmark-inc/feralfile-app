@@ -9,12 +9,6 @@ part of 'feralfile_bloc.dart';
 
 abstract class FeralFileEvent {}
 
-class LinkFFAccountInfoEvent extends FeralFileEvent {
-  final String token;
-
-  LinkFFAccountInfoEvent(this.token);
-}
-
 class LinkFFWeb3AccountEvent extends FeralFileEvent {
   final String topic;
   final String source;

@@ -11,6 +11,7 @@ import 'dart:ui';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -144,12 +145,14 @@ class MemoryValues {
   String? viewingSupportThreadIssueID;
   DateTime? inForegroundAt;
   bool inGalleryView;
+  List<Connection>? linkedFFConnections = [];
 
   MemoryValues({
     this.scopedPersona,
     this.viewingSupportThreadIssueID,
     this.inForegroundAt,
     this.inGalleryView = true,
+    this.linkedFFConnections,
   });
 
   MemoryValues copyWith({

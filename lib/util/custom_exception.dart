@@ -28,3 +28,5 @@ class RequiredPremiumFeature implements Exception {
     required this.feature,
   });
 }
+
+class InvalidDeeplink implements Exception {}

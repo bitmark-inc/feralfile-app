@@ -13,7 +13,6 @@ import 'package:autonomy_flutter/gateway/indexer_api.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
-import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
@@ -48,8 +47,6 @@ class NetworkConfigInjector {
     testnetInjector.registerLazySingleton<TezosService>(
         () => TezosServiceImpl(testnetInjector()));
     testnetInjector.registerLazySingleton<AppDatabase>(() => testnetDB);
-    testnetInjector.registerLazySingleton<FeralFileService>(
-        () => FeralFileServiceImpl(testnetInjector()));
 
     //Main network
     mainnetInjector.registerLazySingleton(
@@ -68,8 +65,6 @@ class NetworkConfigInjector {
     mainnetInjector.registerLazySingleton<TezosService>(
         () => TezosServiceImpl(mainnetInjector()));
     mainnetInjector.registerLazySingleton<AppDatabase>(() => mainnetDB);
-    mainnetInjector.registerLazySingleton<FeralFileService>(
-        () => FeralFileServiceImpl(mainnetInjector()));
   }
 
   GetIt get I => _configurationService.getNetwork() == Network.MAINNET

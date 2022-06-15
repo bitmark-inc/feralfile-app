@@ -3,6 +3,7 @@ import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart'
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/material.dart';
@@ -25,7 +26,7 @@ class MoreAutonomyPage extends StatelessWidget {
         listener: (context, state) {
           if (state.status == IAPProductStatus.completed ||
               state.status == IAPProductStatus.error) {
-            Navigator.of(context).pushNamed(AppRouter.newAccountPage);
+            newAccountPageOrSkipInCondition(context);
           }
         },
         builder: (context, state) {
@@ -44,8 +45,7 @@ class MoreAutonomyPage extends StatelessWidget {
                   height: 320,
                 ),
                 SizedBox(height: 16),
-                Text(
-                    "*Google TV app plus AirPlay & Chromecast streaming",
+                Text("*Google TV app plus AirPlay & Chromecast streaming",
                     style: appTextTheme.headline5),
                 Expanded(child: SizedBox()),
                 AuFilledButton(
@@ -66,8 +66,7 @@ class MoreAutonomyPage extends StatelessWidget {
                       fontFamily: "IBMPlexMono"),
                 ),
                 TextButton(
-                  onPressed: () =>
-                      Navigator.of(context).pushNamed(AppRouter.newAccountPage),
+                  onPressed: () => newAccountPageOrSkipInCondition(context),
                   child: Text(
                     "NOT NOW",
                     style: TextStyle(
