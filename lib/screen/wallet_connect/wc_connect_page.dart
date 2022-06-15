@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/screen/connection/persona_connections_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
+import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -102,7 +103,7 @@ class _WCConnectPageState extends State<WCConnectPage>
     Navigator.of(context).pop();
   }
 
-  Future _approve(List<String>? addresses) async {
+  Future _approve() async {
     if (selectedPersona == null) return;
 
     final wcConnectArgs = widget.wcConnectArgs;
@@ -121,7 +122,7 @@ class _WCConnectPageState extends State<WCConnectPage>
               ? 1
               : 4;
 
-      final approvedAddresses = addresses ?? [address];
+      final approvedAddresses = [address];
       log.info(
           "[WCConnectPage] approve WCConnect with addreses ${approvedAddresses}");
       await injector<WalletConnectService>().approveSession(
@@ -389,38 +390,15 @@ class _WCConnectPageState extends State<WCConnectPage>
             ],
           ),
         ),
-        BlocListener<AccountsBloc, AccountsState>(
-          listener: (context, state) {
-            final event = state.event;
-            if (event == null) return;
-
-            // Approve for Autonomy TV
-            if (event is FetchAllAddressesSuccessEvent) {
-              _approve(event.addresses);
-            }
-          },
-          child: Row(
-            children: [
-              Expanded(
-                child: AuFilledButton(
-                  text: "Connect".toUpperCase(),
-                  onPress: () {
-                    // Handle for Autonomy TV
-                    if (widget.wcConnectArgs?.peerMeta.name ==
-                        AUTONOMY_TV_PEER_NAME) {
-                      context
-                          .read<AccountsBloc>()
-                          .add(FetchAllAddressesEvent());
-                      // continue do action in listener
-                      return;
-                    }
-
-                    _approve(null);
-                  },
-                ),
-              )
-            ],
-          ),
+        Row(
+          children: [
+            Expanded(
+              child: AuFilledButton(
+                text: "Connect".toUpperCase(),
+                onPress: () => _approve(),
+              ),
+            )
+          ],
         )
       ],
     );

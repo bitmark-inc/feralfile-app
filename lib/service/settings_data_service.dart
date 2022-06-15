@@ -11,7 +11,9 @@ import 'dart:io';
 import 'package:autonomy_flutter/database/dao/asset_token_dao.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/model/network.dart';
+import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:crypto/crypto.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -25,11 +27,16 @@ abstract class SettingsDataService {
 
 class SettingsDataServiceImpl implements SettingsDataService {
   final ConfigurationService _configurationService;
+  final AccountService _accountService;
   final AssetTokenDao _mainnetAssetDao;
   final AssetTokenDao _testnetAssetDao;
   final IAPApi _iapApi;
+
+  var latestDataHash = '';
+
   SettingsDataServiceImpl(
     this._configurationService,
+    this._accountService,
     this._mainnetAssetDao,
     this._testnetAssetDao,
     this._iapApi,
@@ -38,12 +45,15 @@ class SettingsDataServiceImpl implements SettingsDataService {
   final _requester =
       'requester'; // server ignore this when putting jwt, so just put something
   final _filename = 'settings_data_backup.json';
-  final _version = '0';
+  final _version = '1';
   var _numberOfCallingBackups = 0;
 
   @override
   Future backup() async {
     log.info('[SettingsDataService][Start] backup');
+    final addresses = await _accountService.getShowedAddresses();
+    if (addresses.isEmpty) return;
+
     _numberOfCallingBackups += 1;
     final hiddenMainnetTokenIDs =
         (await _mainnetAssetDao.findAllHiddenTokenIDs() +
@@ -60,6 +70,7 @@ class SettingsDataServiceImpl implements SettingsDataService {
             .toList();
 
     final data = SettingsDataBackup(
+      addresses: addresses,
       immediatePlaybacks: _configurationService.isImmediatePlaybackEnabled(),
       isAnalyticsEnabled: _configurationService.isAnalyticsEnabled(),
       uxGuideStep: _configurationService.getUXGuideStep(),
@@ -72,9 +83,18 @@ class SettingsDataServiceImpl implements SettingsDataService {
           _configurationService.getLinkedAccountsHiddenInGallery(),
     );
 
+    final dataBytes = json.encode(data.toJson()).codeUnits;
+    final dataHash = sha512.convert(dataBytes).toString();
+    if (latestDataHash == dataHash) {
+      log.info("[SettingsDataService] skip backup because of it's identical");
+      return;
+    }
+
+    latestDataHash = dataHash;
+
     String dir = (await getTemporaryDirectory()).path;
     File backupFile = new File('$dir/$_filename');
-    await backupFile.writeAsBytes(json.encode(data.toJson()).codeUnits);
+    await backupFile.writeAsBytes(dataBytes);
 
     await _iapApi.uploadProfile(_requester, _filename, _version, backupFile);
 
@@ -123,6 +143,7 @@ class SettingsDataServiceImpl implements SettingsDataService {
 
 @JsonSerializable()
 class SettingsDataBackup {
+  List<String> addresses;
   bool immediatePlaybacks;
   bool isAnalyticsEnabled;
   int? uxGuideStep;
@@ -133,6 +154,7 @@ class SettingsDataBackup {
   List<String> hiddenLinkedAccountsFromGallery;
 
   SettingsDataBackup({
+    required this.addresses,
     required this.immediatePlaybacks,
     required this.isAnalyticsEnabled,
     required this.uxGuideStep,

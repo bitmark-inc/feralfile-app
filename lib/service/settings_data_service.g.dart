@@ -8,6 +8,8 @@ part of 'settings_data_service.dart';
 
 SettingsDataBackup _$SettingsDataBackupFromJson(Map<String, dynamic> json) =>
     SettingsDataBackup(
+      addresses:
+          (json['addresses'] as List<dynamic>).map((e) => e as String).toList(),
       immediatePlaybacks: json['immediatePlaybacks'] as bool,
       isAnalyticsEnabled: json['isAnalyticsEnabled'] as bool,
       uxGuideStep: json['uxGuideStep'] as int?,
@@ -32,6 +34,7 @@ SettingsDataBackup _$SettingsDataBackupFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$SettingsDataBackupToJson(SettingsDataBackup instance) =>
     <String, dynamic>{
+      'addresses': instance.addresses,
       'immediatePlaybacks': instance.immediatePlaybacks,
       'isAnalyticsEnabled': instance.isAnalyticsEnabled,
       'uxGuideStep': instance.uxGuideStep,

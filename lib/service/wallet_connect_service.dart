@@ -171,6 +171,7 @@ class WalletConnectService {
             _navigationService.navigateTo(AppRouter.tvConnectPage,
                 arguments: WCConnectPageArgs(id, peerMeta));
           } else {
+            rejectRequest(peerMeta, id);
             throw RequiredPremiumFeature(feature: PremiumFeature.AutonomyTV);
           }
         } else {
