@@ -4,8 +4,14 @@
  * that can be found in the LICENSE file.
  */
 
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import android.net.NetworkRequest
 import android.net.Uri
+import android.os.Handler
+import android.os.Looper
 import androidx.annotation.NonNull
+import androidx.core.content.ContextCompat.getSystemService
 import com.bitmark.autonomy_flutter.jsonKT
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.EventChannel
@@ -29,14 +35,14 @@ import it.airgap.beaconsdk.blockchain.tezos.message.response.PermissionTezosResp
 import it.airgap.beaconsdk.blockchain.tezos.message.response.SignPayloadTezosResponse
 import it.airgap.beaconsdk.blockchain.tezos.tezos
 import it.airgap.beaconsdk.client.wallet.BeaconWalletClient
+import it.airgap.beaconsdk.client.wallet.compat.stop
 import it.airgap.beaconsdk.core.data.*
 import it.airgap.beaconsdk.core.internal.data.HexString
 import it.airgap.beaconsdk.core.internal.utils.*
 import it.airgap.beaconsdk.core.message.*
 import it.airgap.beaconsdk.transport.p2p.matrix.p2pMatrix
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.*
 import kotlinx.serialization.*
 import java.util.*
 import kotlin.collections.ArrayList
@@ -49,6 +55,7 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
     /// when the Flutter Engine is detached from the Activity
     private lateinit var channel: MethodChannel
     private lateinit var eventChannel: EventChannel
+    private var isNetworkDisconnected = false
 
     fun createChannels(@NonNull flutterEngine: FlutterEngine) {
         channel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "tezos_beacon")
@@ -56,6 +63,32 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
         eventChannel =
             EventChannel(flutterEngine.dartExecutor.binaryMessenger, "tezos_beacon/event")
         eventChannel.setStreamHandler(this)
+
+        val networkRequest = NetworkRequest.Builder()
+            .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+            .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+            .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
+            .build()
+        val networkCallback = object : ConnectivityManager.NetworkCallback() {
+            override fun onAvailable(network: android.net.Network) {
+                super.onAvailable(network)
+                if (isNetworkDisconnected) {
+                    startBeacon()
+                    isNetworkDisconnected = false
+                }
+            }
+
+            override fun onLost(network: android.net.Network) {
+                super.onLost(network)
+                isNetworkDisconnected = true
+            }
+        }
+
+        val connectivityManager = getSystemService(
+            applicationContext,
+            ConnectivityManager::class.java
+        ) as ConnectivityManager
+        connectivityManager.requestNetwork(networkRequest, networkCallback)
     }
 
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
@@ -150,7 +183,8 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
                                         result["string"] = value.string
                                     }
                                     is MichelinePrimitiveBytes -> {
-                                        result["bytes"] = HexString(value.bytes).asString(withPrefix = false)
+                                        result["bytes"] =
+                                            HexString(value.bytes).asString(withPrefix = false)
                                     }
                                     is MichelineNode -> {
                                         return value.expressions.map { arg -> getParams(arg) }
@@ -217,7 +251,11 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
                                         transaction.parameters?.entrypoint?.let {
                                             detail["entrypoint"] = it
                                         }
-                                        transaction.parameters?.value?.let { value -> getParams(value) }
+                                        transaction.parameters?.value?.let { value ->
+                                            getParams(
+                                                value
+                                            )
+                                        }
                                             ?.let {
                                                 detail["parameters"] = it
                                             }
@@ -298,6 +336,7 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
 
     private fun startBeacon() {
         CoroutineScope(Dispatchers.IO).launch {
+            beaconClient?.stop()
             beaconClient = BeaconWalletClient(
                 "Autonomy",
             ) {
