@@ -177,121 +177,89 @@ class _HomePageState extends State<HomePage>
   }
 
   Widget _assetsWidget(List<AssetToken> tokens) {
-    final groupByProperty = groupBy(tokens, (AssetToken obj) {
-      return polishSource(obj.source ?? "Unknown");
-    });
+    final tokenIDs = tokens.map((element) => element.id).toList();
 
-    var keys = groupByProperty.keys.toList();
-    keys.sort((a, b) {
-      if (a.toLowerCase() == 'unknown') return 1;
-      if (b.toLowerCase() == 'unknown') return -1;
-      if (a.startsWith('[') && !b.startsWith('[')) {
-        return 1;
-      } else if (!a.startsWith('[') && b.startsWith('[')) {
-        return -1;
-      } else {
-        return a.toLowerCase().compareTo(b.toLowerCase());
-      }
-    });
+    const int cellPerRow = 3;
+    const double cellSpacing = 3.0;
 
-    final tokenIDs = keys
-        .map((e) => groupByProperty[e] ?? [])
-        .expand((element) => element.map((e) => e.id))
-        .toList();
-
-    var sources = keys.map((sortingPropertyValue) {
-      final assets = groupByProperty[sortingPropertyValue] ?? [];
-      const int cellPerRow = 3;
-      const double cellSpacing = 3.0;
-      if (_cachedImageSize == 0) {
-        final estimatedCellWidth =
-            MediaQuery.of(context).size.width / cellPerRow -
-                cellSpacing * (cellPerRow - 1);
-        _cachedImageSize = (estimatedCellWidth * 3).ceil();
-      }
-
-      return <Widget>[
-        SliverToBoxAdapter(
-          child: Container(
-            padding: EdgeInsets.fromLTRB(14, 0, 24, 14),
-            child: Text(
-              sortingPropertyValue,
-              style: appTextTheme.headline1,
-            ),
-          ),
+    if (_cachedImageSize == 0) {
+      final estimatedCellWidth =
+          MediaQuery.of(context).size.width / cellPerRow -
+              cellSpacing * (cellPerRow - 1);
+      _cachedImageSize = (estimatedCellWidth * 3).ceil();
+    }
+    List<Widget> sources;
+    sources = [
+      SliverGrid(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: cellPerRow,
+          crossAxisSpacing: cellSpacing,
+          mainAxisSpacing: cellSpacing,
+          childAspectRatio: 1.0,
         ),
-        SliverGrid(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: cellPerRow,
-              crossAxisSpacing: cellSpacing,
-              mainAxisSpacing: cellSpacing,
-              childAspectRatio: 1.0,
-            ),
-            delegate: SliverChildBuilderDelegate(
-              (BuildContext context, int index) {
-                final asset = assets[index];
-                final ext = p.extension(asset.galleryThumbnailURL!);
-                return GestureDetector(
-                  child: Hero(
-                    tag: asset.id,
-                    child: ext == ".svg"
-                        ? SvgPicture.network(asset.galleryThumbnailURL!,
-                            placeholderBuilder: (context) => Container(
-                                color: Color.fromRGBO(227, 227, 227, 1)))
-                        : CachedNetworkImage(
-                            imageUrl: asset.galleryThumbnailURL!,
-                            fit: BoxFit.cover,
-                            memCacheHeight: _cachedImageSize,
-                            memCacheWidth: _cachedImageSize,
-                            cacheManager: injector<AUCacheManager>(),
-                            placeholder: (context, index) => Container(
-                                color: Color.fromRGBO(227, 227, 227, 1)),
-                            placeholderFadeInDuration:
-                                Duration(milliseconds: 300),
-                            errorWidget: (context, url, error) => Container(
-                                color: Color.fromRGBO(227, 227, 227, 1),
-                                child: Center(
-                                  child: SvgPicture.asset(
-                                    'assets/images/image_error.svg',
-                                    width: 75,
-                                    height: 75,
-                                  ),
-                                )),
-                          ),
-                  ),
-                  onTap: () {
-                    final index = tokenIDs.indexOf(asset.id);
-                    final payload = ArtworkDetailPayload(tokenIDs, index);
-                    if (injector<ConfigurationService>()
-                        .isImmediatePlaybackEnabled()) {
-                      Navigator.of(context).pushNamed(
-                          AppRouter.artworkPreviewPage,
-                          arguments: payload);
-                    } else {
-                      Navigator.of(context).push(
-                        AppRouter.onGenerateRoute(RouteSettings(
-                            name: AppRouter.artworkDetailsPage,
-                            arguments: payload)),
-                      );
-                    }
-                  },
-                );
+        delegate: SliverChildBuilderDelegate(
+          (BuildContext context, int index) {
+            final asset = tokens[index];
+            final ext = p.extension(asset.galleryThumbnailURL!);
+
+            return GestureDetector(
+              child: Hero(
+                tag: asset.id,
+                child: ext == ".svg"
+                    ? SvgPicture.network(asset.galleryThumbnailURL!,
+                        placeholderBuilder: (context) =>
+                            Container(color: Color.fromRGBO(227, 227, 227, 1)))
+                    : CachedNetworkImage(
+                        imageUrl: asset.galleryThumbnailURL!,
+                        fit: BoxFit.cover,
+                        memCacheHeight: _cachedImageSize,
+                        memCacheWidth: _cachedImageSize,
+                        cacheManager: injector<AUCacheManager>(),
+                        placeholder: (context, index) =>
+                            Container(color: Color.fromRGBO(227, 227, 227, 1)),
+                        placeholderFadeInDuration: Duration(milliseconds: 300),
+                        errorWidget: (context, url, error) => Container(
+                            color: Color.fromRGBO(227, 227, 227, 1),
+                            child: Center(
+                              child: SvgPicture.asset(
+                                'assets/images/image_error.svg',
+                                width: 75,
+                                height: 75,
+                              ),
+                            )),
+                      ),
+              ),
+              onTap: () {
+                final index = tokens.indexOf(asset);
+                final payload = ArtworkDetailPayload(tokenIDs, index);
+
+                if (injector<ConfigurationService>()
+                    .isImmediatePlaybackEnabled()) {
+                  Navigator.of(context).pushNamed(AppRouter.artworkPreviewPage,
+                      arguments: payload);
+                } else {
+                  Navigator.of(context).push(
+                    AppRouter.onGenerateRoute(RouteSettings(
+                        name: AppRouter.artworkDetailsPage,
+                        arguments: payload)),
+                  );
+                }
               },
-              childCount: assets.length,
-            )),
-        SliverToBoxAdapter(
-            child: Container(
-          height: 56.0,
-        ))
-      ];
-    }).reduce((value, element) => value += element);
+            );
+          },
+          childCount: tokens.length,
+        ),
+      ),
+    ];
 
     sources.insert(
-        0,
-        SliverToBoxAdapter(
-            child: Container(
+      0,
+      SliverToBoxAdapter(
+        child: Container(
           height: 168.0,
-        )));
+        ),
+      ),
+    );
 
     return CustomScrollView(
       slivers: sources,
