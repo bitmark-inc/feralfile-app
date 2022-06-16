@@ -180,12 +180,14 @@ class AppRouter {
                   providers: [
                     BlocProvider(
                         create: (_) => HomeBloc(
-                            injector(),
-                            injector(),
-                            injector(),
-                            networkInjector,
-                            injector<CloudDatabase>(),
-                            injector())),
+                              injector(),
+                              injector(),
+                              injector(),
+                              networkInjector,
+                              injector<CloudDatabase>(),
+                              injector(),
+                              injector(),
+                            )),
                     BlocProvider(
                         create: (_) => IdentityBloc(
                             networkInjector.I<AppDatabase>(),
@@ -202,12 +204,14 @@ class AppRouter {
                   providers: [
                     BlocProvider(
                         create: (_) => HomeBloc(
-                            injector(),
-                            injector(),
-                            injector(),
-                            networkInjector,
-                            injector<CloudDatabase>(),
-                            injector())),
+                              injector(),
+                              injector(),
+                              injector(),
+                              networkInjector,
+                              injector<CloudDatabase>(),
+                              injector(),
+                              injector(),
+                            )),
                     BlocProvider(
                         create: (_) => IdentityBloc(
                             networkInjector.I<AppDatabase>(),

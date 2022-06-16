@@ -7,6 +7,7 @@
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
+import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:dio/dio.dart';
@@ -137,6 +138,19 @@ class AutonomyAuthInterceptor extends Interceptor {
       options.headers["Authorization"] = "Bearer ${jwt.jwtToken}";
     }
 
+    return handler.next(options);
+  }
+}
+
+class QuickAuthInterceptor extends Interceptor {
+  String jwtToken;
+
+  QuickAuthInterceptor(this.jwtToken);
+
+  @override
+  void onRequest(
+      RequestOptions options, RequestInterceptorHandler handler) async {
+    options.headers["Authorization"] = "Bearer $jwtToken";
     return handler.next(options);
   }
 }

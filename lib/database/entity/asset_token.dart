@@ -12,6 +12,7 @@ import 'package:floor/floor.dart';
 class AssetToken {
   String? artistName;
   String? artistURL;
+  String? artistID;
   String? assetData;
   String? assetID;
   String? assetURL;
@@ -41,6 +42,7 @@ class AssetToken {
   AssetToken(
       {required this.artistName,
       required this.artistURL,
+      required this.artistID,
       required this.assetData,
       required this.assetID,
       required this.assetURL,
@@ -69,6 +71,7 @@ class AssetToken {
   factory AssetToken.fromAsset(Asset asset) => AssetToken(
         artistName: asset.projectMetadata.latest.artistName,
         artistURL: asset.projectMetadata.latest.artistUrl,
+        artistID: asset.projectMetadata.latest.artistId,
         assetData: asset.projectMetadata.latest.assetData,
         assetID: asset.projectMetadata.latest.assetId,
         assetURL: asset.projectMetadata.latest.assetUrl,

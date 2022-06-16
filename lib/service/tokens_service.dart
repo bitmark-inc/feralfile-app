@@ -6,7 +6,6 @@
 //
 
 import 'dart:async';
-import 'dart:ffi';
 import 'dart:isolate';
 
 import 'package:autonomy_flutter/common/environment.dart';
@@ -42,7 +41,10 @@ class TokensServiceImpl extends TokensService {
   static const REFRESH_ALL_TOKENS = '_refreshAllTokens';
   static const FETCH_TOKENS = '_fetchTokens';
 
-  TokensServiceImpl(this._networkConfigInjector, this._configurationService);
+  TokensServiceImpl(
+    this._networkConfigInjector,
+    this._configurationService,
+  );
 
   SendPort? _sendPort;
   ReceivePort? _receivePort;
@@ -187,6 +189,8 @@ class TokensServiceImpl extends TokensService {
 
     _sendPort!.send([FETCH_TOKENS, addresses, _indexerURL, uuid]);
     log.info("[FETCH_TOKENS][start] $addresses");
+
+    return completer.future;
   }
 
   static void _isolateEntry(SendPort sendPort) {

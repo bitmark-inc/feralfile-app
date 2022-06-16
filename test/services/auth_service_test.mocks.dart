@@ -200,6 +200,15 @@ class MockAccountService extends _i1.Mock implements _i10.AccountService {
   bool isLinkedAccountHiddenInGallery(String? address) => (super.noSuchMethod(
       Invocation.method(#isLinkedAccountHiddenInGallery, [address]),
       returnValue: false) as bool);
+  @override
+  _i8.Future<List<String>> getShowedAddresses() =>
+      (super.noSuchMethod(Invocation.method(#getShowedAddresses, []),
+              returnValue: Future<List<String>>.value(<String>[]))
+          as _i8.Future<List<String>>);
+  @override
+  _i8.Future<String> authorizeToViewer() =>
+      (super.noSuchMethod(Invocation.method(#authorizeToViewer, []),
+          returnValue: Future<String>.value('')) as _i8.Future<String>);
 }
 
 /// A class which mocks [ConfigurationService].
@@ -399,6 +408,14 @@ class MockConfigurationService extends _i1.Mock
   _i8.Future<bool> toggleDemoArtworksMode() =>
       (super.noSuchMethod(Invocation.method(#toggleDemoArtworksMode, []),
           returnValue: Future<bool>.value(false)) as _i8.Future<bool>);
+  @override
+  bool showTokenDebugInfo() =>
+      (super.noSuchMethod(Invocation.method(#showTokenDebugInfo, []),
+          returnValue: false) as bool);
+  @override
+  _i8.Future<dynamic> setShowTokenDebugInfo(bool? show) =>
+      (super.noSuchMethod(Invocation.method(#setShowTokenDebugInfo, [show]),
+          returnValue: Future<dynamic>.value()) as _i8.Future<dynamic>);
   @override
   _i8.Future<void> reload() =>
       (super.noSuchMethod(Invocation.method(#reload, []),
