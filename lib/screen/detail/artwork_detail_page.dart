@@ -293,7 +293,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
         future: isAppCenterBuild().then((value) {
           if (value == false) return Future.value(false);
 
-          return injector<AccountService>().isLinkedIndexerTokenID(asset.id);
+          return injector<ConfigurationService>().showTokenDebugInfo();
         }),
         builder: (context, snapshot) {
           if (snapshot.data == false) return SizedBox();

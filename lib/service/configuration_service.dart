@@ -68,6 +68,8 @@ abstract class ConfigurationService {
   // ----- App Setting -----
   bool isDemoArtworksMode();
   Future<bool> toggleDemoArtworksMode();
+  bool showTokenDebugInfo();
+  Future setShowTokenDebugInfo(bool show);
 
   // Reload
   Future<void> reload();
@@ -111,6 +113,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
       "latest_refresh_tokens_testnet_1";
   static const String KEY_PREVIOUS_BUILD_NUMBER = "previous_build_number";
   static const String KEY_GUIDED_STEP = "guided_step";
+  static const String KEY_SHOW_TOKEN_DEBUG_INFO = "show_token_debug_info";
 
   SharedPreferences _preferences;
 
@@ -459,6 +462,14 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
   Future<void> setUXGuideStep(int uxGuideStep) async {
     await _preferences.setInt(KEY_GUIDED_STEP, uxGuideStep);
+  }
+
+  bool showTokenDebugInfo() {
+    return _preferences.getBool(KEY_SHOW_TOKEN_DEBUG_INFO) ?? false;
+  }
+
+  Future setShowTokenDebugInfo(bool show) async {
+    await _preferences.setBool(KEY_SHOW_TOKEN_DEBUG_INFO, show);
   }
 
   @override
