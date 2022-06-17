@@ -262,8 +262,8 @@ class AppRouter {
             builder: (context) => MultiBlocProvider(providers: [
                   BlocProvider.value(value: accountsBloc),
                   BlocProvider(
-                      create: (_) => FeralfileBloc(injector(),
-                          networkInjector.I(), injector<CloudDatabase>())),
+                      create: (_) => FeralfileBloc(
+                          injector(), injector(), injector<CloudDatabase>())),
                 ], child: LinkAccountPage()));
 
       case accountsPreviewPage:
@@ -286,7 +286,7 @@ class AppRouter {
             settings: settings,
             builder: (context) => BlocProvider(
                 create: (_) => FeralfileBloc(
-                    injector(), networkInjector.I(), injector<CloudDatabase>()),
+                    injector(), injector(), injector<CloudDatabase>()),
                 child: AccessMethodPage(
                   walletApp: settings.arguments as String,
                 )));
@@ -296,7 +296,7 @@ class AppRouter {
             settings: settings,
             builder: (context) => BlocProvider(
                 create: (_) => FeralfileBloc(
-                    injector(), networkInjector.I(), injector<CloudDatabase>()),
+                    injector(), injector(), injector<CloudDatabase>()),
                 child: LinkAppOptionsPage()));
 
       case linkMetamaskPage:
@@ -304,7 +304,7 @@ class AppRouter {
             settings: settings,
             builder: (context) => BlocProvider(
                 create: (_) => FeralfileBloc(
-                    injector(), networkInjector.I(), injector<CloudDatabase>()),
+                    injector(), injector(), injector<CloudDatabase>()),
                 child: LinkMetamaskPage()));
 
       case linkTezosKukaiPage:
@@ -419,7 +419,7 @@ class AppRouter {
           settings: settings,
           builder: (context) => BlocProvider(
               create: (_) => FeralfileBloc(
-                  injector(), networkInjector.I(), injector<CloudDatabase>()),
+                  injector(), injector(), injector<CloudDatabase>()),
               child: WCSignMessagePage(
                   args: settings.arguments as WCSignMessagePageArgs)),
         );
