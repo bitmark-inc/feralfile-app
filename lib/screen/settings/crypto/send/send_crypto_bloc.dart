@@ -7,13 +7,18 @@
 
 import 'dart:math';
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_state.dart';
 import 'package:autonomy_flutter/service/currency_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/error_handler.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:tezart/tezart.dart';
 import 'package:web3dart/web3dart.dart';
 
 class SendCryptoBloc extends Bloc<SendCryptoEvent, SendCryptoState> {
@@ -155,7 +160,7 @@ class SendCryptoBloc extends Bloc<SendCryptoEvent, SendCryptoState> {
     on<EstimateFeeEvent>((event, emit) async {
       final newState = state.clone();
 
-      final BigInt fee;
+      BigInt fee;
 
       switch (_type) {
         case CryptoType.ETH:
@@ -169,9 +174,22 @@ class SendCryptoBloc extends Bloc<SendCryptoEvent, SendCryptoState> {
           final wallet = state.wallet;
           if (wallet == null) return;
           final tezosWallet = await wallet.getTezosWallet();
-          final tezosFee = await _tezosService.estimateFee(
-              tezosWallet, event.address, event.amount.toInt());
-          fee = BigInt.from(tezosFee);
+          try {
+            final tezosFee = await _tezosService.estimateFee(
+                tezosWallet, event.address, event.amount.toInt());
+            fee = BigInt.from(tezosFee);
+          } on TezartNodeError catch (err) {
+            UIHelper.showInfoDialog(
+              injector<NavigationService>().navigatorKey.currentContext!,
+              "Estimation failed",
+              getTezosErrorMessage(err),
+              isDismissible: true,
+            );
+            fee = BigInt.zero;
+          } catch (err) {
+            showErrorDialogFromException(err);
+            fee = BigInt.zero;
+          }
           break;
         default:
           fee = BigInt.zero;

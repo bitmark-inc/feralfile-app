@@ -77,7 +77,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
       UIHelper.showInfoDialog(
         context,
         "Estimation failed",
-        "The operation cannot be calculated. Please make sure your have enough crypto to perform this action.",
+        getTezosErrorMessage(err),
         isDismissible: true,
       );
     } catch (err) {
@@ -241,8 +241,8 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                                   log.info(err);
                                   UIHelper.showInfoDialog(
                                     context,
-                                    "Operation failed",
-                                    "The operation cannot be completed. Please make sure your have enough crypto to complete this action.",
+                                    "Estimation failed",
+                                    getTezosErrorMessage(err),
                                     isDismissible: true,
                                   );
                                 } catch (err) {
