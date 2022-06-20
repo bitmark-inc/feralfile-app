@@ -16,4 +16,13 @@ abstract class AutonomyApi {
 
   @POST("/apis/v1/me/link-addresses")
   Future postLinkedAddressed(@Body() Map<String, List<String>> body);
+
+  @POST("/apis/v1/me/keypairs")
+  Future addKeypair(@Body() Map<String, String> body);
+
+  @GET("/apis/v1/me/keypairs")
+  Future getKeypairs();
+
+  @DELETE("/apis/v1/me/keypairs")
+  Future deleteKeypair(@Body() Map<String, String> body);
 }

@@ -582,7 +582,7 @@ class AppRouter {
                           networkInjector.I())),
                   BlocProvider(
                       create: (_) => ArtworkDetailBloc(
-                            networkInjector.I(),
+                            injector(),
                             networkInjector.I<AppDatabase>().assetDao,
                             networkInjector.I<AppDatabase>().provenanceDao,
                           )),
