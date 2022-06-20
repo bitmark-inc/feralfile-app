@@ -289,3 +289,15 @@ void showErrorDialogFromException(Object exception,
 void hideInfoDialog(BuildContext context) {
   Navigator.of(context).pop();
 }
+
+String getTezosErrorMessage(TezartNodeError err) {
+  var message = "";
+  if (err.message.contains("empty_implicit_contract") || err.message.contains("balance_too_low")) {
+    message = "Transaction is likely to fail. Please make sure you have enough of Tezos balance to perform this action.";
+  } else if (err.message.contains("script_rejected")) {
+    message = "The operation failed. Contract malformed or deprecated.";
+  } else {
+    message = "The operation failed with message: ${err.message}";
+  }
+  return message;
+}

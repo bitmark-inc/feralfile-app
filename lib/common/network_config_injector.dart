@@ -45,7 +45,7 @@ class NetworkConfigInjector {
     testnetInjector.registerLazySingleton<EthereumService>(
         () => EthereumServiceImpl(testnetInjector(), _configurationService));
     testnetInjector.registerLazySingleton<TezosService>(
-        () => TezosServiceImpl(testnetInjector()));
+        () => TezosServiceImpl(testnetInjector(), _configurationService));
     testnetInjector.registerLazySingleton<AppDatabase>(() => testnetDB);
 
     //Main network
@@ -63,7 +63,7 @@ class NetworkConfigInjector {
     mainnetInjector.registerLazySingleton<EthereumService>(
         () => EthereumServiceImpl(mainnetInjector(), _configurationService));
     mainnetInjector.registerLazySingleton<TezosService>(
-        () => TezosServiceImpl(mainnetInjector()));
+        () => TezosServiceImpl(mainnetInjector(), _configurationService));
     mainnetInjector.registerLazySingleton<AppDatabase>(() => mainnetDB);
   }
 
