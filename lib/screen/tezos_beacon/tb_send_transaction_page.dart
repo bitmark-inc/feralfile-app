@@ -241,7 +241,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                                   log.info(err);
                                   UIHelper.showInfoDialog(
                                     context,
-                                    "Estimation failed",
+                                    "Operation failed",
                                     getTezosErrorMessage(err),
                                     isDismissible: true,
                                   );
