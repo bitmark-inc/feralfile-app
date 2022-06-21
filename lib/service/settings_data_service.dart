@@ -90,13 +90,12 @@ class SettingsDataServiceImpl implements SettingsDataService {
       return;
     }
 
-    latestDataHash = dataHash;
-
     String dir = (await getTemporaryDirectory()).path;
     File backupFile = new File('$dir/$_filename');
     await backupFile.writeAsBytes(dataBytes);
 
     await _iapApi.uploadProfile(_requester, _filename, _version, backupFile);
+    latestDataHash = dataHash;
 
     if (_numberOfCallingBackups == 1) {
       backupFile.delete();
