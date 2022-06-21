@@ -30,3 +30,5 @@ class RequiredPremiumFeature implements Exception {
 }
 
 class InvalidDeeplink implements Exception {}
+
+class FailedFetchBackupVersion implements Exception {}

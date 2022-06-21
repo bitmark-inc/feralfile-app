@@ -11,6 +11,7 @@ import 'dart:io';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/model/backup_versions.dart';
+import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/helpers.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/migration/migration_util.dart';
@@ -60,9 +61,9 @@ class BackupService {
             "$endpoint/apis/v1/premium/profile-data/versions?filename=$filename"),
         headers: {"requester": deviceId, "Authorization": "Bearer $authToken"});
 
-    if (response.contentLength == 0 && response.statusCode != 200) {
+    if (response.statusCode != 200) {
       log.warning("[BackupService] failed fetchBackupVersion");
-      return "";
+      throw FailedFetchBackupVersion();
     }
 
     final result = BackupVersions.fromJson(json.decode(response.body));
@@ -104,7 +105,7 @@ class BackupService {
             "$endpoint/apis/v1/premium/profile-data?filename=$filename&appVersion=$version"),
         headers: {"requester": deviceId, "Authorization": "Bearer $authToken"});
 
-    if (response.contentLength == 0 && response.statusCode != 200) {
+    if (response.statusCode != 200) {
       log.warning("[BackupService] failed database restore");
       return;
     }
