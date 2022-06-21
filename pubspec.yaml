@@ -116,6 +116,11 @@ dependencies:
   webview_flutter: ^3.0.0
   wakelock: ^0.6.1+2
 
+  nft_rendering:
+    git:
+      url: git@github.com:autonomy-system/nft-rendering.git
+      ref: v1.0.0 
+    
 dependency_overrides:
   # Error using when import photo_view from dependencies:
   # https://stackoverflow.com/questions/70404718/error-with-photoview-looking-up-a-deactivated-widgets-ancestor-is-unsafe/71010204#71010204
