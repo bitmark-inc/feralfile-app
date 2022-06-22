@@ -6,6 +6,7 @@
 //
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
@@ -25,7 +26,7 @@ class PenroseTopBarView extends StatefulWidget {
   State<PenroseTopBarView> createState() => _PenroseTopBarViewState();
 }
 
-class _PenroseTopBarViewState extends State<PenroseTopBarView> {
+class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
   double _opacity = 1;
 
   @override
@@ -33,6 +34,31 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> {
     super.initState();
 
     widget.scrollController.addListener(_scrollListener);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    routeObserver.unsubscribe(this);
+  }
+
+  @override
+  void didPopNext() {
+    super.didPopNext();
+    // Restore SystemUIMode
+    _scrollListener();
+  }
+
+  void didPushNext() {
+    // Reset to normal SystemUIMode
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
+        overlays: SystemUiOverlay.values);
   }
 
   _scrollListener() {

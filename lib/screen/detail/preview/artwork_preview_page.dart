@@ -89,10 +89,8 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
       if (isFullscreen) {
         setState(() {
           isFullscreen = false;
-          if (Platform.isAndroid) {
-            SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
-                overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom]);
-          }
+          SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
+              overlays: SystemUiOverlay.values);
         });
       }
     });
@@ -273,10 +271,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                 isFullscreen = true;
               });
 
-              if (Platform.isAndroid) {
-                SystemChrome.setEnabledSystemUIMode(
-                    SystemUiMode.immersiveSticky);
-              }
+              SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
 
               if (injector<ConfigurationService>().isFullscreenIntroEnabled()) {
                 showModalBottomSheet<void>(
