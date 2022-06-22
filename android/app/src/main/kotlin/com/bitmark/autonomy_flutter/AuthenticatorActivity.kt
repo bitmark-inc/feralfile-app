@@ -3,6 +3,7 @@ package com.bitmark.autonomy_flutter
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.AppCompatImageView
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
@@ -22,8 +23,14 @@ class AuthenticatorActivity : AppCompatActivity() {
 
         authenticate()
 
+            
         findViewById<View>(R.id.enter_passcode).setOnClickListener {
             authenticate()
+        }
+
+
+        if (BuildConfig.FLAVOR.equals("inhouse")){
+            findViewById<AppCompatImageView>(R.id.logo_authentication).setImageResource(R.drawable.penrose_inhouse)
         }
     }
 
