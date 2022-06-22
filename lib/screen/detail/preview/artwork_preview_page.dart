@@ -27,9 +27,7 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/theme_manager.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cast/cast.dart';
-import 'package:easy_debounce/easy_debounce.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -38,13 +36,10 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_to_airplay/airplay_route_picker_view.dart';
 import 'package:mime/mime.dart';
 import 'package:path/path.dart' as p;
-import 'package:photo_view/photo_view.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shake/shake.dart';
-import 'package:video_player/video_player.dart';
 import 'package:wakelock/wakelock.dart';
-import 'package:webview_flutter/webview_flutter.dart';
-import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
+import 'package:nft_rendering/nft_rendering.dart';
 
 enum AUCastDeviceType { Airplay, Chromecast }
 
@@ -71,13 +66,12 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
         RouteAware,
         WidgetsBindingObserver,
         AfterLayoutMixin<ArtworkPreviewPage> {
-  VideoPlayerController? _controller;
   bool isFullscreen = false;
   AssetToken? asset;
   late int currentIndex;
-  WebViewController? _webViewController;
+  INFTRenderingWidget? _renderingWidget;
+
   Future<List<CastDevice>> _castDevicesFuture = CastDiscoveryService().search();
-  bool _isPreviewLoaded = false;
   String? swipeDirection;
 
   static List<AUCastDevice> _defaultCastDevices = [
@@ -132,9 +126,8 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   void didPopNext() {
     enableLandscapeMode();
     Wakelock.enable();
-    _controller?.play();
-    _webViewController?.runJavascript(
-        "var video = document.getElementsByTagName('video')[0]; if(video != undefined) { video.play(); }");
+
+    _renderingWidget?.didPopNext();
     super.didPopNext();
   }
 
@@ -145,9 +138,8 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     routeObserver.unsubscribe(this);
     WidgetsBinding.instance.removeObserver(this);
     _stopAllChromecastDevices();
-    _controller?.dispose();
-    _controller = null;
-    _webViewController = null;
+    _renderingWidget?.dispose();
+
     _detector?.stopListening();
     if (Platform.isAndroid) {
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
@@ -159,11 +151,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
 
   void _disposeCurrentDisplay() {
     _stopAllChromecastDevices();
-    _isPreviewLoaded = false;
-    _controller?.dispose();
-    _controller = null;
-    loadedPath = null;
-    _webViewController = null;
+    _renderingWidget?.dispose();
   }
 
   @override
@@ -186,10 +174,6 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
         if (state.asset != null) {
           asset = state.asset!;
           Sentry.startTransaction("view: " + asset!.id, "load");
-
-          if (asset!.medium == "video" && loadedPath != asset!.previewURL) {
-            _startPlay(asset!.previewURL!);
-          }
 
           return SafeArea(
               top: false,
@@ -389,95 +373,37 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   }
 
   Widget _getArtworkView(AssetToken asset) {
+    return _buildRenderingWidget(asset);
+  }
+
+  Widget _buildRenderingWidget(AssetToken asset) {
+    String mimeType = "";
     switch (asset.medium) {
       case "image":
         final ext = p.extension(asset.previewURL!);
-        return ext == ".svg"
-            ? AspectRatio(
-                aspectRatio: 1,
-                child: Container(
-                    color: Colors.white,
-                    child: SvgPicture.network(
-                      asset.previewURL!,
-                      placeholderBuilder: (context) => _previewPlaceholder,
-                    )))
-            : CachedNetworkImage(
-                imageUrl: asset.previewURL!,
-                imageBuilder: (context, imageProvider) => PhotoView(
-                  imageProvider: imageProvider,
-                ),
-                placeholder: (context, url) => _previewPlaceholder,
-                placeholderFadeInDuration: Duration(milliseconds: 300),
-                errorWidget: (context, url, error) => Center(
-                  child: SvgPicture.asset(
-                    'assets/images/image_error.svg',
-                    width: 148,
-                    height: 158,
-                  ),
-                ),
-                fit: BoxFit.cover,
-              );
-      case "video":
-        if (_controller != null) {
-          if (_isPreviewLoaded) {
-            return AspectRatio(
-              aspectRatio: _controller!.value.aspectRatio,
-              child: VideoPlayer(_controller!),
-            );
-          } else {
-            return _previewPlaceholder;
-          }
+        if (ext == ".svg") {
+          mimeType = "svg";
         } else {
-          return SizedBox();
+          mimeType = "image";
         }
+        break;
+      case "video":
+        mimeType = "video";
+        break;
       default:
-        switch (asset.mimeType) {
-          case "application/pdf":
-            return SfPdfViewer.network(asset.previewURL!,
-                key: Key(asset.assetID ?? asset.id));
-          default:
-            return Stack(
-              fit: StackFit.loose,
-              children: [
-                WebView(
-                    key: Key(asset.assetID ?? asset.id),
-                    initialUrl: asset.previewURL,
-                    zoomEnabled: false,
-                    initialMediaPlaybackPolicy:
-                        AutoMediaPlaybackPolicy.always_allow,
-                    onWebViewCreated: (WebViewController webViewController) {
-                      _webViewController = webViewController;
-                      Sentry.getSpan()?.setTag("url", asset.previewURL!);
-                    },
-                    onWebResourceError: (WebResourceError error) {
-                      Sentry.getSpan()?.throwable = error;
-                      Sentry.getSpan()
-                          ?.finish(status: SpanStatus.internalError());
-                    },
-                    onPageFinished: (some) async {
-                      setState(() {
-                        _isPreviewLoaded = true;
-                      });
-                      Sentry.getSpan()?.finish(status: SpanStatus.ok());
-                      final javascriptString = '''
-                var meta = document.createElement('meta');
-                            meta.setAttribute('name', 'viewport');
-                            meta.setAttribute('content', 'width=device-width');
-                            document.getElementsByTagName('head')[0].appendChild(meta);
-                            document.body.style.overflow = 'hidden';
-                ''';
-                      await _webViewController?.runJavascript(javascriptString);
-                    },
-                    javascriptMode: JavascriptMode.unrestricted,
-                    allowsInlineMediaPlayback: true,
-                    backgroundColor: Colors.black),
-                if (!_isPreviewLoaded) ...[
-                  _previewPlaceholder,
-                ]
-              ],
-            );
-        }
+        mimeType = asset.mimeType ?? "";
     }
+    _renderingWidget =
+        typesOfNFTRenderingWidget[mimeType] ?? WebviewNFTRenderingWidget();
+
+    _renderingWidget!.setRenderWidgetBuilder(RenderingWidgetBuilder(
+      previewURL: asset.previewURL,
+      loadingWidget: _previewPlaceholder,
+    ));
+
+    return SizedBox(
+      child: _renderingWidget?.build(context),
+    );
   }
 
   Widget get _previewPlaceholder {
@@ -558,50 +484,16 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     );
   }
 
-  String? loadedPath;
-
   Future<bool> _clearPrevious() async {
-    await _controller?.pause();
-    await _webViewController?.runJavascript(
-        "var video = document.getElementsByTagName('video')[0]; if(video != undefined) { video.pause(); }");
+    _renderingWidget?.clearPrevious();
     return true;
   }
 
   _updateWebviewSize() {
-    if (_webViewController != null) {
-      EasyDebounce.debounce(
-          'screen_rotate', // <-- An ID for this particular debouncer
-          Duration(milliseconds: 100), // <-- The debounce duration
-          () => _webViewController?.runJavascript(
-              "window.dispatchEvent(new Event('resize'));") // <-- The target method
-          );
+    if (_renderingWidget != null &&
+        _renderingWidget is WebviewNFTRenderingWidget) {
+      (_renderingWidget as WebviewNFTRenderingWidget).updateWebviewSize();
     }
-  }
-
-  Future<void> _initializePlay(String videoPath) async {
-    log.info("Load videoPath: $videoPath");
-
-    _controller = VideoPlayerController.network(videoPath);
-    Sentry.getSpan()?.setTag("url", videoPath);
-    _controller!.initialize().then((_) {
-      setState(() {
-        _isPreviewLoaded = true;
-      });
-      _controller?.play();
-      _controller?.setLooping(true);
-      setState(() {});
-      Sentry.getSpan()?.finish(status: SpanStatus.ok());
-    });
-  }
-
-  Future<void> _startPlay(String videoPath) async {
-    loadedPath = videoPath;
-
-    Future.delayed(const Duration(milliseconds: 200), () {
-      _clearPrevious().then((_) {
-        _initializePlay(videoPath);
-      });
-    });
   }
 
   Widget _castButton(BuildContext context) {
