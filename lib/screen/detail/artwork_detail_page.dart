@@ -680,6 +680,9 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
                 });
               },
             ),
+            const SizedBox(
+              height: 18,
+            ),
             TextButton(
               onPressed: () => Navigator.pop(context),
               child: Text(
