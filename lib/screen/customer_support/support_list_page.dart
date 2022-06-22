@@ -163,7 +163,9 @@ class _SupportListPageState extends State<SupportListPage>
         Padding(
           padding: const EdgeInsets.only(right: 14),
           child: Text(
-            getLastMessage(issue),
+            issue.status == "closed"
+                ? "Issue resolved.\nOur team thanks you for helping us improve Autonomy."
+                : getLastMessage(issue),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: appTextTheme.bodyText1,
