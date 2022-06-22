@@ -5,6 +5,9 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
+
+import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/tezos_transaction_list_view.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -19,7 +22,9 @@ import 'package:autonomy_flutter/view/back_appbar.dart';
 class WalletDetailPage extends StatelessWidget {
   final WalletDetailsPayload payload;
 
-  const WalletDetailPage({Key? key, required this.payload}) : super(key: key);
+  WalletDetailPage({Key? key, required this.payload}) : super(key: key);
+
+  var addressFuture = Completer<String>();
 
   @override
   Widget build(BuildContext context) {
@@ -34,8 +39,10 @@ class WalletDetailPage extends StatelessWidget {
           Navigator.of(context).pop();
         },
       ),
-      body: BlocBuilder<WalletDetailBloc, WalletDetailState>(
-          builder: (context, state) {
+      body: BlocConsumer<WalletDetailBloc, WalletDetailState>(
+          listener: (context, state) async {
+        addressFuture.complete(state.address);
+      }, builder: (context, state) {
         return Container(
           margin: EdgeInsets.only(
               top: 16.0,
@@ -43,7 +50,7 @@ class WalletDetailPage extends StatelessWidget {
               right: 16.0,
               bottom: MediaQuery.of(context).padding.bottom),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               SizedBox(height: 16.0),
               Container(
@@ -75,7 +82,9 @@ class WalletDetailPage extends StatelessWidget {
                   ],
                 ),
               ),
-              Expanded(child: SizedBox()),
+              SizedBox(height: 10),
+              Expanded(child: TezosTXListView(address: addressFuture.future)),
+              SizedBox(height: 10),
               Row(
                 children: [
                   Expanded(
