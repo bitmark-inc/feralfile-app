@@ -34,7 +34,6 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/penrose_top_bar_view.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import "package:collection/collection.dart";
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
