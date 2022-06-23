@@ -178,6 +178,14 @@ class MigrationUtil {
     final List personaUUIDs =
         await _channel.invokeMethod('getWalletUUIDsFromKeychain', {});
 
+    final personas = await _cloudDB.personaDao.getPersonas();
+    if (personas.length == personaUUIDs.length &&
+        personas.every(
+            (element) => personaUUIDs.contains(element.uuid.toUpperCase()))) {
+      //Database is up-to-date, skip migrating
+      return;
+    }
+
     log.info(
         "[_migrationFromKeychain] personaUUIDs from Keychain: $personaUUIDs");
     for (var personaUUID in personaUUIDs) {

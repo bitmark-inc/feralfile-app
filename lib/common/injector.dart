@@ -52,7 +52,7 @@ import 'package:autonomy_flutter/util/log.dart';
 final injector = GetIt.instance;
 
 Future<void> setup() async {
-  await FileLogger.initializeLogging();
+  FileLogger.initializeLogging();
 
   Logger.root.level = Level.ALL; // defaults to Level.INFO
   Logger.root.onRecord.listen((record) {

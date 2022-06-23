@@ -33,7 +33,7 @@ import 'package:onesignal_flutter/onesignal_flutter.dart';
 void main() async {
   await dotenv.load(fileName: ".env");
 
-  await SentryFlutter.init((options) {
+  SentryFlutter.init((options) {
     options.dsn = Environment.sentryDSN;
     // Set tracesSampleRate to 1.0 to capture 100% of transactions for performance monitoring.
     // We recommend adjusting this value in production.
@@ -68,7 +68,7 @@ void main() async {
           stackTrace: details.stack, library: details.library);
     };
 
-    await injector<AWSService>().initServices();
+    injector<AWSService>().initServices();
 
     BlocOverrides.runZoned(
       () => runApp(OverlaySupport.global(child: AutonomyApp())),
