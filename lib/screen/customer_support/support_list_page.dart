@@ -171,7 +171,11 @@ class _SupportListPageState extends State<SupportListPage>
             style: appTextTheme.bodyText1,
           ),
         ),
-        hasDivider ? addDivider() : const SizedBox(),
+        hasDivider
+            ? addDivider()
+            : const SizedBox(
+                height: 32,
+              ),
       ],
     );
   }
