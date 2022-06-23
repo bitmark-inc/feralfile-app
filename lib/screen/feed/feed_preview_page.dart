@@ -168,23 +168,27 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
     return Container(
       color: Colors.black,
       height: safeAreaTop + 52,
-      padding: EdgeInsets.only(top: safeAreaTop),
+      padding: EdgeInsets.fromLTRB(15, safeAreaTop, 15, 0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          IconButton(
-              disabledColor: Colors.black,
-              onPressed: () => null,
-              icon: SvgPicture.asset("assets/images/iconInfo.svg",
-                  color: AppColorTheme.secondarySpanishGrey)),
+          SvgPicture.asset("assets/images/iconInfo.svg",
+              color: AppColorTheme.secondarySpanishGrey),
+          SizedBox(width: 13),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Row(children: [
-                  Text(followingName, style: theme.textTheme.bodyText1),
+                  Flexible(
+                    child: Text(
+                      followingName,
+                      style: theme.textTheme.bodyText1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
                   Text(" • ", style: theme.textTheme.bodyText2),
                   Text(getDateTimeRepresentation(event.timestamp.toLocal()),
                       style: theme.textTheme.bodyText2),
@@ -208,14 +212,7 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
             ),
           ),
           SizedBox(),
-          IconButton(
-            onPressed: () => Navigator.of(context).pop(),
-            icon: Icon(
-              Icons.close,
-              color: Colors.white,
-              size: 32,
-            ),
-          ),
+          previewCloseIcon(context),
         ],
       ),
     );
@@ -258,7 +255,13 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Row(children: [
-                    Text(followingName, style: theme.textTheme.bodyText1),
+                    Flexible(
+                      child: Text(
+                        followingName,
+                        style: theme.textTheme.bodyText1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                     Text(" • ", style: theme.textTheme.bodyText2),
                     Text(getDateTimeRepresentation(event.timestamp.toLocal()),
                         style: theme.textTheme.bodyText2),
@@ -287,14 +290,7 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
               ),
             ),
             SizedBox(),
-            IconButton(
-              onPressed: () => Navigator.of(context).pop(),
-              icon: Icon(
-                Icons.close,
-                color: Colors.white,
-                size: 32,
-              ),
-            ),
+            previewCloseIcon(context),
           ],
         ),
       ),
@@ -335,12 +331,14 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
     }
 
     _renderingWidget = buildRenderingWidget(token);
-    return _renderingWidget!.build(context);
+    return Container(child: _renderingWidget!.build(context));
   }
 
   Widget _emptyOrLoadingDiscoveryWidget(AppFeedData? appFeedData) {
+    double safeAreaTop = MediaQuery.of(context).padding.top;
+
     return Padding(
-      padding: pageEdgeInsets,
+      padding: pageEdgeInsets.copyWith(top: safeAreaTop + 6, right: 15),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -349,14 +347,7 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
             mainAxisAlignment: MainAxisAlignment.end,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              IconButton(
-                onPressed: () => Navigator.of(context).pop(),
-                icon: Icon(
-                  Icons.close,
-                  color: Colors.white,
-                  size: 32,
-                ),
-              ),
+              previewCloseIcon(context),
             ],
           ),
           SizedBox(height: 24),

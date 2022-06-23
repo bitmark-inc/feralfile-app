@@ -331,7 +331,7 @@ class FeedServiceImpl extends FeedService {
       );
 
       // RequestIndex for missing tokens
-      for (final event in eventsWithMissingToken.slices(5).first) {
+      for (final event in eventsWithMissingToken) {
         log.info(
             "RequestIndexOne ${event.recipient} - ${event.contract} - ${event.tokenID}");
         indexerAPI.requestIndexOne({

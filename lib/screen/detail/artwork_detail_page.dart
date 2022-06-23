@@ -114,10 +114,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
           }, builder: (context, state) {
             if (state.asset != null) {
               final identityState = context.watch<IdentityBloc>().state;
-
               final asset = state.asset!;
-              final screenWidth = MediaQuery.of(context).size.width;
-              final screenHeight = MediaQuery.of(context).size.height;
 
               final artistName =
                   asset.artistName?.toIdentityOrMask(identityState.identityMap);

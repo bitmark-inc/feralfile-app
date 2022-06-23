@@ -244,24 +244,23 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     return Container(
       color: Colors.black,
       height: safeAreaTop + 52,
-      padding: EdgeInsets.only(top: safeAreaTop),
+      padding: EdgeInsets.fromLTRB(15, safeAreaTop, 15, 0),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(
             child: GestureDetector(
               onTap: () => _moveToInfo(asset),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.all(13.0),
-                    child: SvgPicture.asset("assets/images/iconInfo.svg",
-                        color: Colors.white),
-                  ),
+                  SvgPicture.asset("assets/images/iconInfo.svg",
+                      color: Colors.white),
+                  SizedBox(width: 13),
                   _titleAndArtistNameWidget(asset, artistName),
+                  SizedBox(width: 5),
                 ],
               ),
             ),
@@ -291,13 +290,9 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
               size: 32,
             ),
           ),
-          IconButton(
-            onPressed: () => Navigator.of(context).pop(),
-            icon: Icon(
-              Icons.close,
-              color: Colors.white,
-              size: 32,
-            ),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: previewCloseIcon(context),
           ),
         ],
       ),
@@ -338,24 +333,26 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   Widget _titleAndArtistNameWidget(AssetToken asset, String? artistName) {
     final theme = AuThemeManager.get(AppTheme.previewNFTTheme);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          asset.title,
-          overflow: TextOverflow.ellipsis,
-          style: theme.textTheme.bodyText1,
-        ),
-        if (artistName != null) ...[
-          SizedBox(height: 4.0),
+    return Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
           Text(
-            "by $artistName",
+            asset.title,
             overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.bodyText2,
-          )
-        ]
-      ],
+            style: theme.textTheme.bodyText1,
+          ),
+          if (artistName != null) ...[
+            SizedBox(height: 4.0),
+            Text(
+              "by $artistName",
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodyText2,
+            )
+          ]
+        ],
+      ),
     );
   }
 
