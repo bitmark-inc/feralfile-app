@@ -23,6 +23,7 @@ import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
+import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tokens_service.dart';
@@ -32,6 +33,7 @@ import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/penrose_top_bar_view.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -139,7 +141,11 @@ class _HomePageState extends State<HomePage>
           children: [
             assetsWidget,
             if (injector<ConfigurationService>().getUXGuideStep() != null) ...[
-              PenroseTopBarView(true, _controller),
+              PenroseTopBarView(
+                _controller,
+                PenroseTopBarViewStyle.main,
+                () => Navigator.of(context).pushNamed(AppRouter.settingsPage),
+              ),
             ],
             if (state.fetchTokenState == ActionState.loading) ...[
               Align(
@@ -199,35 +205,10 @@ class _HomePageState extends State<HomePage>
         delegate: SliverChildBuilderDelegate(
           (BuildContext context, int index) {
             final asset = tokens[index];
-            final ext = p.extension(asset.galleryThumbnailURL!);
 
             return GestureDetector(
-              child: Hero(
-                tag: asset.id,
-                child: ext == ".svg"
-                    ? SvgPicture.network(asset.galleryThumbnailURL!,
-                        placeholderBuilder: (context) =>
-                            Container(color: Color.fromRGBO(227, 227, 227, 1)))
-                    : CachedNetworkImage(
-                        imageUrl: asset.galleryThumbnailURL!,
-                        fit: BoxFit.cover,
-                        memCacheHeight: _cachedImageSize,
-                        memCacheWidth: _cachedImageSize,
-                        cacheManager: injector<AUCacheManager>(),
-                        placeholder: (context, index) =>
-                            Container(color: Color.fromRGBO(227, 227, 227, 1)),
-                        placeholderFadeInDuration: Duration(milliseconds: 300),
-                        errorWidget: (context, url, error) => Container(
-                            color: Color.fromRGBO(227, 227, 227, 1),
-                            child: Center(
-                              child: SvgPicture.asset(
-                                'assets/images/image_error.svg',
-                                width: 75,
-                                height: 75,
-                              ),
-                            )),
-                      ),
-              ),
+              child:
+                  tokenGalleryThumbnailWidget(context, asset, _cachedImageSize),
               onTap: () {
                 final index = tokens.indexOf(asset);
                 final payload = ArtworkDetailPayload(tokenIDs, index);

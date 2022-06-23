@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/gateway/indexer_api.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tokens_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
@@ -34,6 +35,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   NetworkConfigInjector _networkConfigInjector;
   CloudDatabase _cloudDB;
   ConfigurationService _configurationService;
+  FeedService _feedService;
 
   AssetTokenDao get _assetTokenDao =>
       _networkConfigInjector.I<AppDatabase>().assetDao;
@@ -57,13 +59,14 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   }
 
   HomeBloc(
-      this._tokensService,
-      this._walletConnectService,
-      this._tezosBeaconService,
-      this._networkConfigInjector,
-      this._cloudDB,
-      this._configurationService)
-      : super(HomeState()) {
+    this._tokensService,
+    this._walletConnectService,
+    this._tezosBeaconService,
+    this._networkConfigInjector,
+    this._cloudDB,
+    this._configurationService,
+    this._feedService,
+  ) : super(HomeState()) {
     on<HomeConnectWCEvent>((event, emit) {
       log.info('[HomeConnectWCEvent] connect ${event.uri}');
       _walletConnectService.connect(event.uri);
@@ -128,6 +131,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           await fetchManuallyTokens();
 
           add(SubRefreshTokensEvent());
+          _feedService.refreshFollowings();
         } else {
           final debutTokenIDs = await fetchManuallyTokens();
           add(SubRefreshTokensEvent());
@@ -141,6 +145,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           }, onDone: () async {
             log.info("[Stream.refreshTokensInIsolate] getEVent Done");
             add(SubRefreshTokensEvent());
+            _feedService.refreshFollowings();
           });
         }
       } catch (exception) {

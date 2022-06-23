@@ -11,16 +11,24 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/badge_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-class PenroseTopBarView extends StatefulWidget {
-  final bool pushToSettings;
-  final ScrollController scrollController;
+enum PenroseTopBarViewStyle {
+  main,
+  back,
+}
 
-  PenroseTopBarView(this.pushToSettings, this.scrollController);
+class PenroseTopBarView extends StatefulWidget {
+  final ScrollController scrollController;
+  final PenroseTopBarViewStyle style;
+  final Function()? onTapLogo;
+
+  PenroseTopBarView(this.scrollController, this.style, this.onTapLogo);
 
   @override
   State<PenroseTopBarView> createState() => _PenroseTopBarViewState();
@@ -80,44 +88,90 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       builder: (context, value) => Stack(fit: StackFit.loose, children: [
-        Opacity(
-          opacity: _opacity,
-          child: Container(
-            alignment: Alignment.topCenter,
-            padding: EdgeInsets.fromLTRB(7, 42, 12, 90),
-            child: Row(
-              children: [
-                Container(
-                  padding: EdgeInsets.fromLTRB(0, 0, 12, 12),
-                  child: IconButton(
-                    constraints: BoxConstraints(),
-                    icon: SvgPicture.asset("assets/images/iconQr.svg"),
-                    onPressed: () {
-                      if (_opacity == 0) return;
-                      Navigator.of(context).pushNamed(AppRouter.scanQRPage,
-                          arguments: ScannerItem.GLOBAL);
-                    },
-                  ),
-                ),
-                Spacer(),
-                _customerSupportIconWidget(),
-              ],
-            ),
-          ),
-        ),
+        Opacity(opacity: _opacity, child: _headerWidget()),
         Align(
           alignment: Alignment.topCenter,
           child: Padding(
             padding: EdgeInsets.only(top: 62),
             child: GestureDetector(
-                child: _logo(),
-                onTap: () => widget.pushToSettings
-                    ? Navigator.of(context).pushNamed(AppRouter.settingsPage)
-                    : Navigator.of(context).pop()),
+              child: _logo(),
+              onTap: widget.onTapLogo,
+            ),
           ),
         ),
       ]),
       animation: widget.scrollController,
+    );
+  }
+
+  Widget _headerWidget() {
+    switch (widget.style) {
+      case PenroseTopBarViewStyle.main:
+        return Container(
+          alignment: Alignment.topCenter,
+          padding: EdgeInsets.fromLTRB(7, 42, 12, 90),
+          child: _mainHeaderWidget(),
+        );
+      case PenroseTopBarViewStyle.back:
+        return Container(
+          alignment: Alignment.topCenter,
+          padding: EdgeInsets.fromLTRB(16, 42, 12, 90),
+          child: _backHeaderWidget(),
+        );
+    }
+  }
+
+  Widget _backHeaderWidget() {
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onTap: () => Navigator.of(context).pop(),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(0, 7, 18, 8),
+        child: Row(
+          children: [
+            Row(
+              children: [
+                SvgPicture.asset('assets/images/nav-arrow-left.svg'),
+                SizedBox(width: 7),
+                Text(
+                  "BACK",
+                  style: appTextTheme.caption,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _mainHeaderWidget() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Container(
+          padding: EdgeInsets.fromLTRB(0, 0, 11, 12),
+          child: IconButton(
+            constraints: BoxConstraints(),
+            icon: SvgPicture.asset("assets/images/iconQr.svg"),
+            onPressed: () {
+              if (_opacity == 0) return;
+              Navigator.of(context).pushNamed(AppRouter.scanQRPage,
+                  arguments: ScannerItem.GLOBAL);
+            },
+          ),
+        ),
+        Container(
+          padding: EdgeInsets.fromLTRB(0, 0, 12, 12),
+          child: IconButton(
+              onPressed: () =>
+                  Navigator.of(context).pushNamed(AppRouter.feedPreviewPage),
+              icon: SvgPicture.asset('assets/images/iconFeed.svg')),
+        ),
+        Spacer(),
+        _customerSupportIconWidget(),
+      ],
     );
   }
 

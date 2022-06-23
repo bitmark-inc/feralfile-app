@@ -6,7 +6,6 @@
 //
 
 import 'dart:async';
-import 'dart:ffi';
 import 'dart:isolate';
 
 import 'package:autonomy_flutter/common/environment.dart';
@@ -42,7 +41,10 @@ class TokensServiceImpl extends TokensService {
   static const REFRESH_ALL_TOKENS = '_refreshAllTokens';
   static const FETCH_TOKENS = '_fetchTokens';
 
-  TokensServiceImpl(this._networkConfigInjector, this._configurationService);
+  TokensServiceImpl(
+    this._networkConfigInjector,
+    this._configurationService,
+  );
 
   SendPort? _sendPort;
   ReceivePort? _receivePort;
@@ -116,12 +118,23 @@ class TokensServiceImpl extends TokensService {
     _refreshAllTokensWorker = StreamController<int>();
     _currentAddresses = addresses;
 
+    // adjust latestRefreshTokensDate
+    // to have artistID's new values, refresh whole gallery until indexer indexes their values
+    DateTime? latestRefreshTokensDate =
+        _configurationService.getLatestRefreshTokens();
+
+    final artistIDs = await _assetDao.findAllAssetArtistIDs();
+    artistIDs.removeWhere((element) => element == "");
+    if (artistIDs.length == 0) {
+      latestRefreshTokensDate = null;
+    }
+
     _sendPort?.send([
       REFRESH_ALL_TOKENS,
       addresses,
       _indexerURL,
       tokenIDs.toSet().difference(dbTokenIDs),
-      _configurationService.getLatestRefreshTokens(),
+      latestRefreshTokensDate,
     ]);
     log.info("[REFRESH_ALL_TOKENS][start]");
 
@@ -187,6 +200,8 @@ class TokensServiceImpl extends TokensService {
 
     _sendPort!.send([FETCH_TOKENS, addresses, _indexerURL, uuid]);
     log.info("[FETCH_TOKENS][start] $addresses");
+
+    return completer.future;
   }
 
   static void _isolateEntry(SendPort sendPort) {

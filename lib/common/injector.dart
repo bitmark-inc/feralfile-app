@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/gateway/autonomy_api.dart';
 import 'package:autonomy_flutter/gateway/currency_exchange_api.dart';
 import 'package:autonomy_flutter/gateway/customer_support_api.dart';
+import 'package:autonomy_flutter/gateway/feed_api.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/gateway/pubdoc_api.dart';
 import 'package:autonomy_flutter/gateway/tzkt_api.dart';
@@ -27,6 +28,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/currency_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
+import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/ledger_hardware/ledger_hardware_service.dart';
@@ -78,7 +80,8 @@ Future<void> setup() async {
     migrateV7ToV8,
     migrateV8ToV9,
     migrateV9ToV10,
-    migrateV10ToV11
+    migrateV10ToV11,
+    migrateV11ToV12,
   ]).build();
 
   final mainnetDB = await $FloorAppDatabase
@@ -93,7 +96,8 @@ Future<void> setup() async {
     migrateV7ToV8,
     migrateV8ToV9,
     migrateV9ToV10,
-    migrateV10ToV11
+    migrateV10ToV11,
+    migrateV11ToV12,
   ]).build();
 
   final cloudDB = await $FloorCloudDatabase
@@ -165,6 +169,8 @@ Future<void> setup() async {
       AutonomyApi(authenticatedDio, baseUrl: Environment.autonomyAuthURL));
   injector.registerLazySingleton(() => TZKTApi(dio));
   injector.registerLazySingleton(
+      () => FeedApi(authenticatedDio, baseUrl: Environment.feedURL));
+  injector.registerLazySingleton(
       () => AuthService(injector(), injector(), injector()));
   injector.registerLazySingleton(() => BackupService(injector()));
   injector
@@ -204,6 +210,8 @@ Future<void> setup() async {
 
   injector.registerLazySingleton<TokensService>(
       () => TokensServiceImpl(injector<NetworkConfigInjector>(), injector()));
+  injector.registerLazySingleton<FeedService>(
+      () => FeedServiceImpl(injector<NetworkConfigInjector>(), injector()));
 
   injector.registerLazySingleton<FeralFileService>(() => FeralFileServiceImpl(
         injector(),

@@ -28,6 +28,9 @@ abstract class AssetTokenDao {
   @Query('SELECT id FROM AssetToken')
   Future<List<String>> findAllAssetTokenIDs();
 
+  @Query('SELECT DISTINCT artistID FROM AssetToken')
+  Future<List<String>> findAllAssetArtistIDs();
+
   @Query('SELECT * FROM AssetToken WHERE hidden = 1')
   Future<List<AssetToken>> findAllHiddenAssets();
 

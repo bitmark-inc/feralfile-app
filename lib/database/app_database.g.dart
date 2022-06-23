@@ -72,7 +72,7 @@ class _$AppDatabase extends AppDatabase {
   Future<sqflite.Database> open(String path, List<Migration> migrations,
       [Callback? callback]) async {
     final databaseOptions = sqflite.OpenDatabaseOptions(
-      version: 11,
+      version: 12,
       onConfigure: (database) async {
         await database.execute('PRAGMA foreign_keys = ON');
         await callback?.onConfigure?.call(database);
@@ -88,7 +88,7 @@ class _$AppDatabase extends AppDatabase {
       },
       onCreate: (database, version) async {
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `AssetToken` (`artistName` TEXT, `artistURL` TEXT, `assetData` TEXT, `assetID` TEXT, `assetURL` TEXT, `basePrice` REAL, `baseCurrency` TEXT, `blockchain` TEXT NOT NULL, `contractType` TEXT, `blockchainURL` TEXT, `desc` TEXT, `edition` INTEGER NOT NULL, `id` TEXT NOT NULL, `maxEdition` INTEGER, `medium` TEXT, `mimeType` TEXT, `mintedAt` TEXT, `previewURL` TEXT, `source` TEXT, `sourceURL` TEXT, `thumbnailURL` TEXT, `galleryThumbnailURL` TEXT, `title` TEXT NOT NULL, `ownerAddress` TEXT, `lastActivityTime` INTEGER NOT NULL, `hidden` INTEGER, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `AssetToken` (`artistName` TEXT, `artistURL` TEXT, `artistID` TEXT, `assetData` TEXT, `assetID` TEXT, `assetURL` TEXT, `basePrice` REAL, `baseCurrency` TEXT, `blockchain` TEXT NOT NULL, `contractType` TEXT, `blockchainURL` TEXT, `desc` TEXT, `edition` INTEGER NOT NULL, `id` TEXT NOT NULL, `maxEdition` INTEGER, `medium` TEXT, `mimeType` TEXT, `mintedAt` TEXT, `previewURL` TEXT, `source` TEXT, `sourceURL` TEXT, `thumbnailURL` TEXT, `galleryThumbnailURL` TEXT, `title` TEXT NOT NULL, `ownerAddress` TEXT, `lastActivityTime` INTEGER NOT NULL, `hidden` INTEGER, PRIMARY KEY (`id`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `Identity` (`accountNumber` TEXT NOT NULL, `blockchain` TEXT NOT NULL, `name` TEXT NOT NULL, `queriedAt` INTEGER NOT NULL, PRIMARY KEY (`accountNumber`))');
         await database.execute(
@@ -135,6 +135,7 @@ class _$AssetTokenDao extends AssetTokenDao {
             (AssetToken item) => <String, Object?>{
                   'artistName': item.artistName,
                   'artistURL': item.artistURL,
+                  'artistID': item.artistID,
                   'assetData': item.assetData,
                   'assetID': item.assetID,
                   'assetURL': item.assetURL,
@@ -168,6 +169,7 @@ class _$AssetTokenDao extends AssetTokenDao {
             (AssetToken item) => <String, Object?>{
                   'artistName': item.artistName,
                   'artistURL': item.artistURL,
+                  'artistID': item.artistID,
                   'assetData': item.assetData,
                   'assetID': item.assetID,
                   'assetURL': item.assetURL,
@@ -201,6 +203,7 @@ class _$AssetTokenDao extends AssetTokenDao {
             (AssetToken item) => <String, Object?>{
                   'artistName': item.artistName,
                   'artistURL': item.artistURL,
+                  'artistID': item.artistID,
                   'assetData': item.assetData,
                   'assetID': item.assetID,
                   'assetURL': item.assetURL,
@@ -247,6 +250,7 @@ class _$AssetTokenDao extends AssetTokenDao {
         mapper: (Map<String, Object?> row) => AssetToken(
             artistName: row['artistName'] as String?,
             artistURL: row['artistURL'] as String?,
+            artistID: row['artistID'] as String?,
             assetData: row['assetData'] as String?,
             assetID: row['assetID'] as String?,
             assetURL: row['assetURL'] as String?,
@@ -285,7 +289,7 @@ class _$AssetTokenDao extends AssetTokenDao {
         'SELECT * FROM AssetToken WHERE ownerAddress NOT IN (' +
             _sqliteVariablesForOwners +
             ') AND hidden is NULL ORDER BY lastActivityTime DESC, title, assetID',
-        mapper: (Map<String, Object?> row) => AssetToken(artistName: row['artistName'] as String?, artistURL: row['artistURL'] as String?, assetData: row['assetData'] as String?, assetID: row['assetID'] as String?, assetURL: row['assetURL'] as String?, basePrice: row['basePrice'] as double?, baseCurrency: row['baseCurrency'] as String?, blockchain: row['blockchain'] as String, contractType: row['contractType'] as String?, blockchainURL: row['blockchainURL'] as String?, desc: row['desc'] as String?, edition: row['edition'] as int, id: row['id'] as String, maxEdition: row['maxEdition'] as int?, medium: row['medium'] as String?, mimeType: row['mimeType'] as String?, mintedAt: row['mintedAt'] as String?, previewURL: row['previewURL'] as String?, source: row['source'] as String?, sourceURL: row['sourceURL'] as String?, thumbnailURL: row['thumbnailURL'] as String?, galleryThumbnailURL: row['galleryThumbnailURL'] as String?, title: row['title'] as String, ownerAddress: row['ownerAddress'] as String?, lastActivityTime: _dateTimeConverter.decode(row['lastActivityTime'] as int), hidden: row['hidden'] as int?),
+        mapper: (Map<String, Object?> row) => AssetToken(artistName: row['artistName'] as String?, artistURL: row['artistURL'] as String?, artistID: row['artistID'] as String?, assetData: row['assetData'] as String?, assetID: row['assetID'] as String?, assetURL: row['assetURL'] as String?, basePrice: row['basePrice'] as double?, baseCurrency: row['baseCurrency'] as String?, blockchain: row['blockchain'] as String, contractType: row['contractType'] as String?, blockchainURL: row['blockchainURL'] as String?, desc: row['desc'] as String?, edition: row['edition'] as int, id: row['id'] as String, maxEdition: row['maxEdition'] as int?, medium: row['medium'] as String?, mimeType: row['mimeType'] as String?, mintedAt: row['mintedAt'] as String?, previewURL: row['previewURL'] as String?, source: row['source'] as String?, sourceURL: row['sourceURL'] as String?, thumbnailURL: row['thumbnailURL'] as String?, galleryThumbnailURL: row['galleryThumbnailURL'] as String?, title: row['title'] as String, ownerAddress: row['ownerAddress'] as String?, lastActivityTime: _dateTimeConverter.decode(row['lastActivityTime'] as int), hidden: row['hidden'] as int?),
         arguments: [...owners]);
   }
 
@@ -297,6 +301,7 @@ class _$AssetTokenDao extends AssetTokenDao {
         mapper: (Map<String, Object?> row) => AssetToken(
             artistName: row['artistName'] as String?,
             artistURL: row['artistURL'] as String?,
+            artistID: row['artistID'] as String?,
             assetData: row['assetData'] as String?,
             assetID: row['assetID'] as String?,
             assetURL: row['assetURL'] as String?,
@@ -331,6 +336,7 @@ class _$AssetTokenDao extends AssetTokenDao {
         mapper: (Map<String, Object?> row) => AssetToken(
             artistName: row['artistName'] as String?,
             artistURL: row['artistURL'] as String?,
+            artistID: row['artistID'] as String?,
             assetData: row['assetData'] as String?,
             assetID: row['assetID'] as String?,
             assetURL: row['assetURL'] as String?,
@@ -366,11 +372,19 @@ class _$AssetTokenDao extends AssetTokenDao {
   }
 
   @override
+  Future<List<String>> findAllAssetArtistIDs() async {
+    return _queryAdapter.queryList('SELECT DISTINCT artistID FROM AssetToken',
+        mapper: (Map<String, Object?> row) =>
+            (row['artistID'] ?? '') as String);
+  }
+
+  @override
   Future<List<AssetToken>> findAllHiddenAssets() async {
     return _queryAdapter.queryList('SELECT * FROM AssetToken WHERE hidden = 1',
         mapper: (Map<String, Object?> row) => AssetToken(
             artistName: row['artistName'] as String?,
             artistURL: row['artistURL'] as String?,
+            artistID: row['artistID'] as String?,
             assetData: row['assetData'] as String?,
             assetID: row['assetID'] as String?,
             assetURL: row['assetURL'] as String?,

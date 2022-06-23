@@ -141,6 +141,19 @@ class AutonomyAuthInterceptor extends Interceptor {
   }
 }
 
+class QuickAuthInterceptor extends Interceptor {
+  String jwtToken;
+
+  QuickAuthInterceptor(this.jwtToken);
+
+  @override
+  void onRequest(
+      RequestOptions options, RequestInterceptorHandler handler) async {
+    options.headers["Authorization"] = "Bearer $jwtToken";
+    return handler.next(options);
+  }
+}
+
 // use isolate for expensive task
 Future<bool> shortAPIResponseLog(dynamic curl) async {
   bool _regExp;

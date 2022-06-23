@@ -288,6 +288,7 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
         height: 14,
       ),
       Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,

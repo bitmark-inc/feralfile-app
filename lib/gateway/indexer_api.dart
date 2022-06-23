@@ -35,6 +35,9 @@ abstract class IndexerApi {
   @POST("/nft/index")
   Future requestIndex(@Body() Map<String, String> payload);
 
+  @POST("/nft/index_one")
+  Future requestIndexOne(@Body() Map<String, dynamic> payload);
+
   @GET("/identity/{accountNumber}")
   Future<BlockchainIdentity> getIdentity(
     @Path("accountNumber") String accountNumber,

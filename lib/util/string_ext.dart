@@ -37,4 +37,15 @@ extension StringExtension on String {
     }
     return this;
   }
+
+  String? get blockchainForAddress {
+    switch (this.length) {
+      case 42:
+        return "ethereum";
+      case 36:
+        return "tezos";
+      default:
+        return null;
+    }
+  }
 }

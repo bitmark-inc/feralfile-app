@@ -63,6 +63,7 @@ class Environment {
       dotenv.env['CONNECT_WEBSOCKET_TESTNET_URL'] ?? '';
 
   static String get autonomyAuthURL => dotenv.env['AUTONOMY_AUTH_URL'] ?? '';
+  static String get feedURL => dotenv.env['FEED_URL'] ?? '';
   static String get customerSupportURL =>
       dotenv.env['CUSTOMER_SUPPORT_URL'] ?? '';
   static String get currencyExchangeURL =>
