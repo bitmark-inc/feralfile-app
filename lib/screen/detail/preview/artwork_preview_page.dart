@@ -26,16 +26,15 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/theme_manager.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:cast/cast.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_to_airplay/airplay_route_picker_view.dart';
 import 'package:mime/mime.dart';
-import 'package:path/path.dart' as p;
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shake/shake.dart';
 import 'package:wakelock/wakelock.dart';
@@ -255,14 +254,26 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
       height: safeAreaTop + 52,
       padding: EdgeInsets.only(top: safeAreaTop),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          IconButton(
-              onPressed: () => _moveToInfo(asset),
-              icon: SvgPicture.asset("assets/images/iconInfo.svg",
-                  color: Colors.white)),
-          _titleAndArtistNameWidget(asset, artistName),
+          Expanded(
+            child: GestureDetector(
+              onTap: () => _moveToInfo(asset),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(13.0),
+                    child: SvgPicture.asset("assets/images/iconInfo.svg",
+                        color: Colors.white),
+                  ),
+                  _titleAndArtistNameWidget(asset, artistName),
+                ],
+              ),
+            ),
+          ),
           _castButton(context),
           SizedBox(width: 8),
           IconButton(
@@ -333,77 +344,33 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   }
 
   Widget _titleAndArtistNameWidget(AssetToken asset, String? artistName) {
-    var titleStyle = TextStyle(
-        color: Colors.white,
-        fontWeight: FontWeight.w700,
-        fontSize: 12,
-        fontFamily: "AtlasGrotesk");
-    var artistNameStyle = TextStyle(
-        color: Colors.white,
-        fontWeight: FontWeight.w300,
-        fontSize: 12,
-        fontFamily: "AtlasGrotesk");
+    final theme = AuThemeManager.get(AppTheme.previewNFTTheme);
 
-    return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          asset.title,
+          overflow: TextOverflow.ellipsis,
+          style: theme.textTheme.bodyText1,
+        ),
+        if (artistName != null) ...[
+          SizedBox(height: 4.0),
           Text(
-            asset.title,
+            "by $artistName",
             overflow: TextOverflow.ellipsis,
-            style: titleStyle,
-          ),
-          if (artistName != null) ...[
-            SizedBox(height: 4.0),
-            Text(
-              "by $artistName",
-              overflow: TextOverflow.ellipsis,
-              style: artistNameStyle,
-            )
-          ]
-        ],
-      ),
+            style: theme.textTheme.bodyText2,
+          )
+        ]
+      ],
     );
   }
 
   Widget _getArtworkView(AssetToken asset) {
-    return _buildRenderingWidget(asset);
-  }
-
-  Widget _buildRenderingWidget(AssetToken asset) {
-    String mimeType = "";
-    switch (asset.medium) {
-      case "image":
-        final ext = p.extension(asset.previewURL!);
-        if (ext == ".svg") {
-          mimeType = "svg";
-        } else {
-          mimeType = "image";
-        }
-        break;
-      case "video":
-        mimeType = "video";
-        break;
-      default:
-        mimeType = asset.mimeType ?? "";
-    }
-    _renderingWidget =
-        typesOfNFTRenderingWidget[mimeType] ?? WebviewNFTRenderingWidget();
-
-    _renderingWidget!.setRenderWidgetBuilder(RenderingWidgetBuilder(
-      previewURL: asset.previewURL,
-      loadingWidget: _previewPlaceholder,
-    ));
-
+    _renderingWidget = buildRenderingWidget(asset);
     return SizedBox(
       child: _renderingWidget?.build(context),
-    );
-  }
-
-  Widget get _previewPlaceholder {
-    return Center(
-      child: CupertinoActivityIndicator(color: Colors.white, radius: 16),
     );
   }
 

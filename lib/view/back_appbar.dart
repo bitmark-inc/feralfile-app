@@ -11,7 +11,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 AppBar getBackAppBar(BuildContext context,
-    {String title = "", required Function()? onBack, Function()? action}) {
+    {String backTitle = "BACK",
+    String title = "",
+    required Function()? onBack,
+    Function()? action}) {
   return AppBar(
     systemOverlayStyle: SystemUiOverlayStyle(
       statusBarColor: Colors.white,
@@ -38,7 +41,7 @@ AppBar getBackAppBar(BuildContext context,
                       SvgPicture.asset('assets/images/nav-arrow-left.svg'),
                       SizedBox(width: 7),
                       Text(
-                        "BACK",
+                        backTitle,
                         style: appTextTheme.caption,
                       ),
                     ],

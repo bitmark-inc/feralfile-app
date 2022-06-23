@@ -26,7 +26,7 @@ abstract class FeedApi {
   );
 
   @GET("/v1/feed")
-  Future getFeeds(
+  Future<FeedData> getFeeds(
     @Query('testnet') bool isTestnet,
     @Query('count') int? count,
     @Query('serial') String? serial,

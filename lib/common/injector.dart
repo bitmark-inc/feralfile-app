@@ -28,7 +28,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/currency_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
-import 'package:autonomy_flutter/service/feed_follow_service.dart';
+import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/ledger_hardware/ledger_hardware_service.dart';
@@ -210,8 +210,8 @@ Future<void> setup() async {
 
   injector.registerLazySingleton<TokensService>(
       () => TokensServiceImpl(injector<NetworkConfigInjector>(), injector()));
-  injector.registerLazySingleton<FeedFollowService>(
-      () => FeedFollowServiceImpl(injector<NetworkConfigInjector>()));
+  injector.registerLazySingleton<FeedService>(
+      () => FeedServiceImpl(injector<NetworkConfigInjector>(), injector()));
 
   injector.registerLazySingleton<FeralFileService>(() => FeralFileServiceImpl(
         injector(),

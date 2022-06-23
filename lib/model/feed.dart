@@ -3,18 +3,20 @@ import 'package:json_annotation/json_annotation.dart';
 part 'feed.g.dart';
 
 @JsonSerializable()
-class Feed {
-  FeedData data;
+class FeedData {
+  @JsonKey(defaultValue: [])
+  List<FeedEvent> events;
   FeedNext next;
 
-  Feed({
-    required this.data,
+  FeedData({
+    required this.events,
     required this.next,
   });
 
-  factory Feed.fromJson(Map<String, dynamic> json) => _$FeedFromJson(json);
+  factory FeedData.fromJson(Map<String, dynamic> json) =>
+      _$FeedDataFromJson(json);
 
-  Map<String, dynamic> toJson() => _$FeedToJson(this);
+  Map<String, dynamic> toJson() => _$FeedDataToJson(this);
 }
 
 @JsonSerializable()
@@ -67,22 +69,56 @@ class FeedNext {
 }
 
 @JsonSerializable()
-class FeedData {
+class FeedEvent {
+  String id;
+  String chain;
+  String contract;
   @JsonKey(name: "token")
   String tokenID;
   String recipient;
   String action;
-  String timestamp;
+  DateTime timestamp;
 
-  FeedData({
+  FeedEvent({
+    required this.id,
+    required this.chain,
+    required this.contract,
     required this.tokenID,
     required this.recipient,
     required this.action,
     required this.timestamp,
   });
 
-  factory FeedData.fromJson(Map<String, dynamic> json) =>
-      _$FeedDataFromJson(json);
+  factory FeedEvent.fromJson(Map<String, dynamic> json) =>
+      _$FeedEventFromJson(json);
 
-  Map<String, dynamic> toJson() => _$FeedDataToJson(this);
+  Map<String, dynamic> toJson() => _$FeedEventToJson(this);
+}
+
+extension FeedEventHelpers on FeedEvent {
+  String get indexerID {
+    try {
+      switch (chain) {
+        case 'ethereum':
+          return "eth-$contract-${BigInt.parse(tokenID).toRadixString(16)}";
+        case 'tezos':
+          return "tez-$contract-$tokenID";
+        case 'bitmark':
+          return 'bmrk--$tokenID';
+        default:
+          return '';
+      }
+    } catch (exception) {
+      return '';
+    }
+  }
+
+  String get actionRepresentation {
+    switch (action) {
+      case "mint":
+        return "minted";
+      default:
+        return "collected";
+    }
+  }
 }

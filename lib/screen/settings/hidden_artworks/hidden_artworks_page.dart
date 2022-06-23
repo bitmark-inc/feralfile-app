@@ -33,9 +33,7 @@ class _HiddenArtworksPageState extends State<HiddenArtworksPage> {
   void initState() {
     super.initState();
 
-    context
-        .read<HiddenArtworksBloc>()
-        .add(HiddenArtworksEvent());
+    context.read<HiddenArtworksBloc>().add(HiddenArtworksEvent());
   }
 
   @override

@@ -67,7 +67,7 @@ class _FeedApi implements FeedApi {
   }
 
   @override
-  Future<dynamic> getFeeds(isTestnet, count, serial, timestamp) async {
+  Future<FeedData> getFeeds(isTestnet, count, serial, timestamp) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
       r'testnet': isTestnet,
@@ -78,12 +78,13 @@ class _FeedApi implements FeedApi {
     queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
-    final _result = await _dio.fetch(_setStreamType<dynamic>(
-        Options(method: 'GET', headers: _headers, extra: _extra)
-            .compose(_dio.options, '/v1/feed',
-                queryParameters: queryParameters, data: _data)
-            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
-    final value = _result.data;
+    final _result = await _dio.fetch<Map<String, dynamic>>(
+        _setStreamType<FeedData>(
+            Options(method: 'GET', headers: _headers, extra: _extra)
+                .compose(_dio.options, '/v1/feed',
+                    queryParameters: queryParameters, data: _data)
+                .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+    final value = FeedData.fromJson(_result.data!);
     return value;
   }
 

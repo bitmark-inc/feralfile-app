@@ -599,6 +599,10 @@ wantMoreSecurityWidget(BuildContext context, WalletApp walletApp) {
   );
 }
 
+String getDateTimeRepresentation(DateTime dateTime) {
+  return Jiffy(dateTime).fromNow();
+}
+
 // From chat_ui/util
 String getVerboseDateTimeRepresentation(
   DateTime dateTime, {

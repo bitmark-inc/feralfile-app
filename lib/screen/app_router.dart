@@ -50,6 +50,11 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_page.dart';
+import 'package:autonomy_flutter/screen/feed/feed_artwork_details_page.dart';
+import 'package:autonomy_flutter/screen/feed/feed_bloc.dart';
+import 'package:autonomy_flutter/screen/feed/feed_preview_page.dart';
+import 'package:autonomy_flutter/screen/gallery/gallery_bloc.dart';
+import 'package:autonomy_flutter/screen/gallery/gallery_page.dart';
 import 'package:autonomy_flutter/screen/github_doc.dart';
 import 'package:autonomy_flutter/screen/global_receive/receive_detail_page.dart';
 import 'package:autonomy_flutter/screen/global_receive/receive_page.dart';
@@ -122,6 +127,9 @@ class AppRouter {
   static const homePageNoTransition = 'home_page_NoTransition';
   static const artworkPreviewPage = 'artwork_preview';
   static const artworkDetailsPage = 'artwork_detail';
+  static const feedPreviewPage = 'feedPreviewPage';
+  static const feedArtworkDetailsPage = 'feedArtworkDetailsPage';
+  static const galleryPage = 'galleryPage';
   static const settingsPage = "settings";
   static const personaDetailsPage = "persona_details";
   static const personaConnectionsPage = "persona_connections";
@@ -566,6 +574,55 @@ class AppRouter {
                 payload: settings.arguments as ArtworkDetailPayload,
               ),
             ));
+
+      case feedPreviewPage:
+        return PageTransition(
+            type: PageTransitionType.fade,
+            curve: Curves.easeIn,
+            duration: Duration(milliseconds: 250),
+            settings: settings,
+            child: MultiBlocProvider(
+              providers: [
+                BlocProvider(create: (_) => FeedBloc(injector())),
+                BlocProvider(
+                    create: (_) => IdentityBloc(
+                        networkInjector.I<AppDatabase>(), networkInjector.I())),
+              ],
+              child: FeedPreviewPage(),
+            ));
+
+      case feedArtworkDetailsPage:
+        return PageTransition(
+            type: PageTransitionType.fade,
+            curve: Curves.easeIn,
+            duration: Duration(milliseconds: 250),
+            settings: settings,
+            child: MultiBlocProvider(providers: [
+              BlocProvider.value(value: accountsBloc),
+              BlocProvider.value(value: settings.arguments as FeedBloc),
+              BlocProvider(
+                  create: (_) => IdentityBloc(
+                      networkInjector.I<AppDatabase>(), networkInjector.I())),
+            ], child: FeedArtworkDetailsPage()));
+
+      case galleryPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => MultiBlocProvider(
+                    providers: [
+                      BlocProvider(
+                          create: (_) => GalleryBloc(
+                                networkInjector.I(),
+                              )),
+                      BlocProvider(
+                          create: (_) => IdentityBloc(
+                              networkInjector.I<AppDatabase>(),
+                              networkInjector.I())),
+                    ],
+                    child: GalleryPage(
+                      payload: settings.arguments as GalleryPagePayload,
+                    )));
+
       case SelectNetworkPage.tag:
         return CupertinoPageRoute(
             settings: settings,

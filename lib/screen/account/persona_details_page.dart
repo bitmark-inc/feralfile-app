@@ -247,6 +247,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
         height: 14,
       ),
       Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,

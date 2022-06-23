@@ -15,6 +15,7 @@ enum AppTheme {
   markdownThemeBlack,
   anyProblemNFTTheme,
   anyProblemNFTDarkTheme,
+  previewNFTTheme,
 }
 
 class AuThemeManager {
@@ -30,6 +31,8 @@ class AuThemeManager {
         return anyProblemNFTTheme;
       case AppTheme.anyProblemNFTDarkTheme:
         return anyProblemNFTDarkTheme;
+      case AppTheme.previewNFTTheme:
+        return previewNFTTheme;
       default:
         return sheetTheme;
     }
@@ -90,4 +93,26 @@ class AuThemeManager {
               fontSize: 14,
               fontWeight: FontWeight.w600,
               fontFamily: "IBMPlexMono")));
+
+  static final ThemeData previewNFTTheme = ThemeData(
+    backgroundColor: Colors.black,
+    textTheme: TextTheme(
+      bodyText1: TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w700,
+          fontSize: 12,
+          fontFamily: "AtlasGrotesk"),
+      bodyText2: TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w300,
+          fontSize: 12,
+          fontFamily: "AtlasGrotesk"),
+      caption: TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w300,
+          fontSize: 12,
+          fontStyle: FontStyle.italic,
+          fontFamily: "AtlasGrotesk"),
+    ),
+  );
 }
