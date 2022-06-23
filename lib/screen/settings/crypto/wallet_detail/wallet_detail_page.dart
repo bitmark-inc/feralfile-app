@@ -5,6 +5,9 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
+
+import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/tezos_transaction_list_view.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -16,16 +19,22 @@ import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_det
 import 'package:autonomy_flutter/view/au_outlined_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 
-class WalletDetailPage extends StatelessWidget {
+class WalletDetailPage extends StatefulWidget {
   final WalletDetailsPayload payload;
 
   const WalletDetailPage({Key? key, required this.payload}) : super(key: key);
 
   @override
+  State<WalletDetailPage> createState() => _WalletDetailPageState();
+}
+
+class _WalletDetailPageState extends State<WalletDetailPage> {
+  var addressFuture = Completer<String>();
+
+  @override
   Widget build(BuildContext context) {
-    context
-        .read<WalletDetailBloc>()
-        .add(WalletDetailBalanceEvent(payload.type, payload.wallet));
+    context.read<WalletDetailBloc>().add(
+        WalletDetailBalanceEvent(widget.payload.type, widget.payload.wallet));
 
     return Scaffold(
       appBar: getBackAppBar(
@@ -34,8 +43,10 @@ class WalletDetailPage extends StatelessWidget {
           Navigator.of(context).pop();
         },
       ),
-      body: BlocBuilder<WalletDetailBloc, WalletDetailState>(
-          builder: (context, state) {
+      body: BlocConsumer<WalletDetailBloc, WalletDetailState>(
+          listener: (context, state) async {
+        addressFuture.complete(state.address);
+      }, builder: (context, state) {
         return Container(
           margin: EdgeInsets.only(
               top: 16.0,
@@ -43,7 +54,7 @@ class WalletDetailPage extends StatelessWidget {
               right: 16.0,
               bottom: MediaQuery.of(context).padding.bottom),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               SizedBox(height: 16.0),
               Container(
@@ -54,7 +65,7 @@ class WalletDetailPage extends StatelessWidget {
                     Text(
                       state.balance.isNotEmpty
                           ? state.balance
-                          : "-- ${payload.type == CryptoType.ETH ? "ETH" : "XTZ"}",
+                          : "-- ${widget.payload.type == CryptoType.ETH ? "ETH" : "XTZ"}",
                       style: TextStyle(
                           color: Colors.black,
                           fontSize: 24,
@@ -75,7 +86,13 @@ class WalletDetailPage extends StatelessWidget {
                   ],
                 ),
               ),
-              Expanded(child: SizedBox()),
+              SizedBox(height: 10),
+              Expanded(
+                child: widget.payload.type == CryptoType.XTZ
+                    ? TezosTXListView(address: addressFuture.future)
+                    : Container(),
+              ),
+              SizedBox(height: 10),
               Row(
                 children: [
                   Expanded(
@@ -83,8 +100,8 @@ class WalletDetailPage extends StatelessWidget {
                       text: "Send",
                       onPress: () {
                         Navigator.of(context).pushNamed(SendCryptoPage.tag,
-                            arguments:
-                                SendData(payload.wallet, payload.type, null));
+                            arguments: SendData(widget.payload.wallet,
+                                widget.payload.type, null));
                       },
                     ),
                   ),
@@ -97,8 +114,8 @@ class WalletDetailPage extends StatelessWidget {
                       onPress: () {
                         if (state.address.isNotEmpty) {
                           Navigator.of(context).pushNamed(ReceivePage.tag,
-                              arguments:
-                                  WalletPayload(payload.type, state.address));
+                              arguments: WalletPayload(
+                                  widget.payload.type, state.address));
                         }
                       },
                     ),

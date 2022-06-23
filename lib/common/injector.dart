@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/gateway/currency_exchange_api.dart';
 import 'package:autonomy_flutter/gateway/customer_support_api.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/gateway/pubdoc_api.dart';
+import 'package:autonomy_flutter/gateway/tzkt_api.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
@@ -162,6 +163,7 @@ Future<void> setup() async {
       () => IAPApi(authenticatedDio, baseUrl: Environment.autonomyAuthURL));
   injector.registerLazySingleton(() =>
       AutonomyApi(authenticatedDio, baseUrl: Environment.autonomyAuthURL));
+  injector.registerLazySingleton(() => TZKTApi(dio));
   injector.registerLazySingleton(
       () => AuthService(injector(), injector(), injector()));
   injector.registerLazySingleton(() => BackupService(injector()));

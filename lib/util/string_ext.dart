@@ -10,6 +10,10 @@ extension StringExtension on String {
     return "${this[0].toUpperCase()}${this.substring(1).toLowerCase()}";
   }
 
+  String snakeToCapital() {
+    return this.replaceAll("_", " ").capitalize();
+  }
+
   String mask(int number) {
     return "[${this.substring(0, number)}...${this.substring(this.length - number, this.length)}]";
   }
