@@ -118,12 +118,23 @@ class TokensServiceImpl extends TokensService {
     _refreshAllTokensWorker = StreamController<int>();
     _currentAddresses = addresses;
 
+    // adjust latestRefreshTokensDate
+    // to have artistID's new values, refresh whole gallery until indexer indexes their values
+    DateTime? latestRefreshTokensDate =
+        _configurationService.getLatestRefreshTokens();
+
+    final artistIDs = await _assetDao.findAllAssetArtistIDs();
+    artistIDs.removeWhere((element) => element == "");
+    if (artistIDs.length == 0) {
+      latestRefreshTokensDate = null;
+    }
+
     _sendPort?.send([
       REFRESH_ALL_TOKENS,
       addresses,
       _indexerURL,
       tokenIDs.toSet().difference(dbTokenIDs),
-      _configurationService.getLatestRefreshTokens(),
+      latestRefreshTokensDate,
     ]);
     log.info("[REFRESH_ALL_TOKENS][start]");
 
