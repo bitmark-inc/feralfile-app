@@ -186,23 +186,15 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                       children: [
                         GestureDetector(
                           behavior: HitTestBehavior.translucent,
-                          onPanUpdate: (details) {
-                            if (details.delta.dx <= -8) {
-                              swipeDirection = 'left';
-                            } else if (details.delta.dx >= 8) {
-                              swipeDirection = 'right';
+                          onHorizontalDragEnd: (dragEndDetails) {
+                            if (isFullscreen) {
+                              return;
                             }
-                          },
-                          onPanEnd: (details) {
-                            if (swipeDirection == null || isFullscreen) return;
-                            if (swipeDirection == 'left') {
+                            if (dragEndDetails.primaryVelocity! < -300) {
                               _moveNextToken();
-                            }
-                            if (swipeDirection == 'right') {
+                            } else if (dragEndDetails.primaryVelocity! > 300) {
                               _movePreviousToken();
                             }
-
-                            swipeDirection = null;
                           },
                           child: Center(
                             child: _getArtworkView(asset!),
@@ -396,7 +388,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
       loadingWidget: _previewPlaceholder,
     ));
 
-    return SizedBox(
+    return Container(
       child: _renderingWidget?.build(context),
     );
   }
