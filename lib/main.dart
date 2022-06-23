@@ -19,6 +19,7 @@ import 'package:autonomy_flutter/util/au_cached_manager.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:floor/floor.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -47,8 +48,6 @@ void main() async {
         widgetsBinding: WidgetsFlutterBinding.ensureInitialized());
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
-    await setup();
-
     await FlutterDownloader.initialize();
     await Hive.initFlutter();
     FlutterDownloader.registerCallback(downloadCallback);
@@ -62,30 +61,56 @@ void main() async {
       statusBarIconBrightness: Brightness.dark,
       statusBarBrightness: Brightness.light,
     ));
-
     FlutterError.onError = (FlutterErrorDetails details) {
       FlutterError.presentError(details);
       showErrorDialogFromException(details.exception,
           stackTrace: details.stack, library: details.library);
     };
+    await _setupApp();
+  }, (Object error, StackTrace stackTrace) async {
+    /// Check error is Database issue
+    if (error.toString().contains("DatabaseException")) {
+      Sentry.captureException(error);
 
-    await injector<AWSService>().initServices();
+      log.info('[DatabaseException] Remove local database and resume app');
 
-    BlocOverrides.runZoned(
-      () => runApp(OverlaySupport.global(child: AutonomyApp())),
-      blocObserver: AppBlocObserver(),
-    );
+      await _deleteLocalDatabase();
 
-    Sentry.configureScope((scope) async {
-      final deviceID = await getDeviceID();
-      if (deviceID != null) {
-        scope.user = SentryUser(id: deviceID);
-      }
-    });
-    FlutterNativeSplash.remove();
-  }, (Object error, StackTrace stackTrace) {
-    showErrorDialogFromException(error, stackTrace: stackTrace);
+      /// Need to setup app again
+      Future.delayed(const Duration(milliseconds: 200), () async {
+        await _setupApp();
+      });
+    } else {
+      showErrorDialogFromException(error, stackTrace: stackTrace);
+    }
   });
+}
+
+_setupApp() async {
+  await setup();
+  await injector<AWSService>().initServices();
+
+  BlocOverrides.runZoned(
+    () => runApp(OverlaySupport.global(child: AutonomyApp())),
+    blocObserver: AppBlocObserver(),
+  );
+
+  Sentry.configureScope((scope) async {
+    final deviceID = await getDeviceID();
+    if (deviceID != null) {
+      scope.user = SentryUser(id: deviceID);
+    }
+  });
+  FlutterNativeSplash.remove();
+}
+
+Future<void> _deleteLocalDatabase() async {
+  String appDatabaseMainnet =
+      await sqfliteDatabaseFactory.getDatabasePath("app_database_mainnet.db");
+  String appDatabaseTestnet =
+      await sqfliteDatabaseFactory.getDatabasePath("app_database_testnet.db");
+  await sqfliteDatabaseFactory.deleteDatabase(appDatabaseMainnet);
+  await sqfliteDatabaseFactory.deleteDatabase(appDatabaseTestnet);
 }
 
 class AutonomyApp extends StatelessWidget {
