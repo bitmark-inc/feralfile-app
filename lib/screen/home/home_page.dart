@@ -164,12 +164,12 @@ class _HomePageState extends State<HomePage>
       children: [
         SizedBox(height: 160),
         Text(
-          "Gallery",
+          "Collection",
           style: appTextTheme.headline1,
         ),
         SizedBox(height: 24.0),
         Text(
-          "Your gallery is empty for now.",
+          "Your collection is empty for now.",
           style: appTextTheme.bodyText1,
         ),
       ],

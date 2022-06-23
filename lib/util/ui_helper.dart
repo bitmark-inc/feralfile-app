@@ -369,7 +369,7 @@ class UIHelper {
                       TextSpan(
                         style: theme.textTheme.bodyText1,
                         text:
-                            "This artwork will no longer appear in your gallery. You can still find it in the ",
+                            "This artwork will no longer appear in your collection. You can still find it in the ",
                       ),
                       TextSpan(
                         style: TextStyle(
@@ -388,7 +388,7 @@ class UIHelper {
                     ]),
                   )
                 : Text(
-                    "This artwork will now be visible in your gallery.",
+                    "This artwork will now be visible in your collection.",
                     style: theme.textTheme.bodyText1,
                   ),
             SizedBox(height: 40),

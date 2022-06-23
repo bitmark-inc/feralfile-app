@@ -293,7 +293,7 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Hide from gallery', style: appTextTheme.headline4),
+              Text('Hide from collection', style: appTextTheme.headline4),
               CupertinoSwitch(
                 value: isHideGalleryEnabled,
                 onChanged: (value) async {
@@ -310,7 +310,7 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
           ),
           SizedBox(height: 14),
           Text(
-            "Do not show this account's NFTs in the gallery view.",
+            "Do not show this account's NFTs in the collection view.",
             style: appTextTheme.bodyText1,
           ),
         ],
