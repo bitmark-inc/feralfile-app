@@ -19,18 +19,22 @@ import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_det
 import 'package:autonomy_flutter/view/au_outlined_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 
-class WalletDetailPage extends StatelessWidget {
+class WalletDetailPage extends StatefulWidget {
   final WalletDetailsPayload payload;
 
-  WalletDetailPage({Key? key, required this.payload}) : super(key: key);
+  const WalletDetailPage({Key? key, required this.payload}) : super(key: key);
 
+  @override
+  State<WalletDetailPage> createState() => _WalletDetailPageState();
+}
+
+class _WalletDetailPageState extends State<WalletDetailPage> {
   var addressFuture = Completer<String>();
 
   @override
   Widget build(BuildContext context) {
-    context
-        .read<WalletDetailBloc>()
-        .add(WalletDetailBalanceEvent(payload.type, payload.wallet));
+    context.read<WalletDetailBloc>().add(
+        WalletDetailBalanceEvent(widget.payload.type, widget.payload.wallet));
 
     return Scaffold(
       appBar: getBackAppBar(
@@ -61,7 +65,7 @@ class WalletDetailPage extends StatelessWidget {
                     Text(
                       state.balance.isNotEmpty
                           ? state.balance
-                          : "-- ${payload.type == CryptoType.ETH ? "ETH" : "XTZ"}",
+                          : "-- ${widget.payload.type == CryptoType.ETH ? "ETH" : "XTZ"}",
                       style: TextStyle(
                           color: Colors.black,
                           fontSize: 24,
@@ -83,7 +87,11 @@ class WalletDetailPage extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 10),
-              Expanded(child: TezosTXListView(address: addressFuture.future)),
+              Expanded(
+                child: widget.payload.type == CryptoType.XTZ
+                    ? TezosTXListView(address: addressFuture.future)
+                    : Container(),
+              ),
               SizedBox(height: 10),
               Row(
                 children: [
@@ -92,8 +100,8 @@ class WalletDetailPage extends StatelessWidget {
                       text: "Send",
                       onPress: () {
                         Navigator.of(context).pushNamed(SendCryptoPage.tag,
-                            arguments:
-                                SendData(payload.wallet, payload.type, null));
+                            arguments: SendData(widget.payload.wallet,
+                                widget.payload.type, null));
                       },
                     ),
                   ),
@@ -106,8 +114,8 @@ class WalletDetailPage extends StatelessWidget {
                       onPress: () {
                         if (state.address.isNotEmpty) {
                           Navigator.of(context).pushNamed(ReceivePage.tag,
-                              arguments:
-                                  WalletPayload(payload.type, state.address));
+                              arguments: WalletPayload(
+                                  widget.payload.type, state.address));
                         }
                       },
                     ),

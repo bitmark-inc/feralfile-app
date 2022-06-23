@@ -22,15 +22,15 @@ class TZKTOperation {
   TZKTActor? initiator;
   int gasLimit;
   int gasUsed;
-  int storageLimit;
-  int storageUsed;
+  int? storageLimit;
+  int? storageUsed;
   int bakerFee;
-  int storageFee;
-  int allocationFee;
+  int? storageFee;
+  int? allocationFee;
   TZKTActor? target;
-  int amount;
+  int? amount;
   String? status;
-  bool hasInternals;
+  bool? hasInternals;
   TZKTQuote quote;
   TZKTParameter? parameter;
 
@@ -47,14 +47,14 @@ class TZKTOperation {
     this.target,
     required this.gasLimit,
     required this.gasUsed,
-    required this.storageLimit,
-    required this.storageUsed,
+    this.storageLimit,
+    this.storageUsed,
     required this.bakerFee,
-    required this.storageFee,
-    required this.allocationFee,
-    required this.amount,
+    this.storageFee,
+    this.allocationFee,
+    this.amount,
     this.status,
-    required this.hasInternals,
+    this.hasInternals,
     required this.quote,
     this.parameter,
   });
@@ -68,8 +68,9 @@ class TZKTOperation {
 @JsonSerializable()
 class TZKTActor {
   String address;
+  String? alias;
 
-  TZKTActor({required this.address});
+  TZKTActor({required this.address, this.alias});
 
   factory TZKTActor.fromJson(Map<String, dynamic> json) =>
       _$TZKTActorFromJson(json);

@@ -53,6 +53,7 @@ import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_page.dart
 import 'package:autonomy_flutter/screen/github_doc.dart';
 import 'package:autonomy_flutter/screen/global_receive/receive_detail_page.dart';
 import 'package:autonomy_flutter/screen/global_receive/receive_page.dart';
+import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/tezos_transaction_detail_page.dart';
 import 'package:autonomy_flutter/screen/ux_guide_view.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_page.dart';
@@ -146,6 +147,7 @@ class AppRouter {
   static const keySyncPage = 'key_sync_page';
   static const tvConnectPage = 'tv_connect';
   static const uxGuidePage = 'guide_page';
+  static const tezosTXDetailPage = "tezos_tx_detail";
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final networkInjector = injector<NetworkConfigInjector>();
@@ -753,6 +755,12 @@ class AppRouter {
             curve: Curves.easeIn,
             duration: Duration(milliseconds: 200),
             child: UXGuideView());
+
+      case tezosTXDetailPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => TezosTXDetailPage.fromPayload(
+                payload: settings.arguments as Map<String, dynamic>));
 
       default:
         throw Exception('Invalid route: ${settings.name}');

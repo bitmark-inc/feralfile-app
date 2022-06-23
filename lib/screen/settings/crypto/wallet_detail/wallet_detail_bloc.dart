@@ -42,7 +42,7 @@ class WalletDetailBloc extends Bloc<WalletDetailEvent, WalletDetailState> {
           newState.balanceInUSD = (balance.getInWei.toDouble() /
                       pow(10, 18) /
                       double.parse(exchangeRate.eth))
-                  .toStringAsFixed(2) +
+                  .toStringAsPrecision(2) +
               " USD";
           break;
         case CryptoType.XTZ:

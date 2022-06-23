@@ -12,6 +12,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
 
+const _nanoTEZFactor = 1000000;
+
 class TezosTXRowView extends StatelessWidget {
   final TZKTOperation tx;
   final String? currentAddress;
@@ -47,7 +49,7 @@ class TezosTXRowView extends StatelessWidget {
               SizedBox(width: 13),
               Text(_transactionTitle(), style: appTextTheme.headline4),
               Spacer(),
-              Text((tx.amount / 1000000).toStringAsFixed(3),
+              Text(_totalAmount(),
                   style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
@@ -67,7 +69,7 @@ class TezosTXRowView extends StatelessWidget {
                       fontWeight: FontWeight.w300,
                       fontFamily: "AtlasGrotesk")),
               Spacer(),
-              Text(tx.quote.usd.toStringAsFixed(2) + "  USD",
+              Text(tx.quote.usd.toStringAsPrecision(2) + "  USD",
                   style: TextStyle(
                       color: Colors.black,
                       fontSize: 12,
@@ -81,7 +83,9 @@ class TezosTXRowView extends StatelessWidget {
   }
 
   Widget _transactionImage() {
-    if (tx.parameter != null) {
+    if (tx.parameter != null ||
+        tx.type == "reveal" ||
+        tx.type == "origination") {
       return SvgPicture.asset("assets/images/tezos_tx_smartcontract.svg");
     } else {
       return SvgPicture.asset(tx.sender?.address == currentAddress
@@ -91,12 +95,12 @@ class TezosTXRowView extends StatelessWidget {
   }
 
   String _transactionTitle() {
-    if (tx.parameter != null) {
-      return "Smart contract";
+    if (tx.type != "transaction") {
+      return tx.type.capitalize();
+    } else if (tx.parameter != null) {
+      return tx.parameter!.entrypoint.snakeToCapital();
     } else {
-      return tx.sender?.address == currentAddress
-          ? "Sent Tezos"
-          : "Received Tezos";
+      return tx.sender?.address == currentAddress ? "Sent XTZ" : "Received XTZ";
     }
   }
 
@@ -105,6 +109,19 @@ class TezosTXRowView extends StatelessWidget {
       return "Pending....";
     } else {
       return tx.status!.capitalize();
+    }
+  }
+
+  String _totalAmount() {
+    if (tx.sender?.address == currentAddress) {
+      return (((tx.amount ?? 0) +
+                  tx.bakerFee +
+                  (tx.storageFee ?? 0) +
+                  (tx.allocationFee ?? 0)) /
+              _nanoTEZFactor)
+          .toStringAsPrecision(3);
+    } else {
+      return ((tx.amount ?? 0) / _nanoTEZFactor).toStringAsPrecision(3);
     }
   }
 }

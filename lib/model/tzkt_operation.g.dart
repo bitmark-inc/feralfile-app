@@ -26,14 +26,14 @@ TZKTOperation _$TZKTOperationFromJson(Map<String, dynamic> json) =>
           : TZKTActor.fromJson(json['target'] as Map<String, dynamic>),
       gasLimit: json['gasLimit'] as int,
       gasUsed: json['gasUsed'] as int,
-      storageLimit: json['storageLimit'] as int,
-      storageUsed: json['storageUsed'] as int,
+      storageLimit: json['storageLimit'] as int?,
+      storageUsed: json['storageUsed'] as int?,
       bakerFee: json['bakerFee'] as int,
-      storageFee: json['storageFee'] as int,
-      allocationFee: json['allocationFee'] as int,
-      amount: json['amount'] as int,
+      storageFee: json['storageFee'] as int?,
+      allocationFee: json['allocationFee'] as int?,
+      amount: json['amount'] as int?,
       status: json['status'] as String?,
-      hasInternals: json['hasInternals'] as bool,
+      hasInternals: json['hasInternals'] as bool?,
       quote: TZKTQuote.fromJson(json['quote'] as Map<String, dynamic>),
       parameter: json['parameter'] == null
           ? null
@@ -68,10 +68,12 @@ Map<String, dynamic> _$TZKTOperationToJson(TZKTOperation instance) =>
 
 TZKTActor _$TZKTActorFromJson(Map<String, dynamic> json) => TZKTActor(
       address: json['address'] as String,
+      alias: json['alias'] as String?,
     );
 
 Map<String, dynamic> _$TZKTActorToJson(TZKTActor instance) => <String, dynamic>{
       'address': instance.address,
+      'alias': instance.alias,
     };
 
 TZKTQuote _$TZKTQuoteFromJson(Map<String, dynamic> json) => TZKTQuote(
