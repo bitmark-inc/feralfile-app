@@ -249,15 +249,6 @@ class MockConfigurationService extends _i1.Mock
       (super.noSuchMethod(Invocation.method(#getNetwork, []),
           returnValue: _i15.Network.TESTNET) as _i15.Network);
   @override
-  _i8.Future<void> setImmediatePlaybackEnabled(bool? value) => (super
-      .noSuchMethod(Invocation.method(#setImmediatePlaybackEnabled, [value]),
-          returnValue: Future<void>.value(),
-          returnValueForMissingStub: Future<void>.value()) as _i8.Future<void>);
-  @override
-  bool isImmediatePlaybackEnabled() =>
-      (super.noSuchMethod(Invocation.method(#isImmediatePlaybackEnabled, []),
-          returnValue: false) as bool);
-  @override
   _i8.Future<void> setDevicePasscodeEnabled(bool? value) =>
       (super.noSuchMethod(Invocation.method(#setDevicePasscodeEnabled, [value]),
           returnValue: Future<void>.value(),

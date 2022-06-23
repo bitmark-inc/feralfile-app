@@ -71,7 +71,6 @@ class SettingsDataServiceImpl implements SettingsDataService {
 
     final data = SettingsDataBackup(
       addresses: addresses,
-      immediatePlaybacks: _configurationService.isImmediatePlaybackEnabled(),
       isAnalyticsEnabled: _configurationService.isAnalyticsEnabled(),
       uxGuideStep: _configurationService.getUXGuideStep(),
       finishedSurveys: _configurationService.getFinishedSurveys(),
@@ -111,8 +110,6 @@ class SettingsDataServiceImpl implements SettingsDataService {
     final response =
         await _iapApi.getProfileData(_requester, _filename, _version);
     final data = SettingsDataBackup.fromJson(json.decode(response));
-    await _configurationService
-        .setImmediatePlaybackEnabled(data.immediatePlaybacks);
 
     _configurationService.setAnalyticEnabled(data.isAnalyticsEnabled);
     if (data.uxGuideStep != null) {
@@ -143,7 +140,6 @@ class SettingsDataServiceImpl implements SettingsDataService {
 @JsonSerializable()
 class SettingsDataBackup {
   List<String> addresses;
-  bool immediatePlaybacks;
   bool isAnalyticsEnabled;
   int? uxGuideStep;
   List<String> finishedSurveys;
@@ -154,7 +150,6 @@ class SettingsDataBackup {
 
   SettingsDataBackup({
     required this.addresses,
-    required this.immediatePlaybacks,
     required this.isAnalyticsEnabled,
     required this.uxGuideStep,
     required this.finishedSurveys,

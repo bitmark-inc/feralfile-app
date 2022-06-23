@@ -16,7 +16,6 @@ class PreferenceUpdateEvent extends PreferenceEvent {
 }
 
 class PreferenceState {
-  final bool isImmediatePlaybackEnabled;
   bool isDevicePasscodeEnabled;
   bool isNotificationEnabled;
   final bool isAnalyticEnabled;
@@ -24,7 +23,6 @@ class PreferenceState {
   final bool hasHiddenArtworks;
 
   PreferenceState(
-    this.isImmediatePlaybackEnabled,
     this.isDevicePasscodeEnabled,
     this.isNotificationEnabled,
     this.isAnalyticEnabled,
@@ -33,7 +31,6 @@ class PreferenceState {
   );
 
   PreferenceState copyWith({
-    bool? isImmediatePlaybackEnabled,
     bool? isDevicePasscodeEnabled,
     bool? isNotificationEnabled,
     bool? isAnalyticEnabled,
@@ -41,7 +38,6 @@ class PreferenceState {
     bool? hasHiddenArtworks,
   }) {
     return PreferenceState(
-      isImmediatePlaybackEnabled ?? this.isImmediatePlaybackEnabled,
       isDevicePasscodeEnabled ?? this.isDevicePasscodeEnabled,
       isNotificationEnabled ?? this.isNotificationEnabled,
       isAnalyticEnabled ?? this.isAnalyticEnabled,

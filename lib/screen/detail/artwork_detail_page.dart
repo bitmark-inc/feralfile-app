@@ -10,10 +10,8 @@ import 'dart:collection';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:html_unescape/html_unescape.dart';
 import 'package:path/path.dart' as p;
-import 'package:url_launcher/url_launcher.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
@@ -154,9 +152,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
                       SizedBox(height: 16.0),
                       GestureDetector(
                         child: tokenThumbnailWidget(context, asset),
-                        onTap: () => Navigator.of(context).pushNamed(
-                            AppRouter.artworkPreviewPage,
-                            arguments: widget.payload),
+                        onTap: () => Navigator.of(context).pop(),
                       ),
                       debugInfoWidget(currentAsset),
                       SizedBox(height: 16.0),
@@ -169,17 +165,9 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
                               width: 165,
                               height: 48,
                               child: AuOutlinedButton(
-                                  text: "VIEW ARTWORK",
-                                  onPress: () {
-                                    if (injector<ConfigurationService>()
-                                        .isImmediatePlaybackEnabled()) {
-                                      Navigator.of(context).pop();
-                                    } else {
-                                      Navigator.of(context).pushNamed(
-                                          AppRouter.artworkPreviewPage,
-                                          arguments: widget.payload);
-                                    }
-                                  }),
+                                text: "VIEW ARTWORK",
+                                onPress: () => Navigator.of(context).pop(),
+                              ),
                             ),
                             SizedBox(height: 40.0),
                             Text(

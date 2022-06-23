@@ -32,20 +32,6 @@ class PreferenceView extends StatelessWidget {
             SizedBox(height: 24),
             _preferenceItem(
               context,
-              'Immediate playback',
-              "Enable playback when tapping on a thumbnail.",
-              state.isImmediatePlaybackEnabled,
-              (value) {
-                final newState =
-                    state.copyWith(isImmediatePlaybackEnabled: value);
-                context
-                    .read<PreferencesBloc>()
-                    .add(PreferenceUpdateEvent(newState));
-              },
-            ),
-            addDivider(),
-            _preferenceItem(
-              context,
               state.authMethodName,
               "Use ${state.authMethodName != 'Device Passcode' ? state.authMethodName : 'device passcode'} to unlock the app, transact, and authenticate.",
               state.isDevicePasscodeEnabled,
