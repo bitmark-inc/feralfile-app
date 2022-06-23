@@ -10,20 +10,19 @@ import 'dart:developer';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/router/router_bloc.dart';
+import 'package:autonomy_flutter/screen/survey/survey.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
+import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/inapp_notifications.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/eula_privacy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:autonomy_flutter/screen/survey/survey.dart';
-import 'package:autonomy_flutter/util/inapp_notifications.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_flutter/service/wallet_connect_service.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 
 class OnboardingPage extends StatefulWidget {
   @override
@@ -88,114 +87,120 @@ class _OnboardingPageState extends State<OnboardingPage> {
         EdgeInsets.only(top: 135.0, bottom: 32.0, left: 16.0, right: 16.0);
 
     return Scaffold(
-        body: Stack(children: [
-      Container(
-        margin: edgeInsets,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            Text(
-              "AUTONOMY",
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                  fontFamily: "DomaineSansText",
-                  fontSize: 48,
-                  color: Colors.black),
-            ),
-          ],
-        ),
-      ),
-      SafeArea(
-        child: Center(
-            child: Container(
-                margin: EdgeInsets.fromLTRB(0, 0, 0, 0), child: _logo())),
-      ),
-      Container(
-        margin: edgeInsets,
-        child: Column(mainAxisAlignment: MainAxisAlignment.end, children: [
-          eulaAndPrivacyView(),
-          SizedBox(height: 32.0),
-          BlocConsumer<RouterBloc, RouterState>(
-            listener: (context, state) async {
-              switch (state.onboardingStep) {
-                case OnboardingStep.dashboard:
-                  try {
-                    await injector<SettingsDataService>().restoreSettingsData();
-                  } catch (_) {
-                    // just ignore this so that user can go through onboarding
-                  }
+        body: BlocConsumer<RouterBloc, RouterState>(
+      listener: (context, state) async {
+        switch (state.onboardingStep) {
+          case OnboardingStep.dashboard:
+            Navigator.of(context)
+                .pushReplacementNamed(AppRouter.homePageNoTransition);
 
-                  Navigator.of(context)
-                      .pushReplacementNamed(AppRouter.homePageNoTransition);
-                  await _askForNotification();
-                  await injector<VersionService>().checkForUpdate(true);
-                  if (injector<ConfigurationService>().getUXGuideStep() ==
-                      null) {
-                    await injector<NavigationService>()
-                        .navigateTo(AppRouter.uxGuidePage);
-                  }
+            try {
+              await injector<SettingsDataService>().restoreSettingsData();
+            } catch (_) {
+              // just ignore this so that user can go through onboarding
+            }
+            await _askForNotification();
+            await injector<VersionService>().checkForUpdate(true);
+            if (injector<ConfigurationService>().getUXGuideStep() == null) {
+              await injector<NavigationService>()
+                  .navigateTo(AppRouter.uxGuidePage);
+            }
 
-                  await Future.delayed(
-                      SHORT_SHOW_DIALOG_DURATION, _handleShowingSurveys);
-                  break;
+            await Future.delayed(
+                SHORT_SHOW_DIALOG_DURATION, _handleShowingSurveys);
+            break;
 
-                case OnboardingStep.newAccountPage:
-                  Navigator.of(context).pushReplacementNamed(
-                      AppRouter.newAccountPageNoTransition);
-                  break;
+          case OnboardingStep.newAccountPage:
+            Navigator.of(context)
+                .pushReplacementNamed(AppRouter.newAccountPageNoTransition);
+            break;
 
-                default:
-                  break;
-              }
+          default:
+            break;
+        }
 
-              if (state.onboardingStep != OnboardingStep.dashboard) {
-                await injector<VersionService>().checkForUpdate(false);
-              }
-              injector<WalletConnectService>().initSessions(forced: true);
-            },
-            builder: (context, state) {
-              switch (state.onboardingStep) {
-                case OnboardingStep.startScreen:
-                  return Row(
+        if (state.onboardingStep != OnboardingStep.dashboard) {
+          await injector<VersionService>().checkForUpdate(false);
+        }
+        injector<WalletConnectService>().initSessions(forced: true);
+      },
+      builder: (context, state) {
+        return Stack(children: [
+          state.onboardingStep != OnboardingStep.undefined
+              ? Container(
+                  margin: edgeInsets,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: AuFilledButton(
-                          text: "Start".toUpperCase(),
-                          onPress: () {
-                            Navigator.of(context)
-                                .pushNamed(AppRouter.beOwnGalleryPage);
-                          },
-                        ),
-                      )
+                      Text(
+                        "AUTONOMY",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                            fontFamily: "DomaineSansText",
+                            fontSize: 48,
+                            color: Colors.black),
+                      ),
                     ],
-                  );
-                case OnboardingStep.restore:
-                  return Row(
-                    children: [
-                      Expanded(
-                        child: AuFilledButton(
-                          text: "Restore".toUpperCase(),
-                          onPress: !state.isLoading
-                              ? () {
-                                  context.read<RouterBloc>().add(
-                                      RestoreCloudDatabaseRoutingEvent(
-                                          state.backupVersion));
-                                }
-                              : null,
-                        ),
-                      )
-                    ],
-                  );
-
-                default:
-                  return SizedBox();
-              }
-            },
+                  ),
+                )
+              : SizedBox(),
+          SafeArea(
+            child: Center(
+                child: Container(
+                    margin: EdgeInsets.fromLTRB(0, 0, 0, 0), child: _logo())),
           ),
-        ]),
-      )
-    ]));
+          Container(
+            margin: edgeInsets,
+            child: Column(mainAxisAlignment: MainAxisAlignment.end, children: [
+              state.onboardingStep != OnboardingStep.undefined
+                  ? eulaAndPrivacyView()
+                  : SizedBox(),
+              SizedBox(height: 32.0),
+              _getStartupButton(state),
+            ]),
+          )
+        ]);
+      },
+    ));
+  }
+
+  Widget _getStartupButton(RouterState state) {
+    switch (state.onboardingStep) {
+      case OnboardingStep.startScreen:
+        return Row(
+          children: [
+            Expanded(
+              child: AuFilledButton(
+                text: "Start".toUpperCase(),
+                onPress: () {
+                  Navigator.of(context).pushNamed(AppRouter.beOwnGalleryPage);
+                },
+              ),
+            )
+          ],
+        );
+      case OnboardingStep.restore:
+        return Row(
+          children: [
+            Expanded(
+              child: AuFilledButton(
+                text: "Restore".toUpperCase(),
+                onPress: !state.isLoading
+                    ? () {
+                        context.read<RouterBloc>().add(
+                            RestoreCloudDatabaseRoutingEvent(
+                                state.backupVersion));
+                      }
+                    : null,
+              ),
+            )
+          ],
+        );
+
+      default:
+        return SizedBox();
+    }
   }
 
   Widget _logo() {

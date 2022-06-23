@@ -35,25 +35,43 @@ import 'wallet_connect_dapp_service/wc_connected_session.dart';
 
 abstract class AccountService {
   Future<WalletStorage> getDefaultAccount();
+
   Future androidBackupKeys();
+
   Future<bool?> isAndroidEndToEndEncryptionAvailable();
+
   Future androidRestoreKeys();
+
   Future<List<Persona>> getPersonas();
+
   Future<Persona> createPersona({String name = ""});
+
   Future<Persona> importPersona(String words);
+
   Future<Persona> namePersona(Persona persona, String name);
+
   Future<Connection> nameLinkedAccount(Connection connection, String name);
+
   Future<Connection> linkETHWallet(WCConnectedSession session);
+
   Future<Connection> linkETHBrowserWallet(String address, WalletApp walletApp);
+
   Future linkManuallyAddress(String address);
+
   Future<bool> isLinkedIndexerTokenID(String indexerTokenID);
+
   Future deletePersona(Persona persona);
+
   Future deleteLinkedAccount(Connection connection);
+
   Future linkIndexerTokenID(String indexerTokenID);
 
   Future setHidePersonaInGallery(String personaUUID, bool isEnabled);
+
   Future setHideLinkedAccountInGallery(String address, bool isEnabled);
+
   bool isPersonaHiddenInGallery(String personaUUID);
+
   bool isLinkedAccountHiddenInGallery(String address);
 }
 
@@ -324,6 +342,14 @@ class AccountServiceImpl extends AccountService {
     if (Platform.isAndroid) {
       final accounts = await _backupChannel.restoreKeys();
 
+      final personas = await _cloudDB.personaDao.getPersonas();
+      if (personas.length == accounts.length &&
+          personas.every((element) =>
+              accounts.map((e) => e.uuid).contains(element.uuid))) {
+        //Database is up-to-date, skip migrating
+        return;
+      }
+
       //Import persona to database if needed
       for (var account in accounts) {
         final existingAccount =
@@ -355,7 +381,7 @@ class AccountServiceImpl extends AccountService {
         }
       }
 
-      if (shouldBackup) {
+      if (shouldBackup || (personas.isNotEmpty && accounts.isEmpty)) {
         await androidBackupKeys();
       }
     }
