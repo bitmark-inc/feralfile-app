@@ -60,7 +60,7 @@ class TezosTXDetailPage extends StatelessWidget {
                       _transactionInfo("Call", tx.parameter?.entrypoint),
                       _transactionInfo(
                           "Contract", tx.target?.alias ?? tx.target?.address)
-                    ] else ...[
+                    ] else if (tx.type == "transaction") ...[
                       tx.sender?.address == currentAddress
                           ? _transactionInfo("To", tx.target?.address)
                           : _transactionInfo("From", tx.sender?.address),
@@ -68,7 +68,8 @@ class TezosTXDetailPage extends StatelessWidget {
                     _transactionInfo("Status", _transactionStatus()),
                     _transactionInfo(
                         "Date", formatter.format(tx.timestamp.toLocal())),
-                    _transactionInfo("Amount", _transactionAmount()),
+                    if (tx.type == "transaction")
+                      _transactionInfo("Amount", _transactionAmount()),
                     if (tx.sender?.address == currentAddress) ...[
                       _transactionInfo("Gas fee", _gasFee()),
                       _transactionInfo("Total amount", _totalAmount()),
@@ -87,6 +88,8 @@ class TezosTXDetailPage extends StatelessWidget {
   String _transactionTitle() {
     if (tx.parameter != null) {
       return "Smart contract interaction";
+    } else if (tx.type != "transaction") {
+      return tx.type.capitalize();
     } else {
       return tx.sender?.address == currentAddress ? "Sent XTZ" : "Received XTZ";
     }
@@ -124,13 +127,12 @@ class TezosTXDetailPage extends StatelessWidget {
                 children: [
                   Text(title, style: appTextTheme.headline4),
                   if (detail != null)
-                    Expanded(
-                        child: Text(detail,
-                            textAlign: TextAlign.right,
-                            style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w400,
-                                fontFamily: "IBMPlexMono"))),
+                    Text(detail,
+                        textAlign: TextAlign.right,
+                        style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w400,
+                            fontFamily: "IBMPlexMono")),
                 ])),
         Divider(),
       ],
