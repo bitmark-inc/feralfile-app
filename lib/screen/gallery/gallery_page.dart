@@ -37,11 +37,19 @@ class _GalleryPageState extends State<GalleryPage> {
   void initState() {
     super.initState();
     _scrollController = ScrollController();
+    _scrollController.addListener(_scrollListenerToLoadMore);
 
     final address = widget.payload.address;
 
     context.read<GalleryBloc>().add(GetTokensEvent(address));
     context.read<GalleryBloc>().add(ReindexIndexerEvent(address));
+  }
+
+  _scrollListenerToLoadMore() {
+    if (_scrollController.position.pixels + 100 >=
+        _scrollController.position.maxScrollExtent) {
+      context.read<GalleryBloc>().add(GetTokensEvent(widget.payload.address));
+    }
   }
 
   @override
@@ -54,7 +62,7 @@ class _GalleryPageState extends State<GalleryPage> {
         body: Stack(
           fit: StackFit.loose,
           children: [
-            _assetsWidget(state.tokens),
+            _assetsWidget(state.tokens, state.isLoading),
             PenroseTopBarView(
                 _scrollController, PenroseTopBarViewStyle.back, null),
           ],
@@ -63,7 +71,7 @@ class _GalleryPageState extends State<GalleryPage> {
     );
   }
 
-  Widget _assetsWidget(List<AssetToken>? tokens) {
+  Widget _assetsWidget(List<AssetToken>? tokens, bool isLoading) {
     const int cellPerRow = 3;
     const double cellSpacing = 3.0;
     final artistURL = widget.payload.artistURL;
@@ -92,14 +100,9 @@ class _GalleryPageState extends State<GalleryPage> {
           ),
         ),
       ),
-      if (tokens == null) ...[
-        SliverToBoxAdapter(
-          child: Container(
-            padding: EdgeInsets.fromLTRB(16, 0, 24, 14),
-            child: CupertinoActivityIndicator(),
-          ),
-        ),
-      ] else if (tokens.isEmpty) ...[
+      if (tokens == null)
+        ...[]
+      else if (tokens.isEmpty) ...[
         SliverToBoxAdapter(
           child: Container(
             padding: EdgeInsets.fromLTRB(16, 0, 24, 14),
@@ -128,6 +131,14 @@ class _GalleryPageState extends State<GalleryPage> {
           ),
         ),
       ],
+      if (isLoading) ...[
+        SliverToBoxAdapter(
+          child: Container(
+            padding: EdgeInsets.fromLTRB(16, 24, 24, 14),
+            child: Center(child: loadingIndicator()),
+          ),
+        ),
+      ]
     ];
 
     sources.insert(
