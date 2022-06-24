@@ -24,14 +24,35 @@ class LedgerHardwareService {
   Map<String, LedgerHardwareWallet> _connectedLedgers =
       Map<String, LedgerHardwareWallet>();
 
-  Stream<Iterable<LedgerHardwareWallet>> scanForLedgerWallet() {
-    FlutterBlue.instance.isOn.then((isOn) {
-      if (isOn) {
-        FlutterBlue.instance.startScan(
-            withServices: [Guid(serviceUuid)], timeout: Duration(seconds: 10));
+  Future<bool> _isAvailable() async {
+    final isOn = await FlutterBlue.instance.isOn;
+    final isAvailable = await FlutterBlue.instance.isAvailable;
+    log.info("isOn: $isOn, isAvailable: $isAvailable");
+
+    return isOn && isAvailable;
+  }
+
+  Future<bool> scanForLedgerWallet() async {
+    FlutterBlue.instance.setLogFunc(
+        (level, message) => log.info("[LedgerHardwareService] " + message));
+    if (!(await _isAvailable())) {
+      log.info(
+          "[LedgerHardwareService] BLE is not available on the first check. Do the second attempt.");
+      // Delay 300 milisecond and perform the second check
+      await Future.delayed(Duration(microseconds: 300));
+      if (!(await _isAvailable())) {
+        return false;
       }
-    });
-    log.info("Start scanning for ledgers");
+    }
+
+    await FlutterBlue.instance.startScan(
+        withServices: [Guid(serviceUuid)], timeout: Duration(seconds: 10));
+    log.info("[LedgerHardwareService] Start scanning for ledgers");
+
+    return true;
+  }
+
+  Stream<Iterable<LedgerHardwareWallet>> ledgerWallets() {
     final readyDevices = FlutterBlue.instance.scanResults.map((event) => event
         .map((e) => LedgerHardwareWallet(e.device.name, e.device))
         .toList());
@@ -40,7 +61,7 @@ class LedgerHardwareService {
   }
 
   Future<dynamic> stopScanning() {
-    log.info("Stop scanning for ledgers");
+    log.info("[LedgerHardwareService] Stop scanning for ledgers");
     return FlutterBlue.instance.stopScan();
   }
 
