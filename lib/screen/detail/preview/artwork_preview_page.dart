@@ -251,6 +251,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
         children: [
           Expanded(
             child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
               onTap: () => _moveToInfo(asset),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,

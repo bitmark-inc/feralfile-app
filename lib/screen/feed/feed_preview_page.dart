@@ -233,6 +233,7 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
       height: safeAreaTop + 52,
       padding: EdgeInsets.fromLTRB(15, safeAreaTop, 15, 0),
       child: GestureDetector(
+        behavior: HitTestBehavior.translucent,
         onTap: () => _moveToInfo(asset),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,

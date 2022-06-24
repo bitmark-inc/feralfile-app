@@ -9,14 +9,36 @@ part 'gallery_state.dart';
 class GalleryBloc extends Bloc<GalleryEvent, GalleryState> {
   IndexerApi _indexerApi;
 
-  GalleryBloc(this._indexerApi) : super(GalleryState(tokens: null)) {
+  GalleryBloc(this._indexerApi)
+      : super(GalleryState(
+          tokens: null,
+          nextPageKey: 0,
+          isLastPage: false,
+          isLoading: false,
+        )) {
     on<GetTokensEvent>((event, emit) async {
-      final tokens = (await _indexerApi.getNftTokensByOwner(
-              event.address, 0, INDEXER_TOKENS_MAXIMUM))
-          .map((asset) => AssetToken.fromAsset(asset))
-          .toList();
+      if (state.isLoading || state.isLastPage) return;
+      emit(state.copyWith(isLoading: true));
 
-      emit(GalleryState(tokens: tokens));
+      try {
+        final tokens = (await _indexerApi.getNftTokensByOwner(
+                event.address, state.nextPageKey, INDEXER_TOKENS_MAXIMUM))
+            .map((asset) => AssetToken.fromAsset(asset))
+            .toList();
+        final isLastPage = tokens.length < INDEXER_TOKENS_MAXIMUM;
+
+        List<AssetToken> allTokens = (state.tokens ?? []) + tokens;
+
+        emit(GalleryState(
+          tokens: allTokens,
+          nextPageKey: state.nextPageKey + tokens.length + 1,
+          isLastPage: isLastPage,
+          isLoading: false,
+        ));
+      } catch (_) {
+        emit(state.copyWith(isLoading: false));
+        rethrow;
+      }
     });
 
     on<ReindexIndexerEvent>((event, emit) async {

@@ -25,6 +25,7 @@ class _TextShufflerState extends State<TextShuffler> {
   final characters =
       "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890!@#\$%^&*-=";
   Random _rnd = Random();
+  Timer? _timer;
 
   @override
   void initState() {
@@ -44,9 +45,15 @@ class _TextShufflerState extends State<TextShuffler> {
     );
   }
 
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
   void _shuffle() {
-    Timer.periodic(Duration(milliseconds: ((250) / _targetTextLength).round()),
-        (timer) {
+    _timer = Timer.periodic(
+        Duration(milliseconds: ((250) / _targetTextLength).round()), (timer) {
       late String updatedText;
       switch (_step) {
         case ShufflerStep.dashes:
