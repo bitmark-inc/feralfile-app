@@ -17,6 +17,7 @@ import 'package:crypto/crypto.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 part 'settings_data_service.g.dart';
 
@@ -93,7 +94,17 @@ class SettingsDataServiceImpl implements SettingsDataService {
     File backupFile = new File('$dir/$_filename');
     await backupFile.writeAsBytes(dataBytes);
 
-    await _iapApi.uploadProfile(_requester, _filename, _version, backupFile);
+    var isSuccess = false;
+    while (!isSuccess) {
+      try {
+        await _iapApi.uploadProfile(
+            _requester, _filename, _version, backupFile);
+        isSuccess = true;
+      } catch (exception) {
+        Sentry.captureException(exception);
+      }
+    }
+
     latestDataHash = dataHash;
 
     if (_numberOfCallingBackups == 1) {

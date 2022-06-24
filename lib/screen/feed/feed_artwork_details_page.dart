@@ -39,6 +39,7 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
   void initState() {
     _scrollController = ScrollController();
     _scrollController.addListener(_scrollListener);
+    fetchIdentities();
     super.initState();
   }
 
@@ -67,6 +68,19 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
     }
   }
 
+  void fetchIdentities() {
+    final state = context.read<FeedBloc>().state;
+    final neededIdentities = [
+      state.viewingToken?.artistName ?? '',
+      state.viewingFeedEvent?.recipient ?? ''
+    ];
+    neededIdentities.removeWhere((element) => element == '');
+
+    if (neededIdentities.isNotEmpty) {
+      context.read<IdentityBloc>().add(GetIdentityEvent(neededIdentities));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final unescape = HtmlUnescape();
@@ -80,20 +94,7 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
             backTitle: "DISCOVERY",
             onBack: () => Navigator.of(context).pop(),
           ),
-          body: BlocConsumer<FeedBloc, FeedState>(listener: (context, state) {
-            if (state.viewingToken?.artistName == null) return;
-            final neededIdentities = [
-              state.viewingToken?.artistName ?? '',
-              state.viewingFeedEvent?.recipient ?? ''
-            ];
-            neededIdentities.removeWhere((element) => element == '');
-
-            if (neededIdentities.isNotEmpty) {
-              context
-                  .read<IdentityBloc>()
-                  .add(GetIdentityEvent(neededIdentities));
-            }
-          }, builder: (context, state) {
+          body: BlocBuilder<FeedBloc, FeedState>(builder: (context, state) {
             if (state.viewingFeedEvent == null || state.viewingToken == null)
               return SizedBox();
 
@@ -107,8 +108,6 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
             final artistName =
                 token?.artistName?.toIdentityOrMask(identityState.identityMap);
             final editionSubTitle = getEditionSubTitle(token!);
-
-            final theme = AuThemeManager.get(AppTheme.previewNFTTheme);
 
             return Container(
                 child: SingleChildScrollView(
@@ -194,8 +193,7 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
                   ),
                   GestureDetector(
                     child: tokenThumbnailWidget(context, token!),
-                    onTap: () => Navigator.of(context)
-                        .pushNamed(AppRouter.feedArtworkDetailsPage),
+                    onTap: () => Navigator.of(context).pop(),
                   ),
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16.0),
@@ -209,8 +207,7 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
                           height: 48,
                           child: AuOutlinedButton(
                             text: "VIEW ARTWORK",
-                            onPress: () => Navigator.of(context)
-                                .pushNamed(AppRouter.feedPreviewPage),
+                            onPress: () => Navigator.of(context).pop(),
                           ),
                         ),
                         SizedBox(height: 40.0),

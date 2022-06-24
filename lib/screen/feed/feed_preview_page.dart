@@ -33,6 +33,7 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
   INFTRenderingWidget? _renderingWidget;
   Timer? _timer;
   bool _missingToken = false;
+  AssetToken? latestToken;
 
   @override
   void initState() {
@@ -91,7 +92,6 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
     return Scaffold(
       backgroundColor: Colors.black,
       body: BlocConsumer<FeedBloc, FeedState>(listener: (context, state) {
-        if (state.viewingToken?.artistName == null) return;
         final neededIdentities = [
           state.viewingToken?.artistName ?? '',
           state.viewingFeedEvent?.recipient ?? ''
@@ -105,6 +105,13 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
         if (state.appFeedData == null || state.viewingFeedEvent == null)
           return _emptyOrLoadingDiscoveryWidget(state.appFeedData);
 
+        // dispose previous playback when viewingToken is changed
+        if (latestToken != null && latestToken?.id == state.viewingToken?.id) {
+          _disposeCurrentDisplay();
+        }
+
+        latestToken = state.viewingToken;
+
         return Container(
             child: Column(
           children: [
@@ -114,25 +121,13 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
                 children: [
                   GestureDetector(
                     behavior: HitTestBehavior.translucent,
-                    onPanUpdate: (details) {
-                      if (details.delta.dx <= -8) {
-                        swipeDirection = 'left';
-                      } else if (details.delta.dx >= 8) {
-                        swipeDirection = 'right';
-                      }
-                    },
-                    onPanEnd: (details) {
-                      if (swipeDirection == null) return;
-                      if (swipeDirection == 'left') {
+                    onHorizontalDragEnd: (dragEndDetails) {
+                      print(dragEndDetails.primaryVelocity);
+                      if (dragEndDetails.primaryVelocity! < -300) {
                         context.read<FeedBloc>().add(MoveToNextFeedEvent());
-                        _disposeCurrentDisplay();
-                      }
-                      if (swipeDirection == 'right') {
+                      } else if (dragEndDetails.primaryVelocity! > 300) {
                         context.read<FeedBloc>().add(MoveToPreviousFeedEvent());
-                        _disposeCurrentDisplay();
                       }
-
-                      swipeDirection = null;
                     },
                     child: Container(
                       color: Colors.black,
@@ -231,24 +226,20 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
             event.recipient;
     final artistName =
         asset.artistName?.toIdentityOrMask(identityState.identityMap);
-
     final theme = AuThemeManager.get(AppTheme.previewNFTTheme);
 
     return Container(
       color: Colors.black,
       height: safeAreaTop + 52,
-      padding: EdgeInsets.only(top: safeAreaTop),
+      padding: EdgeInsets.fromLTRB(15, safeAreaTop, 15, 0),
       child: GestureDetector(
         onTap: () => _moveToInfo(asset),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 13.0),
-              child: SvgPicture.asset("assets/images/iconInfo.svg",
-                  color: Colors.white),
-            ),
+            SvgPicture.asset("assets/images/iconInfo.svg", color: Colors.white),
+            SizedBox(width: 13),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -276,10 +267,11 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
                             text: event.actionRepresentation + ' ',
                           ),
                           TextSpan(
-                            text: asset.title,
+                            text: asset.title.isEmpty ? 'nft' : asset.title,
                             style: theme.textTheme.caption,
                           ),
-                          if (event.action == 'transfer') ...[
+                          if (event.action == 'transfer' &&
+                              artistName != null) ...[
                             TextSpan(
                                 text: ' by $artistName',
                                 style: theme.textTheme.bodyText2),

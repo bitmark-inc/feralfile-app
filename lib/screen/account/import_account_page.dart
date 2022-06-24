@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/material.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 class ImportAccountPage extends StatefulWidget {
   const ImportAccountPage({Key? key}) : super(key: key);
@@ -116,7 +117,8 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
 
       Navigator.of(context)
           .popAndPushNamed(AppRouter.namePersonaPage, arguments: persona.uuid);
-    } catch (_) {
+    } catch (exception) {
+      Sentry.captureException(exception);
       UIHelper.hideInfoDialog(context);
       setState(() {
         isError = true;

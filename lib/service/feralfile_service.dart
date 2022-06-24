@@ -96,7 +96,7 @@ class FeralFileServiceImpl extends FeralFileService {
     if (!finishedSurveys.contains(Survey.onboarding)) {
       injector<AWSService>().storeEventWithDeviceData(
         Survey.onboarding,
-        message: 'Feral File',
+        message: 'Feral File Website',
       );
       injector<ConfigurationService>().setFinishedSurvey([Survey.onboarding]);
     }
