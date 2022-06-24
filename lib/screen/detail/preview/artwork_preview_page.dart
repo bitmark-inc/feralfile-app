@@ -300,7 +300,6 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   }
 
   Future _moveToInfo(AssetToken asset) async {
-    if (!injector<ConfigurationService>().isImmediatePlaybackEnabled()) return;
     final currentIndex = widget.payload.ids.indexOf(asset.id);
 
     disableLandscapeMode();

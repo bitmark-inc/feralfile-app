@@ -13,6 +13,10 @@ class FeedBloc extends Bloc<FeedBlocEvent, FeedState> {
   FeedBloc(this._feedService) : super(FeedState()) {
     on<GetFeedsEvent>((event, emit) async {
       log.info('[FeedBloc][Start] GetFeedsEvent');
+      if (state.appFeedData != null && state.appFeedData?.next == null) {
+        log.info('[FeedBloc] break; no more feeds');
+        return;
+      }
 
       final newAppFeedData =
           await _feedService.fetchFeeds(state.appFeedData?.next);
@@ -49,24 +53,38 @@ class FeedBloc extends Bloc<FeedBlocEvent, FeedState> {
           '[FeedBloc][Start] RetryMissingTokenInFeedsEvent: has ${tokens.length} tokens ${tokens.map((e) => e.id)}');
       final insertedAppFeedData = state.appFeedData!.insertTokens(tokens);
 
-      emit(state.copyWith(appFeedData: insertedAppFeedData));
+      // Reload viewingToken if empty
+      var viewingToken = state.viewingToken;
+      if (viewingToken == null) {
+        viewingToken = insertedAppFeedData.tokens.firstWhereOrNull(
+            (element) => element.id == state.viewingFeedEvent?.indexerID);
+      }
+
+      emit(state.copyWith(
+        appFeedData: insertedAppFeedData,
+        viewingToken: viewingToken,
+      ));
     });
 
     on<MoveToNextFeedEvent>((event, emit) async {
-      log.info('[FeedBloc][Start] MoveToNextFeedEvent');
       final appFeedData = state.appFeedData;
       if (appFeedData == null) return;
       final newIndex = (state.viewingIndex ?? -1) + 1;
 
       if (newIndex >= appFeedData.events.length) return;
 
+      log.info('[FeedBloc][Start] MoveToNextFeedEvent $newIndex');
+
       final feedEvent = appFeedData.events[newIndex];
       AssetToken? token = appFeedData.findTokenRelatedTo(feedEvent);
 
-      emit(state.copyWith(
+      final newState = state.copyWith(
           viewingFeedEvent: feedEvent,
           viewingToken: token,
-          viewingIndex: newIndex));
+          viewingIndex: newIndex);
+      newState.viewingToken = token;
+
+      emit(newState);
 
       if (newIndex >= appFeedData.events.length - 3) {
         add(GetFeedsEvent());
@@ -74,20 +92,24 @@ class FeedBloc extends Bloc<FeedBlocEvent, FeedState> {
     });
 
     on<MoveToPreviousFeedEvent>((event, emit) async {
-      log.info('[FeedBloc][Start] MoveToPreviousFeedEvent');
       final appFeedData = state.appFeedData;
       if (appFeedData == null || state.viewingIndex == null) return;
-      final newIndex = state.viewingIndex! + 1;
+      final newIndex = state.viewingIndex! - 1;
 
-      if (newIndex >= appFeedData.events.length) return;
+      if (newIndex < 0) return;
+
+      log.info('[FeedBloc][Start] MoveToPreviousFeedEvent $newIndex');
 
       final feedEvent = appFeedData.events[newIndex];
       AssetToken? token = appFeedData.findTokenRelatedTo(feedEvent);
 
-      emit(state.copyWith(
+      final newState = state.copyWith(
           viewingFeedEvent: feedEvent,
           viewingToken: token,
-          viewingIndex: newIndex));
+          viewingIndex: newIndex);
+      newState.viewingToken = token;
+
+      emit(newState);
     });
   }
 }

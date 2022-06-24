@@ -17,6 +17,7 @@ import 'package:crypto/crypto.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 part 'settings_data_service.g.dart';
 
@@ -71,7 +72,6 @@ class SettingsDataServiceImpl implements SettingsDataService {
 
     final data = SettingsDataBackup(
       addresses: addresses,
-      immediatePlaybacks: _configurationService.isImmediatePlaybackEnabled(),
       isAnalyticsEnabled: _configurationService.isAnalyticsEnabled(),
       uxGuideStep: _configurationService.getUXGuideStep(),
       finishedSurveys: _configurationService.getFinishedSurveys(),
@@ -94,7 +94,17 @@ class SettingsDataServiceImpl implements SettingsDataService {
     File backupFile = new File('$dir/$_filename');
     await backupFile.writeAsBytes(dataBytes);
 
-    await _iapApi.uploadProfile(_requester, _filename, _version, backupFile);
+    var isSuccess = false;
+    while (!isSuccess) {
+      try {
+        await _iapApi.uploadProfile(
+            _requester, _filename, _version, backupFile);
+        isSuccess = true;
+      } catch (exception) {
+        Sentry.captureException(exception);
+      }
+    }
+
     latestDataHash = dataHash;
 
     if (_numberOfCallingBackups == 1) {
@@ -111,8 +121,6 @@ class SettingsDataServiceImpl implements SettingsDataService {
     final response =
         await _iapApi.getProfileData(_requester, _filename, _version);
     final data = SettingsDataBackup.fromJson(json.decode(response));
-    await _configurationService
-        .setImmediatePlaybackEnabled(data.immediatePlaybacks);
 
     _configurationService.setAnalyticEnabled(data.isAnalyticsEnabled);
     if (data.uxGuideStep != null) {
@@ -143,7 +151,6 @@ class SettingsDataServiceImpl implements SettingsDataService {
 @JsonSerializable()
 class SettingsDataBackup {
   List<String> addresses;
-  bool immediatePlaybacks;
   bool isAnalyticsEnabled;
   int? uxGuideStep;
   List<String> finishedSurveys;
@@ -154,7 +161,6 @@ class SettingsDataBackup {
 
   SettingsDataBackup({
     required this.addresses,
-    required this.immediatePlaybacks,
     required this.isAnalyticsEnabled,
     required this.uxGuideStep,
     required this.finishedSurveys,

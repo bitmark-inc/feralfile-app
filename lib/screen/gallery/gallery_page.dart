@@ -104,7 +104,7 @@ class _GalleryPageState extends State<GalleryPage> {
           child: Container(
             padding: EdgeInsets.fromLTRB(16, 0, 24, 14),
             child: Text(
-              "Gallery is empty for now. Indexing...",
+              "Collection is empty for now. Indexing...",
               style: appTextTheme.bodyText1,
             ),
           ),
@@ -135,6 +135,14 @@ class _GalleryPageState extends State<GalleryPage> {
       SliverToBoxAdapter(
         child: Container(
           height: 168.0,
+        ),
+      ),
+    );
+
+    sources.add(
+      SliverToBoxAdapter(
+        child: Container(
+          height: 40.0,
         ),
       ),
     );

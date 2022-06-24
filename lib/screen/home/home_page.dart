@@ -23,28 +23,23 @@ import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
-import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tokens_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
-import 'package:autonomy_flutter/util/au_cached_manager.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/penrose_top_bar_view.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
-import 'package:path/path.dart' as p;
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 class HomePage extends StatefulWidget {
@@ -169,12 +164,12 @@ class _HomePageState extends State<HomePage>
       children: [
         SizedBox(height: 160),
         Text(
-          "Gallery",
+          "Collection",
           style: appTextTheme.headline1,
         ),
         SizedBox(height: 24.0),
         Text(
-          "Your gallery is empty for now.",
+          "Your collection is empty for now.",
           style: appTextTheme.bodyText1,
         ),
       ],
@@ -213,17 +208,8 @@ class _HomePageState extends State<HomePage>
                 final index = tokens.indexOf(asset);
                 final payload = ArtworkDetailPayload(tokenIDs, index);
 
-                if (injector<ConfigurationService>()
-                    .isImmediatePlaybackEnabled()) {
-                  Navigator.of(context).pushNamed(AppRouter.artworkPreviewPage,
-                      arguments: payload);
-                } else {
-                  Navigator.of(context).push(
-                    AppRouter.onGenerateRoute(RouteSettings(
-                        name: AppRouter.artworkDetailsPage,
-                        arguments: payload)),
-                  );
-                }
+                Navigator.of(context).pushNamed(AppRouter.artworkPreviewPage,
+                    arguments: payload);
               },
             );
           },
