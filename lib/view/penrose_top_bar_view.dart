@@ -12,7 +12,6 @@ import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/badge_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -151,7 +150,7 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Container(
-          padding: EdgeInsets.fromLTRB(0, 0, 11, 12),
+          padding: EdgeInsets.fromLTRB(0, 0, 10, 12),
           child: IconButton(
             constraints: BoxConstraints(),
             icon: SvgPicture.asset("assets/images/iconQr.svg"),

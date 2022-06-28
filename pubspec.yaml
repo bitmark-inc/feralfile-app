@@ -163,6 +163,7 @@ flutter:
     - assets/images/penrose_onboarding.png
     - assets/images/penrose_onboarding_appcenter.png
     - assets/images/guidedPenrose.svg
+    - assets/images/hamburgerIcon.svg
     - assets/images/iconQr.svg
     - assets/images/iconEth.svg
     - assets/images/iconUsd.svg

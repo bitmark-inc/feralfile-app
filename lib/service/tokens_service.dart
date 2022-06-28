@@ -123,11 +123,8 @@ class TokensServiceImpl extends TokensService {
     DateTime? latestRefreshTokensDate =
         _configurationService.getLatestRefreshTokens();
 
-    final artistIDs = await _assetDao.findAllAssetArtistIDs();
-    artistIDs.removeWhere((element) => element == "");
-    if (artistIDs.length == 0) {
-      latestRefreshTokensDate = null;
-    }
+    // TODO: to have artistID's new values, refresh whole gallery for this release
+    latestRefreshTokensDate = null;
 
     _sendPort?.send([
       REFRESH_ALL_TOKENS,
