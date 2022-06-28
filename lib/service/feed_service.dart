@@ -136,6 +136,7 @@ class FeedServiceImpl extends FeedService {
 
     final followings = await _assetDao.findAllAssetArtistIDs();
     followings.removeWhere((element) => element == "");
+    followings.remove("0x0000000000000000000000000000000000000000");
 
     // sendPort
     log.info("[FeedFollowService] start REFRESH_FOLLOWINGS");
