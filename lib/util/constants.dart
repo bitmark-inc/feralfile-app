@@ -17,6 +17,7 @@ const EMPTY_ISSUE_MESSAGE = 'NO MESSAGE BODY WAS PROVIDED';
 const KNOWN_BUGS_LINK = 'https://github.com/orgs/bitmark-inc/projects/16';
 const USER_TEST_CALENDAR_LINK =
     'https://calendly.com/anais-bitmark/usertesting';
+const FF_TOKEN_DEEPLINK_PREFIX = 'https://autonomy.io/apps/feralfile?token=';
 
 Future<bool> isAppCenterBuild() async {
   final PackageInfo info = await PackageInfo.fromPlatform();
@@ -35,6 +36,10 @@ enum WalletApp {
   MetaMask,
   Kukai,
   Temple,
+}
+
+class Survey {
+  static const onboarding = 'onboarding_survey';
 }
 
 class GallerySortProperty {
@@ -120,6 +125,57 @@ extension PremiumFeatureExtension on PremiumFeature {
         return 'You must upgrade to an Autonomy subscription to connect to Autonomy on TV.';
       default:
         return '';
+    }
+  }
+}
+
+class ContextedAddress {
+  final CryptoType cryptoType;
+  final String address;
+
+  ContextedAddress(
+    this.cryptoType,
+    this.address,
+  );
+}
+
+enum CryptoType {
+  ETH,
+  XTZ,
+  BITMARK,
+}
+
+extension CryptoTypeHelpers on CryptoType {
+  String get code {
+    switch (this) {
+      case CryptoType.ETH:
+        return "ETH";
+      case CryptoType.XTZ:
+        return "XTZ";
+      case CryptoType.BITMARK:
+        return "USDC";
+    }
+  }
+
+  String get fullCode {
+    switch (this) {
+      case CryptoType.ETH:
+        return "Ethereum (ETH)";
+      case CryptoType.XTZ:
+        return "Tezos (XTZ)";
+      case CryptoType.BITMARK:
+        return "USD Coin (USDC)";
+    }
+  }
+
+  String get source {
+    switch (this) {
+      case CryptoType.ETH:
+        return "Ethereum";
+      case CryptoType.XTZ:
+        return "Tezos";
+      case CryptoType.BITMARK:
+        return "Bitmark";
     }
   }
 }

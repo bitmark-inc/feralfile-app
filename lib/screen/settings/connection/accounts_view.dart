@@ -57,43 +57,49 @@ class _AccountsViewState extends State<AccountsView> {
       if (!widget.isInSettingsPage) {
         return _noEditAccountsListWidget(accounts);
       }
-
+      int index = 0;
       return SlidableAutoCloseBehavior(
         child: Column(
           children: [
-            ...accounts
-                .map((account) => Column(
-                      children: [
-                        Slidable(
-                            key: UniqueKey(),
-                            groupTag: 'accountsView',
-                            closeOnScroll: true,
-                            endActionPane: ActionPane(
-                              motion: const DrawerMotion(),
-                              dragDismissible: false,
-                              children: slidableActions(account,
-                                  account.persona?.defaultAccount == 1),
-                            ),
-                            child: Column(
-                              children: [
-                                if (_editingAccountKey == null ||
-                                    _editingAccountKey != account.key) ...[
-                                  _viewAccountItem(account),
-                                ] else ...[
-                                  _editAccountItem(account),
-                                ],
-                              ],
-                            )),
-                        Divider(
+            ...accounts.map(
+              (account) {
+                index++;
+                return Column(
+                  children: [
+                    Slidable(
+                      key: UniqueKey(),
+                      groupTag: 'accountsView',
+                      closeOnScroll: true,
+                      endActionPane: ActionPane(
+                        motion: const DrawerMotion(),
+                        dragDismissible: false,
+                        children: slidableActions(
+                            account, account.persona?.defaultAccount == 1),
+                      ),
+                      child: Column(
+                        children: [
+                          if (_editingAccountKey == null ||
+                              _editingAccountKey != account.key) ...[
+                            _viewAccountItem(account),
+                          ] else ...[
+                            _editAccountItem(account),
+                          ],
+                        ],
+                      ),
+                    ),
+                    index < accounts.length
+                        ? Divider(
                             height: 1.0,
                             thickness: 1.0,
                             color: (_editingAccountKey == null ||
                                     _editingAccountKey != account.key)
                                 ? null
-                                : Colors.black),
-                      ],
-                    ))
-                .toList(),
+                                : Colors.black)
+                        : const SizedBox(),
+                  ],
+                );
+              },
+            ).toList(),
           ],
         ),
       );
@@ -129,19 +135,17 @@ class _AccountsViewState extends State<AccountsView> {
   }
 
   Widget _noEditAccountsListWidget(List<Account> accounts) {
+    int index = 0;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         ...accounts
             .map((account) => Column(
                   children: [
-                    SizedBox(height: 16),
                     _viewAccountItem(account),
-                    SizedBox(height: 16),
-                    Divider(
-                      height: 1.0,
-                      thickness: 1.0,
-                    ),
+                    index < accounts.length
+                        ? addOnlyDivider()
+                        : const SizedBox(),
                   ],
                 ))
             .toList(),

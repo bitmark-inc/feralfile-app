@@ -95,6 +95,22 @@ class _IndexerApi implements IndexerApi {
   }
 
   @override
+  Future<dynamic> requestIndexOne(payload) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    final _data = <String, dynamic>{};
+    _data.addAll(payload);
+    final _result = await _dio.fetch(_setStreamType<dynamic>(
+        Options(method: 'POST', headers: _headers, extra: _extra)
+            .compose(_dio.options, '/nft/index_one',
+                queryParameters: queryParameters, data: _data)
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+    final value = _result.data;
+    return value;
+  }
+
+  @override
   Future<BlockchainIdentity> getIdentity(accountNumber) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};

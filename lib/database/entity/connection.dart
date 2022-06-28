@@ -16,13 +16,12 @@ import 'package:floor/floor.dart';
 enum ConnectionType {
   walletConnect, // Autonomy connect to ETH Wallet
   walletBrowserConnect, // Autonomy connect to ETH Browser wallet
-  dappConnect, // Autonomy connect to Dapp
-  beaconP2PPeer,
-  walletBeacon,
-  feralFileToken,
-  feralFileWeb3,
-  ledgerEthereum,
-  ledgerTezos,
+  dappConnect, // Autonomy connect to ETH Dapp
+  beaconP2PPeer, // Autonomy connect to TZ Dapp
+  walletBeacon, // Autonomy connect to TZ Wallet
+  feralFileToken, // Autonomy connect to FF by read-only token
+  feralFileWeb3, // Autonomy connect to FF by Web3
+  ledger, // Autonomy connect to Ledger: ETH, TZ
   manuallyAddress,
   manuallyIndexerTokenID,
 }
@@ -49,6 +48,7 @@ class Connection {
     walletBeacon, => TezosConnection
     feralFileToken, => FeralFileConnection
     feralFileWeb3, => FeralFileWeb3Connection
+    ledger => LedgerConnection; accountNumbes is the list joins("||")
   }
   */
 
@@ -98,30 +98,6 @@ class Connection {
       data: json.encode(ffWeb3Connection),
       connectionType: ConnectionType.feralFileWeb3.rawValue,
       accountNumber: ffAccount.id,
-      createdAt: DateTime.now(),
-    );
-  }
-
-  factory Connection.fromLedgerEthereumWallet(
-      String address, Map<String, dynamic> data) {
-    return Connection(
-      key: address,
-      name: "",
-      data: json.encode(data),
-      connectionType: ConnectionType.ledgerEthereum.rawValue,
-      accountNumber: address,
-      createdAt: DateTime.now(),
-    );
-  }
-
-  factory Connection.fromLedgerTezosWallet(
-      String address, Map<String, dynamic> data) {
-    return Connection(
-      key: address,
-      name: "",
-      data: json.encode(data),
-      connectionType: ConnectionType.ledgerTezos.rawValue,
-      accountNumber: address,
       createdAt: DateTime.now(),
     );
   }
@@ -214,6 +190,13 @@ class Connection {
     return WCConnectedSession.fromJson(jsonData);
   }
 
+  LedgerConnection? get ledgerConnection {
+    if (connectionType != ConnectionType.ledger.rawValue) return null;
+
+    final jsonData = json.decode(this.data);
+    return LedgerConnection.fromJson(jsonData);
+  }
+
   String get appName {
     if (wcConnection != null) {
       return wcConnection?.sessionStore.remotePeerMeta.name ?? "";
@@ -226,12 +209,16 @@ class Connection {
     return "";
   }
 
-  String get ledgerName {
-    final jsonData = json.decode(this.data) as Map<String, dynamic>;
-    if (jsonData["ledger"] != null) {
-      return jsonData["ledger"] as String;
-    } else {
-      return "unknown";
+  List<String> get accountNumbers {
+    return this.accountNumber.split("||");
+  }
+
+  String get hiddenGalleryKey {
+    switch (connectionType) {
+      case 'ledger':
+        return 'ledger_' + key;
+      default:
+        return accountNumber;
     }
   }
 }

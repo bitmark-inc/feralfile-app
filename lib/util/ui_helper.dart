@@ -7,6 +7,7 @@
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
+import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_box_view.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -41,16 +42,30 @@ void doneOnboarding(BuildContext context) async {
   }
 }
 
+Future newAccountPageOrSkipInCondition(BuildContext context) async {
+  if (memoryValues.linkedFFConnections?.isNotEmpty ?? false) {
+    doneOnboarding(context);
+  } else {
+    await Navigator.of(context).pushNamed(AppRouter.newAccountPage);
+  }
+}
+
 class UIHelper {
   static String currentDialogTitle = '';
 
   static Future<void> showDialog(
       BuildContext context, String title, Widget content,
       {bool isDismissible = false,
+      int autoDismissAfter = 0,
       FeedbackType? feedback = FeedbackType.selection}) async {
     log.info("[UIHelper] showInfoDialog: $title");
     currentDialogTitle = title;
     final theme = AuThemeManager.get(AppTheme.sheetTheme);
+
+    if (autoDismissAfter > 0) {
+      Future.delayed(
+          Duration(seconds: autoDismissAfter), () => hideInfoDialog(context));
+    }
 
     if (feedback != null) {
       Vibrate.feedback(feedback);
@@ -123,7 +138,9 @@ class UIHelper {
 
   static hideInfoDialog(BuildContext context) {
     currentDialogTitle = '';
-    Navigator.popUntil(context, (route) => route.settings.name != null);
+    try {
+      Navigator.popUntil(context, (route) => route.settings.name != null);
+    } catch (_) {}
   }
 
   static Future<void> showLinkRequestedDialog(BuildContext context) {
@@ -160,6 +177,45 @@ class UIHelper {
           ],
         ),
         isDismissible: true);
+  }
+
+  static Future showFFAccountLinked(BuildContext context, String alias,
+      {bool inOnboarding = false}) {
+    final theme = AuThemeManager.get(AppTheme.sheetTheme);
+    return showDialog(
+        context,
+        'Account linked',
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            RichText(
+              text: TextSpan(children: [
+                TextSpan(
+                  style: theme.textTheme.bodyText1,
+                  text:
+                      "Autonomy has received authorization to link to your Feral File account ",
+                ),
+                TextSpan(
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontFamily: "AtlasGrotesk-Light",
+                      fontWeight: FontWeight.w700,
+                      height: 1.377),
+                  text: alias,
+                ),
+                TextSpan(
+                  style: theme.textTheme.bodyText1,
+                  text:
+                      ". ${inOnboarding ? 'Please finish onboarding to view your collection.' : ''}",
+                ),
+              ]),
+            ),
+            SizedBox(height: 67),
+          ],
+        ),
+        isDismissible: true,
+        autoDismissAfter: 5);
   }
 
   // MARK: - Connection
@@ -313,7 +369,7 @@ class UIHelper {
                       TextSpan(
                         style: theme.textTheme.bodyText1,
                         text:
-                            "This artwork will no longer appear in your gallery. You can still find it in the ",
+                            "This artwork will no longer appear in your collection. You can still find it in the ",
                       ),
                       TextSpan(
                         style: TextStyle(
@@ -332,7 +388,7 @@ class UIHelper {
                     ]),
                   )
                 : Text(
-                    "This artwork will now be visible in your gallery.",
+                    "This artwork will now be visible in your collection.",
                     style: theme.textTheme.bodyText1,
                   ),
             SizedBox(height: 40),
@@ -541,6 +597,10 @@ wantMoreSecurityWidget(BuildContext context, WalletApp walletApp) {
           ]),
     ),
   );
+}
+
+String getDateTimeRepresentation(DateTime dateTime) {
+  return Jiffy(dateTime).fromNow();
 }
 
 // From chat_ui/util

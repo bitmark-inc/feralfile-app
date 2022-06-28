@@ -79,3 +79,23 @@ class BeaconConnectConnection {
 
   Map<String, dynamic> toJson() => _$BeaconConnectConnectionToJson(this);
 }
+
+@JsonSerializable()
+class LedgerConnection {
+  String ledgerName;
+  String ledgerUUID;
+  List<String> etheremAddress;
+  List<String> tezosAddress;
+
+  LedgerConnection({
+    required this.ledgerName,
+    required this.ledgerUUID,
+    required this.etheremAddress,
+    required this.tezosAddress,
+  });
+
+  factory LedgerConnection.fromJson(Map<String, dynamic> json) =>
+      _$LedgerConnectionFromJson(json);
+
+  Map<String, dynamic> toJson() => _$LedgerConnectionToJson(this);
+}

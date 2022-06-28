@@ -13,13 +13,16 @@ class BiometricAuthenticationViewController: UIViewController {
     var authenticationCallback: ((Bool) -> Void)?
     lazy var logoImageView: UIImageView = {
         let img: UIImage?
+        let imgView: UIImageView
     #if prod
         img = UIImage(named: "penrose")
+        imgView = UIImageView(image: img)
+        imgView.frame.size = CGSize(width: 143, height: 143)
     #else
         img = UIImage(named: "penrose-black")
+        imgView = UIImageView(image: img)
+         imgView.frame.size = CGSize(width: 165, height: 215)
     #endif
-        let imgView = UIImageView(image: img)
-        imgView.frame.size = CGSize(width: 143, height: 143)
         return imgView
     }()
     lazy var authenticationButton: UIButton = {

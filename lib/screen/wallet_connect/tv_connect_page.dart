@@ -8,14 +8,12 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/network.dart';
-import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
-import 'package:autonomy_flutter/service/auth_service.dart';
+import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
-import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/theme_manager.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
@@ -23,7 +21,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:uuid/uuid.dart';
-import 'package:wallet_connect/models/wc_peer_meta.dart';
 
 class TVConnectPage extends StatefulWidget {
   final WCConnectPageArgs wcConnectArgs;
@@ -66,30 +63,22 @@ class _TVConnectPageState extends State<TVConnectPage>
 
   void _reject() {
     final wcConnectArgs = widget.wcConnectArgs;
-    if (wcConnectArgs != null) {
-      injector<WalletConnectService>().rejectSession(wcConnectArgs.peerMeta);
-    }
+    injector<WalletConnectService>().rejectSession(wcConnectArgs.peerMeta);
 
     Navigator.of(context).pop();
   }
 
-  Future _approve(List<String> addresses) async {
-    if (addresses.isEmpty) return;
+  Future _approve() async {
+    final authorizedKeypair =
+        await injector<AccountService>().authorizeToViewer();
 
     final chainId =
         injector<ConfigurationService>().getNetwork() == Network.MAINNET
             ? 1
             : 4;
 
-    var approvedAddresses = addresses;
-    log.info(
-        "[WCConnectPage] approve WCConnect with addreses $approvedAddresses");
-
-    final jwt = await injector<AuthService>().getAuthToken(forceRefresh: true);
-    approvedAddresses.add(jwt.jwtToken);
-
-    await injector<WalletConnectService>().approveSession(
-        Uuid().v4(), widget.wcConnectArgs.peerMeta, approvedAddresses, chainId);
+    await injector<WalletConnectService>().approveSession(Uuid().v4(),
+        widget.wcConnectArgs.peerMeta, [authorizedKeypair], chainId);
 
     Navigator.of(context).pop();
   }
@@ -160,36 +149,21 @@ class _TVConnectPageState extends State<TVConnectPage>
           Text("• View your Autonomy NFT collections",
               style: appTextTheme.bodyText1),
           Expanded(child: SizedBox()),
-          BlocListener<AccountsBloc, AccountsState>(
-            listener: (context, state) {
-              final event = state.event;
-              if (event == null) return;
-
-              // Approve for Autonomy TV
-              if (event is FetchAllAddressesSuccessEvent) {
-                _approve(event.addresses);
-              }
-            },
-            child: Row(
-              children: [
-                Expanded(
-                  child: AuFilledButton(
-                    text: "Authorize".toUpperCase(),
-                    onPress: () {
-                      context
-                          .read<AccountsBloc>()
-                          .add(FetchAllAddressesEvent());
-                    },
-                    color: theme.primaryColor,
-                    textStyle: TextStyle(
-                        color: theme.backgroundColor,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        fontFamily: "IBMPlexMono"),
-                  ),
-                )
-              ],
-            ),
+          Row(
+            children: [
+              Expanded(
+                child: AuFilledButton(
+                  text: "Authorize".toUpperCase(),
+                  onPress: () => _approve(),
+                  color: theme.primaryColor,
+                  textStyle: TextStyle(
+                      color: theme.backgroundColor,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      fontFamily: "IBMPlexMono"),
+                ),
+              )
+            ],
           )
         ]),
       ),

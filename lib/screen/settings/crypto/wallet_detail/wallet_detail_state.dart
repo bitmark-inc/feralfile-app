@@ -5,9 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:libauk_dart/libauk_dart.dart';
-
-import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
 
 abstract class WalletDetailEvent {}
 

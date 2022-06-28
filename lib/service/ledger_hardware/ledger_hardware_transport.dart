@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:autonomy_flutter/util/endian_int_ext.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:convert/convert.dart';
 import 'package:tezart/tezart.dart';
@@ -184,22 +185,22 @@ class LedgerHardwareWallet {
     if (writeCharacteristic == null) {
       throw ("writeCharacteristic is null");
     }
-    print("=> Before wrapping: " + hex.encode(data));
+    log.info("[LedgerHardwareService] => Before wrapping: " + hex.encode(data));
     final buf = _wrapCommandAPDU(
       channel: 0,
       command: data,
       packetSize: _MTU,
       hasChannel: false,
     );
-    print("=> After wrapping: " + hex.encode(buf));
+    log.info("[LedgerHardwareService] => After wrapping: " + hex.encode(buf));
 
     await writeCharacteristic!.write(buf);
   }
 
   Future<List<int>> _response(List<int> data) async {
-    print("<= Before unwrap: " + hex.encode(data));
+    log.info("[LedgerHardwareService] <= Before unwrap: " + hex.encode(data));
     final res = _unwrapResponseAPDU(0, data, data.length, false);
-    print("<= After unwrap" + hex.encode(res));
+    log.info("[LedgerHardwareService] <= After unwrap" + hex.encode(res));
     final command = res.sublist(0, res.length - 2);
     final lastSW = (res[res.length - 2] << 8) + res[res.length - 1];
     if (lastSW != SWCode.OK) {

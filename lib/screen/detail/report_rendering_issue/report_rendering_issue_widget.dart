@@ -43,7 +43,7 @@ class _ReportRenderingIssueWidgetState
   Widget build(BuildContext context) {
     const topics = [
       'Playback',
-      'Thumbnail (gallery)',
+      'Thumbnail (collection)',
       'Thumbnail (details page)',
       'Rights',
       'Metadata',

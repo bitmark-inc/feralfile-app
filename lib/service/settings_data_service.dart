@@ -11,10 +11,13 @@ import 'dart:io';
 import 'package:autonomy_flutter/database/dao/asset_token_dao.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/model/network.dart';
+import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:crypto/crypto.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 part 'settings_data_service.g.dart';
 
@@ -25,11 +28,16 @@ abstract class SettingsDataService {
 
 class SettingsDataServiceImpl implements SettingsDataService {
   final ConfigurationService _configurationService;
+  final AccountService _accountService;
   final AssetTokenDao _mainnetAssetDao;
   final AssetTokenDao _testnetAssetDao;
   final IAPApi _iapApi;
+
+  var latestDataHash = '';
+
   SettingsDataServiceImpl(
     this._configurationService,
+    this._accountService,
     this._mainnetAssetDao,
     this._testnetAssetDao,
     this._iapApi,
@@ -38,12 +46,15 @@ class SettingsDataServiceImpl implements SettingsDataService {
   final _requester =
       'requester'; // server ignore this when putting jwt, so just put something
   final _filename = 'settings_data_backup.json';
-  final _version = '0';
+  final _version = '1';
   var _numberOfCallingBackups = 0;
 
   @override
   Future backup() async {
     log.info('[SettingsDataService][Start] backup');
+    final addresses = await _accountService.getShowedAddresses();
+    if (addresses.isEmpty) return;
+
     _numberOfCallingBackups += 1;
     final hiddenMainnetTokenIDs =
         (await _mainnetAssetDao.findAllHiddenTokenIDs() +
@@ -60,7 +71,7 @@ class SettingsDataServiceImpl implements SettingsDataService {
             .toList();
 
     final data = SettingsDataBackup(
-      immediatePlaybacks: _configurationService.isImmediatePlaybackEnabled(),
+      addresses: addresses,
       isAnalyticsEnabled: _configurationService.isAnalyticsEnabled(),
       uxGuideStep: _configurationService.getUXGuideStep(),
       finishedSurveys: _configurationService.getFinishedSurveys(),
@@ -72,11 +83,29 @@ class SettingsDataServiceImpl implements SettingsDataService {
           _configurationService.getLinkedAccountsHiddenInGallery(),
     );
 
+    final dataBytes = json.encode(data.toJson()).codeUnits;
+    final dataHash = sha512.convert(dataBytes).toString();
+    if (latestDataHash == dataHash) {
+      log.info("[SettingsDataService] skip backup because of it's identical");
+      return;
+    }
+
     String dir = (await getTemporaryDirectory()).path;
     File backupFile = new File('$dir/$_filename');
-    await backupFile.writeAsBytes(json.encode(data.toJson()).codeUnits);
+    await backupFile.writeAsBytes(dataBytes);
 
-    await _iapApi.uploadProfile(_requester, _filename, _version, backupFile);
+    var isSuccess = false;
+    while (!isSuccess) {
+      try {
+        await _iapApi.uploadProfile(
+            _requester, _filename, _version, backupFile);
+        isSuccess = true;
+      } catch (exception) {
+        Sentry.captureException(exception);
+      }
+    }
+
+    latestDataHash = dataHash;
 
     if (_numberOfCallingBackups == 1) {
       backupFile.delete();
@@ -92,8 +121,6 @@ class SettingsDataServiceImpl implements SettingsDataService {
     final response =
         await _iapApi.getProfileData(_requester, _filename, _version);
     final data = SettingsDataBackup.fromJson(json.decode(response));
-    await _configurationService
-        .setImmediatePlaybackEnabled(data.immediatePlaybacks);
 
     _configurationService.setAnalyticEnabled(data.isAnalyticsEnabled);
     if (data.uxGuideStep != null) {
@@ -123,7 +150,7 @@ class SettingsDataServiceImpl implements SettingsDataService {
 
 @JsonSerializable()
 class SettingsDataBackup {
-  bool immediatePlaybacks;
+  List<String> addresses;
   bool isAnalyticsEnabled;
   int? uxGuideStep;
   List<String> finishedSurveys;
@@ -133,7 +160,7 @@ class SettingsDataBackup {
   List<String> hiddenLinkedAccountsFromGallery;
 
   SettingsDataBackup({
-    required this.immediatePlaybacks,
+    required this.addresses,
     required this.isAnalyticsEnabled,
     required this.uxGuideStep,
     required this.finishedSurveys,

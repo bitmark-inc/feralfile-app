@@ -10,6 +10,10 @@ extension StringExtension on String {
     return "${this[0].toUpperCase()}${this.substring(1).toLowerCase()}";
   }
 
+  String snakeToCapital() {
+    return this.replaceAll("_", " ").capitalize();
+  }
+
   String mask(int number) {
     return "[${this.substring(0, number)}...${this.substring(this.length - number, this.length)}]";
   }
@@ -32,5 +36,16 @@ extension StringExtension on String {
       return this.replaceRange(0, from.length, to);
     }
     return this;
+  }
+
+  String? get blockchainForAddress {
+    switch (this.length) {
+      case 42:
+        return "ethereum";
+      case 36:
+        return "tezos";
+      default:
+        return null;
+    }
   }
 }

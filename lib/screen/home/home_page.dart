@@ -23,29 +23,24 @@ import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
+import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tokens_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
-import 'package:autonomy_flutter/util/au_cached_manager.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/penrose_top_bar_view.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import "package:collection/collection.dart";
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
-import 'package:path/path.dart' as p;
 import 'package:sentry_flutter/sentry_flutter.dart';
-import 'package:uni_links/uni_links.dart';
 
 class HomePage extends StatefulWidget {
   static const tag = "home";
@@ -56,7 +51,6 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage>
     with RouteAware, WidgetsBindingObserver, AfterLayoutMixin<HomePage> {
-  StreamSubscription? _deeplinkSubscription;
   StreamSubscription<FGBGType>? _fgbgSubscription;
   late ScrollController _controller;
   int _cachedImageSize = 0;
@@ -65,7 +59,6 @@ class _HomePageState extends State<HomePage>
   void initState() {
     super.initState();
     _checkForKeySync();
-    _initUniLinks();
     WidgetsBinding.instance.addObserver(this);
     _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
     _controller = ScrollController();
@@ -90,6 +83,7 @@ class _HomePageState extends State<HomePage>
 
   @override
   void afterFirstLayout(BuildContext context) {
+    injector<FeralFileService>().completeDelayedFFConnections();
     _cloudBackup();
     _handleForeground();
     injector<AutonomyService>().postLinkedAddresses();
@@ -99,7 +93,6 @@ class _HomePageState extends State<HomePage>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     routeObserver.unsubscribe(this);
-    _deeplinkSubscription?.cancel();
     _fgbgSubscription?.cancel();
     super.dispose();
   }
@@ -143,7 +136,11 @@ class _HomePageState extends State<HomePage>
           children: [
             assetsWidget,
             if (injector<ConfigurationService>().getUXGuideStep() != null) ...[
-              PenroseTopBarView(true, _controller),
+              PenroseTopBarView(
+                _controller,
+                PenroseTopBarViewStyle.main,
+                () => Navigator.of(context).pushNamed(AppRouter.settingsPage),
+              ),
             ],
             if (state.fetchTokenState == ActionState.loading) ...[
               Align(
@@ -167,12 +164,12 @@ class _HomePageState extends State<HomePage>
       children: [
         SizedBox(height: 160),
         Text(
-          "Gallery",
+          "Collection",
           style: appTextTheme.headline1,
         ),
         SizedBox(height: 24.0),
         Text(
-          "Your gallery is empty for now.",
+          "Your collection is empty for now.",
           style: appTextTheme.bodyText1,
         ),
       ],
@@ -180,121 +177,55 @@ class _HomePageState extends State<HomePage>
   }
 
   Widget _assetsWidget(List<AssetToken> tokens) {
-    final groupByProperty = groupBy(tokens, (AssetToken obj) {
-      return polishSource(obj.source ?? "Unknown");
-    });
+    final tokenIDs = tokens.map((element) => element.id).toList();
 
-    var keys = groupByProperty.keys.toList();
-    keys.sort((a, b) {
-      if (a.toLowerCase() == 'unknown') return 1;
-      if (b.toLowerCase() == 'unknown') return -1;
-      if (a.startsWith('[') && !b.startsWith('[')) {
-        return 1;
-      } else if (!a.startsWith('[') && b.startsWith('[')) {
-        return -1;
-      } else {
-        return a.toLowerCase().compareTo(b.toLowerCase());
-      }
-    });
+    const int cellPerRow = 3;
+    const double cellSpacing = 3.0;
 
-    final tokenIDs = keys
-        .map((e) => groupByProperty[e] ?? [])
-        .expand((element) => element.map((e) => e.id))
-        .toList();
-
-    var sources = keys.map((sortingPropertyValue) {
-      final assets = groupByProperty[sortingPropertyValue] ?? [];
-      const int cellPerRow = 3;
-      const double cellSpacing = 3.0;
-      if (_cachedImageSize == 0) {
-        final estimatedCellWidth =
-            MediaQuery.of(context).size.width / cellPerRow -
-                cellSpacing * (cellPerRow - 1);
-        _cachedImageSize = (estimatedCellWidth * 3).ceil();
-      }
-
-      return <Widget>[
-        SliverToBoxAdapter(
-          child: Container(
-            padding: EdgeInsets.fromLTRB(14, 0, 24, 14),
-            child: Text(
-              sortingPropertyValue,
-              style: appTextTheme.headline1,
-            ),
-          ),
+    if (_cachedImageSize == 0) {
+      final estimatedCellWidth =
+          MediaQuery.of(context).size.width / cellPerRow -
+              cellSpacing * (cellPerRow - 1);
+      _cachedImageSize = (estimatedCellWidth * 3).ceil();
+    }
+    List<Widget> sources;
+    sources = [
+      SliverGrid(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: cellPerRow,
+          crossAxisSpacing: cellSpacing,
+          mainAxisSpacing: cellSpacing,
+          childAspectRatio: 1.0,
         ),
-        SliverGrid(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: cellPerRow,
-              crossAxisSpacing: cellSpacing,
-              mainAxisSpacing: cellSpacing,
-              childAspectRatio: 1.0,
-            ),
-            delegate: SliverChildBuilderDelegate(
-              (BuildContext context, int index) {
-                final asset = assets[index];
-                final ext = p.extension(asset.galleryThumbnailURL!);
-                return GestureDetector(
-                  child: Hero(
-                    tag: asset.id,
-                    child: ext == ".svg"
-                        ? SvgPicture.network(asset.galleryThumbnailURL!,
-                            placeholderBuilder: (context) => Container(
-                                color: Color.fromRGBO(227, 227, 227, 1)))
-                        : CachedNetworkImage(
-                            imageUrl: asset.galleryThumbnailURL!,
-                            fit: BoxFit.cover,
-                            memCacheHeight: _cachedImageSize,
-                            memCacheWidth: _cachedImageSize,
-                            cacheManager: injector<AUCacheManager>(),
-                            placeholder: (context, index) => Container(
-                                color: Color.fromRGBO(227, 227, 227, 1)),
-                            placeholderFadeInDuration:
-                                Duration(milliseconds: 300),
-                            errorWidget: (context, url, error) => Container(
-                                color: Color.fromRGBO(227, 227, 227, 1),
-                                child: Center(
-                                  child: SvgPicture.asset(
-                                    'assets/images/image_error.svg',
-                                    width: 75,
-                                    height: 75,
-                                  ),
-                                )),
-                          ),
-                  ),
-                  onTap: () {
-                    final index = tokenIDs.indexOf(asset.id);
-                    final payload = ArtworkDetailPayload(tokenIDs, index);
-                    if (injector<ConfigurationService>()
-                        .isImmediatePlaybackEnabled()) {
-                      Navigator.of(context).pushNamed(
-                          AppRouter.artworkPreviewPage,
-                          arguments: payload);
-                    } else {
-                      Navigator.of(context).push(
-                        AppRouter.onGenerateRoute(RouteSettings(
-                            name: AppRouter.artworkDetailsPage,
-                            arguments: payload)),
-                      );
-                    }
-                  },
-                );
+        delegate: SliverChildBuilderDelegate(
+          (BuildContext context, int index) {
+            final asset = tokens[index];
+
+            return GestureDetector(
+              child:
+                  tokenGalleryThumbnailWidget(context, asset, _cachedImageSize),
+              onTap: () {
+                final index = tokens.indexOf(asset);
+                final payload = ArtworkDetailPayload(tokenIDs, index);
+
+                Navigator.of(context).pushNamed(AppRouter.artworkPreviewPage,
+                    arguments: payload);
               },
-              childCount: assets.length,
-            )),
-        SliverToBoxAdapter(
-            child: Container(
-          height: 56.0,
-        ))
-      ];
-    }).reduce((value, element) => value += element);
+            );
+          },
+          childCount: tokens.length,
+        ),
+      ),
+    ];
 
     sources.insert(
-        0,
-        SliverToBoxAdapter(
-            child: Container(
+      0,
+      SliverToBoxAdapter(
+        child: Container(
           height: 168.0,
-        )));
+        ),
+      ),
+    );
 
     return CustomScrollView(
       slivers: sources,
@@ -307,79 +238,12 @@ class _HomePageState extends State<HomePage>
     await backup.backupCloudDatabase();
   }
 
-  Future<void> _initUniLinks() async {
-    try {
-      final initialLink = await getInitialLink();
-      _handleDeeplink(initialLink);
-
-      _deeplinkSubscription = linkStream.listen(_handleDeeplink);
-    } on PlatformException {}
-  }
-
   Future<void> _checkForKeySync() async {
     final cloudDatabase = injector<CloudDatabase>();
     final defaultAccounts = await cloudDatabase.personaDao.getDefaultPersonas();
 
     if (defaultAccounts.length >= 2) {
       Navigator.of(context).pushNamed(AppRouter.keySyncPage);
-    }
-  }
-
-  void _handleDeeplink(String? link) {
-    if (link == null) return;
-
-    final wcPrefixes = [
-      "https://au.bitmark.com/apps/wc?uri=",
-      "https://au.bitmark.com/apps/wc/wc?uri=", // maybe something wrong with WC register; fix by this for now
-      "https://autonomy.io/apps/wc?uri=",
-      "https://autonomy.io/apps/wc/wc?uri=",
-    ];
-
-    final tzPrefixes = [
-      "https://au.bitmark.com/apps/tezos?uri=",
-      "https://autonomy.io/apps/tezos?uri=",
-    ];
-
-    final wcDeeplinkPrefixes = [
-      'wc:',
-      'autonomy-wc:',
-    ];
-
-    final tbDeeplinkPrefixes = [
-      "tezos://",
-      "autonomy-tezos://",
-    ];
-
-    // Check Universal Link
-    final callingWCPrefix =
-        wcPrefixes.firstWhereOrNull((prefix) => link.startsWith(prefix));
-    if (callingWCPrefix != null) {
-      final wcUri = link.substring(callingWCPrefix.length);
-      final decodedWcUri = Uri.decodeFull(wcUri);
-      context.read<HomeBloc>().add(HomeConnectWCEvent(decodedWcUri));
-      return;
-    }
-
-    final callingTBPrefix =
-        tzPrefixes.firstWhereOrNull((prefix) => link.startsWith(prefix));
-    if (callingTBPrefix != null) {
-      final tzUri = link.substring(callingTBPrefix.length);
-      context.read<HomeBloc>().add(HomeConnectTZEvent(tzUri));
-      return;
-    }
-
-    final callingWCDeeplinkPrefix = wcDeeplinkPrefixes
-        .firstWhereOrNull((prefix) => link.startsWith(prefix));
-    if (callingWCDeeplinkPrefix != null) {
-      context.read<HomeBloc>().add(HomeConnectWCEvent(link));
-      return;
-    }
-
-    final callingTBDeeplinkPrefix = tbDeeplinkPrefixes
-        .firstWhereOrNull((prefix) => link.startsWith(prefix));
-    if (callingTBDeeplinkPrefix != null) {
-      context.read<HomeBloc>().add(HomeConnectTZEvent(link));
-      return;
     }
   }
 
@@ -458,7 +322,6 @@ class _HomePageState extends State<HomePage>
 
   void _handleForeground() async {
     memoryValues.inForegroundAt = DateTime.now();
-    _deeplinkSubscription?.resume();
     await injector<ConfigurationService>().reload();
     try {
       await injector<SettingsDataService>().restoreSettingsData();
@@ -485,7 +348,6 @@ class _HomePageState extends State<HomePage>
   void _handleBackground() {
     injector<AWSService>().storeEventWithDeviceData("device_background");
     injector<TokensService>().disposeIsolate();
-    _deeplinkSubscription?.pause();
     _cloudBackup();
     FileLogger.shrinkLogFileIfNeeded();
   }

@@ -31,6 +31,8 @@ dependencies:
   collection: ^1.15.0
   connectivity_plus: ^2.2.1
   crypto: ^3.0.2
+  ecdsa: ^0.0.4
+  fast_base58: ^0.2.1
   cupertino_icons: ^1.0.2
   device_info_plus: ^3.2.1
   dio: ^4.0.6
@@ -43,7 +45,7 @@ dependencies:
   flutter_blue:
     git:
       url: https://github.com/autonomy-system/flutter_blue.git
-      ref: bd2e4d6eddaea45ad80461ed78062f11f7df7c5b
+      ref: 4f1f28c7bab5596afa6fa175f81c3a953f7c993f
   flutter_chat_types: ^3.3.1
   flutter_chat_ui: ^1.5.8
   flutter_dotenv: ^5.0.2
@@ -70,6 +72,7 @@ dependencies:
   http: ^0.13.2
   image_picker: ^0.8.4+9
   in_app_purchase: ^3.0.5
+  infinite_scroll_pagination: ^3.2.0
   intl: ^0.17.0
   jiffy: ^5.0.0
   libauk_dart:
@@ -100,7 +103,7 @@ dependencies:
   tezart:
     git:
       url: https://github.com/autonomy-system/tezart.git
-      ref: 2245961ffdef3620977d3ec2c6341730ad75c75c
+      ref: v1.0.2
   uni_links: ^0.5.1
   url_launcher: ^6.0.20
   uuid: ^3.0.5
@@ -114,6 +117,11 @@ dependencies:
   webview_flutter: ^3.0.0
   wakelock: ^0.6.1+2
 
+  nft_rendering:
+    git:
+      url: git@github.com:autonomy-system/nft-rendering.git
+      ref: v1.0.0 
+    
 dependency_overrides:
   # Error using when import photo_view from dependencies:
   # https://stackoverflow.com/questions/70404718/error-with-photoview-looking-up-a-deactivated-widgets-ancestor-is-unsafe/71010204#71010204
@@ -130,6 +138,8 @@ dev_dependencies:
     sdk: flutter
   json_serializable: null
   retrofit_generator: null
+  test: null
+  mockito: null
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -164,6 +174,7 @@ flutter:
     - assets/images/iconCloudOff.svg
     - assets/images/iconCustomerSupport.svg
     - assets/images/iconForward.svg
+    - assets/images/iconFeed.svg
     - assets/images/iconInfo.svg
     - assets/images/iconSharpFeedback.svg
     - assets/images/cil_external-link.svg
@@ -171,7 +182,7 @@ flutter:
     - assets/images/feralfileAppIcon.svg
     - assets/images/autonomyIcon.png
     - assets/images/rainbow.png
-    - assets/images/iconLedger.png
+    - assets/images/iconLedger.svg
     - assets/images/trust-alternative.png
     - assets/images/metamask-alternative.png
     - assets/images/walletconnect-alternative.png
@@ -197,6 +208,10 @@ flutter:
     - assets/images/chatFileIcon.png
     - assets/images/radio_unselected.svg
     - assets/images/radio_selected.svg
+    - assets/images/tezos_tx_sent.svg
+    - assets/images/tezos_tx_received.svg
+    - assets/images/tezos_tx_smartcontract.svg
+    - assets/images/external_link.svg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

@@ -6,12 +6,14 @@
 //
 
 import 'package:autonomy_flutter/model/asset.dart';
+import 'package:autonomy_flutter/model/provenance.dart';
 import 'package:floor/floor.dart';
 
 @entity
 class AssetToken {
   String? artistName;
   String? artistURL;
+  String? artistID;
   String? assetData;
   String? assetID;
   String? assetURL;
@@ -37,38 +39,44 @@ class AssetToken {
   String? ownerAddress;
   DateTime lastActivityTime;
   int? hidden;
+  @ignore
+  List<Provenance>? provenances;
 
-  AssetToken(
-      {required this.artistName,
-      required this.artistURL,
-      required this.assetData,
-      required this.assetID,
-      required this.assetURL,
-      required this.basePrice,
-      required this.baseCurrency,
-      required this.blockchain,
-      required this.contractType,
-      required this.blockchainURL,
-      required this.desc,
-      required this.edition,
-      required this.id,
-      required this.maxEdition,
-      required this.medium,
-      required this.mimeType,
-      required this.mintedAt,
-      required this.previewURL,
-      required this.source,
-      required this.sourceURL,
-      required this.thumbnailURL,
-      required this.galleryThumbnailURL,
-      required this.title,
-      required this.ownerAddress,
-      required this.lastActivityTime,
-      this.hidden});
+  AssetToken({
+    required this.artistName,
+    required this.artistURL,
+    required this.artistID,
+    required this.assetData,
+    required this.assetID,
+    required this.assetURL,
+    required this.basePrice,
+    required this.baseCurrency,
+    required this.blockchain,
+    required this.contractType,
+    required this.blockchainURL,
+    required this.desc,
+    required this.edition,
+    required this.id,
+    required this.maxEdition,
+    required this.medium,
+    required this.mimeType,
+    required this.mintedAt,
+    required this.previewURL,
+    required this.source,
+    required this.sourceURL,
+    required this.thumbnailURL,
+    required this.galleryThumbnailURL,
+    required this.title,
+    required this.ownerAddress,
+    required this.lastActivityTime,
+    this.hidden,
+    this.provenances,
+  });
 
   factory AssetToken.fromAsset(Asset asset) => AssetToken(
         artistName: asset.projectMetadata.latest.artistName,
         artistURL: asset.projectMetadata.latest.artistUrl,
+        artistID: asset.projectMetadata.latest.artistId,
         assetData: asset.projectMetadata.latest.assetData,
         assetID: asset.projectMetadata.latest.assetId,
         assetURL: asset.projectMetadata.latest.assetUrl,
@@ -92,6 +100,7 @@ class AssetToken {
         title: asset.projectMetadata.latest.title,
         ownerAddress: asset.owner,
         lastActivityTime: asset.lastActivityTime,
+        provenances: asset.provenance,
       );
 
   bool isHidden() => hidden == 1;

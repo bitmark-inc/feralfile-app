@@ -5,10 +5,13 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:convert';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
+import 'package:autonomy_flutter/model/connection_supports.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
@@ -17,6 +20,7 @@ import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 part 'accounts_state.dart';
@@ -158,7 +162,6 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
       for (var connection in connections) {
         switch (connection.connectionType) {
           case "walletConnect":
-          case "ledgerEthereum":
             categorizedAccounts.add(CategorizedAccounts(connection.name, [
               Account(
                 key: connection.key,
@@ -171,7 +174,6 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
             ]));
             break;
           case "walletBeacon":
-          case "ledgerTezos":
             categorizedAccounts.add(CategorizedAccounts(connection.name, [
               Account(
                 key: connection.key,
@@ -183,6 +185,40 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
               )
             ]));
             break;
+
+          case 'ledger':
+            // NOTE: Please double-check this logic when ReceivePage bring back to app
+            final data = connection.ledgerConnection;
+            final etheremAddress = data?.etheremAddress.firstOrNull;
+            final tezosAddress = data?.tezosAddress.firstOrNull;
+            if (etheremAddress != null) {
+              categorizedAccounts.add(CategorizedAccounts(connection.name, [
+                Account(
+                  key: connection.key + etheremAddress,
+                  blockchain: "Ethereum",
+                  accountNumber: etheremAddress,
+                  connections: [connection],
+                  name: connection.name,
+                  createdAt: connection.createdAt,
+                )
+              ]));
+            }
+
+            if (tezosAddress != null) {
+              categorizedAccounts.add(CategorizedAccounts(connection.name, [
+                Account(
+                  key: connection.key + tezosAddress,
+                  blockchain: "Tezos",
+                  accountNumber: tezosAddress,
+                  connections: [connection],
+                  name: connection.name,
+                  createdAt: connection.createdAt,
+                )
+              ]));
+            }
+
+            break;
+
           default:
             break;
         }
@@ -192,29 +228,47 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
     });
 
     on<LinkLedgerWalletEvent>((event, emit) async {
-      final data = event.data;
-      data["ledger"] = event.ledgerName;
-      data["ledger_uuid"] = event.ledgerBLEUUID;
+      var connection =
+          await _cloudDB.connectionDao.findById(event.ledgerBLEUUID);
+      if (connection != null &&
+          connection.accountNumber.contains(event.address)) {
+        emit(state.setEvent(AlreadyLinkedError(connection)));
+        return;
+      }
 
-      late Connection connection;
+      var data = LedgerConnection(
+          ledgerName: event.ledgerName,
+          ledgerUUID: event.ledgerBLEUUID,
+          etheremAddress: [],
+          tezosAddress: []);
+
+      if (connection != null) {
+        data = LedgerConnection.fromJson(json.decode(connection.data));
+      }
+
       switch (event.blockchain) {
         case "Ethereum":
-          connection = Connection.fromLedgerEthereumWallet(event.address, data);
+          data.etheremAddress.add(event.address.getETHEip55Address());
           break;
         case "Tezos":
-          connection = Connection.fromLedgerTezosWallet(event.address, data);
+          data.tezosAddress.add(event.address);
           break;
         default:
           throw "Unhandled blockchain ${event.blockchain}";
       }
-      final alreadyLinkedAccount = await getExistingAccount(event.address);
-      if (alreadyLinkedAccount != null) {
-        emit(state.setEvent(AlreadyLinkedError(alreadyLinkedAccount)));
-        return;
-      }
 
-      _cloudDB.connectionDao.insertConnection(connection);
-      emit(state.setEvent(LinkAccountSuccess(connection)));
+      final newConnection = Connection(
+        key: event.ledgerBLEUUID,
+        name: connection?.name ?? event.ledgerName,
+        data: json.encode(data),
+        connectionType: ConnectionType.ledger.rawValue,
+        accountNumber:
+            ((connection?.accountNumbers ?? []) + [event.address]).join("||"),
+        createdAt: connection?.createdAt ?? DateTime.now(),
+      );
+
+      _cloudDB.connectionDao.insertConnection(newConnection);
+      emit(state.setEvent(LinkAccountSuccess(newConnection)));
 
       injector<AWSService>().storeEventWithDeviceData(
         "link_ledger",
@@ -251,7 +305,7 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
         }
 
         final linkedAccounts = await _cloudDB.connectionDao.getConnections();
-        addresses.addAll(linkedAccounts.map((e) => e.accountNumber));
+        addresses.addAll(linkedAccounts.expand((e) => e.accountNumbers));
         addresses.removeWhere((e) => e == '');
       }
 

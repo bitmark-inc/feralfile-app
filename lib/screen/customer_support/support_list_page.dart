@@ -85,6 +85,7 @@ class _SupportListPageState extends State<SupportListPage>
     if (issues == null) return Center(child: CupertinoActivityIndicator());
 
     if (issues.length == 0) return SizedBox();
+
     return CustomScrollView(slivers: [
       SliverToBoxAdapter(
         child: Container(
@@ -95,29 +96,30 @@ class _SupportListPageState extends State<SupportListPage>
             )),
       ),
       SliverList(
-          delegate: SliverChildBuilderDelegate(
-        (context, index) {
-          final issue = issues[index];
-
-          return Padding(
-            padding: EdgeInsets.symmetric(horizontal: pageEdgeInsets.left),
-            child: GestureDetector(
-              behavior: HitTestBehavior.translucent,
-              child: _contentRow(issue),
-              onTap: () => Navigator.of(context).pushNamed(
-                  AppRouter.supportThreadPage,
-                  arguments: DetailIssuePayload(
-                      reportIssueType: issue.reportIssueType,
-                      issueID: issue.issueID)),
-            ),
-          );
-        },
-        childCount: issues.length,
-      )),
+        delegate: SliverChildBuilderDelegate(
+          (context, index) {
+            final issue = issues[index];
+            bool hasDivider = (index < issues.length - 1);
+            return Padding(
+              padding: EdgeInsets.symmetric(horizontal: pageEdgeInsets.left),
+              child: GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                child: _contentRow(issue, hasDivider),
+                onTap: () => Navigator.of(context).pushNamed(
+                    AppRouter.supportThreadPage,
+                    arguments: DetailIssuePayload(
+                        reportIssueType: issue.reportIssueType,
+                        issueID: issue.issueID)),
+              ),
+            );
+          },
+          childCount: issues.length,
+        ),
+      ),
     ]);
   }
 
-  Widget _contentRow(Issue issue) {
+  Widget _contentRow(Issue issue, bool hasDivider) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -161,13 +163,19 @@ class _SupportListPageState extends State<SupportListPage>
         Padding(
           padding: const EdgeInsets.only(right: 14),
           child: Text(
-            getLastMessage(issue),
+            issue.status == "closed"
+                ? "Issue resolved.\nOur team thanks you for helping us improve Autonomy."
+                : getLastMessage(issue),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: appTextTheme.bodyText1,
           ),
         ),
-        addDivider(),
+        hasDivider
+            ? addDivider()
+            : const SizedBox(
+                height: 32,
+              ),
       ],
     );
   }

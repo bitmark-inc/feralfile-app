@@ -5,22 +5,29 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'dart:io';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-class AddAccountPage extends StatelessWidget {
+class AddAccountPage extends StatefulWidget {
+  @override
+  State<AddAccountPage> createState() => _AddAccountPageState();
+}
+
+class _AddAccountPageState extends State<AddAccountPage> {
+  var _redrawObject = Object();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -79,6 +86,26 @@ class AddAccountPage extends StatelessWidget {
                       .pushNamed(AppRouter.linkManually, arguments: 'address'),
                 ),
                 _linkTokenIndexerIDWidget(context),
+                addDivider(),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Show Token Debug log', style: appTextTheme.headline4),
+                    CupertinoSwitch(
+                      value:
+                          injector<ConfigurationService>().showTokenDebugInfo(),
+                      onChanged: (isEnabled) async {
+                        await injector<ConfigurationService>()
+                            .setShowTokenDebugInfo(isEnabled);
+                        setState(() {
+                          _redrawObject = Object();
+                        });
+                      },
+                      activeColor: Colors.black,
+                    )
+                  ],
+                ),
+                SizedBox(height: 40),
               ],
             );
           }

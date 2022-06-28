@@ -66,6 +66,13 @@ const bodySmall = TextStyle(
     fontWeight: FontWeight.w300,
     height: 1.377);
 
+const labelSmall = TextStyle(
+    color: Colors.black,
+    fontSize: 12,
+    fontFamily: "AtlasGrotesk",
+    fontWeight: FontWeight.w300,
+    height: 1.377);
+
 const linkStyle = TextStyle(
   color: Colors.transparent,
   fontSize: 14,
@@ -140,6 +147,22 @@ Divider addDialogDivider({double height = 32}) {
     height: height,
     thickness: 1,
     color: Colors.white,
+  );
+}
+
+Widget loadingIndicator({
+  double size = 27,
+  Color valueColor = Colors.black,
+  Color backgroundColor = Colors.black54,
+}) {
+  return SizedBox(
+    width: size,
+    height: size,
+    child: CircularProgressIndicator(
+      backgroundColor: backgroundColor,
+      color: valueColor,
+      strokeWidth: 2,
+    ),
   );
 }
 

@@ -22,8 +22,6 @@ abstract class ConfigurationService {
   List<WCSessionStore> getWCSessions();
   Future<void> setNetwork(Network value);
   Network getNetwork();
-  Future<void> setImmediatePlaybackEnabled(bool value);
-  bool isImmediatePlaybackEnabled();
   Future<void> setDevicePasscodeEnabled(bool value);
   bool isDevicePasscodeEnabled();
   Future<void> setNotificationEnabled(bool value);
@@ -68,6 +66,8 @@ abstract class ConfigurationService {
   // ----- App Setting -----
   bool isDemoArtworksMode();
   Future<bool> toggleDemoArtworksMode();
+  bool showTokenDebugInfo();
+  Future setShowTokenDebugInfo(bool show);
 
   // Reload
   Future<void> reload();
@@ -79,7 +79,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_IAP_JWT = "key_iap_jwt";
   static const String KEY_WC_SESSIONS = "key_wc_sessions";
   static const String KEY_NETWORK = "key_network";
-  static const String KEY_IMMEDIATE_PLAYBACK = 'immediate_playback';
   static const String KEY_DEVICE_PASSCODE = "device_passcode";
   static const String KEY_NOTIFICATION = "notifications";
   static const String KEY_ANALYTICS = "analytics";
@@ -111,6 +110,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
       "latest_refresh_tokens_testnet_1";
   static const String KEY_PREVIOUS_BUILD_NUMBER = "previous_build_number";
   static const String KEY_GUIDED_STEP = "guided_step";
+  static const String KEY_SHOW_TOKEN_DEBUG_INFO = "show_token_debug_info";
 
   SharedPreferences _preferences;
 
@@ -183,15 +183,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
     } catch (e) {
       return Network.MAINNET;
     }
-  }
-
-  Future<void> setImmediatePlaybackEnabled(bool value) async {
-    log.info("setImmediatePlaybackEnabled: $value");
-    await _preferences.setBool(KEY_IMMEDIATE_PLAYBACK, value);
-  }
-
-  bool isImmediatePlaybackEnabled() {
-    return _preferences.getBool(KEY_IMMEDIATE_PLAYBACK) ?? true;
   }
 
   @override
@@ -459,6 +450,14 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
   Future<void> setUXGuideStep(int uxGuideStep) async {
     await _preferences.setInt(KEY_GUIDED_STEP, uxGuideStep);
+  }
+
+  bool showTokenDebugInfo() {
+    return _preferences.getBool(KEY_SHOW_TOKEN_DEBUG_INFO) ?? false;
+  }
+
+  Future setShowTokenDebugInfo(bool show) async {
+    await _preferences.setBool(KEY_SHOW_TOKEN_DEBUG_INFO, show);
   }
 
   @override

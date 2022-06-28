@@ -10,11 +10,17 @@ import 'dart:io';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/feralfile/feralfile_bloc.dart';
+import 'package:autonomy_flutter/service/feralfile_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -38,6 +44,7 @@ class _ScanQRPageState extends State<ScanQRPage> {
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
   late QRViewController controller;
   var isScanDataError = false;
+  var _isLoading = false;
 
   @override
   void initState() {
@@ -132,6 +139,12 @@ class _ScanQRPageState extends State<ScanQRPage> {
                   0),
               child: Center(child: _instructionView()),
             ),
+            if (_isLoading) ...[
+              Center(
+                child:
+                    CupertinoActivityIndicator(color: Colors.black, radius: 16),
+              ),
+            ]
           ],
         ),
       ),
@@ -222,7 +235,7 @@ class _ScanQRPageState extends State<ScanQRPage> {
           break;
 
         case ScannerItem.FERALFILE_TOKEN:
-          if (code.startsWith("feralfile-api:") == true) {
+          if (code.startsWith(FF_TOKEN_DEEPLINK_PREFIX)) {
             controller.dispose();
             Navigator.pop(context, code);
           } else {
@@ -240,7 +253,7 @@ class _ScanQRPageState extends State<ScanQRPage> {
             _handleWalletConnect(code);
           } else if (code.startsWith("tezos:") == true) {
             _handleBeaconConnect(code);
-          } else if (code.startsWith("feralfile-api:") == true) {
+          } else if (code.startsWith(FF_TOKEN_DEEPLINK_PREFIX) == true) {
             _handleFeralFileToken(code);
             /* TODO: Remove or support for multiple wallets
           } else if (code.startsWith("tz1")) {
@@ -285,10 +298,21 @@ class _ScanQRPageState extends State<ScanQRPage> {
     Navigator.of(context).pop();
   }
 
-  void _handleFeralFileToken(String code) {
+  void _handleFeralFileToken(String code) async {
+    setState(() {
+      _isLoading = true;
+    });
     controller.pauseCamera();
-    final pureFFToken = ScannerItem.FERALFILE_TOKEN.pureValue(code);
-    context.read<FeralfileBloc>().add(LinkFFAccountInfoEvent(pureFFToken));
+    try {
+      final connection = await injector<FeralFileService>().linkFF(
+          code.replacePrefix(FF_TOKEN_DEEPLINK_PREFIX, ""),
+          delayLink: false);
+      injector<NavigationService>().popUntilHomeOrSettings();
+      UIHelper.showFFAccountLinked(context, connection.name);
+    } catch (_) {
+      Navigator.of(context).pop();
+      rethrow;
+    }
   }
 
   @override
@@ -307,15 +331,4 @@ enum ScannerItem {
   XTZ_ADDRESS,
   FERALFILE_TOKEN,
   GLOBAL
-}
-
-extension ScannerItemValue on ScannerItem {
-  String pureValue(String string) {
-    switch (this) {
-      case ScannerItem.FERALFILE_TOKEN:
-        return string.replaceFirst("feralfile-api:", "");
-      default:
-        return string;
-    }
-  }
 }

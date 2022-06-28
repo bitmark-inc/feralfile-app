@@ -36,6 +36,13 @@ class NavigationService {
     return navigatorKey.currentState?.pop();
   }
 
+  void popUntilHomeOrSettings() {
+    navigatorKey.currentState?.popUntil((route) =>
+        route.settings.name == AppRouter.settingsPage ||
+        route.settings.name == AppRouter.homePage ||
+        route.settings.name == AppRouter.homePageNoTransition);
+  }
+
   void setIsWCConnectInShow(bool appeared) {
     _isWCConnectInShow = appeared;
   }

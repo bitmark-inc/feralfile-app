@@ -41,7 +41,7 @@ class AutonomyServiceImpl extends AutonomyService {
     final linkedAccounts =
         await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
     var linkedAccountNumbers =
-        linkedAccounts.map((e) => e.accountNumber).toList();
+        linkedAccounts.expand((e) => e.accountNumbers).toList();
 
     addresses.addAll(linkedAccountNumbers);
 

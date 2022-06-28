@@ -7,7 +7,6 @@
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/common/network_config_injector.dart';
-import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -22,12 +21,12 @@ import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart'
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_view.dart';
 import 'package:autonomy_flutter/service/cloud_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tokens_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_flutter/view/au_outlined_button.dart';
 import 'package:autonomy_flutter/view/eula_privacy.dart';
 import 'package:autonomy_flutter/view/penrose_top_bar_view.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
@@ -56,6 +55,7 @@ class _SettingsPageState extends State<SettingsPage>
     WidgetsBinding.instance.addObserver(this);
     _loadPackageInfo();
     context.read<AccountsBloc>().add(GetAccountsEvent());
+    injector<SettingsDataService>().backup();
     _controller = ScrollController();
     _forceAccountsViewRedraw = Object();
   }
@@ -77,6 +77,7 @@ class _SettingsPageState extends State<SettingsPage>
   void didPopNext() {
     super.didPopNext();
     context.read<AccountsBloc>().add(GetAccountsEvent());
+    injector<SettingsDataService>().backup();
     setState(() {
       _forceAccountsViewRedraw = Object();
     });
@@ -126,7 +127,7 @@ class _SettingsPageState extends State<SettingsPage>
                     TextButton(
                         onPressed: () => Navigator.of(context)
                             .pushNamed(AppRouter.addAccountPage),
-                        child: Text('+ Add',
+                        child: Text('+ Account',
                             style: appTextTheme.bodyText2
                                 ?.copyWith(color: Colors.black))),
                     SizedBox(width: 13),
@@ -244,7 +245,11 @@ class _SettingsPageState extends State<SettingsPage>
               ],
             ),
           ),
-          PenroseTopBarView(false, _controller),
+          PenroseTopBarView(
+            _controller,
+            PenroseTopBarViewStyle.main,
+            () => Navigator.of(context).pop(),
+          ),
         ],
       )),
     );

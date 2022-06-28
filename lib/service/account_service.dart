@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
+import 'package:autonomy_flutter/gateway/autonomy_api.dart';
 import 'package:autonomy_flutter/model/p2p_peer.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
@@ -26,10 +27,14 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/migration/migration_util.dart';
+import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
+import 'package:fast_base58/fast_base58.dart';
 import 'package:libauk_dart/libauk_dart.dart';
+import 'package:elliptic/elliptic.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:uuid/uuid.dart';
 import 'package:wallet_connect/wallet_connect.dart';
+import 'package:web3dart/crypto.dart';
 
 import 'wallet_connect_dapp_service/wc_connected_session.dart';
 
@@ -73,6 +78,9 @@ abstract class AccountService {
   bool isPersonaHiddenInGallery(String personaUUID);
 
   bool isLinkedAccountHiddenInGallery(String address);
+
+  Future<List<String>> getShowedAddresses();
+  Future<String> authorizeToViewer();
 }
 
 class AccountServiceImpl extends AccountService {
@@ -84,15 +92,18 @@ class AccountServiceImpl extends AccountService {
   final AuditService _auditService;
   final AutonomyService _autonomyService;
   final BackupService _backupService;
+  final AutonomyApi _autonomyApi;
 
   AccountServiceImpl(
-      this._cloudDB,
-      this._walletConnectService,
-      this._tezosBeaconService,
-      this._configurationService,
-      this._auditService,
-      this._autonomyService,
-      this._backupService);
+    this._cloudDB,
+    this._walletConnectService,
+    this._tezosBeaconService,
+    this._configurationService,
+    this._auditService,
+    this._autonomyService,
+    this._backupService,
+    this._autonomyApi,
+  );
 
   Future<List<Persona>> getPersonas() {
     return _cloudDB.personaDao.getPersonas();
@@ -227,9 +238,8 @@ class AccountServiceImpl extends AccountService {
   }
 
   Future deleteLinkedAccount(Connection connection) async {
-    await _cloudDB.connectionDao
-        .deleteConnectionsByAccountNumber(connection.accountNumber);
-    await setHideLinkedAccountInGallery(connection.accountNumber, false);
+    await _cloudDB.connectionDao.deleteConnection(connection);
+    await setHideLinkedAccountInGallery(connection.hiddenGalleryKey, false);
     injector<AWSService>().storeEventWithDeviceData("delete_linked_account",
         hashingData: {"address": connection.accountNumber});
   }
@@ -414,5 +424,52 @@ class AccountServiceImpl extends AccountService {
 
   Future<bool?> isAndroidEndToEndEncryptionAvailable() {
     return _backupChannel.isEndToEndEncryptionAvailable();
+  }
+
+  Future<List<String>> getShowedAddresses() async {
+    if (_configurationService.isDemoArtworksMode()) {
+      return [await getDemoAccount()];
+    }
+
+    List<String> addresses = [];
+
+    final personas = await _cloudDB.personaDao.getPersonas();
+    final hiddenPersonaUUIDs =
+        _configurationService.getPersonaUUIDsHiddenInGallery();
+
+    for (var persona in personas) {
+      if (hiddenPersonaUUIDs.contains(persona.uuid)) continue;
+
+      addresses.add(await persona.wallet().getETHEip55Address());
+      addresses.add((await persona.wallet().getTezosWallet()).address);
+      addresses.add(await persona.wallet().getBitmarkAddress());
+    }
+
+    final linkedAccounts =
+        await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
+    final hiddenLinkedAccounts =
+        _configurationService.getLinkedAccountsHiddenInGallery();
+
+    for (final linkedAccount in linkedAccounts) {
+      if (hiddenLinkedAccounts.contains(linkedAccount.hiddenGalleryKey))
+        continue;
+
+      addresses.addAll(linkedAccount.accountNumbers);
+    }
+
+    return addresses;
+  }
+
+  Future<String> authorizeToViewer() async {
+    var ec = getS256();
+    final privateKey = ec.generatePrivateKey();
+
+    final base58PublicKey = Base58Encode(
+        [231, 1] + hexToBytes(privateKey.publicKey.toCompressedHex()));
+    await _autonomyApi.addKeypair({
+      "publicKey": base58PublicKey,
+    });
+
+    return "keypair_$base58PublicKey||${privateKey.toHex()}";
   }
 }
