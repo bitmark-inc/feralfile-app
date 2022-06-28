@@ -139,7 +139,6 @@ class _HomePageState extends State<HomePage>
               PenroseTopBarView(
                 _controller,
                 PenroseTopBarViewStyle.main,
-                () => Navigator.of(context).pushNamed(AppRouter.settingsPage),
               ),
             ],
             if (state.fetchTokenState == ActionState.loading) ...[

@@ -63,8 +63,7 @@ class _GalleryPageState extends State<GalleryPage> {
           fit: StackFit.loose,
           children: [
             _assetsWidget(state.tokens, state.isLoading),
-            PenroseTopBarView(
-                _scrollController, PenroseTopBarViewStyle.back, null),
+            PenroseTopBarView(_scrollController, PenroseTopBarViewStyle.back),
           ],
         ),
       ),

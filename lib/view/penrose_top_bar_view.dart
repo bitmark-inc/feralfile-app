@@ -20,14 +20,14 @@ import 'package:flutter_svg/flutter_svg.dart';
 enum PenroseTopBarViewStyle {
   main,
   back,
+  settings,
 }
 
 class PenroseTopBarView extends StatefulWidget {
   final ScrollController scrollController;
   final PenroseTopBarViewStyle style;
-  final Function()? onTapLogo;
 
-  PenroseTopBarView(this.scrollController, this.style, this.onTapLogo);
+  PenroseTopBarView(this.scrollController, this.style);
 
   @override
   State<PenroseTopBarView> createState() => _PenroseTopBarViewState();
@@ -91,11 +91,8 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
         Align(
           alignment: Alignment.topCenter,
           child: Padding(
-            padding: EdgeInsets.only(top: 62),
-            child: GestureDetector(
-              child: _logo(),
-              onTap: widget.onTapLogo,
-            ),
+            padding: EdgeInsets.only(top: 72),
+            child: _logo(),
           ),
         ),
       ]),
@@ -108,13 +105,19 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
       case PenroseTopBarViewStyle.main:
         return Container(
           alignment: Alignment.topCenter,
-          padding: EdgeInsets.fromLTRB(7, 42, 12, 90),
-          child: _mainHeaderWidget(),
+          padding: EdgeInsets.fromLTRB(7, 33, 2, 90),
+          child: _mainHeaderWidget(isInSettingsPage: false),
+        );
+      case PenroseTopBarViewStyle.settings:
+        return Container(
+          alignment: Alignment.topCenter,
+          padding: EdgeInsets.fromLTRB(7, 33, 2, 90),
+          child: _mainHeaderWidget(isInSettingsPage: true),
         );
       case PenroseTopBarViewStyle.back:
         return Container(
           alignment: Alignment.topCenter,
-          padding: EdgeInsets.fromLTRB(16, 42, 12, 90),
+          padding: EdgeInsets.fromLTRB(16, 52, 12, 90),
           child: _backHeaderWidget(),
         );
     }
@@ -144,13 +147,13 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
     );
   }
 
-  Widget _mainHeaderWidget() {
+  Widget _mainHeaderWidget({required bool isInSettingsPage}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Container(
-          padding: EdgeInsets.fromLTRB(0, 0, 10, 12),
+          padding: EdgeInsets.fromLTRB(0, 0, 8, 12),
           child: IconButton(
             constraints: BoxConstraints(),
             icon: SvgPicture.asset("assets/images/iconQr.svg"),
@@ -170,6 +173,26 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
         // ),
         Spacer(),
         _customerSupportIconWidget(),
+        Container(
+          padding: EdgeInsets.fromLTRB(17, 0, 0, 8),
+          child: IconButton(
+            onPressed: () {
+              if (isInSettingsPage) {
+                Navigator.of(context).pop();
+              } else {
+                Navigator.of(context).pushNamed(AppRouter.settingsPage);
+              }
+            },
+            icon: isInSettingsPage
+                ? SvgPicture.asset(
+                    'assets/images/iconClose_white.svg',
+                    color: Colors.black,
+                    width: 35,
+                    height: 35,
+                  )
+                : SvgPicture.asset('assets/images/hamburgerIcon.svg'),
+          ),
+        ),
       ],
     );
   }
