@@ -41,6 +41,7 @@ import 'package:autonomy_flutter/service/wallet_connect_dapp_service/wallet_conn
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/au_cached_manager.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
+import 'package:autonomy_flutter/util/isolated_util.dart';
 import 'package:dio/dio.dart';
 import 'package:sentry_dio/sentry_dio.dart';
 import 'package:dio_smart_retry/dio_smart_retry.dart';
@@ -225,11 +226,6 @@ Future<void> setup() async {
   await deeplinkService.setup();
 }
 
-// Must be top-level function
-_parseAndDecode(String response) {
-  return jsonDecode(response);
-}
-
 parseJson(String text) {
-  return compute(_parseAndDecode, text);
+  return IsolatedUtil().parseAndDecode(text);
 }
