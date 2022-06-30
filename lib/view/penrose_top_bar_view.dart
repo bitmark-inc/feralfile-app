@@ -105,13 +105,13 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
       case PenroseTopBarViewStyle.main:
         return Container(
           alignment: Alignment.topCenter,
-          padding: EdgeInsets.fromLTRB(7, 33, 2, 90),
+          padding: EdgeInsets.fromLTRB(7, 40, 2, 90),
           child: _mainHeaderWidget(isInSettingsPage: false),
         );
       case PenroseTopBarViewStyle.settings:
         return Container(
           alignment: Alignment.topCenter,
-          padding: EdgeInsets.fromLTRB(7, 33, 2, 90),
+          padding: EdgeInsets.fromLTRB(7, 40, 2, 90),
           child: _mainHeaderWidget(isInSettingsPage: true),
         );
       case PenroseTopBarViewStyle.back:
@@ -153,7 +153,7 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Container(
-          padding: EdgeInsets.fromLTRB(0, 0, 8, 12),
+          padding: EdgeInsets.fromLTRB(0, 0, 9, 12),
           child: IconButton(
             constraints: BoxConstraints(),
             icon: SvgPicture.asset("assets/images/iconQr.svg"),
@@ -164,17 +164,11 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
             },
           ),
         ),
-        // Container(
-        //   padding: EdgeInsets.fromLTRB(0, 0, 12, 12),
-        //   child: IconButton(
-        //       onPressed: () =>
-        //           Navigator.of(context).pushNamed(AppRouter.feedPreviewPage),
-        //       icon: SvgPicture.asset('assets/images/iconFeed.svg')),
-        // ),
+        _discovery(),
         Spacer(),
         _customerSupportIconWidget(),
         Container(
-          padding: EdgeInsets.fromLTRB(17, 0, 0, 8),
+          padding: EdgeInsets.fromLTRB(17, 0, 0, 10),
           child: IconButton(
             onPressed: () {
               if (isInSettingsPage) {
@@ -207,6 +201,21 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
         });
   }
 
+  Widget _discovery() {
+    return FutureBuilder<bool>(
+        future: isAppCenterBuild(),
+        builder: (context, snapshot) {
+          if (snapshot.data == false) return SizedBox();
+          return Container(
+            padding: EdgeInsets.fromLTRB(0, 0, 12, 12),
+            child: IconButton(
+                onPressed: () =>
+                    Navigator.of(context).pushNamed(AppRouter.feedPreviewPage),
+                icon: SvgPicture.asset('assets/images/iconFeed.svg')),
+          );
+        });
+  }
+
   Widget _customerSupportIconWidget() {
     return ValueListenableBuilder<List<int>?>(
         valueListenable: injector<CustomerSupportService>().numberOfIssuesInfo,
@@ -216,7 +225,7 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
           return GestureDetector(
             behavior: HitTestBehavior.translucent,
             child: Container(
-              padding: EdgeInsets.fromLTRB(20, 8, 0, 20),
+              padding: EdgeInsets.fromLTRB(20, 10, 0, 20),
               child: Stack(
                 clipBehavior: Clip.none,
                 children: [

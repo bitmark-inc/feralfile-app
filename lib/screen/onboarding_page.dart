@@ -99,10 +99,6 @@ class _OnboardingPageState extends State<OnboardingPage> {
             }
             await _askForNotification();
             await injector<VersionService>().checkForUpdate(true);
-            if (injector<ConfigurationService>().getUXGuideStep() == null) {
-              await injector<NavigationService>()
-                  .navigateTo(AppRouter.uxGuidePage);
-            }
 
             await Future.delayed(
                 SHORT_SHOW_DIALOG_DURATION, _handleShowingSurveys);
