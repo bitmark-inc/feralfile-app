@@ -86,6 +86,19 @@ const linkStyle = TextStyle(
   decorationThickness: 1.1,
 );
 
+const linkStyle2 = TextStyle(
+  color: Colors.transparent,
+  fontSize: 12,
+  fontFamily: "AtlasGrotesk-Bold",
+  height: 1.377,
+  fontWeight: FontWeight.w500,
+  shadows: [Shadow(color: Colors.black, offset: Offset(0, -1))],
+  decoration: TextDecoration.underline,
+  decorationStyle: TextDecorationStyle.solid,
+  decorationColor: Colors.black,
+  decorationThickness: 1.1,
+);
+
 const whitelinkStyle = TextStyle(
   color: Colors.transparent,
   fontSize: 14,

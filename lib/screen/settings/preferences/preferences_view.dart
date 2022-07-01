@@ -70,8 +70,7 @@ class PreferenceView extends StatelessWidget {
                   GestureDetector(
                       child: Text("Learn how we anonymize your data...",
                           textAlign: TextAlign.left,
-                          style: appTextTheme.bodyText1
-                              ?.copyWith(decoration: TextDecoration.underline)),
+                          style: linkStyle),
                       onTap: () => Navigator.of(context).pushNamed(
                             GithubDocPage.tag,
                             arguments: {
