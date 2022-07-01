@@ -540,11 +540,12 @@ class UIHelper {
   }
 }
 
-learnMoreAboutAutonomySecurityWidget(BuildContext context) {
+learnMoreAboutAutonomySecurityWidget(BuildContext context,
+    {String title = 'Learn more about Autonomy security ...'}) {
   return TextButton(
       onPressed: () =>
           Navigator.of(context).pushNamed(AppRouter.autonomySecurityPage),
-      child: Text('Learn more about Autonomy security ...', style: linkStyle),
+      child: Text(title, style: linkStyle),
       style: TextButton.styleFrom(
         minimumSize: Size.zero,
         padding: EdgeInsets.zero,

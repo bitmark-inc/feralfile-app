@@ -114,8 +114,8 @@ class _LinkAppOptionsPageState extends State<LinkAppOptionsPage> {
   void _launchURL(String _url) async {
     if (!await launch(_url, forceSafariVC: false, universalLinksOnly: true)) {
       _isPageInactive = true;
-      Navigator.of(context).pushNamed(AppRouter.linkWalletConnectPage,
-          arguments: WalletApp.MetaMask.toString());
+      Navigator.of(context)
+          .pushNamed(AppRouter.linkWalletConnectPage, arguments: 'MetaMask');
     }
   }
 }
