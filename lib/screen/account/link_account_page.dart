@@ -69,20 +69,16 @@ class _LinkAccountPageState extends State<LinkAccountPage>
         },
       ),
       body: Container(
-        margin: pageEdgeInsets,
+        margin: pageEdgeInsets.copyWith(bottom: 0),
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "Link account",
+                "Add account",
                 style: appTextTheme.headline1,
               ),
               addTitleSpace(),
-              Text(
-                  'If you have multiple accounts in your wallet, make sure that the account you want to link is active.',
-                  style: appTextTheme.bodyText1),
-              SizedBox(height: 24),
               _bitmarkLinkView(context),
               SizedBox(height: 40),
               _ethereumLinkView(context),

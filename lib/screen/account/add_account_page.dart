@@ -49,13 +49,11 @@ class _AddAccountPageState extends State<AddAccountPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Add account",
+                      "Set up account",
                       style: appTextTheme.headline1,
                     ),
                     addTitleSpace(),
                     _linkAccountOption(context),
-                    addDivider(),
-                    _importAccountOption(context),
                     addDivider(),
                     _createAccountOption(context),
                     _linkDebugWidget(),
@@ -79,8 +77,9 @@ class _AddAccountPageState extends State<AddAccountPage> {
                 addDivider(),
                 TappableForwardRowWithContent(
                   leftWidget:
-                      Text('Link address', style: appTextTheme.headline4),
-                  bottomWidget: Text('Manually input an address (Debug only)',
+                      Text('Debug address', style: appTextTheme.headline4),
+                  bottomWidget: Text(
+                      'Manually input an address for debugging purposes.',
                       style: appTextTheme.bodyText1),
                   onTap: () => Navigator.of(context)
                       .pushNamed(AppRouter.linkManually, arguments: 'address'),
@@ -120,8 +119,9 @@ class _AddAccountPageState extends State<AddAccountPage> {
         addDivider(),
         TappableForwardRowWithContent(
           leftWidget:
-              Text('Link Indexer TokenID', style: appTextTheme.headline4),
-          bottomWidget: Text('Manually input an indexer tokenID (Debug only)',
+              Text('Debug Indexer TokenID', style: appTextTheme.headline4),
+          bottomWidget: Text(
+              'Manually input an indexer tokenID for debugging purposes',
               style: appTextTheme.bodyText1),
           onTap: () => Navigator.of(context)
               .pushNamed(AppRouter.linkManually, arguments: 'indexerTokenID'),
@@ -138,28 +138,11 @@ class _AddAccountPageState extends State<AddAccountPage> {
 
   Widget _linkAccountOption(BuildContext context) {
     return TappableForwardRowWithContent(
-      leftWidget: Text('Link account', style: appTextTheme.headline4),
+      leftWidget: Text('Add', style: appTextTheme.headline4),
       bottomWidget: Text(
           'I already have NFTs in other wallets that I want to view with Autonomy.',
           style: appTextTheme.bodyText1),
       onTap: () => Navigator.of(context).pushNamed(AppRouter.linkAccountpage),
-    );
-  }
-
-  Widget _importAccountOption(BuildContext context) {
-    return TappableForwardRowWithContent(
-      leftWidget: Text('Import account', style: appTextTheme.headline4),
-      bottomWidget: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-              'Enter a recovery phrase from another wallet to control your NFTs, sign authorizations, and connect to other platforms.',
-              style: appTextTheme.bodyText1),
-          SizedBox(height: 16),
-          learnMoreAboutAutonomySecurityWidget(context),
-        ],
-      ),
-      onTap: () => Navigator.of(context).pushNamed(AppRouter.importAccountPage),
     );
   }
 
@@ -185,9 +168,9 @@ class _AddAccountPageState extends State<AddAccountPage> {
       },
       builder: (context, state) {
         return TappableForwardRowWithContent(
-          leftWidget: Text('Create account', style: appTextTheme.headline4),
+          leftWidget: Text('New', style: appTextTheme.headline4),
           bottomWidget: Text(
-              'Make a new account with addresses you can use to collect or receive NFTs on Ethereum, Feral File, and Tezos.',
+              'Make a new account with addresses you can use to collect or receive NFTs on Ethereum, Feral File, and Tezos. ',
               style: appTextTheme.bodyText1),
           onTap: () {
             context.read<PersonaBloc>().add(CreatePersonaEvent());

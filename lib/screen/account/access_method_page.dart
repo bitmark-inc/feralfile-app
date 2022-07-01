@@ -49,12 +49,12 @@ class AccessMethodPage extends StatelessWidget {
 
   Widget _linkAccount(BuildContext context) {
     return TappableForwardRowWithContent(
-        leftWidget: Text('Link account', style: appTextTheme.headline4),
+        leftWidget: Text('Link', style: appTextTheme.headline4),
         bottomWidget: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'View your ${walletApp.split('.').last} NFTs without Autonomy accessing your private keys. ',
+              'View your NFTs without Autonomy accessing your private keys in ${walletApp.split('.').last}.',
               style: appTextTheme.bodyText1,
             ),
           ],
@@ -81,12 +81,12 @@ class AccessMethodPage extends StatelessWidget {
 
   Widget _importAccount(BuildContext context) {
     return TappableForwardRowWithContent(
-      leftWidget: Text('Import account', style: appTextTheme.headline4),
+      leftWidget: Text('Import', style: appTextTheme.headline4),
       bottomWidget: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-              'View and control your ${walletApp.split('.').last} NFTs, sign authorizations, and connect to other platforms.',
+              'View and control your NFTs, sign authorizations, and connect to other platforms with Autonomy.',
               style: appTextTheme.bodyText1),
           SizedBox(height: 16),
           learnMoreAboutAutonomySecurityWidget(context),
