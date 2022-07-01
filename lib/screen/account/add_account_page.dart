@@ -190,6 +190,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
               'Make a new account with addresses you can use to collect or receive NFTs on Ethereum, Feral File, and Tezos.',
               style: appTextTheme.bodyText1),
           onTap: () {
+            if (state.createAccountState == ActionState.loading) return;
             context.read<PersonaBloc>().add(CreatePersonaEvent());
           },
         );

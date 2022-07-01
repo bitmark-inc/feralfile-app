@@ -94,7 +94,10 @@ class NewAccountPage extends StatelessWidget {
       builder: (context, state) {
         return _optionItem(context, "No",
             "Make a new account with addresses you can use to collect or receive NFTs on Ethereum, Feral File, and Tezos.",
-            onTap: () => context.read<PersonaBloc>().add(CreatePersonaEvent()));
+            onTap: () {
+              if (state.createAccountState == ActionState.loading) return;
+              context.read<PersonaBloc>().add(CreatePersonaEvent());
+            });
       },
     );
   }
