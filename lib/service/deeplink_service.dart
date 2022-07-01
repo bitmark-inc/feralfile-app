@@ -17,6 +17,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:collection/collection.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:uni_links/uni_links.dart';
 
@@ -54,7 +55,14 @@ class DeeplinkServiceImpl extends DeeplinkService {
 
     log.info("[DeeplinkService] receive deeplink $link");
 
-    _handleDappConnectDeeplink(link) || await _handleFeralFileDeeplink(link);
+    Timer.periodic(Duration(seconds: 2), (timer) async {
+      final context = _navigationService.navigatorKey.currentContext;
+      if (context == null) return;
+      timer.cancel();
+
+      _handleDappConnectDeeplink(link) ||
+          await _handleFeralFileDeeplink(context, link);
+    });
   }
 
   bool _handleDappConnectDeeplink(String link) {
@@ -116,9 +124,9 @@ class DeeplinkServiceImpl extends DeeplinkService {
     return false;
   }
 
-  Future<bool> _handleFeralFileDeeplink(String link) async {
+  Future<bool> _handleFeralFileDeeplink(
+      BuildContext context, String link) async {
     log.info("[DeeplinkService] _handleFeralFileDeeplink");
-    final context = _navigationService.navigatorKey.currentContext!;
 
     if (link.startsWith(FF_TOKEN_DEEPLINK_PREFIX)) {
       final doneOnboarding = _configurationService.isDoneOnboarding();
