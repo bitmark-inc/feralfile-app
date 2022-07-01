@@ -60,8 +60,6 @@ abstract class ConfigurationService {
   Future<void> setPreviousBuildNumber(String value);
   List<String> getFinishedSurveys();
   Future<void> setFinishedSurvey(List<String> surveyNames);
-  int? getUXGuideStep();
-  Future<void> setUXGuideStep(int uxGuideStep);
 
   // ----- App Setting -----
   bool isDemoArtworksMode();
@@ -109,7 +107,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_LASTEST_REFRESH_TOKENS_TESTNET =
       "latest_refresh_tokens_testnet_1";
   static const String KEY_PREVIOUS_BUILD_NUMBER = "previous_build_number";
-  static const String KEY_GUIDED_STEP = "guided_step";
   static const String KEY_SHOW_TOKEN_DEBUG_INFO = "show_token_debug_info";
 
   SharedPreferences _preferences;
@@ -442,14 +439,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
     finishedSurveys.addAll(surveyNames);
     return _preferences.setStringList(
         KEY_FINISHED_SURVEYS, finishedSurveys.toSet().toList());
-  }
-
-  int? getUXGuideStep() {
-    return _preferences.getInt(KEY_GUIDED_STEP);
-  }
-
-  Future<void> setUXGuideStep(int uxGuideStep) async {
-    await _preferences.setInt(KEY_GUIDED_STEP, uxGuideStep);
   }
 
   bool showTokenDebugInfo() {

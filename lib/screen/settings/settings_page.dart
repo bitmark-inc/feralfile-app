@@ -247,8 +247,7 @@ class _SettingsPageState extends State<SettingsPage>
           ),
           PenroseTopBarView(
             _controller,
-            PenroseTopBarViewStyle.main,
-            () => Navigator.of(context).pop(),
+            PenroseTopBarViewStyle.settings,
           ),
         ],
       )),

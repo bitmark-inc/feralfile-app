@@ -59,7 +59,6 @@ import 'package:autonomy_flutter/screen/github_doc.dart';
 import 'package:autonomy_flutter/screen/global_receive/receive_detail_page.dart';
 import 'package:autonomy_flutter/screen/global_receive/receive_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/tezos_transaction_detail_page.dart';
-import 'package:autonomy_flutter/screen/ux_guide_view.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_page.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_bloc.dart';
@@ -154,7 +153,6 @@ class AppRouter {
   static const participateUserTestPage = 'participateUserTestPage';
   static const keySyncPage = 'key_sync_page';
   static const tvConnectPage = 'tv_connect';
-  static const uxGuidePage = 'guide_page';
   static const tezosTXDetailPage = "tezos_tx_detail";
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
@@ -809,13 +807,6 @@ class AppRouter {
                     child: TVConnectPage(
                         wcConnectArgs:
                             settings.arguments as WCConnectPageArgs)));
-
-      case uxGuidePage:
-        return PageTransition(
-            type: PageTransitionType.fade,
-            curve: Curves.easeIn,
-            duration: Duration(milliseconds: 200),
-            child: UXGuideView());
 
       case tezosTXDetailPage:
         return CupertinoPageRoute(

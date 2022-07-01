@@ -135,13 +135,10 @@ class _HomePageState extends State<HomePage>
           fit: StackFit.loose,
           children: [
             assetsWidget,
-            if (injector<ConfigurationService>().getUXGuideStep() != null) ...[
-              PenroseTopBarView(
-                _controller,
-                PenroseTopBarViewStyle.main,
-                () => Navigator.of(context).pushNamed(AppRouter.settingsPage),
-              ),
-            ],
+            PenroseTopBarView(
+              _controller,
+              PenroseTopBarViewStyle.main,
+            ),
             if (state.fetchTokenState == ActionState.loading) ...[
               Align(
                 alignment: Alignment.topRight,
