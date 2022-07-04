@@ -132,8 +132,7 @@ INFTRenderingWidget buildRenderingWidget(AssetToken asset) {
     default:
       mimeType = asset.mimeType ?? "";
   }
-  final renderingWidget =
-      typesOfNFTRenderingWidget[mimeType] ?? WebviewNFTRenderingWidget();
+  final renderingWidget = typesOfNFTRenderingWidget(mimeType);
 
   renderingWidget.setRenderWidgetBuilder(RenderingWidgetBuilder(
     previewURL: asset.previewURL,
