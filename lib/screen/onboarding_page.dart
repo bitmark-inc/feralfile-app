@@ -53,25 +53,6 @@ class _OnboardingPageState extends State<OnboardingPage> {
     });
   }
 
-  void _handleShowingSurveys() {
-    if (!injector<ConfigurationService>().isDoneOnboarding()) {
-      // If the onboarding is not finished, skip this time.
-      return;
-    }
-
-    final finishedSurveys =
-        injector<ConfigurationService>().getFinishedSurveys();
-    if (finishedSurveys.contains(Survey.onboarding)) {
-      return;
-    }
-
-    showCustomNotifications(
-        "Take a one-question survey and be entered to win a Feral File artwork.",
-        Key(Survey.onboarding),
-        notificationOpenedHandler: () =>
-            injector<NavigationService>().navigateTo(SurveyPage.tag));
-  }
-
   // @override
   @override
   Widget build(BuildContext context) {
@@ -105,7 +86,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
             }
 
             await Future.delayed(
-                SHORT_SHOW_DIALOG_DURATION, _handleShowingSurveys);
+                SHORT_SHOW_DIALOG_DURATION, showSurveysNotification);
             break;
 
           default:
