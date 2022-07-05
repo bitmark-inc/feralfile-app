@@ -179,12 +179,7 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
               }
             },
             icon: isInSettingsPage
-                ? SvgPicture.asset(
-                    'assets/images/iconClose_white.svg',
-                    color: Colors.black,
-                    width: 35,
-                    height: 35,
-                  )
+                ? closeIcon()
                 : SvgPicture.asset('assets/images/hamburgerIcon.svg'),
           ),
         ),

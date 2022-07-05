@@ -510,12 +510,7 @@ Widget _rowItem(BuildContext context, String name, String? value,
 
 Widget previewCloseIcon(BuildContext context) {
   return IconButton(
-    constraints: BoxConstraints(),
     onPressed: () => Navigator.of(context).pop(),
-    icon: Icon(
-      Icons.close,
-      color: Colors.white,
-      size: 32,
-    ),
+    icon: closeIcon(color: Colors.white),
   );
 }

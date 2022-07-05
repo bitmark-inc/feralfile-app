@@ -170,7 +170,6 @@ flutter:
     - assets/images/iconXtz.svg
     - assets/images/iconBitmark.svg
     - assets/images/iconClose.svg
-    - assets/images/iconClose_white.svg
     - assets/images/iconReceive.svg
     - assets/images/iconCloudOff.svg
     - assets/images/iconCustomerSupport.svg

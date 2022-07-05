@@ -7,6 +7,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 const appTextTheme = TextTheme(
   headline1: TextStyle(
@@ -176,6 +177,15 @@ Widget loadingIndicator({
       color: valueColor,
       strokeWidth: 2,
     ),
+  );
+}
+
+Widget closeIcon({Color color = Colors.black}) {
+  return SvgPicture.asset(
+    'assets/images/iconClose.svg',
+    color: color,
+    width: 32,
+    height: 32,
   );
 }
 
