@@ -171,6 +171,7 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
           padding: EdgeInsets.fromLTRB(17, 0, 0, 10),
           child: IconButton(
             onPressed: () {
+              if (_opacity == 0) return;
               if (isInSettingsPage) {
                 Navigator.of(context).pop();
               } else {
