@@ -126,7 +126,7 @@ class _ScanQRPageState extends State<ScanQRPage> {
                 onTap: () => Navigator.of(context).pop(),
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(15, 55, 15, 15),
-                  child: SvgPicture.asset('assets/images/iconClose_white.svg'),
+                  child: closeIcon(color: Colors.white),
                 )),
             Padding(
               padding: EdgeInsets.fromLTRB(

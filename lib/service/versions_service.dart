@@ -30,7 +30,7 @@ class VersionService {
   VersionService(
       this._pubdocAPI, this._configurationService, this._navigationService);
 
-  Future checkForUpdate(bool inDashboard) async {
+  Future checkForUpdate() async {
     if (kDebugMode) return;
     if (UIHelper.currentDialogTitle == "Update Required") return;
 
@@ -41,11 +41,8 @@ class VersionService {
     if (compareVersion(versionInfo.requiredVersion, currentVersion) > 0) {
       await showForceUpdateDialog(versionInfo.link);
     } else {
-      // = not show What's new to new customer
-      if (inDashboard) {
-        // check to show Release Notes
-        await showReleaseNotes(onlyWhenUnread: true);
-      }
+      // check to show Release Notes
+      await showReleaseNotes(onlyWhenUnread: true);
     }
   }
 
@@ -53,7 +50,9 @@ class VersionService {
     String currentVersion = (await PackageInfo.fromPlatform()).version;
     if (onlyWhenUnread) {
       final readVersion = _configurationService.getReadReleaseNotesVersion();
-      if (compareVersion(readVersion, currentVersion) >= 0) {
+      if (readVersion == null ||
+          compareVersion(readVersion, currentVersion) >= 0) {
+        _configurationService.setReadReleaseNotesInVersion(currentVersion);
         return;
       }
     }
