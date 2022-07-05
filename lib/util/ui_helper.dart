@@ -10,9 +10,12 @@ import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_box_view.dart';
+import 'package:autonomy_flutter/screen/survey/survey.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
+import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/theme_manager.dart';
@@ -35,6 +38,26 @@ void doneOnboarding(BuildContext context) async {
   injector<ConfigurationService>().setDoneOnboarding(true);
   Navigator.of(context)
       .pushNamedAndRemoveUntil(AppRouter.homePage, (route) => false);
+
+  Future.delayed(SHORT_SHOW_DIALOG_DURATION, showSurveysNotification);
+}
+
+void showSurveysNotification() {
+  if (!injector<ConfigurationService>().isDoneOnboarding()) {
+    // If the onboarding is not finished, skip this time.
+    return;
+  }
+
+  final finishedSurveys = injector<ConfigurationService>().getFinishedSurveys();
+  if (finishedSurveys.contains(Survey.onboarding)) {
+    return;
+  }
+
+  showCustomNotifications(
+      "Take a one-question survey and be entered to win a Feral File artwork.",
+      Key(Survey.onboarding),
+      notificationOpenedHandler: () =>
+          injector<NavigationService>().navigateTo(SurveyPage.tag));
 }
 
 Future newAccountPageOrSkipInCondition(BuildContext context) async {

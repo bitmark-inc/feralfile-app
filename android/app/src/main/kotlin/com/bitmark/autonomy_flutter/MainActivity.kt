@@ -7,10 +7,12 @@
 package com.bitmark.autonomy_flutter
 
 import TezosBeaconDartPlugin
+import android.app.KeyguardManager
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import androidx.annotation.NonNull
+import androidx.biometric.BiometricManager
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -55,11 +57,15 @@ class MainActivity : FlutterFragmentActivity() {
             "FlutterSharedPreferences",
             Context.MODE_PRIVATE
         )
-        val isEnabled = sharedPreferences.getBoolean("flutter.device_passcode", false);
-
+        val isEnabled = sharedPreferences.getBoolean("flutter.device_passcode", false)
         if (isEnabled && !isAuthenticate) {
-            val intent = Intent(this@MainActivity, AuthenticatorActivity::class.java)
-            startActivity(intent)
+            val biometricManager = BiometricManager.from(this)
+            val keyguardManager = getSystemService(KEYGUARD_SERVICE) as KeyguardManager
+            if (biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)
+                == BiometricManager.BIOMETRIC_SUCCESS || keyguardManager.isDeviceSecure) {
+                val intent = Intent(this@MainActivity, AuthenticatorActivity::class.java)
+                startActivity(intent)
+            }
         }
     }
 

@@ -62,6 +62,11 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
     _scrollListener();
   }
 
+  @override
+  void didPop() {
+    widget.scrollController.removeListener(_scrollListener);
+  }
+
   void didPushNext() {
     // Reset to normal SystemUIMode
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
