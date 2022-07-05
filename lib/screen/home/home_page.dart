@@ -337,7 +337,7 @@ class _HomePageState extends State<HomePage>
           .storeEventWithDeviceData("device_foreground");
     });
 
-    injector<VersionService>().checkForUpdate(true);
+    injector<VersionService>().checkForUpdate();
     injector<CustomerSupportService>().getIssues();
     injector<CustomerSupportService>().processMessages();
   }

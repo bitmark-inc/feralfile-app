@@ -55,7 +55,7 @@ abstract class ConfigurationService {
   DateTime? getLatestRefreshTokens();
   Future<bool> setLatestRefreshTokens(DateTime? value);
   Future<void> setReadReleaseNotesInVersion(String version);
-  String getReadReleaseNotesVersion();
+  String? getReadReleaseNotesVersion();
   String? getPreviousBuildNumber();
   Future<void> setPreviousBuildNumber(String value);
   List<String> getFinishedSurveys();
@@ -374,8 +374,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
     await _preferences.setString(KEY_READ_RELEASE_NOTES_VERSION, version);
   }
 
-  String getReadReleaseNotesVersion() {
-    return _preferences.getString(KEY_READ_RELEASE_NOTES_VERSION) ?? '0.0.0';
+  String? getReadReleaseNotesVersion() {
+    return _preferences.getString(KEY_READ_RELEASE_NOTES_VERSION);
   }
 
   @override
