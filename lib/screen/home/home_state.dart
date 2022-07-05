@@ -24,7 +24,11 @@ class HomeConnectTZEvent extends HomeEvent {
 
 class RefreshTokensEvent extends HomeEvent {}
 
-class SubRefreshTokensEvent extends HomeEvent {}
+class SubRefreshTokensEvent extends HomeEvent {
+  final ActionState state;
+
+  SubRefreshTokensEvent(this.state);
+}
 
 class ReindexIndexerEvent extends HomeEvent {}
 
@@ -33,7 +37,7 @@ class HomeState {
   ActionState fetchTokenState;
 
   HomeState({
-    this.tokens = null,
+    this.tokens,
     this.fetchTokenState = ActionState.notRequested,
   });
 
