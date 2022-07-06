@@ -60,8 +60,15 @@ class IAPServiceImpl implements IAPService {
     setup();
   }
   String? _receiptData;
+  bool _isSetup = false;
 
   Future<void> setup() async {
+    if (_isSetup) {
+      return;
+    }
+
+    _isSetup = true;
+
     final jwt = _configurationService.getIAPJWT();
     if (jwt != null && jwt.isValid(withSubscription: true)) {}
     final Stream<List<PurchaseDetails>> purchaseUpdated =
@@ -69,7 +76,7 @@ class IAPServiceImpl implements IAPService {
     _subscription = purchaseUpdated.listen((purchaseDetailsList) {
       _listenToPurchaseUpdated(purchaseDetailsList);
     }, onDone: () {
-      log.info("finish fetching iap tiers");
+      log.info("[IAPService] finish fetching iap tiers");
       _subscription.cancel();
     }, onError: (error) {
       log.severe(error);
@@ -87,6 +94,8 @@ class IAPServiceImpl implements IAPService {
       productIds = _kGoogleProductIds;
     }
 
+    await _cleanupPendingTransactions();
+
     ProductDetailsResponse productDetailResponse =
         await _inAppPurchase.queryProductDetails(productIds.toSet());
     if (productDetailResponse.error != null) {
@@ -95,8 +104,6 @@ class IAPServiceImpl implements IAPService {
 
     products.value = Map.fromIterable(productDetailResponse.productDetails,
         key: (e) => e.id, value: (e) => e);
-
-    await _cleanupPendingTransactions();
   }
 
   Future<bool> renewJWT() async {
@@ -122,12 +129,16 @@ class IAPServiceImpl implements IAPService {
       applicationUserName: null,
     );
 
+    log.info("[IAPService] purchase: ${product.id}");
+
     await _cleanupPendingTransactions();
 
+    log.info("[IAPService] buy non comsumable: ${product.id}");
     await _inAppPurchase.buyNonConsumable(purchaseParam: purchaseParam);
   }
 
   Future<void> restore() async {
+    log.info("[IAPService] restore purchases");
     if (await _inAppPurchase.isAvailable() == false ||
         kDebugMode ||
         await isAppCenterBuild()) return;
@@ -140,7 +151,7 @@ class IAPServiceImpl implements IAPService {
           receiptData: receiptData, forceRefresh: true);
       return jwt;
     } catch (error) {
-      log.info("error when verifying receipt", error);
+      log.info("[IAPService] error when verifying receipt", error);
       _configurationService.setIAPReceipt(null);
       return null;
     }
@@ -155,11 +166,15 @@ class IAPServiceImpl implements IAPService {
     }
 
     purchaseDetailsList.forEach((PurchaseDetails purchaseDetails) async {
+      log.info(
+          "[IAPService] purchase: ${purchaseDetails.productID}, status: ${purchaseDetails.status.name}");
       if (purchaseDetails.status == PurchaseStatus.pending) {
         purchases.value[purchaseDetails.productID] = IAPProductStatus.pending;
       } else {
         if (purchaseDetails.status == PurchaseStatus.error) {
           purchases.value[purchaseDetails.productID] = IAPProductStatus.error;
+          log.warning(
+              "[IAPService] error: ${purchaseDetails.error?.message ?? ""}");
         } else if (purchaseDetails.status == PurchaseStatus.purchased ||
             purchaseDetails.status == PurchaseStatus.restored) {
           final receiptData =
@@ -171,14 +186,18 @@ class IAPServiceImpl implements IAPService {
 
           _receiptData = receiptData;
           final jwt = await _verifyPurchase(receiptData);
+          log.info("[IAPService] verifying the receipt");
           if (jwt != null && jwt.isValid(withSubscription: true)) {
             purchases.value[purchaseDetails.productID] =
                 IAPProductStatus.completed;
             _configurationService.setIAPJWT(jwt);
+            log.info("[IAPService] the receipt is valid");
           } else {
+            log.info("[IAPService] the receipt is invalid");
             purchases.value[purchaseDetails.productID] =
                 IAPProductStatus.expired;
             _configurationService.setIAPJWT(null);
+            _cleanupPendingTransactions();
             return;
           }
         }
@@ -199,15 +218,18 @@ class IAPServiceImpl implements IAPService {
   Future _cleanupPendingTransactions() async {
     if (Platform.isIOS) {
       var transactions = await SKPaymentQueueWrapper().transactions();
+      log.info(
+          "[IAPService] cleaning up pending transactions: ${transactions.length}");
 
       if (transactions.length > 0) {
-        await Future.forEach(transactions,
-            (SKPaymentTransactionWrapper skPaymentTransactionWrapper) async {
-          await SKPaymentQueueWrapper()
-              .finishTransaction(skPaymentTransactionWrapper);
+        transactions.forEach((transaction) {
+          log.info(
+              "[IAPService] cleaning up transaction: ${transaction.toString()}");
+          SKPaymentQueueWrapper().finishTransaction(transaction);
         });
 
-        await Future.delayed(Duration(seconds: 1));
+        await Future.delayed(Duration(seconds: 3));
+        log.info("[IAPService] finish cleaning up");
       }
     }
   }

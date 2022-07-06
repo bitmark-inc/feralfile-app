@@ -24,6 +24,7 @@ import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
+import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tokens_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
@@ -72,6 +73,7 @@ class _HomePageState extends State<HomePage>
         _handleNotificationClicked(openedResult.notification);
       });
     });
+    injector<IAPService>().setup();
     memoryValues.inGalleryView = true;
   }
 
