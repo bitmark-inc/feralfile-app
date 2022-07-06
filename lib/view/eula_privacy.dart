@@ -9,8 +9,10 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-const eulaURL = "https://bitmark.com/terms";
-const privacyURL = "https://bitmark.com/privacy";
+const eulaURL =
+    "https://github.com/bitmark-inc/autonomy.io/blob/gh-pages/apps/docs/eula.md";
+const privacyURL =
+    "https://github.com/bitmark-inc/autonomy.io/blob/gh-pages/apps/docs/privacy.md";
 
 Widget eulaAndPrivacyView() {
   final customLinkStyle = linkStyle.copyWith(
