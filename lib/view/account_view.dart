@@ -37,7 +37,6 @@ Widget accountWithConnectionItem(
               SizedBox(height: 4),
               ...categorizedAccounts.accounts
                   .map((a) => Container(
-                      padding: EdgeInsets.only(top: 16),
                       child: _blockchainAddressView(a,
                           onTap: () => Navigator.of(context).pushNamed(
                               GlobalReceiveDetailPage.tag,
@@ -69,6 +68,16 @@ Widget accountWithConnectionItem(
             padding: EdgeInsets.only(left: 40),
             child: Row(children: [
               _blockchainLogo(connection.connectionType),
+              SizedBox(width: 8),
+              Text(
+                _blockchainName(connection.connectionType),
+                style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    fontFamily: "AtlasGrotesk"),
+              ),
+              SizedBox(width: 8),
               SizedBox(width: 8),
               Text(
                 connection.accountNumber.mask(4),
@@ -140,6 +149,15 @@ Widget _blockchainAddressView(Account account, {Function()? onTap}) {
         _blockchainLogo(account.blockchain),
         SizedBox(width: 8),
         Text(
+          _blockchainName(account.blockchain),
+          style: TextStyle(
+              color: Colors.black,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              fontFamily: "AtlasGrotesk"),
+        ),
+        SizedBox(width: 8),
+        Text(
           account.accountNumber.mask(4),
           style: TextStyle(
               color: Colors.black,
@@ -165,6 +183,21 @@ Widget _blockchainLogo(String? blockchain) {
       return SvgPicture.asset('assets/images/iconXtz.svg');
     default:
       return SizedBox();
+  }
+}
+
+String _blockchainName(String? blockchain) {
+  switch (blockchain) {
+    case "Bitmark":
+      return "BITMARK";
+    case "Ethereum":
+    case "walletConnect":
+      return "ETHEREUM";
+    case "Tezos":
+    case "walletBeacon":
+      return "TEZOS";
+    default:
+      return "";
   }
 }
 
