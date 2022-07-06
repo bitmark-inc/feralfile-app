@@ -27,6 +27,7 @@ class MainActivity : FlutterFragmentActivity() {
 
     override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        FileLogger.init(applicationContext)
         MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
             CHANNEL

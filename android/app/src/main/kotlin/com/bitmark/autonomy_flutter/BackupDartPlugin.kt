@@ -73,11 +73,10 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler {
                 Single.zip(
                     LibAuk.getInstance().getStorage(UUID.fromString(it), context)
                         .exportMnemonicWords(),
-                    LibAuk.getInstance().getStorage(UUID.fromString(it), context).getName(),
-                    { mnemonic, name ->
-                        BackupAccount(it, mnemonic, name)
-                    }
-                ).toObservable()
+                    LibAuk.getInstance().getStorage(UUID.fromString(it), context).getName()
+                ) { mnemonic, name ->
+                    BackupAccount(it, mnemonic, name)
+                }.toObservable()
             }
             .toList()
             .subscribe({ keys ->
