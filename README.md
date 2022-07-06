@@ -3,17 +3,18 @@
 # Autonomy: Digital Art Wallet
 _Collect, View & Discovery_
 
+## About
+
 Autonomy is the world’s first and only digital art wallet. It gives you one easy-to-use app to securely collect, view and discover digital art you love. Autonomy works with Ethereum and Tezos and is built to support all new chains as they emerge.  
  
-_Collect_: Buy digital art on Tezos or Ethereum and let Autonomy secure, organize and showcase your collection—all in one beautiful, simple experience. Autonomy takes care of the hard stuff so you can focus on growing the good stuff. 
+- _Collect_: Buy digital art on Tezos or Ethereum and let Autonomy secure, organize and showcase your collection—all in one beautiful, simple experience. Autonomy takes care of the hard stuff so you can focus on growing the good stuff. 
  
-_View_: Enjoy your digital art anywhere—on any screen, TV or projector. Autonomy is the only app that does this. It’s like having an infinite personal gallery you can share and experience anywhere you go.
+- _View_: Enjoy your digital art anywhere—on any screen, TV or projector. Autonomy is the only app that does this. It’s like having an infinite personal gallery you can share and experience anywhere you go.
  
-_Discover_: Autonomy automatically helps you discover new art by knowing the artists you collect, what they’ve minted and what they’ve bought for themselves. We don’t use likes, trends or algorithms. We go straight to the source to give you the stuff we know you’ll love. 
+- _Discover_: Autonomy automatically helps you discover new art by knowing the artists you collect, what they’ve minted and what they’ve bought for themselves. We don’t use likes, trends or algorithms. We go straight to the source to give you the stuff we know you’ll love. 
 
 
-<img src="https://user-images.githubusercontent.com/50816149/172561757-563c9560-25c2-45b2-a241-954dd14ac3ff.png" width=220/> <img src="https://user-images.githubusercontent.com/50816149/172562042-cec2ebde-5b1f-47b6-8d63-15676224d26a.png" width=220/>
-<img src="https://user-images.githubusercontent.com/50816149/172562377-e997bb8d-b6df-4a81-98b3-758db0ae79df.png" width=220/>
+<img src="https://user-images.githubusercontent.com/422993/177656126-c3e02532-8ee6-4772-b495-84565231371b.jpg" width=220/> <img src="https://user-images.githubusercontent.com/422993/177656144-c3ccf692-5882-4bd2-8920-daaef399b055.jpg" width=220/> <img src="https://user-images.githubusercontent.com/422993/177656150-bce1a823-3944-4649-a502-049be2a57017.jpg" width=220/>
 
 
 ## Getting Started
