@@ -103,7 +103,7 @@ dependencies:
   tezart:
     git:
       url: https://github.com/autonomy-system/tezart.git
-      ref: v1.0.2
+      ref: v1.0.3
   uni_links: ^0.5.1
   url_launcher: ^6.0.20
   uuid: ^3.0.5
@@ -120,7 +120,7 @@ dependencies:
   nft_rendering:
     git:
       url: git@github.com:autonomy-system/nft-rendering.git
-      ref: v1.0.0 
+      ref: v1.0.1
     
 dependency_overrides:
   # Error using when import photo_view from dependencies:
@@ -170,7 +170,6 @@ flutter:
     - assets/images/iconXtz.svg
     - assets/images/iconBitmark.svg
     - assets/images/iconClose.svg
-    - assets/images/iconClose_white.svg
     - assets/images/iconReceive.svg
     - assets/images/iconCloudOff.svg
     - assets/images/iconCustomerSupport.svg

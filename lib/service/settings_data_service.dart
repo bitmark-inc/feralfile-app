@@ -73,7 +73,6 @@ class SettingsDataServiceImpl implements SettingsDataService {
     final data = SettingsDataBackup(
       addresses: addresses,
       isAnalyticsEnabled: _configurationService.isAnalyticsEnabled(),
-      uxGuideStep: _configurationService.getUXGuideStep(),
       finishedSurveys: _configurationService.getFinishedSurveys(),
       hiddenMainnetTokenIDs: hiddenMainnetTokenIDs,
       hiddenTestnetTokenIDs: hiddenTestnetTokenIDs,
@@ -123,9 +122,6 @@ class SettingsDataServiceImpl implements SettingsDataService {
     final data = SettingsDataBackup.fromJson(json.decode(response));
 
     _configurationService.setAnalyticEnabled(data.isAnalyticsEnabled);
-    if (data.uxGuideStep != null) {
-      await _configurationService.setUXGuideStep(data.uxGuideStep!);
-    }
 
     await _configurationService.setFinishedSurvey(data.finishedSurveys);
 
@@ -152,7 +148,6 @@ class SettingsDataServiceImpl implements SettingsDataService {
 class SettingsDataBackup {
   List<String> addresses;
   bool isAnalyticsEnabled;
-  int? uxGuideStep;
   List<String> finishedSurveys;
   List<String> hiddenMainnetTokenIDs;
   List<String> hiddenTestnetTokenIDs;
@@ -162,7 +157,6 @@ class SettingsDataBackup {
   SettingsDataBackup({
     required this.addresses,
     required this.isAnalyticsEnabled,
-    required this.uxGuideStep,
     required this.finishedSurveys,
     required this.hiddenMainnetTokenIDs,
     required this.hiddenTestnetTokenIDs,

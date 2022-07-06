@@ -10,6 +10,7 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/tokens_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/theme_manager.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
@@ -27,6 +28,7 @@ class ImportAccountPage extends StatefulWidget {
 
 class _ImportAccountPageState extends State<ImportAccountPage> {
   TextEditingController _phraseTextController = TextEditingController();
+  bool _isSubmissionEnabled = false;
 
   bool isError = false;
 
@@ -59,7 +61,10 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
                       style: appTextTheme.bodyText1,
                     ),
                     SizedBox(height: 16),
-                    learnMoreAboutAutonomySecurityWidget(context),
+                    learnMoreAboutAutonomySecurityWidget(
+                      context,
+                      title: 'Learn why this is safe...',
+                    ),
                     SizedBox(height: 40),
                     Container(
                       height: 120,
@@ -75,6 +80,14 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
                             hintMaxLines: 2,
                             controller: _phraseTextController,
                             isError: isError,
+                            onChanged: (value) {
+                              final numberOfWords =
+                                  value.trim().split(' ').length;
+                              setState(() {
+                                _isSubmissionEnabled =
+                                    numberOfWords == 12 || numberOfWords == 24;
+                              });
+                            },
                           ),
                         ],
                       ),
@@ -88,8 +101,11 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
               children: [
                 Expanded(
                   child: AuFilledButton(
+                    enabled: _isSubmissionEnabled,
                     text: "CONFIRM".toUpperCase(),
-                    onPress: () => _import(),
+                    onPress: () {
+                      if (_isSubmissionEnabled) _import();
+                    },
                   ),
                 ),
               ],
@@ -107,7 +123,7 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
       });
 
       final persona = await injector<AccountService>()
-          .importPersona(_phraseTextController.text);
+          .importPersona(_phraseTextController.text.trim());
       // SideEffect: pre-fetch tokens
       injector<TokensService>().fetchTokensForAddresses([
         (await persona.wallet().getETHEip55Address()),

@@ -39,7 +39,7 @@ class NewAccountPage extends StatelessWidget {
                 child: Column(
                   children: [
                     Text(
-                      "Do you already have NFTs?",
+                      "Do you have NFTs you want to view with Autonomy?",
                       style: appTextTheme.headline1,
                     ),
                     SizedBox(height: 30),
@@ -49,7 +49,7 @@ class NewAccountPage extends StatelessWidget {
                       crossAxisAlignment: WrapCrossAlignment.start,
                       children: [
                         _optionItem(context, "Yes",
-                            "I already have NFTs in other wallets that I want to view or control with Autonomy.",
+                            "I already have NFTs in other wallets that I want to view with Autonomy.",
                             onTap: () {
                           Navigator.of(context)
                               .pushNamed(AppRouter.linkAccountpage);
@@ -94,7 +94,10 @@ class NewAccountPage extends StatelessWidget {
       builder: (context, state) {
         return _optionItem(context, "No",
             "Make a new account with addresses you can use to collect or receive NFTs on Ethereum, Feral File, and Tezos.",
-            onTap: () => context.read<PersonaBloc>().add(CreatePersonaEvent()));
+            onTap: () {
+              if (state.createAccountState == ActionState.loading) return;
+              context.read<PersonaBloc>().add(CreatePersonaEvent());
+            });
       },
     );
   }

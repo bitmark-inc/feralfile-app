@@ -79,11 +79,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
               // just ignore this so that user can go through onboarding
             }
             await _askForNotification();
-            await injector<VersionService>().checkForUpdate(true);
-            if (injector<ConfigurationService>().getUXGuideStep() == null) {
-              await injector<NavigationService>()
-                  .navigateTo(AppRouter.uxGuidePage);
-            }
+            await injector<VersionService>().checkForUpdate();
 
             await Future.delayed(
                 SHORT_SHOW_DIALOG_DURATION, showSurveysNotification);
@@ -94,7 +90,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
         }
 
         if (state.onboardingStep != OnboardingStep.dashboard) {
-          await injector<VersionService>().checkForUpdate(false);
+          await injector<VersionService>().checkForUpdate();
         }
         injector<WalletConnectService>().initSessions(forced: true);
       },

@@ -98,7 +98,7 @@ AppBar getCloseAppBar(BuildContext context,
           child: onBack != null
               ? Padding(
                   padding: const EdgeInsets.fromLTRB(0, 7, 18, 8),
-                  child: SvgPicture.asset('assets/images/iconClose.svg'),
+                  child: closeIcon(),
                 )
               : SizedBox(width: 60),
         ),

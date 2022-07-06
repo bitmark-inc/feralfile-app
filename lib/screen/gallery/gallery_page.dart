@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -7,6 +9,7 @@ import 'package:autonomy_flutter/screen/gallery/gallery_bloc.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/penrose_top_bar_view.dart';
+import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class GalleryPagePayload {
@@ -32,6 +35,8 @@ class GalleryPage extends StatefulWidget {
 class _GalleryPageState extends State<GalleryPage> {
   late ScrollController _scrollController;
   int _cachedImageSize = 0;
+  Timer? _timer;
+  int? _latestTokensLength;
 
   @override
   void initState() {
@@ -43,6 +48,16 @@ class _GalleryPageState extends State<GalleryPage> {
 
     context.read<GalleryBloc>().add(GetTokensEvent(address));
     context.read<GalleryBloc>().add(ReindexIndexerEvent(address));
+
+    _timer = Timer.periodic(Duration(seconds: 5), (timer) {
+      context.read<GalleryBloc>().add(GetTokensEvent(widget.payload.address));
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 
   _scrollListenerToLoadMore() {
@@ -54,17 +69,28 @@ class _GalleryPageState extends State<GalleryPage> {
 
   @override
   Widget build(BuildContext context) {
-    final state = context.watch<GalleryBloc>().state;
-
     return PrimaryScrollController(
       controller: _scrollController,
       child: Scaffold(
         body: Stack(
           fit: StackFit.loose,
           children: [
-            _assetsWidget(state.tokens, state.isLoading),
-            PenroseTopBarView(
-                _scrollController, PenroseTopBarViewStyle.back, null),
+            BlocConsumer<GalleryBloc, GalleryState>(listener: (context, state) {
+              final tokens = state.tokens;
+              if (tokens == null) return;
+
+              _latestTokensLength = tokens.length;
+
+              if (tokens.isNotEmpty) {
+                _timer?.cancel();
+                if (_latestTokensLength == 0) {
+                  Vibrate.feedback(FeedbackType.light);
+                }
+              }
+            }, builder: (context, state) {
+              return _assetsWidget(state.tokens, state.isLoading);
+            }),
+            PenroseTopBarView(_scrollController, PenroseTopBarViewStyle.back),
           ],
         ),
       ),
@@ -87,29 +113,41 @@ class _GalleryPageState extends State<GalleryPage> {
       SliverToBoxAdapter(
         child: Container(
           alignment: Alignment.topLeft,
-          padding: EdgeInsets.fromLTRB(2, 0, 24, 14),
-          child: TextButton(
-            style: ButtonStyle(alignment: Alignment.centerRight),
-            onPressed: artistURL != null ? () => launch(artistURL) : null,
-            child: Text(
-              widget.payload.artistName,
-              style: artistURL != null
-                  ? makeLinkStyle(appTextTheme.headline1!)
-                  : appTextTheme.headline1,
-            ),
+          padding: EdgeInsets.fromLTRB(6, 0, 14, 14),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              TextButton(
+                style: ButtonStyle(alignment: Alignment.centerRight),
+                onPressed: artistURL != null ? () => launch(artistURL) : null,
+                child: Text(
+                  widget.payload.artistName,
+                  style: artistURL != null
+                      ? makeLinkStyle(appTextTheme.headline2!)
+                      : appTextTheme.headline2,
+                ),
+              ),
+              Text('indexing...',
+                  style: appTextTheme.headline2?.copyWith(fontSize: 12)),
+            ],
           ),
         ),
       ),
       if (tokens == null)
         ...[]
       else if (tokens.isEmpty) ...[
-        SliverToBoxAdapter(
-          child: Container(
-            padding: EdgeInsets.fromLTRB(16, 0, 24, 14),
-            child: Text(
-              "Collection is empty for now. Indexing...",
-              style: appTextTheme.bodyText1,
-            ),
+        SliverGrid(
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: cellPerRow,
+            crossAxisSpacing: cellSpacing,
+            mainAxisSpacing: cellSpacing,
+            childAspectRatio: 1.0,
+          ),
+          delegate: SliverChildBuilderDelegate(
+            (BuildContext context, int index) {
+              return placeholder();
+            },
+            childCount: 15,
           ),
         ),
       ] else ...[

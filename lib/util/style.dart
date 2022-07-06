@@ -7,6 +7,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 const appTextTheme = TextTheme(
   headline1: TextStyle(
@@ -79,6 +80,19 @@ const linkStyle = TextStyle(
   fontFamily: "AtlasGrotesk-Medium",
   height: 1.377,
   fontWeight: FontWeight.w400,
+  shadows: [Shadow(color: Colors.black, offset: Offset(0, -1))],
+  decoration: TextDecoration.underline,
+  decorationStyle: TextDecorationStyle.solid,
+  decorationColor: Colors.black,
+  decorationThickness: 1.1,
+);
+
+const linkStyle2 = TextStyle(
+  color: Colors.transparent,
+  fontSize: 12,
+  fontFamily: "AtlasGrotesk-Bold",
+  height: 1.377,
+  fontWeight: FontWeight.w500,
   shadows: [Shadow(color: Colors.black, offset: Offset(0, -1))],
   decoration: TextDecoration.underline,
   decorationStyle: TextDecorationStyle.solid,
@@ -163,6 +177,15 @@ Widget loadingIndicator({
       color: valueColor,
       strokeWidth: 2,
     ),
+  );
+}
+
+Widget closeIcon({Color color = Colors.black}) {
+  return SvgPicture.asset(
+    'assets/images/iconClose.svg',
+    color: color,
+    width: 32,
+    height: 32,
   );
 }
 

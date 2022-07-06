@@ -1,6 +1,7 @@
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/gateway/indexer_api.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:bloc/bloc.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 
@@ -18,6 +19,7 @@ class GalleryBloc extends Bloc<GalleryEvent, GalleryState> {
         )) {
     on<GetTokensEvent>((event, emit) async {
       if (state.isLoading || state.isLastPage) return;
+      log.info('[GalleryBloc] GetTokensEvent');
       emit(state.copyWith(isLoading: true));
 
       try {
@@ -25,7 +27,9 @@ class GalleryBloc extends Bloc<GalleryEvent, GalleryState> {
                 event.address, state.nextPageKey, INDEXER_TOKENS_MAXIMUM))
             .map((asset) => AssetToken.fromAsset(asset))
             .toList();
-        final isLastPage = tokens.length < INDEXER_TOKENS_MAXIMUM;
+        // reload if tokensLength's 0 because it might be indexing case
+        final isLastPage =
+            tokens.length == 0 ? false : tokens.length < INDEXER_TOKENS_MAXIMUM;
 
         List<AssetToken> allTokens = (state.tokens ?? []) + tokens;
 

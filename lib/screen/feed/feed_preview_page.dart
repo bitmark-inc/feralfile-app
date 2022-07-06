@@ -32,6 +32,7 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
   String? swipeDirection;
   INFTRenderingWidget? _renderingWidget;
   Timer? _timer;
+  Timer? _maxTimeTokenTimer;
   bool _missingToken = false;
   AssetToken? latestToken;
 
@@ -43,6 +44,13 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
 
     _timer = Timer.periodic(Duration(seconds: 10), (timer) {
       context.read<FeedBloc>().add(RetryMissingTokenInFeedsEvent());
+    });
+  }
+
+  void setMaxTimeToken() {
+    _maxTimeTokenTimer?.cancel();
+    _maxTimeTokenTimer = Timer(Duration(seconds: 15), () {
+      context.read<FeedBloc>().add(MoveToNextFeedEvent());
     });
   }
 
@@ -69,6 +77,7 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
     _renderingWidget?.dispose();
     Sentry.getSpan()?.finish(status: SpanStatus.ok());
     _timer?.cancel();
+    _maxTimeTokenTimer?.cancel();
     super.dispose();
   }
 
@@ -92,6 +101,11 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
     return Scaffold(
       backgroundColor: Colors.black,
       body: BlocConsumer<FeedBloc, FeedState>(listener: (context, state) {
+        if (state.viewingToken?.id != null &&
+            latestToken?.id != state.viewingToken?.id) {
+          setMaxTimeToken();
+        }
+
         final neededIdentities = [
           state.viewingToken?.artistName ?? '',
           state.viewingFeedEvent?.recipient ?? ''

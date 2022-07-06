@@ -200,7 +200,7 @@ class _SettingsPageState extends State<SettingsPage>
                       style: appTextTheme.headline4,
                     ),
                     bottomWidget: Text(
-                        'Erase all information about me and delete my keys from my cloud backup.',
+                        'Erase all information about me and delete my keys from my cloud backup including the keys on this device.',
                         style: appTextTheme.bodyText1),
                     onTap: () => _showForgetIExistDialog()),
                 SizedBox(height: 56),
@@ -237,7 +237,7 @@ class _SettingsPageState extends State<SettingsPage>
                       TextButton(
                           onPressed: () => injector<VersionService>()
                               .showReleaseNotes(onlyWhenUnread: false),
-                          child: Text("Release notes", style: linkStyle)),
+                          child: Text("Release notes", style: linkStyle2)),
                       SizedBox(height: 10),
                       eulaAndPrivacyView(),
                     ]),
@@ -247,8 +247,7 @@ class _SettingsPageState extends State<SettingsPage>
           ),
           PenroseTopBarView(
             _controller,
-            PenroseTopBarViewStyle.main,
-            () => Navigator.of(context).pop(),
+            PenroseTopBarViewStyle.settings,
           ),
         ],
       )),

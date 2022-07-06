@@ -8,9 +8,9 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
+import 'package:autonomy_flutter/util/isolated_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import 'package:sentry/sentry.dart';
 import 'dart:convert';
 
@@ -38,7 +38,7 @@ class LoggingInterceptor extends Interceptor {
   Future writeAPILog(Response response) async {
     final curl = cURLRepresentation(response.requestOptions);
     final message = response.toString();
-    bool _shortCurlLog = await compute(shortCurlLog, curl);
+    bool _shortCurlLog = await IsolatedUtil().shouldShortCurlLog(curl);
 
     if (_shortCurlLog) {
       final request = response.requestOptions;
@@ -47,7 +47,8 @@ class LoggingInterceptor extends Interceptor {
       apiLog.info("API Request: $curl");
     }
 
-    bool _shortAPIResponseLog = await compute(shortAPIResponseLog, curl);
+    bool _shortAPIResponseLog =
+        await IsolatedUtil().shouldShortAPIResponseLog(curl);
     if (_shortAPIResponseLog) {
       apiLog.info("API Response Status: ${response.statusCode}");
     } else {
@@ -152,27 +153,4 @@ class QuickAuthInterceptor extends Interceptor {
     options.headers["Authorization"] = "Bearer $jwtToken";
     return handler.next(options);
   }
-}
-
-// use isolate for expensive task
-Future<bool> shortAPIResponseLog(dynamic curl) async {
-  bool _regExp;
-  try {
-    List<RegExp> _logFilterRegex = [
-      RegExp(r'.*\/nft.*'),
-      RegExp(r'.*support.*\/issues.*'),
-    ];
-
-    _logFilterRegex.firstWhere((regex) => regex.hasMatch(curl));
-    _regExp = true;
-  } catch (_) {
-    _regExp = false;
-  }
-  return _regExp;
-}
-
-// use isolate for expensive task
-Future<bool> shortCurlLog(dynamic curl) async {
-  bool _isCurlHasMatch = RegExp(r'.*support.*\/issues.*').hasMatch(curl);
-  return _isCurlHasMatch;
 }

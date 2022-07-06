@@ -22,6 +22,7 @@ import 'package:autonomy_flutter/service/tokens_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -81,7 +82,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       if (!memoryValues.inGalleryView) return;
       final assetTokens =
           await _assetTokenDao.findAllAssetTokensWhereNot(_hiddenOwners);
-      emit(state.copyWith(tokens: assetTokens));
+      emit(state.copyWith(tokens: assetTokens, fetchTokenState: event.state));
       log.info('[SubRefreshTokensEvent] load ${assetTokens.length} tokens');
     });
 
@@ -109,7 +110,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
         _hiddenOwners = await _getHiddenAddressesInGallery();
 
-        add(SubRefreshTokensEvent());
+        add(SubRefreshTokensEvent(ActionState.notRequested));
 
         final latestAssets = await _tokensService.fetchLatestAssets(
             allAccountNumbers, INDEXER_TOKENS_MAXIMUM);
@@ -130,21 +131,21 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
           await fetchManuallyTokens();
 
-          add(SubRefreshTokensEvent());
+          add(SubRefreshTokensEvent(ActionState.done));
           _feedService.refreshFollowings();
         } else {
           final debutTokenIDs = await fetchManuallyTokens();
-          add(SubRefreshTokensEvent());
+          add(SubRefreshTokensEvent(ActionState.loading));
           log.info("[HomeBloc][start] _tokensService.refreshTokensInIsolate");
 
           final stream = await _tokensService.refreshTokensInIsolate(
               allAccountNumbers, debutTokenIDs);
           stream.listen((event) async {
-            log.info("[Stream.refreshTokensInIsolate] getEVent");
-            add(SubRefreshTokensEvent());
+            log.info("[Stream.refreshTokensInIsolate] getEvent");
+            add(SubRefreshTokensEvent(ActionState.loading));
           }, onDone: () async {
-            log.info("[Stream.refreshTokensInIsolate] getEVent Done");
-            add(SubRefreshTokensEvent());
+            log.info("[Stream.refreshTokensInIsolate] getEvent Done");
+            add(SubRefreshTokensEvent(ActionState.done));
             _feedService.refreshFollowings();
           });
         }

@@ -125,10 +125,23 @@ class _HomePageState extends State<HomePage>
     final state = context.watch<HomeBloc>().state;
     final tokens = state.tokens;
 
-    final shouldShowMainView = tokens != null && tokens.isNotEmpty;
-
-    final Widget assetsWidget =
-        shouldShowMainView ? _assetsWidget(tokens!) : _emptyGallery();
+    late Widget contentWidget;
+    if (tokens == null || tokens.isEmpty) {
+      if ([ActionState.notRequested, ActionState.loading]
+          .contains(state.fetchTokenState)) {
+        contentWidget = Align(
+          alignment: Alignment.topCenter,
+          child: Padding(
+            padding: EdgeInsets.only(top: 180),
+            child: loadingIndicator(),
+          ),
+        );
+      } else {
+        contentWidget = _emptyGallery();
+      }
+    } else {
+      contentWidget = _assetsWidget(tokens);
+    }
 
     return PrimaryScrollController(
       controller: _controller,
@@ -136,24 +149,11 @@ class _HomePageState extends State<HomePage>
         body: Stack(
           fit: StackFit.loose,
           children: [
-            assetsWidget,
-            if (injector<ConfigurationService>().getUXGuideStep() != null) ...[
-              PenroseTopBarView(
-                _controller,
-                PenroseTopBarViewStyle.main,
-                () => Navigator.of(context).pushNamed(AppRouter.settingsPage),
-              ),
-            ],
-            if (state.fetchTokenState == ActionState.loading) ...[
-              Align(
-                alignment: Alignment.topRight,
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(
-                      0, MediaQuery.of(context).padding.top + 120, 20, 0),
-                  child: CupertinoActivityIndicator(),
-                ),
-              ),
-            ],
+            contentWidget,
+            PenroseTopBarView(
+              _controller,
+              PenroseTopBarViewStyle.main,
+            ),
           ],
         ),
       ),
@@ -342,7 +342,7 @@ class _HomePageState extends State<HomePage>
           .storeEventWithDeviceData("device_foreground");
     });
 
-    injector<VersionService>().checkForUpdate(true);
+    injector<VersionService>().checkForUpdate();
     injector<CustomerSupportService>().getIssues();
     injector<CustomerSupportService>().processMessages();
   }
