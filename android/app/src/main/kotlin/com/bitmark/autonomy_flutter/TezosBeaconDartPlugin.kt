@@ -8,10 +8,9 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.net.Uri
-import android.os.Handler
-import android.os.Looper
 import androidx.annotation.NonNull
 import androidx.core.content.ContextCompat.getSystemService
+import com.bitmark.autonomy_flutter.FileLogger
 import com.bitmark.autonomy_flutter.jsonKT
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.EventChannel
@@ -39,14 +38,18 @@ import it.airgap.beaconsdk.client.wallet.compat.stop
 import it.airgap.beaconsdk.core.data.*
 import it.airgap.beaconsdk.core.internal.data.HexString
 import it.airgap.beaconsdk.core.internal.utils.*
-import it.airgap.beaconsdk.core.message.*
+import it.airgap.beaconsdk.core.message.BeaconMessage
+import it.airgap.beaconsdk.core.message.BeaconRequest
+import it.airgap.beaconsdk.core.message.ErrorBeaconResponse
 import it.airgap.beaconsdk.transport.p2p.matrix.p2pMatrix
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.*
 import java.util.*
-import kotlin.collections.ArrayList
-import kotlin.collections.HashMap
 
 class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.StreamHandler {
     /// The MethodChannel that will the communication between Flutter and native Android
@@ -274,6 +277,8 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
                     rev["eventName"] = "observeRequest"
                     rev["params"] = params
 
+                    FileLogger.log("TezosBeaconDartPlugin", "new request: $rev")
+
                     withContext(Dispatchers.Main) {
                         events?.success(rev)
                     }
@@ -404,6 +409,8 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
             rev["uri"] = ""
         }
 
+        FileLogger.log("TezosBeaconDartPlugin", "getConnectionURI: ${rev["uri"]}")
+
         result.success(rev)
     }
 
@@ -425,6 +432,8 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
             dependencyRegistry.base58Check.encode(json.toByteArray(Charsets.UTF_8)).getOrNull()
                 ?: ""
         rev["uri"] = encodedData
+
+        FileLogger.log("TezosBeaconDartPlugin", "getPostMessageConnectionURI: ${rev["uri"]}")
 
         result.success(rev)
     }
@@ -596,6 +605,7 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
                 )
                 else -> ErrorBeaconResponse.from(request, BeaconError.Unknown)
             }
+            FileLogger.log("TezosBeaconDartPlugin", "respond to id: $id")
             beaconClient?.respond(response)
             removeAwaitingRequest()
             result.success(mapOf("error" to 0))
@@ -603,6 +613,7 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
     }
 
     private fun addPeer(link: String, result: Result) {
+        FileLogger.log("TezosBeaconDartPlugin", "addPeer: $link")
         val peer = extractPeer(link)
         CoroutineScope(Dispatchers.IO).launch {
             beaconClient?.addPeers(peer)
@@ -612,6 +623,7 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
     }
 
     private fun removePeers() {
+        FileLogger.log("TezosBeaconDartPlugin", "removePeers")
         CoroutineScope(Dispatchers.IO).launch {
             beaconClient?.removeAllPeers()
         }
