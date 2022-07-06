@@ -239,7 +239,7 @@ class _SettingsPageState extends State<SettingsPage>
                               .showReleaseNotes(onlyWhenUnread: false),
                           child: Text("Release notes", style: linkStyle2)),
                       SizedBox(height: 10),
-                      eulaAndPrivacyView(),
+                      eulaAndPrivacyView(context),
                     ]),
                 SizedBox(height: 60),
               ],

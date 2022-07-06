@@ -154,6 +154,7 @@ class AppRouter {
   static const keySyncPage = 'key_sync_page';
   static const tvConnectPage = 'tv_connect';
   static const tezosTXDetailPage = "tezos_tx_detail";
+  static const githubDocPage = 'github_doc_page';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final networkInjector = injector<NetworkConfigInjector>();
@@ -775,7 +776,7 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings, builder: (context) => SurveyThankyouPage());
 
-      case GithubDocPage.tag:
+      case githubDocPage:
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => GithubDocPage(

@@ -124,7 +124,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
             margin: edgeInsets,
             child: Column(mainAxisAlignment: MainAxisAlignment.end, children: [
               state.onboardingStep != OnboardingStep.undefined
-                  ? eulaAndPrivacyView()
+                  ? eulaAndPrivacyView(context)
                   : SizedBox(),
               SizedBox(height: 32.0),
               _getStartupButton(state),

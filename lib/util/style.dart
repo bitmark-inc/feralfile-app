@@ -5,8 +5,10 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/util/theme_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 const appTextTheme = TextTheme(
@@ -135,6 +137,77 @@ TextStyle makeLinkStyle(TextStyle style) {
     decorationStyle: TextDecorationStyle.solid,
     decorationColor: color,
     decorationThickness: 1.2,
+  );
+}
+
+MarkdownStyleSheet get markDownLightStyle {
+  return markDownStyle(AuThemeManager.mainTheme, Colors.black);
+}
+
+MarkdownStyleSheet get markDownBlackStyle {
+  return markDownStyle(AuThemeManager.sheetTheme, Colors.white);
+}
+
+MarkdownStyleSheet markDownStyle(ThemeData theme, Color textColor) {
+  return MarkdownStyleSheet(
+    a: const TextStyle(color: Colors.blue),
+    p: theme.textTheme.bodyText2?.copyWith(color: textColor),
+    pPadding: EdgeInsets.only(bottom: 15),
+    code: theme.textTheme.bodyText2!.copyWith(
+      backgroundColor: Colors.transparent,
+    ),
+    h1: theme.textTheme.headline1,
+    h1Padding: EdgeInsets.only(bottom: 40),
+    h2: theme.textTheme.headline2,
+    h2Padding: EdgeInsets.zero,
+    h3: theme.textTheme.headline3,
+    h3Padding: EdgeInsets.zero,
+    h4: theme.textTheme.headline4,
+    h4Padding: EdgeInsets.zero,
+    h5: theme.textTheme.headline5,
+    h5Padding: EdgeInsets.zero,
+    h6: theme.textTheme.headline6,
+    h6Padding: EdgeInsets.zero,
+    em: const TextStyle(fontStyle: FontStyle.italic),
+    strong: const TextStyle(fontWeight: FontWeight.bold),
+    del: const TextStyle(decoration: TextDecoration.lineThrough),
+    blockquote: theme.textTheme.bodyText2,
+    img: theme.textTheme.bodyText2,
+    checkbox: theme.textTheme.bodyText2!.copyWith(
+      color: theme.primaryColor,
+    ),
+    blockSpacing: 15.0,
+    listIndent: 24.0,
+    listBullet: theme.textTheme.bodyText2,
+    listBulletPadding: const EdgeInsets.only(right: 4),
+    tableHead: const TextStyle(fontWeight: FontWeight.w600),
+    tableBody: theme.textTheme.bodyText2,
+    tableHeadAlign: TextAlign.center,
+    tableBorder: TableBorder.all(
+      color: theme.dividerColor,
+      width: 1,
+    ),
+    tableColumnWidth: const FlexColumnWidth(),
+    tableCellsPadding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+    tableCellsDecoration: const BoxDecoration(),
+    blockquotePadding: const EdgeInsets.all(8.0),
+    blockquoteDecoration: BoxDecoration(
+      color: Colors.blue.shade100,
+      borderRadius: BorderRadius.circular(2.0),
+    ),
+    codeblockPadding: const EdgeInsets.all(8.0),
+    codeblockDecoration: BoxDecoration(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(2.0),
+    ),
+    horizontalRuleDecoration: BoxDecoration(
+      border: Border(
+        top: BorderSide(
+          width: 5.0,
+          color: theme.dividerColor,
+        ),
+      ),
+    ),
   );
 }
 
