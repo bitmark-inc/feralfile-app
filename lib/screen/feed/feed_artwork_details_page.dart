@@ -1,3 +1,10 @@
+//
+//  SPDX-License-Identifier: BSD-2-Clause-Patent
+//  Copyright © 2022 Bitmark. All rights reserved.
+//  Use of this source code is governed by the BSD-2-Clause Plus Patent License
+//  that can be found in the LICENSE file.
+//
+
 import 'dart:collection';
 
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
@@ -8,7 +15,6 @@ import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/feed/feed_bloc.dart';
 import 'package:autonomy_flutter/screen/gallery/gallery_page.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
-import 'package:autonomy_flutter/util/theme_manager.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/au_outlined_button.dart';

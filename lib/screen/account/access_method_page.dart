@@ -57,6 +57,16 @@ class AccessMethodPage extends StatelessWidget {
               'View your NFTs without Autonomy accessing your private keys in ${walletApp.split('.').last}.',
               style: appTextTheme.bodyText1,
             ),
+            if (walletApp == 'WalletApp.MetaMask') ...[
+              SizedBox(height: 15),
+              Text(
+                'Autonomy currently only links to wallets on the Ethereum Mainnet. Other networks like Polygon are not yet supported.',
+                style: bodySmall.copyWith(
+                  fontWeight: FontWeight.w400,
+                  color: AppColorTheme.secondaryDimGrey,
+                ),
+              ),
+            ],
           ],
         ),
         onTap: () {
