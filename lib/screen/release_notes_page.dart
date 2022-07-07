@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/theme_manager.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
@@ -46,8 +47,7 @@ class _ReleaseNotesPageState extends State<ReleaseNotesPage> {
               data: widget.releaseNotes.replaceAll('\n', '\u3164\n'),
               softLineBreak: true,
               padding: EdgeInsets.only(bottom: 50),
-              styleSheet: MarkdownStyleSheet.fromTheme(
-                  AuThemeManager.get(AppTheme.markdownTheme)),
+              styleSheet: markDownBlackStyle,
             ),
           ),
           SizedBox(height: 35),
