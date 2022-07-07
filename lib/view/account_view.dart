@@ -78,7 +78,6 @@ Widget accountWithConnectionItem(
                     fontFamily: "AtlasGrotesk"),
               ),
               SizedBox(width: 8),
-              SizedBox(width: 8),
               Text(
                 connection.accountNumber.mask(4),
                 style: TextStyle(
