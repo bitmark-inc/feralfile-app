@@ -8,7 +8,6 @@
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/theme_manager.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
@@ -17,8 +16,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 
 class GithubDocPage extends StatefulWidget {
-  static const String tag = 'github_doc';
-
   final Map<String, String> payload;
 
   const GithubDocPage({Key? key, required this.payload}) : super(key: key);
@@ -49,21 +46,21 @@ class _GithubDocPageState extends State<GithubDocPage> {
     return Scaffold(
       appBar: getBackAppBar(
         context,
-        onBack: () {
-          Navigator.of(context).pop();
-        },
+        onBack: () => Navigator.of(context).pop(),
       ),
       body: Container(
         margin: pageEdgeInsets,
         child: FutureBuilder<Response<String>>(
           builder: (context, snapshot) => CustomScrollView(
             slivers: [
-              SliverToBoxAdapter(
-                  child: Text(
-                title,
-                style: appTextTheme.headline1,
-              )),
-              SliverPadding(padding: EdgeInsets.only(bottom: 40)),
+              if (title.isNotEmpty) ...[
+                SliverToBoxAdapter(
+                    child: Text(
+                  title,
+                  style: appTextTheme.headline1,
+                )),
+                SliverPadding(padding: EdgeInsets.only(bottom: 40)),
+              ],
               _contentView(context, snapshot)
             ],
           ),
@@ -84,8 +81,7 @@ class _GithubDocPageState extends State<GithubDocPage> {
               shrinkWrap: true,
               physics: NeverScrollableScrollPhysics(),
               padding: EdgeInsets.only(bottom: 50),
-              styleSheet: MarkdownStyleSheet.fromTheme(
-                  AuThemeManager.get(AppTheme.markdownThemeBlack))));
+              styleSheet: markDownLightStyle));
     } else if (snapshot.hasError ||
         (snapshot.data != null && snapshot.data?.statusCode != 200)) {
       return SliverFillRemaining(
@@ -101,9 +97,14 @@ class _GithubDocPageState extends State<GithubDocPage> {
   }
 
   Future<String> _githubPathForDocument(String docFileName) async {
-    final prefix = (await isAppCenterBuild() || kDebugMode)
-        ? "/bitmark-inc/autonomy-apps/develop/docs/"
-        : "/bitmark-inc/autonomy-apps/main/docs/";
+    var prefix = widget.payload["prefix"] ?? '';
+
+    if (prefix.isEmpty) {
+      prefix = (await isAppCenterBuild() || kDebugMode)
+          ? "/bitmark-inc/autonomy-apps/develop/docs/"
+          : "/bitmark-inc/autonomy-apps/main/docs/";
+    }
+
     return prefix + docFileName;
   }
 }

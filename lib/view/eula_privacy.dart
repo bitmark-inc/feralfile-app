@@ -5,16 +5,11 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 
-const eulaURL =
-    "https://github.com/bitmark-inc/autonomy.io/blob/gh-pages/apps/docs/eula.md";
-const privacyURL =
-    "https://github.com/bitmark-inc/autonomy.io/blob/gh-pages/apps/docs/privacy.md";
-
-Widget eulaAndPrivacyView() {
+Widget eulaAndPrivacyView(BuildContext context) {
   final customLinkStyle = linkStyle.copyWith(
     fontSize: 12,
     fontWeight: FontWeight.w500,
@@ -28,7 +23,12 @@ Widget eulaAndPrivacyView() {
           "EULA",
           style: customLinkStyle,
         ),
-        onTap: () => launch(eulaURL, forceSafariVC: true),
+        onTap: () => Navigator.of(context)
+            .pushNamed(AppRouter.githubDocPage, arguments: {
+          "prefix": "/bitmark-inc/autonomy.io/gh-pages/apps/docs/",
+          "document": "eula.md",
+          "title": ""
+        }),
       ),
       Text(
         " and ",
@@ -40,7 +40,12 @@ Widget eulaAndPrivacyView() {
           "Privacy Policy",
           style: customLinkStyle,
         ),
-        onTap: () => launch(privacyURL, forceSafariVC: true),
+        onTap: () => Navigator.of(context)
+            .pushNamed(AppRouter.githubDocPage, arguments: {
+          "prefix": "/bitmark-inc/autonomy.io/gh-pages/apps/docs/",
+          "document": "privacy.md",
+          "title": ""
+        }),
       ),
     ],
   );

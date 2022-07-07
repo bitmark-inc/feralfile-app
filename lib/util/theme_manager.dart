@@ -11,8 +11,6 @@ import 'package:flutter/material.dart';
 enum AppTheme {
   mainTheme,
   sheetTheme,
-  markdownTheme,
-  markdownThemeBlack,
   anyProblemNFTTheme,
   anyProblemNFTDarkTheme,
   previewNFTTheme,
@@ -23,10 +21,6 @@ class AuThemeManager {
     switch (theme) {
       case AppTheme.mainTheme:
         return mainTheme;
-      case AppTheme.markdownTheme:
-        return markdownTheme;
-      case AppTheme.markdownThemeBlack:
-        return markdownThemeBlack;
       case AppTheme.anyProblemNFTTheme:
         return anyProblemNFTTheme;
       case AppTheme.anyProblemNFTDarkTheme:
@@ -62,18 +56,6 @@ class AuThemeManager {
           caption: appTextTheme.caption?.copyWith(color: Colors.white),
         ),
   );
-
-  static final ThemeData markdownTheme = ThemeData(
-      backgroundColor: Colors.black,
-      primaryColor: Colors.white,
-      textTheme: ThemeData.dark().textTheme.copyWith(
-          bodyText2: appTextTheme.bodyText1?.copyWith(color: Colors.white)));
-
-  static final ThemeData markdownThemeBlack = ThemeData(
-      backgroundColor: Colors.black,
-      primaryColor: Colors.white,
-      textTheme: ThemeData.dark().textTheme.copyWith(
-          bodyText2: appTextTheme.bodyText1?.copyWith(color: Colors.black)));
 
   static final ThemeData anyProblemNFTTheme = ThemeData(
       backgroundColor: Color(0xFFEDEDED),

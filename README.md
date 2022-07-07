@@ -1,31 +1,20 @@
 <img src="assets/images/3.0x/penrose.png?raw=true"/>
 
-# Autonomy
-From [Bitmark](https://bitmark.com).
+# Autonomy: Digital Art Wallet
+_Collect, View & Discovery_
 
-Our mission is to make individuals their own gatekeepers. We develop cryptographic products that let people collaborate while protecting their activities and assets. Awarded as World Economic Forum Technology Pioneer in 2020. 
+## About
 
-### Be Your Own Gallery
-
-VIEW YOUR DIGITAL ARTWORK COLLECTION ANYTIME, ANYWHERE
-
-At home, on vacation, on the train  — never be without your digital art collection. 
-Digital artworks you own as NFTs on Ethereum, Feral File, or Tezos will automatically appear in your Autonomy. 
-
-You would never display a piece of art in your home without thinking about how to frame and light it. Autonomy + iPhone lets you set up your personal NFT art gallery anywhere you go, instantly - on your phone, at home, at parties. It’s a seamless, customizable new way to enjoy your digital art collection across your phone, TVs, and projectors.
-
-#### UNIFY
-View your entire NFT collection from platforms including OpenSea, Art Blocks, Hic et Nunc, fxhash, and Feral File. Autonomy supports NFTs on Ethereum (ERC-721), Bitmark, and Tezos blockchains using WalletConnect and Beacon.
-
-#### DISPLAY
-View your collection on TVs and projectors including over AirPlay.
-
-#### UPGRADES
-For the serious digital art collector, subscribe for $4.99/month to experience your art in physical spaces with TVs and projectors. You can also preserve and authenticate your artworks for the long-term.
+Autonomy is the world’s first and only digital art wallet. It gives you one easy-to-use app to securely collect, view and discover digital art you love. Autonomy works with Ethereum and Tezos and is built to support all new chains as they emerge.  
+ 
+- _Collect_: Buy digital art on Tezos or Ethereum and let Autonomy secure, organize and showcase your collection—all in one beautiful, simple experience. Autonomy takes care of the hard stuff so you can focus on growing the good stuff. 
+ 
+- _View_: Enjoy your digital art anywhere—on any screen, TV or projector. Autonomy is the only app that does this. It’s like having an infinite personal gallery you can share and experience anywhere you go.
+ 
+- _Discover_: Autonomy automatically helps you discover new art by knowing the artists you collect, what they’ve minted and what they’ve bought for themselves. We don’t use likes, trends or algorithms. We go straight to the source to give you the stuff we know you’ll love. 
 
 
-<img src="https://user-images.githubusercontent.com/50816149/172561757-563c9560-25c2-45b2-a241-954dd14ac3ff.png" width=220/> <img src="https://user-images.githubusercontent.com/50816149/172562042-cec2ebde-5b1f-47b6-8d63-15676224d26a.png" width=220/>
-<img src="https://user-images.githubusercontent.com/50816149/172562377-e997bb8d-b6df-4a81-98b3-758db0ae79df.png" width=220/>
+<img src="https://user-images.githubusercontent.com/422993/177656126-c3e02532-8ee6-4772-b495-84565231371b.jpg" width=220/> <img src="https://user-images.githubusercontent.com/422993/177656144-c3ccf692-5882-4bd2-8920-daaef399b055.jpg" width=220/> <img src="https://user-images.githubusercontent.com/422993/177656150-bce1a823-3944-4649-a502-049be2a57017.jpg" width=220/>
 
 
 ## Getting Started
@@ -63,6 +52,7 @@ Join us on [Discord](https://discord.com/invite/Wm2ZvGSxqg) to give feedback and
 //
 //  SPDX-License-Identifier: BSD-2-Clause-Patent
 //  Copyright © 2022 Bitmark. All rights reserved.
+//  Use of this UI/UX is governed by the CC BY-NC 4.0 License. 
 //  Use of this source code is governed by the BSD-2-Clause Plus Patent License
 //  that can be found in the LICENSE file.
 //

@@ -185,9 +185,9 @@ class AccountServiceImpl extends AccountService {
 
   Future deletePersona(Persona persona) async {
     await _cloudDB.personaDao.deletePersona(persona);
+    await _auditService.audiPersonaAction('delete', persona);
     await LibAukDart.getWallet(persona.uuid).removeKeys();
     await androidBackupKeys();
-    await _auditService.audiPersonaAction('delete', persona);
 
     final connections = await _cloudDB.connectionDao.getConnections();
     Set<WCPeerMeta> wcPeers = {};

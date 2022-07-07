@@ -210,8 +210,10 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
           return Container(
             padding: EdgeInsets.fromLTRB(0, 0, 12, 12),
             child: IconButton(
-                onPressed: () =>
-                    Navigator.of(context).pushNamed(AppRouter.feedPreviewPage),
+                onPressed: () {
+                  if (_opacity == 0) return;
+                  Navigator.of(context).pushNamed(AppRouter.feedPreviewPage);
+                },
                 icon: SvgPicture.asset('assets/images/iconFeed.svg')),
           );
         });

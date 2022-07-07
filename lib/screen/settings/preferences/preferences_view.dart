@@ -69,10 +69,9 @@ class PreferenceView extends StatelessWidget {
                   SizedBox(height: 10),
                   GestureDetector(
                       child: Text("Learn how we anonymize your data...",
-                          textAlign: TextAlign.left,
-                          style: linkStyle),
+                          textAlign: TextAlign.left, style: linkStyle),
                       onTap: () => Navigator.of(context).pushNamed(
-                            GithubDocPage.tag,
+                            AppRouter.githubDocPage,
                             arguments: {
                               "document": "protect_your_usage_data.md",
                               "title": "How we protect your usage data"
