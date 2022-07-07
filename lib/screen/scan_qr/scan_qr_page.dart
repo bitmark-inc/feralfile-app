@@ -20,6 +20,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -73,9 +74,9 @@ class _ScanQRPageState extends State<ScanQRPage> {
 
   @override
   Widget build(BuildContext context) {
-    final qrSize = MediaQuery.of(context).size.width - 90;
+    final qrSize = MediaQuery.of(context).size.width - 130;
 
-    var cutPaddingTop = qrSize + 430 - MediaQuery.of(context).size.height;
+    var cutPaddingTop = qrSize + 460 - MediaQuery.of(context).size.height;
     if (cutPaddingTop < 0) cutPaddingTop = 0;
 
     return BlocListener<FeralfileBloc, FeralFileState>(
@@ -114,9 +115,9 @@ class _ScanQRPageState extends State<ScanQRPage> {
                   borderColor: isScanDataError ? Colors.red : Colors.white,
                   cutOutSize: qrSize,
                   borderWidth: 8,
-                  // borderRadius: 20,
+                  borderRadius: 40,
                   // borderLength: qrSize / 2,
-                  cutOutBottomOffset: cutPaddingTop,
+                  cutOutBottomOffset: 32 + cutPaddingTop,
                 ),
                 onQRViewCreated: _onQRViewCreated,
               ),
@@ -132,13 +133,31 @@ class _ScanQRPageState extends State<ScanQRPage> {
               padding: EdgeInsets.fromLTRB(
                   0,
                   MediaQuery.of(context).size.height / 2 +
-                      qrSize / 2 +
-                      32 -
+                      qrSize / 2 -
                       cutPaddingTop,
                   0,
                   0),
               child: Center(child: _instructionView()),
             ),
+            Positioned.fill(
+                child: Align(
+              alignment: Alignment.bottomCenter,
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(16.0, 0, 16.0, 32.0),
+                child: AuFilledButton(
+                    text: "SHOW MY QR CODE",
+                    icon: SvgPicture.asset(
+                      "assets/images/iconQr.svg",
+                      color: Colors.white,
+                      height: 16.0,
+                      width: 16.0,
+                    ),
+                    onPress: () {
+                      Navigator.of(context)
+                          .pushNamed(AppRouter.globalReceivePage);
+                    }),
+              ),
+            )),
             if (_isLoading) ...[
               Center(
                 child:
@@ -167,14 +186,14 @@ class _ScanQRPageState extends State<ScanQRPage> {
             ),
             SizedBox(height: 24),
             Text(
-              "Marketplaces",
+              "Apps",
               style: appTextTheme.headline4
                   ?.copyWith(color: Colors.white, fontSize: 12),
             ),
             Text('Such as OpenSea or objkt.com',
                 style: appTextTheme.bodyText1
                     ?.copyWith(color: Colors.white, fontSize: 12)),
-            SizedBox(height: 16),
+            SizedBox(height: 8),
             Text(
               "Wallets",
               style: appTextTheme.headline4
@@ -183,7 +202,7 @@ class _ScanQRPageState extends State<ScanQRPage> {
             Text('Such as MetaMask',
                 style: appTextTheme.bodyText1
                     ?.copyWith(color: Colors.white, fontSize: 12)),
-            SizedBox(height: 16),
+            SizedBox(height: 8),
             Text(
               "Autonomy",
               style: appTextTheme.headline4

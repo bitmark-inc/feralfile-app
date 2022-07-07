@@ -54,7 +54,7 @@ class _GlobalReceivePageState extends State<GlobalReceivePage> {
                 ),
                 SizedBox(height: 40.0),
                 Text(
-                  "Select an account to receive the NFT:",
+                  "Select an address on the appropriate blockchain where you want to receive your NFT or cryptocurrency:",
                   style: appTextTheme.bodyText1,
                 ),
                 SizedBox(height: 24),

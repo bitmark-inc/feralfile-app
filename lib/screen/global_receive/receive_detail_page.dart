@@ -66,7 +66,7 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
                     onTap: copy),
               ),
               SizedBox(height: 48.0),
-              Text((_blockchainNFTText(_account.blockchain)).toUpperCase(),
+              Text((_blockchainNFTText(_account.blockchain)),
                   style: appTextTheme.headline4),
               SizedBox(height: 18.0),
               accountItem(context, _account),
@@ -94,7 +94,7 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
                           SizedBox(height: 4.0),
                           Text(
                             _account.accountNumber,
-                            textAlign: TextAlign.center,
+                            textAlign: TextAlign.start,
                             softWrap: true,
                             style: TextStyle(
                                 fontSize: 12, fontFamily: "IBMPlexMono"),
@@ -139,7 +139,7 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
 String _blockchainNFTText(String? blockchain) {
   switch (blockchain) {
     case "Bitmark":
-      return "Bitmark";
+      return "BITMARK";
     case "Ethereum":
       return "ETHEREUM NFT or ETH";
     case "Tezos":
