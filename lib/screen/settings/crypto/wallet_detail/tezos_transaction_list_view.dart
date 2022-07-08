@@ -12,12 +12,12 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/tezos_transaction_row_view.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 
 class TezosTXListView extends StatefulWidget {
-  final Future<String> address;
+  final String address;
+
   const TezosTXListView({Key? key, required this.address}) : super(key: key);
 
   @override
@@ -39,7 +39,9 @@ class _TezosTXListViewState extends State<TezosTXListView> {
   }
 
   Future<void> _fetchPage(int pageKey) async {
-    final address = await widget.address;
+    final address = widget.address;
+
+    if (address.isEmpty) return;
 
     try {
       final newItems = await injector<TZKTApi>().getOperations(
@@ -71,53 +73,48 @@ class _TezosTXListViewState extends State<TezosTXListView> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<String>(
-      builder: (context, snapshot) {
-        return snapshot.hasData
-            ? CustomScrollView(
-                slivers: [
-                  PagedSliverList.separated(
-                      pagingController: _pagingController,
-                      builderDelegate: PagedChildBuilderDelegate<TZKTOperation>(
-                        animateTransitions: true,
-                        newPageErrorIndicatorBuilder: (context) {
-                          return Container(
-                            padding: EdgeInsets.only(top: 30),
-                            child: Text(
-                                "Currently unable to load transaction data from tzkt.io.",
-                                style: appTextTheme.bodyText1),
-                          );
-                        },
-                        noItemsFoundIndicatorBuilder: (context) {
-                          return Container(
-                            padding: EdgeInsets.only(top: 30),
-                            child: Text("Your transactions will appear here.",
-                                style: appTextTheme.bodyText1),
-                          );
-                        },
-                        itemBuilder: (context, item, index) {
-                          return GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            child: TezosTXRowView(
-                                tx: item, currentAddress: snapshot.data!),
-                            onTap: () => Navigator.of(context).pushNamed(
-                              AppRouter.tezosTXDetailPage,
-                              arguments: {
-                                "current_address": snapshot.data,
-                                "tx": item,
-                              },
-                            ),
-                          );
-                        },
-                      ),
-                      separatorBuilder: (context, index) {
-                        return Divider();
-                      })
-                ],
-              )
-            : Container();
-      },
-      future: widget.address,
-    );
+    return widget.address.isEmpty
+        ? SizedBox()
+        : CustomScrollView(
+            slivers: [
+              PagedSliverList.separated(
+                  pagingController: _pagingController,
+                  builderDelegate: PagedChildBuilderDelegate<TZKTOperation>(
+                    animateTransitions: true,
+                    newPageErrorIndicatorBuilder: (context) {
+                      return Container(
+                        padding: EdgeInsets.only(top: 30),
+                        child: Text(
+                            "Currently unable to load transaction data from tzkt.io.",
+                            style: appTextTheme.bodyText1),
+                      );
+                    },
+                    noItemsFoundIndicatorBuilder: (context) {
+                      return Container(
+                        padding: EdgeInsets.only(top: 30),
+                        child: Text("Your transactions will appear here.",
+                            style: appTextTheme.bodyText1),
+                      );
+                    },
+                    itemBuilder: (context, item, index) {
+                      return GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        child: TezosTXRowView(
+                            tx: item, currentAddress: widget.address),
+                        onTap: () => Navigator.of(context).pushNamed(
+                          AppRouter.tezosTXDetailPage,
+                          arguments: {
+                            "current_address": widget.address,
+                            "tx": item,
+                          },
+                        ),
+                      );
+                    },
+                  ),
+                  separatorBuilder: (context, index) {
+                    return Divider();
+                  })
+            ],
+          );
   }
 }
