@@ -117,6 +117,7 @@ class AuTextField extends StatelessWidget {
         ),
         controller: controller,
         onChanged: onChanged,
+        onSubmitted: onChanged,
       ),
     );
   }
