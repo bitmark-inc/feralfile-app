@@ -52,9 +52,11 @@ class DetailIssuePayload extends SupportThreadPayload {
 
 class ExceptionErrorPayload extends SupportThreadPayload {
   final String sentryID;
+  final String metadata;
 
   ExceptionErrorPayload({
     required this.sentryID,
+    required this.metadata,
   });
 }
 
@@ -309,14 +311,22 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
 
   Future _submit(String messageType, DraftCustomerSupportData data) async {
     logUtil.log.info('[CS-Thread][start] _submit $messageType - $data');
-    String _sentryID = "";
+    List<String> mutedMessages = [];
     if (_issueID == null) {
       messageType = CSMessageType.CreateIssue.rawValue;
       _issueID = "TEMP-" + Uuid().v4();
 
       final payload = widget.payload;
       if (payload is ExceptionErrorPayload) {
-        _sentryID = payload.sentryID;
+        final _sentryID = payload.sentryID;
+        if (_sentryID.isNotEmpty) {
+          mutedMessages.add(
+              "[SENTRY REPORT $_sentryID](https://sentry.io/organizations/bitmark-inc/issues/?query=$_sentryID)");
+        }
+
+        if (payload.metadata.isNotEmpty) {
+          mutedMessages.add("METADATA EXCEPTION: ${payload.metadata}");
+        }
       }
     }
 
@@ -327,9 +337,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       data: json.encode(data),
       createdAt: DateTime.now(),
       reportIssueType: _reportIssueType,
-      mutedMessages: _sentryID.isNotEmpty
-          ? "[SENTRY REPORT $_sentryID](https://sentry.io/organizations/bitmark-inc/issues/?query=$_sentryID)"
-          : "",
+      mutedMessages: mutedMessages.join("[SEPARATOR]"),
     );
 
     _draftMessages.insertAll(0, await _convertChatMessage(draft, null));
