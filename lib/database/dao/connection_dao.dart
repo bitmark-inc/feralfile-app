@@ -39,6 +39,8 @@ abstract class ConnectionDao {
       switch (e.connectionType) {
         case 'walletConnect':
         case 'walletBrowserConnect':
+          return e.copyWith(
+              accountNumber: e.accountNumber.getETHEip55Address());
         default:
           return e;
       }
