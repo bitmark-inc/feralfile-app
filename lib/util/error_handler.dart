@@ -268,12 +268,18 @@ void showErrorDialogFromException(Object exception,
     if (event.state == ErrorItemState.getReport) {
       final sentryID = await reportSentry(
           {"exception": exception, "stackTrace": stackTrace});
+      var sentryMetadata = "";
+      if (sentryID == "00000000000000000000000000000000") {
+        sentryMetadata = exception.toString();
+      }
+
       showErrorDiablog(
         context,
         event,
         defaultAction: () => Navigator.of(context).pushNamed(
           AppRouter.supportThreadPage,
-          arguments: ExceptionErrorPayload(sentryID: sentryID),
+          arguments: ExceptionErrorPayload(
+              sentryID: sentryID, metadata: sentryMetadata),
         ),
       );
     } else {
