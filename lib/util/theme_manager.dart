@@ -61,11 +61,17 @@ class AuThemeManager {
       backgroundColor: Color(0xFFEDEDED),
       primaryColor: Colors.black,
       textTheme: TextTheme(
-          bodyText1: TextStyle(
-              color: Colors.black,
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              fontFamily: "IBMPlexMono")));
+        bodyText1: TextStyle(
+            color: Colors.black,
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            fontFamily: "IBMPlexMono"),
+        bodyText2: TextStyle(
+            color: Color(0xFF6D6B6B),
+            fontSize: 12,
+            fontWeight: FontWeight.w400,
+            fontFamily: "AtlasGrotesk"),
+      ));
 
   static final ThemeData anyProblemNFTDarkTheme = ThemeData(
       backgroundColor: Colors.black,
@@ -74,7 +80,12 @@ class AuThemeManager {
               color: Color(0xFFEDEDED),
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              fontFamily: "IBMPlexMono")));
+              fontFamily: "IBMPlexMono"),
+          bodyText2: TextStyle(
+              color: Color(0xFF999999),
+              fontSize: 12,
+              fontWeight: FontWeight.w400,
+              fontFamily: "AtlasGrotesk")));
 
   static final ThemeData previewNFTTheme = ThemeData(
     backgroundColor: Colors.black,
