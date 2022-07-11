@@ -16,83 +16,83 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 Widget accountWithConnectionItem(
     BuildContext context, CategorizedAccounts categorizedAccounts) {
-  if (categorizedAccounts.accounts.length > 1) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        Container(
-            width: 24,
-            height: 24,
-            child: Image.asset("assets/images/autonomyIcon.png")),
-        SizedBox(width: 16),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Text(categorizedAccounts.category,
-                  overflow: TextOverflow.ellipsis,
-                  style: appTextTheme.headline4),
-              SizedBox(height: 4),
-              ...categorizedAccounts.accounts
-                  .map((a) => Container(
-                      child: _blockchainAddressView(a,
-                          onTap: () => Navigator.of(context).pushNamed(
-                              GlobalReceiveDetailPage.tag,
-                              arguments: a))))
-                  .toList(),
-            ],
+  switch (categorizedAccounts.className) {
+    case 'Persona':
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Container(
+              width: 24,
+              height: 24,
+              child: Image.asset("assets/images/autonomyIcon.png")),
+          SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Text(categorizedAccounts.category,
+                    overflow: TextOverflow.ellipsis,
+                    style: appTextTheme.headline4),
+                SizedBox(height: 8),
+                ...categorizedAccounts.accounts
+                    .map((a) => Container(
+                        child: _blockchainAddressView(a,
+                            onTap: () => Navigator.of(context).pushNamed(
+                                GlobalReceiveDetailPage.tag,
+                                arguments: a))))
+                    .toList(),
+              ],
+            ),
           ),
-        ),
-      ],
-    );
-  }
+        ],
+      );
+    case 'Connection':
+      final connection = categorizedAccounts.accounts.first.connections?.first;
+      if (connection == null) return SizedBox();
 
-  final connection = categorizedAccounts.accounts.first.connections?.first;
-  if (connection != null) {
-    return TappableForwardRowWithContent(
-        leftWidget: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            Container(
-                alignment: Alignment.topCenter, child: _appLogo(connection)),
-            SizedBox(width: 16),
-            Text(connection.name.isNotEmpty ? connection.name : "Unnamed",
-                overflow: TextOverflow.ellipsis, style: appTextTheme.headline4),
-          ],
-        ),
-        rightWidget: _linkedBox(),
-        bottomWidget: Container(
-            padding: EdgeInsets.only(left: 40),
-            child: Row(children: [
-              _blockchainLogo(connection.connectionType),
-              SizedBox(width: 8),
-              Text(
-                _blockchainName(connection.connectionType),
-                style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    fontFamily: "AtlasGrotesk"),
-              ),
-              SizedBox(width: 8),
-              Text(
-                connection.accountNumber.mask(4),
-                style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w400,
-                    fontFamily: "IBMPlexMono"),
-              )
-            ])),
-        onTap: () => Navigator.of(context).pushNamed(
-            GlobalReceiveDetailPage.tag,
-            arguments: categorizedAccounts.accounts.first));
-  }
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Container(
+              alignment: Alignment.topCenter, child: _appLogo(connection)),
+          SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                          connection.name.isNotEmpty
+                              ? connection.name
+                              : "Unnamed",
+                          overflow: TextOverflow.ellipsis,
+                          style: appTextTheme.headline4),
+                      _linkedBox(),
+                    ]),
+                SizedBox(height: 8),
+                ...categorizedAccounts.accounts
+                    .map((a) => Container(
+                        child: _blockchainAddressView(a,
+                            onTap: () => Navigator.of(context).pushNamed(
+                                GlobalReceiveDetailPage.tag,
+                                arguments: a))))
+                    .toList(),
+              ],
+            ),
+          ),
+        ],
+      );
 
-  return SizedBox();
+    default:
+      return SizedBox();
+  }
 }
 
 Widget accountItem(BuildContext context, Account account,
@@ -141,6 +141,7 @@ Widget accountItem(BuildContext context, Account account,
 
 Widget _blockchainAddressView(Account account, {Function()? onTap}) {
   return TappableForwardRow(
+    padding: EdgeInsets.symmetric(vertical: 7),
     leftWidget: Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       mainAxisAlignment: MainAxisAlignment.start,

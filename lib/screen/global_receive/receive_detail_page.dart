@@ -40,9 +40,7 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
     return Scaffold(
       appBar: getBackAppBar(
         context,
-        onBack: () {
-          Navigator.of(context).pop();
-        },
+        onBack: () => Navigator.of(context).pop(),
       ),
       body: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         Expanded(
@@ -51,12 +49,11 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              SizedBox(height: 16.0),
               Text(
-                "Receive NFT",
+                "Receive",
                 style: appTextTheme.headline1,
               ),
-              SizedBox(height: 48.0),
+              addTitleSpace(),
               Center(
                 child: GestureDetector(
                     child: QrImage(
@@ -65,12 +62,10 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
                     ),
                     onTap: copy),
               ),
-              SizedBox(height: 48.0),
+              SizedBox(height: 48),
               Text((_blockchainNFTText(_account.blockchain)),
                   style: appTextTheme.headline4),
-              SizedBox(height: 18.0),
               accountItem(context, _account),
-              SizedBox(height: 18.0),
               GestureDetector(
                   child: Container(
                     padding: EdgeInsets.fromLTRB(8, 8, 8, 16),
@@ -89,15 +84,19 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
                             "Account address",
                             textAlign: TextAlign.left,
                             style: appTextTheme.headline4?.copyWith(
+                                fontSize: 12,
                                 color: AppColorTheme.secondaryDimGrey),
                           ),
                           SizedBox(height: 4.0),
-                          Text(
-                            _account.accountNumber,
-                            textAlign: TextAlign.start,
-                            softWrap: true,
-                            style: TextStyle(
-                                fontSize: 12, fontFamily: "IBMPlexMono"),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 8),
+                            child: Text(
+                              _account.accountNumber,
+                              textAlign: TextAlign.start,
+                              softWrap: true,
+                              style: TextStyle(
+                                  fontSize: 12, fontFamily: "IBMPlexMono"),
+                            ),
                           ),
                         ]),
                   ),
@@ -139,7 +138,7 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
 String _blockchainNFTText(String? blockchain) {
   switch (blockchain) {
     case "Bitmark":
-      return "BITMARK";
+      return "BITMARK NFT";
     case "Ethereum":
       return "ETHEREUM NFT or ETH";
     case "Tezos":
