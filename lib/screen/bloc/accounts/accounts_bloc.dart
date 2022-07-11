@@ -162,6 +162,7 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
       for (var connection in connections) {
         switch (connection.connectionType) {
           case "walletConnect":
+          case "walletBrowserConnect":
             categorizedAccounts.add(CategorizedAccounts(connection.name, [
               Account(
                 key: connection.key,

@@ -179,6 +179,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         for (var linkAccount in linkedAccounts) {
           switch (linkAccount.connectionType) {
             case 'walletConnect':
+            case 'walletBrowserConnect':
               final ethAddress = linkAccount.accountNumber;
               log.info("[HomeBloc] RequestIndex for linked $ethAddress");
               _indexerApi.requestIndex({"owner": ethAddress});
