@@ -176,6 +176,7 @@ Widget _blockchainLogo(String? blockchain) {
       return SvgPicture.asset('assets/images/iconBitmark.svg');
     case "Ethereum":
     case "walletConnect":
+    case "walletBrowserConnect":
       return SvgPicture.asset('assets/images/iconEth.svg');
     case "Tezos":
     case "walletBeacon":
