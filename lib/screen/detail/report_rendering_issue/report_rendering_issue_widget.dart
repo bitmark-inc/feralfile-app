@@ -165,6 +165,9 @@ class _ReportRenderingIssueWidgetState
       mutedMessages: [
         "**IndexerID**: ${widget.token.id}",
         "**TokenURL**: ${widget.token.assetURL}",
+        "**Artwork**: ${widget.token.title}",
+        "**Creator**: ${widget.token.artistName ?? 'unknown'}",
+        "**Collection**: ${widget.token.contractAddress ?? widget.token.blockchainURL}",
       ].join('[SEPARATOR]'),
     );
 

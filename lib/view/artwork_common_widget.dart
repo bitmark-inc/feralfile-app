@@ -3,15 +3,12 @@ import 'dart:collection';
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/model/asset_price.dart';
 import 'package:autonomy_flutter/model/provenance.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/screen/detail/report_rendering_issue/any_problem_nft_widget.dart';
 import 'package:autonomy_flutter/screen/detail/report_rendering_issue/report_rendering_issue_widget.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/au_cached_manager.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
-import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/theme_manager.dart';
@@ -167,19 +164,9 @@ void showReportIssueDialog(BuildContext context, AssetToken token) {
       ReportRenderingIssueWidget(
         token: token,
         onReported: (issueID) {
-          showErrorDialog(
-            context,
-            "🤔",
-            "We have automatically filed the rendering issue, and we will look into it. If you require further support or want to tell us more about the problem, please tap the button below.",
-            "GET SUPPORT",
-            () => Navigator.of(context).pushNamed(
-              AppRouter.supportThreadPage,
-              arguments: DetailIssuePayload(
-                  reportIssueType: ReportIssueType.ReportNFTIssue,
-                  issueID: issueID),
-            ),
-            "CLOSE",
-          );
+          UIHelper.showInfoDialog(context, 'Report received',
+              'Thank you for reporting this NFT. Our team is looking into it.',
+              closeButton: 'CLOSE');
         },
       ),
       isDismissible: true);

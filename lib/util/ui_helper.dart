@@ -125,6 +125,7 @@ class UIHelper {
       BuildContext context, String title, String description,
       {bool isDismissible = false,
       int autoDismissAfter = 0,
+      String closeButton = "",
       FeedbackType? feedback = FeedbackType.selection}) async {
     log.info("[UIHelper] showInfoDialog: $title, $description");
     final theme = AuThemeManager.get(AppTheme.sheetTheme);
@@ -148,6 +149,27 @@ class UIHelper {
               ),
             ],
             SizedBox(height: 40),
+            if (closeButton.isNotEmpty) ...[
+              SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text(
+                        closeButton,
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            fontFamily: "IBMPlexMono"),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 15),
+            ]
           ],
         ),
         isDismissible: isDismissible,

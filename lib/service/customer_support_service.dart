@@ -8,6 +8,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
@@ -64,7 +65,11 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
 
   Future<List<Issue>> getIssues() async {
     final issues = await _customerSupportApi.getIssues();
+    issues.removeWhere(
+        (element) => element.tags.contains(ReportIssueType.ReportNFTIssue));
     final drafts = await _draftCustomerSupportDao.getAllDrafts();
+    drafts.removeWhere(
+        (element) => element.reportIssueType == ReportIssueType.ReportNFTIssue);
 
     for (var draft in drafts) {
       if (draft.type != CSMessageType.CreateIssue.rawValue) continue;
@@ -243,6 +248,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     for (var mutedMsg in (mutedText ?? [])) {
       mutedMessage += "$mutedMsg\n";
     }
+
     final submitMessage = "[MUTED]\n$mutedMessage[/MUTED]\n\n${message ?? ''}";
 
     final payload = {
