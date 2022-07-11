@@ -344,7 +344,7 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
       _missingToken = false;
     }
 
-    _renderingWidget = buildRenderingWidget(token);
+    _renderingWidget = buildRenderingWidget(context, token);
     return Container(child: _renderingWidget!.build(context));
   }
 

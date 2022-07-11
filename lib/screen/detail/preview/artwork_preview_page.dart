@@ -291,10 +291,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
               size: 32,
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: previewCloseIcon(context),
-          ),
+          previewCloseIcon(context),
         ],
       ),
     );
@@ -357,7 +354,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   }
 
   Widget _getArtworkView(AssetToken asset) {
-    _renderingWidget = buildRenderingWidget(asset);
+    _renderingWidget = buildRenderingWidget(context, asset);
     return Container(
       child: _renderingWidget?.build(context),
     );

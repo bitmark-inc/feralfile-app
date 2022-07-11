@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/screen/detail/report_rendering_issue/report_ren
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -26,7 +27,7 @@ class AnyProblemNFTWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => _showReportIssueDialog(context),
+      onTap: () => showReportIssueDialog(context, asset),
       child: Container(
         alignment: Alignment.bottomCenter,
         padding: EdgeInsets.fromLTRB(0, 18, 0, 24),
@@ -45,30 +46,5 @@ class AnyProblemNFTWidget extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  void _showReportIssueDialog(BuildContext context) {
-    UIHelper.showDialog(
-        context,
-        "Report issue?",
-        ReportRenderingIssueWidget(
-          token: asset,
-          onReported: (issueID) {
-            showErrorDialog(
-              context,
-              "🤔",
-              "We have automatically filed the rendering issue, and we will look into it. If you require further support or want to tell us more about the problem, please tap the button below.",
-              "GET SUPPORT",
-              () => Navigator.of(context).pushNamed(
-                AppRouter.supportThreadPage,
-                arguments: DetailIssuePayload(
-                    reportIssueType: ReportIssueType.ReportNFTIssue,
-                    issueID: issueID),
-              ),
-              "CLOSE",
-            );
-          },
-        ),
-        isDismissible: true);
   }
 }

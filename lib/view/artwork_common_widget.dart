@@ -3,12 +3,15 @@ import 'dart:collection';
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/model/asset_price.dart';
 import 'package:autonomy_flutter/model/provenance.dart';
-import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/screen/detail/report_rendering_issue/any_problem_nft_widget.dart';
+import 'package:autonomy_flutter/screen/detail/report_rendering_issue/report_rendering_issue_widget.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/au_cached_manager.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
+import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/theme_manager.dart';
@@ -16,7 +19,6 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:nft_rendering/nft_rendering.dart';
@@ -50,14 +52,9 @@ Widget tokenThumbnailWidget(BuildContext context, AssetToken token) {
             fit: BoxFit.cover,
             errorWidget: (context, url, error) => Container(
               color: Color.fromRGBO(227, 227, 227, 1),
-              padding: EdgeInsets.all(71),
-              child: Center(
-                child: SvgPicture.asset(
-                  'assets/images/image_error.svg',
-                  width: 148,
-                  height: 158,
-                ),
-              ),
+              padding: EdgeInsets.symmetric(vertical: 133),
+              child: brokenTokenWidget(
+                  context, AuThemeManager.anyProblemNFTTheme.textTheme, token),
             ),
           ),
   );
@@ -115,11 +112,12 @@ Widget reportNFTProblemContainer(
   );
 }
 
-INFTRenderingWidget buildRenderingWidget(AssetToken asset) {
+INFTRenderingWidget buildRenderingWidget(
+    BuildContext context, AssetToken token) {
   String mimeType = "";
-  switch (asset.medium) {
+  switch (token.medium) {
     case "image":
-      final ext = p.extension(asset.previewURL!);
+      final ext = p.extension(token.previewURL!);
       if (ext == ".svg") {
         mimeType = "svg";
       } else {
@@ -130,16 +128,61 @@ INFTRenderingWidget buildRenderingWidget(AssetToken asset) {
       mimeType = "video";
       break;
     default:
-      mimeType = asset.mimeType ?? "";
+      mimeType = token.mimeType ?? "";
   }
   final renderingWidget = typesOfNFTRenderingWidget(mimeType);
 
   renderingWidget.setRenderWidgetBuilder(RenderingWidgetBuilder(
-    previewURL: asset.previewURL,
+    previewURL: token.previewURL,
     loadingWidget: previewPlaceholder,
+    errorWidget: brokenTokenWidget(
+        context, AuThemeManager.anyProblemNFTDarkTheme.textTheme, token),
   ));
 
   return renderingWidget;
+}
+
+Widget brokenTokenWidget(
+    BuildContext context, TextTheme textTheme, AssetToken token) {
+  return Center(
+    child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+      Text('IPFS file failed to load.', style: textTheme.bodyText2),
+      TextButton(
+        onPressed: () => showReportIssueDialog(context, token),
+        child:
+            Text('Report issue?', style: makeLinkStyle(textTheme.bodyText2!)),
+        style: TextButton.styleFrom(
+            minimumSize: Size.zero,
+            padding: EdgeInsets.all(8),
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+      ),
+    ]),
+  );
+}
+
+void showReportIssueDialog(BuildContext context, AssetToken token) {
+  UIHelper.showDialog(
+      context,
+      "Report issue?",
+      ReportRenderingIssueWidget(
+        token: token,
+        onReported: (issueID) {
+          showErrorDialog(
+            context,
+            "🤔",
+            "We have automatically filed the rendering issue, and we will look into it. If you require further support or want to tell us more about the problem, please tap the button below.",
+            "GET SUPPORT",
+            () => Navigator.of(context).pushNamed(
+              AppRouter.supportThreadPage,
+              arguments: DetailIssuePayload(
+                  reportIssueType: ReportIssueType.ReportNFTIssue,
+                  issueID: issueID),
+            ),
+            "CLOSE",
+          );
+        },
+      ),
+      isDismissible: true);
 }
 
 Widget get previewPlaceholder {
