@@ -73,6 +73,8 @@ class Environment {
   static String get onesignalAppID => dotenv.env['ONESIGNAL_APP_ID'] ?? '';
   static String get awsIdentityPoolId =>
       dotenv.env['AWS_IDENTITY_POOL_ID'] ?? '';
+  static String get autonomyShardService =>
+      dotenv.env['AUTONOMY_SHARD_SERVICE'] ?? '';
 }
 
 class Secret {

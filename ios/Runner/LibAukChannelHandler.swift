@@ -270,7 +270,68 @@ class LibAukChannelHandler {
             .store(in: &cancelBag)
 
     }
-    
+
+    func setupSSKR(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args: NSDictionary = call.arguments as! NSDictionary
+        let uuid: String = args["uuid"] as! String
+
+        LibAuk.shared.storage(for: UUID(uuidString: uuid)!).setupSSKR()
+            .sink(receiveCompletion: { (completion) in
+                if let error = completion.error {
+                    result(ErrorHandler.handle(error: error))
+                }
+
+            }, receiveValue: { _ in
+                result([
+                    "error": 0,
+                    "msg": "generateSSKR success",
+                ])
+            })
+            .store(in: &cancelBag)
+    }
+
+    func getShard(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args: NSDictionary = call.arguments as! NSDictionary
+        let uuid: String = args["uuid"] as! String
+        let shardType: Int = args["shardType"] as! Int
+
+        LibAuk.shared.storage(for: UUID(uuidString: uuid)!)
+            .getShard(type: ShardType(rawValue: shardType)!)
+            .sink(receiveCompletion: { (completion) in
+                if let error = completion.error {
+                    result(ErrorHandler.handle(error: error))
+                }
+
+            }, receiveValue: { (shard) in
+                result([
+                    "error": 0,
+                    "msg": "getShard success",
+                    "data": shard,
+                ])
+            })
+            .store(in: &cancelBag)
+    }
+
+    func removeShard(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args: NSDictionary = call.arguments as! NSDictionary
+        let uuid: String = args["uuid"] as! String
+        let shardType: Int = args["shardType"] as! Int
+
+        LibAuk.shared.storage(for: UUID(uuidString: uuid)!)
+            .removeShard(type: ShardType(rawValue: shardType)!)
+            .sink(receiveCompletion: { (completion) in
+                if let error = completion.error {
+                    result(ErrorHandler.handle(error: error))
+                }
+
+            }, receiveValue: { _ in
+                result([
+                    "error": 0,
+                    "msg": "removeShard success",
+                ])
+            })
+            .store(in: &cancelBag)
+    }
 }
 
 extension Data {

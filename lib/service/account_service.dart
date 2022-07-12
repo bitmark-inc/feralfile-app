@@ -40,6 +40,7 @@ import 'wallet_connect_dapp_service/wc_connected_session.dart';
 
 abstract class AccountService {
   Future<WalletStorage> getDefaultAccount();
+  Future<WalletStorage?> getCurrentDefaultAccount();
 
   Future androidBackupKeys();
 
@@ -180,6 +181,13 @@ class AccountServiceImpl extends AccountService {
       defaultPersona = personas.first;
     }
 
+    return LibAukDart.getWallet(defaultPersona.uuid);
+  }
+
+  Future<WalletStorage?> getCurrentDefaultAccount() async {
+    var personas = await _cloudDB.personaDao.getDefaultPersonas();
+    if (personas.isEmpty) return null;
+    final defaultPersona = personas.first;
     return LibAukDart.getWallet(defaultPersona.uuid);
   }
 

@@ -63,6 +63,12 @@ import Sentry
                 LibAukChannelHandler.shared.getBitmarkAddress(call: call, result: result)
             case "removeKeys":
                 LibAukChannelHandler.shared.removeKeys(call: call, result: result)
+            case "setupSSKR":
+                LibAukChannelHandler.shared.setupSSKR(call: call, result: result)
+            case "getShard":
+                LibAukChannelHandler.shared.getShard(call: call, result: result)
+            case "removeShard":
+                LibAukChannelHandler.shared.removeShard(call: call, result: result)
             default:
                 result(FlutterMethodNotImplemented)
             }
