@@ -57,7 +57,7 @@ class AuditServiceImpl extends AuditService {
     await _cloudDB.auditDao.insertAudit(audit);
   }
 
-  Future audiPersonaAction(String action, Persona? persona) async {
+  Future auditPersonaAction(String action, Persona? persona) async {
     Map<String, dynamic> metadata = {};
 
     if (persona != null) {

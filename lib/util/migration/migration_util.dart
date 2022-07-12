@@ -96,7 +96,7 @@ class MigrationUtil {
             Persona(uuid: uuid, name: name, createdAt: mPersona.createdAt);
 
         await _cloudDB.personaDao.insertPersona(persona);
-        await _auditService.audiPersonaAction(
+        await _auditService.auditPersonaAction(
             '[_migrationData] insert', persona);
       }
     }
@@ -211,7 +211,7 @@ class MigrationUtil {
             defaultAccount: defaultAccount);
 
         await _cloudDB.personaDao.insertPersona(persona);
-        await _auditService.audiPersonaAction(
+        await _auditService.auditPersonaAction(
             '[_migrationkeychain] insert', persona);
       }
     }

@@ -56,6 +56,7 @@
 		76AA1D4B2806E79000E21A83 /* BeaconBlockchainSubstrate in Frameworks */ = {isa = PBXBuildFile; productRef = 76AA1D4A2806E79000E21A83 /* BeaconBlockchainSubstrate */; };
 		76AA1D4D280787D800E21A83 /* BeaconBlockchainSubstrate in Frameworks */ = {isa = PBXBuildFile; productRef = 76AA1D4C280787D800E21A83 /* BeaconBlockchainSubstrate */; };
 		76B4E10527F585BA00FB762F /* LaunchScreenInhouse.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 768D9FDA27F566950016928E /* LaunchScreenInhouse.storyboard */; };
+		76E2E1852875374E00097750 /* WolfBase in Frameworks */ = {isa = PBXBuildFile; productRef = 76E2E1842875374E00097750 /* WolfBase */; };
 		76F3288827CE585F00C3B9FA /* CloudKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 76F3288727CE585F00C3B9FA /* CloudKit.framework */; };
 		76F3289427D1EC1C00C3B9FA /* BeaconChannelHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399594127B2C2FA002653E7 /* BeaconChannelHandler.swift */; };
 		76F3289527D1EC1C00C3B9FA /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
@@ -77,6 +78,8 @@
 		76F328A927D1EC1C00C3B9FA /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		76F328B427D1EEAA00C3B9FA /* Constant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76F328B327D1EEAA00C3B9FA /* Constant.swift */; };
 		76F328B527D1EEAE00C3B9FA /* Constant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76F328B327D1EEAA00C3B9FA /* Constant.swift */; };
+		76F7955A28780B6500C35FF3 /* SocialRecoveryChannelHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76F7955928780B6500C35FF3 /* SocialRecoveryChannelHandler.swift */; };
+		76F7955B2878110100C35FF3 /* SocialRecoveryChannelHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76F7955928780B6500C35FF3 /* SocialRecoveryChannelHandler.swift */; };
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
 		C577A25E2C1FF997DB2CF183 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A451CD8AF50E41359BCF628F /* Pods_Runner.framework */; };
@@ -201,6 +204,7 @@
 		76F328B227D1EC1C00C3B9FA /* Runner-Inhouse-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "Runner-Inhouse-Info.plist"; path = "../Runner-Inhouse-Info.plist"; sourceTree = "<group>"; };
 		76F328B327D1EEAA00C3B9FA /* Constant.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constant.swift; sourceTree = "<group>"; };
 		76F328B627D1F17D00C3B9FA /* Runner-Inhouse.entitlements */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.entitlements; path = "Runner-Inhouse.entitlements"; sourceTree = "<group>"; };
+		76F7955928780B6500C35FF3 /* SocialRecoveryChannelHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocialRecoveryChannelHandler.swift; sourceTree = "<group>"; };
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Release.xcconfig; path = Flutter/Release.xcconfig; sourceTree = "<group>"; };
 		7B1476D4526F72964B4A0961 /* Pods_Runner_Inhouse.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Runner_Inhouse.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		910C600E080C4A7D48B11C56 /* Pods-Runner Inhouse Notification.release-prd.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner Inhouse Notification.release-prd.xcconfig"; path = "Target Support Files/Pods-Runner Inhouse Notification/Pods-Runner Inhouse Notification.release-prd.xcconfig"; sourceTree = "<group>"; };
@@ -276,6 +280,7 @@
 				76F3288827CE585F00C3B9FA /* CloudKit.framework in Frameworks */,
 				63F1664B27B2509F00451AAA /* BeaconBlockchainTezos in Frameworks */,
 				63CED4A827AE9DFC00699ED5 /* LibAuk in Frameworks */,
+				76E2E1852875374E00097750 /* WolfBase in Frameworks */,
 				58A4B4F627E33A99001F30D2 /* libsqlite3.tbd in Frameworks */,
 				76AA1D4B2806E79000E21A83 /* BeaconBlockchainSubstrate in Frameworks */,
 				63F1665127B2509F00451AAA /* BeaconTransportP2PMatrix in Frameworks */,
@@ -444,6 +449,7 @@
 				764F859D27D9E19400B67672 /* ErrorHandler.swift */,
 				630DA1ED27DB5A4600586F70 /* Keychain.swift */,
 				58958D68283F6C2100D698AD /* BiometricAuthentication.swift */,
+				76F7955928780B6500C35FF3 /* SocialRecoveryChannelHandler.swift */,
 			);
 			path = Runner;
 			sourceTree = "<group>";
@@ -548,6 +554,7 @@
 				63F1665027B2509F00451AAA /* BeaconTransportP2PMatrix */,
 				76AA1D4A2806E79000E21A83 /* BeaconBlockchainSubstrate */,
 				766DF4612849FCD700731ADE /* Logging */,
+				76E2E1842875374E00097750 /* WolfBase */,
 			);
 			productName = Runner;
 			productReference = 97C146EE1CF9000F007C117D /* Runner.app */;
@@ -588,6 +595,7 @@
 				63CED4A627AE9DFC00699ED5 /* XCRemoteSwiftPackageReference "libauk-swift" */,
 				63F1664927B2509F00451AAA /* XCRemoteSwiftPackageReference "beacon-ios-sdk" */,
 				766DF4602849FCD700731ADE /* XCRemoteSwiftPackageReference "swift-log" */,
+				76E2E1832875374E00097750 /* XCRemoteSwiftPackageReference "WolfBase" */,
 			);
 			productRefGroup = 97C146EF1CF9000F007C117D /* Products */;
 			projectDirPath = "";
@@ -857,6 +865,7 @@
 				630DA1EF27DB616E00586F70 /* Keychain.swift in Sources */,
 				76F3289927D1EC1C00C3B9FA /* BeaconConnectService.swift in Sources */,
 				636F522227E0A064006A9101 /* BeaconConnectService+PostMessage.swift in Sources */,
+				76F7955B2878110100C35FF3 /* SocialRecoveryChannelHandler.swift in Sources */,
 				76F3289A27D1EC1C00C3B9FA /* LibAukChannelHandler.swift in Sources */,
 				63A61E1C27EAD383005684DD /* Logger.swift in Sources */,
 				76F328B527D1EEAE00C3B9FA /* Constant.swift in Sources */,
@@ -881,6 +890,7 @@
 				632FC2F627B4F51E00336DCE /* BeaconConnectService+Helpers.swift in Sources */,
 				630DA1EE27DB5A4600586F70 /* Keychain.swift in Sources */,
 				63F1665327B250D600451AAA /* BeaconConnectService.swift in Sources */,
+				76F7955A28780B6500C35FF3 /* SocialRecoveryChannelHandler.swift in Sources */,
 				6399594427B2C36B002653E7 /* LibAukChannelHandler.swift in Sources */,
 				63A61E1B27EAD2B3005684DD /* Logger.swift in Sources */,
 				764F859B27D810EB00B67672 /* Result+Helpers.swift in Sources */,
@@ -966,7 +976,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = iphoneos;
@@ -989,7 +999,7 @@
 				DEVELOPMENT_TEAM = Z5CE7A3A7N;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Runner/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1053,7 +1063,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
@@ -1073,7 +1083,7 @@
 				DEVELOPMENT_TEAM = Z5CE7A3A7N;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Runner/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1110,7 +1120,7 @@
 				INFOPLIST_FILE = "Runner Notification/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Runner Notification";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1144,7 +1154,7 @@
 				DEVELOPMENT_TEAM = A52M7AQ8B2;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = "Runner-Inhouse-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1182,7 +1192,7 @@
 				INFOPLIST_FILE = "Runner Inhouse Notification/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Runner Inhouse Notification";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1244,7 +1254,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = iphoneos;
@@ -1268,7 +1278,7 @@
 				DEVELOPMENT_TEAM = Z5CE7A3A7N;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Runner/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1304,7 +1314,7 @@
 				INFOPLIST_FILE = "Runner Notification/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Runner Notification";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1338,7 +1348,7 @@
 				DEVELOPMENT_TEAM = A52M7AQ8B2;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = "Runner-Inhouse-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1375,7 +1385,7 @@
 				INFOPLIST_FILE = "Runner Inhouse Notification/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Runner Inhouse Notification";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1442,7 +1452,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
@@ -1462,7 +1472,7 @@
 				DEVELOPMENT_TEAM = Z5CE7A3A7N;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Runner/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1498,7 +1508,7 @@
 				INFOPLIST_FILE = "Runner Notification/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Runner Notification";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1532,7 +1542,7 @@
 				DEVELOPMENT_TEAM = A52M7AQ8B2;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = "Runner-Inhouse-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1570,7 +1580,7 @@
 				INFOPLIST_FILE = "Runner Inhouse Notification/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Runner Inhouse Notification";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1632,7 +1642,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = iphoneos;
@@ -1656,7 +1666,7 @@
 				DEVELOPMENT_TEAM = Z5CE7A3A7N;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Runner/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1691,7 +1701,7 @@
 				INFOPLIST_FILE = "Runner Notification/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Runner Notification";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1725,7 +1735,7 @@
 				DEVELOPMENT_TEAM = A52M7AQ8B2;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = "Runner-Inhouse-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1762,7 +1772,7 @@
 				INFOPLIST_FILE = "Runner Inhouse Notification/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Runner Inhouse Notification";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1802,7 +1812,7 @@
 				INFOPLIST_FILE = "Runner Inhouse Notification/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Runner Inhouse Notification";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1841,7 +1851,7 @@
 				INFOPLIST_FILE = "Runner Notification/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Runner Notification";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1875,7 +1885,7 @@
 				DEVELOPMENT_TEAM = A52M7AQ8B2;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = "Runner-Inhouse-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1962,8 +1972,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/bitmark-inc/libauk-swift.git";
 			requirement = {
-				kind = revision;
-				revision = 5da850955a239f5fc5e33f0d1f0e0aa503994f48;
+				branch = features/sskr;
+				kind = branch;
 			};
 		};
 		63F1664927B2509F00451AAA /* XCRemoteSwiftPackageReference "beacon-ios-sdk" */ = {
@@ -1982,7 +1992,16 @@
 				kind = branch;
 			};
 		};
-		76F3288B27D1EC1C00C3B9FA /* XCRemoteSwiftPackageReference "libauk-swift.git" */ = {
+		76E2E1832875374E00097750 /* XCRemoteSwiftPackageReference "WolfBase" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/wolfmcnally/WolfBase";
+			requirement = {
+				kind = versionRange;
+				maximumVersion = 3.25.0;
+				minimumVersion = 3.0.0;
+			};
+		};
+		76F3288B27D1EC1C00C3B9FA /* XCRemoteSwiftPackageReference "libauk-swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/bitmark-inc/libauk-swift.git";
 			requirement = {
@@ -2045,6 +2064,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 63F1664927B2509F00451AAA /* XCRemoteSwiftPackageReference "beacon-ios-sdk" */;
 			productName = BeaconBlockchainSubstrate;
+		};
+		76E2E1842875374E00097750 /* WolfBase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 76E2E1832875374E00097750 /* XCRemoteSwiftPackageReference "WolfBase" */;
+			productName = WolfBase;
 		};
 		76F3288A27D1EC1C00C3B9FA /* LibAuk */ = {
 			isa = XCSwiftPackageProductDependency;

@@ -161,8 +161,7 @@ class _$PersonaDao extends PersonaDao {
 
   @override
   Future<List<Persona>> getPersonas() async {
-    return _queryAdapter.queryList(
-        "SELECT * FROM Persona",
+    return _queryAdapter.queryList('SELECT * FROM Persona',
         mapper: (Map<String, Object?> row) => Persona(
             uuid: row['uuid'] as String,
             name: row['name'] as String,

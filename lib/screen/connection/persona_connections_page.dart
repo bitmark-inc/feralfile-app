@@ -18,7 +18,7 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:share/share.dart';
+import 'package:share_plus/share_plus.dart';
 
 class PersonaConnectionsPage extends StatefulWidget {
   final PersonaConnectionsPayload payload;
