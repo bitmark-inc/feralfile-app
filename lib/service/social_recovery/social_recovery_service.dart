@@ -40,6 +40,10 @@ abstract class SocialRecoveryService {
   Future<String> getEmergencyContactDeck();
   Future doneSetupEmergencyContact();
 
+  Future<ShardDeck> requestDeckFromShardService(String domain, String otp);
+  Future restoreAccount(ShardDeck ecShardDeck);
+  Future clearRestoreProcess();
+
   Future<List<ContactDeck>> getContactDecks();
   Future storeContactDeck(ContactDeck contactDeck);
 
@@ -176,6 +180,75 @@ class SocialRecoveryServiceImpl extends SocialRecoveryService {
     }
   }
 
+  Future<ShardDeck> requestDeckFromShardService(
+      String domain, String otp) async {
+    await Future.delayed(Duration(seconds: 4));
+
+    final shardDeck = """
+{"defaultAccount":{"uuid":"a59c2335-9202-4cc4-855a-3fb18e5d93d1","shard":"tuna acid epic gyro song easy able acid acid easy real real taco foxy kite door vial hard wasp pool numb ugly diet duty barn cats edge limp iris"},"otherAccounts":[{"uuid":"6f7c9a6b-067c-4939-bd6f-e17978c089a7","shard":"tuna acid epic gyro navy math able acid acid vast epic bald film brag purr paid game game jump mild zaps omit idea runs away main taxi good epic"},{"uuid":"3580d290-a275-4622-8fb5-ad18adeb1bc8","shard":"tuna acid epic gyro oboe gems able acid acid beta ruby down fizz days need peck kick crux work city zone draw item stub very easy vial easy easy"}]}
+""";
+    return ShardDeck.fromJson(jsonDecode(shardDeck));
+  }
+
+  Future restoreAccount(ShardDeck ecShardDeck) async {
+    final shardServiceDeck =
+        _configurationService.getCachedDeckFromShardService();
+    if (shardServiceDeck == null) throw IncorrectFlow();
+
+    // Restore Default Account
+    final defaultAccountUUID = shardServiceDeck.defaultAccount.uuid;
+    final defaultShares = [
+      shardServiceDeck.defaultAccount.shard,
+      ecShardDeck.defaultAccount.shard
+    ];
+
+    await LibAukDart.getWallet(defaultAccountUUID)
+        .restoreByBytewordShards(defaultShares, name: "Default");
+
+    // -- Restore other accounts
+    Map<String, List<dynamic>> accountsInfo = {};
+    final backupVersion = await _backupService
+        .fetchBackupVersion(await _accountService.getDefaultAccount());
+
+    if (backupVersion.isNotEmpty) {
+      await _backupService.restoreCloudDatabase(
+          await _accountService.getDefaultAccount(), backupVersion);
+      await _accountService.androidRestoreKeys();
+
+      // Get name and creationDate
+
+      for (final persona in await _cloudDB.personaDao.getPersonas()) {
+        accountsInfo[persona.uuid] = [persona.name, persona.createdAt];
+      }
+    }
+    // Get shares from shardServiceDeck
+    Map<String, String> accountsShares = {};
+    for (final info in shardServiceDeck.otherAccounts) {
+      accountsShares[info.uuid] = info.shard;
+    }
+
+    for (final info in ecShardDeck.otherAccounts) {
+      final share1 = accountsShares[info.uuid];
+      if (share1 == null) continue;
+
+      final shares = [share1, info.shard];
+      final accountInfo = accountsInfo[info.uuid];
+
+      await LibAukDart.getWallet(info.uuid).restoreByBytewordShards(
+        shares,
+        name: accountInfo?[0],
+        creationDate: accountInfo?[1],
+      );
+    }
+
+    //
+    await _configurationService.setIsLostPlatformRestore(true);
+    await _configurationService.setCachedDeckFromShardService(null);
+  }
+
+  Future clearRestoreProcess() async {
+    await _configurationService.setCachedDeckFromShardService(null);
+  }
 
   Future<List<ContactDeck>> getContactDecks() async {
     return await _socialRecoveryChannel.getContactDecks();

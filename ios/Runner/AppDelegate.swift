@@ -69,6 +69,12 @@ import Sentry
                 LibAukChannelHandler.shared.getShard(call: call, result: result)
             case "removeShard":
                 LibAukChannelHandler.shared.removeShard(call: call, result: result)
+            case "restoreByBytewordShards":
+                LibAukChannelHandler.shared.restoreByBytewordShards(call: call, result: result)
+            default:
+                result(FlutterMethodNotImplemented)
+            }
+        })
 
         let socialRecoveryChannel = FlutterMethodChannel(name: "social_recovery",
                                                  binaryMessenger: controller.binaryMessenger)

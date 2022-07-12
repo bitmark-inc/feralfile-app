@@ -332,6 +332,31 @@ class LibAukChannelHandler {
             })
             .store(in: &cancelBag)
     }
+
+    func restoreByBytewordShards(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args: NSDictionary = call.arguments as! NSDictionary
+        let uuid: String = args["uuid"] as! String
+        let shares: [String] = args["shares"] as! [String]
+        let name: String = (args["name"] as? String) ?? ""
+
+        let dateInMili: Double? = args["date"] as? Double
+        let date = dateInMili != nil ? Date(timeIntervalSince1970: dateInMili!) : nil
+
+        LibAuk.shared.storage(for: UUID(uuidString: uuid)!)
+            .restoreByBytewordShards(shares: shares, name: name, creationDate: date)
+            .sink(receiveCompletion: { (completion) in
+                if let error = completion.error {
+                    result(ErrorHandler.handle(error: error))
+                }
+
+            }, receiveValue: { _ in
+                result([
+                    "error": 0,
+                    "msg": "restoreByBytewordShards success",
+                ])
+            })
+            .store(in: &cancelBag)
+    }
 }
 
 extension Data {

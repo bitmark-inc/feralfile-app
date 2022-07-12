@@ -199,4 +199,47 @@ class DeeplinkServiceImpl extends DeeplinkService {
     }
   }
 
+  Future<bool> _handleGetDeckToShardService(
+      BuildContext context, String link) async {
+    log.info("[DeeplinkService] _handleGetDeckToShardService");
+
+    final uri = Uri.parse(link);
+    if (uri.path == "/apps/social-recovery/get") {
+      final otp = uri.queryParameters['otp'];
+      final domain = uri.queryParameters['domain'];
+
+      if (otp == null ||
+          domain == null ||
+          (await injector<AccountService>().getCurrentDefaultAccount()) !=
+              null) {
+        throw InvalidDeeplink();
+      }
+
+      UIHelper.showInfoDialog(
+        context,
+        'Processing...',
+        'Getting ShardDeck from $domain',
+        autoDismissAfter: 5,
+        isDismissible: false,
+      );
+
+      try {
+        final deck = await injector<SocialRecoveryService>()
+            .requestDeckFromShardService(domain, otp);
+        await _configurationService.setCachedDeckFromShardService(deck);
+
+        await injector<NavigationService>()
+            .navigatorKey
+            .currentState
+            ?.pushNamedAndRemoveUntil(AppRouter.restoreWithEmergencyContactPage,
+                (route) => route.settings.name == AppRouter.onboardingPage);
+      } catch (_) {
+        rethrow;
+      }
+
+      return true;
+    } else {
+      return false;
+    }
+  }
 }

@@ -91,7 +91,14 @@ class RouterBloc extends Bloc<RouterEvent, RouterState> {
           return;
         }
       } else {
-        emit(RouterState(onboardingStep: OnboardingStep.startScreen));
+        if (_configurationService.getCachedDeckFromShardService() == null) {
+          emit(RouterState(onboardingStep: OnboardingStep.startScreen));
+          //
+        } else {
+          // user's in process restoring account with social recovery
+          emit(RouterState(
+              onboardingStep: OnboardingStep.restoreWithEmergencyContact));
+        }
       }
     });
 

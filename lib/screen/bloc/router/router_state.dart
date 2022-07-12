@@ -22,6 +22,7 @@ enum OnboardingStep {
   startScreen,
   restore,
   dashboard,
+  restoreWithEmergencyContact,
 }
 
 class RouterState {
