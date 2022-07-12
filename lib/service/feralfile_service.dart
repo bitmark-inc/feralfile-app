@@ -10,6 +10,7 @@ import 'dart:typed_data';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/service/aws_service.dart';
@@ -40,15 +41,17 @@ abstract class FeralFileService {
 }
 
 class FeralFileServiceImpl extends FeralFileService {
+  final NetworkConfigInjector _networkConfigInjector;
   final ConfigurationService _configurationService;
   final CloudDatabase _cloudDB;
-  final FeralFileApi _feralFileApi;
 
   FeralFileServiceImpl(
+    this._networkConfigInjector,
     this._configurationService,
     this._cloudDB,
-    this._feralFileApi,
   );
+
+  FeralFileApi get _feralFileApi => _networkConfigInjector.I();
 
   @override
   Future<Connection> linkFF(String token, {required bool delayLink}) async {
