@@ -71,6 +71,49 @@ class SocialRecoveryServiceImpl extends SocialRecoveryService {
   Future refreshSetupStep() async {
     // NOTE: Update this when support Social Recovery in Android
     if (!Platform.isIOS) return;
+
+    final account = await _accountService.getCurrentDefaultAccount();
+    if (account == null) return;
+
+    if (await account.getShard(ShardType.Platform) == null) {
+      // Has not setupSSKR or LostPlatform
+      socialRecoveryStep.value = _configurationService.isLostPlatformRestore()
+          ? SocialRecoveryStep.RestartWhenLostPlatform
+          : SocialRecoveryStep.SetupShardService;
+    } else {
+      // has setupSSKR
+
+      // setupSSKR but hasn't done to send ShardDeck to ShardService
+      if (await account.getShard(ShardType.ShardService) != null) {
+        socialRecoveryStep.value = SocialRecoveryStep.SetupShardService;
+      } else {
+        // Check history to see if user deleted/added accounts after setupSSKR
+        final lastAudit = (await _cloudDB.auditDao.getAuditsByCategoryActions(
+          [
+            'create',
+            'import',
+            'delete',
+            '[androidRestoreKeys] insert',
+            '[_migrationData] insert',
+            '[_migrationkeychain] insert'
+          ],
+          ['setupSSKR'],
+        ))
+            .firstOrNull;
+
+        if (lastAudit == null || lastAudit.action != 'setupSSKR') {
+          socialRecoveryStep.value = SocialRecoveryStep.RestartWhenHasChanges;
+        } else {
+          if (await account.getShard(ShardType.EmergencyContact) != null) {
+            // has not setup EmergencyContact
+            socialRecoveryStep.value = SocialRecoveryStep.SetupEmergencyContact;
+          } else {
+            // has setup EmergencyContact
+            socialRecoveryStep.value = SocialRecoveryStep.Done;
+          }
+        }
+      }
+    }
   }
 
   Future sendDeckToShardService(String domain, String otp) async {
