@@ -11,13 +11,13 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/social_recovery/shard_deck.dart';
 import 'package:autonomy_flutter/service/social_recovery/social_recovery_service.dart';
-import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/material.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 class RestoreWithEmergencyContactPage extends StatefulWidget {
   const RestoreWithEmergencyContactPage({Key? key}) : super(key: key);
@@ -66,7 +66,7 @@ class _RestoreWithEmergencyContactPageState
                       height: 120,
                       child: AuTextField(
                           title: "",
-                          placeholder: "Enter contact deck",
+                          placeholder: "Enter shard deck",
                           keyboardType: TextInputType.multiline,
                           expanded: true,
                           maxLines: null,
@@ -120,15 +120,18 @@ class _RestoreWithEmergencyContactPageState
     }
 
     // Restore
-    // Done Onboarding if success
+    // if success, done onboarding
     try {
       await injector<SocialRecoveryService>().restoreAccount(shardDeck);
-      doneOnboarding(context);
+
       try {
-        injector<SettingsDataService>().restoreSettingsData();
-      } catch (_) {
+        await injector<SettingsDataService>().restoreSettingsData();
+      } catch (exception) {
         // just ignore this so that user can go through onboarding
+        Sentry.captureException(exception);
       }
+
+      doneOnboarding(context);
       await askForNotification();
     } catch (exception) {
       setState(() {

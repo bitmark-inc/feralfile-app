@@ -87,10 +87,12 @@ class SocialRecoveryServiceImpl extends SocialRecoveryService {
     } else {
       // has setupSSKR
 
-      // setupSSKR but hasn't done to send ShardDeck to ShardService
       if (await account.getShard(ShardType.ShardService) != null) {
+        // setupSSKR but hasn't done to send ShardDeck to ShardService
         socialRecoveryStep.value = SocialRecoveryStep.SetupShardService;
       } else {
+        // done send ShardDeck to shard service
+
         // Check history to see if user deleted/added accounts after setupSSKR
         final lastAudit = (await _cloudDB.auditDao.getAuditsByCategoryActions(
           [
@@ -132,8 +134,7 @@ class SocialRecoveryServiceImpl extends SocialRecoveryService {
     // Create ShardService's ShardDeck
     final shardDeck = await _createShardDeck(accounts, ShardType.ShardService);
 
-    // Send to ShardService with OTP
-    print("THUYEN ${jsonEncode(shardDeck)}");
+    // TODO: SSKR - Send ShardDeck to ShardService with OTP
     await Future.delayed(Duration(seconds: 4));
 
     // Done
@@ -182,6 +183,7 @@ class SocialRecoveryServiceImpl extends SocialRecoveryService {
 
   Future<ShardDeck> requestDeckFromShardService(
       String domain, String otp) async {
+    // TODO: SSKR - Get ShardDeck to ShardService with OTP
     await Future.delayed(Duration(seconds: 4));
 
     final shardDeck = """
@@ -202,46 +204,57 @@ class SocialRecoveryServiceImpl extends SocialRecoveryService {
       ecShardDeck.defaultAccount.shard
     ];
 
-    await LibAukDart.getWallet(defaultAccountUUID)
-        .restoreByBytewordShards(defaultShares, name: "Default");
+    final defaultAccountWallet = LibAukDart.getWallet(defaultAccountUUID);
+    await defaultAccountWallet.restoreByBytewordShards(defaultShares,
+        name: "Default");
 
     // -- Restore other accounts
     Map<String, List<dynamic>> accountsInfo = {};
-    final backupVersion = await _backupService
-        .fetchBackupVersion(await _accountService.getDefaultAccount());
 
-    if (backupVersion.isNotEmpty) {
-      await _backupService.restoreCloudDatabase(
-          await _accountService.getDefaultAccount(), backupVersion);
-      await _accountService.androidRestoreKeys();
+    try {
+      final backupVersion = await _backupService
+          .fetchBackupVersion(await _accountService.getDefaultAccount());
 
-      // Get name and creationDate
+      if (backupVersion.isNotEmpty) {
+        await _backupService.restoreCloudDatabase(
+            await _accountService.getDefaultAccount(), backupVersion);
 
-      for (final persona in await _cloudDB.personaDao.getPersonas()) {
-        accountsInfo[persona.uuid] = [persona.name, persona.createdAt];
+        // Get name and creationDate
+        for (final persona in await _cloudDB.personaDao.getPersonas()) {
+          accountsInfo[persona.uuid] = [persona.name, persona.createdAt];
+        }
       }
+    } catch (exception) {
+      // Avoid interrupting restore keys, so skip if error when getting publicData
+      Sentry.captureException(exception);
     }
+
     // Get shares from shardServiceDeck
-    Map<String, String> accountsShares = {};
+    Map<String, String> accountsShards = {};
     for (final info in shardServiceDeck.otherAccounts) {
-      accountsShares[info.uuid] = info.shard;
+      accountsShards[info.uuid] = info.shard;
     }
 
     for (final info in ecShardDeck.otherAccounts) {
-      final share1 = accountsShares[info.uuid];
-      if (share1 == null) continue;
+      final shard = accountsShards[info.uuid];
+      if (shard == null) continue; // ignore if doesn't have 2 shards
 
-      final shares = [share1, info.shard];
+      final shards = [shard, info.shard];
       final accountInfo = accountsInfo[info.uuid];
 
       await LibAukDart.getWallet(info.uuid).restoreByBytewordShards(
-        shares,
+        shards,
         name: accountInfo?[0],
         creationDate: accountInfo?[1],
       );
     }
 
-    //
+    // Update defaultAccount's name in Keychain (after getting name from publicData)
+    final defaultName = accountsInfo[defaultAccountUUID]?[0];
+    if (defaultName != null && defaultName!.isNotEmpty)
+      defaultAccountWallet.updateName(defaultName);
+
+    // Done
     await _configurationService.setIsLostPlatformRestore(true);
     await _configurationService.setCachedDeckFromShardService(null);
   }
@@ -264,21 +277,8 @@ class SocialRecoveryServiceImpl extends SocialRecoveryService {
     List<ShardInfo> otherAccounts = [];
 
     for (final account in accounts) {
-      String? shard;
-      switch (shardType) {
-        case ShardType.ShardService:
-          shard = await LibAukDart.getWallet(account.uuid)
-              .getShard(ShardType.ShardService);
-          break;
-
-        case ShardType.EmergencyContact:
-          shard = await LibAukDart.getWallet(account.uuid)
-              .getShard(ShardType.EmergencyContact);
-          break;
-        case ShardType.Platform:
-          // do nothing
-          break;
-      }
+      String? shard =
+          await LibAukDart.getWallet(account.uuid).getShard(shardType);
 
       if (shard == null) throw SocialRecoveryMissingShard();
       if (account.defaultAccount == 1) {
@@ -296,22 +296,8 @@ class SocialRecoveryServiceImpl extends SocialRecoveryService {
   }
 
   Future _removeShards(List<Persona> accounts, ShardType shardType) async {
-    switch (shardType) {
-      case ShardType.ShardService:
-        for (final account in accounts) {
-          await LibAukDart.getWallet(account.uuid)
-              .removeShard(ShardType.ShardService);
-        }
-        break;
-
-      case ShardType.EmergencyContact:
-        for (final account in accounts) {
-          await LibAukDart.getWallet(account.uuid)
-              .removeShard(ShardType.EmergencyContact);
-        }
-        break;
-      case ShardType.Platform:
-        break;
+    for (final account in accounts) {
+      await LibAukDart.getWallet(account.uuid).removeShard(shardType);
     }
   }
 }
