@@ -106,7 +106,7 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
             .deleteAllProfiles(await _accountService.getDefaultAccount());
         await _cloudDB.personaDao.removeAll();
         await _cloudDB.connectionDao.removeAll();
-        await _auditService.audiPersonaAction('cleanUp', null);
+        await _auditService.auditPersonaAction('cleanUp', null);
       }
 
       accounts.sort((a, b) => a.createdAt.compareTo(b.createdAt));

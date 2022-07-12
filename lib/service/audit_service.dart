@@ -14,12 +14,14 @@ import 'package:uuid/uuid.dart';
 
 abstract class AuditService {
   void auditFirstLog();
-  Future audiPersonaAction(String action, Persona? persona);
+  Future auditPersonaAction(String action, Persona? persona);
+  Future auditSocialRecoveryAction(String action);
   Future<List<int>> export();
 }
 
 class AuditCategory {
   static const FullAccount = 'fullAccount';
+  static const SocialRecovery = 'socialRecovery';
 }
 
 class AuditServiceImpl extends AuditService {
@@ -57,7 +59,7 @@ class AuditServiceImpl extends AuditService {
     await _cloudDB.auditDao.insertAudit(audit);
   }
 
-  Future audiPersonaAction(String action, Persona? persona) async {
+  Future auditPersonaAction(String action, Persona? persona) async {
     Map<String, dynamic> metadata = {};
 
     if (persona != null) {
@@ -75,6 +77,18 @@ class AuditServiceImpl extends AuditService {
       action: action,
       createdAt: DateTime.now(),
       metadata: jsonEncode(metadata),
+    );
+
+    await _cloudDB.auditDao.insertAudit(audit);
+  }
+
+  Future auditSocialRecoveryAction(String action) async {
+    final audit = Audit(
+      uuid: Uuid().v4(),
+      category: AuditCategory.SocialRecovery,
+      action: action,
+      createdAt: DateTime.now(),
+      metadata: '',
     );
 
     await _cloudDB.auditDao.insertAudit(audit);

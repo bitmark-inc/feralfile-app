@@ -161,8 +161,7 @@ class _$PersonaDao extends PersonaDao {
 
   @override
   Future<List<Persona>> getPersonas() async {
-    return _queryAdapter.queryList(
-        "SELECT * FROM Persona",
+    return _queryAdapter.queryList('SELECT * FROM Persona',
         mapper: (Map<String, Object?> row) => Persona(
             uuid: row['uuid'] as String,
             name: row['name'] as String,
@@ -435,6 +434,26 @@ class _$AuditDao extends AuditDao {
             createdAt: _dateTimeConverter.decode(row['createdAt'] as int),
             metadata: row['metadata'] as String),
         arguments: [category, action]);
+  }
+
+  @override
+  Future<List<Audit>> getAuditsByCategoryActions(
+      List<String> fullAccountActions,
+      List<String> socialRecoveryActions) async {
+    int offset = 1;
+    final _sqliteVariablesForFullAccountActions = Iterable<String>.generate(
+        fullAccountActions.length, (i) => '?${i + offset}').join(',');
+    offset += fullAccountActions.length;
+    final _sqliteVariablesForSocialRecoveryActions = Iterable<String>.generate(
+        socialRecoveryActions.length, (i) => '?${i + offset}').join(',');
+    return _queryAdapter.queryList(
+        'SELECT * FROM Audit WHERE (category = \'fullAccount\' AND action IN (' +
+            _sqliteVariablesForFullAccountActions +
+            '))     OR (category = \'socialRecovery\' AND action IN (' +
+            _sqliteVariablesForSocialRecoveryActions +
+            ')) ORDER BY createdAt DESC LIMIT 1',
+        mapper: (Map<String, Object?> row) => Audit(uuid: row['uuid'] as String, category: row['category'] as String, action: row['action'] as String, createdAt: _dateTimeConverter.decode(row['createdAt'] as int), metadata: row['metadata'] as String),
+        arguments: [...fullAccountActions, ...socialRecoveryActions]);
   }
 
   @override

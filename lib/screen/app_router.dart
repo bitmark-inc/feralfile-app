@@ -82,6 +82,12 @@ import 'package:autonomy_flutter/screen/settings/networks/select_network_page.da
 import 'package:autonomy_flutter/screen/settings/settings_page.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
+import 'package:autonomy_flutter/screen/social_recovery/restore_with_emergency_contact_page.dart';
+import 'package:autonomy_flutter/screen/social_recovery/restore_with_shard_service_page.dart';
+import 'package:autonomy_flutter/screen/social_recovery/setup_emergency_contact_page.dart';
+import 'package:autonomy_flutter/screen/social_recovery/setup_shard_service_page.dart';
+import 'package:autonomy_flutter/screen/social_recovery/social_recovery_helpings_page.dart';
+import 'package:autonomy_flutter/screen/social_recovery/store_contact_deck_page.dart';
 import 'package:autonomy_flutter/screen/survey/survey.dart';
 import 'package:autonomy_flutter/screen/survey/survey_thankyou.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_send_transaction_page.dart';
@@ -155,6 +161,13 @@ class AppRouter {
   static const tvConnectPage = 'tv_connect';
   static const tezosTXDetailPage = "tezos_tx_detail";
   static const githubDocPage = 'github_doc_page';
+  static const setupShardServicePage = 'setupShardServicePage';
+  static const setupEmergencyContactPage = 'setupEmergencyContactPage';
+  static const restoreWithShardServicePage = 'restoreWithShardServicePage';
+  static const restoreWithEmergencyContactPage =
+      'restoreWithEmergencyContactPage';
+  static const socialRecoveryHelpingsPage = 'socialRecoveryHelpingsPage';
+  static const storeContactDeckPage = 'storeContactDeckPage';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final networkInjector = injector<NetworkConfigInjector>();
@@ -814,6 +827,34 @@ class AppRouter {
             settings: settings,
             builder: (context) => TezosTXDetailPage.fromPayload(
                 payload: settings.arguments as Map<String, dynamic>));
+
+      case setupShardServicePage:
+        return CupertinoPageRoute(
+            settings: settings, builder: (context) => SetupShardServicePage());
+
+      case setupEmergencyContactPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => SetupEmergencyContactPage());
+
+      case restoreWithShardServicePage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => RestoreWithShardServicePage());
+
+      case restoreWithEmergencyContactPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => RestoreWithEmergencyContactPage());
+
+      case socialRecoveryHelpingsPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => SocialRecoveryHelpingsPage());
+
+      case storeContactDeckPage:
+        return CupertinoPageRoute(
+            settings: settings, builder: (context) => StoreContactDeckPage());
 
       default:
         throw Exception('Invalid route: ${settings.name}');

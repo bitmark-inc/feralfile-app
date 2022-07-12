@@ -5,6 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:io';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/main.dart';
@@ -22,6 +24,7 @@ import 'package:autonomy_flutter/screen/settings/subscription/upgrade_view.dart'
 import 'package:autonomy_flutter/service/cloud_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
+import 'package:autonomy_flutter/service/social_recovery/social_recovery_service.dart';
 import 'package:autonomy_flutter/service/tokens_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
@@ -55,6 +58,7 @@ class _SettingsPageState extends State<SettingsPage>
     WidgetsBinding.instance.addObserver(this);
     _loadPackageInfo();
     context.read<AccountsBloc>().add(GetAccountsEvent());
+    injector<SocialRecoveryService>().refreshSetupStep();
     injector<SettingsDataService>().backup();
     _controller = ScrollController();
     _forceAccountsViewRedraw = Object();
@@ -77,6 +81,7 @@ class _SettingsPageState extends State<SettingsPage>
   void didPopNext() {
     super.didPopNext();
     context.read<AccountsBloc>().add(GetAccountsEvent());
+    injector<SocialRecoveryService>().refreshSetupStep();
     injector<SettingsDataService>().backup();
     setState(() {
       _forceAccountsViewRedraw = Object();
@@ -133,6 +138,9 @@ class _SettingsPageState extends State<SettingsPage>
                     SizedBox(width: 13),
                   ],
                 ),
+
+                _socialRecoveryWidget(),
+
                 SizedBox(height: 40),
                 BlocProvider(
                   create: (_) => PreferencesBloc(
@@ -252,6 +260,114 @@ class _SettingsPageState extends State<SettingsPage>
         ],
       )),
     );
+  }
+
+  // NOTE: Update this when support Social Recovery in Android
+  Widget _socialRecoveryWidget() {
+    if (!Platform.isIOS) return SizedBox();
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(height: 40),
+        Text(
+          "Social Recovery",
+          style: appTextTheme.headline1,
+        ),
+        SizedBox(height: 24),
+        Text('Short description about social recovery',
+            style: appTextTheme.bodyText1),
+        SizedBox(height: 15),
+        _setupSocialRecoveryWidget(),
+        addOnlyDivider(),
+        TappableForwardRow(
+            leftWidget: Text('Helping Contacts', style: appTextTheme.headline4),
+            onTap: () => Navigator.of(context)
+                .pushNamed(AppRouter.socialRecoveryHelpingsPage)),
+      ],
+    );
+  }
+
+  Widget _setupSocialRecoveryWidget() {
+    return ValueListenableBuilder<SocialRecoveryStep?>(
+        valueListenable: injector<SocialRecoveryService>().socialRecoveryStep,
+        builder:
+            (BuildContext context, SocialRecoveryStep? step, Widget? child) {
+          if (step == null) return loadingIndicator(size: 16);
+
+          switch (step) {
+            case SocialRecoveryStep.SetupShardService:
+              return TappableForwardRowWithContent(
+                  leftWidget: Text(
+                    'Setup Shard Service',
+                    style: appTextTheme.headline4,
+                  ),
+                  bottomWidget: SizedBox(),
+                  onTap: () => Navigator.of(context)
+                      .pushNamed(AppRouter.setupShardServicePage));
+
+            case SocialRecoveryStep.SetupEmergencyContact:
+              return TappableForwardRowWithContent(
+                  leftWidget: Text(
+                    'Setup Emergency Contact',
+                    style: appTextTheme.headline4,
+                  ),
+                  bottomWidget: SizedBox(),
+                  onTap: () => Navigator.of(context)
+                      .pushNamed(AppRouter.setupEmergencyContactPage));
+
+            case SocialRecoveryStep.RestartWhenHasChanges:
+              return Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('You has changed your accounts',
+                        style: appTextTheme.bodyText1
+                            ?.copyWith(color: AppColorTheme.errorColor)),
+                    SizedBox(height: 15),
+                    TappableForwardRowWithContent(
+                        leftWidget: Text(
+                          'Setup Shard Service',
+                          style: appTextTheme.headline4,
+                        ),
+                        bottomWidget: SizedBox(),
+                        onTap: () => Navigator.of(context)
+                            .pushNamed(AppRouter.setupShardServicePage)),
+                  ]);
+
+            case SocialRecoveryStep.RestartWhenLostPlatform:
+              return Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                        'Recommend to re-setup. Social Recovery is compromised because the platform shards have lost',
+                        style: appTextTheme.bodyText1
+                            ?.copyWith(color: AppColorTheme.errorColor)),
+                    SizedBox(height: 15),
+                    TappableForwardRowWithContent(
+                        leftWidget: Text(
+                          'Setup Shard Service',
+                          style: appTextTheme.headline4,
+                        ),
+                        bottomWidget: SizedBox(),
+                        onTap: () => Navigator.of(context)
+                            .pushNamed(AppRouter.setupShardServicePage)),
+                  ]);
+
+            case SocialRecoveryStep.Done:
+              return Column(
+                children: [
+                  Text(
+                    "Social Recovery is completed",
+                    style: appTextTheme.headline4,
+                  ),
+                  SizedBox(height: 15),
+                ],
+              );
+          }
+        });
   }
 
   Widget _settingItem(

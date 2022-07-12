@@ -34,6 +34,7 @@ import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/ledger_hardware/ledger_hardware_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
+import 'package:autonomy_flutter/service/social_recovery/social_recovery_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tokens_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
@@ -219,6 +220,16 @@ Future<void> setup() async {
         injector(),
         injector<NetworkConfigInjector>().I(),
       ));
+
+  injector.registerLazySingleton<SocialRecoveryService>(
+    () => SocialRecoveryServiceImpl(
+      injector(),
+      injector(),
+      injector(),
+      injector(),
+      injector(),
+    ),
+  );
 
   // Deeplink
   final deeplinkService = DeeplinkServiceImpl(

@@ -32,3 +32,9 @@ class RequiredPremiumFeature implements Exception {
 class InvalidDeeplink implements Exception {}
 
 class FailedFetchBackupVersion implements Exception {}
+
+class SocialRecoveryMissingShard implements Exception {}
+
+class IncorrectFlow implements Exception {}
+
+class RestoreAccountSSKRFailureException implements Exception {}

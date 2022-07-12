@@ -40,6 +40,7 @@ import 'wallet_connect_dapp_service/wc_connected_session.dart';
 
 abstract class AccountService {
   Future<WalletStorage> getDefaultAccount();
+  Future<WalletStorage?> getCurrentDefaultAccount();
 
   Future androidBackupKeys();
 
@@ -119,7 +120,7 @@ class AccountServiceImpl extends AccountService {
         uuid: uuid, name: "", defaultAccount: isDefault ? 1 : null);
     await _cloudDB.personaDao.insertPersona(persona);
     await androidBackupKeys();
-    await _auditService.audiPersonaAction('create', persona);
+    await _auditService.auditPersonaAction('create', persona);
     injector<AWSService>().storeEventWithDeviceData("create_full_account",
         hashingData: {"id": uuid});
     _autonomyService.postLinkedAddresses();
@@ -136,7 +137,7 @@ class AccountServiceImpl extends AccountService {
     final persona = Persona.newPersona(uuid: uuid, name: "");
     await _cloudDB.personaDao.insertPersona(persona);
     await androidBackupKeys();
-    await _auditService.audiPersonaAction('import', persona);
+    await _auditService.auditPersonaAction('import', persona);
     injector<AWSService>().storeEventWithDeviceData("import_full_account",
         hashingData: {"id": uuid});
     _autonomyService.postLinkedAddresses();
@@ -183,9 +184,16 @@ class AccountServiceImpl extends AccountService {
     return LibAukDart.getWallet(defaultPersona.uuid);
   }
 
+  Future<WalletStorage?> getCurrentDefaultAccount() async {
+    var personas = await _cloudDB.personaDao.getDefaultPersonas();
+    if (personas.isEmpty) return null;
+    final defaultPersona = personas.first;
+    return LibAukDart.getWallet(defaultPersona.uuid);
+  }
+
   Future deletePersona(Persona persona) async {
     await _cloudDB.personaDao.deletePersona(persona);
-    await _auditService.audiPersonaAction('delete', persona);
+    await _auditService.auditPersonaAction('delete', persona);
     await LibAukDart.getWallet(persona.uuid).removeKeys();
     await androidBackupKeys();
 
@@ -376,7 +384,7 @@ class AccountServiceImpl extends AccountService {
             defaultAccount: defaultAccount,
           );
           await _cloudDB.personaDao.insertPersona(persona);
-          await _auditService.audiPersonaAction(
+          await _auditService.auditPersonaAction(
               '[androidRestoreKeys] insert', persona);
         }
       }
@@ -401,7 +409,7 @@ class AccountServiceImpl extends AccountService {
     await persona.wallet().updateName(name);
     final updatedPersona = persona.copyWith(name: name);
     await _cloudDB.personaDao.updatePersona(updatedPersona);
-    await _auditService.audiPersonaAction('name', updatedPersona);
+    await _auditService.auditPersonaAction('name', updatedPersona);
 
     return updatedPersona;
   }

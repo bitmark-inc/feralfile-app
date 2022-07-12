@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/social_recovery/social_recovery_service.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/theme_manager.dart';
@@ -295,6 +296,8 @@ class _AccountsViewState extends State<AccountsView> {
     final persona = account.persona;
     if (persona != null) {
       await injector<AccountService>().deletePersona(persona);
+      // Side effect
+      await injector<SocialRecoveryService>().refreshSetupStep();
     }
 
     final connection = account.connections?.first;
