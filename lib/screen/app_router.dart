@@ -84,6 +84,8 @@ import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dar
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/screen/social_recovery/setup_emergency_contact_page.dart';
 import 'package:autonomy_flutter/screen/social_recovery/setup_shard_service_page.dart';
+import 'package:autonomy_flutter/screen/social_recovery/social_recovery_helpings_page.dart';
+import 'package:autonomy_flutter/screen/social_recovery/store_contact_deck_page.dart';
 import 'package:autonomy_flutter/screen/survey/survey.dart';
 import 'package:autonomy_flutter/screen/survey/survey_thankyou.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_send_transaction_page.dart';
@@ -159,6 +161,8 @@ class AppRouter {
   static const githubDocPage = 'github_doc_page';
   static const setupShardServicePage = 'setupShardServicePage';
   static const setupEmergencyContactPage = 'setupEmergencyContactPage';
+  static const socialRecoveryHelpingsPage = 'socialRecoveryHelpingsPage';
+  static const storeContactDeckPage = 'storeContactDeckPage';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final networkInjector = injector<NetworkConfigInjector>();
@@ -827,6 +831,15 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => SetupEmergencyContactPage());
+
+      case socialRecoveryHelpingsPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => SocialRecoveryHelpingsPage());
+
+      case storeContactDeckPage:
+        return CupertinoPageRoute(
+            settings: settings, builder: (context) => StoreContactDeckPage());
 
       default:
         throw Exception('Invalid route: ${settings.name}');

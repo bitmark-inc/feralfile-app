@@ -40,6 +40,9 @@ abstract class SocialRecoveryService {
   Future<String> getEmergencyContactDeck();
   Future doneSetupEmergencyContact();
 
+  Future<List<ContactDeck>> getContactDecks();
+  Future storeContactDeck(ContactDeck contactDeck);
+
   Future<String> storeDataInTempSecretFile(String data);
   Future cleanTempSecretFile();
 }
@@ -128,6 +131,15 @@ class SocialRecoveryServiceImpl extends SocialRecoveryService {
     if (await file.exists()) {
       file.delete();
     }
+  }
+
+
+  Future<List<ContactDeck>> getContactDecks() async {
+    return await _socialRecoveryChannel.getContactDecks();
+  }
+
+  Future storeContactDeck(ContactDeck contactDeck) async {
+    return _socialRecoveryChannel.storeContactDeck(contactDeck);
   }
 
   Future<ShardDeck> _createShardDeck(

@@ -69,6 +69,15 @@ import Sentry
                 LibAukChannelHandler.shared.getShard(call: call, result: result)
             case "removeShard":
                 LibAukChannelHandler.shared.removeShard(call: call, result: result)
+
+        let socialRecoveryChannel = FlutterMethodChannel(name: "social_recovery",
+                                                 binaryMessenger: controller.binaryMessenger)
+        socialRecoveryChannel.setMethodCallHandler({(call: FlutterMethodCall, result: @escaping FlutterResult) -> Void in
+            switch call.method {
+            case "getContactDecks":
+                SocialRecoveryChannelHandler.shared.getContactDecks(call: call, result: result)
+            case "storeContactDeck":
+                SocialRecoveryChannelHandler.shared.storeContactDeck(call: call, result: result)
             default:
                 result(FlutterMethodNotImplemented)
             }
