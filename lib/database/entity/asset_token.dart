@@ -5,9 +5,13 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/model/asset.dart';
 import 'package:autonomy_flutter/model/provenance.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:floor/floor.dart';
+import 'package:libauk_dart/libauk_dart.dart';
 
 @entity
 class AssetToken {
@@ -21,6 +25,8 @@ class AssetToken {
   String? baseCurrency;
   String blockchain;
   String? contractType;
+  String? tokenId;
+  String? contractAddress;
   String? blockchainURL;
   String? desc;
   int edition;
@@ -53,6 +59,8 @@ class AssetToken {
     required this.baseCurrency,
     required this.blockchain,
     required this.contractType,
+    required this.tokenId,
+    required this.contractAddress,
     required this.blockchainURL,
     required this.desc,
     required this.edition,
@@ -84,6 +92,8 @@ class AssetToken {
         baseCurrency: asset.projectMetadata.latest.baseCurrency,
         blockchain: asset.blockchain,
         contractType: asset.contractType,
+        tokenId: asset.tokenId,
+        contractAddress: asset.contractAddress,
         blockchainURL: asset.blockchainURL,
         desc: asset.projectMetadata.latest.description,
         edition: asset.edition,
@@ -104,4 +114,28 @@ class AssetToken {
       );
 
   bool isHidden() => hidden == 1;
+
+  Future<WalletStorage?> getOwnerWallet() async {
+    if (contractAddress == null || tokenId == null) return null;
+    if (blockchain != "ethereum" && blockchain != "tezos")
+      return null;
+
+    //check asset is able to send
+    final personas = await injector<CloudDatabase>().personaDao.getPersonas();
+
+    WalletStorage? wallet;
+    for (final persona in personas) {
+      final address;
+      if (blockchain == "ethereum") {
+        address = await persona.wallet().getETHAddress();
+      } else {
+        address = (await persona.wallet().getTezosWallet()).address;
+      }
+      if (address == ownerAddress) {
+        wallet = persona.wallet();
+        break;
+      }
+    }
+    return wallet;
+  }
 }

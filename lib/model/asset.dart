@@ -19,6 +19,8 @@ class Asset {
     required this.blockchain,
     required this.mintedAt,
     required this.contractType,
+    required this.tokenId,
+    required this.contractAddress,
     required this.blockchainURL,
     required this.owner,
     required this.thumbnailID,
@@ -32,6 +34,8 @@ class Asset {
   String blockchain;
   DateTime mintedAt;
   String contractType;
+  String? tokenId;
+  String? contractAddress;
   String? blockchainURL;
   String owner;
   String thumbnailID;
@@ -75,6 +79,8 @@ class Asset {
       blockchain: json["blockchain"],
       mintedAt: DateTime.parse(json["mintedAt"]),
       contractType: json["contractType"],
+      tokenId: json["id"],
+      contractAddress: json["contractAddress"],
       blockchainURL: blockchainURL,
       owner: json["owner"],
       thumbnailID: json["thumbnailID"],

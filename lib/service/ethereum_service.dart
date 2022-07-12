@@ -10,18 +10,27 @@ import 'dart:typed_data';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:flutter/services.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 
 abstract class EthereumService {
   Future<String> getETHAddress(WalletStorage wallet);
+
   Future<EtherAmount> getBalance(String address);
+
   Future<String> signPersonalMessage(WalletStorage wallet, Uint8List message);
-  Future<BigInt> estimateFee(WalletStorage wallet, EthereumAddress to,
-      EtherAmount amount, String? data);
-  Future<String> sendTransaction(WalletStorage wallet, EthereumAddress to,
-      BigInt value, BigInt? gas, String? data);
+
+  Future<BigInt> estimateFee(WalletStorage wallet, EthereumAddress to, EtherAmount amount, String? data);
+
+  Future<String> sendTransaction(WalletStorage wallet, EthereumAddress to, BigInt value, BigInt? gas, String? data);
+
+  Future<String?> getERC721TransferTransactionData(
+      EthereumAddress contractAddress,
+      EthereumAddress from,
+      EthereumAddress to,
+      String tokenId);
 }
 
 class EthereumServiceImpl extends EthereumService {
@@ -82,9 +91,13 @@ class EthereumServiceImpl extends EthereumService {
     final sender = EthereumAddress.fromHex(await wallet.getETHAddress());
     final nonce = await _web3Client.getTransactionCount(sender);
     final gasPrice = await _web3Client.getGasPrice();
-    final gasLimit =
-        gas != null ? gas ~/ gasPrice.getInWei : BigInt.from(21000);
-    final chainId = _configurationService.getNetwork() == Network.MAINNET ? 1 : 4;
+    var gasLimit =
+        gas != null ? gas ~/ gasPrice.getInWei : null;
+    if (gasLimit == null) {
+      gasLimit = (await estimateFee(wallet, to, EtherAmount.inWei(value), data)) ~/ gasPrice.getInWei;
+    }
+    final chainId =
+        _configurationService.getNetwork() == Network.MAINNET ? 1 : 4;
 
     final signedTransaction = await wallet.signTransaction(
         nonce: nonce,
@@ -96,5 +109,31 @@ class EthereumServiceImpl extends EthereumService {
         chainId: chainId);
 
     return _web3Client.sendRawTransaction(signedTransaction);
+  }
+
+  @override
+  Future<String?> getERC721TransferTransactionData(
+      EthereumAddress contractAddress,
+      EthereumAddress from,
+      EthereumAddress to,
+      String tokenId) async {
+    final contractJson = await rootBundle.loadString('assets/erc721-abi.json');
+    final contract = DeployedContract(
+        ContractAbi.fromJson(contractJson, "ERC721"), contractAddress);
+    ContractFunction _transferFrom() => contract.function("transferFrom");
+
+    final nonce = await _web3Client.getTransactionCount(from);
+    final gasPrice = await _web3Client.getGasPrice();
+
+    final transaction = Transaction.callContract(
+      contract: contract,
+      function: _transferFrom(),
+      parameters: [from, to, BigInt.parse(tokenId, radix: 10)],
+      from: from,
+      gasPrice: gasPrice,
+      nonce: nonce,
+    );
+
+    return transaction.data != null ? bytesToHex(transaction.data!) : null;
   }
 }

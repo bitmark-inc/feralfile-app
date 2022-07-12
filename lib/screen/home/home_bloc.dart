@@ -106,6 +106,12 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
             ..addAll(allAddresses['personaTezos'] ?? []);
         }
 
+        //Clear and refresh all assets if no contractAddress
+        final tokens = await _assetTokenDao.findAllAssetTokens();
+        if (tokens.every((element) => element.contractAddress == null)) {
+          await _assetTokenDao.removeAll();
+        }
+
         await _assetTokenDao.deleteAssetsNotBelongs(allAccountNumbers);
 
         _hiddenOwners = await _getHiddenAddressesInGallery();
