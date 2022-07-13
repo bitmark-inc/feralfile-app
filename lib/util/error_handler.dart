@@ -103,12 +103,11 @@ Future showErrorDialog(BuildContext context, String title, String description,
   Vibrate.feedback(FeedbackType.warning);
   await showModalBottomSheet(
       context: context,
-      // isDismissible: false,
       enableDrag: false,
-      // isScrollControlled: false,
+      backgroundColor: Colors.transparent,
       builder: (context) {
         return Container(
-          color: cuttedColor,
+          color: Colors.transparent,
           child: ClipPath(
             clipper: AutonomyTopRightRectangleClipper(),
             child: Container(
