@@ -84,6 +84,8 @@ import Sentry
                 SocialRecoveryChannelHandler.shared.getContactDecks(call: call, result: result)
             case "storeContactDeck":
                 SocialRecoveryChannelHandler.shared.storeContactDeck(call: call, result: result)
+            case "deleteHelpingContactDecks":
+                SocialRecoveryChannelHandler.shared.deleteHelpingContactDecks(call: call, result: result)
             default:
                 result(FlutterMethodNotImplemented)
             }

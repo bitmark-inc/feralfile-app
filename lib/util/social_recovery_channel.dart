@@ -46,4 +46,14 @@ class SocialRecoveryChannel {
       throw SystemException(res['reason']);
     }
   }
+
+  Future deleteHelpingContactDecks() async {
+    Map res = await _channel.invokeMethod('deleteHelpingContactDecks');
+
+    if (res['error'] == 0) {
+      return;
+    } else {
+      throw SystemException(res['reason']);
+    }
+  }
 }

@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/screen/settings/forget_exist/forget_exist_state
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/social_recovery/social_recovery_service.dart';
 import 'package:autonomy_flutter/util/migration/migration_util.dart';
 import 'package:autonomy_flutter/util/notification_util.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -29,16 +30,18 @@ class ForgetExistBloc extends Bloc<ForgetExistEvent, ForgetExistState> {
   AppDatabase _mainnetDatabase;
   AppDatabase _testnetDatabase;
   ConfigurationService _configurationService;
+  SocialRecoveryService _socialRecoveryService;
 
   ForgetExistBloc(
-      this._accountService,
-      this._autonomyService,
-      this._iapApi,
-      this._cloudDatabase,
-      this._mainnetDatabase,
-      this._testnetDatabase,
-      this._configurationService)
-      : super(ForgetExistState(false, null)) {
+    this._accountService,
+    this._autonomyService,
+    this._iapApi,
+    this._cloudDatabase,
+    this._mainnetDatabase,
+    this._testnetDatabase,
+    this._configurationService,
+    this._socialRecoveryService,
+  ) : super(ForgetExistState(false, null)) {
     on<UpdateCheckEvent>((event, emit) async {
       emit(ForgetExistState(event.isChecked, state.isProcessing));
     });
@@ -60,6 +63,8 @@ class ForgetExistBloc extends Bloc<ForgetExistEvent, ForgetExistState> {
         await _accountService.deletePersona(persona);
       });
 
+      await _socialRecoveryService.deleteHelpingContactDecks();
+
       await _cloudDatabase.removeAll();
       await _mainnetDatabase.removeAll();
       await _testnetDatabase.removeAll();
@@ -78,6 +83,8 @@ class ForgetExistBloc extends Bloc<ForgetExistEvent, ForgetExistState> {
       personas.forEach((persona) async {
         await _accountService.deletePersona(persona);
       });
+
+      await _socialRecoveryService.deleteHelpingContactDecks();
 
       await _cloudDatabase.removeAll();
       await _mainnetDatabase.removeAll();

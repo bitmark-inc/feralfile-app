@@ -76,4 +76,42 @@ class SocialRecoveryChannelHandler: NSObject {
             ])
         }
     }
+
+    func deleteHelpingContactDecks(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let query: NSDictionary = [
+            kSecClass: kSecClassGenericPassword,
+            kSecAttrSynchronizable: kCFBooleanTrue,
+            kSecReturnData: kCFBooleanTrue,
+            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
+            kSecReturnAttributes as String : kCFBooleanTrue,
+            kSecMatchLimit as String: kSecMatchLimitAll,
+            kSecAttrAccessGroup as String: Constant.keychainGroup,
+        ]
+
+        var dataTypeRef: AnyObject?
+        let lastResultCode = withUnsafeMutablePointer(to: &dataTypeRef) {
+            SecItemCopyMatching(query as CFDictionary, UnsafeMutablePointer($0))
+        }
+
+        if lastResultCode == noErr {
+            guard let array = dataTypeRef as? Array<Dictionary<String, Any>> else {
+                return result([
+                    "error": 0,
+                    "message": "no ContactDecks to delete",
+                ])
+            }
+
+            for item in array {
+                if let key = item[kSecAttrAccount as String] as? String, key.contains("socialRecovery.contactDeck.") {
+                    keychain.remove(key: key, isSync: true)
+                }
+            }
+        }
+
+        return result([
+            "error": 0,
+            "message": "delete ContactDecks successfully",
+        ])
+    }
+
 }
