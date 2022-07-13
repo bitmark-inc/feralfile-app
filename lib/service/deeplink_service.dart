@@ -183,14 +183,10 @@ class DeeplinkServiceImpl extends DeeplinkService {
         isDismissible: false,
       );
 
-      try {
-        await injector<SocialRecoveryService>()
-            .sendDeckToShardService(domain, code);
+      await injector<SocialRecoveryService>()
+          .sendDeckToShardService(domain, code);
 
-        injector<NavigationService>().popUntilHomeOrSettings();
-      } catch (exception) {
-        rethrow;
-      }
+      injector<NavigationService>().popUntilHomeOrSettings();
 
       return true;
     } else {

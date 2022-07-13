@@ -67,5 +67,24 @@ class ForgetExistBloc extends Bloc<ForgetExistEvent, ForgetExistState> {
 
       emit(ForgetExistState(state.isChecked, false));
     });
+
+    on<ConfirmEraseDeviceInfoEvent>((event, emit) async {
+      emit(ForgetExistState(state.isChecked, true));
+      deregisterPushNotification();
+      await _autonomyService.clearLinkedAddresses();
+
+      final List<Persona> personas =
+          await _cloudDatabase.personaDao.getPersonas();
+      personas.forEach((persona) async {
+        await _accountService.deletePersona(persona);
+      });
+
+      await _cloudDatabase.removeAll();
+      await _mainnetDatabase.removeAll();
+      await _testnetDatabase.removeAll();
+      await _configurationService.removeAll();
+
+      emit(ForgetExistState(state.isChecked, false));
+    });
   }
 }

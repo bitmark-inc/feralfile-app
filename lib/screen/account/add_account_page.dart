@@ -6,10 +6,13 @@
 //
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
+import 'package:autonomy_flutter/screen/settings/forget_exist/forget_exist_bloc.dart';
+import 'package:autonomy_flutter/screen/settings/forget_exist/forget_exist_view.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -104,6 +107,16 @@ class _AddAccountPageState extends State<AddAccountPage> {
                     )
                   ],
                 ),
+                addDivider(),
+                TappableForwardRowWithContent(
+                    leftWidget: Text(
+                      'Debug - Erase Device Info',
+                      style: appTextTheme.headline4,
+                    ),
+                    bottomWidget: Text(
+                        'Erase all information about me and delete my keys from my cloud backup including the keys on this device. Keep cloud database for restoring',
+                        style: appTextTheme.bodyText1),
+                    onTap: () => _showEraseDeviceInfoDialog()),
                 SizedBox(height: 40),
               ],
             );
@@ -178,6 +191,25 @@ class _AddAccountPageState extends State<AddAccountPage> {
           },
         );
       },
+    );
+  }
+
+  void _showEraseDeviceInfoDialog() {
+    UIHelper.showDialog(
+      context,
+      "Erase Device Info",
+      BlocProvider(
+        create: (_) => ForgetExistBloc(
+            injector(),
+            injector(),
+            injector(),
+            injector(),
+            injector<NetworkConfigInjector>().mainnetInjector(),
+            injector<NetworkConfigInjector>().testnetInjector(),
+            injector()),
+        child: ForgetExistView(event: 'ConfirmEraseDeviceInfoEvent'),
+      ),
+      isDismissible: false,
     );
   }
 }

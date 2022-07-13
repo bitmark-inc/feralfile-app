@@ -14,6 +14,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ForgetExistView extends StatelessWidget {
+  final String? event;
+
+  const ForgetExistView({Key? key, this.event}) : super(key: key);
+
+  String get descriptionEvent {
+    return event == 'ConfirmEraseDeviceInfoEvent'
+        ? "Your accounts and data from your device and your cloud backup will be deleted. Can restore with social recovery if you're done setup"
+        : 'Your accounts and data from your device and your cloud backup will be deleted. Autonomy will not be able to help you recover access.';
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = AuThemeManager.get(AppTheme.sheetTheme);
@@ -21,7 +31,8 @@ class ForgetExistView extends StatelessWidget {
     return BlocConsumer<ForgetExistBloc, ForgetExistState>(
         listener: (context, state) async {
       if (state.isProcessing == false) {
-        Navigator.of(context).pushNamedAndRemoveUntil(AppRouter.onboardingPage, (_) => false);
+        Navigator.of(context)
+            .pushNamedAndRemoveUntil(AppRouter.onboardingPage, (_) => false);
       }
     }, builder: (context, state) {
       return Container(
@@ -45,8 +56,7 @@ class ForgetExistView extends StatelessWidget {
                             style:
                                 const TextStyle(fontWeight: FontWeight.bold)),
                         TextSpan(
-                          text:
-                              " Your accounts and data from your device and your cloud backup will be deleted. Autonomy will not be able to help you recover access.",
+                          text: " $descriptionEvent",
                         ),
                       ],
                     ),
@@ -123,9 +133,15 @@ class ForgetExistView extends StatelessWidget {
               text: state.isProcessing == true ? "FORGETTING…" : "CONFIRM",
               onPress: state.isProcessing == null && state.isChecked
                   ? () {
-                      context
-                          .read<ForgetExistBloc>()
-                          .add(ConfirmForgetExistEvent());
+                      if (event == 'ConfirmEraseDeviceInfoEvent') {
+                        context
+                            .read<ForgetExistBloc>()
+                            .add(ConfirmEraseDeviceInfoEvent());
+                      } else {
+                        context
+                            .read<ForgetExistBloc>()
+                            .add(ConfirmForgetExistEvent());
+                      }
                     }
                   : null,
               color: theme.primaryColor,
