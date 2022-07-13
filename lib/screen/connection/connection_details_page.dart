@@ -106,9 +106,10 @@ class ConnectionDetailsPage extends StatelessWidget {
     showModalBottomSheet(
         context: pageContext,
         enableDrag: false,
+        backgroundColor: Colors.transparent,
         builder: (context) {
           return Container(
-            color: Color(0xFF737373),
+            color: Colors.transparent,
             child: ClipPath(
               clipper: AutonomyTopRightRectangleClipper(),
               child: Container(

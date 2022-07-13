@@ -7,11 +7,6 @@
 
 import 'dart:collection';
 
-import 'package:autonomy_flutter/view/artwork_common_widget.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:html_unescape/html_unescape.dart';
-import 'package:path/path.dart' as p;
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
@@ -22,14 +17,20 @@ import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
+import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/theme_manager.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/au_outlined_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:html_unescape/html_unescape.dart';
+import 'package:path/path.dart' as p;
 
 class ArtworkDetailPage extends StatefulWidget {
   final ArtworkDetailPayload payload;
@@ -223,8 +224,26 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
     );
   }
 
-  void _showArtworkOptionsDialog(AssetToken asset) {
+  Future _showArtworkOptionsDialog(AssetToken asset) async {
     final theme = AuThemeManager.get(AppTheme.sheetTheme);
+
+    Widget optionRow({required String title, Function()? onTap}) {
+      return InkWell(
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 16.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(title, style: theme.textTheme.headline4),
+              Icon(Icons.navigate_next, color: Colors.white),
+            ],
+          ),
+        ),
+        onTap: onTap,
+      );
+    }
+
+    final ownerWallet = await asset.getOwnerWallet();
 
     UIHelper.showDialog(
       context,
@@ -232,15 +251,8 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
       Container(
         child: Column(
           children: [
-            InkWell(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(asset.isHidden() ? 'Unhide artwork' : 'Hide artwork',
-                      style: theme.textTheme.headline4),
-                  Icon(Icons.navigate_next, color: Colors.white),
-                ],
-              ),
+            optionRow(
+              title: asset.isHidden() ? 'Unhide artwork' : 'Hide artwork',
               onTap: () async {
                 final appDatabase =
                     injector<NetworkConfigInjector>().I<AppDatabase>();
@@ -264,6 +276,21 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
                 });
               },
             ),
+            if (ownerWallet != null) ...[
+              Divider(
+                color: Colors.white,
+                height: 1,
+                thickness: 1,
+              ),
+              optionRow(
+                title: "Send artwork",
+                onTap: () async {
+                  Navigator.of(context).popAndPushNamed(
+                      AppRouter.sendArtworkPage,
+                      arguments: SendArtworkPayload(asset, ownerWallet));
+                },
+              ),
+            ],
             const SizedBox(
               height: 18,
             ),

@@ -84,6 +84,7 @@ Future<void> setup() async {
     migrateV9ToV10,
     migrateV10ToV11,
     migrateV11ToV12,
+    migrateV12ToV13,
   ]).build();
 
   final mainnetDB = await $FloorAppDatabase
@@ -100,6 +101,7 @@ Future<void> setup() async {
     migrateV9ToV10,
     migrateV10ToV11,
     migrateV11ToV12,
+    migrateV12ToV13,
   ]).build();
 
   final cloudDB = await $FloorCloudDatabase
