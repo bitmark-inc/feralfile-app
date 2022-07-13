@@ -168,10 +168,10 @@ class DeeplinkServiceImpl extends DeeplinkService {
     final uri = Uri.parse(link);
 
     if (uri.path == "/apps/social-recovery/set") {
-      final otp = uri.queryParameters['otp'];
+      final code = uri.queryParameters['code'];
       final domain = uri.queryParameters['domain'];
 
-      if (otp == null || domain == null) {
+      if (code == null || domain == null) {
         throw InvalidDeeplink();
       }
 
@@ -185,11 +185,10 @@ class DeeplinkServiceImpl extends DeeplinkService {
 
       try {
         await injector<SocialRecoveryService>()
-            .sendDeckToShardService(domain, otp);
+            .sendDeckToShardService(domain, code);
 
         injector<NavigationService>().popUntilHomeOrSettings();
-      } catch (_) {
-        injector<NavigationService>().popUntilHomeOrSettings();
+      } catch (exception) {
         rethrow;
       }
 
@@ -205,10 +204,10 @@ class DeeplinkServiceImpl extends DeeplinkService {
 
     final uri = Uri.parse(link);
     if (uri.path == "/apps/social-recovery/get") {
-      final otp = uri.queryParameters['otp'];
+      final code = uri.queryParameters['code'];
       final domain = uri.queryParameters['domain'];
 
-      if (otp == null ||
+      if (code == null ||
           domain == null ||
           (await injector<AccountService>().getCurrentDefaultAccount()) !=
               null) {
@@ -223,19 +222,15 @@ class DeeplinkServiceImpl extends DeeplinkService {
         isDismissible: false,
       );
 
-      try {
-        final deck = await injector<SocialRecoveryService>()
-            .requestDeckFromShardService(domain, otp);
-        await _configurationService.setCachedDeckFromShardService(deck);
+      final deck = await injector<SocialRecoveryService>()
+          .requestDeckFromShardService(domain, code);
+      await _configurationService.setCachedDeckFromShardService(deck);
 
-        await injector<NavigationService>()
-            .navigatorKey
-            .currentState
-            ?.pushNamedAndRemoveUntil(AppRouter.restoreWithEmergencyContactPage,
-                (route) => route.settings.name == AppRouter.onboardingPage);
-      } catch (_) {
-        rethrow;
-      }
+      await injector<NavigationService>()
+          .navigatorKey
+          .currentState
+          ?.pushNamedAndRemoveUntil(AppRouter.restoreWithEmergencyContactPage,
+              (route) => route.settings.name == AppRouter.onboardingPage);
 
       return true;
     } else {

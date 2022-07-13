@@ -6,7 +6,6 @@
 //
 
 import 'package:autonomy_flutter/common/environment.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';

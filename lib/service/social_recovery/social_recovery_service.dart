@@ -10,7 +10,6 @@ import 'dart:io';
 
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/social_recovery_channel.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/cupertino.dart';
@@ -24,6 +23,7 @@ import 'package:autonomy_flutter/service/social_recovery/shard_deck.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:http/http.dart' as http;
 
 enum SocialRecoveryStep {
   SetupShardService,
@@ -36,11 +36,11 @@ enum SocialRecoveryStep {
 abstract class SocialRecoveryService {
   ValueNotifier<SocialRecoveryStep?> get socialRecoveryStep;
   Future refreshSetupStep();
-  Future sendDeckToShardService(String domain, String otp);
+  Future sendDeckToShardService(String domain, String code);
   Future<String> getEmergencyContactDeck();
   Future doneSetupEmergencyContact();
 
-  Future<ShardDeck> requestDeckFromShardService(String domain, String otp);
+  Future<ShardDeck> requestDeckFromShardService(String domain, String code);
   Future restoreAccount(ShardDeck ecShardDeck);
   Future clearRestoreProcess();
 
@@ -122,7 +122,7 @@ class SocialRecoveryServiceImpl extends SocialRecoveryService {
     }
   }
 
-  Future sendDeckToShardService(String domain, String otp) async {
+  Future sendDeckToShardService(String domain, String code) async {
     final accounts = await _cloudDB.personaDao.getPersonas();
 
     // generate SSKR
@@ -132,15 +132,26 @@ class SocialRecoveryServiceImpl extends SocialRecoveryService {
     }
 
     // Create ShardService's ShardDeck
+    // Send ShardDeck to ShardService with OTP Code
     final shardDeck = await _createShardDeck(accounts, ShardType.ShardService);
+    final body = {"code": code, "secret": jsonEncode(shardDeck.toJson())};
 
-    // TODO: SSKR - Send ShardDeck to ShardService with OTP
-    await Future.delayed(Duration(seconds: 4));
+    final response = await http.put(
+      Uri.parse(domain + "/apis/v1/shard"),
+      headers: {HttpHeaders.contentTypeHeader: 'application/json'},
+      body: jsonEncode(body),
+    );
 
-    // Done
-    await _removeShards(accounts, ShardType.ShardService);
-    await _auditService.auditSocialRecoveryAction('setupSSKR');
-    socialRecoveryStep.value = SocialRecoveryStep.SetupEmergencyContact;
+    if (response.statusCode != 200) {
+      response.body.contains('invalid OTP token')
+          ? throw ExpiredCodeLink()
+          : throw Exception(response.body);
+    } else {
+      // Done
+      await _removeShards(accounts, ShardType.ShardService);
+      await _auditService.auditSocialRecoveryAction('setupSSKR');
+      socialRecoveryStep.value = SocialRecoveryStep.SetupEmergencyContact;
+    }
   }
 
   Future<String> getEmergencyContactDeck() async {
@@ -182,14 +193,21 @@ class SocialRecoveryServiceImpl extends SocialRecoveryService {
   }
 
   Future<ShardDeck> requestDeckFromShardService(
-      String domain, String otp) async {
-    // TODO: SSKR - Get ShardDeck to ShardService with OTP
-    await Future.delayed(Duration(seconds: 4));
+      String domain, String code) async {
+    // Get ShardDeck to ShardService with OTP Code
+    final response = await http.get(
+      Uri.parse(domain + "/apis/v1/shard?code=$code"),
+      headers: {HttpHeaders.contentTypeHeader: 'application/json'},
+    );
 
-    final shardDeck = """
-{"defaultAccount":{"uuid":"a59c2335-9202-4cc4-855a-3fb18e5d93d1","shard":"tuna acid epic gyro song easy able acid acid easy real real taco foxy kite door vial hard wasp pool numb ugly diet duty barn cats edge limp iris"},"otherAccounts":[{"uuid":"6f7c9a6b-067c-4939-bd6f-e17978c089a7","shard":"tuna acid epic gyro navy math able acid acid vast epic bald film brag purr paid game game jump mild zaps omit idea runs away main taxi good epic"},{"uuid":"3580d290-a275-4622-8fb5-ad18adeb1bc8","shard":"tuna acid epic gyro oboe gems able acid acid beta ruby down fizz days need peck kick crux work city zone draw item stub very easy vial easy easy"}]}
-""";
-    return ShardDeck.fromJson(jsonDecode(shardDeck));
+    if (response.statusCode != 200) {
+      response.body.contains('invalid OTP token')
+          ? throw ExpiredCodeLink()
+          : throw Exception(response.body);
+    } else {
+      final body = jsonDecode(response.body);
+      return ShardDeck.fromJson(jsonDecode(body['secret']));
+    }
   }
 
   Future restoreAccount(ShardDeck ecShardDeck) async {

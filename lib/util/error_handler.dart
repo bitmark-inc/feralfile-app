@@ -234,6 +234,10 @@ void showErrorDialogFromException(Object exception,
       UIHelper.showInfoDialog(context, "😵", "The link is not valid",
           isDismissible: true, autoDismissAfter: 3);
       return;
+    } else if (exception is ExpiredCodeLink) {
+      UIHelper.showInfoDialog(context, "😵", "The link is not valid or expired",
+          isDismissible: true, autoDismissAfter: 3);
+      return;
     }
   }
 
@@ -298,8 +302,10 @@ void hideInfoDialog(BuildContext context) {
 
 String getTezosErrorMessage(TezartNodeError err) {
   var message = "";
-  if (err.message.contains("empty_implicit_contract") || err.message.contains("balance_too_low")) {
-    message = "Transaction is likely to fail. Please make sure you have enough of Tezos balance to perform this action.";
+  if (err.message.contains("empty_implicit_contract") ||
+      err.message.contains("balance_too_low")) {
+    message =
+        "Transaction is likely to fail. Please make sure you have enough of Tezos balance to perform this action.";
   } else if (err.message.contains("script_rejected")) {
     message = "The operation failed. Contract malformed or deprecated.";
   } else {
