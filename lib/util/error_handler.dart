@@ -95,20 +95,14 @@ Future showErrorDialog(BuildContext context, String title, String description,
   isShowErrorDialogWorking = DateTime.now();
   final theme = AuThemeManager.get(AppTheme.sheetTheme);
 
-  var cuttedColor = Color(0xFF737373);
-  if (ModalRoute.of(context)?.settings.name == AppRouter.scanQRPage) {
-    cuttedColor = Color.fromARGB(255, 62, 60, 61);
-  }
-
   Vibrate.feedback(FeedbackType.warning);
   await showModalBottomSheet(
       context: context,
-      // isDismissible: false,
       enableDrag: false,
-      // isScrollControlled: false,
+      backgroundColor: Colors.transparent,
       builder: (context) {
         return Container(
-          color: cuttedColor,
+          color: Colors.transparent,
           child: ClipPath(
             clipper: AutonomyTopRightRectangleClipper(),
             child: Container(
