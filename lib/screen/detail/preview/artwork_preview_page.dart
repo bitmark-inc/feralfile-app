@@ -291,10 +291,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
               size: 32,
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: previewCloseIcon(context),
-          ),
+          previewCloseIcon(context),
         ],
       ),
     );
