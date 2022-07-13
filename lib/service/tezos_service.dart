@@ -32,6 +32,9 @@ abstract class TezosService {
   Future<String?> sendTransaction(TezosWallet wallet, String to, int amount);
 
   Future<String> signMessage(TezosWallet wallet, Uint8List message);
+
+  Future<Operation> getFa2TransferOperation(
+      String contract, String from, String to, int tokenId);
 }
 
 class TezosServiceImpl extends TezosService {
@@ -72,8 +75,8 @@ class TezosServiceImpl extends TezosService {
     return _retryOnNodeError<int>((client) async {
       final keystore = _getKeystore(wallet);
 
-      var operationList = OperationsList(
-          source: keystore, rpcInterface: client.rpcInterface);
+      var operationList =
+          OperationsList(source: keystore, rpcInterface: client.rpcInterface);
 
       operations.forEach((element) {
         operationList.appendOperation(element);
@@ -100,8 +103,8 @@ class TezosServiceImpl extends TezosService {
     return _retryOnNodeError<String?>((client) async {
       final keystore = _getKeystore(wallet);
 
-      var operationList = OperationsList(
-          source: keystore, rpcInterface: client.rpcInterface);
+      var operationList =
+          OperationsList(source: keystore, rpcInterface: client.rpcInterface);
 
       operations.forEach((element) {
         operationList.appendOperation(element);
@@ -165,6 +168,40 @@ class TezosServiceImpl extends TezosService {
     return signature.edsig;
   }
 
+  @override
+  Future<Operation> getFa2TransferOperation(
+      String contract, String from, String to, int tokenId) async {
+    final params = [
+      {
+        "prim": "Pair",
+        "args": [
+          {"string": "$from"},
+          [
+            {
+              "args": [
+                {"string": "$to"},
+                {
+                  "prim": "Pair",
+                  "args": [
+                    {"int": "$tokenId"},
+                    {"int": "1"}
+                  ]
+                }
+              ],
+              "prim": "Pair"
+            }
+          ]
+        ]
+      }
+    ];
+
+    return TransactionOperation(
+        amount: 0,
+        destination: contract,
+        entrypoint: "transfer",
+        params: params);
+  }
+
   Keystore _getKeystore(TezosWallet wallet) {
     final secretKey = crypto.secretKeyBytesFromSeedBytes(wallet.secretKey);
 
@@ -185,7 +222,8 @@ class TezosServiceImpl extends TezosService {
       }
 
       final _random = new Random();
-      final clientToRetry = backupTezartClients[_random.nextInt(backupTezartClients.length)];
+      final clientToRetry =
+          backupTezartClients[_random.nextInt(backupTezartClients.length)];
       return await func(clientToRetry);
     }
   }
