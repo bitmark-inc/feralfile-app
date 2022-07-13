@@ -33,6 +33,7 @@ abstract class FeedService {
   Future refreshFollowings();
   Future<AppFeedData> fetchFeeds(FeedNext? next);
   Future<List<AssetToken>> fetchTokensByIndexerID(List<String> indexerIDs);
+  Future refreshJWTToken(String jwtToken);
 }
 
 class AppFeedData {
@@ -90,6 +91,8 @@ class FeedServiceImpl extends FeedService {
   static const REFRESH_FOLLOWINGS = 'REFRESH_FOLLOWINGS';
   static const FETCH_FEEDS = 'FETCH_FEEDS';
   static const FETCH_TOKENS_BY_INDEXIDS = 'FETCH_TOKENS_BY_INDEXIDS';
+  static const REFRESH_JWT_TOKEN = 'REFRESH_JWT_TOKEN';
+
   Map<String, Completer<void>> _refreshFollowingsCompleters = {};
   Map<String, Completer<AppFeedData>> _fetchFeedsCompleters = {};
   Map<String, Completer<List<AssetToken>>> _fetchTokensByIndexerIDCompleters =
@@ -181,6 +184,11 @@ class FeedServiceImpl extends FeedService {
     return completer.future;
   }
 
+  Future refreshJWTToken(String jwtToken) async {
+    if (_sendPort == null) return;
+    _sendPort!.send([REFRESH_JWT_TOKEN, jwtToken]);
+  }
+
   static void _isolateEntry(List<dynamic> arguments) async {
     SendPort sendPort = arguments[0];
 
@@ -231,6 +239,9 @@ class FeedServiceImpl extends FeedService {
     }
   }
 
+  // Isolate
+  static late QuickAuthInterceptor _quickAuthInterceptor;
+
   static void _handleMessageInIsolate(dynamic message) {
     if (message is List<dynamic>) {
       switch (message[0]) {
@@ -245,14 +256,19 @@ class FeedServiceImpl extends FeedService {
         case FETCH_TOKENS_BY_INDEXIDS:
           _fetchTokensByIndexerID(message[1], message[2], message[3]);
           break;
+
+        case REFRESH_JWT_TOKEN:
+          _quickAuthInterceptor.jwtToken = message[1];
       }
     }
   }
 
   static void _setupInjector(String jwtToken, String feedURL,
       String indexerMainnetURL, String indexerTestnetURL) {
+    _quickAuthInterceptor = QuickAuthInterceptor(jwtToken);
+
     final authenticatedDio = Dio(); // Authenticated dio instance for AU servers
-    authenticatedDio.interceptors.add(QuickAuthInterceptor(jwtToken));
+    authenticatedDio.interceptors.add(_quickAuthInterceptor);
     authenticatedDio.interceptors.add(LoggingInterceptor());
     (authenticatedDio.transformer as DefaultTransformer).jsonDecodeCallback =
         parseJson;
@@ -389,9 +405,9 @@ class FeedServiceImpl extends FeedService {
   }
 }
 
-abstract class FeedFollowServiceResult {}
+abstract class FeedServiceResult {}
 
-class RefreshFollowingsSuccess extends FeedFollowServiceResult {
+class RefreshFollowingsSuccess extends FeedServiceResult {
   final String uuid;
 
   RefreshFollowingsSuccess(
@@ -399,35 +415,35 @@ class RefreshFollowingsSuccess extends FeedFollowServiceResult {
   );
 }
 
-class RefreshFollowingFailure extends FeedFollowServiceResult {
+class RefreshFollowingFailure extends FeedServiceResult {
   final String uuid;
   final Object exception;
 
   RefreshFollowingFailure(this.uuid, this.exception);
 }
 
-class FetchFeedsSuccess extends FeedFollowServiceResult {
+class FetchFeedsSuccess extends FeedServiceResult {
   final String uuid;
   final AppFeedData appFeedData;
 
   FetchFeedsSuccess(this.uuid, this.appFeedData);
 }
 
-class FetchFeedsFailure extends FeedFollowServiceResult {
+class FetchFeedsFailure extends FeedServiceResult {
   final String uuid;
   final Object exception;
 
   FetchFeedsFailure(this.uuid, this.exception);
 }
 
-class FetchTokensByIndexerIDSuccess extends FeedFollowServiceResult {
+class FetchTokensByIndexerIDSuccess extends FeedServiceResult {
   final String uuid;
   final List<AssetToken> tokens;
 
   FetchTokensByIndexerIDSuccess(this.uuid, this.tokens);
 }
 
-class FetchTokensByIndexerIDFailure extends FeedFollowServiceResult {
+class FetchTokensByIndexerIDFailure extends FeedServiceResult {
   final String uuid;
   final Object exception;
 

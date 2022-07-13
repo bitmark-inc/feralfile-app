@@ -216,9 +216,9 @@ Future<void> setup() async {
       () => FeedServiceImpl(injector<NetworkConfigInjector>(), injector()));
 
   injector.registerLazySingleton<FeralFileService>(() => FeralFileServiceImpl(
+        injector<NetworkConfigInjector>(),
         injector(),
         injector(),
-        injector<NetworkConfigInjector>().I(),
       ));
 
   injector.registerLazySingleton<SocialRecoveryService>(
