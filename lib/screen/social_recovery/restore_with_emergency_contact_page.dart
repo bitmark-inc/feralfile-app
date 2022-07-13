@@ -46,57 +46,64 @@ class _RestoreWithEmergencyContactPageState
       ),
       body: Container(
         margin: pageEdgeInsetsWithSubmitButton,
-        child: Column(children: [
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Get ShardDeck from Emergency Contact",
-                      style: appTextTheme.headline1,
-                    ),
-                    addTitleSpace(),
-                    Text(
-                      "some description about Emergency Contact",
-                      style: appTextTheme.bodyText1,
-                    ),
-                    SizedBox(height: 40),
-                    Container(
-                      height: 120,
-                      child: AuTextField(
-                          title: "",
-                          placeholder: "Enter shard deck",
-                          keyboardType: TextInputType.multiline,
-                          expanded: true,
-                          maxLines: null,
-                          hintMaxLines: 2,
-                          controller: _deckTextController,
-                          isError: _isError,
-                          onChanged: (value) async {
-                            setState(() {
-                              _isSubmissionEnabled = value.isNotEmpty;
-                            });
-                          }),
-                    ),
-                  ]),
-            ),
-          ),
-          Row(
-            children: [
-              Expanded(
-                child: AuFilledButton(
-                  enabled: _isSubmissionEnabled,
-                  text: _isProcessing ? "RESTORING..." : "RESTORE",
-                  isProcessing: _isProcessing,
-                  onPress: () {
-                    if (_isSubmissionEnabled) _submitRestore();
-                  },
-                ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Get ShardDeck from Emergency Contact",
+                        style: appTextTheme.headline1,
+                      ),
+                      addTitleSpace(),
+                      Text(
+                        "some description about Emergency Contact",
+                        style: appTextTheme.bodyText1,
+                      ),
+                      SizedBox(height: 40),
+                      Container(
+                        height: 120,
+                        child: Column(
+                          children: [
+                            AuTextField(
+                                title: "",
+                                placeholder: "Enter shard deck",
+                                keyboardType: TextInputType.multiline,
+                                expanded: true,
+                                maxLines: null,
+                                hintMaxLines: 2,
+                                controller: _deckTextController,
+                                isError: _isError,
+                                onChanged: (value) async {
+                                  setState(() {
+                                    _isSubmissionEnabled = value.isNotEmpty;
+                                  });
+                                }),
+                          ],
+                        ),
+                      ),
+                    ]),
               ),
-            ],
-          ),
-        ]),
+            ),
+            Row(
+              children: [
+                Expanded(
+                  child: AuFilledButton(
+                    enabled: _isSubmissionEnabled,
+                    text: _isProcessing ? "RESTORING..." : "RESTORE",
+                    isProcessing: _isProcessing,
+                    onPress: () {
+                      if (_isSubmissionEnabled) _submitRestore();
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

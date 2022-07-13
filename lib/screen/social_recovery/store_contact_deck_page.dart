@@ -41,54 +41,61 @@ class _StoreContactDeckPageState extends State<StoreContactDeckPage> {
       ),
       body: Container(
         margin: pageEdgeInsetsWithSubmitButton,
-        child: Column(children: [
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Add Helping Contact",
-                      style: appTextTheme.headline1,
-                    ),
-                    addTitleSpace(),
-                    AuTextField(
-                      title: "",
-                      placeholder: "Enter owner name",
-                      controller: _nameTextController,
-                      keyboardType: TextInputType.name,
-                      onChanged: (_) => _refreshSubmissionEnaled(),
-                    ),
-                    SizedBox(height: 15),
-                    Container(
-                      height: 120,
-                      child: AuTextField(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Add Helping Contact",
+                        style: appTextTheme.headline1,
+                      ),
+                      addTitleSpace(),
+                      AuTextField(
                         title: "",
-                        placeholder: "Enter contact deck",
-                        keyboardType: TextInputType.multiline,
-                        expanded: true,
-                        maxLines: null,
-                        hintMaxLines: 2,
-                        controller: _deckTextController,
-                        isError: _isError,
+                        placeholder: "Enter owner name",
+                        controller: _nameTextController,
+                        keyboardType: TextInputType.name,
                         onChanged: (_) => _refreshSubmissionEnaled(),
                       ),
-                    ),
-                  ]),
-            ),
-          ),
-          Row(
-            children: [
-              Expanded(
-                child: AuFilledButton(
-                  enabled: _isSubmissionEnabled,
-                  text: "ADD".toUpperCase(),
-                  onPress: () => storeContactDeck(),
-                ),
+                      SizedBox(height: 15),
+                      Container(
+                        height: 120,
+                        child: Column(
+                          children: [
+                            AuTextField(
+                              title: "",
+                              placeholder: "Enter contact deck",
+                              keyboardType: TextInputType.multiline,
+                              expanded: true,
+                              maxLines: null,
+                              hintMaxLines: 2,
+                              controller: _deckTextController,
+                              isError: _isError,
+                              onChanged: (_) => _refreshSubmissionEnaled(),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ]),
               ),
-            ],
-          ),
-        ]),
+            ),
+            Row(
+              children: [
+                Expanded(
+                  child: AuFilledButton(
+                    enabled: _isSubmissionEnabled,
+                    text: "ADD".toUpperCase(),
+                    onPress: () => storeContactDeck(),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
