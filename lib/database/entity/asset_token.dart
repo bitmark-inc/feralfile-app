@@ -9,7 +9,6 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/model/asset.dart';
 import 'package:autonomy_flutter/model/provenance.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:floor/floor.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 
@@ -117,8 +116,8 @@ class AssetToken {
 
   Future<WalletStorage?> getOwnerWallet() async {
     if (contractAddress == null || tokenId == null) return null;
-    if (blockchain != "ethereum" && blockchain != "tezos")
-      return null;
+    if (!(blockchain == "ethereum" && contractType == "erc721") &&
+        !(blockchain == "tezos" && contractType == "fa2")) return null;
 
     //check asset is able to send
     final personas = await injector<CloudDatabase>().personaDao.getPersonas();
