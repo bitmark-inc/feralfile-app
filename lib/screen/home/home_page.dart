@@ -18,11 +18,13 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
+import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
+import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
@@ -343,6 +345,13 @@ class _HomePageState extends State<HomePage>
     });
 
     injector<VersionService>().checkForUpdate();
+
+    // Reload token in Isolate
+    final jwtToken =
+        (await injector<AuthService>().getAuthToken(forceRefresh: true))
+            .jwtToken;
+    injector<FeedService>().refreshJWTToken(jwtToken);
+
     injector<CustomerSupportService>().getIssues();
     injector<CustomerSupportService>().processMessages();
   }
