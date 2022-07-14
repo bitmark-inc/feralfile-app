@@ -65,7 +65,6 @@ class RecoveryPhrasePage extends StatelessWidget {
                     Container(
                       decoration: BoxDecoration(
                           border: Border.all(color: Colors.black)),
-                      // color: Colors.green,
                       alignment: Alignment.center,
                       padding: EdgeInsets.symmetric(vertical: 24),
                       child: Row(

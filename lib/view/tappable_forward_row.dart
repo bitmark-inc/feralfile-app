@@ -13,8 +13,14 @@ class TappableForwardRow extends StatelessWidget {
   final Widget? leftWidget;
   final Widget? rightWidget;
   final Function()? onTap;
+  final EdgeInsets padding;
+
   const TappableForwardRow(
-      {Key? key, this.leftWidget, this.rightWidget, required this.onTap})
+      {Key? key,
+      this.leftWidget,
+      this.rightWidget,
+      required this.onTap,
+      this.padding = const EdgeInsets.symmetric(vertical: 16)})
       : super(key: key);
 
   @override
@@ -28,7 +34,7 @@ class TappableForwardRow extends StatelessWidget {
 
   Widget _contentRow() {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16),
+      padding: padding,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,

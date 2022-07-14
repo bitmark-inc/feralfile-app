@@ -215,9 +215,9 @@ SizedBox addTitleSpace() {
   return const SizedBox(height: 40);
 }
 
-Divider addDivider() {
+Divider addDivider({double height = 32}) {
   return Divider(
-    height: 32.0,
+    height: height,
     thickness: 1.0,
   );
 }
