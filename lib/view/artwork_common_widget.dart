@@ -137,6 +137,7 @@ INFTRenderingWidget buildRenderingWidget(AssetToken asset) {
   renderingWidget.setRenderWidgetBuilder(RenderingWidgetBuilder(
     previewURL: asset.previewURL,
     loadingWidget: previewPlaceholder,
+    cacheManager: injector<AUCacheManager>(),
   ));
 
   return renderingWidget;

@@ -119,8 +119,8 @@ dependencies:
 
   nft_rendering:
     git:
-      url: git@github.com:autonomy-system/nft-rendering.git
-      ref: v1.0.1
+      url: https://github.com/autonomy-system/nft-rendering.git
+      ref: 1.0.2
     
 dependency_overrides:
   # Error using when import photo_view from dependencies:
