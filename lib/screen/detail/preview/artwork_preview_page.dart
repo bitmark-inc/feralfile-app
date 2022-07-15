@@ -354,7 +354,11 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   }
 
   Widget _getArtworkView(AssetToken asset) {
-    _renderingWidget = buildRenderingWidget(context, asset);
+    if (_renderingWidget == null ||
+        _renderingWidget!.previewURL != asset.previewURL) {
+      _renderingWidget = buildRenderingWidget(context, asset);
+    }
+
     return Container(
       child: _renderingWidget?.build(context),
     );

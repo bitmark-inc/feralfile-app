@@ -134,6 +134,7 @@ INFTRenderingWidget buildRenderingWidget(
     loadingWidget: previewPlaceholder,
     errorWidget: brokenTokenWidget(
         context, AuThemeManager.anyProblemNFTDarkTheme.textTheme, token),
+    cacheManager: injector<AUCacheManager>(),
   ));
 
   return renderingWidget;

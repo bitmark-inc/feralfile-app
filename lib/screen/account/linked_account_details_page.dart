@@ -133,9 +133,12 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
       case 'feralFileWeb3':
       case 'feralFileToken':
         _source = "FeralFile";
+
         final feralFileState = context.watch<FeralfileBloc>().state;
         final wyreWallet =
-            feralFileState.connection?.ffConnection?.ffAccount.wyreWallet;
+            (feralFileState.connection?.ffConnection?.ffAccount ??
+                    feralFileState.connection?.ffWeb3Connection?.ffAccount)
+                ?.wyreWallet;
         if (wyreWallet != null) {
           setState(() {
             _balances[widget.connection.accountNumber] =
