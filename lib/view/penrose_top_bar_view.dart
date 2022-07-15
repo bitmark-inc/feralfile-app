@@ -187,20 +187,15 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
   }
 
   Widget _discovery() {
-    return FutureBuilder<bool>(
-        future: isAppCenterBuild(),
-        builder: (context, snapshot) {
-          if (snapshot.data == false) return SizedBox();
-          return Container(
-            padding: EdgeInsets.fromLTRB(0, 0, 12, 12),
-            child: IconButton(
-                onPressed: () {
-                  if (_opacity == 0) return;
-                  Navigator.of(context).pushNamed(AppRouter.feedPreviewPage);
-                },
-                icon: SvgPicture.asset('assets/images/iconFeed.svg')),
-          );
-        });
+    return Container(
+      padding: EdgeInsets.fromLTRB(0, 0, 12, 12),
+      child: IconButton(
+          onPressed: () {
+            if (_opacity == 0) return;
+            Navigator.of(context).pushNamed(AppRouter.feedPreviewPage);
+          },
+          icon: SvgPicture.asset('assets/images/iconFeed.svg')),
+    );
   }
 
   Widget _customerSupportIconWidget() {
