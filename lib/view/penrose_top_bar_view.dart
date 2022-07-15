@@ -93,13 +93,6 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
     return AnimatedBuilder(
       builder: (context, value) => Stack(fit: StackFit.loose, children: [
         Opacity(opacity: _opacity, child: _headerWidget()),
-        Align(
-          alignment: Alignment.topCenter,
-          child: Padding(
-            padding: EdgeInsets.only(top: 72),
-            child: _logo(),
-          ),
-        ),
       ]),
       animation: widget.scrollController,
     );
@@ -193,31 +186,16 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
     );
   }
 
-  Widget _logo() {
-    return FutureBuilder<bool>(
-        future: isAppCenterBuild(),
-        builder: (context, snapshot) {
-          return SvgPicture.asset(snapshot.data == true
-              ? "assets/images/penrose_appcenter.svg"
-              : "assets/images/penrose.svg");
-        });
-  }
-
   Widget _discovery() {
-    return FutureBuilder<bool>(
-        future: isAppCenterBuild(),
-        builder: (context, snapshot) {
-          if (snapshot.data == false) return SizedBox();
-          return Container(
-            padding: EdgeInsets.fromLTRB(0, 0, 12, 12),
-            child: IconButton(
-                onPressed: () {
-                  if (_opacity == 0) return;
-                  Navigator.of(context).pushNamed(AppRouter.feedPreviewPage);
-                },
-                icon: SvgPicture.asset('assets/images/iconFeed.svg')),
-          );
-        });
+    return Container(
+      padding: EdgeInsets.fromLTRB(0, 0, 12, 12),
+      child: IconButton(
+          onPressed: () {
+            if (_opacity == 0) return;
+            Navigator.of(context).pushNamed(AppRouter.feedPreviewPage);
+          },
+          icon: SvgPicture.asset('assets/images/iconFeed.svg')),
+    );
   }
 
   Widget _customerSupportIconWidget() {

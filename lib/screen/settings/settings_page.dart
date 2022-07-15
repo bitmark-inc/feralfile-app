@@ -24,6 +24,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tokens_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -97,7 +98,12 @@ class _SettingsPageState extends State<SettingsPage>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(height: 160),
+                Center(
+                  child: Container(
+                    child: autonomyLogo,
+                    padding: EdgeInsets.fromLTRB(0, 72, 0, 45),
+                  ),
+                ),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [

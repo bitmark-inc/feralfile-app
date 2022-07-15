@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/theme_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -235,6 +236,16 @@ Divider addDialogDivider({double height = 32}) {
     thickness: 1,
     color: Colors.white,
   );
+}
+
+Widget get autonomyLogo {
+  return FutureBuilder<bool>(
+      future: isAppCenterBuild(),
+      builder: (context, snapshot) {
+        return SvgPicture.asset(snapshot.data == true
+            ? "assets/images/penrose_appcenter.svg"
+            : "assets/images/penrose.svg");
+      });
 }
 
 Widget loadingIndicator({

@@ -37,6 +37,7 @@ class _GalleryPageState extends State<GalleryPage> {
   int _cachedImageSize = 0;
   Timer? _timer;
   int? _latestTokensLength;
+  bool _isLastPage = false;
 
   @override
   void initState() {
@@ -62,7 +63,9 @@ class _GalleryPageState extends State<GalleryPage> {
 
   _scrollListenerToLoadMore() {
     if (_scrollController.position.pixels + 100 >=
-        _scrollController.position.maxScrollExtent) {
+            _scrollController.position.maxScrollExtent &&
+        _latestTokensLength != 0 &&
+        !_isLastPage) {
       context.read<GalleryBloc>().add(GetTokensEvent(widget.payload.address));
     }
   }
@@ -80,6 +83,7 @@ class _GalleryPageState extends State<GalleryPage> {
               if (tokens == null) return;
 
               _latestTokensLength = tokens.length;
+              _isLastPage = state.isLastPage;
 
               if (tokens.isNotEmpty) {
                 _timer?.cancel();
@@ -111,6 +115,11 @@ class _GalleryPageState extends State<GalleryPage> {
     List<Widget> sources;
     sources = [
       SliverToBoxAdapter(
+          child: Container(
+        child: autonomyLogo,
+        padding: EdgeInsets.fromLTRB(0, 72, 0, 48),
+      )),
+      SliverToBoxAdapter(
         child: Container(
           alignment: Alignment.topLeft,
           padding: EdgeInsets.fromLTRB(6, 0, 14, 14),
@@ -127,8 +136,10 @@ class _GalleryPageState extends State<GalleryPage> {
                       : appTextTheme.headline2,
                 ),
               ),
-              Text('indexing...',
-                  style: appTextTheme.headline2?.copyWith(fontSize: 12)),
+              if (tokens != null && tokens.isEmpty) ...[
+                Text('indexing...',
+                    style: appTextTheme.headline2?.copyWith(fontSize: 12)),
+              ]
             ],
           ),
         ),
@@ -178,15 +189,6 @@ class _GalleryPageState extends State<GalleryPage> {
         ),
       ]
     ];
-
-    sources.insert(
-      0,
-      SliverToBoxAdapter(
-        child: Container(
-          height: 168.0,
-        ),
-      ),
-    );
 
     sources.add(
       SliverToBoxAdapter(

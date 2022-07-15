@@ -11,7 +11,6 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/notification_util.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/theme_manager.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/material.dart';
@@ -49,14 +48,14 @@ class NotificationOnboardingPage extends StatelessWidget {
                     Markdown(
                       data:
                           '''**Grant Autonomy permission to notify you when:** 
-* An NFT is added to your collection or someone sends you an NFT (coming soon)
+* An NFT is added to your collection or someone sends you an NFT
 * You receive a signing requests from a dapp or service (coming soon)
 * You receive a customer support message 
 ''',
                       softLineBreak: true,
                       padding: EdgeInsets.only(bottom: 50),
                       shrinkWrap: true,
-                      styleSheet: markDownLightStyle,
+                      styleSheet: markDownLightStyle.copyWith(blockSpacing: 8),
                     ),
                     Center(
                         child: Padding(
