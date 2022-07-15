@@ -123,8 +123,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
               }
               subTitle += getEditionSubTitle(asset);
 
-              final ext = p.extension(asset.thumbnailURL!);
-
               return Container(
                 child: SingleChildScrollView(
                   controller: _scrollController,
