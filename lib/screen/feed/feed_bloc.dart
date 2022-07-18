@@ -5,16 +5,16 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/model/feed.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:bloc/bloc.dart';
 import 'package:collection/collection.dart';
 
 part 'feed_state.dart';
 
-class FeedBloc extends Bloc<FeedBlocEvent, FeedState> {
+class FeedBloc extends AuBloc<FeedBlocEvent, FeedState> {
   FeedService _feedService;
 
   FeedBloc(this._feedService) : super(FeedState()) {

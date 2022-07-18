@@ -7,6 +7,7 @@
 
 import 'dart:io';
 
+import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
@@ -18,11 +19,10 @@ import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/migration/migration_util.dart';
-import 'package:bloc/bloc.dart';
 
 part 'router_state.dart';
 
-class RouterBloc extends Bloc<RouterEvent, RouterState> {
+class RouterBloc extends AuBloc<RouterEvent, RouterState> {
   ConfigurationService _configurationService;
   BackupService _backupService;
   AccountService _accountService;

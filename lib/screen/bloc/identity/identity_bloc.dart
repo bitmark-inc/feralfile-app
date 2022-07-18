@@ -5,15 +5,15 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/entity/identity.dart';
 import 'package:autonomy_flutter/gateway/indexer_api.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 part 'identity_state.dart';
 
-class IdentityBloc extends Bloc<IdentityEvent, IdentityState> {
+class IdentityBloc extends AuBloc<IdentityEvent, IdentityState> {
   AppDatabase _appDB;
   IndexerApi _indexerApi;
 

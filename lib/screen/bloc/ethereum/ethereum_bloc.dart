@@ -5,18 +5,17 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
-import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
-import 'package:bloc/bloc.dart';
 import 'package:web3dart/web3dart.dart';
 
 part 'ethereum_state.dart';
 
-class EthereumBloc extends Bloc<EthereumEvent, EthereumState> {
+class EthereumBloc extends AuBloc<EthereumEvent, EthereumState> {
   ConfigurationService _configurationService;
   EthereumService _ethereumService;
 

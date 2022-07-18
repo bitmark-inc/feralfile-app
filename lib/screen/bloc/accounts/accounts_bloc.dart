@@ -7,6 +7,7 @@
 
 import 'dart:convert';
 
+import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
@@ -25,7 +26,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 part 'accounts_state.dart';
 
-class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
+class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
   ConfigurationService _configurationService;
   CloudDatabase _cloudDB;
   BackupService _backupService;
