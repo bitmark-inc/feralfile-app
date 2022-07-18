@@ -74,6 +74,7 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
     Wakelock.enable();
 
     _renderingWidget?.didPopNext();
+    setMaxTimeToken();
     super.didPopNext();
   }
 
@@ -314,8 +315,10 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
   }
 
   Future _moveToInfo(AssetToken asset) async {
+    _maxTimeTokenTimer?.cancel();
     Wakelock.disable();
     _clearPrevious();
+
     Navigator.of(context).pushNamed(
       AppRouter.feedArtworkDetailsPage,
       arguments: context.read<FeedBloc>(),
@@ -346,7 +349,11 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
       _missingToken = false;
     }
 
-    _renderingWidget = buildRenderingWidget(context, token);
+    if (_renderingWidget == null ||
+        _renderingWidget!.previewURL != latestToken?.previewURL) {
+      _renderingWidget = buildRenderingWidget(context, token);
+    }
+
     return Container(child: _renderingWidget!.build(context));
   }
 
