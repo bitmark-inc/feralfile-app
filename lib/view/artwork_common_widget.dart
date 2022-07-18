@@ -265,6 +265,7 @@ Widget artworkDetailsMetadataSection(
           // some FF's artist set multiple links
           // Discussion thread: https://bitmark.slack.com/archives/C01EPPD07HU/p1648698027564299
           tapLink: asset.artistURL?.split(" & ").first,
+          forceSafariVC: false,
         ),
       ],
       (asset.maxEdition ?? 0) > 0
@@ -283,6 +284,7 @@ Widget artworkDetailsMetadataSection(
         "Token",
         polishSource(asset.source ?? ""),
         tapLink: asset.assetURL,
+        forceSafariVC: false,
       ),
       Divider(height: 32.0),
       _rowItem(
@@ -290,6 +292,7 @@ Widget artworkDetailsMetadataSection(
         "Contract",
         asset.blockchain.capitalize(),
         tapLink: asset.blockchainURL,
+        forceSafariVC: false,
       ),
       Divider(height: 32.0),
       _rowItem(context, "Medium", asset.medium?.capitalize()),
@@ -482,10 +485,12 @@ Widget _rowItem(BuildContext context, String name, String? value,
     {String? subTitle,
     Function()? onNameTap,
     String? tapLink,
+    bool? forceSafariVC,
     Function()? onValueTap}) {
   if (onValueTap == null && tapLink != null) {
     final uri = Uri.parse(tapLink);
-    onValueTap = () => launch(uri.toString());
+    onValueTap =
+        () => launch(uri.toString(), forceSafariVC: forceSafariVC ?? true);
   }
 
   return Row(
