@@ -106,9 +106,9 @@ class HomeBloc extends AuBloc<HomeEvent, HomeState> {
             ..addAll(allAddresses['personaTezos'] ?? []);
         }
 
-        //Clear and refresh all assets if no contractAddress
+        //Clear and refresh all assets if no contractAddress & tokenId
         final tokens = await _assetTokenDao.findAllAssetTokens();
-        if (tokens.every((element) => element.contractAddress == null)) {
+        if (tokens.every((element) => element.contractAddress == null && element.tokenId == null)) {
           await _assetTokenDao.removeAll();
         }
 
