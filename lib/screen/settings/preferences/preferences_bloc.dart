@@ -7,6 +7,7 @@
 
 import 'dart:io';
 
+import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_state.dart';
@@ -15,11 +16,10 @@ import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/biometrics_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/notification_util.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-class PreferencesBloc extends Bloc<PreferenceEvent, PreferenceState> {
+class PreferencesBloc extends AuBloc<PreferenceEvent, PreferenceState> {
   ConfigurationService _configurationService;
   AppDatabase _appDatabase;
   LocalAuthentication _localAuth = LocalAuthentication();

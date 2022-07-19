@@ -5,14 +5,14 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/database/dao/asset_token_dao.dart';
 import 'package:autonomy_flutter/database/dao/provenance_dao.dart';
 import 'package:autonomy_flutter/model/asset_price.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
-class ArtworkDetailBloc extends Bloc<ArtworkDetailEvent, ArtworkDetailState> {
+class ArtworkDetailBloc extends AuBloc<ArtworkDetailEvent, ArtworkDetailState> {
   FeralFileService _feralFileService;
   AssetTokenDao _assetTokenDao;
   ProvenanceDao _provenanceDao;

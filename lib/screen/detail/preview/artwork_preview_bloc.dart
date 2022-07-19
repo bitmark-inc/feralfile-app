@@ -5,15 +5,15 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/database/dao/asset_token_dao.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/helpers.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ArtworkPreviewBloc
-    extends Bloc<ArtworkPreviewEvent, ArtworkPreviewState> {
+    extends AuBloc<ArtworkPreviewEvent, ArtworkPreviewState> {
   AssetTokenDao _assetTokenDao;
   ConfigurationService _configurationService;
 

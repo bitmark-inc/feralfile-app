@@ -5,18 +5,18 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/biometrics_util.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:local_auth/local_auth.dart';
 
 class WCSendTransactionBloc
-    extends Bloc<WCSendTransactionEvent, WCSendTransactionState> {
+    extends AuBloc<WCSendTransactionEvent, WCSendTransactionState> {
   final NavigationService _navigationService;
   final EthereumService _ethereumService;
   final WalletConnectService _walletConnectService;

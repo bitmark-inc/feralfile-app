@@ -5,19 +5,19 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/model/p2p_peer.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:bloc/bloc.dart';
 import "package:collection/collection.dart";
 import 'package:wallet_connect/wallet_connect.dart';
 
 part 'connections_state.dart';
 
-class ConnectionsBloc extends Bloc<ConnectionsEvent, ConnectionsState> {
+class ConnectionsBloc extends AuBloc<ConnectionsEvent, ConnectionsState> {
   CloudDatabase _cloudDB;
   WalletConnectService _walletConnectService;
   TezosBeaconService _tezosBeaconService;
