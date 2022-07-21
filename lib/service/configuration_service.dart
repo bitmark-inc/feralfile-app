@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
 import 'package:wallet_connect/wallet_connect.dart';
 
 abstract class ConfigurationService {
@@ -62,6 +63,7 @@ abstract class ConfigurationService {
   Future<void> setFinishedSurvey(List<String> surveyNames);
   Future<void> setImmediateInfoViewEnabled(bool value);
   bool isImmediateInfoViewEnabled();
+  Future<String> getAccountHMACSecret();
 
   // ----- App Setting -----
   bool isDemoArtworksMode();
@@ -97,6 +99,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
       'read_release_notes_version';
   static const String KEY_FINISHED_SURVEYS = "finished_surveys";
   static const String KEY_IMMEDIATE_INFOVIEW = 'immediate_infoview';
+  static const String ACCOUNT_HMAC_SECRET = "account_hmac_secret";
 
   // keys for WalletConnect dapp side
   static const String KEY_WC_DAPP_SESSION = "wc_dapp_store";
@@ -451,6 +454,17 @@ class ConfigurationServiceImpl implements ConfigurationService {
     finishedSurveys.addAll(surveyNames);
     return _preferences.setStringList(
         KEY_FINISHED_SURVEYS, finishedSurveys.toSet().toList());
+  }
+
+  Future<String> getAccountHMACSecret() async {
+    final value = _preferences.getString(ACCOUNT_HMAC_SECRET);
+    if (value == null) {
+      final setValue = Uuid().v4();
+      await _preferences.setString(ACCOUNT_HMAC_SECRET, setValue);
+      return setValue;
+    }
+
+    return value;
   }
 
   bool showTokenDebugInfo() {

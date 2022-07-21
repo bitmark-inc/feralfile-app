@@ -5,19 +5,14 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'dart:convert';
-
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
-import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/theme_manager.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:flutter/material.dart';
 import 'package:roundcheckbox/roundcheckbox.dart';
-import 'package:uuid/uuid.dart';
 
 class ReportRenderingIssueWidget extends StatefulWidget {
   final AssetToken token;
@@ -36,6 +31,7 @@ class _ReportRenderingIssueWidgetState
     extends State<ReportRenderingIssueWidget> {
   List<String> _selectedTopices = [];
   bool _isSubmissionEnabled = false;
+  bool _isProcessing = false;
 
   final theme = AuThemeManager.get(AppTheme.sheetTheme);
 
@@ -104,6 +100,7 @@ class _ReportRenderingIssueWidgetState
                     child: AuFilledButton(
                       text: "REPORT ISSUE",
                       onPress: () => _reportIssue(),
+                      isProcessing: _isProcessing,
                       color: theme.primaryColor,
                       textStyle: TextStyle(
                           color: _isSubmissionEnabled
@@ -145,35 +142,13 @@ class _ReportRenderingIssueWidgetState
 
     setState(() {
       _isSubmissionEnabled = false;
+      _isProcessing = true;
     });
 
-    final regardingTopics = _selectedTopices.join(", ");
-    final tempIssueID = 'TEMP-' + Uuid().v4();
-    final data = DraftCustomerSupportData(
-      text:
-          'Hi, I want to report rendering issue on the NFT ${widget.token.title} regarding $regardingTopics.',
-      title:
-          'Rendering issue on ${widget.token.id} regarding $regardingTopics.',
-    );
-    final draft = DraftCustomerSupport(
-      uuid: Uuid().v4(),
-      issueID: tempIssueID,
-      type: CSMessageType.CreateIssue.rawValue,
-      data: json.encode(data),
-      createdAt: DateTime.now(),
-      reportIssueType: ReportIssueType.ReportNFTIssue,
-      mutedMessages: [
-        "**IndexerID**: ${widget.token.id}",
-        "**TokenURL**: ${widget.token.assetURL}",
-        "**Artwork**: ${widget.token.title}",
-        "**Creator**: ${widget.token.artistName ?? 'unknown'}",
-        "**Collection**: ${widget.token.contractAddress ?? widget.token.blockchainURL}",
-      ].join('[SEPARATOR]'),
-    );
-
-    injector<CustomerSupportService>().draftMessage(draft);
+    final githubURL = await injector<CustomerSupportService>()
+        .createRenderingIssueReport(widget.token, _selectedTopices);
 
     Navigator.pop(context);
-    widget.onReported(tempIssueID);
+    widget.onReported(githubURL);
   }
 }
