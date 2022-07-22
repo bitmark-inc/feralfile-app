@@ -108,7 +108,8 @@ class HomeBloc extends AuBloc<HomeEvent, HomeState> {
 
         //Clear and refresh all assets if no contractAddress & tokenId
         final tokens = await _assetTokenDao.findAllAssetTokens();
-        if (tokens.every((element) => element.contractAddress == null && element.tokenId == null)) {
+        if (tokens.every((element) =>
+            element.contractAddress == null && element.tokenId == null)) {
           await _assetTokenDao.removeAll();
         }
 
@@ -225,6 +226,24 @@ class HomeBloc extends AuBloc<HomeEvent, HomeState> {
                     .requestIndex({"owner": address, "blockchain": "tezos"});
               } else if (address.startsWith("0x")) {
                 _indexerApi.requestIndex({"owner": address});
+              }
+
+              break;
+
+            case 'feralFileWeb3':
+            case 'feralFileToken':
+              final ffAccount = linkAccount.ffConnection?.ffAccount ??
+                  linkAccount.ffWeb3Connection?.ffAccount;
+              final ethereumAddress = ffAccount?.ethereumAddress;
+              final tezosAddress = ffAccount?.tezosAddress;
+
+              if (ethereumAddress != null) {
+                _indexerApi.requestIndex({"owner": ethereumAddress});
+              }
+
+              if (tezosAddress != null) {
+                _indexerApi.requestIndex(
+                    {"owner": tezosAddress, "blockchain": "tezos"});
               }
 
               break;
