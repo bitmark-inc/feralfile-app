@@ -108,7 +108,8 @@ class HomeBloc extends AuBloc<HomeEvent, HomeState> {
 
         //Clear and refresh all assets if no contractAddress & tokenId
         final tokens = await _assetTokenDao.findAllAssetTokens();
-        if (tokens.every((element) => element.contractAddress == null && element.tokenId == null)) {
+        if (tokens.every((element) =>
+            element.contractAddress == null && element.tokenId == null)) {
           await _assetTokenDao.removeAll();
         }
 
@@ -229,6 +230,24 @@ class HomeBloc extends AuBloc<HomeEvent, HomeState> {
 
               break;
 
+            case 'feralFileWeb3':
+            case 'feralFileToken':
+              final ffAccount = linkAccount.ffConnection?.ffAccount ??
+                  linkAccount.ffWeb3Connection?.ffAccount;
+              final ethereumAddress = ffAccount?.ethereumAddress;
+              final tezosAddress = ffAccount?.tezosAddress;
+
+              if (ethereumAddress != null) {
+                _indexerApi.requestIndex({"owner": ethereumAddress});
+              }
+
+              if (tezosAddress != null) {
+                _indexerApi.requestIndex(
+                    {"owner": tezosAddress, "blockchain": "tezos"});
+              }
+
+              break;
+
             default:
               break;
           }
@@ -249,6 +268,8 @@ class HomeBloc extends AuBloc<HomeEvent, HomeState> {
 
     for (var persona in personas) {
       final ethAddress = await persona.wallet().getETHEip55Address();
+      if (ethAddress.isEmpty)
+        continue; // ignore persona when there is no keys in Keychain
       final tezosWallet = await persona.wallet().getTezosWallet();
       final tezosAddress = tezosWallet.address;
       final bitmarkAddress = await persona.wallet().getBitmarkAddress();

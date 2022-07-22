@@ -210,7 +210,23 @@ class Connection {
   }
 
   List<String> get accountNumbers {
-    return this.accountNumber.split("||");
+    switch (this.connectionType) {
+      case 'feralFileWeb3':
+      case 'feralFileToken':
+        var addresses = [accountNumber];
+        final ffAccount =
+            this.ffConnection?.ffAccount ?? this.ffWeb3Connection?.ffAccount;
+        final ethereumAddress = ffAccount?.ethereumAddress;
+        final tezosAddress = ffAccount?.tezosAddress;
+
+        if (ethereumAddress != null) addresses.add(ethereumAddress);
+        if (tezosAddress != null) addresses.add(tezosAddress);
+
+        return addresses;
+
+      default:
+        return this.accountNumber.split("||");
+    }
   }
 
   String get hiddenGalleryKey {
