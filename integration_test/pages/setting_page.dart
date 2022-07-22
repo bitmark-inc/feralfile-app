@@ -1,12 +1,15 @@
-// UI inspect is here
-import 'dart:developer';
-import 'dart:ffi';
-import 'dart:io';
+//
+//  SPDX-License-Identifier: BSD-2-Clause-Patent
+//  Copyright © 2022 Bitmark. All rights reserved.
+//  Use of this source code is governed by the BSD-2-Clause Plus Patent License
+//  that can be found in the LICENSE file.
+//
 
-import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+// UI inspect is here
 final Finder settings_icon = find.byTooltip("Settings");
 final Finder back_button = find.text("BACK");
 final Finder new_button =
@@ -29,13 +32,6 @@ Future<void> addANewAccount(
     await tester.pumpAndSettle(Duration(seconds: 4));
     await tester.pumpAndSettle(Duration(seconds: 1));
 
-    log('over New account');
-    log('over New account');
-    log('over New account');
-    log('over New account');
-    log('over New account');
-    log('over New account');
-
     // await tester.pumpAndSettle();
     await tester.tap(continue_button);
     // await tester.pump();
@@ -53,7 +49,45 @@ Future<void> addANewAccount(
 
     if (continueWithouIt_button.evaluate().isNotEmpty) {
       await tester.tap(continueWithouIt_button);
+      await tester.pump(Duration(seconds: 4));
+      // await tester.pumpAndSettle(Duration(seconds: 1));
+
       // sleep(Duration(seconds: 3));
     }
-  } else {}
+  } else if (accountType == 'skip') {
+    await tester.tap(new_button);
+    // await tester.pumpAndSettle();
+    // sleep(Duration(seconds: 10));
+    await tester.pumpAndSettle(Duration(seconds: 4));
+    await tester.pumpAndSettle(Duration(seconds: 1));
+
+    // await tester.pumpAndSettle();
+    await tester.tap(continue_button);
+    // await tester.pump();
+    await tester.pumpAndSettle(Duration(seconds: 4));
+    await tester.pumpAndSettle(Duration(seconds: 1));
+
+    await tester.tap(skip_button);
+    // await tester.pumpAndSettle();
+    await tester.pumpAndSettle(Duration(seconds: 4));
+    await tester.pumpAndSettle(Duration(seconds: 1));
+
+    if (continueWithouIt_button.evaluate().isNotEmpty) {
+      await tester.tap(continueWithouIt_button);
+      await tester.pump(Duration(seconds: 4));
+    }
+  }
+}
+
+Future<int> getNumberOfAccount() async {
+  // Do actions in here
+  int b = find
+      .descendant(
+          of: find.byType(SlidableAutoCloseBehavior),
+          matching: find.byType(Slidable))
+      .evaluate()
+      .length;
+  //Debug log
+  print('b: ' + b.toString());
+  return b;
 }

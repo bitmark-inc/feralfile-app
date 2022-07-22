@@ -1,15 +1,19 @@
-import 'dart:developer';
+//
+//  SPDX-License-Identifier: BSD-2-Clause-Patent
+//  Copyright © 2022 Bitmark. All rights reserved.
+//  Use of this source code is governed by the BSD-2-Clause Plus Patent License
+//  that can be found in the LICENSE file.
+//
+
 import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../lib/main.dart' as app;
-import 'setting_page.dart';
 
 final Finder autonomy_header = find.text('AUTONOMY');
 final Finder startButton = find.text("START");
@@ -75,20 +79,10 @@ Future<void> onboardingSteps(WidgetTester tester) async {
     //wait for Not now notification appear to close
     sleep(Duration(seconds: 5));
 
-// find.byElementPredicate((element) => false)
-
     if (notNowButton.evaluate().isNotEmpty) {
       await tester.tap(notNowButton);
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(Duration(seconds: 5));
       // sleep(Duration(seconds: 5));
     }
   }
-
-  // debugPrint('xong onBoarding');
-  // log('xong onBoarding');
-  // log('xong onBoarding');
-  // log('xong onBoarding');
-  // log('xong onBoarding');
-  // log('xong onBoarding');
-  // log('xong onBoarding');
 }

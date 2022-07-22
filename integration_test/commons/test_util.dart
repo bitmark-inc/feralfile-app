@@ -1,7 +1,13 @@
-import 'dart:convert';
-import 'dart:developer';
+//
+//  SPDX-License-Identifier: BSD-2-Clause-Patent
+//  Copyright © 2022 Bitmark. All rights reserved.
+//  Use of this source code is governed by the BSD-2-Clause Plus Patent License
+//  that can be found in the LICENSE file.
+//
 
-import 'package:flutter/foundation.dart';
+import 'dart:convert';
+import 'dart:math';
+
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -30,27 +36,6 @@ Future<void> selectSubSettingMenu(WidgetTester tester, String menu) async {
     int index = await menu.indexOf('->');
     sub_menu = await menu.substring(0, index);
     menu = await menu.substring(menu.indexOf('->') + 2, menu.length);
-    debugPrint(sub_menu);
-    debugPrint(sub_menu);
-    debugPrint(sub_menu);
-    log(sub_menu);
-    debugPrint(sub_menu);
-    log(sub_menu);
-    log(sub_menu);
-    log(sub_menu);
-    log(sub_menu);
-    log(sub_menu);
-
-    debugPrint(menu);
-    debugPrint(menu);
-    debugPrint(menu);
-    log(menu);
-    debugPrint(menu);
-    log(menu);
-    log(menu);
-    log(menu);
-    log(menu);
-    log(menu);
 
     if (sub_menu == "Settings") {
       await tester.tap(find.byTooltip("Settings"));
@@ -63,3 +48,13 @@ Future<void> selectSubSettingMenu(WidgetTester tester, String menu) async {
   await tester.tap(find.text(menu));
   await tester.pumpAndSettle();
 }
+
+Future<String> genTestDataRandom(String baseString) async {
+  var rng = Random();
+
+  baseString = baseString + rng.nextInt(10000).toString();
+  print(baseString);
+  return baseString;
+}
+
+Future<void> deleteAnAccount(String accountAlias) async {}
