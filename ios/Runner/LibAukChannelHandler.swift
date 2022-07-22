@@ -23,7 +23,11 @@ class LibAukChannelHandler {
         let name: String = (args["name"] as? String) ?? ""
         
         LibAuk.shared.storage(for: UUID(uuidString: uuid)!).createKey(name: name)
-            .sink(receiveCompletion: { _ in }, receiveValue: { _ in
+            .sink(receiveCompletion: { (completion) in
+                if let error = completion.error {
+                    result(ErrorHandler.handle(error: error))
+                }
+            }, receiveValue: { _ in
                 result([
                     "error": 0,
                     "msg": "createKey success",
@@ -46,9 +50,7 @@ class LibAukChannelHandler {
             .importKey(words: wordsArray, name: name, creationDate:date)
             .sink(receiveCompletion: { (completion) in
                 if let error = completion.error {
-                    result(
-                        FlutterError(code: "Failed to import key", message: error.localizedDescription, details: nil)
-                    )
+                    result(ErrorHandler.handle(error: error))
                 }
 
             }, receiveValue: { _ in
@@ -66,7 +68,11 @@ class LibAukChannelHandler {
         let name: String = (args["name"] as? String) ?? ""
 
         LibAuk.shared.storage(for: UUID(uuidString: uuid)!).updateName(name: name)
-            .sink(receiveCompletion: { _ in }, receiveValue: { _ in
+            .sink(receiveCompletion: { (completion) in
+                if let error = completion.error {
+                    result(ErrorHandler.handle(error: error))
+                }
+            }, receiveValue: { _ in
                 result([
                     "error": 0,
                     "msg": "updateName success",
@@ -80,7 +86,11 @@ class LibAukChannelHandler {
         let uuid: String = args["uuid"] as! String
         
         LibAuk.shared.storage(for: UUID(uuidString: uuid)!).isWalletCreated()
-            .sink(receiveCompletion: { _ in }, receiveValue: { isCreated in
+            .sink(receiveCompletion: { (completion) in
+                if let error = completion.error {
+                    result(ErrorHandler.handle(error: error))
+                }
+            }, receiveValue: { isCreated in
                 result([
                     "error": 0,
                     "msg": "isWalletCreated success",
@@ -109,7 +119,11 @@ class LibAukChannelHandler {
         
         LibAuk.shared.storage(for: UUID(uuidString: uuid)!)
             .getAccountDID()
-            .sink(receiveCompletion: { _ in }, receiveValue: { (accountDID) in
+            .sink(receiveCompletion: { (completion) in
+                if let error = completion.error {
+                    result(ErrorHandler.handle(error: error))
+                }
+            }, receiveValue: { (accountDID) in
                 result([
                     "error": 0,
                     "msg": "exportMnemonicWords success",
@@ -126,7 +140,12 @@ class LibAukChannelHandler {
 
         LibAuk.shared.storage(for: UUID(uuidString: uuid)!)
             .getAccountDIDSignature(message: message)
-            .sink(receiveCompletion: { _ in }, receiveValue: { (signature) in
+            .sink(receiveCompletion: { (completion) in
+                if let error = completion.error {
+                    result(ErrorHandler.handle(error: error))
+                }
+
+            }, receiveValue: { (signature) in
                 result([
                     "error": 0,
                     "msg": "exportMnemonicWords success",
@@ -156,7 +175,12 @@ class LibAukChannelHandler {
 
         LibAuk.shared.storage(for: UUID(uuidString: uuid)!)
             .sign(message: [UInt8](message.data.personalSignedMessageData))
-            .sink(receiveCompletion: { _ in }, receiveValue: { (v, r, s) in
+            .sink(receiveCompletion: { (completion) in
+                if let error = completion.error {
+                    result(ErrorHandler.handle(error: error))
+                }
+
+            }, receiveValue: { (v, r, s) in
                 result([
                     "error": 0,
                     "msg": "exportMnemonicWords success",
@@ -189,7 +213,11 @@ class LibAukChannelHandler {
 
         LibAuk.shared.storage(for: UUID(uuidString: uuid)!)
             .signTransaction(transaction: transaction, chainId: EthereumQuantity(quantity: BigUInt(chainId)))
-            .sink(receiveCompletion: { _ in }, receiveValue: { signedTx in
+            .sink(receiveCompletion: { (completion) in
+                if let error = completion.error {
+                    result(ErrorHandler.handle(error: error))
+                }
+            }, receiveValue: { signedTx in
                 let bytes: [UInt8] = try! RLPEncoder().encode(signedTx.rlp())
                 result([
                     "error": 0,
@@ -205,7 +233,11 @@ class LibAukChannelHandler {
         let uuid: String = args["uuid"] as! String
 
         LibAuk.shared.storage(for: UUID(uuidString: uuid)!).exportMnemonicWords()
-            .sink(receiveCompletion: { _ in }, receiveValue: { words in
+            .sink(receiveCompletion: { (completion) in
+                if let error = completion.error {
+                    result(ErrorHandler.handle(error: error))
+                }
+            }, receiveValue: { words in
                 result([
                     "error": 0,
                     "msg": "exportMnemonicWords success",
@@ -220,7 +252,11 @@ class LibAukChannelHandler {
         let uuid: String = args["uuid"] as! String
 
         LibAuk.shared.storage(for: UUID(uuidString: uuid)!).getTezosWallet()
-            .sink(receiveCompletion: { _ in }, receiveValue: { wallet in
+            .sink(receiveCompletion: { (completion) in
+                if let error = completion.error {
+                    result(ErrorHandler.handle(error: error))
+                }
+            }, receiveValue: { wallet in
                 let hdWallet = wallet as! HDWallet
                 result([
                     "error": 0,
@@ -238,7 +274,11 @@ class LibAukChannelHandler {
         let uuid: String = args["uuid"] as! String
 
         LibAuk.shared.storage(for: UUID(uuidString: uuid)!).getBitmarkAddress()
-            .sink(receiveCompletion: { _ in }, receiveValue: { address in
+            .sink(receiveCompletion: { (completion) in
+                if let error = completion.error {
+                    result(ErrorHandler.handle(error: error))
+                }
+            }, receiveValue: { address in
                 result([
                     "error": 0,
                     "msg": "getBitmarkAddress success",
@@ -257,9 +297,7 @@ class LibAukChannelHandler {
         LibAuk.shared.storage(for: UUID(uuidString: uuid)!).removeKeys()
             .sink(receiveCompletion: { (completion) in
                 if let error = completion.error {
-                    result(
-                        FlutterError(code: "Failed to remove keys", message: error.localizedDescription, details: nil)
-                    )
+                    result(ErrorHandler.handle(error: error))
                 }
             }, receiveValue: { _ in
                 result([

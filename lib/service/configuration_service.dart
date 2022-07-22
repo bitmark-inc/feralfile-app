@@ -7,6 +7,7 @@
 
 import 'dart:convert';
 
+import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -334,9 +335,9 @@ class ConfigurationServiceImpl implements ConfigurationService {
   bool matchFeralFileSourceInNetwork(String source) {
     final network = getNetwork();
     if (network == Network.MAINNET) {
-      return source == "https://feralfile.com";
+      return source == Environment.feralFileAPIMainnetURL;
     } else {
-      return source != "https://feralfile.com";
+      return source != Environment.feralFileAPIMainnetURL;
     }
   }
 
