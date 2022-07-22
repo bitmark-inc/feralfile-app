@@ -60,6 +60,8 @@ abstract class ConfigurationService {
   Future<void> setPreviousBuildNumber(String value);
   List<String> getFinishedSurveys();
   Future<void> setFinishedSurvey(List<String> surveyNames);
+  Future<void> setImmediateInfoViewEnabled(bool value);
+  bool isImmediateInfoViewEnabled();
 
   // ----- App Setting -----
   bool isDemoArtworksMode();
@@ -94,6 +96,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_READ_RELEASE_NOTES_VERSION =
       'read_release_notes_version';
   static const String KEY_FINISHED_SURVEYS = "finished_surveys";
+  static const String KEY_IMMEDIATE_INFOVIEW = 'immediate_infoview';
 
   // keys for WalletConnect dapp side
   static const String KEY_WC_DAPP_SESSION = "wc_dapp_store";
@@ -180,6 +183,15 @@ class ConfigurationServiceImpl implements ConfigurationService {
     } catch (e) {
       return Network.MAINNET;
     }
+  }
+
+  Future<void> setImmediateInfoViewEnabled(bool value) async {
+    log.info("setImmediateInfoViewEnabled: $value");
+    await _preferences.setBool(KEY_IMMEDIATE_INFOVIEW, value);
+  }
+
+  bool isImmediateInfoViewEnabled() {
+    return _preferences.getBool(KEY_IMMEDIATE_INFOVIEW) ?? false;
   }
 
   @override
