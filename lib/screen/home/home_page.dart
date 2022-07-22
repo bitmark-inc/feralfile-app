@@ -224,8 +224,14 @@ class _HomePageState extends State<HomePage>
                 final index = tokens.indexOf(asset);
                 final payload = ArtworkDetailPayload(tokenIDs, index);
 
-                Navigator.of(context).pushNamed(AppRouter.artworkPreviewPage,
-                    arguments: payload);
+                if (injector<ConfigurationService>()
+                    .isImmediateInfoViewEnabled()) {
+                  Navigator.of(context).pushNamed(AppRouter.artworkDetailsPage,
+                      arguments: payload);
+                } else {
+                  Navigator.of(context).pushNamed(AppRouter.artworkPreviewPage,
+                      arguments: payload);
+                }
               },
             );
           },
