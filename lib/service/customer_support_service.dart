@@ -136,6 +136,22 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     _isProcessingDraftMessages = true;
     final draftMsg = draftMsgs.first;
 
+    // Edge Case when database has not updated the new issueID for new comments
+    if (draftMsg.type != 'CreateIssue' && draftMsg.issueID.contains("TEMP")) {
+      final newIssueID = tempIssueIDMap[draftMsg.issueID];
+      if (newIssueID != null) {
+        await _draftCustomerSupportDao.updateIssueID(
+            draftMsg.issueID, newIssueID);
+      } else {
+        await _draftCustomerSupportDao.deleteDraft(draftMsg);
+      }
+
+      _isProcessingDraftMessages = false;
+      processMessages();
+      return;
+    }
+
+    // Parse data
     final data = DraftCustomerSupportData.fromJson(jsonDecode(draftMsg.data));
     List<SendAttachment>? sendAttachments;
 

@@ -278,27 +278,36 @@ class _LinkAccountPageState extends State<LinkAccountPage>
 
   Future _handleLinkFeralFile(WCConnectedSession session) async {
     if (_isLinking) return;
-    _isLinking = true;
-
     final apiToken =
         session.accounts.firstOrNull?.replaceFirst("feralfile-api:", "");
     if (apiToken == null) return;
-    final connection =
-        await injector<FeralFileService>().linkFF(apiToken, delayLink: false);
+    _isLinking = true;
 
-    UIHelper.hideInfoDialog(context);
-    await Future.delayed(Duration(milliseconds: 200));
-    UIHelper.showFFAccountLinked(context, connection.name);
+    try {
+      final connection =
+          await injector<FeralFileService>().linkFF(apiToken, delayLink: false);
 
-    await Future.delayed(SHORT_SHOW_DIALOG_DURATION, () {
-      if (injector<ConfigurationService>().isDoneOnboarding()) {
-        Navigator.of(context)
-            .popUntil((route) => route.settings.name == AppRouter.settingsPage);
-      } else {
-        Navigator.of(context).pushNamedAndRemoveUntil(
-            AppRouter.accountsPreviewPage, (route) => false);
-      }
-    });
+      UIHelper.hideInfoDialog(context);
+      UIHelper.showFFAccountLinked(context, connection.name);
+
+      await Future.delayed(SHORT_SHOW_DIALOG_DURATION, () {
+        if (injector<ConfigurationService>().isDoneOnboarding()) {
+          Navigator.of(context).popUntil(
+              (route) => route.settings.name == AppRouter.settingsPage);
+        } else {
+          Navigator.of(context).pushNamedAndRemoveUntil(
+              AppRouter.accountsPreviewPage, (route) => false);
+        }
+      });
+      _isLinking = false;
+    } on AlreadyLinkedException catch (exception) {
+      UIHelper.showAlreadyLinked(context, exception.connection);
+      _isLinking = false;
+    } catch (_) {
+      _isLinking = false;
+      UIHelper.hideInfoDialog(context);
+      rethrow;
+    }
   }
 
   Future _handleLinkETHWallet(WCConnectedSession session) async {
