@@ -268,6 +268,8 @@ class HomeBloc extends AuBloc<HomeEvent, HomeState> {
 
     for (var persona in personas) {
       final ethAddress = await persona.wallet().getETHEip55Address();
+      if (ethAddress.isEmpty)
+        continue; // ignore persona when there is no keys in Keychain
       final tezosWallet = await persona.wallet().getTezosWallet();
       final tezosAddress = tezosWallet.address;
       final bitmarkAddress = await persona.wallet().getBitmarkAddress();
