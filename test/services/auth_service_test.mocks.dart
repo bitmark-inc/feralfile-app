@@ -369,10 +369,6 @@ class MockConfigurationService extends _i1.Mock
           returnValue: Future<void>.value(),
           returnValueForMissingStub: Future<void>.value()) as _i8.Future<void>);
   @override
-  String getReadReleaseNotesVersion() =>
-      (super.noSuchMethod(Invocation.method(#getReadReleaseNotesVersion, []),
-          returnValue: '') as String);
-  @override
   _i8.Future<void> setPreviousBuildNumber(String? value) =>
       (super.noSuchMethod(Invocation.method(#setPreviousBuildNumber, [value]),
           returnValue: Future<void>.value(),
@@ -386,6 +382,10 @@ class MockConfigurationService extends _i1.Mock
       (super.noSuchMethod(Invocation.method(#setFinishedSurvey, [surveyNames]),
           returnValue: Future<void>.value(),
           returnValueForMissingStub: Future<void>.value()) as _i8.Future<void>);
+  @override
+  _i8.Future<String> getAccountHMACSecret() =>
+      (super.noSuchMethod(Invocation.method(#getAccountHMACSecret, []),
+          returnValue: Future<String>.value('')) as _i8.Future<String>);
   @override
   bool isDemoArtworksMode() =>
       (super.noSuchMethod(Invocation.method(#isDemoArtworksMode, []),

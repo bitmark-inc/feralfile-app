@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/gateway/customer_support_api.dart';
 import 'package:autonomy_flutter/gateway/feed_api.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/gateway/pubdoc_api.dart';
+import 'package:autonomy_flutter/gateway/rendering_report_api.dart';
 import 'package:autonomy_flutter/gateway/tzkt_api.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
@@ -201,6 +202,10 @@ Future<void> setup() async {
             mainnetDB.draftCustomerSupportDao,
             CustomerSupportApi(authenticatedDio,
                 baseUrl: Environment.customerSupportURL),
+            RenderingReportApi(authenticatedDio,
+                baseUrl: Environment.renderingReportURL),
+            injector(),
+            injector(),
           ));
 
   injector.registerLazySingleton<AuditService>(() => auditService);

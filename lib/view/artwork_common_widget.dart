@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/theme_manager.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -160,17 +161,71 @@ Widget brokenTokenWidget(
 
 void showReportIssueDialog(BuildContext context, AssetToken token) {
   UIHelper.showDialog(
-      context,
-      "Report issue?",
-      ReportRenderingIssueWidget(
-        token: token,
-        onReported: (issueID) {
-          UIHelper.showInfoDialog(context, 'Report received',
-              'Thank you for reporting this NFT. Our team is looking into it.',
-              closeButton: 'CLOSE');
-        },
-      ),
-      isDismissible: true);
+    context,
+    "Report issue?",
+    ReportRenderingIssueWidget(
+      token: token,
+      onReported: (githubURL) =>
+          _showReportRenderingDialogSuccess(context, githubURL),
+    ),
+  );
+}
+
+void _showReportRenderingDialogSuccess(BuildContext context, String githubURL) {
+  final theme = AuThemeManager.get(AppTheme.sheetTheme);
+  UIHelper.showDialog(
+    context,
+    'Report received',
+    Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Thank you for reporting this NFT. Our team is looking into it.',
+          style: theme.textTheme.bodyText1,
+        ),
+        SizedBox(height: 40),
+        Row(
+          children: [
+            Expanded(
+              child: AuFilledButton(
+                icon: SvgPicture.asset('assets/images/external_link.svg'),
+                text: "VIEW ISSUE STATUS",
+                onPress: () {
+                  launch(githubURL, forceSafariVC: false);
+                  Navigator.of(context).pop();
+                },
+                color: theme.primaryColor,
+                textStyle: TextStyle(
+                    color: theme.backgroundColor,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    fontFamily: "IBMPlexMono"),
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: 7),
+        Align(
+          alignment: Alignment.center,
+          child: TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'CLOSE',
+              style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  fontFamily: "IBMPlexMono"),
+            ),
+          ),
+        ),
+        SizedBox(height: 15),
+      ],
+    ),
+    isDismissible: true,
+    feedback: FeedbackType.success,
+  );
 }
 
 Widget get previewPlaceholder {
