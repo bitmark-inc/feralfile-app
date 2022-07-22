@@ -25,7 +25,7 @@ Widget eulaAndPrivacyView(BuildContext context) {
         ),
         onTap: () => Navigator.of(context)
             .pushNamed(AppRouter.githubDocPage, arguments: {
-          "prefix": "/bitmark-inc/autonomy.io/gh-pages/apps/docs/",
+          "prefix": "/bitmark-inc/autonomy.io/main/apps/docs/",
           "document": "eula.md",
           "title": ""
         }),
@@ -42,7 +42,7 @@ Widget eulaAndPrivacyView(BuildContext context) {
         ),
         onTap: () => Navigator.of(context)
             .pushNamed(AppRouter.githubDocPage, arguments: {
-          "prefix": "/bitmark-inc/autonomy.io/gh-pages/apps/docs/",
+          "prefix": "/bitmark-inc/autonomy.io/main/apps/docs/",
           "document": "privacy.md",
           "title": ""
         }),

@@ -76,6 +76,21 @@ ErrorEvent? translateError(Object exception) {
   );
 }
 
+bool onlySentryException(Object exception) {
+  if (exception.toString().contains("Future already completed")) return true;
+
+  if (exception is PlatformException) {
+    switch (exception.code) {
+      case 'VideoError':
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  return false;
+}
+
 DateTime? isShowErrorDialogWorking;
 
 Future showErrorDialog(BuildContext context, String title, String description,
@@ -247,8 +262,7 @@ void showErrorDialogFromException(Object exception,
   injector<AWSService>().storeEventWithDeviceData("unhandled_error",
       data: {"message": exception.toString()});
 
-  if (library != null ||
-      exception.toString().contains("Future already completed")) {
+  if (library != null || onlySentryException(exception)) {
     // Send error directly to Sentry if it comes from specific libraries
     Sentry.captureException(exception,
         stackTrace: stackTrace,

@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -14,6 +15,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 class GithubDocPage extends StatefulWidget {
   final Map<String, String> payload;
@@ -81,7 +83,20 @@ class _GithubDocPageState extends State<GithubDocPage> {
               shrinkWrap: true,
               physics: NeverScrollableScrollPhysics(),
               padding: EdgeInsets.only(bottom: 50),
-              styleSheet: markDownLightStyle));
+              styleSheet: markDownLightStyle,
+              onTapLink: (text, href, title) async {
+                if (href == null) return;
+                if (!(await canLaunchUrlString(href))) {
+                  Navigator.of(context).pushNamed(AppRouter.githubDocPage,
+                      arguments: {
+                        "prefix": widget.payload["prefix"] ?? '',
+                        "document": href,
+                        "title": ""
+                      });
+                } else {
+                  launchUrlString(href, mode: LaunchMode.platformDefault);
+                }
+              }));
     } else if (snapshot.hasError ||
         (snapshot.data != null && snapshot.data?.statusCode != 200)) {
       return SliverFillRemaining(
