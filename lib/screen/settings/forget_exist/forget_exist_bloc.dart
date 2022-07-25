@@ -10,8 +10,10 @@ import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
+import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/settings/forget_exist/forget_exist_state.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/social_recovery/social_recovery_service.dart';
@@ -20,6 +22,7 @@ import 'package:autonomy_flutter/util/notification_util.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
+  AuthService _authService;
   AccountService _accountService;
   AutonomyService _autonomyService;
   IAPApi _iapApi;
@@ -30,6 +33,7 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
   SocialRecoveryService _socialRecoveryService;
 
   ForgetExistBloc(
+    this._authService,
     this._accountService,
     this._autonomyService,
     this._iapApi,
@@ -67,6 +71,9 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
       await _testnetDatabase.removeAll();
       await _configurationService.removeAll();
 
+      _authService.reset();
+      memoryValues = MemoryValues();
+
       emit(ForgetExistState(state.isChecked, false));
     });
 
@@ -87,6 +94,9 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
       await _mainnetDatabase.removeAll();
       await _testnetDatabase.removeAll();
       await _configurationService.removeAll();
+
+      _authService.reset();
+      memoryValues = MemoryValues();
 
       emit(ForgetExistState(state.isChecked, false));
     });

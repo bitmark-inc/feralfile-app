@@ -204,6 +204,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
           injector(),
           injector(),
           injector(),
+          injector(),
           injector<NetworkConfigInjector>().mainnetInjector(),
           injector<NetworkConfigInjector>().testnetInjector(),
           injector(),
