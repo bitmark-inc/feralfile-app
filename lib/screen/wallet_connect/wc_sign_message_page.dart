@@ -106,6 +106,9 @@ class WCSignMessagePage extends StatelessWidget {
         // Thread: https://bitmark.slack.com/archives/C034EPS6CLS/p1648218027439049
         Navigator.of(context).pop();
         return;
+      } else if (event is FFUnlinked) {
+        Navigator.of(context).pop();
+        return;
       } else if (event is FFNotConnected) {
         showErrorDiablog(
             context,
@@ -146,6 +149,21 @@ class WCSignMessagePage extends StatelessWidget {
                       'Feral File is requesting authorization to sign in')) {
                     context.read<FeralfileBloc>().add(LinkFFWeb3AccountEvent(
                         args.topic, args.peerMeta.url, wallet, false));
+                  } else if (messageInUtf8.contains(
+                      "Feral File is requesting authorization to disconnect your wallet from your Feral File account")) {
+                    final matched = RegExp("Wallet address:\\n(0[xX][0-9a-fA-F]+)\\n")
+                        .firstMatch(messageInUtf8);
+                    final address = matched?.group(0)?.split("\n")[1].trim();
+                    if (address == null) {
+                      Navigator.of(context).pop();
+                      return;
+                    }
+                    context.read<FeralfileBloc>().add(
+                        UnlinkFFWeb3AccountEvent(
+                            source: args.peerMeta.url,
+                            address: address
+                        )
+                    );
                   } else {
                     Navigator.of(context).pop();
                   }
