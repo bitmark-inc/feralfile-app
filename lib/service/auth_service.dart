@@ -20,6 +20,10 @@ class AuthService {
 
   AuthService(this._authApi, this._accountService, this._configurationService);
 
+  void reset() {
+    _jwt = null;
+  }
+
   Future<JWT> getAuthToken(
       {String? messageToSign, String? receiptData, bool forceRefresh = false}) async {
     if (!forceRefresh && _jwt != null && _jwt!.isValid()) {
