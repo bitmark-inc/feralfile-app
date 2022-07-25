@@ -68,7 +68,7 @@ class _SurveyPageState extends State<SurveyPage> {
             )),
             AuFilledButton(
                 text: "Continue",
-                enabled: _surveyAnswer != null,
+                enabled: _surveyAnswer != null && _surveyAnswer!.isNotEmpty,
                 onPress: () {
                   const onboardingSurveyKey = "onboarding_survey";
                   injector<AWSService>().storeEventWithDeviceData(
@@ -99,6 +99,9 @@ class _SurveyPageState extends State<SurveyPage> {
       questionItems: surveyItems,
       onItemSelected: (index) {
         if (index == 3) {
+          setState(() {
+            _surveyAnswer = "";
+          });
           _moveToPage(1);
         } else {
           setState(() {
@@ -249,12 +252,12 @@ class _SurveyQuestionarePageState extends State<SurveyQuestionarePage> {
                           selection = widget.questionItems.length;
                         });
                       },
+                      onChanged: (text) {
+                        _onOtherItemSelected(text);
+                      },
                       onEditingComplete: () {
                         focusNode.unfocus();
-                        if (widget.onItemSelected != null) {
-                          widget.onOtherItemSelected!(
-                              _feedbackTextController.text);
-                        }
+                        _onOtherItemSelected(_feedbackTextController.text);
                       },
                     ),
                   ),
@@ -269,10 +272,8 @@ class _SurveyQuestionarePageState extends State<SurveyQuestionarePage> {
                       });
                       if (_feedbackTextController.text.isEmpty) {
                         focusNode.requestFocus();
-                      } else if (widget.onItemSelected != null) {
-                        widget
-                            .onOtherItemSelected!(_feedbackTextController.text);
                       }
+                      _onOtherItemSelected(_feedbackTextController.text);
                     },
                   )
                 ],
@@ -281,5 +282,11 @@ class _SurveyQuestionarePageState extends State<SurveyQuestionarePage> {
         SliverPadding(padding: EdgeInsets.only(bottom: 6))
       ],
     );
+  }
+
+  void _onOtherItemSelected(String text) {
+    if (widget.onItemSelected != null) {
+      widget.onOtherItemSelected!(text);
+    }
   }
 }
