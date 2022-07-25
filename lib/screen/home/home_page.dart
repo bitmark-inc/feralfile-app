@@ -188,6 +188,20 @@ class _HomePageState extends State<HomePage>
   }
 
   Widget _assetsWidget(List<AssetToken> tokens) {
+    tokens.sort((a, b) {
+      final aSource = a.source?.toLowerCase() ?? 'unknown';
+      final bSource = b.source?.toLowerCase() ?? 'unknown';
+
+      if (aSource == 'unknown' && bSource == 'unknown') {
+        return b.lastActivityTime.compareTo(a.lastActivityTime);
+      }
+
+      if (aSource == 'unknown') return 1;
+      if (bSource == 'unknown') return -1;
+
+      return b.lastActivityTime.compareTo(a.lastActivityTime);
+    });
+
     final tokenIDs = tokens.map((element) => element.id).toList();
 
     const int cellPerRow = 3;
@@ -238,6 +252,7 @@ class _HomePageState extends State<HomePage>
           childCount: tokens.length,
         ),
       ),
+      SliverToBoxAdapter(child: SizedBox(height: 30)),
     ];
 
     return CustomScrollView(
