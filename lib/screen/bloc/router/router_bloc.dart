@@ -10,6 +10,7 @@ import 'dart:io';
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
+import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/aws_service.dart';
@@ -17,6 +18,7 @@ import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/migration/migration_util.dart';
 
@@ -73,23 +75,8 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
       await Future.delayed(Duration(seconds: 1));
 
       if (await hasAccounts()) {
-        final backupVersion = await _backupService
-            .fetchBackupVersion(await _accountService.getDefaultAccount());
-
-        await injector<AWSService>().initServices();
-
-        if (backupVersion.isNotEmpty) {
-          log.info("[DefineViewRoutingEvent] have backup version");
-          //restore backup database
-          emit(RouterState(
-              onboardingStep: OnboardingStep.restore,
-              backupVersion: backupVersion));
-          return;
-        } else {
-          _configurationService.setDoneOnboarding(true);
-          emit(RouterState(onboardingStep: OnboardingStep.dashboard));
-          return;
-        }
+        emit(RouterState(onboardingStep: OnboardingStep.restore));
+        //
       } else {
         if (_configurationService.getCachedDeckFromShardService() == null) {
           emit(RouterState(onboardingStep: OnboardingStep.startScreen));
@@ -103,26 +90,37 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
     });
 
     on<RestoreCloudDatabaseRoutingEvent>((event, emit) async {
-      emit(RouterState(
-          onboardingStep: state.onboardingStep,
-          backupVersion: state.backupVersion,
-          isLoading: true));
-
-      await _backupService.restoreCloudDatabase(
-          await _accountService.getDefaultAccount(), event.version);
-      await _accountService.androidRestoreKeys();
+      emit(state.copyWith(isLoading: true));
 
       final personas = await _cloudDB.personaDao.getPersonas();
-      final connections =
-          await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
-      if (personas.isEmpty && connections.isEmpty) {
-        _configurationService.setDoneOnboarding(false);
-        emit(RouterState(onboardingStep: OnboardingStep.startScreen));
-      } else {
-        _configurationService.setDoneOnboarding(true);
-        emit(RouterState(onboardingStep: OnboardingStep.dashboard));
+      if (personas.isEmpty) throw IncorrectFlow();
+
+      // Scan to get the backup version from the earliest persona
+      Persona defaultAccount = personas.first;
+      String? backupVersion;
+      for (final persona in personas) {
+        try {
+          backupVersion =
+              await _backupService.fetchBackupVersion(persona.wallet());
+          defaultAccount = persona;
+          break;
+        } catch (_) {
+          continue;
+        }
       }
-      await migrationUtil.migrateIfNeeded();
+      log.info(
+          "[RestoreCloudDatabaseRoutingEvent] scanBackupVersion result: ${defaultAccount.uuid} - $backupVersion");
+
+      if (backupVersion != null) {
+        await _backupService.restoreCloudDatabase(
+            defaultAccount.wallet(), backupVersion);
+      }
+
+      // Finish restore process
+      await _cloudDB.personaDao.setUniqueDefaultAccount(defaultAccount.uuid);
+      await _configurationService.setDoneOnboarding(true);
+      await injector<AWSService>().initServices();
+      emit(RouterState(onboardingStep: OnboardingStep.dashboard));
     });
   }
 }

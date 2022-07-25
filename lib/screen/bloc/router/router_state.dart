@@ -12,9 +12,7 @@ abstract class RouterEvent {}
 class DefineViewRoutingEvent extends RouterEvent {}
 
 class RestoreCloudDatabaseRoutingEvent extends RouterEvent {
-  final String version;
-
-  RestoreCloudDatabaseRoutingEvent(this.version);
+  RestoreCloudDatabaseRoutingEvent();
 }
 
 enum OnboardingStep {
@@ -27,12 +25,20 @@ enum OnboardingStep {
 
 class RouterState {
   OnboardingStep onboardingStep = OnboardingStep.undefined;
-  String backupVersion = "";
   bool isLoading = false;
 
   RouterState({
     required this.onboardingStep,
-    this.backupVersion = "",
     this.isLoading = false,
   });
+
+  RouterState copyWith({
+    OnboardingStep? onboardingStep,
+    bool? isLoading,
+  }) {
+    return RouterState(
+      onboardingStep: onboardingStep ?? this.onboardingStep,
+      isLoading: isLoading ?? this.isLoading,
+    );
+  }
 }

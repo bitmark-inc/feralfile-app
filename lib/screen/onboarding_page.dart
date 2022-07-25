@@ -165,9 +165,9 @@ class _OnboardingPageState extends State<OnboardingPage> {
                 text: "Restore".toUpperCase(),
                 onPress: !state.isLoading
                     ? () {
-                        context.read<RouterBloc>().add(
-                            RestoreCloudDatabaseRoutingEvent(
-                                state.backupVersion));
+                        context
+                            .read<RouterBloc>()
+                            .add(RestoreCloudDatabaseRoutingEvent());
                       }
                     : null,
               ),

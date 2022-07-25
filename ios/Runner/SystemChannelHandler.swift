@@ -41,15 +41,58 @@ class SystemChannelHandler: NSObject {
     }
 
     func getWalletUUIDsFromKeychain(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        let personaUUIDs = scanKeychainPersonaUUIDs()
+        let personaUUIDs = scanKeychainPersonaUUIDs(isSync: false)
         result(personaUUIDs)
     }
 
-    func scanKeychainPersonaUUIDs() -> [String] {
-        var personaUUIDs = [String]()
+    func getDeviceUniqueID(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let keychain = Keychain()
+
+        guard let data = keychain.getData(Constant.deviceIDKey, isSync: true),
+              let id = String(data: data, encoding: .utf8) else {
+                  let deviceId = UIDevice.current.identifierForVendor?.uuidString ?? UUID().uuidString
+                  keychain.set(deviceId.data(using: .utf8)!, forKey: Constant.deviceIDKey, isSync: true)
+
+                  result(deviceId)
+                  return
+              }
+
+        result(id)
+    }
+
+    func migrateAccountsFromV0ToV1(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let personaUUIDs = scanKeychainPersonaUUIDs(isSync: true)
+
+        let executionPublishers = personaUUIDs.compactMap { uuid in
+            return LibAuk.shared.storage(for: UUID(uuidString: uuid)!)
+                .migrateV0ToV1()
+                .eraseToAnyPublisher()
+        }
+
+        return Publishers.MergeMany(executionPublishers)
+            .collect()
+            .sink(receiveCompletion: { (completion) in
+                if let error = completion.error {
+                    result(ErrorHandler.handle(error: error))
+                }
+
+            }, receiveValue: { _ in
+                result([
+                    "error": 0,
+                    "msg": "migrateAccountsFromV0ToV1 success",
+                ])
+            })
+            .store(in: &cancelBag)
+    }
+}
+
+fileprivate extension SystemChannelHandler {
+
+    func scanKeychainPersonaUUIDs(isSync: Bool) -> [String] {
+        var personaUUIDs = [String: Seed]()
         let query: NSDictionary = [
             kSecClass: kSecClassGenericPassword,
-            kSecAttrSynchronizable: kCFBooleanTrue,
+            kSecAttrSynchronizable: isSync ? kCFBooleanTrue : kCFBooleanFalse,
             kSecReturnData: kCFBooleanTrue,
             kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
             kSecReturnAttributes as String : kCFBooleanTrue,
@@ -71,34 +114,17 @@ class SystemChannelHandler: NSObject {
                 if let key = item[kSecAttrAccount as String] as? String, key.contains("seed") {
                     let personaUUIDString = key.replacingOccurrences(of: "persona.", with: "")
                         .replacingOccurrences(of: "_seed", with: "")
-
-                    guard let personaUUID = UUID(uuidString: personaUUIDString) else {
-                        continue
+                    if let seedUR = (item[kSecValueData as String] as? Data)?.utf8,
+                       let seed = try? Seed(urString: seedUR) {
+                        personaUUIDs[personaUUIDString] = seed
                     }
-
-                    if (LibAuk.shared.storage(for: personaUUID).getETHAddress() != nil) {
-                        personaUUIDs.append(personaUUIDString)
-                    }
-
                 }
             }
         }
 
-        return personaUUIDs
+        return personaUUIDs.sorted(by: { $0.value.creationDate ?? Date() < $1.value.creationDate ?? Date() })
+            .map(\.key)
     }
         
-    func getDeviceUniqueID(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        let keychain = Keychain()
-        
-        guard let data = keychain.getData(Constant.deviceIDKey, isSync: true),
-              let id = String(data: data, encoding: .utf8) else {
-                  let deviceId = UIDevice.current.identifierForVendor?.uuidString ?? UUID().uuidString
-                  keychain.set(deviceId.data(using: .utf8)!, forKey: Constant.deviceIDKey, isSync: true)
 
-                  result(deviceId)
-                  return
-              }
-
-        result(id)
-    }
 }

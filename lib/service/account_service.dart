@@ -383,15 +383,11 @@ class AccountServiceImpl extends AccountService {
         final existingAccount =
             await _cloudDB.personaDao.findById(account.uuid);
         if (existingAccount == null) {
-          final backupVersion = await _backupService
-              .fetchBackupVersion(LibAukDart.getWallet(account.uuid));
-          final defaultAccount = backupVersion.isNotEmpty ? 1 : null;
-
           final persona = Persona.newPersona(
             uuid: account.uuid,
             name: account.name,
             createdAt: DateTime.now(),
-            defaultAccount: defaultAccount,
+            defaultAccount: null,
           );
           await _cloudDB.personaDao.insertPersona(persona);
           await _auditService.auditPersonaAction(

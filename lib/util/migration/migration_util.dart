@@ -18,11 +18,13 @@ import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/migration/migration_data.dart';
 import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 class MigrationUtil {
   static const MethodChannel _channel = const MethodChannel('migration_util');
@@ -175,6 +177,8 @@ class MigrationUtil {
   }
 
   Future _migrationFromKeychain() async {
+    await _migrateAccountsFromV0ToV1();
+
     final List personaUUIDs =
         await _channel.invokeMethod('getWalletUUIDsFromKeychain', {});
 
@@ -200,20 +204,25 @@ class MigrationUtil {
       if (existingPersona == null) {
         final wallet = Persona.newPersona(uuid: uuid).wallet();
         final name = await wallet.getName();
-
-        final backupVersion = await _backupService.fetchBackupVersion(wallet);
-        final defaultAccount = backupVersion.isNotEmpty ? 1 : null;
-
         final persona = Persona.newPersona(
             uuid: uuid,
             name: name,
             createdAt: DateTime.now(),
-            defaultAccount: defaultAccount);
+            defaultAccount: null);
 
         await _cloudDB.personaDao.insertPersona(persona);
         await _auditService.auditPersonaAction(
             '[_migrationkeychain] insert', persona);
       }
+    }
+  }
+
+  Future _migrateAccountsFromV0ToV1() async {
+    final result = await _channel.invokeMethod('migrateAccountsFromV0ToV1', {});
+    if (result['error'] == 0) {
+      return;
+    } else {
+      throw SystemException(result['reason']);
     }
   }
 }

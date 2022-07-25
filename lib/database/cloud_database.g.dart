@@ -181,6 +181,13 @@ class _$PersonaDao extends PersonaDao {
   }
 
   @override
+  Future<void> setUniqueDefaultAccount(String uuid) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE Persona SET defaultAccount = 1 WHERE uuid = ?1; UPDATE Persona SET defaultAccount = 0 WHERE uuid != ?1;',
+        arguments: [uuid]);
+  }
+
+  @override
   Future<int?> getPersonasCount() async {
     await _queryAdapter.queryNoReturn('SELECT COUNT(*) FROM Persona');
   }

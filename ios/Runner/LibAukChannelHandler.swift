@@ -395,6 +395,26 @@ class LibAukChannelHandler {
             })
             .store(in: &cancelBag)
     }
+
+    func migrateV0ToV1(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args: NSDictionary = call.arguments as! NSDictionary
+        let uuid: String = args["uuid"] as! String
+
+        LibAuk.shared.storage(for: UUID(uuidString: uuid)!)
+            .migrateV0ToV1()
+            .sink(receiveCompletion: { (completion) in
+                if let error = completion.error {
+                    result(ErrorHandler.handle(error: error))
+                }
+
+            }, receiveValue: { _ in
+                result([
+                    "error": 0,
+                    "msg": "migrateV0ToV1 success",
+                ])
+            })
+            .store(in: &cancelBag)
+    }
 }
 
 extension Data {

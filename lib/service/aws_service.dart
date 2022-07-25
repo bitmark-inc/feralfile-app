@@ -67,8 +67,10 @@ class AWSService {
       String defaultDID = 'unknown';
 
       if (hasPersona) {
-        defaultDID =
-            await (await _accountService.getDefaultAccount()).getAccountDID();
+        try {
+          defaultDID =
+              await (await _accountService.getDefaultAccount()).getAccountDID();
+        } catch (_) {}
       }
 
       final deviceID = await getDeviceID() ?? "unknown";

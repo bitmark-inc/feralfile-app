@@ -16,6 +16,12 @@ abstract class PersonaDao {
   @Query('SELECT * FROM Persona WHERE defaultAccount=1')
   Future<List<Persona>> getDefaultPersonas();
 
+  @Query("""
+UPDATE Persona SET defaultAccount = 1 WHERE uuid = :uuid;
+UPDATE Persona SET defaultAccount = 0 WHERE uuid != :uuid;
+      """)
+  Future<void> setUniqueDefaultAccount(String uuid);
+
   @Query('SELECT COUNT(*) FROM Persona')
   Future<int?> getPersonasCount();
 

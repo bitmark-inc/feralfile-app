@@ -71,6 +71,8 @@ import Sentry
                 LibAukChannelHandler.shared.removeShard(call: call, result: result)
             case "restoreByBytewordShards":
                 LibAukChannelHandler.shared.restoreByBytewordShards(call: call, result: result)
+            case "migrateV0ToV1":
+                LibAukChannelHandler.shared.migrateV0ToV1(call: call, result: result)
             default:
                 result(FlutterMethodNotImplemented)
             }
@@ -106,6 +108,9 @@ import Sentry
 
             case "getDeviceID":
                 SystemChannelHandler.shared.getDeviceUniqueID(call: call, result: result)
+
+            case "migrateAccountsFromV0ToV1":
+                SystemChannelHandler.shared.migrateAccountsFromV0ToV1(call: call, result: result)
                 
             default:
                 result(FlutterMethodNotImplemented)
