@@ -5,25 +5,21 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
-import 'package:autonomy_flutter/model/network.dart';
-import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
-import 'package:bloc/bloc.dart';
-import 'package:dio/dio.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 
 part 'feralfile_state.dart';
 
-class FeralfileBloc extends Bloc<FeralFileEvent, FeralFileState> {
+class FeralfileBloc extends AuBloc<FeralFileEvent, FeralFileState> {
   ConfigurationService _configurationService;
   FeralFileService _feralFileService;
   CloudDatabase _cloudDB;
@@ -60,7 +56,7 @@ class FeralfileBloc extends Bloc<FeralFileEvent, FeralFileState> {
                 await _feralFileService.getWeb3Account(persona.wallet());
             final connection = oldConnection.copyFFWith(ffAccount);
 
-            _cloudDB.connectionDao.updateConnection(connection);
+            await _cloudDB.connectionDao.updateConnection(connection);
             emit(state.copyWith(connection: connection));
 
             break;
@@ -70,7 +66,7 @@ class FeralfileBloc extends Bloc<FeralFileEvent, FeralFileState> {
             final ffAccount = await _feralFileService.getAccount(ffToken);
             final connection = oldConnection.copyFFWith(ffAccount);
 
-            _cloudDB.connectionDao.updateConnection(connection);
+            await _cloudDB.connectionDao.updateConnection(connection);
             emit(state.copyWith(connection: connection));
             break;
         }

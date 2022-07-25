@@ -7,6 +7,7 @@
 
 import 'dart:convert';
 
+import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
@@ -25,7 +26,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 part 'accounts_state.dart';
 
-class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
+class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
   ConfigurationService _configurationService;
   CloudDatabase _cloudDB;
   BackupService _backupService;
@@ -156,68 +157,84 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
             createdAt: persona.createdAt);
 
         categorizedAccounts.add(CategorizedAccounts(
-            name, [bitmarkAccount, ethAccount, xtzAccount]));
+          name,
+          [bitmarkAccount, ethAccount, xtzAccount],
+          'Persona',
+        ));
       }
 
       for (var connection in connections) {
         switch (connection.connectionType) {
           case "walletConnect":
           case "walletBrowserConnect":
-            categorizedAccounts.add(CategorizedAccounts(connection.name, [
-              Account(
-                key: connection.key,
-                blockchain: "Ethereum",
-                accountNumber: connection.accountNumber,
-                connections: [connection],
-                name: connection.name,
-                createdAt: connection.createdAt,
-              )
-            ]));
+            categorizedAccounts.add(CategorizedAccounts(
+              connection.name,
+              [
+                Account(
+                  key: connection.key,
+                  blockchain: "Ethereum",
+                  accountNumber: connection.accountNumber,
+                  connections: [connection],
+                  name: connection.name,
+                  createdAt: connection.createdAt,
+                )
+              ],
+              'Connection',
+            ));
             break;
           case "walletBeacon":
-            categorizedAccounts.add(CategorizedAccounts(connection.name, [
-              Account(
-                key: connection.key,
-                blockchain: "Tezos",
-                accountNumber: connection.accountNumber,
-                connections: [connection],
-                name: connection.name,
-                createdAt: connection.createdAt,
-              )
-            ]));
+            categorizedAccounts.add(CategorizedAccounts(
+              connection.name,
+              [
+                Account(
+                  key: connection.key,
+                  blockchain: "Tezos",
+                  accountNumber: connection.accountNumber,
+                  connections: [connection],
+                  name: connection.name,
+                  createdAt: connection.createdAt,
+                )
+              ],
+              'Connection',
+            ));
             break;
 
           case 'ledger':
-            // NOTE: Please double-check this logic when ReceivePage bring back to app
             final data = connection.ledgerConnection;
-            final etheremAddress = data?.etheremAddress.firstOrNull;
-            final tezosAddress = data?.tezosAddress.firstOrNull;
-            if (etheremAddress != null) {
-              categorizedAccounts.add(CategorizedAccounts(connection.name, [
-                Account(
-                  key: connection.key + etheremAddress,
-                  blockchain: "Ethereum",
-                  accountNumber: etheremAddress,
-                  connections: [connection],
-                  name: connection.name,
-                  createdAt: connection.createdAt,
-                )
-              ]));
+            List<Account> accounts = [];
+
+            final etheremAddresses = data?.etheremAddress ?? [];
+            final tezosAddresses = data?.tezosAddress ?? [];
+
+            for (final etheremAddress in etheremAddresses) {
+              accounts.add(Account(
+                key: connection.key + etheremAddress,
+                blockchain: "Ethereum",
+                accountNumber: etheremAddress,
+                connections: [connection],
+                name: connection.name,
+                createdAt: connection.createdAt,
+              ));
             }
 
-            if (tezosAddress != null) {
-              categorizedAccounts.add(CategorizedAccounts(connection.name, [
-                Account(
-                  key: connection.key + tezosAddress,
-                  blockchain: "Tezos",
-                  accountNumber: tezosAddress,
-                  connections: [connection],
-                  name: connection.name,
-                  createdAt: connection.createdAt,
-                )
-              ]));
+            for (final tezosAddress in tezosAddresses) {
+              accounts.add(Account(
+                key: connection.key + tezosAddress,
+                blockchain: "Tezos",
+                accountNumber: tezosAddress,
+                connections: [connection],
+                name: connection.name,
+                createdAt: connection.createdAt,
+              ));
             }
 
+            if (accounts.isNotEmpty) {
+              categorizedAccounts.add(CategorizedAccounts(
+                connection.name,
+                accounts,
+                'Connection',
+              ));
+            }
             break;
 
           default:

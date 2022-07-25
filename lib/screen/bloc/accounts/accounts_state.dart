@@ -61,8 +61,9 @@ class Account {
 class CategorizedAccounts {
   String category;
   List<Account> accounts;
+  String className;
 
-  CategorizedAccounts(this.category, this.accounts);
+  CategorizedAccounts(this.category, this.accounts, this.className);
 }
 
 class AccountsState {

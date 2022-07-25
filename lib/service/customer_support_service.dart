@@ -8,6 +8,13 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:autonomy_flutter/database/entity/asset_token.dart';
+import 'package:autonomy_flutter/gateway/rendering_report_api.dart';
+import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/custom_exception.dart';
+import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
@@ -44,11 +51,20 @@ abstract class CustomerSupportService {
   Future<String> getStoredDirectory();
   Future<String> storeFile(String filename, List<int> bytes);
   Future reopen(String issueID);
+
+  Future<String> createRenderingIssueReport(
+    AssetToken token,
+    List<String> topics,
+  );
 }
 
 class CustomerSupportServiceImpl extends CustomerSupportService {
   final DraftCustomerSupportDao _draftCustomerSupportDao;
   final CustomerSupportApi _customerSupportApi;
+  final RenderingReportApi _renderingReportApi;
+  final AccountService _accountService;
+  final ConfigurationService _configurationService;
+
   ValueNotifier<List<int>?> numberOfIssuesInfo = ValueNotifier(null);
   ValueNotifier<int> triggerReloadMessages = ValueNotifier(0);
   ValueNotifier<CustomerSupportUpdate?> customerSupportUpdate =
@@ -58,13 +74,20 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
   CustomerSupportServiceImpl(
     this._draftCustomerSupportDao,
     this._customerSupportApi,
+    this._renderingReportApi,
+    this._accountService,
+    this._configurationService,
   );
 
   bool _isProcessingDraftMessages = false;
 
   Future<List<Issue>> getIssues() async {
     final issues = await _customerSupportApi.getIssues();
+    issues.removeWhere(
+        (element) => element.tags.contains(ReportIssueType.ReportNFTIssue));
     final drafts = await _draftCustomerSupportDao.getAllDrafts();
+    drafts.removeWhere(
+        (element) => element.reportIssueType == ReportIssueType.ReportNFTIssue);
 
     for (var draft in drafts) {
       if (draft.type != CSMessageType.CreateIssue.rawValue) continue;
@@ -131,6 +154,22 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     _isProcessingDraftMessages = true;
     final draftMsg = draftMsgs.first;
 
+    // Edge Case when database has not updated the new issueID for new comments
+    if (draftMsg.type != 'CreateIssue' && draftMsg.issueID.contains("TEMP")) {
+      final newIssueID = tempIssueIDMap[draftMsg.issueID];
+      if (newIssueID != null) {
+        await _draftCustomerSupportDao.updateIssueID(
+            draftMsg.issueID, newIssueID);
+      } else {
+        await _draftCustomerSupportDao.deleteDraft(draftMsg);
+      }
+
+      _isProcessingDraftMessages = false;
+      processMessages();
+      return;
+    }
+
+    // Parse data
     final data = DraftCustomerSupportData.fromJson(jsonDecode(draftMsg.data));
     List<SendAttachment>? sendAttachments;
 
@@ -243,6 +282,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     for (var mutedMsg in (mutedText ?? [])) {
       mutedMessage += "$mutedMsg\n";
     }
+
     final submitMessage = "[MUTED]\n$mutedMessage[/MUTED]\n\n${message ?? ''}";
 
     final payload = {
@@ -253,6 +293,67 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     };
 
     return await _customerSupportApi.createIssue(payload);
+  }
+
+  Future<String> createRenderingIssueReport(
+    AssetToken token,
+    List<String> topics,
+  ) async {
+    /** Generate metadata
+     * Format:
+     * [Platform - Version - HashedAccountDID]
+     * [TokenIndexerID - Topices]
+     */
+    var metadata = "";
+
+    final defaultAccount = await _accountService.getDefaultAccount();
+    final accountDID = await defaultAccount.getAccountDID();
+    final accountHMACSecret =
+        await _configurationService.getAccountHMACSecret();
+
+    final hashedAccountID = Hmac(sha256, utf8.encode(accountHMACSecret))
+        .convert(utf8.encode(accountDID));
+
+    String platform = "";
+    if (Platform.isIOS) {
+      platform = "iOS";
+    } else if (Platform.isAndroid) {
+      platform = "android";
+    }
+
+    final version = (await PackageInfo.fromPlatform()).version;
+
+    metadata =
+        "\n[$platform - $version - $hashedAccountID]\n[${token.id} - ${topics.join(", ")}]";
+
+    // Extract Collection Value
+    // Etherem blockchain: => pass contract as value: k_$contractAddress
+    // Tezos / FeralFile blockchain => pass arworkID as value: a_$artworkID
+    var collection = token.contractAddress;
+    if (collection != null && collection.isNotEmpty) {
+      collection = "k_$collection";
+    }
+
+    if (collection == null ||
+        collection.isEmpty ||
+        ['tezos', 'bitmark'].contains(token.blockchain)) {
+      collection = "a_${token.assetID}";
+    }
+
+    // Request API
+    final payload = {
+      "artwork": token.assetID,
+      "creator": token.artistName ?? 'unknown',
+      "collection": collection,
+      "token_url": token.assetURL,
+      "metadata": metadata,
+    };
+
+    final result = await _renderingReportApi.report(payload);
+    final githubURL = result["url"];
+    if (githubURL == null)
+      throw SystemException("_renderingReportApi missing url $result");
+    return githubURL;
   }
 
   Future<PostedMessageResponse> commentIssue(String issueID, String? message,

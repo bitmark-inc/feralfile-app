@@ -7,6 +7,7 @@
 
 import 'dart:math';
 
+import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_state.dart';
 import 'package:autonomy_flutter/service/currency_service.dart';
@@ -17,11 +18,10 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tezart/tezart.dart';
 import 'package:web3dart/web3dart.dart';
 
-class SendCryptoBloc extends Bloc<SendCryptoEvent, SendCryptoState> {
+class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
   EthereumService _ethereumService;
   TezosService _tezosService;
   CurrencyService _currencyService;

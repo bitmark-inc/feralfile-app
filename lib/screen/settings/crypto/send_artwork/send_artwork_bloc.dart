@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_state.dart';
@@ -16,11 +17,10 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tezart/tezart.dart';
 import 'package:web3dart/web3dart.dart';
 
-class SendArtworkBloc extends Bloc<SendArtworkEvent, SendArtworkState> {
+class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
   EthereumService _ethereumService;
   TezosService _tezosService;
   CurrencyService _currencyService;

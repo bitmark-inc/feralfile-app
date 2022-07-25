@@ -5,12 +5,12 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_state.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
-class KeySyncBloc extends Bloc<KeySyncEvent, KeySyncState> {
+class KeySyncBloc extends AuBloc<KeySyncEvent, KeySyncState> {
   BackupService _backupService;
   CloudDatabase _cloudDatabase;
 

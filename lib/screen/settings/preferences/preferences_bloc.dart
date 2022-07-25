@@ -7,6 +7,7 @@
 
 import 'dart:io';
 
+import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_state.dart';
@@ -15,19 +16,21 @@ import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/biometrics_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/notification_util.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-class PreferencesBloc extends Bloc<PreferenceEvent, PreferenceState> {
+class PreferencesBloc extends AuBloc<PreferenceEvent, PreferenceState> {
   ConfigurationService _configurationService;
   AppDatabase _appDatabase;
   LocalAuthentication _localAuth = LocalAuthentication();
   List<BiometricType> _availableBiometrics = List.empty();
 
   PreferencesBloc(this._configurationService, this._appDatabase)
-      : super(PreferenceState(false, false, false, "", false)) {
+      : super(PreferenceState(false, false, false, false, "", false)) {
     on<PreferenceInfoEvent>((event, emit) async {
+      final isImmediateInfoViewEnabled =
+          _configurationService.isImmediateInfoViewEnabled();
+
       _availableBiometrics = await _localAuth.getAvailableBiometrics();
       final canCheckBiometrics = await authenticateIsAvailable();
 
@@ -43,6 +46,7 @@ class PreferencesBloc extends Bloc<PreferenceEvent, PreferenceState> {
           numOfHiddenArtworks != null && numOfHiddenArtworks > 0;
 
       emit(PreferenceState(
+          isImmediateInfoViewEnabled,
           passcodeEnabled && canCheckBiometrics,
           notificationEnabled,
           analyticsEnabled,
@@ -51,6 +55,12 @@ class PreferencesBloc extends Bloc<PreferenceEvent, PreferenceState> {
     });
 
     on<PreferenceUpdateEvent>((event, emit) async {
+      if (event.newState.isImmediateInfoViewEnabled !=
+          state.isImmediateInfoViewEnabled) {
+        await _configurationService.setImmediateInfoViewEnabled(
+            event.newState.isImmediateInfoViewEnabled);
+      }
+
       if (event.newState.isDevicePasscodeEnabled !=
           state.isDevicePasscodeEnabled) {
         final canCheckBiometrics = await authenticateIsAvailable();

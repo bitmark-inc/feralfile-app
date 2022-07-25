@@ -7,11 +7,13 @@
 
 import 'dart:convert';
 
+import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/service/social_recovery/shard_deck.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
 import 'package:wallet_connect/wallet_connect.dart';
 
 abstract class ConfigurationService {
@@ -61,6 +63,9 @@ abstract class ConfigurationService {
   Future<void> setPreviousBuildNumber(String value);
   List<String> getFinishedSurveys();
   Future<void> setFinishedSurvey(List<String> surveyNames);
+  Future<void> setImmediateInfoViewEnabled(bool value);
+  bool isImmediateInfoViewEnabled();
+  Future<String> getAccountHMACSecret();
   ShardDeck? getCachedDeckFromShardService();
   Future<void> setCachedDeckFromShardService(ShardDeck? deck);
   bool isLostPlatformRestore();
@@ -99,6 +104,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_READ_RELEASE_NOTES_VERSION =
       'read_release_notes_version';
   static const String KEY_FINISHED_SURVEYS = "finished_surveys";
+  static const String KEY_IMMEDIATE_INFOVIEW = 'immediate_infoview';
+  static const String ACCOUNT_HMAC_SECRET = "account_hmac_secret";
   static const String CACHED_DECK_FROM_SHARD_SERVICE =
       'CACHED_DECK_FROM_SHARD_SERVICE';
   static const String IS_LOST_PLATFORM_RESTORE = "IS_LOST_PLATFORM_RESTORE";
@@ -188,6 +195,15 @@ class ConfigurationServiceImpl implements ConfigurationService {
     } catch (e) {
       return Network.MAINNET;
     }
+  }
+
+  Future<void> setImmediateInfoViewEnabled(bool value) async {
+    log.info("setImmediateInfoViewEnabled: $value");
+    await _preferences.setBool(KEY_IMMEDIATE_INFOVIEW, value);
+  }
+
+  bool isImmediateInfoViewEnabled() {
+    return _preferences.getBool(KEY_IMMEDIATE_INFOVIEW) ?? false;
   }
 
   @override
@@ -342,9 +358,9 @@ class ConfigurationServiceImpl implements ConfigurationService {
   bool matchFeralFileSourceInNetwork(String source) {
     final network = getNetwork();
     if (network == Network.MAINNET) {
-      return source == "https://feralfile.com";
+      return source == Environment.feralFileAPIMainnetURL;
     } else {
-      return source != "https://feralfile.com";
+      return source != Environment.feralFileAPIMainnetURL;
     }
   }
 
@@ -473,6 +489,17 @@ class ConfigurationServiceImpl implements ConfigurationService {
     finishedSurveys.addAll(surveyNames);
     return _preferences.setStringList(
         KEY_FINISHED_SURVEYS, finishedSurveys.toSet().toList());
+  }
+
+  Future<String> getAccountHMACSecret() async {
+    final value = _preferences.getString(ACCOUNT_HMAC_SECRET);
+    if (value == null) {
+      final setValue = Uuid().v4();
+      await _preferences.setString(ACCOUNT_HMAC_SECRET, setValue);
+      return setValue;
+    }
+
+    return value;
   }
 
   bool showTokenDebugInfo() {

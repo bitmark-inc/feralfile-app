@@ -38,7 +38,7 @@ class _GlobalReceivePageState extends State<GlobalReceivePage> {
         if (categorizedAccounts == null)
           return Container(
             alignment: Alignment.center,
-            child: CupertinoActivityIndicator(),
+            child: loadingIndicator(),
           );
 
         return Container(
@@ -66,7 +66,8 @@ class _GlobalReceivePageState extends State<GlobalReceivePage> {
                           child: accountWithConnectionItem(
                               context, categorizedAccounts[index]),
                         )),
-                    separatorBuilder: ((context, index) => Divider()),
+                    separatorBuilder: ((context, index) =>
+                        addDivider(height: 0)),
                     itemCount: categorizedAccounts.length)
               ],
             ),

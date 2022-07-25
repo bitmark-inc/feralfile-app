@@ -5,11 +5,11 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
-class SelectNetworkBloc extends Bloc<SelectNetworkEvent, Network> {
+class SelectNetworkBloc extends AuBloc<SelectNetworkEvent, Network> {
   ConfigurationService _configurationService;
 
   SelectNetworkBloc(this._configurationService)

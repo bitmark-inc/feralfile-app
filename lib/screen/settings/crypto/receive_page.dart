@@ -66,10 +66,11 @@ class ReceivePage extends StatelessWidget {
                     padding: EdgeInsets.symmetric(horizontal: 8),
                     child: Text(
                       payload.address,
-                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.start,
+                      softWrap: true,
                       style: TextStyle(
                           color: Colors.black,
-                          fontSize: 16,
+                          fontSize: 12,
                           fontWeight: FontWeight.w300,
                           fontFamily: "IBMPlexMono"),
                     ),

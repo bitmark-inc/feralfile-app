@@ -56,6 +56,9 @@ class DeeplinkServiceImpl extends DeeplinkService {
   }
 
   void _handleDeeplink(String? link) async {
+    // return for case when FeralFile pass empty deeplink to return Autonomy
+    if (link == "autonomy://") return;
+
     if (link == null) return;
 
     log.info("[DeeplinkService] receive deeplink $link");

@@ -1,13 +1,13 @@
+import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/gateway/indexer_api.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:bloc/bloc.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 
 part 'gallery_state.dart';
 
-class GalleryBloc extends Bloc<GalleryEvent, GalleryState> {
+class GalleryBloc extends AuBloc<GalleryEvent, GalleryState> {
   IndexerApi _indexerApi;
 
   GalleryBloc(this._indexerApi)

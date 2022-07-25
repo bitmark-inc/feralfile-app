@@ -54,10 +54,29 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
       case 'feralFileWeb3':
       case 'feralFileToken':
         _source = "FeralFile";
+
         context
             .read<FeralfileBloc>()
             .add(GetFFAccountInfoEvent(widget.connection));
         contextedAddresses.add(ContextedAddress(CryptoType.BITMARK, address));
+
+        final ffAccount = widget.connection.ffConnection?.ffAccount ??
+            widget.connection.ffWeb3Connection?.ffAccount;
+        final ethereumAddress = ffAccount?.ethereumAddress;
+        final tezosAddress = ffAccount?.tezosAddress;
+
+        if (ethereumAddress != null) {
+          contextedAddresses
+              .add(ContextedAddress(CryptoType.ETH, ethereumAddress));
+          fetchETHBalance(ethereumAddress);
+        }
+
+        if (tezosAddress != null) {
+          contextedAddresses
+              .add(ContextedAddress(CryptoType.XTZ, tezosAddress));
+          fetchXtzBalance(tezosAddress);
+        }
+
         break;
 
       case "walletBeacon":
@@ -133,9 +152,12 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
       case 'feralFileWeb3':
       case 'feralFileToken':
         _source = "FeralFile";
+
         final feralFileState = context.watch<FeralfileBloc>().state;
         final wyreWallet =
-            feralFileState.connection?.ffConnection?.ffAccount.wyreWallet;
+            (feralFileState.connection?.ffConnection?.ffAccount ??
+                    feralFileState.connection?.ffWeb3Connection?.ffAccount)
+                ?.wyreWallet;
         if (wyreWallet != null) {
           setState(() {
             _balances[widget.connection.accountNumber] =

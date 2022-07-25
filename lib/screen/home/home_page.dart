@@ -38,7 +38,6 @@ import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/penrose_top_bar_view.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
@@ -131,11 +130,16 @@ class _HomePageState extends State<HomePage>
     if (tokens == null || tokens.isEmpty) {
       if ([ActionState.notRequested, ActionState.loading]
           .contains(state.fetchTokenState)) {
-        contentWidget = Align(
-          alignment: Alignment.topCenter,
-          child: Padding(
-            padding: EdgeInsets.only(top: 180),
-            child: loadingIndicator(),
+        contentWidget = Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Container(
+                child: autonomyLogo,
+                padding: EdgeInsets.fromLTRB(0, 72, 0, 48),
+              ),
+              loadingIndicator(),
+            ],
           ),
         );
       } else {
@@ -166,7 +170,10 @@ class _HomePageState extends State<HomePage>
     return ListView(
       padding: EdgeInsets.symmetric(horizontal: 16.0),
       children: [
-        SizedBox(height: 160),
+        Container(
+          child: autonomyLogo,
+          padding: EdgeInsets.fromLTRB(0, 72, 0, 48),
+        ),
         Text(
           "Collection",
           style: appTextTheme.headline1,
@@ -194,6 +201,11 @@ class _HomePageState extends State<HomePage>
     }
     List<Widget> sources;
     sources = [
+      SliverToBoxAdapter(
+          child: Container(
+        child: autonomyLogo,
+        padding: EdgeInsets.fromLTRB(0, 72, 0, 48),
+      )),
       SliverGrid(
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: cellPerRow,
@@ -212,8 +224,14 @@ class _HomePageState extends State<HomePage>
                 final index = tokens.indexOf(asset);
                 final payload = ArtworkDetailPayload(tokenIDs, index);
 
-                Navigator.of(context).pushNamed(AppRouter.artworkPreviewPage,
-                    arguments: payload);
+                if (injector<ConfigurationService>()
+                    .isImmediateInfoViewEnabled()) {
+                  Navigator.of(context).pushNamed(AppRouter.artworkDetailsPage,
+                      arguments: payload);
+                } else {
+                  Navigator.of(context).pushNamed(AppRouter.artworkPreviewPage,
+                      arguments: payload);
+                }
               },
             );
           },
@@ -221,15 +239,6 @@ class _HomePageState extends State<HomePage>
         ),
       ),
     ];
-
-    sources.insert(
-      0,
-      SliverToBoxAdapter(
-        child: Container(
-          height: 168.0,
-        ),
-      ),
-    );
 
     return CustomScrollView(
       slivers: sources,

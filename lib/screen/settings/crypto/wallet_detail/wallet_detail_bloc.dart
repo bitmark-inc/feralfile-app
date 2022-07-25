@@ -7,6 +7,7 @@
 
 import 'dart:math';
 
+import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_state.dart';
 import 'package:autonomy_flutter/service/currency_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
@@ -16,9 +17,8 @@ import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
-class WalletDetailBloc extends Bloc<WalletDetailEvent, WalletDetailState> {
+class WalletDetailBloc extends AuBloc<WalletDetailEvent, WalletDetailState> {
   EthereumService _ethereumService;
   TezosService _tezosService;
   CurrencyService _currencyService;

@@ -3,19 +3,17 @@ import 'dart:collection';
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/model/asset_price.dart';
 import 'package:autonomy_flutter/model/provenance.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/screen/detail/report_rendering_issue/any_problem_nft_widget.dart';
 import 'package:autonomy_flutter/screen/detail/report_rendering_issue/report_rendering_issue_widget.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/au_cached_manager.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
-import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/theme_manager.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -137,6 +135,7 @@ INFTRenderingWidget buildRenderingWidget(
     loadingWidget: previewPlaceholder,
     errorWidget: brokenTokenWidget(
         context, AuThemeManager.anyProblemNFTDarkTheme.textTheme, token),
+    cacheManager: injector<AUCacheManager>(),
   ));
 
   return renderingWidget;
@@ -162,27 +161,71 @@ Widget brokenTokenWidget(
 
 void showReportIssueDialog(BuildContext context, AssetToken token) {
   UIHelper.showDialog(
-      context,
-      "Report issue?",
-      ReportRenderingIssueWidget(
-        token: token,
-        onReported: (issueID) {
-          showErrorDialog(
-            context,
-            "🤔",
-            "We have automatically filed the rendering issue, and we will look into it. If you require further support or want to tell us more about the problem, please tap the button below.",
-            "GET SUPPORT",
-            () => Navigator.of(context).pushNamed(
-              AppRouter.supportThreadPage,
-              arguments: DetailIssuePayload(
-                  reportIssueType: ReportIssueType.ReportNFTIssue,
-                  issueID: issueID),
+    context,
+    "Report issue?",
+    ReportRenderingIssueWidget(
+      token: token,
+      onReported: (githubURL) =>
+          _showReportRenderingDialogSuccess(context, githubURL),
+    ),
+  );
+}
+
+void _showReportRenderingDialogSuccess(BuildContext context, String githubURL) {
+  final theme = AuThemeManager.get(AppTheme.sheetTheme);
+  UIHelper.showDialog(
+    context,
+    'Report received',
+    Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Thank you for reporting this NFT. Our team is looking into it.',
+          style: theme.textTheme.bodyText1,
+        ),
+        SizedBox(height: 40),
+        Row(
+          children: [
+            Expanded(
+              child: AuFilledButton(
+                icon: SvgPicture.asset('assets/images/external_link.svg'),
+                text: "VIEW ISSUE STATUS",
+                onPress: () {
+                  launch(githubURL, forceSafariVC: false);
+                  Navigator.of(context).pop();
+                },
+                color: theme.primaryColor,
+                textStyle: TextStyle(
+                    color: theme.backgroundColor,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    fontFamily: "IBMPlexMono"),
+              ),
             ),
-            "CLOSE",
-          );
-        },
-      ),
-      isDismissible: true);
+          ],
+        ),
+        SizedBox(height: 7),
+        Align(
+          alignment: Alignment.center,
+          child: TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'CLOSE',
+              style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  fontFamily: "IBMPlexMono"),
+            ),
+          ),
+        ),
+        SizedBox(height: 15),
+      ],
+    ),
+    isDismissible: true,
+    feedback: FeedbackType.success,
+  );
 }
 
 Widget get previewPlaceholder {
@@ -277,6 +320,7 @@ Widget artworkDetailsMetadataSection(
           // some FF's artist set multiple links
           // Discussion thread: https://bitmark.slack.com/archives/C01EPPD07HU/p1648698027564299
           tapLink: asset.artistURL?.split(" & ").first,
+          forceSafariVC: false,
         ),
       ],
       (asset.maxEdition ?? 0) > 0
@@ -295,6 +339,7 @@ Widget artworkDetailsMetadataSection(
         "Token",
         polishSource(asset.source ?? ""),
         tapLink: asset.assetURL,
+        forceSafariVC: false,
       ),
       Divider(height: 32.0),
       _rowItem(
@@ -302,6 +347,7 @@ Widget artworkDetailsMetadataSection(
         "Contract",
         asset.blockchain.capitalize(),
         tapLink: asset.blockchainURL,
+        forceSafariVC: false,
       ),
       Divider(height: 32.0),
       _rowItem(context, "Medium", asset.medium?.capitalize()),
@@ -494,10 +540,12 @@ Widget _rowItem(BuildContext context, String name, String? value,
     {String? subTitle,
     Function()? onNameTap,
     String? tapLink,
+    bool? forceSafariVC,
     Function()? onValueTap}) {
   if (onValueTap == null && tapLink != null) {
     final uri = Uri.parse(tapLink);
-    onValueTap = () => launch(uri.toString());
+    onValueTap =
+        () => launch(uri.toString(), forceSafariVC: forceSafariVC ?? true);
   }
 
   return Row(

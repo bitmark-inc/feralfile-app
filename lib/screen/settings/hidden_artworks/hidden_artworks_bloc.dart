@@ -5,11 +5,11 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
-class HiddenArtworksBloc extends Bloc<HiddenArtworksEvent, List<AssetToken>> {
+class HiddenArtworksBloc extends AuBloc<HiddenArtworksEvent, List<AssetToken>> {
   AppDatabase _appDatabase;
 
   HiddenArtworksBloc(this._appDatabase) : super([]) {

@@ -13,6 +13,9 @@ FFAccount _$FFAccountFromJson(Map<String, dynamic> json) => FFAccount(
       wyreWallet: json['wyreWallet'] == null
           ? null
           : WyreWallet.fromJson(json['wyreWallet'] as Map<String, dynamic>),
+      vaultAddresses: (json['vaultAddresses'] as Map<String, dynamic>?)?.map(
+        (k, e) => MapEntry(k, e as String),
+      ),
     );
 
 Map<String, dynamic> _$FFAccountToJson(FFAccount instance) => <String, dynamic>{
@@ -20,6 +23,7 @@ Map<String, dynamic> _$FFAccountToJson(FFAccount instance) => <String, dynamic>{
       'alias': instance.alias,
       'location': instance.location,
       'wyreWallet': instance.wyreWallet,
+      'vaultAddresses': instance.vaultAddresses,
     };
 
 WyreWallet _$WyreWalletFromJson(Map<String, dynamic> json) => WyreWallet(

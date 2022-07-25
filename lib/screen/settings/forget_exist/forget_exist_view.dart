@@ -10,8 +10,10 @@ import 'package:autonomy_flutter/screen/settings/forget_exist/forget_exist_bloc.
 import 'package:autonomy_flutter/screen/settings/forget_exist/forget_exist_state.dart';
 import 'package:autonomy_flutter/util/theme_manager.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:roundcheckbox/roundcheckbox.dart';
 
 class ForgetExistView extends StatelessWidget {
   final String? event;
@@ -99,21 +101,25 @@ class ForgetExistView extends StatelessWidget {
             ),
             Row(
               children: [
-                Checkbox(
-                  checkColor: Colors.black,
-                  activeColor: Colors.white,
-                  side: BorderSide(color: Colors.white),
-                  value: state.isChecked,
-                  shape: CircleBorder(),
-                  onChanged: (bool? value) {
+                RoundCheckBox(
+                  size: 24.0,
+                  borderColor: Colors.white,
+                  uncheckedColor: Colors.black,
+                  checkedColor: Colors.white,
+                  isChecked: state.isChecked,
+                  checkedWidget: Icon(
+                    CupertinoIcons.checkmark,
+                    color: Colors.black,
+                    size: 14,
+                  ),
+                  // checkedColor: Colors,
+                  onTap: (bool? value) {
                     context
                         .read<ForgetExistBloc>()
                         .add(UpdateCheckEvent(value ?? false));
                   },
                 ),
-                SizedBox(
-                  height: 16,
-                ),
+                SizedBox(width: 15),
                 Expanded(
                     child: Text(
                   "I understand that this action cannot be undone.",
@@ -131,6 +137,7 @@ class ForgetExistView extends StatelessWidget {
             ),
             AuFilledButton(
               text: state.isProcessing == true ? "FORGETTING…" : "CONFIRM",
+              enabled: state.isProcessing == null && state.isChecked,
               onPress: state.isProcessing == null && state.isChecked
                   ? () {
                       if (event == 'ConfirmEraseDeviceInfoEvent') {

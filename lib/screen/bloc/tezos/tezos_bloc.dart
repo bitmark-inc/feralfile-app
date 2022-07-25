@@ -5,15 +5,15 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
-import 'package:bloc/bloc.dart';
 
 part 'tezos_state.dart';
 
-class TezosBloc extends Bloc<TezosEvent, TezosState> {
+class TezosBloc extends AuBloc<TezosEvent, TezosState> {
   ConfigurationService _configurationService;
   TezosService _tezosService;
 

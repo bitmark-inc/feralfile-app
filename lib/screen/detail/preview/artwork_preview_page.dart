@@ -298,6 +298,14 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   }
 
   Future _moveToInfo(AssetToken asset) async {
+    final isImmediateInfoViewEnabled =
+        injector<ConfigurationService>().isImmediateInfoViewEnabled();
+
+    if (isImmediateInfoViewEnabled) {
+      Navigator.of(context).pop();
+      return;
+    }
+
     final currentIndex = widget.payload.ids.indexOf(asset.id);
 
     disableLandscapeMode();
@@ -354,7 +362,11 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   }
 
   Widget _getArtworkView(AssetToken asset) {
-    _renderingWidget = buildRenderingWidget(context, asset);
+    if (_renderingWidget == null ||
+        _renderingWidget!.previewURL != asset.previewURL) {
+      _renderingWidget = buildRenderingWidget(context, asset);
+    }
+
     return Container(
       child: _renderingWidget?.build(context),
     );

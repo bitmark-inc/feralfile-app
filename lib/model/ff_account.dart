@@ -18,12 +18,14 @@ class FFAccount {
   String alias;
   String location;
   WyreWallet? wyreWallet;
+  Map<String, String>? vaultAddresses;
 
   FFAccount(
       {required this.id,
       required this.alias,
       required this.location,
-      required this.wyreWallet});
+      required this.wyreWallet,
+      required this.vaultAddresses});
 
   factory FFAccount.fromJson(Map<String, dynamic> json) =>
       _$FFAccountFromJson(json);
@@ -33,6 +35,14 @@ class FFAccount {
   @override
   String toString() {
     return toJson().toString();
+  }
+
+  String? get ethereumAddress {
+    return vaultAddresses?['ethereum'];
+  }
+
+  String? get tezosAddress {
+    return vaultAddresses?['tezos'];
   }
 }
 

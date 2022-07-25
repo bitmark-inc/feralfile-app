@@ -35,11 +35,12 @@ class AuFilledButton extends StatelessWidget {
       clipper: AutonomyButtonClipper(),
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-            primary: color,
+            primary: enabled ? color : color.withOpacity(0.6),
             onSurface: color,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.zero,
             ),
+            splashFactory: enabled ? InkRipple.splashFactory : NoSplash.splashFactory,
             padding: const EdgeInsets.symmetric(vertical: 14)),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -65,7 +66,7 @@ class AuFilledButton extends StatelessWidget {
             ),
           ],
         ),
-        onPressed: enabled ? onPress : null,
+        onPressed: enabled ? onPress : () {},
       ),
     );
   }

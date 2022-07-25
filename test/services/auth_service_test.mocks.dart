@@ -390,6 +390,19 @@ class MockConfigurationService extends _i1.Mock
           returnValue: Future<void>.value(),
           returnValueForMissingStub: Future<void>.value()) as _i8.Future<void>);
   @override
+  _i8.Future<void> setImmediateInfoViewEnabled(bool? value) => (super
+      .noSuchMethod(Invocation.method(#setImmediateInfoViewEnabled, [value]),
+          returnValue: Future<void>.value(),
+          returnValueForMissingStub: Future<void>.value()) as _i8.Future<void>);
+  @override
+  bool isImmediateInfoViewEnabled() =>
+      (super.noSuchMethod(Invocation.method(#isImmediateInfoViewEnabled, []),
+          returnValue: false) as bool);
+  @override
+  _i8.Future<String> getAccountHMACSecret() =>
+      (super.noSuchMethod(Invocation.method(#getAccountHMACSecret, []),
+          returnValue: Future<String>.value('')) as _i8.Future<String>);
+  @override
   _i8.Future<void> setCachedDeckFromShardService(_i16.ShardDeck? deck) => (super
       .noSuchMethod(Invocation.method(#setCachedDeckFromShardService, [deck]),
           returnValue: Future<void>.value(),

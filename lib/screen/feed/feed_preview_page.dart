@@ -42,6 +42,7 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
   Timer? _maxTimeTokenTimer;
   bool _missingToken = false;
   AssetToken? latestToken;
+  FeedEvent? latestEvent;
 
   @override
   void initState() {
@@ -73,6 +74,7 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
     Wakelock.enable();
 
     _renderingWidget?.didPopNext();
+    setMaxTimeToken();
     super.didPopNext();
   }
 
@@ -108,8 +110,8 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
     return Scaffold(
       backgroundColor: Colors.black,
       body: BlocConsumer<FeedBloc, FeedState>(listener: (context, state) {
-        if (state.viewingToken?.id != null &&
-            latestToken?.id != state.viewingToken?.id) {
+        if (state.viewingFeedEvent?.id != null &&
+            latestEvent?.id != state.viewingFeedEvent?.id) {
           setMaxTimeToken();
         }
 
@@ -132,6 +134,7 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
         }
 
         latestToken = state.viewingToken;
+        latestEvent = state.viewingFeedEvent;
 
         return Container(
             child: Column(
@@ -312,8 +315,10 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
   }
 
   Future _moveToInfo(AssetToken asset) async {
+    _maxTimeTokenTimer?.cancel();
     Wakelock.disable();
     _clearPrevious();
+
     Navigator.of(context).pushNamed(
       AppRouter.feedArtworkDetailsPage,
       arguments: context.read<FeedBloc>(),
@@ -344,7 +349,11 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
       _missingToken = false;
     }
 
-    _renderingWidget = buildRenderingWidget(context, token);
+    if (_renderingWidget == null ||
+        _renderingWidget!.previewURL != latestToken?.previewURL) {
+      _renderingWidget = buildRenderingWidget(context, token);
+    }
+
     return Container(child: _renderingWidget!.build(context));
   }
 

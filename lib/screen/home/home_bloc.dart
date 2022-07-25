@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
@@ -25,11 +26,10 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:collection/collection.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:autonomy_flutter/util/log.dart';
 
-class HomeBloc extends Bloc<HomeEvent, HomeState> {
+class HomeBloc extends AuBloc<HomeEvent, HomeState> {
   TokensService _tokensService;
   WalletConnectService _walletConnectService;
   TezosBeaconService _tezosBeaconService;
@@ -106,9 +106,10 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
             ..addAll(allAddresses['personaTezos'] ?? []);
         }
 
-        //Clear and refresh all assets if no contractAddress
+        //Clear and refresh all assets if no contractAddress & tokenId
         final tokens = await _assetTokenDao.findAllAssetTokens();
-        if (tokens.every((element) => element.contractAddress == null)) {
+        if (tokens.every((element) =>
+            element.contractAddress == null && element.tokenId == null)) {
           await _assetTokenDao.removeAll();
         }
 
@@ -225,6 +226,24 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
                     .requestIndex({"owner": address, "blockchain": "tezos"});
               } else if (address.startsWith("0x")) {
                 _indexerApi.requestIndex({"owner": address});
+              }
+
+              break;
+
+            case 'feralFileWeb3':
+            case 'feralFileToken':
+              final ffAccount = linkAccount.ffConnection?.ffAccount ??
+                  linkAccount.ffWeb3Connection?.ffAccount;
+              final ethereumAddress = ffAccount?.ethereumAddress;
+              final tezosAddress = ffAccount?.tezosAddress;
+
+              if (ethereumAddress != null) {
+                _indexerApi.requestIndex({"owner": ethereumAddress});
+              }
+
+              if (tezosAddress != null) {
+                _indexerApi.requestIndex(
+                    {"owner": tezosAddress, "blockchain": "tezos"});
               }
 
               break;
