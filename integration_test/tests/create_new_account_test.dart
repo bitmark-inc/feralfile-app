@@ -38,6 +38,10 @@ void main() async {
       // Expect having 3 address are generated and get list will have 3 addresses
       var listAddresses = find.byKey(Key('fullAccount_address'));
       expect(listAddresses.evaluate().length, 3);
+
+      listAddresses.evaluate().forEach((element) {
+        expect(element.widget as Text, isNotNull);
+      });
       // await deleteAnAccount(accountAlias);
     });
 
