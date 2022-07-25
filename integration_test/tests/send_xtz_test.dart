@@ -13,6 +13,7 @@ import 'package:integration_test/integration_test.dart';
 
 import '../pages/onboarding_page.dart';
 import '../commons/test_util.dart';
+import '../test_data/test_constants.dart';
 
 void main() async {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -47,8 +48,7 @@ void main() async {
       await tester.tap(find.text("SEND"));
       await tester.pumpAndSettle();
 
-      await tester.enterText(
-          find.byType(TextField).first, 'tz1Td5qwQxz5mDZiwk7TsRGhDU2HBvXgULip');
+      await tester.enterText(find.byType(TextField).first, XTZ_GETBACK_ADDRESS);
       await tester.pumpAndSettle(Duration(seconds: 1));
       await tester.testTextInput.receiveAction(TextInputAction.done);
 

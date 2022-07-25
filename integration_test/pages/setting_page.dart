@@ -27,48 +27,34 @@ Future<void> addANewAccount(
 
   if (accountType == 'new') {
     await tester.tap(new_button);
-    // await tester.pumpAndSettle();
-    // sleep(Duration(seconds: 10));
+
     await tester.pumpAndSettle(Duration(seconds: 4));
     await tester.pumpAndSettle(Duration(seconds: 1));
 
-    // await tester.pumpAndSettle();
     await tester.tap(continue_button);
-    // await tester.pump();
     await tester.pumpAndSettle(Duration(seconds: 4));
     await tester.pumpAndSettle(Duration(seconds: 1));
 
     await tester.enterText(alias_textbox, alias);
-    // await tester.pumpAndSettle(Duration(seconds: 4));
-    // await tester.pumpAndSettle(Duration(seconds: 1));
 
     await tester.tap(saveAlias_button);
-    // await tester.pumpAndSettle();
     await tester.pumpAndSettle(Duration(seconds: 4));
     await tester.pumpAndSettle(Duration(seconds: 1));
 
     if (continueWithouIt_button.evaluate().isNotEmpty) {
       await tester.tap(continueWithouIt_button);
       await tester.pump(Duration(seconds: 4));
-      // await tester.pumpAndSettle(Duration(seconds: 1));
-
-      // sleep(Duration(seconds: 3));
     }
   } else if (accountType == 'skip') {
     await tester.tap(new_button);
-    // await tester.pumpAndSettle();
-    // sleep(Duration(seconds: 10));
     await tester.pumpAndSettle(Duration(seconds: 4));
     await tester.pumpAndSettle(Duration(seconds: 1));
 
-    // await tester.pumpAndSettle();
     await tester.tap(continue_button);
-    // await tester.pump();
     await tester.pumpAndSettle(Duration(seconds: 4));
     await tester.pumpAndSettle(Duration(seconds: 1));
 
     await tester.tap(skip_button);
-    // await tester.pumpAndSettle();
     await tester.pumpAndSettle(Duration(seconds: 4));
     await tester.pumpAndSettle(Duration(seconds: 1));
 
@@ -87,7 +73,5 @@ Future<int> getNumberOfAccount() async {
           matching: find.byType(Slidable))
       .evaluate()
       .length;
-  //Debug log
-  print('b: ' + b.toString());
   return b;
 }

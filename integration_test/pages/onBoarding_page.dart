@@ -34,7 +34,9 @@ Future<void> onboardingSteps(WidgetTester tester) async {
 
   expect(autonomy_header, findsOneWidget);
 
+  // Temporary ignore the survey and the Enable notification page to make the application stable to test.
   await injector<ConfigurationService>().setFinishedSurvey([Survey.onboarding]);
+  await injector<ConfigurationService>().setNotificationEnabled(false);
 
   if (startButton.evaluate().isNotEmpty) {
     // Fresh start
@@ -77,12 +79,11 @@ Future<void> onboardingSteps(WidgetTester tester) async {
 
     await tester.pumpAndSettle(Duration(seconds: 3));
     //wait for Not now notification appear to close
-    sleep(Duration(seconds: 5));
+    // sleep(Duration(seconds: 5));
 
     if (notNowButton.evaluate().isNotEmpty) {
       await tester.tap(notNowButton);
-      await tester.pumpAndSettle(Duration(seconds: 5));
-      // sleep(Duration(seconds: 5));
+      await tester.pumpAndSettle(Duration(seconds: 8));
     }
   }
 }

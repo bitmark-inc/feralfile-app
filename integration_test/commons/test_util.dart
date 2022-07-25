@@ -43,7 +43,6 @@ Future<void> selectSubSettingMenu(WidgetTester tester, String menu) async {
     } else
       await tester.tap(find.text(sub_menu));
     await tester.pump(Duration(seconds: 5));
-    // if (menu.indexOf('->') < 0) await tester.tap(find.text(menu));
   }
   await tester.tap(find.text(menu));
   await tester.pumpAndSettle();

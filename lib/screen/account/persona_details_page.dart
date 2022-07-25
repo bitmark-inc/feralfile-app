@@ -148,7 +148,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
               SvgPicture.asset('assets/images/iconForward.svg'),
             ],
           ),
-          SizedBox(height: 16),
+          SizedBox(height: 16, key: Key("fullAccount_address")),
           Row(
             children: [
               Expanded(
