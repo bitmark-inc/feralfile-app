@@ -73,6 +73,8 @@ import Sentry
                 LibAukChannelHandler.shared.restoreByBytewordShards(call: call, result: result)
             case "migrateV0ToV1":
                 LibAukChannelHandler.shared.migrateV0ToV1(call: call, result: result)
+            case "hasPlatformShards":
+                LibAukChannelHandler.shared.hasPlatformShards(call: call, result: result)
             default:
                 result(FlutterMethodNotImplemented)
             }
@@ -103,15 +105,26 @@ import Sentry
             case "cleariOSMigrationData":
                 SystemChannelHandler.shared.cleariOSMigrationData(call: call, result: result)
 
-            case "getWalletUUIDsFromKeychain":
-                SystemChannelHandler.shared.getWalletUUIDsFromKeychain(call: call, result: result)
-
             case "getDeviceID":
                 SystemChannelHandler.shared.getDeviceUniqueID(call: call, result: result)
 
+            default:
+                result(FlutterMethodNotImplemented)
+            }
+        })
+
+        let systemChannel = FlutterMethodChannel(name: "system",
+                                                    binaryMessenger: controller.binaryMessenger)
+        systemChannel.setMethodCallHandler({(call: FlutterMethodCall, result: @escaping FlutterResult) -> Void in
+            switch call.method {
+            case "getWalletUUIDsFromKeychain":
+                SystemChannelHandler.shared.getWalletUUIDsFromKeychain(call: call, result: result)
+
             case "migrateAccountsFromV0ToV1":
                 SystemChannelHandler.shared.migrateAccountsFromV0ToV1(call: call, result: result)
-                
+            case "removeAllKeychainKeys":
+                SystemChannelHandler.shared.removeAllKeychainKeys(call: call, result: result)
+
             default:
                 result(FlutterMethodNotImplemented)
             }

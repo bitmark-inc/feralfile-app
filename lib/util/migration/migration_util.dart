@@ -22,6 +22,7 @@ import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/migration/migration_data.dart';
+import 'package:autonomy_flutter/util/system_channel.dart';
 import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -35,6 +36,7 @@ class MigrationUtil {
   IAPService _iapService;
   AuditService _auditService;
   BackupService _backupService;
+  late SystemChannel _systemChannel;
 
   MigrationUtil(
       this._configurationService,
@@ -43,7 +45,9 @@ class MigrationUtil {
       this._navigationService,
       this._iapService,
       this._auditService,
-      this._backupService);
+      this._backupService) {
+    _systemChannel = SystemChannel();
+  }
 
   Future<void> migrateIfNeeded() async {
     if (Platform.isIOS) {
@@ -177,10 +181,9 @@ class MigrationUtil {
   }
 
   Future _migrationFromKeychain() async {
-    await _migrateAccountsFromV0ToV1();
+    await _systemChannel.migrateAccountsFromV0ToV1();
 
-    final List personaUUIDs =
-        await _channel.invokeMethod('getWalletUUIDsFromKeychain', {});
+    final List personaUUIDs = await _systemChannel.getWalletUUIDsFromKeychain();
 
     final personas = await _cloudDB.personaDao.getPersonas();
     if (personas.length == personaUUIDs.length &&
@@ -214,15 +217,6 @@ class MigrationUtil {
         await _auditService.auditPersonaAction(
             '[_migrationkeychain] insert', persona);
       }
-    }
-  }
-
-  Future _migrateAccountsFromV0ToV1() async {
-    final result = await _channel.invokeMethod('migrateAccountsFromV0ToV1', {});
-    if (result['error'] == 0) {
-      return;
-    } else {
-      throw SystemException(result['reason']);
     }
   }
 }

@@ -84,6 +84,30 @@ class SystemChannelHandler: NSObject {
             })
             .store(in: &cancelBag)
     }
+
+    func removeAllKeychainKeys(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args: NSDictionary = call.arguments as! NSDictionary
+        let isSync: Bool = args["isSync"] as! Bool
+        let query: NSDictionary = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrSynchronizable as String: isSync,
+            kSecAttrAccessGroup as String: Constant.keychainGroup,
+        ]
+
+        let status = SecItemDelete(query)
+        if (status == errSecSuccess) {
+            result([
+                "error": 0,
+                "msg": "removeAllKeychainKeys success",
+            ])
+        } else {
+            result([
+                "error": 1,
+                "msg": "removeAllKeychainKeys failed \(status)",
+            ])
+        }
+
+    }
 }
 
 fileprivate extension SystemChannelHandler {

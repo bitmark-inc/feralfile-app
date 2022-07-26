@@ -415,6 +415,24 @@ class LibAukChannelHandler {
             })
             .store(in: &cancelBag)
     }
+
+    func hasPlatformShards(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        LibAuk.shared.general()
+            .hasPlatformShards()
+            .sink(receiveCompletion: { (completion) in
+                if let error = completion.error {
+                    result(ErrorHandler.handle(error: error))
+                }
+
+            }, receiveValue: { (value) in
+                result([
+                    "error": 0,
+                    "result": value,
+                    "msg": "hasPlatformShards success",
+                ])
+            })
+            .store(in: &cancelBag)
+    }
 }
 
 extension Data {

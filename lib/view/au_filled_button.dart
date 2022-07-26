@@ -5,9 +5,10 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:flutter/material.dart';
+
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
-import 'package:flutter/material.dart';
 
 class AuFilledButton extends StatelessWidget {
   final String text;
@@ -40,7 +41,8 @@ class AuFilledButton extends StatelessWidget {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.zero,
             ),
-            splashFactory: enabled ? InkRipple.splashFactory : NoSplash.splashFactory,
+            splashFactory:
+                enabled ? InkRipple.splashFactory : NoSplash.splashFactory,
             padding: const EdgeInsets.symmetric(vertical: 14)),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -68,6 +70,26 @@ class AuFilledButton extends StatelessWidget {
         ),
         onPressed: enabled ? onPress : () {},
       ),
+    );
+  }
+
+  AuFilledButton copyWith({
+    String? text,
+    Function()? onPress,
+    Color? color,
+    bool? enabled,
+    Widget? icon,
+    TextStyle? textStyle,
+    bool? isProcessing,
+  }) {
+    return AuFilledButton(
+      text: text ?? this.text,
+      onPress: onPress ?? this.onPress,
+      color: color ?? this.color,
+      enabled: enabled ?? this.enabled,
+      icon: icon ?? this.icon,
+      textStyle: textStyle ?? this.textStyle,
+      isProcessing: isProcessing ?? this.isProcessing,
     );
   }
 }

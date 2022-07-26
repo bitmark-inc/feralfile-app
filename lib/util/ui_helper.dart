@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/screen/settings/subscription/upgrade_box_view.d
 import 'package:autonomy_flutter/screen/survey/survey.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
@@ -27,6 +28,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:intl/intl.dart';
 import 'package:jiffy/jiffy.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 
 enum ActionState { notRequested, loading, error, done }
@@ -40,6 +42,20 @@ void doneOnboarding(BuildContext context) async {
       .pushNamedAndRemoveUntil(AppRouter.homePage, (route) => false);
 
   Future.delayed(SHORT_SHOW_DIALOG_DURATION, showSurveysNotification);
+}
+
+void doneOnboardingRestore(BuildContext context) async {
+  try {
+    await injector<SettingsDataService>().restoreSettingsData();
+  } catch (exception) {
+    // just ignore this so that user can go through onboarding
+    Sentry.captureException(exception);
+  }
+
+  doneOnboarding(context);
+  await askForNotification();
+
+  await Future.delayed(SHORT_SHOW_DIALOG_DURATION, showSurveysNotification);
 }
 
 void showSurveysNotification() {
@@ -89,7 +105,9 @@ class UIHelper {
 
   static Future<void> showDialog(
       BuildContext context, String title, Widget content,
-      {bool isDismissible = false,
+      {AuFilledButton? submitButton,
+      String closeButton = "",
+      bool isDismissible = false,
       int autoDismissAfter = 0,
       FeedbackType? feedback = FeedbackType.selection}) async {
     log.info("[UIHelper] showInfoDialog: $title");
@@ -128,6 +146,44 @@ class UIHelper {
                       Text(title, style: theme.textTheme.headline1),
                       SizedBox(height: 40),
                       content,
+                      if (submitButton != null) ...[
+                        SizedBox(height: 40),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: submitButton.copyWith(
+                                textStyle: submitButton.textStyle ??
+                                    TextStyle(
+                                        color: theme.backgroundColor,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w700,
+                                        fontFamily: "IBMPlexMono"),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                      if (closeButton.isNotEmpty) ...[
+                        SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: Text(
+                                  closeButton,
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
+                                      fontFamily: "IBMPlexMono"),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                      SizedBox(height: 15),
                     ],
                   ),
                 ),

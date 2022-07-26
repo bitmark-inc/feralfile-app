@@ -17,6 +17,8 @@ class ConfirmForgetExistEvent extends ForgetExistEvent {}
 
 class ConfirmEraseDeviceInfoEvent extends ForgetExistEvent {}
 
+class EraseLocalInfoEvent extends ForgetExistEvent {}
+
 class ForgetExistState {
   final bool isChecked;
   final bool? isProcessing;

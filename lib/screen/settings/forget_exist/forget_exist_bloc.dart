@@ -19,6 +19,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/social_recovery/social_recovery_service.dart';
 import 'package:autonomy_flutter/util/migration/migration_util.dart';
 import 'package:autonomy_flutter/util/notification_util.dart';
+import 'package:autonomy_flutter/util/system_channel.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
@@ -31,6 +32,7 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
   AppDatabase _testnetDatabase;
   ConfigurationService _configurationService;
   SocialRecoveryService _socialRecoveryService;
+  late SystemChannel _systemChannel;
 
   ForgetExistBloc(
     this._authService,
@@ -43,6 +45,8 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
     this._configurationService,
     this._socialRecoveryService,
   ) : super(ForgetExistState(false, null)) {
+    _systemChannel = SystemChannel();
+
     on<UpdateCheckEvent>((event, emit) async {
       emit(ForgetExistState(event.isChecked, state.isProcessing));
     });
@@ -90,6 +94,22 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
 
       await _socialRecoveryService.deleteHelpingContactDecks();
 
+      await _cloudDatabase.removeAll();
+      await _mainnetDatabase.removeAll();
+      await _testnetDatabase.removeAll();
+      await _configurationService.removeAll();
+
+      _authService.reset();
+      memoryValues = MemoryValues();
+
+      emit(ForgetExistState(state.isChecked, false));
+    });
+
+    on<EraseLocalInfoEvent>((event, emit) async {
+      emit(ForgetExistState(state.isChecked, true));
+      deregisterPushNotification();
+      await _autonomyService.clearLinkedAddresses();
+      await _systemChannel.removeAllKeychainKeys(false);
       await _cloudDatabase.removeAll();
       await _mainnetDatabase.removeAll();
       await _testnetDatabase.removeAll();

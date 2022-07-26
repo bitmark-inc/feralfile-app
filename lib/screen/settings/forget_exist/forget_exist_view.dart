@@ -21,9 +21,16 @@ class ForgetExistView extends StatelessWidget {
   const ForgetExistView({Key? key, this.event}) : super(key: key);
 
   String get descriptionEvent {
-    return event == 'ConfirmEraseDeviceInfoEvent'
-        ? "Your accounts and data from your device and your cloud backup will be deleted. Can restore with social recovery if you're done setup"
-        : 'Your accounts and data from your device and your cloud backup will be deleted. Autonomy will not be able to help you recover access.';
+    switch (event) {
+      case 'ConfirmEraseDeviceInfoEvent':
+        return "Your accounts and data from your device and your cloud backup will be deleted. Can restore with social recovery if you're done setup";
+
+      case 'EraseLocalInfoEvent':
+        return "Your accounts and data from your device will be deleted. Can restore with social recovery if you're done setup";
+
+      default:
+        return 'Your accounts and data from your device and your cloud backup will be deleted. Autonomy will not be able to help you recover access.';
+    }
   }
 
   @override
@@ -140,14 +147,22 @@ class ForgetExistView extends StatelessWidget {
               enabled: state.isProcessing == null && state.isChecked,
               onPress: state.isProcessing == null && state.isChecked
                   ? () {
-                      if (event == 'ConfirmEraseDeviceInfoEvent') {
-                        context
-                            .read<ForgetExistBloc>()
-                            .add(ConfirmEraseDeviceInfoEvent());
-                      } else {
-                        context
-                            .read<ForgetExistBloc>()
-                            .add(ConfirmForgetExistEvent());
+                      switch (event) {
+                        case 'ConfirmEraseDeviceInfoEvent':
+                          context
+                              .read<ForgetExistBloc>()
+                              .add(ConfirmEraseDeviceInfoEvent());
+                          break;
+                        case 'EraseLocalInfoEvent':
+                          context
+                              .read<ForgetExistBloc>()
+                              .add(EraseLocalInfoEvent());
+                          break;
+                        default:
+                          context
+                              .read<ForgetExistBloc>()
+                              .add(ConfirmForgetExistEvent());
+                          break;
                       }
                     }
                   : null,

@@ -6,6 +6,9 @@
 //
 
 import 'package:autonomy_flutter/common/environment.dart';
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/service/social_recovery/social_recovery_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
@@ -25,7 +28,22 @@ class RestoreWithShardServicePage extends StatefulWidget {
 class _RestoreWithShardServicePageState
     extends State<RestoreWithShardServicePage> {
   TextEditingController _shardServiceTextController = TextEditingController();
+  bool _hasPlatformShards = false;
   bool _isSubmissionEnabled = false;
+
+  @override
+  void initState() {
+    _loadData();
+    super.initState();
+  }
+
+  void _loadData() async {
+    final _hasPlatformShardsResult =
+        await injector<SocialRecoveryService>().hasPlatformShards();
+    setState(() {
+      _hasPlatformShards = _hasPlatformShardsResult;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -81,22 +99,40 @@ class _RestoreWithShardServicePageState
                   ]),
             ),
           ),
-          Row(
+          Column(
             children: [
-              Expanded(
-                child: AuFilledButton(
-                  enabled: _isSubmissionEnabled,
-                  text: "OPEN".toUpperCase(),
-                  onPress: () {
-                    if (_isSubmissionEnabled)
-                      launch(_shardServiceTextController.text,
-                          forceSafariVC: false);
-                    FocusScope.of(context).unfocus();
-                  },
-                ),
+              Row(
+                children: [
+                  Expanded(
+                    child: AuFilledButton(
+                      enabled: _isSubmissionEnabled,
+                      text: "OPEN".toUpperCase(),
+                      onPress: () {
+                        if (_isSubmissionEnabled)
+                          launch(_shardServiceTextController.text,
+                              forceSafariVC: false);
+                        FocusScope.of(context).unfocus();
+                      },
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
+          if (_hasPlatformShards) ...[
+            TextButton(
+              onPressed: () => Navigator.of(context)
+                  .pushNamed(AppRouter.restoreWithEmergencyContactPage),
+              child: Text(
+                "RESTORE WITH EMERGENCY CONTACT",
+                style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    fontFamily: "IBMPlexMono"),
+              ),
+            ),
+          ],
         ]),
       ),
     );

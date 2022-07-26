@@ -8,7 +8,7 @@
 import 'dart:convert';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/service/settings_data_service.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/social_recovery/shard_deck.dart';
 import 'package:autonomy_flutter/service/social_recovery/social_recovery_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -17,7 +17,6 @@ import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/material.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 
 class RestoreWithEmergencyContactPage extends StatefulWidget {
   const RestoreWithEmergencyContactPage({Key? key}) : super(key: key);
@@ -129,17 +128,24 @@ class _RestoreWithEmergencyContactPageState
     // Restore
     // if success, done onboarding
     try {
-      await injector<SocialRecoveryService>().restoreAccount(shardDeck);
+      final shardServiceDeck =
+          injector<ConfigurationService>().getCachedDeckFromShardService();
+      var runRestoreAccountWithPlatformKey = true;
 
-      try {
-        await injector<SettingsDataService>().restoreSettingsData();
-      } catch (exception) {
-        // just ignore this so that user can go through onboarding
-        Sentry.captureException(exception);
+      if (shardServiceDeck != null) {
+        try {
+          await injector<SocialRecoveryService>()
+              .restoreAccount(shardServiceDeck, shardDeck);
+          runRestoreAccountWithPlatformKey = false;
+        } catch (_) {}
       }
 
-      doneOnboarding(context);
-      await askForNotification();
+      if (runRestoreAccountWithPlatformKey) {
+        await injector<SocialRecoveryService>()
+            .restoreAccountWithPlatformKey(shardDeck);
+      }
+
+      doneOnboardingRestore(context);
     } catch (exception) {
       setState(() {
         _isProcessing = false;

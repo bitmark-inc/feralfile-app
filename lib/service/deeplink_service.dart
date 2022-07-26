@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/social_recovery/social_recovery_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
@@ -20,10 +21,13 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
+import 'package:autonomy_flutter/util/theme_manager.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:uni_links/uni_links.dart';
 
 abstract class DeeplinkService {
@@ -217,19 +221,54 @@ class DeeplinkServiceImpl extends DeeplinkService {
         context,
         'Processing...',
         'Getting ShardDeck from $domain',
-        autoDismissAfter: 5,
         isDismissible: false,
       );
 
-      final deck = await injector<SocialRecoveryService>()
+      final shardServiceDeck = await injector<SocialRecoveryService>()
           .requestDeckFromShardService(domain, code);
-      await _configurationService.setCachedDeckFromShardService(deck);
+      final hasPlatformShards =
+          await injector<SocialRecoveryService>().hasPlatformShards();
+      await _configurationService
+          .setCachedDeckFromShardService(shardServiceDeck);
 
-      await injector<NavigationService>()
-          .navigatorKey
-          .currentState
-          ?.pushNamedAndRemoveUntil(AppRouter.restoreWithEmergencyContactPage,
-              (route) => route.settings.name == AppRouter.onboardingPage);
+      await Future.delayed(SHOW_DIALOG_DURATION);
+      final sheetTheme = AuThemeManager.get(AppTheme.sheetTheme);
+
+      try {
+        if (hasPlatformShards) {
+          Navigator.of(context).pop();
+          UIHelper.showInfoDialog(context, "RESTORING...",
+              'Restoring your account with 2 shardDecks: Platform & ShardService');
+
+          await injector<SocialRecoveryService>()
+              .restoreAccountWithPlatformKey(shardServiceDeck);
+          doneOnboardingRestore(context);
+        } else {
+          throw SocialRecoveryMissingShard();
+        }
+      } on SocialRecoveryMissingShard catch (_) {
+        Navigator.of(context).pop();
+        // missing platformShards
+        await injector<NavigationService>()
+            .navigatorKey
+            .currentState
+            ?.pushNamedAndRemoveUntil(AppRouter.restoreWithEmergencyContactPage,
+                (route) => route.settings.name == AppRouter.onboardingPage);
+      } catch (exception) {
+        Navigator.of(context).pop();
+        UIHelper.showDialog(
+          context,
+          "Error",
+          Text("ShardDecks don't match.",
+              style: sheetTheme.textTheme.bodyText1),
+          submitButton: AuFilledButton(
+              text: 'RESTORE WITH EMERGENCY CONTACT',
+              onPress: () => Navigator.of(context).pushNamedAndRemoveUntil(
+                  AppRouter.restoreWithEmergencyContactPage,
+                  (route) => route.settings.name == AppRouter.onboardingPage)),
+          closeButton: 'CLOSE',
+        );
+      }
 
       return true;
     } else {

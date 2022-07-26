@@ -8,8 +8,12 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/migration/migration_util.dart';
 import 'package:autonomy_flutter/util/social_recovery_channel.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/cupertino.dart';
@@ -41,7 +45,9 @@ abstract class SocialRecoveryService {
   Future doneSetupEmergencyContact();
 
   Future<ShardDeck> requestDeckFromShardService(String domain, String code);
-  Future restoreAccount(ShardDeck ecShardDeck);
+  Future<bool> hasPlatformShards();
+  Future restoreAccountWithPlatformKey(ShardDeck shardDeck);
+  Future restoreAccount(ShardDeck shardDeck1, ShardDeck shardDeck2);
   Future clearRestoreProcess();
 
   Future<List<ContactDeck>> getContactDecks();
@@ -124,17 +130,10 @@ class SocialRecoveryServiceImpl extends SocialRecoveryService {
   }
 
   Future sendDeckToShardService(String domain, String code) async {
-    final accounts = await _cloudDB.personaDao.getPersonas();
-
-    // generate SSKR
-    for (final account in accounts) {
-      final wallet = LibAukDart.getWallet(account.uuid);
-      await wallet.setupSSKR();
-    }
-
     // Create ShardService's ShardDeck
     // Send ShardDeck to ShardService with OTP Code
-    final shardDeck = await _createShardDeck(accounts, ShardType.ShardService);
+    final shardDeck =
+        await _getShardDeckFromAccounts(ShardType.ShardService, runSSKR: true);
     final body = {"code": code, "secret": jsonEncode(shardDeck.toJson())};
 
     final response = await http.put(
@@ -149,6 +148,7 @@ class SocialRecoveryServiceImpl extends SocialRecoveryService {
           : throw Exception(response.body);
     } else {
       // Done
+      final accounts = await _cloudDB.personaDao.getPersonas();
       await _removeShards(accounts, ShardType.ShardService);
       await _auditService.auditSocialRecoveryAction('setupSSKR');
       socialRecoveryStep.value = SocialRecoveryStep.SetupEmergencyContact;
@@ -156,10 +156,8 @@ class SocialRecoveryServiceImpl extends SocialRecoveryService {
   }
 
   Future<String> getEmergencyContactDeck() async {
-    final accounts = await _cloudDB.personaDao.getPersonas();
-
     final shardDeck =
-        await _createShardDeck(accounts, ShardType.EmergencyContact);
+        await _getShardDeckFromAccounts(ShardType.EmergencyContact);
     return storeDataInTempSecretFile(jsonEncode(shardDeck));
   }
 
@@ -211,16 +209,30 @@ class SocialRecoveryServiceImpl extends SocialRecoveryService {
     }
   }
 
-  Future restoreAccount(ShardDeck ecShardDeck) async {
-    final shardServiceDeck =
-        _configurationService.getCachedDeckFromShardService();
-    if (shardServiceDeck == null) throw IncorrectFlow();
+  Future<bool> hasPlatformShards() {
+    return LibAukDart.general().hasPlatformShards();
+  }
 
+  Future restoreAccountWithPlatformKey(ShardDeck shardDeck) async {
     // Restore Default Account
-    final defaultAccountUUID = shardServiceDeck.defaultAccount.uuid;
+    final defaultAccountUUID = shardDeck.defaultAccount.uuid;
+    List<String> otherAccountUUIDs = [];
+
+    for (final otherAccount in shardDeck.otherAccounts) {
+      otherAccountUUIDs.add(otherAccount.uuid);
+    }
+
+    final platformDeck = await _getShardDeck(
+        defaultAccountUUID, otherAccountUUIDs, ShardType.Platform);
+    restoreAccount(platformDeck, shardDeck);
+  }
+
+  Future restoreAccount(ShardDeck shardDeck1, ShardDeck shardDeck2) async {
+    // Restore Default Account
+    final defaultAccountUUID = shardDeck1.defaultAccount.uuid;
     final defaultShares = [
-      shardServiceDeck.defaultAccount.shard,
-      ecShardDeck.defaultAccount.shard
+      shardDeck1.defaultAccount.shard,
+      shardDeck2.defaultAccount.shard
     ];
 
     final defaultAccountWallet = LibAukDart.getWallet(defaultAccountUUID);
@@ -250,11 +262,11 @@ class SocialRecoveryServiceImpl extends SocialRecoveryService {
 
     // Get shares from shardServiceDeck
     Map<String, String> accountsShards = {};
-    for (final info in shardServiceDeck.otherAccounts) {
+    for (final info in shardDeck1.otherAccounts) {
       accountsShards[info.uuid] = info.shard;
     }
 
-    for (final info in ecShardDeck.otherAccounts) {
+    for (final info in shardDeck2.otherAccounts) {
       final shard = accountsShards[info.uuid];
       if (shard == null) continue; // ignore if doesn't have 2 shards
 
@@ -273,9 +285,22 @@ class SocialRecoveryServiceImpl extends SocialRecoveryService {
     if (defaultName != null && defaultName!.isNotEmpty)
       defaultAccountWallet.updateName(defaultName);
 
+    await MigrationUtil(
+            _configurationService,
+            _cloudDB,
+            _accountService,
+            injector<NavigationService>(),
+            injector(),
+            _auditService,
+            _backupService)
+        .migrationFromKeychain(Platform.isIOS);
+
     // Done
     await _configurationService.setIsLostPlatformRestore(true);
     await _configurationService.setCachedDeckFromShardService(null);
+    await _cloudDB.personaDao.setUniqueDefaultAccount(defaultAccountUUID);
+    await _configurationService.setDoneOnboarding(true);
+    await injector<AWSService>().initServices();
   }
 
   Future clearRestoreProcess() async {
@@ -294,24 +319,53 @@ class SocialRecoveryServiceImpl extends SocialRecoveryService {
     await _socialRecoveryChannel.deleteHelpingContactDecks();
   }
 
-  Future<ShardDeck> _createShardDeck(
-      List<Persona> accounts, ShardType shardType) async {
-    ShardInfo? defaultAccount;
+  Future<ShardDeck> _getShardDeckFromAccounts(
+    ShardType shardType, {
+    bool runSSKR = false,
+  }) async {
+    final defaultAccount = await _accountService.getCurrentDefaultAccount();
+    if (defaultAccount == null) throw IncorrectFlow();
+
+    if (runSSKR) await defaultAccount.setupSSKR();
+
+    final accounts = await _cloudDB.personaDao.getPersonas();
+    List<String> otherAccountUUIDs = [];
+    for (final account in accounts) {
+      final wallet = LibAukDart.getWallet(account.uuid);
+
+      if (account.uuid == defaultAccount.uuid &&
+          ((await wallet.getETHAddress()).isEmpty)) continue;
+      otherAccountUUIDs.add(account.uuid);
+      if (runSSKR) await wallet.setupSSKR();
+    }
+
+    return _getShardDeck(defaultAccount.uuid, otherAccountUUIDs, shardType);
+  }
+
+  Future<ShardDeck> _getShardDeck(
+    String defaultUUID,
+    List<String> otherUUIDs,
+    ShardType shardType, {
+    bool throwExceptionForOthers = true,
+  }) async {
+    String? defaultShard =
+        await LibAukDart.getWallet(defaultUUID).getShard(shardType);
+    if (defaultShard == null) throw SocialRecoveryMissingShard();
+
+    ShardInfo defaultAccount =
+        ShardInfo(uuid: defaultUUID, shard: defaultShard);
     List<ShardInfo> otherAccounts = [];
 
-    for (final account in accounts) {
-      String? shard =
-          await LibAukDart.getWallet(account.uuid).getShard(shardType);
+    for (final otherUUID in otherUUIDs) {
+      String? shard = await LibAukDart.getWallet(otherUUID).getShard(shardType);
 
-      if (shard == null) throw SocialRecoveryMissingShard();
-      if (account.defaultAccount == 1) {
-        defaultAccount = ShardInfo(uuid: account.uuid, shard: shard);
+      if (shard != null) {
+        otherAccounts.add(ShardInfo(uuid: otherUUID, shard: shard));
       } else {
-        otherAccounts.add(ShardInfo(uuid: account.uuid, shard: shard));
+        if (throwExceptionForOthers) throw SocialRecoveryMissingShard();
       }
     }
 
-    if (defaultAccount == null) throw SocialRecoveryMissingShard();
     return ShardDeck(
       defaultAccount: defaultAccount,
       otherAccounts: otherAccounts,

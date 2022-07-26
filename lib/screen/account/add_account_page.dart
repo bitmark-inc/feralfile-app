@@ -116,7 +116,18 @@ class _AddAccountPageState extends State<AddAccountPage> {
                     bottomWidget: Text(
                         'Erase all information about me and delete my keys from my cloud backup including the keys on this device. Keep cloud database for restoring',
                         style: appTextTheme.bodyText1),
-                    onTap: () => _showEraseDeviceInfoDialog()),
+                    onTap: () => _showEraseDeviceInfoDialog(
+                        'Erase Device Info', 'ConfirmEraseDeviceInfoEvent')),
+                addDivider(),
+                TappableForwardRowWithContent(
+                    leftWidget: Text(
+                      'Debug - Erase Local Info',
+                      style: appTextTheme.headline4,
+                    ),
+                    bottomWidget: Text('Erase all local information',
+                        style: appTextTheme.bodyText1),
+                    onTap: () => _showEraseDeviceInfoDialog(
+                        'Erase Local Info', 'EraseLocalInfoEvent')),
                 SizedBox(height: 40),
               ],
             );
@@ -194,10 +205,10 @@ class _AddAccountPageState extends State<AddAccountPage> {
     );
   }
 
-  void _showEraseDeviceInfoDialog() {
+  void _showEraseDeviceInfoDialog(String title, String event) {
     UIHelper.showDialog(
       context,
-      "Erase Device Info",
+      title,
       BlocProvider(
         create: (_) => ForgetExistBloc(
           injector(),
@@ -210,7 +221,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
           injector(),
           injector(),
         ),
-        child: ForgetExistView(event: 'ConfirmEraseDeviceInfoEvent'),
+        child: ForgetExistView(event: event),
       ),
       isDismissible: false,
     );
