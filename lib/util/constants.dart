@@ -8,6 +8,7 @@
 import 'package:package_info_plus/package_info_plus.dart';
 
 const INDEXER_TOKENS_MAXIMUM = 50;
+const INDEXER_UNKNOWN_SOURCE = 'unknown';
 const CLOUDFLAREIMAGEURLPREFIX =
     'https://imagedelivery.net/iCRs13uicXIPOWrnuHbaKA/';
 const AUTONOMY_TV_PEER_NAME = 'Autonomy TV';
