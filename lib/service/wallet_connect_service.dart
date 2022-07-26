@@ -148,7 +148,9 @@ class WalletConnectService {
       },
       onDisconnect: (code, reason) async {
         log.info("WC disconnected");
-        wcClients.removeWhere((element) => element.session == null);
+        wcClients.removeWhere((element) =>
+            element.session == null &&
+            !(element.remotePeerMeta?.url.contains("feralfile") ?? false));
 
         if (connection != null) {
           _cloudDB.connectionDao.deleteConnection(connection);
@@ -181,7 +183,9 @@ class WalletConnectService {
       },
       onEthSign: (id, message) async {
         String? uuid = wcConnection?.personaUuid ?? tmpUuids[currentPeerMeta!];
-        if (uuid == null) return;
+        if (uuid == null ||
+            !wcClients.any(
+                (element) => element.remotePeerMeta == currentPeerMeta)) return;
 
         _navigationService.navigateTo(WCSignMessagePage.tag,
             arguments: WCSignMessagePageArgs(
@@ -189,7 +193,9 @@ class WalletConnectService {
       },
       onEthSendTransaction: (id, tx) {
         String? uuid = wcConnection?.personaUuid ?? tmpUuids[currentPeerMeta!];
-        if (uuid == null) return;
+        if (uuid == null ||
+            !wcClients.any(
+                (element) => element.remotePeerMeta == currentPeerMeta)) return;
 
         _navigationService.navigateTo(WCSendTransactionPage.tag,
             arguments:
