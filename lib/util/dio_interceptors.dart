@@ -36,22 +36,24 @@ class LoggingInterceptor extends Interceptor {
   }
 
   Future writeAPILog(Response response) async {
-    final curl = cURLRepresentation(response.requestOptions);
-    final message = response.toString();
-    bool _shortCurlLog = await IsolatedUtil().shouldShortCurlLog(curl);
+    final apiPath =
+        response.requestOptions.baseUrl + response.requestOptions.path;
+    bool _shortCurlLog = await IsolatedUtil().shouldShortCurlLog(apiPath);
 
     if (_shortCurlLog) {
       final request = response.requestOptions;
       apiLog.info("API Request: ${request.method} ${request.uri.toString()}");
     } else {
+      final curl = cURLRepresentation(response.requestOptions);
       apiLog.info("API Request: $curl");
     }
 
     bool _shortAPIResponseLog =
-        await IsolatedUtil().shouldShortAPIResponseLog(curl);
+        await IsolatedUtil().shouldShortAPIResponseLog(apiPath);
     if (_shortAPIResponseLog) {
       apiLog.info("API Response Status: ${response.statusCode}");
     } else {
+      final message = response.toString();
       apiLog.info("API Response: $message");
     }
   }
