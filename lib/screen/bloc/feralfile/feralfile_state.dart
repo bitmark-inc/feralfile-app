@@ -19,6 +19,13 @@ class LinkFFWeb3AccountEvent extends FeralFileEvent {
       this.topic, this.source, this.wallet, this.shouldRetry);
 }
 
+class UnlinkFFWeb3AccountEvent extends FeralFileEvent {
+  final String source;
+  final String address;
+
+  UnlinkFFWeb3AccountEvent({required this.source, required this.address});
+}
+
 class GetFFAccountInfoEvent extends FeralFileEvent {
   final Connection connection;
 
@@ -79,3 +86,5 @@ class AlreadyLinkedError extends FeralFileBlocStateEvent {
 class FFNotConnected extends FeralFileBlocStateEvent {}
 
 class NotFFLoggedIn extends FeralFileBlocStateEvent {}
+
+class FFUnlinked extends FeralFileBlocStateEvent {}
