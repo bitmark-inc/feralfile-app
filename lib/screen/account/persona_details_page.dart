@@ -152,8 +152,11 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
           Row(
             children: [
               Expanded(
-                child: Text(address,
-                    style: addressStyle, key: Key("fullAccount_address")),
+                child: Text(
+                  address,
+                  style: addressStyle,
+                  key: Key("fullAccount_address"),
+                ),
               ),
             ],
           ),
