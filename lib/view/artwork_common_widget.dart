@@ -59,6 +59,7 @@ Widget tokenThumbnailWidget(BuildContext context, AssetToken token) {
                   context, AuThemeManager.anyProblemNFTTheme.textTheme, token),
             ),
           ),
+    key: Key(token.title),
   );
 }
 
