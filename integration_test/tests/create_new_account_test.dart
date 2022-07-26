@@ -45,7 +45,7 @@ void main() async {
       // await deleteAnAccount(accountAlias);
     });
 
-    testWidgets("Create a new full account without alias", (tester) async {
+    testWidgets(" without alias", (tester) async {
       await onboardingSteps(tester);
 
       await tester.tap(find.byTooltip("Settings"));

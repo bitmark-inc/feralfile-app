@@ -15,7 +15,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../../lib/main.dart' as app;
 
-final Finder autonomy_header = find.text('AUTONOMY');
+final Finder autonomyheader = find.text('AUTONOMY');
 final Finder startButton = find.text("START");
 final Finder continueButton = find.text("CONTINUE");
 final Finder notNowButton = find.text("NOT NOW");
@@ -32,7 +32,7 @@ Future<void> onboardingSteps(WidgetTester tester) async {
   await tester.pumpWidget(AutonomyApp());
   await tester.pumpAndSettle(Duration(seconds: 3));
 
-  expect(autonomy_header, findsOneWidget);
+  expect(autonomyheader, findsOneWidget);
 
   // Temporary ignore the survey and the Enable notification page to make the application stable to test.
   await injector<ConfigurationService>().setFinishedSurvey([Survey.onboarding]);

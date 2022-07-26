@@ -10,56 +10,56 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 // UI inspect is here
-final Finder settings_icon = find.byTooltip("Settings");
-final Finder back_button = find.text("BACK");
-final Finder new_button =
+final Finder settingsicon = find.byTooltip("Settings");
+final Finder backbutton = find.text("BACK");
+final Finder newbutton =
     find.textContaining("Make a new account with addresses you can use");
-final Finder continue_button = find.text("CONTINUE");
-final Finder alias_textbox = find.byType(TextField);
-final Finder saveAlias_button = find.text("SAVE ALIAS");
-final Finder skip_button = find.text("SKIP");
-final Finder openDeviceSetting_button = find.text("OPEN DEVICE SETTINGS");
-final Finder continueWithouIt_button = find.text("CONTINUE WITHOUT IT");
+final Finder continuebutton = find.text("CONTINUE");
+final Finder aliastextbox = find.byType(TextField);
+final Finder saveAliasbutton = find.text("SAVE ALIAS");
+final Finder skipbutton = find.text("SKIP");
+final Finder openDeviceSettingbutton = find.text("OPEN DEVICE SETTINGS");
+final Finder continueWithouItbutton = find.text("CONTINUE WITHOUT IT");
 
 Future<void> addANewAccount(
     WidgetTester tester, String accountType, String alias) async {
   // Do actions in here
 
   if (accountType == 'new') {
-    await tester.tap(new_button);
+    await tester.tap(newbutton);
 
     await tester.pumpAndSettle(Duration(seconds: 4));
     await tester.pumpAndSettle(Duration(seconds: 1));
 
-    await tester.tap(continue_button);
+    await tester.tap(continuebutton);
     await tester.pumpAndSettle(Duration(seconds: 4));
     await tester.pumpAndSettle(Duration(seconds: 1));
 
-    await tester.enterText(alias_textbox, alias);
+    await tester.enterText(aliastextbox, alias);
 
-    await tester.tap(saveAlias_button);
+    await tester.tap(saveAliasbutton);
     await tester.pumpAndSettle(Duration(seconds: 4));
     await tester.pumpAndSettle(Duration(seconds: 1));
 
-    if (continueWithouIt_button.evaluate().isNotEmpty) {
-      await tester.tap(continueWithouIt_button);
+    if (continueWithouItbutton.evaluate().isNotEmpty) {
+      await tester.tap(continueWithouItbutton);
       await tester.pump(Duration(seconds: 4));
     }
   } else if (accountType == 'skip') {
-    await tester.tap(new_button);
+    await tester.tap(newbutton);
     await tester.pumpAndSettle(Duration(seconds: 4));
     await tester.pumpAndSettle(Duration(seconds: 1));
 
-    await tester.tap(continue_button);
+    await tester.tap(continuebutton);
     await tester.pumpAndSettle(Duration(seconds: 4));
     await tester.pumpAndSettle(Duration(seconds: 1));
 
-    await tester.tap(skip_button);
+    await tester.tap(skipbutton);
     await tester.pumpAndSettle(Duration(seconds: 4));
     await tester.pumpAndSettle(Duration(seconds: 1));
 
-    if (continueWithouIt_button.evaluate().isNotEmpty) {
-      await tester.tap(continueWithouIt_button);
+    if (continueWithouItbutton.evaluate().isNotEmpty) {
+      await tester.tap(continueWithouItbutton);
       await tester.pump(Duration(seconds: 4));
     }
   }
