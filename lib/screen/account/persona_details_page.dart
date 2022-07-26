@@ -155,6 +155,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
                 child: Text(
                   address,
                   style: addressStyle,
+                  key: Key("fullAccount_address"),
                 ),
               ),
             ],

@@ -1,0 +1,1 @@
+const XTZ_GETBACK_ADDRESS = 'tz1Td5qwQxz5mDZiwk7TsRGhDU2HBvXgULip';
