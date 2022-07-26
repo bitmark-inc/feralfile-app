@@ -12,20 +12,16 @@ import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/dao/asset_token_dao.dart';
 import 'package:autonomy_flutter/database/dao/provenance_dao.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
-import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/gateway/indexer_api.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tokens_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
-import 'package:collection/collection.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:autonomy_flutter/util/log.dart';
 
@@ -35,8 +31,8 @@ class HomeBloc extends AuBloc<HomeEvent, HomeState> {
   TezosBeaconService _tezosBeaconService;
   NetworkConfigInjector _networkConfigInjector;
   CloudDatabase _cloudDB;
-  ConfigurationService _configurationService;
   FeedService _feedService;
+  AccountService _accountService;
 
   AssetTokenDao get _assetTokenDao =>
       _networkConfigInjector.I<AppDatabase>().assetDao;
@@ -65,8 +61,8 @@ class HomeBloc extends AuBloc<HomeEvent, HomeState> {
     this._tezosBeaconService,
     this._networkConfigInjector,
     this._cloudDB,
-    this._configurationService,
     this._feedService,
+    this._accountService,
   ) : super(HomeState()) {
     on<HomeConnectWCEvent>((event, emit) {
       log.info('[HomeConnectWCEvent] connect ${event.uri}');
@@ -90,21 +86,8 @@ class HomeBloc extends AuBloc<HomeEvent, HomeState> {
       log.info("[HomeBloc] RefreshTokensEvent start");
 
       try {
-        late List<String> allAccountNumbers;
-        if (_configurationService.isDemoArtworksMode()) {
-          allAccountNumbers = [await getDemoAccount()];
-        } else {
-          final allAddresses = await _getPersonaAddresses();
-          final linkedAccounts =
-              await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
-          var linkedAccountNumbers =
-              linkedAccounts.expand((e) => e.accountNumbers).toList();
-
-          allAccountNumbers = List.from(linkedAccountNumbers)
-            ..addAll(allAddresses['personaBitmark'] ?? [])
-            ..addAll(allAddresses['personaEthereum'] ?? [])
-            ..addAll(allAddresses['personaTezos'] ?? []);
-        }
+        List<String> allAccountNumbers =
+            await _accountService.getAllAddresses();
 
         //Clear and refresh all assets if no contractAddress & tokenId
         final tokens = await _assetTokenDao.findAllAssetTokens();
@@ -115,7 +98,7 @@ class HomeBloc extends AuBloc<HomeEvent, HomeState> {
 
         await _assetTokenDao.deleteAssetsNotBelongs(allAccountNumbers);
 
-        _hiddenOwners = await _getHiddenAddressesInGallery();
+        _hiddenOwners = await _accountService.getHiddenAddresses();
 
         add(SubRefreshTokensEvent(ActionState.notRequested));
 
@@ -167,89 +150,13 @@ class HomeBloc extends AuBloc<HomeEvent, HomeState> {
 
     on<ReindexIndexerEvent>((event, emit) async {
       try {
-        final addresses = await _getPersonaAddresses();
+        final addresses = await _accountService.getShowedAddresses();
 
-        for (var ethAddress in addresses['personaEthereum'] ?? []) {
-          log.info("[HomeBloc] RequestIndex for $ethAddress");
-          _indexerApi.requestIndex({"owner": ethAddress});
-        }
-
-        for (var tezosAddress in addresses['personaTezos'] ?? []) {
-          log.info("[HomeBloc] RequestIndex for $tezosAddress");
-          _indexerApi
-              .requestIndex({"owner": tezosAddress, "blockchain": "tezos"});
-        }
-
-        final linkedAccounts =
-            await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
-
-        for (var linkAccount in linkedAccounts) {
-          switch (linkAccount.connectionType) {
-            case 'walletConnect':
-            case 'walletBrowserConnect':
-              final ethAddress = linkAccount.accountNumber;
-              log.info("[HomeBloc] RequestIndex for linked $ethAddress");
-              _indexerApi.requestIndex({"owner": ethAddress});
-              break;
-
-            case 'walletBeacon':
-              final tezosAddress = linkAccount.accountNumber;
-              log.info("[HomeBloc] RequestIndex for linked $tezosAddress");
-              _indexerApi
-                  .requestIndex({"owner": tezosAddress, "blockchain": "tezos"});
-              break;
-
-            case 'ledger':
-              final data = linkAccount.ledgerConnection;
-              final ethAddress = data?.etheremAddress.firstOrNull;
-              final tezosAddress = data?.tezosAddress.firstOrNull;
-
-              if (ethAddress != null) {
-                log.info(
-                    "[HomeBloc] RequestIndex for linked ledger $ethAddress");
-                _indexerApi.requestIndex({"owner": ethAddress});
-              }
-
-              if (tezosAddress != null) {
-                log.info("[HomeBloc] RequestIndex for linked $tezosAddress");
-                _indexerApi.requestIndex(
-                    {"owner": tezosAddress, "blockchain": "tezos"});
-              }
-
-              break;
-
-            case 'manuallyAddress':
-              final address = linkAccount.accountNumber;
-
-              if (address.startsWith("tz")) {
-                _indexerApi
-                    .requestIndex({"owner": address, "blockchain": "tezos"});
-              } else if (address.startsWith("0x")) {
-                _indexerApi.requestIndex({"owner": address});
-              }
-
-              break;
-
-            case 'feralFileWeb3':
-            case 'feralFileToken':
-              final ffAccount = linkAccount.ffConnection?.ffAccount ??
-                  linkAccount.ffWeb3Connection?.ffAccount;
-              final ethereumAddress = ffAccount?.ethereumAddress;
-              final tezosAddress = ffAccount?.tezosAddress;
-
-              if (ethereumAddress != null) {
-                _indexerApi.requestIndex({"owner": ethereumAddress});
-              }
-
-              if (tezosAddress != null) {
-                _indexerApi.requestIndex(
-                    {"owner": tezosAddress, "blockchain": "tezos"});
-              }
-
-              break;
-
-            default:
-              break;
+        for (final address in addresses) {
+          if (address.startsWith("tz")) {
+            _indexerApi.requestIndex({"owner": address, "blockchain": "tezos"});
+          } else if (address.startsWith("0x")) {
+            _indexerApi.requestIndex({"owner": address});
           }
         }
       } catch (exception) {
@@ -257,65 +164,5 @@ class HomeBloc extends AuBloc<HomeEvent, HomeState> {
         Sentry.captureException(exception);
       }
     });
-  }
-
-  Future<Map<String, List<String>>> _getPersonaAddresses() async {
-    final personas = await _cloudDB.personaDao.getPersonas();
-
-    List<String> bitmarkAddresses = [];
-    List<String> ethAddresses = [];
-    List<String> tezosAddresses = [];
-
-    for (var persona in personas) {
-      final ethAddress = await persona.wallet().getETHEip55Address();
-      if (ethAddress.isEmpty)
-        continue; // ignore persona when there is no keys in Keychain
-      final tezosWallet = await persona.wallet().getTezosWallet();
-      final tezosAddress = tezosWallet.address;
-      final bitmarkAddress = await persona.wallet().getBitmarkAddress();
-
-      bitmarkAddresses += [bitmarkAddress];
-      ethAddresses += [ethAddress];
-      tezosAddresses += [tezosAddress];
-    }
-
-    return {
-      'personaBitmark': bitmarkAddresses,
-      'personaEthereum': ethAddresses,
-      'personaTezos': tezosAddresses,
-    };
-  }
-
-  Future<List<String>> _getHiddenAddressesInGallery() async {
-    List<String> hiddenAddresses = [];
-    final personaUUIDs = _configurationService.getPersonaUUIDsHiddenInGallery();
-    for (var personaUUID in personaUUIDs) {
-      final personaWallet = Persona.newPersona(uuid: personaUUID).wallet();
-      final ethAddress = await personaWallet.getETHEip55Address();
-
-      if (ethAddress.isEmpty) continue;
-      hiddenAddresses.add(ethAddress);
-      hiddenAddresses.add((await personaWallet.getTezosWallet()).address);
-      hiddenAddresses.add(await personaWallet.getBitmarkAddress());
-    }
-
-    final hiddenLinkedAccounts =
-        _configurationService.getLinkedAccountsHiddenInGallery();
-
-    for (final hiddenLinkedAccount in hiddenLinkedAccounts) {
-      if (hiddenLinkedAccount.startsWith('ledger_')) {
-        final linkedLedgerKey =
-            hiddenLinkedAccount.replacePrefix('ledger_', '');
-        final connection =
-            await _cloudDB.connectionDao.findById(linkedLedgerKey);
-
-        if (connection != null)
-          hiddenAddresses.addAll(connection.accountNumbers);
-      } else {
-        hiddenAddresses.add(hiddenLinkedAccount);
-      }
-    }
-
-    return hiddenAddresses;
   }
 }
