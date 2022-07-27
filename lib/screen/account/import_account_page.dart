@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/tokens_service.dart';
+import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/theme_manager.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -133,6 +134,22 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
 
       Navigator.of(context)
           .popAndPushNamed(AppRouter.namePersonaPage, arguments: persona.uuid);
+    } on AccountImportedException catch (e) {
+      showErrorDiablog(
+          context,
+          ErrorEvent(
+              null,
+              "Already Imported",
+              "You’ve already imported this account to Autonomy.",
+              ErrorItemState.seeAccount), defaultAction: () {
+        Navigator.of(context).pushNamed(
+          AppRouter.personaDetailsPage,
+          arguments: e.persona,
+        );
+      });
+      setState(() {
+        isError = true;
+      });
     } catch (exception) {
       Sentry.captureException(exception);
       UIHelper.hideInfoDialog(context);
