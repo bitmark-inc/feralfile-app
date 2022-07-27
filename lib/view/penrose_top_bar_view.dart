@@ -5,12 +5,13 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:io';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/badge_view.dart';
 import 'package:flutter/material.dart';
@@ -69,19 +70,25 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
 
   void didPushNext() {
     // Reset to normal SystemUIMode
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
-        overlays: SystemUiOverlay.values);
+    if (Platform.isIOS) {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
+          overlays: SystemUiOverlay.values);
+    }
   }
 
   _scrollListener() {
     if (widget.scrollController.offset > 80) {
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+      if (Platform.isIOS) {
+        SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+      }
       setState(() {
         _opacity = 0;
       });
     } else {
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
-          overlays: SystemUiOverlay.values);
+      if (Platform.isIOS) {
+        SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
+            overlays: SystemUiOverlay.values);
+      }
       setState(() {
         _opacity = 1;
       });
