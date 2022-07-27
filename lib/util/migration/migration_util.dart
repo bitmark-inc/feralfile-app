@@ -14,40 +14,35 @@ import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/model/connection_supports.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
-import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
-import 'package:autonomy_flutter/service/navigation_service.dart';
-import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/migration/migration_data.dart';
-import 'package:autonomy_flutter/util/system_channel.dart';
 import 'package:flutter/services.dart';
+import 'package:libauk_dart/libauk_dart.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 
-class MigrationUtil {
+abstract class MigrationUtil {
+  Future migrateIfNeeded();
+  Future migrationFromKeychain();
+}
+
+class MigrationUtilImpl extends MigrationUtil {
   static const MethodChannel _channel = const MethodChannel('migration_util');
   ConfigurationService _configurationService;
   CloudDatabase _cloudDB;
   AccountService _accountService;
-  NavigationService _navigationService;
   IAPService _iapService;
   AuditService _auditService;
-  BackupService _backupService;
-  late SystemChannel _systemChannel;
 
-  MigrationUtil(
-      this._configurationService,
-      this._cloudDB,
-      this._accountService,
-      this._navigationService,
-      this._iapService,
-      this._auditService,
-      this._backupService) {
-    _systemChannel = SystemChannel();
-  }
+  MigrationUtilImpl(
+    this._configurationService,
+    this._cloudDB,
+    this._accountService,
+    this._iapService,
+    this._auditService,
+  );
 
   Future<void> migrateIfNeeded() async {
     if (Platform.isIOS) {
@@ -60,11 +55,54 @@ class MigrationUtil {
     log.info("[migration] finished");
   }
 
-  Future<void> migrationFromKeychain(bool isIOS) async {
-    if (isIOS) {
-      await _migrationFromKeychain();
+  Future migrationFromKeychain() async {
+    if (!Platform.isIOS) return;
+
+    await LibAukDart.general().migrateAccountsFromV0ToV1();
+
+    final List personaUUIDs = await LibAukDart.general().scanPersonaUUIDs();
+
+    final personas = await _cloudDB.personaDao.getPersonas();
+    if (personas.length == personaUUIDs.length &&
+        personas.every(
+            (element) => personaUUIDs.contains(element.uuid.toUpperCase()))) {
+      //Database is up-to-date, skip migrating
+      return;
     }
-    // TODO: support scan keys in Android when it's doable
+
+    log.info(
+        "[_migrationFromKeychain] personaUUIDs from Keychain: $personaUUIDs");
+    for (var personaUUID in personaUUIDs) {
+      //Cleanup duplicated persona
+      final oldPersona = await _cloudDB.personaDao.findById(personaUUID);
+      if (oldPersona != null) {
+        await _cloudDB.personaDao.deletePersona(oldPersona);
+      }
+
+      final uuid = personaUUID.toLowerCase();
+      final existingPersona = await _cloudDB.personaDao.findById(uuid);
+      if (existingPersona == null) {
+        final wallet = Persona.newPersona(uuid: uuid).wallet();
+        final name = await wallet.getName();
+        final persona = Persona.newPersona(
+            uuid: uuid,
+            name: name,
+            createdAt: DateTime.now(),
+            defaultAccount: null);
+
+        await _cloudDB.personaDao.insertPersona(persona);
+        await _auditService.auditPersonaAction(
+            '[_migrationkeychain] insert', persona);
+      }
+    }
+
+    //Cleanup broken personas
+    final currentPersonas = await _cloudDB.personaDao.getPersonas();
+    for (var persona in currentPersonas) {
+      if (!(await persona.wallet().isWalletCreated())) {
+        await _cloudDB.personaDao.deletePersona(persona);
+      }
+    }
   }
 
   static Future<String?> getBackupDeviceID() async {
@@ -177,46 +215,6 @@ class MigrationUtil {
       final packageInfo = await PackageInfo.fromPlatform();
       _configurationService.setPreviousBuildNumber(packageInfo.buildNumber);
       _accountService.androidBackupKeys();
-    }
-  }
-
-  Future _migrationFromKeychain() async {
-    await _systemChannel.migrateAccountsFromV0ToV1();
-
-    final List personaUUIDs = await _systemChannel.getWalletUUIDsFromKeychain();
-
-    final personas = await _cloudDB.personaDao.getPersonas();
-    if (personas.length == personaUUIDs.length &&
-        personas.every(
-            (element) => personaUUIDs.contains(element.uuid.toUpperCase()))) {
-      //Database is up-to-date, skip migrating
-      return;
-    }
-
-    log.info(
-        "[_migrationFromKeychain] personaUUIDs from Keychain: $personaUUIDs");
-    for (var personaUUID in personaUUIDs) {
-      //Cleanup duplicated persona
-      final oldPersona = await _cloudDB.personaDao.findById(personaUUID);
-      if (oldPersona != null) {
-        await _cloudDB.personaDao.deletePersona(oldPersona);
-      }
-
-      final uuid = personaUUID.toLowerCase();
-      final existingPersona = await _cloudDB.personaDao.findById(uuid);
-      if (existingPersona == null) {
-        final wallet = Persona.newPersona(uuid: uuid).wallet();
-        final name = await wallet.getName();
-        final persona = Persona.newPersona(
-            uuid: uuid,
-            name: name,
-            createdAt: DateTime.now(),
-            defaultAccount: null);
-
-        await _cloudDB.personaDao.insertPersona(persona);
-        await _auditService.auditPersonaAction(
-            '[_migrationkeychain] insert', persona);
-      }
     }
   }
 }

@@ -25,20 +25,20 @@ enum OnboardingStep {
 
 class RouterState {
   OnboardingStep onboardingStep = OnboardingStep.undefined;
-  bool isLoading = false;
+  bool isRestoring = false;
 
   RouterState({
     required this.onboardingStep,
-    this.isLoading = false,
+    this.isRestoring = false,
   });
 
   RouterState copyWith({
     OnboardingStep? onboardingStep,
-    bool? isLoading,
+    bool? isRestoring,
   }) {
     return RouterState(
       onboardingStep: onboardingStep ?? this.onboardingStep,
-      isLoading: isLoading ?? this.isLoading,
+      isRestoring: isRestoring ?? this.isRestoring,
     );
   }
 }

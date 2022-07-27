@@ -193,10 +193,8 @@ class AppRouter {
                       injector(),
                       injector(),
                       injector(),
-                      injector<CloudDatabase>(),
                       injector(),
                       injector(),
-                      injector<AuditService>(),
                     ),
                 child: OnboardingPage()));
 

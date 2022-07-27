@@ -120,7 +120,7 @@ class BackupService {
 
   Future<String> getBackupId() async {
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
-    String? deviceId = await MigrationUtil.getBackupDeviceID();
+    String? deviceId = await MigrationUtilImpl.getBackupDeviceID();
 
     return "$deviceId\_${packageInfo.packageName}";
   }

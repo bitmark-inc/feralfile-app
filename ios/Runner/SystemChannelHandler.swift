@@ -40,11 +40,6 @@ class SystemChannelHandler: NSObject {
         ])
     }
 
-    func getWalletUUIDsFromKeychain(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        let personaUUIDs = scanKeychainPersonaUUIDs(isSync: false)
-        result(personaUUIDs)
-    }
-
     func getDeviceUniqueID(call: FlutterMethodCall, result: @escaping FlutterResult) {
         let keychain = Keychain()
 
@@ -58,31 +53,6 @@ class SystemChannelHandler: NSObject {
               }
 
         result(id)
-    }
-
-    func migrateAccountsFromV0ToV1(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        let personaUUIDs = scanKeychainPersonaUUIDs(isSync: true)
-
-        let executionPublishers = personaUUIDs.compactMap { uuid in
-            return LibAuk.shared.storage(for: UUID(uuidString: uuid)!)
-                .migrateV0ToV1()
-                .eraseToAnyPublisher()
-        }
-
-        return Publishers.MergeMany(executionPublishers)
-            .collect()
-            .sink(receiveCompletion: { (completion) in
-                if let error = completion.error {
-                    result(ErrorHandler.handle(error: error))
-                }
-
-            }, receiveValue: { _ in
-                result([
-                    "error": 0,
-                    "msg": "migrateAccountsFromV0ToV1 success",
-                ])
-            })
-            .store(in: &cancelBag)
     }
 
     func removeAllKeychainKeys(call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -108,47 +78,4 @@ class SystemChannelHandler: NSObject {
         }
 
     }
-}
-
-fileprivate extension SystemChannelHandler {
-
-    func scanKeychainPersonaUUIDs(isSync: Bool) -> [String] {
-        var personaUUIDs = [String: Seed]()
-        let query: NSDictionary = [
-            kSecClass: kSecClassGenericPassword,
-            kSecAttrSynchronizable: isSync ? kCFBooleanTrue : kCFBooleanFalse,
-            kSecReturnData: kCFBooleanTrue,
-            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
-            kSecReturnAttributes as String : kCFBooleanTrue,
-            kSecMatchLimit as String: kSecMatchLimitAll,
-            kSecAttrAccessGroup as String: Constant.keychainGroup,
-        ]
-
-        var dataTypeRef: AnyObject?
-        let lastResultCode = withUnsafeMutablePointer(to: &dataTypeRef) {
-            SecItemCopyMatching(query as CFDictionary, UnsafeMutablePointer($0))
-        }
-
-        if lastResultCode == noErr {
-            guard let array = dataTypeRef as? Array<Dictionary<String, Any>> else {
-                return []
-            }
-
-            for item in array {
-                if let key = item[kSecAttrAccount as String] as? String, key.contains("seed") {
-                    let personaUUIDString = key.replacingOccurrences(of: "persona.", with: "")
-                        .replacingOccurrences(of: "_seed", with: "")
-                    if let seedUR = (item[kSecValueData as String] as? Data)?.utf8,
-                       let seed = try? Seed(urString: seedUR) {
-                        personaUUIDs[personaUUIDString] = seed
-                    }
-                }
-            }
-        }
-
-        return personaUUIDs.sorted(by: { $0.value.creationDate ?? Date() < $1.value.creationDate ?? Date() })
-            .map(\.key)
-    }
-        
-
 }

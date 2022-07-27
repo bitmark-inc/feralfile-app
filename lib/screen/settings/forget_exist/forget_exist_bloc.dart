@@ -57,7 +57,7 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
       deregisterPushNotification();
       await _autonomyService.clearLinkedAddresses();
       PackageInfo packageInfo = await PackageInfo.fromPlatform();
-      String? deviceId = await MigrationUtil.getBackupDeviceID();
+      String? deviceId = await MigrationUtilImpl.getBackupDeviceID();
       final requester = "$deviceId\_${packageInfo.packageName}";
       await _iapApi.deleteAllProfiles(requester);
       await _iapApi.deleteUserData();
@@ -81,19 +81,10 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
       emit(ForgetExistState(state.isChecked, false));
     });
 
-    on<ConfirmEraseDeviceInfoEvent>((event, emit) async {
+    on<EraseLocalDataEvent>((event, emit) async {
       emit(ForgetExistState(state.isChecked, true));
       deregisterPushNotification();
       await _autonomyService.clearLinkedAddresses();
-
-      final List<Persona> personas =
-          await _cloudDatabase.personaDao.getPersonas();
-      personas.forEach((persona) async {
-        await _accountService.deletePersona(persona);
-      });
-
-      await _socialRecoveryService.deleteHelpingContactDecks();
-
       await _cloudDatabase.removeAll();
       await _mainnetDatabase.removeAll();
       await _testnetDatabase.removeAll();
@@ -105,15 +96,35 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
       emit(ForgetExistState(state.isChecked, false));
     });
 
-    on<EraseLocalInfoEvent>((event, emit) async {
+    on<EraseLocalDataAndLocalKeysEvent>((event, emit) async {
       emit(ForgetExistState(state.isChecked, true));
       deregisterPushNotification();
       await _autonomyService.clearLinkedAddresses();
-      await _systemChannel.removeAllKeychainKeys(false);
       await _cloudDatabase.removeAll();
       await _mainnetDatabase.removeAll();
       await _testnetDatabase.removeAll();
       await _configurationService.removeAll();
+      await _systemChannel.removeAllKeychainKeys(false);
+
+      _authService.reset();
+      memoryValues = MemoryValues();
+
+      emit(ForgetExistState(state.isChecked, false));
+    });
+
+    on<EraseLocalDataAndAllKeysEvent>((event, emit) async {
+      emit(ForgetExistState(state.isChecked, true));
+      deregisterPushNotification();
+      await _autonomyService.clearLinkedAddresses();
+
+      await _cloudDatabase.removeAll();
+      await _mainnetDatabase.removeAll();
+      await _testnetDatabase.removeAll();
+      await _configurationService.removeAll();
+
+      await _systemChannel.removeAllKeychainKeys(false);
+      await _systemChannel.removeAllKeychainKeys(true);
+      await _socialRecoveryService.deleteHelpingContactDecks();
 
       _authService.reset();
       memoryValues = MemoryValues();

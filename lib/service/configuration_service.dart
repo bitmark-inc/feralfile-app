@@ -68,8 +68,6 @@ abstract class ConfigurationService {
   Future<String> getAccountHMACSecret();
   ShardDeck? getCachedDeckFromShardService();
   Future<void> setCachedDeckFromShardService(ShardDeck? deck);
-  bool isLostPlatformRestore();
-  Future<void> setIsLostPlatformRestore(bool value);
 
   // ----- App Setting -----
   bool isDemoArtworksMode();
@@ -108,7 +106,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String ACCOUNT_HMAC_SECRET = "account_hmac_secret";
   static const String CACHED_DECK_FROM_SHARD_SERVICE =
       'CACHED_DECK_FROM_SHARD_SERVICE';
-  static const String IS_LOST_PLATFORM_RESTORE = "IS_LOST_PLATFORM_RESTORE";
 
   // keys for WalletConnect dapp side
   static const String KEY_WC_DAPP_SESSION = "wc_dapp_store";
@@ -472,15 +469,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
       await _preferences.setString(
           CACHED_DECK_FROM_SHARD_SERVICE, jsonEncode(deck));
     }
-  }
-
-  @override
-  bool isLostPlatformRestore() {
-    return _preferences.getBool(IS_LOST_PLATFORM_RESTORE) ?? false;
-  }
-
-  Future<void> setIsLostPlatformRestore(bool value) async {
-    await _preferences.setBool(IS_LOST_PLATFORM_RESTORE, value);
   }
 
   @override

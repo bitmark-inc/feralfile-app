@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
+import 'package:autonomy_flutter/service/social_recovery/shard_deck.dart';
 import 'package:autonomy_flutter/service/social_recovery/social_recovery_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
@@ -224,50 +225,59 @@ class DeeplinkServiceImpl extends DeeplinkService {
         isDismissible: false,
       );
 
-      final shardServiceDeck = await injector<SocialRecoveryService>()
-          .requestDeckFromShardService(domain, code);
-      final hasPlatformShards =
-          await injector<SocialRecoveryService>().hasPlatformShards();
+      late ShardDeck shardServiceDeck;
+      try {
+        shardServiceDeck = await injector<SocialRecoveryService>()
+            .requestDeckFromShardService(domain, code);
+      } catch (_) {
+        Navigator.of(context).pop();
+        rethrow;
+      }
       await _configurationService
           .setCachedDeckFromShardService(shardServiceDeck);
-
       await Future.delayed(SHOW_DIALOG_DURATION);
-      final sheetTheme = AuThemeManager.get(AppTheme.sheetTheme);
 
-      try {
-        if (hasPlatformShards) {
-          Navigator.of(context).pop();
-          UIHelper.showInfoDialog(context, "RESTORING...",
-              'Restoring your account with 2 shardDecks: Platform & ShardService');
+      final hasPlatformShards =
+          await injector<SocialRecoveryService>().hasPlatformShards();
+      if (hasPlatformShards) {
+        // try to restore from PlatformShards & ShardService's ShardDeck
+        Navigator.of(context).pop();
+        UIHelper.showInfoDialog(context, "RESTORING...",
+            'Restoring your account with 2 shardDecks: Platform & ShardService');
+        await Future.delayed(SHORT_SHOW_DIALOG_DURATION);
 
+        try {
           await injector<SocialRecoveryService>()
               .restoreAccountWithPlatformKey(shardServiceDeck);
           doneOnboardingRestore(context);
-        } else {
-          throw SocialRecoveryMissingShard();
+        } on SocialRecoveryMissingShard catch (_) {
+          Navigator.of(context).pop();
+          final sheetTheme = AuThemeManager.get(AppTheme.sheetTheme);
+          UIHelper.showDialog(
+            context,
+            "Error",
+            Text("ShardDecks don't match.",
+                style: sheetTheme.textTheme.bodyText1),
+            submitButton: AuFilledButton(
+                text: 'RESTORE WITH EMERGENCY CONTACT',
+                onPress: () => Navigator.of(context).pushNamedAndRemoveUntil(
+                    AppRouter.restoreWithEmergencyContactPage,
+                    (route) =>
+                        route.settings.name == AppRouter.onboardingPage)),
+            closeButton: 'CLOSE',
+          );
+        } catch (_) {
+          Navigator.of(context).pop();
+          rethrow;
         }
-      } on SocialRecoveryMissingShard catch (_) {
+      } else {
+        // missing platformShards, ask EC's ShardDeck to restore
         Navigator.of(context).pop();
-        // missing platformShards
         await injector<NavigationService>()
             .navigatorKey
             .currentState
             ?.pushNamedAndRemoveUntil(AppRouter.restoreWithEmergencyContactPage,
                 (route) => route.settings.name == AppRouter.onboardingPage);
-      } catch (exception) {
-        Navigator.of(context).pop();
-        UIHelper.showDialog(
-          context,
-          "Error",
-          Text("ShardDecks don't match.",
-              style: sheetTheme.textTheme.bodyText1),
-          submitButton: AuFilledButton(
-              text: 'RESTORE WITH EMERGENCY CONTACT',
-              onPress: () => Navigator.of(context).pushNamedAndRemoveUntil(
-                  AppRouter.restoreWithEmergencyContactPage,
-                  (route) => route.settings.name == AppRouter.onboardingPage)),
-          closeButton: 'CLOSE',
-        );
       }
 
       return true;

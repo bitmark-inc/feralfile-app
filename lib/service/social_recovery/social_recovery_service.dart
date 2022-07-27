@@ -12,7 +12,6 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/migration/migration_util.dart';
 import 'package:autonomy_flutter/util/social_recovery_channel.dart';
 import 'package:collection/collection.dart';
@@ -88,7 +87,10 @@ class SocialRecoveryServiceImpl extends SocialRecoveryService {
 
     if (await account.getShard(ShardType.Platform) == null) {
       // Has not setupSSKR or LostPlatform
-      socialRecoveryStep.value = _configurationService.isLostPlatformRestore()
+      final lastAudit = (await _cloudDB.auditDao
+              .getAuditsByCategoryActions([], ['SetupSSKR', 'Done']))
+          .firstOrNull;
+      socialRecoveryStep.value = lastAudit != null
           ? SocialRecoveryStep.RestartWhenLostPlatform
           : SocialRecoveryStep.SetupShardService;
     } else {
@@ -101,29 +103,29 @@ class SocialRecoveryServiceImpl extends SocialRecoveryService {
         // done send ShardDeck to shard service
 
         // Check history to see if user deleted/added accounts after setupSSKR
-        final lastAudit = (await _cloudDB.auditDao.getAuditsByCategoryActions(
-          [
-            'create',
-            'import',
-            'delete',
-            '[androidRestoreKeys] insert',
-            '[_migrationData] insert',
-            '[_migrationkeychain] insert'
-          ],
-          ['setupSSKR'],
-        ))
+        final lastAudit = (await _cloudDB.auditDao
+                .getAuditsByCategoryActions([], ['setupSSKR']))
             .firstOrNull;
 
-        if (lastAudit == null || lastAudit.action != 'setupSSKR') {
-          socialRecoveryStep.value = SocialRecoveryStep.RestartWhenHasChanges;
-        } else {
-          if (await account.getShard(ShardType.EmergencyContact) != null) {
-            // has not setup EmergencyContact
-            socialRecoveryStep.value = SocialRecoveryStep.SetupEmergencyContact;
-          } else {
-            // has setup EmergencyContact
-            socialRecoveryStep.value = SocialRecoveryStep.Done;
+        if (lastAudit != null) {
+          final accountUUIDs =
+              (await _cloudDB.personaDao.getPersonas()).map((e) => e.uuid);
+          final setupAccountUUIDs =
+              List<String>.from(json.decode(lastAudit.metadata)['setupUUIDs']);
+          final differences =
+              accountUUIDs.toSet().difference(setupAccountUUIDs.toSet());
+          if (differences.isNotEmpty) {
+            socialRecoveryStep.value = SocialRecoveryStep.RestartWhenHasChanges;
+            return;
           }
+        }
+
+        if (await account.getShard(ShardType.EmergencyContact) != null) {
+          // has not setup EmergencyContact
+          socialRecoveryStep.value = SocialRecoveryStep.SetupEmergencyContact;
+        } else {
+          // has setup EmergencyContact
+          socialRecoveryStep.value = SocialRecoveryStep.Done;
         }
       }
     }
@@ -150,7 +152,10 @@ class SocialRecoveryServiceImpl extends SocialRecoveryService {
       // Done
       final accounts = await _cloudDB.personaDao.getPersonas();
       await _removeShards(accounts, ShardType.ShardService);
-      await _auditService.auditSocialRecoveryAction('setupSSKR');
+      final setupUUIDs = [shardDeck.defaultAccount.uuid] +
+          shardDeck.otherAccounts.map((e) => e.uuid).toList();
+      await _auditService.auditSocialRecoveryAction(
+          'setupSSKR', json.encode({'setupUUIDs': setupUUIDs}));
       socialRecoveryStep.value = SocialRecoveryStep.SetupEmergencyContact;
     }
   }
@@ -166,7 +171,7 @@ class SocialRecoveryServiceImpl extends SocialRecoveryService {
 
     await _removeShards(accounts, ShardType.EmergencyContact);
     socialRecoveryStep.value = SocialRecoveryStep.Done;
-    await _auditService.auditSocialRecoveryAction('Done');
+    await _auditService.auditSocialRecoveryAction('Done', '');
   }
 
   Future<String> storeDataInTempSecretFile(String data) async {
@@ -223,7 +228,11 @@ class SocialRecoveryServiceImpl extends SocialRecoveryService {
     }
 
     final platformDeck = await _getShardDeck(
-        defaultAccountUUID, otherAccountUUIDs, ShardType.Platform);
+      defaultAccountUUID,
+      otherAccountUUIDs,
+      ShardType.Platform,
+      throwExceptionForOthers: false,
+    );
     restoreAccount(platformDeck, shardDeck);
   }
 
@@ -243,12 +252,12 @@ class SocialRecoveryServiceImpl extends SocialRecoveryService {
     Map<String, List<dynamic>> accountsInfo = {};
 
     try {
-      final backupVersion = await _backupService
-          .fetchBackupVersion(await _accountService.getDefaultAccount());
+      final backupVersion =
+          await _backupService.fetchBackupVersion(defaultAccountWallet);
 
       if (backupVersion.isNotEmpty) {
         await _backupService.restoreCloudDatabase(
-            await _accountService.getDefaultAccount(), backupVersion);
+            defaultAccountWallet, backupVersion);
 
         // Get name and creationDate
         for (final persona in await _cloudDB.personaDao.getPersonas()) {
@@ -285,18 +294,9 @@ class SocialRecoveryServiceImpl extends SocialRecoveryService {
     if (defaultName != null && defaultName!.isNotEmpty)
       defaultAccountWallet.updateName(defaultName);
 
-    await MigrationUtil(
-            _configurationService,
-            _cloudDB,
-            _accountService,
-            injector<NavigationService>(),
-            injector(),
-            _auditService,
-            _backupService)
-        .migrationFromKeychain(Platform.isIOS);
+    injector<MigrationUtil>().migrationFromKeychain();
 
     // Done
-    await _configurationService.setIsLostPlatformRestore(true);
     await _configurationService.setCachedDeckFromShardService(null);
     await _cloudDB.personaDao.setUniqueDefaultAccount(defaultAccountUUID);
     await _configurationService.setDoneOnboarding(true);
@@ -333,7 +333,7 @@ class SocialRecoveryServiceImpl extends SocialRecoveryService {
     for (final account in accounts) {
       final wallet = LibAukDart.getWallet(account.uuid);
 
-      if (account.uuid == defaultAccount.uuid &&
+      if (account.uuid == defaultAccount.uuid ||
           ((await wallet.getETHAddress()).isEmpty)) continue;
       otherAccountUUIDs.add(account.uuid);
       if (runSSKR) await wallet.setupSSKR();

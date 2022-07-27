@@ -54,8 +54,6 @@ void doneOnboardingRestore(BuildContext context) async {
 
   doneOnboarding(context);
   await askForNotification();
-
-  await Future.delayed(SHORT_SHOW_DIALOG_DURATION, showSurveysNotification);
 }
 
 void showSurveysNotification() {
@@ -152,6 +150,7 @@ class UIHelper {
                           children: [
                             Expanded(
                               child: submitButton.copyWith(
+                                color: theme.primaryColor,
                                 textStyle: submitButton.textStyle ??
                                     TextStyle(
                                         color: theme.backgroundColor,

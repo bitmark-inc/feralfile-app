@@ -5,19 +5,14 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'dart:io';
-
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/iap_service.dart';
-import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/migration/migration_util.dart';
@@ -29,41 +24,27 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
   BackupService _backupService;
   AccountService _accountService;
   CloudDatabase _cloudDB;
-  NavigationService _navigationService;
-  IAPService _iapService;
-  AuditService _auditService;
+  MigrationUtil _migrationUtil;
 
   Future<bool> hasAccounts() async {
     final personas = await _cloudDB.personaDao.getPersonas();
-    final connections = await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
-    return personas.isNotEmpty || connections.isNotEmpty;
+    return personas.isNotEmpty;
   }
 
   RouterBloc(
-      this._configurationService,
-      this._backupService,
-      this._accountService,
-      this._cloudDB,
-      this._navigationService,
-      this._iapService,
-      this._auditService)
-      : super(RouterState(onboardingStep: OnboardingStep.undefined)) {
-    final migrationUtil = MigrationUtil(
-        _configurationService,
-        _cloudDB,
-        _accountService,
-        _navigationService,
-        _iapService,
-        _auditService,
-        _backupService);
-
+    this._configurationService,
+    this._backupService,
+    this._accountService,
+    this._cloudDB,
+    this._migrationUtil,
+  ) : super(RouterState(onboardingStep: OnboardingStep.undefined)) {
     on<DefineViewRoutingEvent>((event, emit) async {
       if (state.onboardingStep != OnboardingStep.undefined) return;
 
-      await migrationUtil.migrateIfNeeded();
+      await _migrationUtil.migrateIfNeeded();
 
       // Check and restore full accounts from cloud if existing
-      await migrationUtil.migrationFromKeychain(Platform.isIOS);
+      await _migrationUtil.migrationFromKeychain();
       await _accountService.androidRestoreKeys();
 
       if (_configurationService.isDoneOnboarding()) {
@@ -90,7 +71,7 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
     });
 
     on<RestoreCloudDatabaseRoutingEvent>((event, emit) async {
-      emit(state.copyWith(isLoading: true));
+      emit(state.copyWith(isRestoring: true));
 
       final personas = await _cloudDB.personaDao.getPersonas();
       if (personas.isEmpty) throw IncorrectFlow();
@@ -114,6 +95,7 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
       if (backupVersion != null) {
         await _backupService.restoreCloudDatabase(
             defaultAccount.wallet(), backupVersion);
+        await _migrationUtil.migrationFromKeychain();
       }
 
       // Finish restore process

@@ -159,15 +159,7 @@ class AccountServiceImpl extends AccountService {
     var personas = await _cloudDB.personaDao.getDefaultPersonas();
 
     if (personas.isEmpty) {
-      await MigrationUtil(
-              _configurationService,
-              _cloudDB,
-              this,
-              injector<NavigationService>(),
-              injector(),
-              _auditService,
-              _backupService)
-          .migrationFromKeychain(Platform.isIOS);
+      await injector<MigrationUtil>().migrationFromKeychain();
       await androidRestoreKeys();
 
       await Future.delayed(Duration(seconds: 1));

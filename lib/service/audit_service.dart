@@ -15,7 +15,7 @@ import 'package:uuid/uuid.dart';
 abstract class AuditService {
   void auditFirstLog();
   Future auditPersonaAction(String action, Persona? persona);
-  Future auditSocialRecoveryAction(String action);
+  Future auditSocialRecoveryAction(String action, String metadata);
   Future<List<int>> export();
 }
 
@@ -82,13 +82,13 @@ class AuditServiceImpl extends AuditService {
     await _cloudDB.auditDao.insertAudit(audit);
   }
 
-  Future auditSocialRecoveryAction(String action) async {
+  Future auditSocialRecoveryAction(String action, String metadata) async {
     final audit = Audit(
       uuid: Uuid().v4(),
       category: AuditCategory.SocialRecovery,
       action: action,
       createdAt: DateTime.now(),
-      metadata: '',
+      metadata: metadata,
     );
 
     await _cloudDB.auditDao.insertAudit(audit);

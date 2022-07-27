@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/forget_exist/forget_exist_bloc.dart';
+import 'package:autonomy_flutter/screen/settings/forget_exist/forget_exist_state.dart';
 import 'package:autonomy_flutter/screen/settings/forget_exist/forget_exist_view.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -110,24 +111,38 @@ class _AddAccountPageState extends State<AddAccountPage> {
                 addDivider(),
                 TappableForwardRowWithContent(
                     leftWidget: Text(
-                      'Debug - Erase Device Info',
+                      'Debug - Erase Local Data',
                       style: appTextTheme.headline4,
                     ),
                     bottomWidget: Text(
-                        'Erase all information about me and delete my keys from my cloud backup including the keys on this device. Keep cloud database for restoring',
+                        'Simulate Case 1: Restore from local account keys',
                         style: appTextTheme.bodyText1),
                     onTap: () => _showEraseDeviceInfoDialog(
-                        'Erase Device Info', 'ConfirmEraseDeviceInfoEvent')),
+                        'Erase Local Data', EraseLocalDataEvent())),
                 addDivider(),
                 TappableForwardRowWithContent(
                     leftWidget: Text(
-                      'Debug - Erase Local Info',
+                      'Debug - Erase Local Data and Local Keys',
                       style: appTextTheme.headline4,
                     ),
-                    bottomWidget: Text('Erase all local information',
+                    bottomWidget: Text(
+                        "Simulate Case 2 / 3: Restore from Platform Shards and ShardService's ShardDeck OR Emergency Contact's ShardDeck.\nDo after Social Recovery Setup is done.",
                         style: appTextTheme.bodyText1),
                     onTap: () => _showEraseDeviceInfoDialog(
-                        'Erase Local Info', 'EraseLocalInfoEvent')),
+                        'Erase Local Data and Keys',
+                        EraseLocalDataAndLocalKeysEvent())),
+                addDivider(),
+                TappableForwardRowWithContent(
+                    leftWidget: Text(
+                      'Debug - Erase Local Data and All Keys',
+                      style: appTextTheme.headline4,
+                    ),
+                    bottomWidget: Text(
+                        "Simulate Case 4: Restore from ShardService + Emegency Contact's ShardDecks.\nDo after Social Recovery Setup is done.",
+                        style: appTextTheme.bodyText1),
+                    onTap: () => _showEraseDeviceInfoDialog(
+                        'Erase Local Data and All Keys',
+                        EraseLocalDataAndAllKeysEvent())),
                 SizedBox(height: 40),
               ],
             );
@@ -205,7 +220,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
     );
   }
 
-  void _showEraseDeviceInfoDialog(String title, String event) {
+  void _showEraseDeviceInfoDialog(String title, ForgetExistEvent event) {
     UIHelper.showDialog(
       context,
       title,

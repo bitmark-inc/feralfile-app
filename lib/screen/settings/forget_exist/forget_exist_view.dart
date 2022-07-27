@@ -5,9 +5,11 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/settings/forget_exist/forget_exist_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/forget_exist/forget_exist_state.dart';
+import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/util/theme_manager.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:flutter/cupertino.dart';
@@ -16,20 +18,15 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:roundcheckbox/roundcheckbox.dart';
 
 class ForgetExistView extends StatelessWidget {
-  final String? event;
+  final ForgetExistEvent? event;
 
   const ForgetExistView({Key? key, this.event}) : super(key: key);
 
   String get descriptionEvent {
-    switch (event) {
-      case 'ConfirmEraseDeviceInfoEvent':
-        return "Your accounts and data from your device and your cloud backup will be deleted. Can restore with social recovery if you're done setup";
-
-      case 'EraseLocalInfoEvent':
-        return "Your accounts and data from your device will be deleted. Can restore with social recovery if you're done setup";
-
-      default:
-        return 'Your accounts and data from your device and your cloud backup will be deleted. Autonomy will not be able to help you recover access.';
+    if (event == null || event is ConfirmForgetExistEvent) {
+      return 'Your accounts and data from your device and your cloud backup will be deleted. Autonomy will not be able to help you recover access.';
+    } else {
+      return '';
     }
   }
 
@@ -146,23 +143,14 @@ class ForgetExistView extends StatelessWidget {
               text: state.isProcessing == true ? "FORGETTING…" : "CONFIRM",
               enabled: state.isProcessing == null && state.isChecked,
               onPress: state.isProcessing == null && state.isChecked
-                  ? () {
-                      switch (event) {
-                        case 'ConfirmEraseDeviceInfoEvent':
-                          context
-                              .read<ForgetExistBloc>()
-                              .add(ConfirmEraseDeviceInfoEvent());
-                          break;
-                        case 'EraseLocalInfoEvent':
-                          context
-                              .read<ForgetExistBloc>()
-                              .add(EraseLocalInfoEvent());
-                          break;
-                        default:
-                          context
-                              .read<ForgetExistBloc>()
-                              .add(ConfirmForgetExistEvent());
-                          break;
+                  ? () async {
+                      if (event == null || event is ConfirmForgetExistEvent) {
+                        context
+                            .read<ForgetExistBloc>()
+                            .add(ConfirmForgetExistEvent());
+                      } else {
+                        await injector<BackupService>().backupCloudDatabase();
+                        context.read<ForgetExistBloc>().add(event!);
                       }
                     }
                   : null,

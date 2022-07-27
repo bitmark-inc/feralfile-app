@@ -162,8 +162,9 @@ class _OnboardingPageState extends State<OnboardingPage> {
           children: [
             Expanded(
               child: AuFilledButton(
-                text: "Restore".toUpperCase(),
-                onPress: !state.isLoading
+                text: state.isRestoring ? "RESTORING..." : "RESTORE",
+                isProcessing: state.isRestoring,
+                onPress: !state.isRestoring
                     ? () {
                         context
                             .read<RouterBloc>()

@@ -15,9 +15,11 @@ class UpdateCheckEvent extends ForgetExistEvent {
 
 class ConfirmForgetExistEvent extends ForgetExistEvent {}
 
-class ConfirmEraseDeviceInfoEvent extends ForgetExistEvent {}
+class EraseLocalDataEvent extends ForgetExistEvent {}
 
-class EraseLocalInfoEvent extends ForgetExistEvent {}
+class EraseLocalDataAndLocalKeysEvent extends ForgetExistEvent {}
+
+class EraseLocalDataAndAllKeysEvent extends ForgetExistEvent {}
 
 class ForgetExistState {
   final bool isChecked;

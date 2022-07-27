@@ -44,10 +44,10 @@ import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/au_cached_manager.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
 import 'package:autonomy_flutter/util/isolated_util.dart';
+import 'package:autonomy_flutter/util/migration/migration_util.dart';
 import 'package:dio/dio.dart';
 import 'package:sentry_dio/sentry_dio.dart';
 import 'package:dio_smart_retry/dio_smart_retry.dart';
-import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -230,6 +230,16 @@ Future<void> setup() async {
 
   injector.registerLazySingleton<SocialRecoveryService>(
     () => SocialRecoveryServiceImpl(
+      injector(),
+      injector(),
+      injector(),
+      injector(),
+      injector(),
+    ),
+  );
+
+  injector.registerLazySingleton<MigrationUtil>(
+    () => MigrationUtilImpl(
       injector(),
       injector(),
       injector(),
