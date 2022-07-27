@@ -77,7 +77,10 @@ ErrorEvent? translateError(Object exception) {
 }
 
 bool onlySentryException(Object exception) {
-  if (exception.toString().contains("Future already completed")) return true;
+  if (exception.toString().contains("Future already completed") ||
+      exception.toString().contains("Out of Memory")) {
+    return true;
+  }
 
   if (exception is PlatformException) {
     switch (exception.code) {
