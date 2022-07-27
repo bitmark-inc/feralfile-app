@@ -32,6 +32,20 @@ class PreferenceView extends StatelessWidget {
             SizedBox(height: 24),
             _preferenceItem(
               context,
+              'Immediate info view',
+              "Enable info view when tapping on a thumbnail.",
+              state.isImmediateInfoViewEnabled,
+              (value) {
+                final newState =
+                    state.copyWith(isImmediateInfoViewEnabled: value);
+                context
+                    .read<PreferencesBloc>()
+                    .add(PreferenceUpdateEvent(newState));
+              },
+            ),
+            Divider(),
+            _preferenceItem(
+              context,
               state.authMethodName,
               "Use ${state.authMethodName != 'Device Passcode' ? state.authMethodName : 'device passcode'} to unlock the app, transact, and authenticate.",
               state.isDevicePasscodeEnabled,

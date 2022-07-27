@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
+import 'package:collection/collection.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 
 part 'feralfile_state.dart';
@@ -115,6 +116,21 @@ class FeralfileBloc extends AuBloc<FeralFileEvent, FeralFileState> {
           }
         }
       }
+    });
+
+    on<UnlinkFFWeb3AccountEvent>((event, emit) async {
+      final connections = await _cloudDB.connectionDao.getConnections();
+      final ffConnection = connections.firstWhereOrNull((conn) {
+        return conn.ffWeb3Connection?.source == event.source &&
+            conn.ffWeb3Connection?.personaAddress == event.address;
+      });
+      if (ffConnection != null) {
+        await _cloudDB.connectionDao.deleteConnection(ffConnection);
+      }
+      emit(state.copyWith(
+          connection: null,
+          event: FFUnlinked()
+      ));
     });
   }
 

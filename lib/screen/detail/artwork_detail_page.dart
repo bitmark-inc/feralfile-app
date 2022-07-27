@@ -150,9 +150,17 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
                       ],
                       SizedBox(height: 16.0),
                       GestureDetector(
-                        child: tokenThumbnailWidget(context, asset),
-                        onTap: () => Navigator.of(context).pop(),
-                      ),
+                          child: tokenThumbnailWidget(context, asset),
+                          onTap: () {
+                            if (injector<ConfigurationService>()
+                                .isImmediateInfoViewEnabled()) {
+                              Navigator.of(context).pushNamed(
+                                  AppRouter.artworkPreviewPage,
+                                  arguments: widget.payload);
+                            } else {
+                              Navigator.of(context).pop();
+                            }
+                          }),
                       debugInfoWidget(currentAsset),
                       SizedBox(height: 16.0),
                       Padding(

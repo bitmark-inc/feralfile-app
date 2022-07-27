@@ -383,6 +383,10 @@ class MockConfigurationService extends _i1.Mock
           returnValue: Future<void>.value(),
           returnValueForMissingStub: Future<void>.value()) as _i8.Future<void>);
   @override
+  _i8.Future<String> getAccountHMACSecret() =>
+      (super.noSuchMethod(Invocation.method(#getAccountHMACSecret, []),
+          returnValue: Future<String>.value('')) as _i8.Future<String>);
+  @override
   bool isDemoArtworksMode() =>
       (super.noSuchMethod(Invocation.method(#isDemoArtworksMode, []),
           returnValue: false) as bool);
