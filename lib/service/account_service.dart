@@ -130,6 +130,14 @@ class AccountServiceImpl extends AccountService {
   }
 
   Future<Persona> importPersona(String words) async {
+    final personas = await _cloudDB.personaDao.getPersonas();
+    for (final persona in personas) {
+      final mnemonic = await persona.wallet().exportMnemonicWords();
+      if (mnemonic == words) {
+        throw AccountImportedException(persona: persona);
+      }
+    }
+
     final uuid = Uuid().v4();
     final walletStorage = LibAukDart.getWallet(uuid);
     await walletStorage.importKey(
@@ -540,4 +548,10 @@ class AccountServiceImpl extends AccountService {
 
     return "keypair_$base58PublicKey||${privateKey.toHex()}";
   }
+}
+
+class AccountImportedException implements Exception {
+  final Persona persona;
+
+  AccountImportedException({required this.persona});
 }
