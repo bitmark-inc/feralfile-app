@@ -32,7 +32,7 @@ class PreferenceView extends StatelessWidget {
             SizedBox(height: 24),
             _preferenceItem(
               context,
-              'Immediate Info View',
+              'Immediate info view',
               "Enable info view when tapping on a thumbnail.",
               state.isImmediateInfoViewEnabled,
               (value) {

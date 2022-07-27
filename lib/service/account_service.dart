@@ -80,6 +80,8 @@ abstract class AccountService {
 
   bool isLinkedAccountHiddenInGallery(String address);
 
+  Future<List<String>> getAllAddresses();
+  Future<List<String>> getHiddenAddresses();
   Future<List<String>> getShowedAddresses();
   Future<String> authorizeToViewer();
 }
@@ -129,6 +131,14 @@ class AccountServiceImpl extends AccountService {
   }
 
   Future<Persona> importPersona(String words) async {
+    final personas = await _cloudDB.personaDao.getPersonas();
+    for (final persona in personas) {
+      final mnemonic = await persona.wallet().exportMnemonicWords();
+      if (mnemonic == words) {
+        throw AccountImportedException(persona: persona);
+      }
+    }
+
     final uuid = Uuid().v4();
     final walletStorage = LibAukDart.getWallet(uuid);
     await walletStorage.importKey(
@@ -434,6 +444,67 @@ class AccountServiceImpl extends AccountService {
     return _backupChannel.isEndToEndEncryptionAvailable();
   }
 
+  Future<List<String>> getAllAddresses() async {
+    if (_configurationService.isDemoArtworksMode()) {
+      return [await getDemoAccount()];
+    }
+
+    List<String> addresses = [];
+
+    final personas = await _cloudDB.personaDao.getPersonas();
+
+    for (var persona in personas) {
+      final personaWallet = persona.wallet();
+      final ethAddress = await personaWallet.getETHEip55Address();
+
+      if (ethAddress.isEmpty) continue;
+
+      addresses.add(ethAddress);
+      addresses.add((await personaWallet.getTezosWallet()).address);
+      addresses.add(await personaWallet.getBitmarkAddress());
+    }
+
+    final linkedAccounts =
+        await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
+
+    for (final linkedAccount in linkedAccounts) {
+      addresses.addAll(linkedAccount.accountNumbers);
+    }
+
+    return addresses;
+  }
+
+  Future<List<String>> getHiddenAddresses() async {
+    List<String> hiddenAddresses = [];
+
+    final personas = await _cloudDB.personaDao.getPersonas();
+    final hiddenPersonaUUIDs =
+        _configurationService.getPersonaUUIDsHiddenInGallery();
+
+    for (var persona in personas) {
+      if (!hiddenPersonaUUIDs.contains(persona.uuid)) continue;
+      final personaWallet = persona.wallet();
+      final ethAddress = await personaWallet.getETHEip55Address();
+
+      if (ethAddress.isEmpty) continue;
+      hiddenAddresses.add(ethAddress);
+      hiddenAddresses.add((await personaWallet.getTezosWallet()).address);
+      hiddenAddresses.add(await personaWallet.getBitmarkAddress());
+    }
+
+    final linkedAccounts =
+        await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
+    final hiddenLinkedAccounts =
+        _configurationService.getLinkedAccountsHiddenInGallery();
+
+    for (final linkedAccount in linkedAccounts) {
+      if (hiddenLinkedAccounts.contains(linkedAccount.hiddenGalleryKey))
+        hiddenAddresses.addAll(linkedAccount.accountNumbers);
+    }
+
+    return hiddenAddresses;
+  }
+
   Future<List<String>> getShowedAddresses() async {
     if (_configurationService.isDemoArtworksMode()) {
       return [await getDemoAccount()];
@@ -448,9 +519,14 @@ class AccountServiceImpl extends AccountService {
     for (var persona in personas) {
       if (hiddenPersonaUUIDs.contains(persona.uuid)) continue;
 
-      addresses.add(await persona.wallet().getETHEip55Address());
-      addresses.add((await persona.wallet().getTezosWallet()).address);
-      addresses.add(await persona.wallet().getBitmarkAddress());
+      final personaWallet = persona.wallet();
+      final ethAddress = await personaWallet.getETHEip55Address();
+
+      if (ethAddress.isEmpty) continue;
+
+      addresses.add(ethAddress);
+      addresses.add((await personaWallet.getTezosWallet()).address);
+      addresses.add(await personaWallet.getBitmarkAddress());
     }
 
     final linkedAccounts =
@@ -480,4 +556,10 @@ class AccountServiceImpl extends AccountService {
 
     return "keypair_$base58PublicKey||${privateKey.toHex()}";
   }
+}
+
+class AccountImportedException implements Exception {
+  final Persona persona;
+
+  AccountImportedException({required this.persona});
 }

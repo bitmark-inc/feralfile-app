@@ -30,6 +30,7 @@ import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tokens_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -188,6 +189,21 @@ class _HomePageState extends State<HomePage>
   }
 
   Widget _assetsWidget(List<AssetToken> tokens) {
+    tokens.sort((a, b) {
+      final aSource = a.source?.toLowerCase() ?? INDEXER_UNKNOWN_SOURCE;
+      final bSource = b.source?.toLowerCase() ?? INDEXER_UNKNOWN_SOURCE;
+
+      if (aSource == INDEXER_UNKNOWN_SOURCE &&
+          bSource == INDEXER_UNKNOWN_SOURCE) {
+        return b.lastActivityTime.compareTo(a.lastActivityTime);
+      }
+
+      if (aSource == INDEXER_UNKNOWN_SOURCE) return 1;
+      if (bSource == INDEXER_UNKNOWN_SOURCE) return -1;
+
+      return b.lastActivityTime.compareTo(a.lastActivityTime);
+    });
+
     final tokenIDs = tokens.map((element) => element.id).toList();
 
     const int cellPerRow = 3;
@@ -238,6 +254,7 @@ class _HomePageState extends State<HomePage>
           childCount: tokens.length,
         ),
       ),
+      SliverToBoxAdapter(child: SizedBox(height: 30)),
     ];
 
     return CustomScrollView(
