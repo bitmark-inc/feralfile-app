@@ -56,21 +56,12 @@ class TezosBeaconChannel {
 
   Future<String> getConnectionURI() async {
     Map res = await _channel.invokeMethod('getConnectionURI', {});
-
-    if (res['error'] == 0) {
-      return res["uri"];
-    } else {
-      throw SystemException(res['reason']);
-    }
+    return res["uri"];
   }
 
   Future<String> getPostMessageConnectionURI() async {
     Map res = await _channel.invokeMethod('getPostMessageConnectionURI', {});
-    if (res['error'] == 0) {
-      return res["uri"];
-    } else {
-      throw SystemException(res['reason']);
-    }
+    return res["uri"];
   }
 
   Future<List> handlePostMessageOpenChannel(String payload) async {
@@ -86,15 +77,14 @@ class TezosBeaconChannel {
     Map res = await _channel.invokeMethod('handlePostMessageMessage',
         {"extensionPublicKey": extensionPublicKey, "payload": payload});
 
-    if (res['error'] == 0) {
+    try {
       final response = json.decode(res['response']);
       return [res['tzAddress'], PermissionResponse.fromJson(response)];
-    } else {
-      switch (res['reason']) {
-        case "aborted":
-          throw AbortedException();
-        default:
-          throw SystemException(res['reason']);
+    } on PlatformException catch (exception) {
+      if (exception.message == 'aborted') {
+        throw AbortedException();
+      } else {
+        rethrow;
       }
     }
   }
@@ -139,7 +129,8 @@ class TezosBeaconChannel {
 
                   final operation = OriginationOperation(
                     balance: int.parse(balance),
-                    code: code.map((e) => Map<String, dynamic>.from(e)).toList(),
+                    code:
+                        code.map((e) => Map<String, dynamic>.from(e)).toList(),
                     storage: storage,
                     customFee: fee != null ? int.parse(fee) : null,
                     customGasLimit:
