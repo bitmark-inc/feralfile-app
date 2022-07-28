@@ -128,12 +128,17 @@ INFTRenderingWidget buildRenderingWidget(
       mimeType = "video";
       break;
     default:
-      mimeType = token.mimeType ?? "";
+      if (token.mimeType?.startsWith("audio/") == true) {
+        mimeType = "audio";
+      } else {
+        mimeType = token.mimeType ?? "";
+      }
   }
   final renderingWidget = typesOfNFTRenderingWidget(mimeType);
 
   renderingWidget.setRenderWidgetBuilder(RenderingWidgetBuilder(
     previewURL: token.previewURL,
+    thumbnailURL: token.thumbnailURL,
     loadingWidget: previewPlaceholder,
     errorWidget: brokenTokenWidget(
         context, AuThemeManager.anyProblemNFTDarkTheme.textTheme, token),

@@ -57,7 +57,7 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
 
   void setMaxTimeToken() {
     _maxTimeTokenTimer?.cancel();
-    _maxTimeTokenTimer = Timer(Duration(seconds: 15), () {
+    _maxTimeTokenTimer = Timer(Duration(seconds: 10), () {
       context.read<FeedBloc>().add(MoveToNextFeedEvent());
     });
   }

@@ -696,7 +696,10 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
         'metadataType': 0,
         'title': asset!.title,
         'images': [
-          {'url': asset!.previewURL!}
+          {'url': asset!.previewURL!},
+          if (asset?.thumbnailURL != null) {
+              {'url': asset?.thumbnailURL ?? ""}
+          },
         ]
       }
     };
