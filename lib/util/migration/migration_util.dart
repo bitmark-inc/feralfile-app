@@ -54,11 +54,56 @@ class MigrationUtil {
     log.info("[migration] finished");
   }
 
-  Future<void> migrationFromKeychain(bool isIOS) async {
-    if (isIOS) {
-      await _migrationFromKeychain();
+  Future<void> migrationFromKeychain() async {
+    if (!Platform.isIOS) return;
+    final List personaUUIDs =
+        await _channel.invokeMethod('getWalletUUIDsFromKeychain', {});
+
+    final personas = await _cloudDB.personaDao.getPersonas();
+    if (personas.length == personaUUIDs.length &&
+        personas.every(
+            (element) => personaUUIDs.contains(element.uuid.toUpperCase()))) {
+      //Database is up-to-date, skip migrating
+      return;
     }
-    // TODO: support scan keys in Android when it's doable
+
+    log.info(
+        "[_migrationFromKeychain] personaUUIDs from Keychain: $personaUUIDs");
+    for (var personaUUID in personaUUIDs) {
+      //Cleanup duplicated persona
+      final oldPersona = await _cloudDB.personaDao.findById(personaUUID);
+      if (oldPersona != null) {
+        await _cloudDB.personaDao.deletePersona(oldPersona);
+      }
+
+      final uuid = personaUUID.toLowerCase();
+      final existingPersona = await _cloudDB.personaDao.findById(uuid);
+      if (existingPersona == null) {
+        final wallet = Persona.newPersona(uuid: uuid).wallet();
+        final name = await wallet.getName();
+
+        final backupVersion = await _backupService.fetchBackupVersion(wallet);
+        final defaultAccount = backupVersion.isNotEmpty ? 1 : null;
+
+        final persona = Persona.newPersona(
+            uuid: uuid,
+            name: name,
+            createdAt: DateTime.now(),
+            defaultAccount: defaultAccount);
+
+        await _cloudDB.personaDao.insertPersona(persona);
+        await _auditService.auditPersonaAction(
+            '[_migrationkeychain] insert', persona);
+      }
+    }
+
+    //Cleanup broken personas
+    final currentPersonas = await _cloudDB.personaDao.getPersonas();
+    for (var persona in currentPersonas) {
+      if (!(await persona.wallet().isWalletCreated())) {
+        await _cloudDB.personaDao.deletePersona(persona);
+      }
+    }
   }
 
   static Future<String?> getBackupDeviceID() async {
@@ -96,7 +141,7 @@ class MigrationUtil {
             Persona(uuid: uuid, name: name, createdAt: mPersona.createdAt);
 
         await _cloudDB.personaDao.insertPersona(persona);
-        await _auditService.audiPersonaAction(
+        await _auditService.auditPersonaAction(
             '[_migrationData] insert', persona);
       }
     }
@@ -171,49 +216,6 @@ class MigrationUtil {
       final packageInfo = await PackageInfo.fromPlatform();
       _configurationService.setPreviousBuildNumber(packageInfo.buildNumber);
       _accountService.androidBackupKeys();
-    }
-  }
-
-  Future _migrationFromKeychain() async {
-    final List personaUUIDs =
-        await _channel.invokeMethod('getWalletUUIDsFromKeychain', {});
-
-    final personas = await _cloudDB.personaDao.getPersonas();
-    if (personas.length == personaUUIDs.length &&
-        personas.every(
-            (element) => personaUUIDs.contains(element.uuid.toUpperCase()))) {
-      //Database is up-to-date, skip migrating
-      return;
-    }
-
-    log.info(
-        "[_migrationFromKeychain] personaUUIDs from Keychain: $personaUUIDs");
-    for (var personaUUID in personaUUIDs) {
-      //Cleanup duplicated persona
-      final oldPersona = await _cloudDB.personaDao.findById(personaUUID);
-      if (oldPersona != null) {
-        await _cloudDB.personaDao.deletePersona(oldPersona);
-      }
-
-      final uuid = personaUUID.toLowerCase();
-      final existingPersona = await _cloudDB.personaDao.findById(uuid);
-      if (existingPersona == null) {
-        final wallet = Persona.newPersona(uuid: uuid).wallet();
-        final name = await wallet.getName();
-
-        final backupVersion = await _backupService.fetchBackupVersion(wallet);
-        final defaultAccount = backupVersion.isNotEmpty ? 1 : null;
-
-        final persona = Persona.newPersona(
-            uuid: uuid,
-            name: name,
-            createdAt: DateTime.now(),
-            defaultAccount: defaultAccount);
-
-        await _cloudDB.personaDao.insertPersona(persona);
-        await _auditService.audiPersonaAction(
-            '[_migrationkeychain] insert', persona);
-      }
     }
   }
 }

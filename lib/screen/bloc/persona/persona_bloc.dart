@@ -76,7 +76,7 @@ class PersonaBloc extends AuBloc<PersonaEvent, PersonaState> {
       await oldPersona.wallet().updateName(event.name);
       final updatedPersona = oldPersona.copyWith(name: event.name);
       await _cloudDB.personaDao.updatePersona(updatedPersona);
-      await _auditService.audiPersonaAction('name', updatedPersona);
+      await _auditService.auditPersonaAction('name', updatedPersona);
 
       emit(state.copyWith(
           namePersonaState: ActionState.done, persona: updatedPersona));

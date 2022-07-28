@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Flutter
 
 enum AppError: String, Error {
     case pendingBeaconClient = "pendingBeaconClient"
@@ -16,18 +17,20 @@ enum AppError: String, Error {
 
 
 struct ErrorHandler {
-    static func handle(error: Error) -> [String: Any] {
+    static func handle(error: Error) -> FlutterError {
         if let appError = error as? AppError {
-            return [
-                "error": 1,
-                "reason": appError.rawValue,
-            ]
+            return FlutterError(
+                code: "1",
+                message: appError.rawValue,
+                details: nil
+            )
         }
 
-        return [
-            "error": 1,
-            "reason": error.localizedDescription,
-        ]
+        return FlutterError(
+            code: "1",
+            message: error.localizedDescription,
+            details: nil
+        )
     }
 
     static func flutterError(error: Error, _ defaultMessage: String) -> FlutterError {
