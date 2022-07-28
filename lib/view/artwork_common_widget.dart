@@ -118,6 +118,8 @@ INFTRenderingWidget buildRenderingWidget(
       final ext = p.extension(token.previewURL!);
       if (ext == ".svg") {
         mimeType = "svg";
+      } else if (token.mimeType == 'image/gif') {
+        mimeType = "gif";
       } else {
         mimeType = "image";
       }
