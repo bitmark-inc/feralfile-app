@@ -23,6 +23,7 @@ class SetupEmergencyContactPage extends StatefulWidget {
 
 class _SetupEmergencyContactPageState extends State<SetupEmergencyContactPage> {
   bool _showDoneOption = false;
+  bool _isProcessing = false;
 
   @override
   Widget build(BuildContext context) {
@@ -58,6 +59,7 @@ class _SetupEmergencyContactPageState extends State<SetupEmergencyContactPage> {
                   Expanded(
                     child: AuFilledButton(
                       text: "SHARE".toUpperCase(),
+                      isProcessing: _isProcessing,
                       onPress: () => shareShardDeck(),
                     ),
                   ),
@@ -85,8 +87,15 @@ class _SetupEmergencyContactPageState extends State<SetupEmergencyContactPage> {
 
   Future shareShardDeck() async {
     try {
+      setState(() {
+        _isProcessing = true;
+      });
       final secretFile =
           await injector<SocialRecoveryService>().getEmergencyContactDeck();
+      setState(() {
+        _isProcessing = false;
+      });
+
       final result = await Share.shareFilesWithResult([secretFile]);
 
       // Handle when user shares or cancels the share dialog
@@ -104,6 +113,9 @@ class _SetupEmergencyContactPageState extends State<SetupEmergencyContactPage> {
           break;
       }
     } catch (exception) {
+      setState(() {
+        _isProcessing = false;
+      });
       rethrow;
     }
   }

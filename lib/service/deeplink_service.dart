@@ -13,7 +13,6 @@ import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
-import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/social_recovery/shard_deck.dart';
 import 'package:autonomy_flutter/service/social_recovery/social_recovery_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
@@ -28,7 +27,6 @@ import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:uni_links/uni_links.dart';
 
 abstract class DeeplinkService {

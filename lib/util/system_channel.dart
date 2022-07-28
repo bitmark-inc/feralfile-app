@@ -5,21 +5,15 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:flutter/services.dart';
 
 class SystemChannel {
   static const MethodChannel _channel = const MethodChannel('system');
 
   Future removeAllKeychainKeys(bool isSync) async {
-    final result = await _channel.invokeMethod(
+    await _channel.invokeMethod(
       'removeAllKeychainKeys',
       {"isSync": isSync},
     );
-    if (result['error'] == 0) {
-      return;
-    } else {
-      throw SystemException(result['reason']);
-    }
   }
 }
