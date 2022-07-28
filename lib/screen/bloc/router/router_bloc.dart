@@ -61,7 +61,7 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
       await migrationUtil.migrateIfNeeded();
 
       // Check and restore full accounts from cloud if existing
-      await migrationUtil.migrationFromKeychain(Platform.isIOS);
+      await migrationUtil.migrationFromKeychain();
       await _accountService.androidRestoreKeys();
 
       if (_configurationService.isDoneOnboarding()) {
