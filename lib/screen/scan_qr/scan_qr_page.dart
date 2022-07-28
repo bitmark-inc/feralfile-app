@@ -8,6 +8,7 @@
 import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/feralfile/feralfile_bloc.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
@@ -41,7 +42,7 @@ class ScanQRPage extends StatefulWidget {
   _ScanQRPageState createState() => _ScanQRPageState();
 }
 
-class _ScanQRPageState extends State<ScanQRPage> {
+class _ScanQRPageState extends State<ScanQRPage> with RouteAware {
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
   late QRViewController controller;
   var isScanDataError = false;
@@ -55,6 +56,12 @@ class _ScanQRPageState extends State<ScanQRPage> {
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.leanBack);
     }
     checkPermission();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
   }
 
   Future checkPermission() async {
@@ -335,8 +342,22 @@ class _ScanQRPageState extends State<ScanQRPage> {
   }
 
   @override
+  void didPopNext() {
+    if (Platform.isIOS) {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.leanBack);
+    }
+  }
+
+  @override
+  void didPushNext() {
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
+        overlays: SystemUiOverlay.values);
+  }
+
+  @override
   void dispose() {
     controller.dispose();
+    routeObserver.unsubscribe(this);
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
         overlays: SystemUiOverlay.values);
     super.dispose();
