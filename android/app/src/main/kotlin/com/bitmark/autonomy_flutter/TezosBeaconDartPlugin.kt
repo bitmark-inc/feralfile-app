@@ -529,24 +529,21 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
 
                 result.success(rev)
             } catch (e: SerializationException) {
-                val rev: HashMap<String, Any> = HashMap()
-                rev["error"] = 1
-
-                try {
+                val reason = try {
                     val errorResponse = jsonKT.decodeFromString(
                         PostMessageErrorResponse.serializer(),
                         decodedMessage.toString(Charsets.UTF_8)
                     )
                     if (errorResponse.errorType == "ABORTED_ERROR") {
-                        rev["reason"] = "aborted"
+                        "aborted"
                     } else {
-                        rev["reason"] = "incorrectData"
+                        "incorrectData"
                     }
                 } catch (e: SerializationException) {
-                    rev["reason"] = "incorrectData"
+                    "incorrectData"
                 }
 
-                result.success(rev)
+                result.error("1", reason, null)
             }
         }
     }
