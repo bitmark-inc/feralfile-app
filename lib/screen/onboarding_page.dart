@@ -35,22 +35,6 @@ class _OnboardingPageState extends State<OnboardingPage> {
     context.read<RouterBloc>().add(DefineViewRoutingEvent());
   }
 
-  Future _askForNotification() async {
-    if (injector<ConfigurationService>().isNotificationEnabled() != null) {
-      // Skip asking for notifications
-      return;
-    }
-
-    await Future<dynamic>.delayed(Duration(seconds: 1), () async {
-      final context = injector<NavigationService>().navigatorKey.currentContext;
-      if (context == null) return null;
-
-      return await Navigator.of(context).pushNamed(
-          AppRouter.notificationOnboardingPage,
-          arguments: {"isOnboarding": false});
-    });
-  }
-
   // @override
   @override
   Widget build(BuildContext context) {
@@ -76,7 +60,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
             } catch (_) {
               // just ignore this so that user can go through onboarding
             }
-            await _askForNotification();
+            await askForNotification();
             await injector<VersionService>().checkForUpdate();
 
             await Future.delayed(

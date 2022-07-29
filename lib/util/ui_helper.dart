@@ -39,7 +39,24 @@ void doneOnboarding(BuildContext context) async {
   Navigator.of(context)
       .pushNamedAndRemoveUntil(AppRouter.homePage, (route) => false);
 
+  await askForNotification();
   Future.delayed(SHORT_SHOW_DIALOG_DURATION, showSurveysNotification);
+}
+
+Future askForNotification() async {
+  if (injector<ConfigurationService>().isNotificationEnabled() != null) {
+    // Skip asking for notifications
+    return;
+  }
+
+  await Future<dynamic>.delayed(Duration(seconds: 1), () async {
+    final context = injector<NavigationService>().navigatorKey.currentContext;
+    if (context == null) return null;
+
+    return await Navigator.of(context).pushNamed(
+        AppRouter.notificationOnboardingPage,
+        arguments: {"isOnboarding": false});
+  });
 }
 
 void showSurveysNotification() {

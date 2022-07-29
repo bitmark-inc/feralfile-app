@@ -31,13 +31,13 @@ dependencies:
   collection: ^1.15.0
   connectivity_plus: ^2.2.1
   crypto: ^3.0.1
-  ecdsa: ^0.0.4
-  fast_base58: ^0.2.1
   cupertino_icons: ^1.0.2
   device_info_plus: ^3.2.1
   dio: ^4.0.6
   dio_smart_retry: ^1.2.0
   easy_debounce: ^2.0.2+1
+  ecdsa: ^0.0.4
+  fast_base58: ^0.2.1
   floor: ^1.2.0
   flutter:
     sdk: flutter
@@ -83,6 +83,10 @@ dependencies:
   logging: ^1.0.2
   mime: ^1.0.1
   modal_bottom_sheet: ^2.0.0
+  nft_rendering:
+    git:
+      url: https://github.com/autonomy-system/nft-rendering.git
+      ref: v1.0.3
   onesignal_flutter: ^3.3.0
   open_settings: ^2.0.2
   overlay_support: ^2.0.0
@@ -90,8 +94,8 @@ dependencies:
   page_transition: ^2.0.5
   path_provider: ^2.0.9
   permission_handler: ^9.2.0
-  qr_flutter: ^4.0.0
   qr_code_scanner: ^1.0.0
+  qr_flutter: ^4.0.0
   retrofit: null
   roundcheckbox: ^2.0.4+1
   sentry_dio: ^6.4.0
@@ -100,6 +104,7 @@ dependencies:
   share: ^2.0.4
   shared_preferences: ^2.0.0
   syncfusion_flutter_pdfviewer: ^20.1.57-beta
+  synchronized: ^3.0.0+2
   tezart:
     git:
       url: https://github.com/autonomy-system/tezart.git
@@ -108,20 +113,15 @@ dependencies:
   url_launcher: ^6.0.20
   uuid: ^3.0.5
   video_player: ^2.4.2
+  wakelock: ^0.6.1+2
   wallet_connect:
-    git: 
+    git:
       url: https://github.com/autonomy-system/wallet-connect-dart.git
       ref: 60919193f36ae4f026dfdebe929d1a1ab0d23d29
   web3dart: ^2.3.3
   web_socket_channel: ^2.1.0
   webview_flutter: ^3.0.0
-  wakelock: ^0.6.1+2
 
-  nft_rendering:
-    git:
-      url: https://github.com/autonomy-system/nft-rendering.git
-      ref: v1.0.3
-    
 dependency_overrides:
   # Error using when import photo_view from dependencies:
   # https://stackoverflow.com/questions/70404718/error-with-photoview-looking-up-a-deactivated-widgets-ancestor-is-unsafe/71010204#71010204
@@ -134,14 +134,14 @@ dev_dependencies:
   build_runner: null
   built_value_generator: null
   floor_generator: null
-  integration_test:
-    sdk: flutter
   flutter_test:
     sdk: flutter
+  integration_test:
+    sdk: flutter
   json_serializable: null
+  mockito: null
   retrofit_generator: null
   test: null
-  mockito: null
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
