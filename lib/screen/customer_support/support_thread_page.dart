@@ -120,6 +120,8 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
           _askForAttachCrashLog(context, onConfirm: (attachCrashLog) {
             if (attachCrashLog) {
               _addAppLogs();
+            } else {
+              UIHelper.hideInfoDialog(context);
             }
           });
         });
