@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:autonomy_flutter/database/dao/draft_customer_support_dao.dart';
@@ -56,9 +57,14 @@ abstract class CustomerSupportService {
     AssetToken token,
     List<String> topics,
   );
+
+  Future reportIPFSLoadingError(AssetToken token);
 }
 
 class CustomerSupportServiceImpl extends CustomerSupportService {
+
+  static int _ipfsReportThreshold = 24 * 60 * 60 * 1000; // 1 day.
+
   final DraftCustomerSupportDao _draftCustomerSupportDao;
   final CustomerSupportApi _customerSupportApi;
   final RenderingReportApi _renderingReportApi;
@@ -386,5 +392,16 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
 
   Future reopen(String issueID) async {
     return _customerSupportApi.reOpenIssue(issueID);
+  }
+
+  @override
+  Future reportIPFSLoadingError(AssetToken token) async {
+    final reportBox = await Hive.openBox("au_ipfs_reports");
+    final int lastReportTime = reportBox.get(token.id) ?? 0;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    if (now > lastReportTime + _ipfsReportThreshold) {
+      reportBox.put(token.id, now);
+      await createRenderingIssueReport(token, ["IPFS Loading"]);
+    }
   }
 }
