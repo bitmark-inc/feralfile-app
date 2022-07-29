@@ -165,8 +165,9 @@ class AccountServiceImpl extends AccountService {
   Future<WalletStorage?> getCurrentDefaultAccount() async {
     var personas = await _cloudDB.personaDao.getDefaultPersonas();
     if (personas.isEmpty) return null;
-    final defaultPersona = personas.first;
-    return LibAukDart.getWallet(defaultPersona.uuid);
+    final defaultWallet = personas.first.wallet();
+
+    return await defaultWallet.isWalletCreated() ? defaultWallet : null;
   }
 
   Future<WalletStorage> _getDefaultAccount() async {

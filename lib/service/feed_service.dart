@@ -82,8 +82,6 @@ class AppFeedData {
   }
 }
 
-final testnetInjector = GetIt.asNewInstance();
-
 class FeedServiceImpl extends FeedService {
   NetworkConfigInjector _networkConfigInjector;
   ConfigurationService _configurationService;

@@ -384,7 +384,6 @@ class _HomePageState extends State<HomePage>
 
   void _handleBackground() {
     injector<AWSService>().storeEventWithDeviceData("device_background");
-    injector<TokensService>().disposeIsolate();
     _cloudBackup();
     FileLogger.shrinkLogFileIfNeeded();
   }

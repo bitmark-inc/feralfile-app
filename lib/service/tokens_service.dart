@@ -9,6 +9,7 @@ import 'dart:async';
 import 'dart:isolate';
 
 import 'package:autonomy_flutter/common/environment.dart';
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/dao/asset_token_dao.dart';
@@ -28,6 +29,7 @@ abstract class TokensService {
   Future fetchTokensForAddresses(List<String> addresses);
   Future<Stream<int>> refreshTokensInIsolate(
       List<String> addresses, List<String> debugTokenIDs);
+  Future reindexAddresses(List<String> addresses);
   Future insertAssetsWithProvenance(List<Asset> assets);
   Future<List<Asset>> fetchLatestAssets(List<String> addresses, int size);
   void disposeIsolate();
@@ -38,8 +40,9 @@ class TokensServiceImpl extends TokensService {
   NetworkConfigInjector _networkConfigInjector;
   ConfigurationService _configurationService;
 
-  static const REFRESH_ALL_TOKENS = '_refreshAllTokens';
-  static const FETCH_TOKENS = '_fetchTokens';
+  static const REFRESH_ALL_TOKENS = 'REFRESH_ALL_TOKENS';
+  static const FETCH_TOKENS = 'FETCH_TOKENS';
+  static const REINDEX_ADDRESSES = 'REINDEX_ADDRESSES';
 
   TokensServiceImpl(
     this._networkConfigInjector,
@@ -53,6 +56,7 @@ class TokensServiceImpl extends TokensService {
   StreamController<int>? _refreshAllTokensWorker;
   List<String>? _currentAddresses;
   Map<String, Completer<void>> _fetchTokensCompleters = {};
+  Map<String, Completer<void>> _reindexAddressesCompleters = {};
   Future<void> get isolateReady => _isolateReady.future;
 
   AssetTokenDao get _assetDao =>
@@ -64,7 +68,22 @@ class TokensServiceImpl extends TokensService {
     _receivePort = ReceivePort();
     _receivePort!.listen(_handleMessageInMain);
 
-    _isolate = await Isolate.spawn(_isolateEntry, _receivePort!.sendPort);
+    _isolate = await Isolate.spawn(_isolateEntry, [
+      _receivePort!.sendPort,
+      Environment.indexerMainnetURL,
+      Environment.indexerTestnetURL,
+    ]);
+  }
+
+  Future startIsolateOrWait() async {
+    log.info("[FeedService] startIsolateOrWait");
+    if (_sendPort == null) {
+      await start();
+      await isolateReady;
+      //
+    } else if (!_isolateReady.isCompleted) {
+      await isolateReady;
+    }
   }
 
   void disposeIsolate() {
@@ -93,19 +112,19 @@ class TokensServiceImpl extends TokensService {
       List<String> addresses, List<String> debugTokenIDs) async {
     if (_currentAddresses != null) {
       if (_currentAddresses?.join(",") == addresses.join(",")) {
-        log.info("[refreshTokensInIsolate] skip because worker is running");
-        return _refreshAllTokensWorker!.stream;
+        if (_refreshAllTokensWorker != null &&
+            !_refreshAllTokensWorker!.isClosed) {
+          log.info("[refreshTokensInIsolate] skip because worker is running");
+          return _refreshAllTokensWorker!.stream;
+        }
       } else {
         log.info("[refreshTokensInIsolate] kill the obsolete worker");
         disposeIsolate();
       }
     }
 
-    if (_sendPort == null) {
-      log.info("[refreshTokensInIsolate] start isolate");
-      await start();
-      await isolateReady;
-    }
+    log.info("[refreshTokensInIsolate] start");
+    await startIsolateOrWait();
 
     final tokenIDs = await getTokenIDs(addresses);
     await _networkConfigInjector
@@ -118,30 +137,20 @@ class TokensServiceImpl extends TokensService {
     _refreshAllTokensWorker = StreamController<int>();
     _currentAddresses = addresses;
 
-    // adjust latestRefreshTokensDate
-    // to have artistID's new values, refresh whole gallery until indexer indexes their values
-    DateTime? latestRefreshTokensDate =
-        _configurationService.getLatestRefreshTokens();
-
-    // TODO: to have artistID's new values, refresh whole gallery for this release
-    latestRefreshTokensDate = null;
-
     _sendPort?.send([
       REFRESH_ALL_TOKENS,
       addresses,
-      _indexerURL,
+      _getIsTestnet,
       tokenIDs.toSet().difference(dbTokenIDs),
-      latestRefreshTokensDate,
+      _configurationService.getLatestRefreshTokens(),
     ]);
     log.info("[REFRESH_ALL_TOKENS][start]");
 
     return _refreshAllTokensWorker!.stream;
   }
 
-  String get _indexerURL =>
-      _configurationService.getNetwork() == Network.MAINNET
-          ? Environment.indexerMainnetURL
-          : Environment.indexerTestnetURL;
+  bool get _getIsTestnet =>
+      _configurationService.getNetwork() == Network.TESTNET;
 
   Future<List<Asset>> fetchLatestAssets(
       List<String> addresses, int size) async {
@@ -149,6 +158,24 @@ class TokensServiceImpl extends TokensService {
     return await _networkConfigInjector
         .I<IndexerApi>()
         .getNftTokensByOwner(owners, 0, size);
+  }
+
+  Future reindexAddresses(List<String> addresses) async {
+    await startIsolateOrWait();
+
+    final uuid = Uuid().v4();
+    final completer = Completer();
+    _reindexAddressesCompleters[uuid] = completer;
+
+    _sendPort?.send([
+      REINDEX_ADDRESSES,
+      uuid,
+      addresses,
+      _getIsTestnet,
+    ]);
+
+    log.info("[reindexAddresses][start] $addresses");
+    return completer.future;
   }
 
   Future insertAssetsWithProvenance(List<Asset> assets) async {
@@ -185,29 +212,36 @@ class TokensServiceImpl extends TokensService {
   }
 
   Future fetchTokensForAddresses(List<String> addresses) async {
-    if (_sendPort == null) {
-      log.info("[refreshTokensInIsolate] start isolate");
-      await start();
-      await isolateReady;
-    }
+    await startIsolateOrWait();
 
     final uuid = Uuid().v4();
     final completer = Completer();
     _fetchTokensCompleters[uuid] = completer;
 
-    _sendPort!.send([FETCH_TOKENS, addresses, _indexerURL, uuid]);
+    _sendPort!.send([FETCH_TOKENS, uuid, addresses, _getIsTestnet]);
     log.info("[FETCH_TOKENS][start] $addresses");
 
     return completer.future;
   }
 
-  static void _isolateEntry(SendPort sendPort) {
+  static void _isolateEntry(List<dynamic> arguments) {
+    SendPort sendPort = arguments[0];
+
     final receivePort = ReceivePort();
     receivePort.listen(_handleMessageInIsolate);
 
+    _setupInjector(arguments[1], arguments[2]);
     sendPort.send(receivePort.sendPort);
-
     _isolateSendPort = sendPort;
+  }
+
+  static void _setupInjector(
+      String indexerMainnetURL, String indexerTestnetURL) {
+    final dio = Dio();
+    injector.registerLazySingleton(
+        () => IndexerApi(dio, baseUrl: indexerMainnetURL));
+    testnetInjector.registerLazySingleton(
+        () => IndexerApi(dio, baseUrl: indexerTestnetURL));
   }
 
   void _handleMessageInMain(dynamic message) async {
@@ -218,51 +252,44 @@ class TokensServiceImpl extends TokensService {
       return;
     }
 
-    if (message is List) {
-      final result = message[2];
+    final result = message;
+    if (result is FetchTokensSuccess) {
+      await insertAssetsWithProvenance(result.assets);
+      log.info("[${result.key}] receive ${result.assets.length} tokens");
 
-      switch (message[0]) {
-        case REFRESH_ALL_TOKENS:
-          if (result is FetchTokensSuccess) {
-            await insertAssetsWithProvenance(result.assets);
-            log.info(
-                "[REFRESH_ALL_TOKENS] receive ${result.assets.length} tokens");
-
-            if (!result.done) {
-              _refreshAllTokensWorker?.sink.add(1);
-            } else {
-              _configurationService.setLatestRefreshTokens(DateTime.now());
-              _refreshAllTokensWorker?.close();
-              disposeIsolate();
-              log.info("[REFRESH_ALL_TOKENS][end]");
-            }
-          } else if (result is FetchTokenFailure) {
-            Sentry.captureException(result.exception);
-            disposeIsolate();
-            log.info("[REFRESH_ALL_TOKENS] end in error ${result.exception}");
-          }
-          break;
-
-        case FETCH_TOKENS:
-          final uuid = message[1];
-
-          if (result is FetchTokensSuccess) {
-            await insertAssetsWithProvenance(result.assets);
-            log.info("[FETCH_TOKENS] receive ${result.assets.length} tokens");
-          } else if (result is FetchTokensDone) {
-            _fetchTokensCompleters[uuid]?.complete();
-            _fetchTokensCompleters.remove(uuid);
-            log.info("[FETCH_TOKENS][end]");
-          } else if (result is FetchTokenFailure) {
-            Sentry.captureException(result.exception);
-            disposeIsolate();
-            log.info("[FETCH_TOKENS] end in error ${result.exception}");
-          }
-
-          break;
-        default:
-          break;
+      if (result.key == REFRESH_ALL_TOKENS) {
+        if (!result.done) {
+          _refreshAllTokensWorker?.sink.add(1);
+        } else {
+          _configurationService.setLatestRefreshTokens(DateTime.now());
+          _refreshAllTokensWorker?.close();
+          log.info("[REFRESH_ALL_TOKENS][end]");
+        }
+      } else if (result.key == FETCH_TOKENS) {
+        if (result.done) {
+          _fetchTokensCompleters[result.uuid]?.complete();
+          _fetchTokensCompleters.remove(result.uuid);
+          log.info("[FETCH_TOKENS][end]");
+        }
       }
+      //
+    } else if (result is FetchTokenFailure) {
+      Sentry.captureException(result.exception);
+
+      log.info("[REFRESH_ALL_TOKENS] end in error ${result.exception}");
+
+      if (result.key == REFRESH_ALL_TOKENS) {
+        _refreshAllTokensWorker?.close();
+      } else if (result.key == FETCH_TOKENS) {
+        _fetchTokensCompleters[result.uuid]?.completeError(result.exception);
+        _fetchTokensCompleters.remove(result.uuid);
+      }
+      //
+    } else if (result is ReindexAddressesDone) {
+      _reindexAddressesCompleters[result.uuid]?.complete();
+      _fetchTokensCompleters.remove(result.uuid);
+      log.info("[reindexAddresses][end]");
+      //
     }
   }
 
@@ -272,14 +299,19 @@ class TokensServiceImpl extends TokensService {
     if (message is List<dynamic>) {
       switch (message[0]) {
         case REFRESH_ALL_TOKENS:
-          _refreshAllTokens(message[1], message[2], message[3], message[4],
-              REFRESH_ALL_TOKENS, '');
+          _refreshAllTokens(REFRESH_ALL_TOKENS, '', message[1], message[2],
+              message[3], message[4]);
           break;
 
         case FETCH_TOKENS:
           _refreshAllTokens(
-              message[1], message[2], {}, null, FETCH_TOKENS, message[3]);
+              FETCH_TOKENS, message[1], message[2], message[3], {}, null);
           break;
+
+        case REINDEX_ADDRESSES:
+          _reindexAddressesInIndexer(message[1], message[2], message[3]);
+          break;
+
         default:
           break;
       }
@@ -287,16 +319,18 @@ class TokensServiceImpl extends TokensService {
   }
 
   static void _refreshAllTokens(
-      List<String> addresses,
-      String indexerApiUrl,
-      Set<String> expectedNewTokenIDs,
-      DateTime? latestRefreshToken,
-      String key,
-      String keyUUID) async {
+    String key,
+    String uuid,
+    List<String> addresses,
+    bool isTestnet,
+    Set<String> expectedNewTokenIDs,
+    DateTime? latestRefreshToken,
+  ) async {
     try {
       final owners = addresses.join(",");
 
-      final _isolateIndexerAPI = IndexerApi(Dio(), baseUrl: indexerApiUrl);
+      final _isolateIndexerAPI =
+          isTestnet ? testnetInjector<IndexerApi>() : injector<IndexerApi>();
 
       var offset = 0;
       Set<String> tokenIDs = {};
@@ -307,8 +341,7 @@ class TokensServiceImpl extends TokensService {
         tokenIDs.addAll(assets.map((e) => e.id));
 
         if (assets.length < INDEXER_TOKENS_MAXIMUM) {
-          _isolateSendPort
-              ?.send([key, keyUUID, FetchTokensSuccess(assets, true)]);
+          _isolateSendPort?.send(FetchTokensSuccess(key, uuid, assets, true));
           break;
         }
 
@@ -316,35 +349,56 @@ class TokensServiceImpl extends TokensService {
           expectedNewTokenIDs.difference(tokenIDs);
           if (assets.last.lastActivityTime.compareTo(latestRefreshToken) < 0 &&
               expectedNewTokenIDs.isEmpty) {
-            _isolateSendPort
-                ?.send([key, keyUUID, FetchTokensSuccess(assets, true)]);
+            _isolateSendPort?.send(FetchTokensSuccess(key, uuid, assets, true));
             break;
           }
         }
 
-        _isolateSendPort
-            ?.send([key, keyUUID, FetchTokensSuccess(assets, false)]);
+        _isolateSendPort?.send(FetchTokensSuccess(key, uuid, assets, false));
         offset += INDEXER_TOKENS_MAXIMUM;
       }
     } catch (exception) {
-      _isolateSendPort?.send([key, keyUUID, FetchTokenFailure(exception)]);
+      _isolateSendPort?.send(FetchTokenFailure(key, uuid, exception));
     }
+  }
+
+  static void _reindexAddressesInIndexer(
+      String uuid, List<String> addresses, bool isTestnet) async {
+    final _indexerAPI =
+        isTestnet ? testnetInjector<IndexerApi>() : injector<IndexerApi>();
+    for (final address in addresses) {
+      if (address.startsWith("tz")) {
+        _indexerAPI.requestIndex({"owner": address, "blockchain": "tezos"});
+      } else if (address.startsWith("0x")) {
+        _indexerAPI.requestIndex({"owner": address});
+      }
+    }
+
+    _isolateSendPort?.send(ReindexAddressesDone(uuid));
   }
 }
 
 abstract class TokensServiceResult {}
 
 class FetchTokensSuccess extends TokensServiceResult {
+  final String key;
+  final String uuid;
   final List<Asset> assets;
   bool done;
 
-  FetchTokensSuccess(this.assets, this.done);
+  FetchTokensSuccess(this.key, this.uuid, this.assets, this.done);
 }
 
 class FetchTokenFailure extends TokensServiceResult {
+  final String uuid;
+  final String key;
   final Object exception;
 
-  FetchTokenFailure(this.exception);
+  FetchTokenFailure(this.uuid, this.key, this.exception);
 }
 
-class FetchTokensDone extends TokensServiceResult {}
+class ReindexAddressesDone extends TokensServiceResult {
+  final String uuid;
+
+  ReindexAddressesDone(this.uuid);
+}
