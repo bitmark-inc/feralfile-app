@@ -5,10 +5,13 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_dapp_service/wc_connected_session.dart';
+import 'package:autonomy_flutter/util/custom_exception.dart';
+import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/rand.dart';
 import 'package:flutter/cupertino.dart';
@@ -30,6 +33,7 @@ class WalletConnectDappService {
   final ConfigurationService _configurationService;
 
   WalletConnectDappService(this._configurationService);
+  Timer? timeoutTimer;
 
   Future start() async {
     _wcClient = WCClient(
@@ -77,6 +81,10 @@ class WalletConnectDappService {
     Sentry.getSpan()?.setTag("bridgeServer", _wcSession.bridge);
     _wcClient.connectNewSession(
         session: _wcSession, peerMeta: _dappPeerMeta, isWallet: false);
+
+    timeoutTimer = Timer(Duration(seconds: 20), () {
+      showErrorDialogFromException(LinkingFailedException());
+    });
   }
 
   disconnect() {
@@ -88,6 +96,7 @@ class WalletConnectDappService {
   }
 
   _onConnect() {
+    timeoutTimer?.cancel();
     final accounts = _configurationService.getWCDappAccounts();
     log.info("WC connected, stored accounts: $accounts");
     if (accounts != null) {
@@ -111,6 +120,7 @@ class WalletConnectDappService {
   _onFailure(error) {
     log.info("WC failed to connect: $error");
     Sentry.getSpan()?.finish(status: SpanStatus.internalError());
+    showErrorDialogFromException(LinkingFailedException());
   }
 
   _onSessionRequest(id, peerMeta) {

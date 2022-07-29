@@ -21,6 +21,8 @@ class AlreadyLinkedException implements Exception {
 
 class AbortedException implements Exception {}
 
+class LinkingFailedException  implements Exception {}
+
 class RequiredPremiumFeature implements Exception {
   final PremiumFeature feature;
 

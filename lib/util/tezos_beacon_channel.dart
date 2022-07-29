@@ -84,7 +84,7 @@ class TezosBeaconChannel {
       if (exception.message == 'aborted') {
         throw AbortedException();
       } else {
-        rethrow;
+        throw LinkingFailedException();
       }
     }
   }
