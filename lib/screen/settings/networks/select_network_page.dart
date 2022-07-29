@@ -65,8 +65,6 @@ class SelectNetworkPage extends StatelessWidget {
                         context
                             .read<SelectNetworkBloc>()
                             .add(SelectNetworkEvent(value));
-
-                        injector<TokensService>().disposeIsolate();
                       }
                     },
                   ),

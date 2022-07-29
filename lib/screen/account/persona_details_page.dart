@@ -138,6 +138,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
 
   Widget _addressRow({required String address, required CryptoType type}) {
     return GestureDetector(
+      behavior: HitTestBehavior.translucent,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

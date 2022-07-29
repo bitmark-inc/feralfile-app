@@ -149,20 +149,8 @@ class HomeBloc extends AuBloc<HomeEvent, HomeState> {
     });
 
     on<ReindexIndexerEvent>((event, emit) async {
-      try {
-        final addresses = await _accountService.getShowedAddresses();
-
-        for (final address in addresses) {
-          if (address.startsWith("tz")) {
-            _indexerApi.requestIndex({"owner": address, "blockchain": "tezos"});
-          } else if (address.startsWith("0x")) {
-            _indexerApi.requestIndex({"owner": address});
-          }
-        }
-      } catch (exception) {
-        log.info("[HomeBloc] error when request index");
-        Sentry.captureException(exception);
-      }
+      final addresses = await _accountService.getShowedAddresses();
+      _tokensService.reindexAddresses(addresses);
     });
   }
 }

@@ -57,6 +57,7 @@ import 'package:logging/logging.dart';
 import 'package:autonomy_flutter/util/log.dart';
 
 final injector = GetIt.instance;
+final testnetInjector = GetIt.asNewInstance();
 
 Future<void> setup() async {
   FileLogger.initializeLogging();
