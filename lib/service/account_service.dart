@@ -35,11 +35,13 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:uuid/uuid.dart';
 import 'package:wallet_connect/wallet_connect.dart';
 import 'package:web3dart/crypto.dart';
+import 'package:synchronized/synchronized.dart';
 
 import 'wallet_connect_dapp_service/wc_connected_session.dart';
 
 abstract class AccountService {
   Future<WalletStorage> getDefaultAccount();
+  Future<WalletStorage?> getCurrentDefaultAccount();
 
   Future androidBackupKeys();
 
@@ -96,6 +98,7 @@ class AccountServiceImpl extends AccountService {
   final BackupService _backupService;
   final AutonomyApi _autonomyApi;
 
+  final _defaultAccountLock = new Lock();
   AccountServiceImpl(
     this._cloudDB,
     this._walletConnectService,
@@ -155,6 +158,19 @@ class AccountServiceImpl extends AccountService {
   }
 
   Future<WalletStorage> getDefaultAccount() async {
+    return _defaultAccountLock.synchronized(() async {
+      return await _getDefaultAccount();
+    });
+  }
+
+  Future<WalletStorage?> getCurrentDefaultAccount() async {
+    var personas = await _cloudDB.personaDao.getDefaultPersonas();
+    if (personas.isEmpty) return null;
+    final defaultPersona = personas.first;
+    return LibAukDart.getWallet(defaultPersona.uuid);
+  }
+
+  Future<WalletStorage> _getDefaultAccount() async {
     var personas = await _cloudDB.personaDao.getDefaultPersonas();
 
     if (personas.isEmpty) {
