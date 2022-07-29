@@ -9,6 +9,7 @@ import 'dart:convert';
 
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_dapp_service/wc_connected_session.dart';
+import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/rand.dart';
 import 'package:flutter/cupertino.dart';
@@ -111,6 +112,7 @@ class WalletConnectDappService {
   _onFailure(error) {
     log.info("WC failed to connect: $error");
     Sentry.getSpan()?.finish(status: SpanStatus.internalError());
+    throw LinkingFailedException();
   }
 
   _onSessionRequest(id, peerMeta) {

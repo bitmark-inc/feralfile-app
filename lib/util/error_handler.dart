@@ -22,8 +22,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
-import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:tezart/tezart.dart';
 
@@ -66,6 +66,12 @@ ErrorEvent? translateError(Object exception) {
       default:
         break;
     }
+  } else if (exception is LinkingFailedException) {
+    return ErrorEvent(
+        exception,
+        "🤔",
+        "There seems to be a problem linking to Autonomy. We’ve automatically filed a bug report and will look into it. If you require further support or want to tell us more about the issue, please tap the button below.",
+        ErrorItemState.getReport);
   }
 
   return ErrorEvent(
@@ -309,8 +315,10 @@ void hideInfoDialog(BuildContext context) {
 
 String getTezosErrorMessage(TezartNodeError err) {
   var message = "";
-  if (err.message.contains("empty_implicit_contract") || err.message.contains("balance_too_low")) {
-    message = "Transaction is likely to fail. Please make sure you have enough of Tezos balance to perform this action.";
+  if (err.message.contains("empty_implicit_contract") ||
+      err.message.contains("balance_too_low")) {
+    message =
+        "Transaction is likely to fail. Please make sure you have enough of Tezos balance to perform this action.";
   } else if (err.message.contains("script_rejected")) {
     message = "The operation failed. Contract malformed or deprecated.";
   } else {
