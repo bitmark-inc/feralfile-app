@@ -18,7 +18,6 @@ import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
@@ -35,6 +34,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:uuid/uuid.dart';
 import 'package:wallet_connect/wallet_connect.dart';
 import 'package:web3dart/crypto.dart';
+import 'package:synchronized/synchronized.dart';
 
 import 'wallet_connect_dapp_service/wc_connected_session.dart';
 
@@ -97,6 +97,7 @@ class AccountServiceImpl extends AccountService {
   final BackupService _backupService;
   final AutonomyApi _autonomyApi;
 
+  final _defaultAccountLock = new Lock();
   AccountServiceImpl(
     this._cloudDB,
     this._walletConnectService,
@@ -156,6 +157,19 @@ class AccountServiceImpl extends AccountService {
   }
 
   Future<WalletStorage> getDefaultAccount() async {
+    return _defaultAccountLock.synchronized(() async {
+      return await _getDefaultAccount();
+    });
+  }
+
+  Future<WalletStorage?> getCurrentDefaultAccount() async {
+    var personas = await _cloudDB.personaDao.getDefaultPersonas();
+    if (personas.isEmpty) return null;
+    final defaultPersona = personas.first;
+    return LibAukDart.getWallet(defaultPersona.uuid);
+  }
+
+  Future<WalletStorage> _getDefaultAccount() async {
     var personas = await _cloudDB.personaDao.getDefaultPersonas();
 
     if (personas.isEmpty) {
@@ -183,13 +197,6 @@ class AccountServiceImpl extends AccountService {
       defaultPersona = personas.first;
     }
 
-    return LibAukDart.getWallet(defaultPersona.uuid);
-  }
-
-  Future<WalletStorage?> getCurrentDefaultAccount() async {
-    var personas = await _cloudDB.personaDao.getDefaultPersonas();
-    if (personas.isEmpty) return null;
-    final defaultPersona = personas.first;
     return LibAukDart.getWallet(defaultPersona.uuid);
   }
 

@@ -122,10 +122,6 @@ class _SettingsPageState extends State<SettingsPage>
                         _cloudAvailabilityWidget(),
                       ],
                     ),
-                    SizedBox(height: 24),
-                    Text(
-                        'Autonomy accounts are full, multi-chain accounts. Linked accounts link to single-chain accounts from other wallets.',
-                        style: appTextTheme.bodyText1),
                     SizedBox(height: 16),
                     AccountsView(
                         key: ValueKey(_forceAccountsViewRedraw),

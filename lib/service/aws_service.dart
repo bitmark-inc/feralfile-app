@@ -63,15 +63,10 @@ class AWSService {
       _packageInfo = await PackageInfo.fromPlatform();
       _isAppcenterBuild = await isAppCenterBuild();
 
-      final hasPersona = (await _accountService.getPersonas()).length > 0;
-      String defaultDID = 'unknown';
-
-      if (hasPersona) {
-        try {
-          defaultDID =
-              await (await _accountService.getDefaultAccount()).getAccountDID();
-        } catch (_) {}
-      }
+      final defaultDID =
+          (await (await _accountService.getCurrentDefaultAccount())
+                  ?.getAccountDID()) ??
+              'unknown';
 
       final deviceID = await getDeviceID() ?? "unknown";
       _hashedUserID = sha224.convert(utf8.encode(defaultDID)).toString();

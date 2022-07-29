@@ -26,8 +26,7 @@ class BeOwnGalleryPage extends StatelessWidget {
         },
       ),
       body: Container(
-        margin:
-            EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
+        margin: pageEdgeInsetsWithSubmitButton,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -60,13 +59,6 @@ class BeOwnGalleryPage extends StatelessWidget {
                   child: AuFilledButton(
                     text: "CONTINUE".toUpperCase(),
                     onPress: () async {
-                      if (injector<ConfigurationService>()
-                              .isNotificationEnabled() ==
-                          null) {
-                        await Navigator.of(context)
-                            .pushNamed(AppRouter.notificationOnboardingPage);
-                      }
-
                       if (await injector<IAPService>().isSubscribed()) {
                         await newAccountPageOrSkipInCondition(context);
                       } else {

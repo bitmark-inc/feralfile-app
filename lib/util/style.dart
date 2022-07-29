@@ -275,7 +275,7 @@ Widget closeIcon({Color color = Colors.black}) {
 
 const pageEdgeInsets =
     EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0, bottom: 20.0);
-const pageEdgeInsetsWithSubmitButton = EdgeInsets.fromLTRB(16, 16, 16, 40);
+const pageEdgeInsetsWithSubmitButton = EdgeInsets.fromLTRB(16, 16, 16, 32);
 const pageEdgeInsetsNotBottom = EdgeInsets.fromLTRB(16, 16, 16, 0);
 
 class AppColorTheme {

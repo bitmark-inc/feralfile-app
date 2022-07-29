@@ -51,7 +51,10 @@ class MigrationUtilImpl extends MigrationUtil {
       await _migrationAndroid();
     }
 
-    _iapService.restore();
+    if ((await _cloudDB.personaDao.getDefaultPersonas()).isNotEmpty) {
+      _iapService.restore();
+    }
+
     log.info("[migration] finished");
   }
 

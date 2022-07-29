@@ -85,8 +85,8 @@ dependencies:
   modal_bottom_sheet: ^2.0.0
   nft_rendering:
     git:
-      url: git@github.com:autonomy-system/nft-rendering.git
-      ref: v1.0.2
+      url: https://github.com/autonomy-system/nft-rendering.git
+      ref: v1.0.3
   onesignal_flutter: ^3.3.0
   open_settings: ^2.0.2
   overlay_support: ^2.0.0
@@ -96,7 +96,6 @@ dependencies:
   permission_handler: ^9.2.0
   qr_code_scanner: ^1.0.0
   qr_flutter: ^4.0.0
-  receive_sharing_intent: ^1.4.5
   retrofit: null
   roundcheckbox: ^2.0.4+1
   sentry_dio: ^6.4.0
@@ -105,6 +104,7 @@ dependencies:
   share_plus: ^4.0.10
   shared_preferences: ^2.0.0
   syncfusion_flutter_pdfviewer: ^20.1.57-beta
+  synchronized: ^3.0.0+2
   tezart:
     git:
       url: https://github.com/autonomy-system/tezart.git
@@ -134,9 +134,9 @@ dev_dependencies:
   build_runner: null
   built_value_generator: null
   floor_generator: null
-  integration_test:
-    sdk: flutter
   flutter_test:
+    sdk: flutter
+  integration_test:
     sdk: flutter
   json_serializable: null
   mockito: null
