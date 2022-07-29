@@ -53,10 +53,12 @@ class DetailIssuePayload extends SupportThreadPayload {
 class ExceptionErrorPayload extends SupportThreadPayload {
   final String sentryID;
   final String metadata;
+  final bool attachCrashLog;
 
   ExceptionErrorPayload({
     required this.sentryID,
     required this.metadata,
+    this.attachCrashLog = false,
   });
 }
 
@@ -121,6 +123,9 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
               payload.issueID;
     } else if (payload is ExceptionErrorPayload) {
       _reportIssueType = ReportIssueType.Exception;
+      if (payload.attachCrashLog) {
+        _addAppLogs();
+      }
     }
 
     memoryValues.viewingSupportThreadIssueID = _issueID;
@@ -381,8 +386,6 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
           text: null,
           attachments: [LocalAttachment(fileName: filename, path: localPath)],
         ));
-
-    Navigator.pop(context);
   }
 
   void _handleAtachmentPressed() {
@@ -410,6 +413,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
             style: textButtonNoPadding,
             onPressed: () async {
               await _addAppLogs();
+              Navigator.pop(context);
             },
             child: Align(
               alignment: Alignment.centerLeft,
