@@ -10,6 +10,7 @@ import 'dart:io';
 
 import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
+import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:bubble/bubble.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -53,12 +54,10 @@ class DetailIssuePayload extends SupportThreadPayload {
 class ExceptionErrorPayload extends SupportThreadPayload {
   final String sentryID;
   final String metadata;
-  final bool attachCrashLog;
 
   ExceptionErrorPayload({
     required this.sentryID,
     required this.metadata,
-    this.attachCrashLog = false,
   });
 }
 
@@ -116,6 +115,15 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     final payload = widget.payload;
     if (payload is NewIssuePayload) {
       _reportIssueType = payload.reportIssueType;
+      if (_reportIssueType == ReportIssueType.Bug) {
+        Future.delayed(Duration(milliseconds: 300), () {
+          _askForAttachCrashLog(context, onConfirm: (attachCrashLog) {
+            if (attachCrashLog) {
+              _addAppLogs();
+            }
+          });
+        });
+      }
     } else if (payload is DetailIssuePayload) {
       _reportIssueType = payload.reportIssueType;
       _issueID =
@@ -123,9 +131,6 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
               payload.issueID;
     } else if (payload is ExceptionErrorPayload) {
       _reportIssueType = ReportIssueType.Exception;
-      if (payload.attachCrashLog) {
-        _addAppLogs();
-      }
     }
 
     memoryValues.viewingSupportThreadIssueID = _issueID;
@@ -150,6 +155,44 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
 
     memoryValues.viewingSupportThreadIssueID = null;
     super.dispose();
+  }
+
+  void _askForAttachCrashLog(BuildContext context,
+      {required void Function(bool attachCrashLog) onConfirm}) {
+    final theme = AuThemeManager.get(AppTheme.sheetTheme);
+    UIHelper.showDialog(
+      context,
+      "Attach crash log?",
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+              "Would you like to attach a crash log with your support request? The crash log is anonymous and will help our engineers identify the issue.",
+              style: theme.textTheme.bodyText1),
+          SizedBox(height: 40),
+          AuFilledButton(
+            text: "ATTACH CRASH LOG",
+            color: theme.primaryColor,
+            textStyle: TextStyle(
+                color: theme.backgroundColor,
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                fontFamily: "IBMPlexMono"),
+            onPress: () => onConfirm(true),
+          ),
+          AuFilledButton(
+            text: "CONTINUE WITHOUT CRASH LOG",
+            textStyle: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                fontFamily: "IBMPlexMono"),
+            onPress: () => onConfirm(false),
+          ),
+          SizedBox(height: 40),
+        ],
+      ),
+      isDismissible: true,
+    );
   }
 
   @override
@@ -386,6 +429,8 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
           text: null,
           attachments: [LocalAttachment(fileName: filename, path: localPath)],
         ));
+
+    Navigator.pop(context);
   }
 
   void _handleAtachmentPressed() {
@@ -413,7 +458,6 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
             style: textButtonNoPadding,
             onPressed: () async {
               await _addAppLogs();
-              Navigator.pop(context);
             },
             child: Align(
               alignment: Alignment.centerLeft,

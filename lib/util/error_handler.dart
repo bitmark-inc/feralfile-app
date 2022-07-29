@@ -220,44 +220,6 @@ void showErrorDiablog(
       defaultAction, cancelButton, cancelAction);
 }
 
-void _askForAttachCrashLog(BuildContext context,
-    {required void Function(bool attachCrashLog) onConfirm}) {
-  final theme = AuThemeManager.get(AppTheme.sheetTheme);
-  UIHelper.showDialog(
-    context,
-    "Attach crash log?",
-    Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-            "Would you like to attach a crash log with your support request? The crash log is anonymous and will help our engineers identify the issue.",
-            style: theme.textTheme.bodyText1),
-        SizedBox(height: 40),
-        AuFilledButton(
-          text: "ATTACH CRASH LOG",
-          color: theme.primaryColor,
-          textStyle: TextStyle(
-              color: theme.backgroundColor,
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              fontFamily: "IBMPlexMono"),
-          onPress: () => onConfirm(true),
-        ),
-        AuFilledButton(
-          text: "CONTINUE WITHOUT CRASH LOG",
-          textStyle: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              fontFamily: "IBMPlexMono"),
-          onPress: () => onConfirm(false),
-        ),
-        SizedBox(height: 40),
-      ],
-    ),
-    isDismissible: true,
-  );
-}
-
 void showErrorDialogFromException(Object exception,
     {StackTrace? stackTrace, String? library}) async {
   final context = injector<NavigationService>().navigatorKey.currentContext;
@@ -325,18 +287,11 @@ void showErrorDialogFromException(Object exception,
       showErrorDiablog(
         context,
         event,
-        defaultAction: () {
-          _askForAttachCrashLog(context, onConfirm: (attachCrashLog) {
-            UIHelper.hideInfoDialog(context);
-            Navigator.of(context).pushNamed(
-              AppRouter.supportThreadPage,
-              arguments: ExceptionErrorPayload(
-                  sentryID: sentryID,
-                  metadata: sentryMetadata,
-                  attachCrashLog: attachCrashLog),
-            );
-          });
-        },
+        defaultAction: () => Navigator.of(context).pushNamed(
+          AppRouter.supportThreadPage,
+          arguments: ExceptionErrorPayload(
+              sentryID: sentryID, metadata: sentryMetadata),
+        ),
       );
     } else {
       showErrorDiablog(
