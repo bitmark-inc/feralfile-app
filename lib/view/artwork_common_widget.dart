@@ -59,7 +59,6 @@ Widget tokenThumbnailWidget(BuildContext context, AssetToken token) {
                   context, AuThemeManager.anyProblemNFTTheme.textTheme, token),
             ),
           ),
-    key: Key(token.title),
   );
 }
 
@@ -94,6 +93,7 @@ Widget tokenGalleryThumbnailWidget(
                   ),
                 )),
           ),
+    key: Key('Artwork_Thumbnail'),
   );
 }
 
@@ -623,5 +623,6 @@ Widget previewCloseIcon(BuildContext context) {
   return IconButton(
     onPressed: () => Navigator.of(context).pop(),
     icon: closeIcon(color: Colors.white),
+    tooltip: "CloseArtwork",
   );
 }

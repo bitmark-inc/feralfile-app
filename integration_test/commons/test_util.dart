@@ -8,9 +8,21 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
+
+final Finder conflictdetectheader = find.text('Conflict detected');
+final Finder devicekeychainradio = find.descendant(
+  of: find.text('Device keychain'),
+  matching: find.byType(Radio),
+);
+final Finder cloudkeychain = find.descendant(
+  of: find.text('Cloud keychain'),
+  matching: find.byType(Radio),
+);
+final Finder proceedbutton = find.text("PROCEED");
 
 Future<void> addDelay(int ms) async {
   await Future<void>.delayed(Duration(milliseconds: ms));
@@ -54,6 +66,17 @@ Future<String> genTestDataRandom(String baseString) async {
   baseString = baseString + rng.nextInt(10000).toString();
   print(baseString);
   return baseString;
+}
+
+Future<void> handleConflictDetected(WidgetTester tester) async {
+  if (conflictdetectheader.evaluate().isNotEmpty) {
+    // tester.tap(devicekeychainradio);
+    // tester.tap(cloudkeychain);
+    // tester.tap(devicekeychainradio);
+    await tester.tap(proceedbutton);
+    await tester.pumpAndSettle(Duration(seconds: 5));
+    await tester.pumpAndSettle();
+  }
 }
 
 Future<void> deleteAnAccount(String accountAlias) async {}

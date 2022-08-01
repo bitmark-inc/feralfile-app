@@ -24,16 +24,40 @@ void main() async {
     testWidgets("Image", (tester) async {
       await onboardingSteps(tester);
 
-      await selectSubSettingMenu(tester, "Settings->+ Account->Add");
-      await restoreAccountBySeeds(
-          tester, 'MetaMask', SEEDS_TO_RESTORE_FOR_TEST);
+      // await addDelay(5000);
+      await selectSubSettingMenu(tester, "Settings->+ Account");
+      // await restoreAccountBySeeds(tester, 'MetaMask', SEEDS_TO_RESTORE_FOR_TEST);
+
+      await tester.tap(find.text('Delete All Debug Linked IndexerTokenIDs'));
+      await tester.pumpAndSettle(Duration(seconds: 1));
+      await tester.tap(find.text('Debug Indexer TokenID'));
+      await tester.pumpAndSettle(Duration(seconds: 3));
+
+      await tester.enterText(find.byType(TextField),
+          'bmk--899600b02d99d0474c7c0037f6e14829b308286923cd04dc4217845be9c701f8');
+
+      await tester.tap(find.text('LINK'));
+      await tester.pumpAndSettle(Duration(seconds: 5));
+      await tester.pumpAndSettle(Duration(seconds: 3));
 
       await tester.tap(find.byTooltip('Settings'));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(Duration(seconds: 5));
+      // await tester.pumpAndSettle(Duration(seconds: 5));
+      // await addDelay(10000);
 
-      await tester.tap(find.byKey(Key(IMAGE_ARTWORK)));
+      // for (var artwork in LIST_CHECK_ARTWORKS) {
+      //   await tester.tap(find.byKey(Key(artwork)));
+      //   await tester.pumpAndSettle();
+      //   expect(find.byType(CircularProgressIndicator), findsNothing);
+      //   await tester.tap(find.byTooltip('CloseArtwork'));
+      //   await tester.pumpAndSettle();
+      // }
 
+      await tester.tap(find.byKey(Key('Artwork_Thumbnail')));
       expect(find.byType(CircularProgressIndicator), findsNothing);
+      await tester.tap(find.byTooltip('CloseArtwork'));
+      await tester.pumpAndSettle();
+      await tester.pumpAndSettle();
     });
   });
 }
