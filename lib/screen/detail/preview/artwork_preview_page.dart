@@ -35,10 +35,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_to_airplay/airplay_route_picker_view.dart';
 import 'package:mime/mime.dart';
+import 'package:nft_rendering/nft_rendering.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shake/shake.dart';
 import 'package:wakelock/wakelock.dart';
-import 'package:nft_rendering/nft_rendering.dart';
 
 enum AUCastDeviceType { Airplay, Chromecast }
 
@@ -457,10 +457,16 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   }
 
   Widget _castButton(BuildContext context) {
-    return InkWell(
-      onTap: () => _showCastDialog(context),
-      child: SvgPicture.asset('assets/images/chromecast.svg'),
-    );
+    if (asset?.medium == "video" ||
+        asset?.medium == "image" ||
+        asset?.mimeType?.startsWith("audio/") == true) {
+      return InkWell(
+        onTap: () => _showCastDialog(context),
+        child: SvgPicture.asset('assets/images/chromecast.svg'),
+      );
+    } else {
+      return SizedBox();
+    }
   }
 
   Widget _airplayItem(BuildContext context, bool isSubscribed) {
