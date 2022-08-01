@@ -655,25 +655,17 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
 
     log.info("[Chromecast] Connecting to ${device.chromecastDevice!.name}");
     session.stateStream.listen((state) {
+      print("[Chromecast] State: $state");
       log.info("[Chromecast] device status: ${state.name}");
       if (state == CastSessionState.connected) {
         log.info(
             "[Chromecast] send cast message with url: ${asset!.previewURL!}");
+        _sendMessagePlayVideo(session);
       }
     });
 
-    var i = 0;
-
     session.messageStream.listen((message) {
-      i += 1;
-
-      print('receive message: $message');
-
-      if (i == 2) {
-        Future.delayed(Duration(seconds: 5)).then((x) {
-          _sendMessagePlayVideo(session);
-        });
-      }
+      print('[Chromecast] receive message: $message');
     });
 
     session.sendMessage(CastSession.kNamespaceReceiver, {
@@ -686,7 +678,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     var message = {
       // Here you can plug an URL to any mp4, webm, mp3 or jpg file with the proper contentType.
       'contentId': asset!.previewURL!,
-      'contentType': lookupMimeType(asset!.previewURL!),
+      'contentType': asset?.mimeType ?? lookupMimeType(asset!.previewURL!),
       'streamType': 'BUFFERED',
       // or LIVE
 
@@ -696,10 +688,8 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
         'metadataType': 0,
         'title': asset!.title,
         'images': [
+          {'url': asset?.thumbnailURL ?? ''},
           {'url': asset!.previewURL!},
-          if (asset?.thumbnailURL != null) {
-              {'url': asset?.thumbnailURL ?? ""}
-          },
         ]
       }
     };
@@ -710,6 +700,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
       'currentTime': 0,
       'media': message,
     });
+    print("[Chromecast] Send message play video: $message");
   }
 
   void _stopAndDisconnectChomecast(int index) {
