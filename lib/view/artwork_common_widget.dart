@@ -6,6 +6,7 @@ import 'package:autonomy_flutter/model/provenance.dart';
 import 'package:autonomy_flutter/screen/detail/report_rendering_issue/any_problem_nft_widget.dart';
 import 'package:autonomy_flutter/screen/detail/report_rendering_issue/report_rendering_issue_widget.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/util/au_cached_manager.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
@@ -150,6 +151,7 @@ INFTRenderingWidget buildRenderingWidget(
 
 Widget brokenTokenWidget(
     BuildContext context, TextTheme textTheme, AssetToken token) {
+  injector<CustomerSupportService>().reportIPFSLoadingError(token);
   return Center(
     child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
       Text('IPFS file failed to load.', style: textTheme.bodyText2),
