@@ -166,7 +166,6 @@ flutter:
     - assets/images/penrose_onboarding.png
     - assets/images/penrose_onboarding_appcenter.png
     - assets/images/guidedPenrose.svg
-    - assets/images/hamburgerIcon.svg
     - assets/images/iconQr.svg
     - assets/images/iconEth.svg
     - assets/images/iconUsd.svg
@@ -215,6 +214,7 @@ flutter:
     - assets/images/tezos_tx_received.svg
     - assets/images/tezos_tx_smartcontract.svg
     - assets/images/external_link.svg
+    - assets/images/userOutlinedIcon.svg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.
