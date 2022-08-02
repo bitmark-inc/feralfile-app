@@ -6,7 +6,6 @@
 //
 
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_dapp_service/wc_connected_session.dart';
@@ -33,7 +32,7 @@ class WalletConnectDappService {
   final ConfigurationService _configurationService;
 
   WalletConnectDappService(this._configurationService);
-  Timer? timeoutTimer;
+  Timer? _timeoutTimer;
 
   Future start() async {
     _wcClient = WCClient(
@@ -77,14 +76,14 @@ class WalletConnectDappService {
   }
 
   connect() {
+    _timeoutTimer = Timer(Duration(seconds: 30), () {
+      showErrorDialogFromException(LinkingFailedException());
+    });
+
     Sentry.startTransaction('WalletConnect_dapp', 'connect');
     Sentry.getSpan()?.setTag("bridgeServer", _wcSession.bridge);
     _wcClient.connectNewSession(
         session: _wcSession, peerMeta: _dappPeerMeta, isWallet: false);
-
-    timeoutTimer = Timer(Duration(seconds: 20), () {
-      showErrorDialogFromException(LinkingFailedException());
-    });
   }
 
   disconnect() {
@@ -96,7 +95,7 @@ class WalletConnectDappService {
   }
 
   _onConnect() {
-    timeoutTimer?.cancel();
+    _timeoutTimer?.cancel();
     final accounts = _configurationService.getWCDappAccounts();
     log.info("WC connected, stored accounts: $accounts");
     if (accounts != null) {
@@ -110,11 +109,6 @@ class WalletConnectDappService {
     log.info("WC disconnected, reason: $reason, code: $code");
     isConnected.value = false;
     Sentry.getSpan()?.finish(status: SpanStatus.aborted());
-    if (code == 1005) {
-      _configurationService.setWCDappSession(null);
-      _configurationService.setWCDappAccounts(null);
-      connect();
-    }
   }
 
   _onFailure(error) {
@@ -170,5 +164,8 @@ class WalletConnectDappService {
 
       remotePeerAccount.value = connectedSession;
     }
+
+    // Disconnect session after getting address
+    disconnect();
   }
 }
