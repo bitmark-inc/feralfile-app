@@ -186,7 +186,7 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
             },
             icon: isInSettingsPage
                 ? closeIcon()
-                : SvgPicture.asset('assets/images/hamburgerIcon.svg'),
+                : SvgPicture.asset('assets/images/userOutlinedIcon.svg'),
           ),
         ),
       ],
