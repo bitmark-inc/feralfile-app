@@ -173,7 +173,16 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
                               height: 48,
                               child: AuOutlinedButton(
                                 text: "VIEW ARTWORK",
-                                onPress: () => Navigator.of(context).pop(),
+                                onPress: () {
+                                  if (injector<ConfigurationService>()
+                                      .isImmediateInfoViewEnabled()) {
+                                    Navigator.of(context).pushNamed(
+                                        AppRouter.artworkPreviewPage,
+                                        arguments: widget.payload);
+                                  } else {
+                                    Navigator.of(context).pop();
+                                  }
+                                },
                               ),
                             ),
                             SizedBox(height: 40.0),
