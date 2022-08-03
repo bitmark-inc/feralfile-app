@@ -69,6 +69,9 @@ class IAPServiceImpl implements IAPService {
 
     _isSetup = true;
 
+    // Waiting for IAP available
+    await _inAppPurchase.isAvailable();
+
     final jwt = _configurationService.getIAPJWT();
     if (jwt != null && jwt.isValid(withSubscription: true)) {}
     final Stream<List<PurchaseDetails>> purchaseUpdated =
