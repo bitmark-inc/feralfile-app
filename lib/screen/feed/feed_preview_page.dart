@@ -7,12 +7,15 @@
 
 import 'dart:async';
 
+import 'package:after_layout/after_layout.dart';
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/feed.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/feed/feed_bloc.dart';
+import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/theme_manager.dart';
@@ -35,7 +38,7 @@ class FeedPreviewPage extends StatefulWidget {
 }
 
 class _FeedPreviewPageState extends State<FeedPreviewPage>
-    with RouteAware, WidgetsBindingObserver {
+    with RouteAware, AfterLayoutMixin<FeedPreviewPage>, WidgetsBindingObserver {
   String? swipeDirection;
   INFTRenderingWidget? _renderingWidget;
   Timer? _timer;
@@ -60,6 +63,13 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
     _maxTimeTokenTimer = Timer(Duration(seconds: 10), () {
       context.read<FeedBloc>().add(MoveToNextFeedEvent());
     });
+  }
+
+  @override
+  void afterFirstLayout(BuildContext context) {
+    injector<AWSService>().storeEventWithDeviceData(
+      "view_discovery",
+    );
   }
 
   @override
