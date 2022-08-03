@@ -22,12 +22,14 @@ class FeedState {
   FeedEvent? viewingFeedEvent;
   AssetToken? viewingToken;
   int? viewingIndex;
+  int onBoardingStep = -1;
 
   FeedState({
     this.appFeedData,
     this.viewingFeedEvent,
     this.viewingToken,
     this.viewingIndex,
+    this.onBoardingStep = -1,
   });
 
   FeedState copyWith({
@@ -35,12 +37,14 @@ class FeedState {
     FeedEvent? viewingFeedEvent,
     AssetToken? viewingToken,
     int? viewingIndex,
+    int onBoardingStep = -1,
   }) {
     return FeedState(
       appFeedData: appFeedData ?? this.appFeedData,
       viewingFeedEvent: viewingFeedEvent ?? this.viewingFeedEvent,
       viewingToken: viewingToken ?? this.viewingToken,
       viewingIndex: viewingIndex ?? this.viewingIndex,
+      onBoardingStep: onBoardingStep
     );
   }
 }

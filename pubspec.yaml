@@ -215,6 +215,9 @@ flutter:
     - assets/images/tezos_tx_smartcontract.svg
     - assets/images/external_link.svg
     - assets/images/userOutlinedIcon.svg
+    - assets/images/feed_onboarding.png
+    - assets/images/feed_onboarding_insight.png
+    - assets/images/feed_onboarding_swipe.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

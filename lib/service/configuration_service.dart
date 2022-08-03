@@ -65,6 +65,8 @@ abstract class ConfigurationService {
   Future<void> setImmediateInfoViewEnabled(bool value);
   bool isImmediateInfoViewEnabled();
   Future<String> getAccountHMACSecret();
+  bool isFinishedFeedOnBoarding();
+  Future<void> setFinishedFeedOnBoarding(bool value);
 
   // ----- App Setting -----
   bool isDemoArtworksMode();
@@ -101,6 +103,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_FINISHED_SURVEYS = "finished_surveys";
   static const String KEY_IMMEDIATE_INFOVIEW = 'immediate_infoview';
   static const String ACCOUNT_HMAC_SECRET = "account_hmac_secret";
+  static const String KEY_FINISHED_FEED_ONBOARDING = "finished_feed_onboarding";
 
   // keys for WalletConnect dapp side
   static const String KEY_WC_DAPP_SESSION = "wc_dapp_store";
@@ -455,6 +458,16 @@ class ConfigurationServiceImpl implements ConfigurationService {
     finishedSurveys.addAll(surveyNames);
     return _preferences.setStringList(
         KEY_FINISHED_SURVEYS, finishedSurveys.toSet().toList());
+  }
+
+  @override
+  bool isFinishedFeedOnBoarding() {
+    return _preferences.getBool(KEY_FINISHED_FEED_ONBOARDING) ?? false;
+  }
+
+  @override
+  Future<void> setFinishedFeedOnBoarding(bool value) async {
+    await _preferences.setBool(KEY_FINISHED_FEED_ONBOARDING, true);
   }
 
   Future<String> getAccountHMACSecret() async {
