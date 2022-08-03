@@ -18,6 +18,7 @@ import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_bloc.dart
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_state.dart';
 import 'package:autonomy_flutter/screen/detail/report_rendering_issue/any_problem_nft_widget.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_box_view.dart';
+import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -523,7 +524,13 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
 
               switch (device.type) {
                 case AUCastDeviceType.Airplay:
-                  return _airplayItem(context, isSubscribed);
+                  return GestureDetector(
+                      child: _airplayItem(context, isSubscribed),
+                      behavior: HitTestBehavior.translucent,
+                      onTap: () {
+                        injector<AWSService>()
+                            .storeEventWithDeviceData("stream_airplay");
+                      });
                 case AUCastDeviceType.Chromecast:
                   return GestureDetector(
                     child: Padding(
@@ -547,6 +554,8 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                     ),
                     onTap: isSubscribed
                         ? () {
+                            injector<AWSService>()
+                                .storeEventWithDeviceData("stream_chromecast");
                             UIHelper.hideInfoDialog(context);
                             var copiedDevice = _castDevices[index];
                             if (copiedDevice.isActivated) {
