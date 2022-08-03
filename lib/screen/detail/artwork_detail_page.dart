@@ -7,6 +7,7 @@
 
 import 'dart:collection';
 
+import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
@@ -18,6 +19,7 @@ import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_page.dart';
+import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -41,7 +43,8 @@ class ArtworkDetailPage extends StatefulWidget {
   State<ArtworkDetailPage> createState() => _ArtworkDetailPageState();
 }
 
-class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
+class _ArtworkDetailPageState extends State<ArtworkDetailPage>
+    with AfterLayoutMixin<ArtworkDetailPage> {
   late ScrollController _scrollController;
   bool _showArtwortReportProblemContainer = true;
   HashSet<String> _accountNumberHash = HashSet.identity();
@@ -81,6 +84,12 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
         _showArtwortReportProblemContainer = true;
       });
     }
+  }
+
+  @override
+  void afterFirstLayout(BuildContext context) {
+    injector<AWSService>().storeEventWithDeviceData("view_artwork_detail",
+        data: {"id": widget.payload.ids[widget.payload.currentIndex]});
   }
 
   @override
