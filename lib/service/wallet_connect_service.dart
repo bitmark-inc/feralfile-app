@@ -60,7 +60,7 @@ class WalletConnectService {
     final session = WCSession.from(wcUri);
     final peerMeta = WCPeerMeta(
       name: 'Autonomy',
-      url: 'https://bitmark.com',
+      url: 'https://autonomy.io',
       description: 'Autonomy Wallet',
       icons: [],
     );
