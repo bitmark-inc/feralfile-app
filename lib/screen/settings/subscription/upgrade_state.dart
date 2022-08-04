@@ -25,6 +25,7 @@ class UpgradeUpdateEvent extends UpgradeEvent {
 class UpgradeState {
   final IAPProductStatus status;
   final ProductDetails? productDetails;
+  final DateTime? trialExpiredDate;
 
-  UpgradeState(this.status, this.productDetails);
+  UpgradeState(this.status, this.productDetails, {this.trialExpiredDate});
 }

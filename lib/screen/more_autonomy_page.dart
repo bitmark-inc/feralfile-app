@@ -58,7 +58,8 @@ class MoreAutonomyPage extends StatelessWidget {
                 const Expanded(child: SizedBox()),
                 AuFilledButton(
                   text:
-                      "SUBSCRIBE FOR ${state.productDetails?.price ?? "4.99"}/MONTH",
+                      "SUBSCRIBE FOR A 30-DAY FREE TRIAL\n(THEN ${state.productDetails?.price ?? "US\$4.99"}/MONTH)",
+                  textAlign: TextAlign.center,
                   onPress: state.status == IAPProductStatus.loading ||
                           state.status == IAPProductStatus.pending
                       ? null
