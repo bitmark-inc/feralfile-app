@@ -110,7 +110,7 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
     return Scaffold(
       backgroundColor: Colors.black,
       body: BlocConsumer<FeedBloc, FeedState>(listener: (context, state) {
-        if (state.onBoardingStep != -1) {
+        if (state.isFinishedOnBoarding()) {
           setMaxTimeToken();
           return;
         }
@@ -130,7 +130,7 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
           context.read<IdentityBloc>().add(GetIdentityEvent(neededIdentities));
         }
       }, builder: (context, state) {
-        if (state.onBoardingStep == -1 &&
+        if (state.isFinishedOnBoarding() &&
             (state.appFeedData == null || state.viewingFeedEvent == null))
           return _emptyOrLoadingDiscoveryWidget(state.appFeedData);
 
@@ -162,18 +162,18 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
                     child: Container(
                       color: Colors.black,
                       child: Center(
-                          child: state.onBoardingStep != -1
-                              ? _getOnBoardingView(state.onBoardingStep)
-                              : _getArtworkPreviewView(state.viewingToken)),
+                          child: state.isFinishedOnBoarding()
+                              ? _getArtworkPreviewView(state.viewingToken)
+                              : _getOnBoardingView(state.onBoardingStep)),
                     ),
                   ),
                   // ),
                   Align(
                     alignment: Alignment.topCenter,
-                    child: state.onBoardingStep != -1
-                        ? _controlViewOnBoarding()
-                        : _controlView(
-                            state.viewingFeedEvent!, state.viewingToken),
+                    child: state.isFinishedOnBoarding()
+                        ? _controlView(
+                            state.viewingFeedEvent!, state.viewingToken)
+                        : _controlViewOnBoarding(),
                   ),
                 ],
               ),
@@ -383,15 +383,21 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
   }
 
   Widget _getOnBoardingView(int step) {
-    String assetPath = "assets/images/feed_onboarding.png";
-    String title = "Discover what your collected artists mint or collect";
+    final assetPath;
+    final title;
 
-    if (step == 1) {
-      assetPath = "assets/images/feed_onboarding_insight.png";
-      title = "Get insights about the artwork";
-    } else if (step == 2) {
-      assetPath = "assets/images/feed_onboarding_swipe.png";
-      title = "Swipe to discover more artworks";
+    switch (step) {
+      case 1:
+        assetPath = "assets/images/feed_onboarding_insight.png";
+        title = "Get insights about the artwork";
+        break;
+      case 2:
+        assetPath = "assets/images/feed_onboarding_swipe.png";
+        title = "Swipe to discover more artworks";
+        break;
+      default:
+        assetPath = "assets/images/feed_onboarding.png";
+        title = "Discover what your collected artists mint or collect";
     }
 
     return Container(
@@ -409,25 +415,8 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
           SizedBox(height: 24),
           Image.asset(
             assetPath,
-            height: MediaQuery.of(context).size.height * 3 / 5,
+            height: MediaQuery.of(context).size.height * 2 / 3,
             fit: BoxFit.contain,
-          ),
-          SizedBox(height: 16),
-          Opacity(
-            opacity: step == 0 ? 1 : 0,
-            child: RichText(
-                text: TextSpan(
-                  style: paragraph.copyWith(color: Colors.white),
-                  children: <TextSpan>[
-                    TextSpan(
-                      text: "Unsupervised — Machine Hallucinations — MoMA Dreams.",
-                      style: paragraph.copyWith(color: Colors.white, fontStyle: FontStyle.italic),
-                    ),
-                    TextSpan(
-                      text: " Serie by Refik Anadol. Image courtesy of the artist and Feral File.",
-                    ),
-                  ],
-                ))
           ),
         ],
       ),

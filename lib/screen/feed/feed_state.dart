@@ -47,4 +47,6 @@ class FeedState {
       onBoardingStep: onBoardingStep
     );
   }
+
+  bool isFinishedOnBoarding() => this.onBoardingStep == -1;
 }
