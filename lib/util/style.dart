@@ -150,13 +150,16 @@ MarkdownStyleSheet get markDownBlackStyle {
 }
 
 MarkdownStyleSheet markDownStyle(ThemeData theme, Color textColor) {
+  final bodyText2 = theme.textTheme.bodyText2
+      ?.copyWith(fontFamily: "AtlasGrotesk", fontWeight: FontWeight.w300);
   return MarkdownStyleSheet(
-    a: const TextStyle(color: Colors.blue),
-    p: theme.textTheme.bodyText2?.copyWith(color: textColor),
+    a: const TextStyle(
+        color: Colors.black,
+        decoration: TextDecoration.underline,
+        fontWeight: FontWeight.w600),
+    p: bodyText2?.copyWith(color: textColor),
     pPadding: EdgeInsets.only(bottom: 15),
-    code: theme.textTheme.bodyText2!.copyWith(
-      backgroundColor: Colors.transparent,
-    ),
+    code: bodyText2!.copyWith(backgroundColor: Colors.transparent),
     h1: theme.textTheme.headline1,
     h1Padding: EdgeInsets.only(bottom: 40),
     h2: theme.textTheme.headline2,
@@ -172,17 +175,17 @@ MarkdownStyleSheet markDownStyle(ThemeData theme, Color textColor) {
     em: const TextStyle(fontStyle: FontStyle.italic),
     strong: const TextStyle(fontWeight: FontWeight.bold),
     del: const TextStyle(decoration: TextDecoration.lineThrough),
-    blockquote: theme.textTheme.bodyText2,
-    img: theme.textTheme.bodyText2,
-    checkbox: theme.textTheme.bodyText2!.copyWith(
+    blockquote: bodyText2,
+    img: bodyText2,
+    checkbox: bodyText2.copyWith(
       color: theme.primaryColor,
     ),
     blockSpacing: 15.0,
     listIndent: 24.0,
-    listBullet: theme.textTheme.bodyText2,
+    listBullet: bodyText2.copyWith(color: Colors.black),
     listBulletPadding: const EdgeInsets.only(right: 4),
     tableHead: const TextStyle(fontWeight: FontWeight.w600),
-    tableBody: theme.textTheme.bodyText2,
+    tableBody: bodyText2,
     tableHeadAlign: TextAlign.center,
     tableBorder: TableBorder.all(
       color: theme.dividerColor,
