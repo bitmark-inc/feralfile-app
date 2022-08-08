@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/screen/connection/persona_connections_page.dart';
+import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -136,6 +137,21 @@ class _WCConnectPageState extends State<WCConnectPage>
         _navigateWhenConnectFeralFile();
         return;
       }
+
+      if (wcConnectArgs.peerMeta.name == AUTONOMY_TV_PEER_NAME) {
+        injector<AWSService>().storeEventWithDeviceData(
+          "connect_autonomy_display",
+        );
+      } else {
+        injector<AWSService>().storeEventWithDeviceData(
+          "connect_external",
+          data: {
+            "method": "wallet_connect",
+            "name": wcConnectArgs.peerMeta.name,
+            "url": wcConnectArgs.peerMeta.url,
+          },
+        );
+      }
     }
 
     if (beaconRequest != null) {
@@ -167,6 +183,15 @@ class _WCConnectPageState extends State<WCConnectPage>
           AppRouter.personaConnectionsPage,
           arguments: payload);
     }
+
+    injector<AWSService>().storeEventWithDeviceData(
+      "connect_external",
+      data: {
+        "method": "tezos_beacon",
+        "name": beaconRequest?.appName ?? "unknown",
+        "url": beaconRequest?.sourceAddress ?? "unknown",
+      },
+    );
   }
 
   void _navigateWhenConnectFeralFile() {

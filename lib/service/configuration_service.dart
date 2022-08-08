@@ -75,6 +75,13 @@ abstract class ConfigurationService {
   bool showTokenDebugInfo();
   Future setShowTokenDebugInfo(bool show);
 
+  // Do at once
+
+  /// to determine a hash value of the current addresses where
+  /// the app checked for Tezos artworks
+  int? sentTezosArtworkMetricValue();
+  Future setSentTezosArtworkMetric(int hashedAddresses);
+
   // Reload
   Future<void> reload();
   Future<void> removeAll();
@@ -119,6 +126,10 @@ class ConfigurationServiceImpl implements ConfigurationService {
       "latest_refresh_tokens_testnet_1";
   static const String KEY_PREVIOUS_BUILD_NUMBER = "previous_build_number";
   static const String KEY_SHOW_TOKEN_DEBUG_INFO = "show_token_debug_info";
+
+  // Do at once
+  static const String KEY_SENT_TEZOS_ARTWORK_METRIC =
+      "sent_tezos_artwork_metric";
 
   SharedPreferences _preferences;
 
@@ -490,5 +501,15 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   Future<void> removeAll() {
     return _preferences.clear();
+  }
+
+  @override
+  int? sentTezosArtworkMetricValue() {
+    return _preferences.getInt(KEY_SENT_TEZOS_ARTWORK_METRIC);
+  }
+
+  @override
+  Future setSentTezosArtworkMetric(int hashedAddresses) {
+    return _preferences.setInt(KEY_SENT_TEZOS_ARTWORK_METRIC, hashedAddresses);
   }
 }
