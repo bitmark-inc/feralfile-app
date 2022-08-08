@@ -133,6 +133,15 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
               payload.issueID;
     } else if (payload is ExceptionErrorPayload) {
       _reportIssueType = ReportIssueType.Exception;
+      Future.delayed(Duration(milliseconds: 300), () {
+        _askForAttachCrashLog(context, onConfirm: (attachCrashLog) {
+          if (attachCrashLog) {
+            _addAppLogs();
+          } else {
+            UIHelper.hideInfoDialog(context);
+          }
+        });
+      });
     }
 
     memoryValues.viewingSupportThreadIssueID = _issueID;
