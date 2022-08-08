@@ -302,12 +302,12 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     final isImmediateInfoViewEnabled =
         injector<ConfigurationService>().isImmediateInfoViewEnabled();
 
-    if (isImmediateInfoViewEnabled) {
+    final currentIndex = widget.payload.ids.indexOf(asset.id);
+    if (isImmediateInfoViewEnabled &&
+        currentIndex == widget.payload.currentIndex) {
       Navigator.of(context).pop();
       return;
     }
-
-    final currentIndex = widget.payload.ids.indexOf(asset.id);
 
     disableLandscapeMode();
     Wakelock.disable();
