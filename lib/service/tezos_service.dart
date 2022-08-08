@@ -22,12 +22,12 @@ abstract class TezosService {
   Future<int> getBalance(String address);
 
   Future<int> estimateOperationFee(
-      TezosWallet wallet, List<Operation> operation);
+      TezosWallet wallet, List<Operation> operations);
 
   Future<int> estimateFee(TezosWallet wallet, String to, int amount);
 
   Future<String?> sendOperationTransaction(
-      TezosWallet wallet, List<Operation> operation);
+      TezosWallet wallet, List<Operation> operations);
 
   Future<String?> sendTransaction(TezosWallet wallet, String to, int amount);
 
@@ -78,9 +78,9 @@ class TezosServiceImpl extends TezosService {
       var operationList =
           OperationsList(source: keystore, rpcInterface: client.rpcInterface);
 
-      operations.forEach((element) {
+      for (var element in operations) {
         operationList.appendOperation(element);
-      });
+      }
 
       final isReveal = await client.isKeyRevealed(keystore.address);
       if (!isReveal) {
@@ -106,9 +106,9 @@ class TezosServiceImpl extends TezosService {
       var operationList =
           OperationsList(source: keystore, rpcInterface: client.rpcInterface);
 
-      operations.forEach((element) {
+      for (var element in operations) {
         operationList.appendOperation(element);
-      });
+      }
 
       final isReveal = await client.isKeyRevealed(keystore.address);
       if (!isReveal) {
@@ -131,7 +131,6 @@ class TezosServiceImpl extends TezosService {
         source: keystore,
         destination: to,
         amount: amount,
-        reveal: true,
       );
       await operation.estimate();
 
@@ -151,7 +150,6 @@ class TezosServiceImpl extends TezosService {
         source: keystore,
         destination: to,
         amount: amount,
-        reveal: true,
       );
       await operation.execute();
 
@@ -175,11 +173,11 @@ class TezosServiceImpl extends TezosService {
       {
         "prim": "Pair",
         "args": [
-          {"string": "$from"},
+          {"string": from},
           [
             {
               "args": [
-                {"string": "$to"},
+                {"string": to},
                 {
                   "prim": "Pair",
                   "args": [
@@ -216,12 +214,12 @@ class TezosServiceImpl extends TezosService {
   Future<T> _retryOnNodeError<T>(Future<T> Function(TezartClient) func) async {
     try {
       return await func(_tezartClient);
-    } on TezartNodeError catch (e) {
+    } on TezartNodeError catch (_) {
       if (_configurationService.getNetwork() == Network.TESTNET) {
-        throw e;
+        rethrow;
       }
 
-      final _random = new Random();
+      final _random = Random();
       final clientToRetry =
           backupTezartClients[_random.nextInt(backupTezartClients.length)];
       return await func(clientToRetry);

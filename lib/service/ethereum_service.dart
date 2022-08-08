@@ -22,9 +22,11 @@ abstract class EthereumService {
 
   Future<String> signPersonalMessage(WalletStorage wallet, Uint8List message);
 
-  Future<BigInt> estimateFee(WalletStorage wallet, EthereumAddress to, EtherAmount amount, String? data);
+  Future<BigInt> estimateFee(WalletStorage wallet, EthereumAddress to,
+      EtherAmount amount, String? data);
 
-  Future<String> sendTransaction(WalletStorage wallet, EthereumAddress to, BigInt value, BigInt? gas, String? data);
+  Future<String> sendTransaction(WalletStorage wallet, EthereumAddress to,
+      BigInt value, BigInt? gas, String? data);
 
   Future<String?> getERC721TransferTransactionData(
       EthereumAddress contractAddress,
@@ -34,8 +36,8 @@ abstract class EthereumService {
 }
 
 class EthereumServiceImpl extends EthereumService {
-  Web3Client _web3Client;
-  ConfigurationService _configurationService;
+  final Web3Client _web3Client;
+  final ConfigurationService _configurationService;
 
   EthereumServiceImpl(this._web3Client, this._configurationService);
 
@@ -91,11 +93,10 @@ class EthereumServiceImpl extends EthereumService {
     final sender = EthereumAddress.fromHex(await wallet.getETHAddress());
     final nonce = await _web3Client.getTransactionCount(sender);
     final gasPrice = await _web3Client.getGasPrice();
-    var gasLimit =
-        gas != null ? gas ~/ gasPrice.getInWei : null;
-    if (gasLimit == null) {
-      gasLimit = (await estimateFee(wallet, to, EtherAmount.inWei(value), data)) ~/ gasPrice.getInWei;
-    }
+    var gasLimit = gas != null ? gas ~/ gasPrice.getInWei : null;
+    gasLimit ??=
+        (await estimateFee(wallet, to, EtherAmount.inWei(value), data)) ~/
+            gasPrice.getInWei;
     final chainId =
         _configurationService.getNetwork() == Network.MAINNET ? 1 : 4;
 

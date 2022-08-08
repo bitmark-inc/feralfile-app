@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:collection/collection.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import 'package:wallet_connect/wallet_connect.dart';
@@ -184,12 +185,9 @@ class ConfigurationServiceImpl implements ConfigurationService {
   Network getNetwork() {
     final value =
         _preferences.getString(KEY_NETWORK) ?? Network.MAINNET.toString();
-    try {
-      return Network.values
-          .firstWhere((element) => element.toString() == value);
-    } catch (e) {
-      return Network.MAINNET;
-    }
+    return Network.values
+            .firstWhereOrNull((element) => element.toString() == value) ??
+        Network.MAINNET;
   }
 
   Future<void> setImmediateInfoViewEnabled(bool value) async {
