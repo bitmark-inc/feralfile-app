@@ -108,13 +108,6 @@ class HomeBloc extends AuBloc<HomeEvent, HomeState> {
         List<String> allAccountNumbers =
             await _accountService.getAllAddresses();
 
-        //Clear and refresh all assets if no contractAddress & tokenId
-        final tokens = await _assetTokenDao.findAllAssetTokens();
-        if (tokens.every((element) =>
-            element.contractAddress == null && element.tokenId == null)) {
-          await _assetTokenDao.removeAll();
-        }
-
         await _assetTokenDao.deleteAssetsNotBelongs(allAccountNumbers);
 
         _hiddenOwners = await _accountService.getHiddenAddresses();
