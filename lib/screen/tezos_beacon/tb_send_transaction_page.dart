@@ -20,6 +20,7 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:libauk_dart/libauk_dart.dart';
@@ -54,8 +55,14 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
     final wallets = await Future.wait(
         personas.map((e) => LibAukDart.getWallet(e.uuid).getTezosWallet()));
 
-    final currentWallet = wallets.firstWhere(
+    final currentWallet = wallets.firstWhereOrNull(
         (element) => element.address == widget.request.sourceAddress);
+
+    if (currentWallet == null) {
+      injector<TezosBeaconService>().signResponse(widget.request.id, null);
+      Navigator.of(context).pop();
+      return;
+    }
 
     _estimateFee(currentWallet);
 
