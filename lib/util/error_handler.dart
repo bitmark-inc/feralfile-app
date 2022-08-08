@@ -70,7 +70,7 @@ ErrorEvent? translateError(Object exception) {
     return ErrorEvent(
         exception,
         "🤔",
-        "There seems to be a problem linking to Autonomy. We’ve automatically filed a bug report and will look into it. If you require further support or want to tell us more about the issue, please tap the button below.",
+        "There seems to be a problem connecting to your wallet.. We’ve automatically filed a bug report and will look into it. If you require further support or want to tell us more about the issue, please tap the button below.",
         ErrorItemState.getReport);
   }
 

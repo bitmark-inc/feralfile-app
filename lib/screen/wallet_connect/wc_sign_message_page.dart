@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/screen/bloc/feralfile/feralfile_bloc.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
+import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -131,7 +132,7 @@ class WCSignMessagePage extends StatelessWidget {
           Expanded(
             child: AuFilledButton(
               text: "Sign".toUpperCase(),
-              onPress: () async {
+              onPress: () => withDebounce(() async {
                 final WalletStorage wallet = LibAukDart.getWallet(args.uuid);
                 final signature = await networkInjector
                     .I<EthereumService>()
@@ -171,7 +172,7 @@ class WCSignMessagePage extends StatelessWidget {
                 } else {
                   Navigator.of(context).pop();
                 }
-              },
+              }),
             ),
           )
         ],
