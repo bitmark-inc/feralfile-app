@@ -25,14 +25,17 @@ class AuthService {
   }
 
   Future<JWT> getAuthToken(
-      {String? messageToSign, String? receiptData, bool forceRefresh = false}) async {
+      {String? messageToSign,
+      String? receiptData,
+      bool forceRefresh = false}) async {
     if (!forceRefresh && _jwt != null && _jwt!.isValid()) {
       return _jwt!;
     }
 
-    final account = await this._accountService.getDefaultAccount();
+    final account = await _accountService.getDefaultAccount();
 
-    final message = messageToSign ?? DateTime.now().millisecondsSinceEpoch.toString();
+    final message =
+        messageToSign ?? DateTime.now().millisecondsSinceEpoch.toString();
     final accountDID = await account.getAccountDID();
     final signature = await account.getAccountDIDSignature(message);
 
@@ -53,7 +56,7 @@ class AuthService {
 
     // add the receipt data if available
     if (savedReceiptData != null) {
-      final platform;
+      final String platform;
       if (Platform.isIOS) {
         platform = 'apple';
       } else {

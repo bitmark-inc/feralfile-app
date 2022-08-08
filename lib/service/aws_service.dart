@@ -24,8 +24,8 @@ class AWSService {
   static const region = 'us-east-1';
   static const deliveryStream = 'autonomy-analytic-data-stream';
   final _cognitoService = CognitoIdentity(region: region);
-  ConfigurationService _configurationService;
-  AccountService _accountService;
+  final ConfigurationService _configurationService;
+  final AccountService _accountService;
   PackageInfo? _packageInfo;
   Firehose? _firehoseService;
 
@@ -100,7 +100,7 @@ class AWSService {
       return;
     }
 
-    var additionalData = new Map<String, dynamic>();
+    var additionalData = <String, dynamic>{};
 
     additionalData["name"] = name;
     additionalData["user_id"] = _hashedUserID;

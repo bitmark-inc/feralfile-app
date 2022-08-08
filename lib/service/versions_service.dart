@@ -91,8 +91,8 @@ class VersionService {
       releaseNotes = await _pubdocAPI.getReleaseNotesContent(app, version);
 
       final textBegin = "## VERSION: $currentVersion\n";
-      final iOSTextBegin = "#### [iOS]\n";
-      final androidTextBegin = "#### [Android]\n";
+      const iOSTextBegin = "#### [iOS]\n";
+      const androidTextBegin = "#### [Android]\n";
 
       if (releaseNotes.contains(textBegin)) {
         releaseNotes = releaseNotes.split(textBegin)[1];
@@ -127,9 +127,10 @@ class VersionService {
         "Update Required",
         Column(children: [
           Text(
-              "There is a newer version available for download! Please update the app to continue.",
+              "There is a newer version available for download!"
+                  " Please update the app to continue.",
               style: theme.textTheme.bodyText1),
-          SizedBox(height: 35),
+          const SizedBox(height: 35),
           Row(
             children: [
               Expanded(
@@ -153,7 +154,7 @@ class VersionService {
 
   Future showReleaseNodeDialog(
       String releaseNotes, String currentVersion) async {
-    final screenKey =
+    const screenKey =
         "What’s new?"; // avoid showing multiple what's new screens
     if (UIHelper.currentDialogTitle == screenKey) return;
 

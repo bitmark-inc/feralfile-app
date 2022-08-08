@@ -131,6 +131,7 @@ dependency_overrides:
       ref: c5fcfd
 
 dev_dependencies:
+  flutter_lints: null
   build_runner: null
   built_value_generator: null
   floor_generator: null

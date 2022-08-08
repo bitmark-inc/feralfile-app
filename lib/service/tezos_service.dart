@@ -219,9 +219,9 @@ class TezosServiceImpl extends TezosService {
         rethrow;
       }
 
-      final _random = Random();
+      final random = Random();
       final clientToRetry =
-          backupTezartClients[_random.nextInt(backupTezartClients.length)];
+          backupTezartClients[random.nextInt(backupTezartClients.length)];
       return await func(clientToRetry);
     }
   }

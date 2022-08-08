@@ -52,31 +52,26 @@ class WalletConnectDappService {
       name: 'Autonomy',
       url: 'https://autonomy.io',
       description:
-          'Autonomy is the home for all your NFT art and other collectibles — a seamless, customizable way to enjoy your collection.',
+          'Autonomy is the home for all your NFT art and other collectibles —'
+              ' a seamless, customizable way to enjoy your collection.',
       icons: [],
     );
 
     _wcSession = WCSession(
-        topic: Uuid().v4(),
+        topic: const Uuid().v4(),
         version: "1",
         bridge: "https://walletconnect.bitmark.com",
         key: generateRandomHex(32));
 
     final encodedBridge = Uri.encodeComponent(_wcSession.bridge);
-    wcURI.value = "wc:" +
-        _wcSession.topic +
-        "@" +
-        _wcSession.version +
-        "?bridge=" +
-        encodedBridge +
-        "&key=" +
-        _wcSession.key;
+    wcURI.value = "wc:${_wcSession.topic}@${_wcSession.version}?bridge="
+        "$encodedBridge&key=${_wcSession.key}";
 
     log.info("uri = $wcURI");
   }
 
   connect() {
-    _timeoutTimer = Timer(Duration(seconds: 30), () {
+    _timeoutTimer = Timer(const Duration(seconds: 30), () {
       showErrorDialogFromException(LinkingFailedException());
     });
 
@@ -102,18 +97,18 @@ class WalletConnectDappService {
       isConnected.value = true;
       // remotePeerAccount.value = accounts;
     }
-    Sentry.getSpan()?.finish(status: SpanStatus.ok());
+    Sentry.getSpan()?.finish(status: const SpanStatus.ok());
   }
 
   _onDisconnect(code, reason) {
     log.info("WC disconnected, reason: $reason, code: $code");
     isConnected.value = false;
-    Sentry.getSpan()?.finish(status: SpanStatus.aborted());
+    Sentry.getSpan()?.finish(status: const SpanStatus.aborted());
   }
 
   _onFailure(error) {
     log.info("WC failed to connect: $error");
-    Sentry.getSpan()?.finish(status: SpanStatus.internalError());
+    Sentry.getSpan()?.finish(status: const SpanStatus.internalError());
     showErrorDialogFromException(LinkingFailedException());
   }
 

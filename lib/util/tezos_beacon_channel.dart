@@ -116,7 +116,7 @@ class TezosBeaconChannel {
               final String? sourceAddress = params["sourceAddress"];
 
               List<Operation> operations = [];
-              operationsDetails.forEach((element) {
+              for (var element in operationsDetails) {
                 final String? kind = element["kind"];
                 final String? storageLimit = element["storageLimit"];
                 final String? gasLimit = element["gasLimit"];
@@ -160,7 +160,7 @@ class TezosBeaconChannel {
 
                   operations.add(operation);
                 }
-              });
+              }
 
               request.operations = operations;
               request.sourceAddress = sourceAddress;

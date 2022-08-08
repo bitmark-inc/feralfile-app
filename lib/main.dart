@@ -33,7 +33,7 @@ import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 
 void main() async {
-  await dotenv.load(fileName: ".env");
+  await dotenv.load();
 
   SentryFlutter.init((options) {
     options.dsn = Environment.sentryDSN;

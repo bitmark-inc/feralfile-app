@@ -27,11 +27,11 @@ abstract class DeeplinkService {
 
 class DeeplinkServiceImpl extends DeeplinkService {
   StreamSubscription? _streamSubscription;
-  ConfigurationService _configurationService;
-  WalletConnectService _walletConnectService;
-  TezosBeaconService _tezosBeaconService;
-  FeralFileService _feralFileService;
-  NavigationService _navigationService;
+  final ConfigurationService _configurationService;
+  final WalletConnectService _walletConnectService;
+  final TezosBeaconService _tezosBeaconService;
+  final FeralFileService _feralFileService;
+  final NavigationService _navigationService;
 
   DeeplinkServiceImpl(
     this._configurationService,
@@ -47,7 +47,9 @@ class DeeplinkServiceImpl extends DeeplinkService {
       _handleDeeplink(initialLink);
 
       _streamSubscription = linkStream.listen(_handleDeeplink);
-    } on PlatformException {}
+    } on PlatformException {
+      //Ignore
+    }
   }
 
   void _handleDeeplink(String? link) async {
@@ -58,7 +60,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
 
     log.info("[DeeplinkService] receive deeplink $link");
 
-    Timer.periodic(Duration(seconds: 2), (timer) async {
+    Timer.periodic(const Duration(seconds: 2), (timer) async {
       final context = _navigationService.navigatorKey.currentContext;
       if (context == null) return;
       timer.cancel();

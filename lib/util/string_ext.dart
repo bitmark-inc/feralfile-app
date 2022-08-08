@@ -7,39 +7,39 @@
 
 extension StringExtension on String {
   String capitalize() {
-    return "${this[0].toUpperCase()}${this.substring(1).toLowerCase()}";
+    return "${this[0].toUpperCase()}${substring(1).toLowerCase()}";
   }
 
   String snakeToCapital() {
-    return this.replaceAll("_", " ").capitalize();
+    return replaceAll("_", " ").capitalize();
   }
 
   String mask(int number) {
-    return "[${this.substring(0, number)}...${this.substring(this.length - number, this.length)}]";
+    return "[${substring(0, number)}...${substring(length - number, length)}]";
   }
 
   String maskIfNeeded() {
-    if (this.contains(' ')) return this;
-    return (this.length >= 36) ? this.mask(4) : this;
+    if (contains(' ')) return this;
+    return (length >= 36) ? mask(4) : this;
   }
 
   String? toIdentityOrMask(Map<String, String>? identityMap) {
-    if (this.isEmpty) return null;
+    if (isEmpty) return null;
     final identity = identityMap?[this];
     return (identity != null && identity.isNotEmpty)
         ? identity
-        : this.maskIfNeeded();
+        : maskIfNeeded();
   }
 
   String replacePrefix(String from, String to) {
-    if (this.startsWith(from)) {
-      return this.replaceRange(0, from.length, to);
+    if (startsWith(from)) {
+      return replaceRange(0, from.length, to);
     }
     return this;
   }
 
   String? get blockchainForAddress {
-    switch (this.length) {
+    switch (length) {
       case 42:
         return "ethereum";
       case 36:
