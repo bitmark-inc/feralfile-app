@@ -7,6 +7,7 @@
 
 import 'dart:io';
 
+import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/model/provenance.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -246,11 +247,11 @@ String _replaceIPFSPreviewURL(String url, String medium) {
     return url;
   }
 
-  return url.replacePrefix(DEFAULT_IPFS_PREFIX, CLOUDFLARE_IPFS_PREFIX);
+  return url.replacePrefix(DEFAULT_IPFS_PREFIX, Environment.autonomyIpfsPrefix);
 }
 
 String _replaceIPFS(String url) {
-  return url.replacePrefix(DEFAULT_IPFS_PREFIX, CLOUDFLARE_IPFS_PREFIX);
+  return url.replacePrefix(DEFAULT_IPFS_PREFIX, Environment.autonomyIpfsPrefix);
 }
 
 String _refineToCloudflareURL(String url, String thumbnailID, String variant) {
