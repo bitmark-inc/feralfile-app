@@ -266,7 +266,7 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
         children: [
           Text(type.source, style: appTextTheme.headline4),
           TextButton(
-            onPressed: () => Share.share("${type.source} address: $address"),
+            onPressed: () => Share.share(address),
             child: Text(
               "Share",
               style: TextStyle(

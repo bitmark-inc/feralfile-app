@@ -8,6 +8,7 @@
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/model/feed.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:collection/collection.dart';
@@ -16,8 +17,12 @@ part 'feed_state.dart';
 
 class FeedBloc extends AuBloc<FeedBlocEvent, FeedState> {
   FeedService _feedService;
+  ConfigurationService _configurationService;
 
-  FeedBloc(this._feedService) : super(FeedState()) {
+  FeedBloc(this._feedService, this._configurationService)
+      : super(FeedState(
+            onBoardingStep:
+                _configurationService.isFinishedFeedOnBoarding() ? -1 : 0)) {
     on<GetFeedsEvent>((event, emit) async {
       log.info('[FeedBloc][Start] GetFeedsEvent');
       if (state.appFeedData != null && state.appFeedData?.next == null) {
@@ -42,6 +47,7 @@ class FeedBloc extends AuBloc<FeedBlocEvent, FeedState> {
         viewingFeedEvent: feedEvent,
         viewingToken: token,
         viewingIndex: state.viewingIndex ?? (feedEvent == null ? null : 0),
+        onBoardingStep: state.onBoardingStep,
       ));
     });
 
@@ -68,12 +74,27 @@ class FeedBloc extends AuBloc<FeedBlocEvent, FeedState> {
       }
 
       emit(state.copyWith(
-        appFeedData: insertedAppFeedData,
-        viewingToken: viewingToken,
-      ));
+          appFeedData: insertedAppFeedData,
+          viewingToken: viewingToken,
+          onBoardingStep: state.onBoardingStep));
     });
 
     on<MoveToNextFeedEvent>((event, emit) async {
+      if (state.onBoardingStep >= 0 && state.onBoardingStep <= 2) {
+        if (state.onBoardingStep == 2) {
+          _configurationService.setFinishedFeedOnBoarding(true);
+        }
+
+        emit(state.copyWith(
+          viewingFeedEvent: state.viewingFeedEvent,
+          viewingToken: state.viewingToken,
+          viewingIndex: state.viewingIndex,
+          onBoardingStep:
+              state.onBoardingStep < 2 ? state.onBoardingStep + 1 : -1,
+        ));
+        return;
+      }
+
       final appFeedData = state.appFeedData;
       if (appFeedData == null) return;
       final newIndex = (state.viewingIndex ?? -1) + 1;
@@ -99,6 +120,17 @@ class FeedBloc extends AuBloc<FeedBlocEvent, FeedState> {
     });
 
     on<MoveToPreviousFeedEvent>((event, emit) async {
+      if (state.onBoardingStep >= 0 && state.onBoardingStep <= 2) {
+        emit(state.copyWith(
+          viewingFeedEvent: state.viewingFeedEvent,
+          viewingToken: state.viewingToken,
+          viewingIndex: state.viewingIndex,
+          onBoardingStep:
+              state.onBoardingStep > 0 ? state.onBoardingStep - 1 : 0,
+        ));
+        return;
+      }
+
       final appFeedData = state.appFeedData;
       if (appFeedData == null || state.viewingIndex == null) return;
       final newIndex = state.viewingIndex! - 1;

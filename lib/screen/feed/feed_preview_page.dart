@@ -17,6 +17,7 @@ import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/feed/feed_bloc.dart';
 import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
+import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/theme_manager.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -28,7 +29,6 @@ import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:nft_rendering/nft_rendering.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:wakelock/wakelock.dart';
-import 'package:autonomy_flutter/util/string_ext.dart';
 
 class FeedPreviewPage extends StatefulWidget {
   const FeedPreviewPage({Key? key}) : super(key: key);
@@ -120,6 +120,11 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
     return Scaffold(
       backgroundColor: Colors.black,
       body: BlocConsumer<FeedBloc, FeedState>(listener: (context, state) {
+        if (state.isFinishedOnBoarding()) {
+          setMaxTimeToken();
+          return;
+        }
+
         if (state.viewingFeedEvent?.id != null &&
             latestEvent?.id != state.viewingFeedEvent?.id) {
           setMaxTimeToken();
@@ -135,7 +140,8 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
           context.read<IdentityBloc>().add(GetIdentityEvent(neededIdentities));
         }
       }, builder: (context, state) {
-        if (state.appFeedData == null || state.viewingFeedEvent == null)
+        if (state.isFinishedOnBoarding() &&
+            (state.appFeedData == null || state.viewingFeedEvent == null))
           return _emptyOrLoadingDiscoveryWidget(state.appFeedData);
 
         // dispose previous playback when viewingToken is changed
@@ -166,14 +172,18 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
                     child: Container(
                       color: Colors.black,
                       child: Center(
-                          child: _getArtworkPreviewView(state.viewingToken)),
+                          child: state.isFinishedOnBoarding()
+                              ? _getArtworkPreviewView(state.viewingToken)
+                              : _getOnBoardingView(state.onBoardingStep)),
                     ),
                   ),
                   // ),
                   Align(
                     alignment: Alignment.topCenter,
-                    child: _controlView(
-                        state.viewingFeedEvent!, state.viewingToken),
+                    child: state.isFinishedOnBoarding()
+                        ? _controlView(
+                            state.viewingFeedEvent!, state.viewingToken)
+                        : _controlViewOnBoarding(),
                   ),
                 ],
               ),
@@ -237,6 +247,46 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
                         ),
                       ],
                     )),
+              ],
+            ),
+          ),
+          SizedBox(),
+          previewCloseIcon(context),
+        ],
+      ),
+    );
+  }
+
+  Widget _controlViewOnBoarding() {
+    final safeAreaTop = MediaQuery.of(context).padding.top;
+    final theme = AuThemeManager.get(AppTheme.previewNFTTheme);
+
+    return Container(
+      color: Colors.black,
+      height: MediaQuery.of(context).padding.top + 52,
+      padding: EdgeInsets.fromLTRB(15, safeAreaTop, 15, 0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          SvgPicture.asset("assets/images/iconFeed.svg", color: Colors.white),
+          SizedBox(width: 13),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  "Autonomy",
+                  style: theme.textTheme.bodyText1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                SizedBox(height: 4),
+                Text(
+                  "introducing Discovery",
+                  style: theme.textTheme.bodyText2,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ],
             ),
           ),
@@ -340,6 +390,47 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
         _renderingWidget is WebviewNFTRenderingWidget) {
       (_renderingWidget as WebviewNFTRenderingWidget).updateWebviewSize();
     }
+  }
+
+  Widget _getOnBoardingView(int step) {
+    final assetPath;
+    final title;
+
+    switch (step) {
+      case 1:
+        assetPath = "assets/images/feed_onboarding_insight.png";
+        title = "Get insights about the artwork";
+        break;
+      case 2:
+        assetPath = "assets/images/feed_onboarding_swipe.png";
+        title = "Swipe to discover more artworks";
+        break;
+      default:
+        assetPath = "assets/images/feed_onboarding.png";
+        title = "Discover what your collected artists mint or collect";
+    }
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          SizedBox(height: 32),
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: appTextTheme.headline2?.copyWith(color: Colors.white),
+          ),
+          SizedBox(height: 24),
+          Image.asset(
+            assetPath,
+            height: MediaQuery.of(context).size.height * 2 / 3,
+            fit: BoxFit.contain,
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _getArtworkPreviewView(AssetToken? token) {

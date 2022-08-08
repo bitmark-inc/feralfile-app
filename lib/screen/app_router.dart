@@ -589,7 +589,7 @@ class AppRouter {
             settings: settings,
             child: MultiBlocProvider(
               providers: [
-                BlocProvider(create: (_) => FeedBloc(injector())),
+                BlocProvider(create: (_) => FeedBloc(injector(), injector())),
                 BlocProvider(
                     create: (_) => IdentityBloc(
                         networkInjector.I<AppDatabase>(), networkInjector.I())),

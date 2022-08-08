@@ -128,7 +128,7 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
                 Text(addressSource, style: appTextTheme.headline4),
                 TextButton(
                   onPressed: () =>
-                      Share.share("$addressSource address: $address"),
+                      Share.share(address),
                   child: Text(
                     "Share",
                     style: TextStyle(

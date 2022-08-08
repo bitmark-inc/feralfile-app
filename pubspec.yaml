@@ -71,7 +71,7 @@ dependencies:
   html_unescape: ^2.0.0
   http: ^0.13.2
   image_picker: ^0.8.4+9
-  in_app_purchase: ^3.0.5
+  in_app_purchase: ^3.0.6
   infinite_scroll_pagination: ^3.2.0
   intl: ^0.17.0
   jiffy: ^5.0.0
@@ -215,6 +215,9 @@ flutter:
     - assets/images/tezos_tx_smartcontract.svg
     - assets/images/external_link.svg
     - assets/images/userOutlinedIcon.svg
+    - assets/images/feed_onboarding.png
+    - assets/images/feed_onboarding_insight.png
+    - assets/images/feed_onboarding_swipe.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

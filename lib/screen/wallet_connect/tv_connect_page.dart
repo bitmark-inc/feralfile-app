@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
+import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/theme_manager.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
@@ -154,7 +155,7 @@ class _TVConnectPageState extends State<TVConnectPage>
               Expanded(
                 child: AuFilledButton(
                   text: "Authorize".toUpperCase(),
-                  onPress: () => _approve(),
+                  onPress: () => withDebounce(() => _approve()),
                   color: theme.primaryColor,
                   textStyle: TextStyle(
                       color: theme.backgroundColor,
