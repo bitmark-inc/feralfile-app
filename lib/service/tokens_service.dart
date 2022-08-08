@@ -16,10 +16,8 @@ import 'package:autonomy_flutter/database/dao/asset_token_dao.dart';
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/gateway/indexer_api.dart';
 import 'package:autonomy_flutter/model/asset.dart';
-import 'package:autonomy_flutter/model/blockchain.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/model/provenance.dart';
-import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -45,12 +43,6 @@ class TokensServiceImpl extends TokensService {
   static const REFRESH_ALL_TOKENS = 'REFRESH_ALL_TOKENS';
   static const FETCH_TOKENS = 'FETCH_TOKENS';
   static const REINDEX_ADDRESSES = 'REINDEX_ADDRESSES';
-
-  // We need to send an analytic event
-  // whether user's collect has at least one Tezos artwork.
-  // This flag is to prevent sending multiple times,
-  // Even it's acceptable from the server side, since we will filter out.
-  static bool _sentTezosMetric = false;
 
   TokensServiceImpl(
     this._networkConfigInjector,
@@ -347,13 +339,6 @@ class TokensServiceImpl extends TokensService {
         final assets = await _isolateIndexerAPI.getNftTokensByOwner(
             owners, offset, INDEXER_TOKENS_MAXIMUM);
         tokenIDs.addAll(assets.map((e) => e.id));
-        if (!_sentTezosMetric &&
-            assets.contains(
-                (asset) => asset.blockchain == Blockchain.TEZOS.name)) {
-          injector<AWSService>()
-              .storeEventWithDeviceData("collection_has_tezos");
-          _sentTezosMetric = true;
-        }
 
         if (assets.length < INDEXER_TOKENS_MAXIMUM) {
           _isolateSendPort?.send(FetchTokensSuccess(key, uuid, assets, true));
@@ -372,9 +357,6 @@ class TokensServiceImpl extends TokensService {
         _isolateSendPort?.send(FetchTokensSuccess(key, uuid, assets, false));
         offset += INDEXER_TOKENS_MAXIMUM;
       }
-
-      // No tezos found. Stop here and determine on the next app booting time.
-      _sentTezosMetric = true;
     } catch (exception) {
       _isolateSendPort?.send(FetchTokenFailure(key, uuid, exception));
     }

@@ -6,6 +6,7 @@
 //
 
 import 'package:autonomy_flutter/au_bloc.dart';
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
@@ -14,8 +15,11 @@ import 'package:autonomy_flutter/database/dao/provenance_dao.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/gateway/indexer_api.dart';
 import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/model/blockchain.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/aws_service.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tokens_service.dart';
@@ -80,6 +84,21 @@ class HomeBloc extends AuBloc<HomeEvent, HomeState> {
           await _assetTokenDao.findAllAssetTokensWhereNot(_hiddenOwners);
       emit(state.copyWith(tokens: assetTokens, fetchTokenState: event.state));
       log.info('[SubRefreshTokensEvent] load ${assetTokens.length} tokens');
+
+      // Check if there is any Tezos token in the list
+      List<String> allAccountNumbers = await _accountService.getAllAddresses();
+      final hashedAddresses = allAccountNumbers.fold(
+          0, (int previousValue, element) => previousValue + element.hashCode);
+
+      if (injector<ConfigurationService>().sentTezosArtworkMetricValue() !=
+              hashedAddresses &&
+          assetTokens.any((asset) =>
+              asset.blockchain == Blockchain.TEZOS.name.toLowerCase())) {
+        await injector<AWSService>()
+            .storeEventWithDeviceData("collection_has_tezos");
+        injector<ConfigurationService>()
+            .setSentTezosArtworkMetric(hashedAddresses);
+      }
     });
 
     on<RefreshTokensEvent>((event, emit) async {
