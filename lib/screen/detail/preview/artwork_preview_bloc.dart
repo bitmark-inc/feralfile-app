@@ -24,26 +24,26 @@ class ArtworkPreviewBloc
       emit(ArtworkPreviewState(asset: asset));
 
       // change ipfs if the CLOUDFLARE_IPFS_PREFIX has not worked
-      try {
-        if (asset?.previewURL != null) {
-          final response = await callRequest(Uri.parse(asset!.previewURL!));
-          if (response.statusCode == 520) {
-            asset.previewURL = asset.previewURL!.replaceRange(
-                0, CLOUDFLARE_IPFS_PREFIX.length, DEFAULT_IPFS_PREFIX);
-            final hiddenAssets = await _assetTokenDao.findAllHiddenAssets();
-            final hiddenIds =
-                _configurationService.getTempStorageHiddenTokenIDs() +
-                    hiddenAssets.map((e) => e.id).toList();
-            if (hiddenIds.contains(asset.id)) {
-              asset.hidden = 1;
-            }
-            await _assetTokenDao.insertAsset(asset);
-            emit(ArtworkPreviewState(asset: asset));
-          }
-        }
-      } catch (_) {
-        // ignore this error
-      }
+      // try {
+      //   if (asset?.previewURL != null) {
+      //     final response = await callRequest(Uri.parse(asset!.previewURL!));
+      //     if (response.statusCode == 520) {
+      //       asset.previewURL = asset.previewURL!.replaceRange(
+      //           0, CLOUDFLARE_IPFS_PREFIX.length, DEFAULT_IPFS_PREFIX);
+      //       final hiddenAssets = await _assetTokenDao.findAllHiddenAssets();
+      //       final hiddenIds =
+      //           _configurationService.getTempStorageHiddenTokenIDs() +
+      //               hiddenAssets.map((e) => e.id).toList();
+      //       if (hiddenIds.contains(asset.id)) {
+      //         asset.hidden = 1;
+      //       }
+      //       await _assetTokenDao.insertAsset(asset);
+      //       emit(ArtworkPreviewState(asset: asset));
+      //     }
+      //   }
+      // } catch (_) {
+      //   // ignore this error
+      // }
     });
   }
 }

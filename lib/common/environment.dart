@@ -75,6 +75,7 @@ class Environment {
       dotenv.env['AWS_IDENTITY_POOL_ID'] ?? '';
   static String get renderingReportURL =>
       dotenv.env['RENDERING_REPORT_URL'] ?? '';
+  static String get autonomyIpfsPrefix => dotenv.env['AUTONOMY_IPFS_PREFIX'] ?? '';
 }
 
 class Secret {
