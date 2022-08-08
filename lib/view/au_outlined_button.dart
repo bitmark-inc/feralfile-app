@@ -25,22 +25,20 @@ class AuOutlinedButton extends StatelessWidget {
           child: Container(
               width: double.infinity, height: 48, color: Colors.black),
         ),
-        Container(
+        SizedBox(
           width: double.infinity,
           child: ClipPath(
               clipper: AutonomyButtonClipper(),
               child: TextButton(
                 style: TextButton.styleFrom(
                     primary: Colors.black,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.zero,
-                    ),
+                    shape: const RoundedRectangleBorder(),
                     padding: const EdgeInsets.symmetric(vertical: 14)),
+                onPressed: onPress,
                 child: Text(
                   text.toUpperCase(),
                   style: appTextTheme.caption,
                 ),
-                onPressed: onPress,
               )),
         ),
       ],

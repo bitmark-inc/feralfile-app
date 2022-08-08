@@ -24,7 +24,7 @@ class BadgeView extends StatelessWidget {
         child: Text(
           '$number',
           textAlign: TextAlign.center,
-          style: TextStyle(
+          style: const TextStyle(
               color: Colors.white,
               fontSize: 10,
               fontFamily: "AtlasGrotesk",

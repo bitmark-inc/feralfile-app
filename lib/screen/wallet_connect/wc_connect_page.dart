@@ -123,7 +123,7 @@ class _WCConnectPageState extends State<WCConnectPage>
 
       final approvedAddresses = [address];
       log.info(
-          "[WCConnectPage] approve WCConnect with addreses ${approvedAddresses}");
+          "[WCConnectPage] approve WCConnect with addreses $approvedAddresses");
       await injector<WalletConnectService>().approveSession(
           selectedPersona!.uuid,
           wcConnectArgs.peerMeta,
@@ -175,6 +175,7 @@ class _WCConnectPageState extends State<WCConnectPage>
       type: payloadType,
     );
 
+    if (!mounted) return;
     if (memoryValues.scopedPersona != null) {
       // from persona details flow
       Navigator.of(context).pop();
@@ -212,9 +213,9 @@ class _WCConnectPageState extends State<WCConnectPage>
             "Connect",
             style: appTextTheme.headline1,
           ),
-          SizedBox(height: 24.0),
+          const SizedBox(height: 24.0),
           _appInfo(),
-          SizedBox(height: 24),
+          const SizedBox(height: 24.0),
           Padding(
             padding: const EdgeInsets.only(left: 10),
             child: Column(
@@ -229,7 +230,7 @@ class _WCConnectPageState extends State<WCConnectPage>
               ],
             ),
           ),
-          SizedBox(height: 40),
+          const SizedBox(height: 40),
           BlocConsumer<PersonaBloc, PersonaState>(listener: (context, state) {
             var statePersonas = state.personas;
             if (statePersonas == null) return;
@@ -252,7 +253,7 @@ class _WCConnectPageState extends State<WCConnectPage>
             });
           }, builder: (context, state) {
             final statePersonas = personas;
-            if (statePersonas == null) return SizedBox();
+            if (statePersonas == null) return const SizedBox();
 
             if (statePersonas.isEmpty) {
               return Expanded(child: _suggestToCreatePersona());
@@ -274,7 +275,7 @@ class _WCConnectPageState extends State<WCConnectPage>
       return _tbAppInfo(widget.beaconRequest!);
     }
 
-    return SizedBox();
+    return const SizedBox();
   }
 
   Widget _wcAppInfo(WCPeerMeta peerMeta) {
@@ -287,20 +288,20 @@ class _WCConnectPageState extends State<WCConnectPage>
                 imageUrl: peerMeta.icons.first,
                 width: 64.0,
                 height: 64.0,
-                errorWidget: (context, url, error) => Container(
+                errorWidget: (context, url, error) => SizedBox(
                     width: 64,
                     height: 64,
                     child: Image.asset(
                         "assets/images/walletconnect-alternative.png")),
               ),
             ] else ...[
-              Container(
+              SizedBox(
                   width: 64,
                   height: 64,
                   child: Image.asset(
                       "assets/images/walletconnect-alternative.png")),
             ],
-            SizedBox(width: 16.0),
+            const SizedBox(width: 16.0),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -340,7 +341,7 @@ class _WCConnectPageState extends State<WCConnectPage>
                     width: 64.0,
                     height: 64.0,
                   ),
-            SizedBox(width: 16.0),
+            const SizedBox(width: 16.0),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -369,7 +370,7 @@ class _WCConnectPageState extends State<WCConnectPage>
           "Select an account to grant access:",
           style: appTextTheme.headline4,
         ),
-        SizedBox(height: 16.0),
+        const SizedBox(height: 16.0),
         Expanded(
           child: ListView(
             children: <Widget>[
@@ -379,12 +380,12 @@ class _WCConnectPageState extends State<WCConnectPage>
                           ListTile(
                             title: Row(
                               children: [
-                                Container(
+                                SizedBox(
                                     width: 24,
                                     height: 24,
                                     child: Image.asset(
                                         "assets/images/autonomyIcon.png")),
-                                SizedBox(width: 16.0),
+                                const SizedBox(width: 16.0),
                                 Text(persona.name,
                                     style: appTextTheme.headline4)
                               ],
@@ -406,7 +407,7 @@ class _WCConnectPageState extends State<WCConnectPage>
                                   )
                                 : null),
                           ),
-                          Divider(height: 16.0),
+                          const Divider(height: 16.0),
                         ],
                       ))
                   .toList(),
@@ -457,11 +458,11 @@ class _WCConnectPageState extends State<WCConnectPage>
                   Text(
                       'This service requires a full Autonomy account to connect to the dapp.',
                       style: appTextTheme.bodyText1),
-                  SizedBox(height: 24),
+                  const SizedBox(height: 24),
                   Text('Would you like to generate a full Autonomy account?',
                       style: appTextTheme.bodyText1
                           ?.copyWith(fontWeight: FontWeight.bold)),
-                  SizedBox(height: 24),
+                  const SizedBox(height: 24),
                   Text(
                       'The newly generated account would also get an address for each of the chains that we support.',
                       style: appTextTheme.bodyText1),

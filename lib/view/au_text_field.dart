@@ -28,7 +28,7 @@ class AuTextField extends StatelessWidget {
       this.isError = false,
       this.expanded = false,
       this.maxLines = 1,
-      this.hintMaxLines = null,
+      this.hintMaxLines,
       required this.controller,
       this.subTitleView,
       this.suffix,
@@ -41,12 +41,11 @@ class AuTextField extends StatelessWidget {
     return Expanded(
         flex: expanded ? 1 : 0,
         child: Container(
-            padding: EdgeInsets.only(top: 8.0, left: 8.0, bottom: 8.0),
+            padding: const EdgeInsets.only(top: 8.0, left: 8.0, bottom: 8.0),
             decoration: BoxDecoration(
                 border: Border.all(
                     color: isError ? AppColorTheme.errorColor : Colors.black)),
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Expanded(
                   child: Column(
@@ -57,15 +56,15 @@ class AuTextField extends StatelessWidget {
                           if (title.isNotEmpty) ...[
                             Text(
                               title,
-                              style: TextStyle(
+                              style: const TextStyle(
                                   fontSize: 12,
                                   fontFamily: "AtlasGrotesk",
                                   color: AppColorTheme.secondaryHeaderColor,
                                   fontWeight: FontWeight.w700),
                             ),
                           ],
-                          this.subTitleView != null
-                              ? Text(
+                          subTitleView != null
+                              ? const Text(
                                   " | ",
                                   style: TextStyle(
                                       fontSize: 12,
@@ -73,8 +72,8 @@ class AuTextField extends StatelessWidget {
                                       color: AppColorTheme.secondaryHeaderColor,
                                       fontWeight: FontWeight.w300),
                                 )
-                              : SizedBox(),
-                          this.subTitleView ?? SizedBox(),
+                              : const SizedBox(),
+                          subTitleView ?? const SizedBox(),
                         ],
                       ),
                       if (maxLines == 1) ...[
@@ -87,14 +86,14 @@ class AuTextField extends StatelessWidget {
                     ],
                   ),
                 ),
-                suffix ?? SizedBox(),
+                suffix ?? const SizedBox(),
               ],
             )));
   }
 
   Widget _textFieldWidget(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 8.0),
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
       child: TextField(
         maxLines: maxLines,
         decoration: InputDecoration(
@@ -102,13 +101,13 @@ class AuTextField extends StatelessWidget {
           border: InputBorder.none,
           hintText: placeholder,
           hintMaxLines: hintMaxLines,
-          hintStyle: TextStyle(
+          hintStyle: const TextStyle(
             fontSize: 16,
             fontFamily: "AtlasGrotesk",
           ),
         ),
         keyboardType: keyboardType,
-        style: TextStyle(
+        style: const TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w300,
           // height: 1.2,

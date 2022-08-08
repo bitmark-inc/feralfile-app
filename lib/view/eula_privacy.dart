@@ -30,7 +30,7 @@ Widget eulaAndPrivacyView(BuildContext context) {
           "title": ""
         }),
       ),
-      Text(
+      const Text(
         " and ",
         style: TextStyle(
             fontFamily: "AtlasGrotesk", fontSize: 12, color: Colors.black),

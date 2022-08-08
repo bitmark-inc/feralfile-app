@@ -63,10 +63,11 @@ class _SupportListPageState extends State<SupportListPage>
         (b.draft?.createdAt ?? b.lastMessage?.timestamp ?? b.timestamp)
             .compareTo(
                 a.draft?.createdAt ?? a.lastMessage?.timestamp ?? a.timestamp));
-    if (mounted)
+    if (mounted) {
       setState(() {
         _issues = issues;
       });
+    }
   }
 
   @override
@@ -82,9 +83,9 @@ class _SupportListPageState extends State<SupportListPage>
 
   Widget _issuesWidget() {
     final issues = _issues;
-    if (issues == null) return Center(child: CupertinoActivityIndicator());
+    if (issues == null) return const Center(child: CupertinoActivityIndicator());
 
-    if (issues.length == 0) return SizedBox();
+    if (issues.isEmpty) return const SizedBox();
 
     return CustomScrollView(slivers: [
       SliverToBoxAdapter(
@@ -121,25 +122,23 @@ class _SupportListPageState extends State<SupportListPage>
 
   Widget _contentRow(Issue issue, bool hasDivider) {
     return Column(
-      mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Text(
                   ReportIssueType.toTitle(issue.reportIssueType),
                   style: appTextTheme.headline4,
                 ),
                 if (issue.unread > 0) ...[
-                  SizedBox(width: 8),
+                  const SizedBox(width: 8),
                   Padding(
-                    padding: EdgeInsets.only(top: 4),
+                    padding: const EdgeInsets.only(top: 4),
                     child: Container(
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                           color: Colors.black, shape: BoxShape.circle),
                       width: 10,
                       height: 10,
@@ -153,13 +152,13 @@ class _SupportListPageState extends State<SupportListPage>
                 Text(getVerboseDateTimeRepresentation(
                     issue.lastMessage?.timestamp.toLocal() ??
                         issue.timestamp.toLocal())),
-                SizedBox(width: 14),
+                const SizedBox(width: 14),
                 SvgPicture.asset('assets/images/iconForward.svg'),
               ],
             ),
           ],
         ),
-        SizedBox(height: 17),
+        const SizedBox(height: 17),
         Padding(
           padding: const EdgeInsets.only(right: 14),
           child: Text(
@@ -212,8 +211,9 @@ class _SupportListPageState extends State<SupportListPage>
 
     if (lastMessage == null) return '';
 
-    if (lastMessage.filteredMessage.isNotEmpty)
+    if (lastMessage.filteredMessage.isNotEmpty) {
       return lastMessage.filteredMessage;
+    }
 
     final attachment = lastMessage.attachments.last;
     final attachmentTitle =

@@ -36,7 +36,7 @@ class LinkedAccountDetailsPage extends StatefulWidget {
 }
 
 class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
-  Map<String, String> _balances = {};
+  final Map<String, String> _balances = {};
   bool isHideGalleryEnabled = false;
   List<ContextedAddress> contextedAddresses = [];
   String _source = '';
@@ -180,13 +180,13 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _addressesSection(),
-              SizedBox(height: 40),
+              const SizedBox(height: 40),
               _cryptoSection(),
-              SizedBox(height: 40),
+              const SizedBox(height: 40),
               _preferencesSection(),
-              SizedBox(height: 40),
+              const SizedBox(height: 40),
               _backupSection(),
-              SizedBox(height: 40),
+              const SizedBox(height: 40),
             ],
           ),
         ),
@@ -204,7 +204,7 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
               : "Linked adddress",
           style: appTextTheme.headline1,
         ),
-        SizedBox(height: 10),
+        const SizedBox(height: 10),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -212,7 +212,7 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
               (e) => Column(
                 children: [
                   _addressRow(e.cryptoType, address: e.address),
-                  SizedBox(height: 15),
+                  const SizedBox(height: 15),
                   addOnlyDivider(),
                 ],
               ),
@@ -224,7 +224,7 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
   }
 
   Widget _cryptoSection() {
-    if (contextedAddresses.isEmpty) return SizedBox();
+    if (contextedAddresses.isEmpty) return const SizedBox();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -233,7 +233,7 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
           "Crypto",
           style: appTextTheme.headline1,
         ),
-        SizedBox(height: 24),
+        const SizedBox(height: 24),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -253,7 +253,7 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
             )
           ],
         ),
-        SizedBox(height: 16),
+        const SizedBox(height: 16),
       ],
     );
   }
@@ -267,7 +267,8 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
           Text(type.source, style: appTextTheme.headline4),
           TextButton(
             onPressed: () => Share.share(address),
-            child: Text(
+            style: const ButtonStyle(alignment: Alignment.centerRight),
+            child: const Text(
               "Share",
               style: TextStyle(
                   color: Colors.black,
@@ -275,7 +276,6 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
                   fontFamily: "AtlasGrotesk",
                   fontWeight: FontWeight.bold),
             ),
-            style: ButtonStyle(alignment: Alignment.centerRight),
           )
         ],
       ),
@@ -306,7 +306,7 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
         "Preferences",
         style: appTextTheme.headline1,
       ),
-      SizedBox(
+      const SizedBox(
         height: 14,
       ),
       Column(
@@ -330,24 +330,23 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
               )
             ],
           ),
-          SizedBox(height: 14),
+          const SizedBox(height: 14),
           Text(
             "Do not show this account's NFTs in the collection view.",
             style: appTextTheme.bodyText1,
           ),
         ],
       ),
-      SizedBox(height: 12),
+      const SizedBox(height: 12),
     ]);
   }
 
   Widget _backupSection() {
     return Column(
-      mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text("Backup", style: appTextTheme.headline1),
-        SizedBox(height: 24),
+        const SizedBox(height: 24),
         if (_source == 'FeralFile') ...[
           Text(
               'The keys for this account are either automically backed up by Feral File or managed by your web3 wallet (if you connected one).',

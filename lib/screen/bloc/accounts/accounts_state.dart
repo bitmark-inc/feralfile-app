@@ -90,9 +90,9 @@ class AccountsState {
 
   AccountsState setEvent(AccountBlocStateEvent? event) {
     return AccountsState(
-      accounts: this.accounts,
-      network: this.network,
-      categorizedAccounts: this.categorizedAccounts,
+      accounts: accounts,
+      network: network,
+      categorizedAccounts: categorizedAccounts,
       event: event,
     );
   }

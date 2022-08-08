@@ -50,7 +50,7 @@ class ConnectionDetailsPage extends StatelessWidget {
                     Row(
                       children: [
                         UIHelper.buildConnectionAppWidget(connection, 64),
-                        SizedBox(width: 16.0),
+                        const SizedBox(width: 16.0),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -66,7 +66,7 @@ class ConnectionDetailsPage extends StatelessWidget {
                         )
                       ],
                     ),
-                    SizedBox(height: 24),
+                    const SizedBox(height: 24),
                     Padding(
                       padding: const EdgeInsets.only(left: 10),
                       child: Column(
@@ -76,7 +76,7 @@ class ConnectionDetailsPage extends StatelessWidget {
                               .map((permission) => Column(children: [
                                     Text("• $permission",
                                         style: appTextTheme.bodyText1),
-                                    SizedBox(height: 4),
+                                    const SizedBox(height: 4),
                                   ]))
                               .toList(),
                         ],
@@ -121,29 +121,29 @@ class ConnectionDetailsPage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('Revoke all rights', style: theme.textTheme.headline1),
-                    SizedBox(height: 40),
+                    const SizedBox(height: 40),
                     RichText(
                       text: TextSpan(
                         style: theme.textTheme.bodyText1,
                         children: <TextSpan>[
-                          TextSpan(
+                          const TextSpan(
                             text: 'Are you sure you want to revoke ',
                           ),
-                          TextSpan(
+                          const TextSpan(
                               text: 'Autonomy',
                               style:
-                                  const TextStyle(fontWeight: FontWeight.bold)),
-                          TextSpan(
+                                  TextStyle(fontWeight: FontWeight.bold)),
+                          const TextSpan(
                             text: ' from all rights on ',
                           ),
                           TextSpan(
-                              text: '${connection.appName}',
+                              text: connection.appName,
                               style:
                                   const TextStyle(fontWeight: FontWeight.bold)),
                         ],
                       ),
                     ),
-                    SizedBox(height: 40),
+                    const SizedBox(height: 40),
                     Row(
                       children: [
                         Expanded(
@@ -167,7 +167,6 @@ class ConnectionDetailsPage extends StatelessWidget {
                       ],
                     ),
                     Align(
-                      alignment: Alignment.center,
                       child: TextButton(
                           onPressed: () => Navigator.of(context).pop(),
                           child: Text("CANCEL",

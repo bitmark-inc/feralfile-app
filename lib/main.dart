@@ -22,15 +22,15 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:floor/floor.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_downloader/flutter_downloader.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
-import 'package:flutter_native_splash/flutter_native_splash.dart';
-import 'package:flutter_downloader/flutter_downloader.dart';
-import 'package:onesignal_flutter/onesignal_flutter.dart';
 
 void main() async {
   await dotenv.load();
@@ -91,14 +91,13 @@ _setupApp() async {
   await injector<AWSService>().initServices();
 
   BlocOverrides.runZoned(
-    () => runApp(OverlaySupport.global(child: AutonomyApp())),
-    blocObserver: AppBlocObserver(),
+    () => runApp(const OverlaySupport.global(child: AutonomyApp())),
   );
 
   Sentry.configureScope((scope) async {
     final deviceID = await getDeviceID();
     if (deviceID != null) {
-      scope.user = SentryUser(id: deviceID);
+      scope.setUser(SentryUser(id: deviceID));
     }
   });
   FlutterNativeSplash.remove();
@@ -114,11 +113,13 @@ Future<void> _deleteLocalDatabase() async {
 }
 
 class AutonomyApp extends StatelessWidget {
+  const AutonomyApp({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return CupertinoApp(
       title: 'Autonomy',
-      theme: CupertinoThemeData(
+      theme: const CupertinoThemeData(
         scaffoldBackgroundColor: Colors.white,
         primaryColor: Colors.grey,
         barBackgroundColor: Color(0xFF6D6B6B),
@@ -127,7 +128,7 @@ class AutonomyApp extends StatelessWidget {
           primaryColor: Colors.grey,
         ),
       ),
-      localizationsDelegates: [
+      localizationsDelegates: const [
         DefaultMaterialLocalizations.delegate,
         DefaultCupertinoLocalizations.delegate,
         DefaultWidgetsLocalizations.delegate,
@@ -142,21 +143,6 @@ class AutonomyApp extends StatelessWidget {
       initialRoute: AppRouter.onboardingPage,
       onGenerateRoute: AppRouter.onGenerateRoute,
     );
-  }
-}
-
-/// Custom [BlocObserver] that observes all bloc and cubit state changes.
-class AppBlocObserver extends BlocObserver {
-  @override
-  void onChange(BlocBase bloc, Change change) {
-    super.onChange(bloc, change);
-    if (bloc is Cubit) print(change);
-  }
-
-  @override
-  void onTransition(Bloc bloc, Transition transition) {
-    super.onTransition(bloc, transition);
-    log.info(transition);
   }
 }
 

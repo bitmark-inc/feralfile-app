@@ -28,7 +28,7 @@ class NameLinkedAccountPage extends StatefulWidget {
 }
 
 class _NameLinkedAccountPageState extends State<NameLinkedAccountPage> {
-  TextEditingController _nameController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
 
   @override
   void didChangeDependencies() {
@@ -48,7 +48,7 @@ class _NameLinkedAccountPageState extends State<NameLinkedAccountPage> {
       ),
       body: Container(
         margin:
-            EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
+            const EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -66,7 +66,7 @@ class _NameLinkedAccountPageState extends State<NameLinkedAccountPage> {
                       "You can add an optional alias for this account to help you recognize it. This alias will only be visible to you in Autonomy.",
                       style: appTextTheme.bodyText1,
                     ),
-                    SizedBox(height: 40),
+                    const SizedBox(height: 40),
                     AuTextField(
                         title: "",
                         placeholder: "Enter alias",

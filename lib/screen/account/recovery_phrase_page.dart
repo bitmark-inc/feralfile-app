@@ -8,7 +8,6 @@
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 
 class RecoveryPhrasePage extends StatelessWidget {
   final List<String> words;
@@ -28,7 +27,7 @@ class RecoveryPhrasePage extends StatelessWidget {
       ),
       body: Container(
         margin:
-            EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
+            const EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -45,7 +44,7 @@ class RecoveryPhrasePage extends StatelessWidget {
                     RichText(
                       text: TextSpan(
                         style: appTextTheme.bodyText1,
-                        children: <TextSpan>[
+                        children: const <TextSpan>[
                           TextSpan(
                             text:
                                 'We’ve safely and securely backed up your recovery phrase to your',
@@ -53,7 +52,7 @@ class RecoveryPhrasePage extends StatelessWidget {
                           TextSpan(
                               text: ' iCloud Keychain',
                               style:
-                                  const TextStyle(fontWeight: FontWeight.bold)),
+                                  TextStyle(fontWeight: FontWeight.bold)),
                           TextSpan(
                             text:
                                 '. You may also back it up to use it in another BIP-39 standard wallet:',
@@ -61,12 +60,12 @@ class RecoveryPhrasePage extends StatelessWidget {
                         ],
                       ),
                     ),
-                    SizedBox(height: 40),
+                    const SizedBox(height: 40),
                     Container(
                       decoration: BoxDecoration(
-                          border: Border.all(color: Colors.black)),
+                          border: Border.all()),
                       alignment: Alignment.center,
-                      padding: EdgeInsets.symmetric(vertical: 24),
+                      padding: const EdgeInsets.symmetric(vertical: 24),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -89,7 +88,7 @@ class RecoveryPhrasePage extends StatelessWidget {
     return Column(
       children: List.generate(itemsEachRow, (index) {
         final word = words[index + offset];
-        return Container(
+        return SizedBox(
           width: 140,
           child: Column(children: [
             Row(children: [
@@ -100,7 +99,7 @@ class RecoveryPhrasePage extends StatelessWidget {
                       style: appTextTheme.headline4)),
               Text(word, style: appTextTheme.headline4),
             ]),
-            SizedBox(height: 4),
+            const SizedBox(height: 4),
           ]),
         );
       }),

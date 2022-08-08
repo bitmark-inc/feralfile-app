@@ -29,12 +29,10 @@ class LinkLedgerPage extends StatefulWidget {
   const LinkLedgerPage({Key? key, required this.payload}) : super(key: key);
 
   @override
-  State<LinkLedgerPage> createState() => _LinkLedgerPageState(payload);
+  State<LinkLedgerPage> createState() => _LinkLedgerPageState();
 }
 
 class _LinkLedgerPageState extends State<LinkLedgerPage> {
-  final String blockchain;
-  _LinkLedgerPageState(this.blockchain);
 
   @override
   void initState() {
@@ -74,9 +72,9 @@ class _LinkLedgerPageState extends State<LinkLedgerPage> {
                 UIHelper.showInfoDialog(context, "Account linked",
                     "Autonomy has received autorization to link to your account ${linkedAccount.accountNumbers.last.mask(4)} in $walletName.");
 
-                final delay = 3;
+                const delay = 3;
 
-                Future.delayed(Duration(seconds: delay), () {
+                Future.delayed(const Duration(seconds: delay), () {
                   UIHelper.hideInfoDialog(context);
 
                   if (injector<ConfigurationService>().isDoneOnboarding()) {
@@ -108,7 +106,7 @@ class _LinkLedgerPageState extends State<LinkLedgerPage> {
               context.read<AccountsBloc>().add(ResetEventEvent());
             },
             child: Container(
-                margin: EdgeInsets.only(
+                margin: const EdgeInsets.only(
                     top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -117,17 +115,17 @@ class _LinkLedgerPageState extends State<LinkLedgerPage> {
                       "Ledger wallet",
                       style: appTextTheme.headline1,
                     ),
-                    SizedBox(height: 30),
+                    const SizedBox(height: 30),
                     Row(
                       children: [
                         Text(
                           "Select your ledger wallet:",
                           style: appTextTheme.headline4,
                         ),
-                        Spacer(),
+                        const Spacer(),
                       ],
                     ),
-                    SizedBox(height: 30),
+                    const SizedBox(height: 30),
                     _deviceList(context),
                   ],
                 ))));
@@ -143,7 +141,7 @@ class _LinkLedgerPageState extends State<LinkLedgerPage> {
                 log.info("snapshot: " + snapshot.toString());
                 final deviceList = snapshot.data;
                 if (deviceList == null) {
-                  return CupertinoActivityIndicator();
+                  return const CupertinoActivityIndicator();
                 }
 
                 List<LedgerHardwareWallet> list = deviceList.toList();
@@ -159,7 +157,7 @@ class _LinkLedgerPageState extends State<LinkLedgerPage> {
                         onTap: () => _onDeviceTap(context, list[index]),
                       );
                     }),
-                    separatorBuilder: (context, index) => Divider(),
+                    separatorBuilder: (context, index) => const Divider(),
                     itemCount: list.length);
               },
               stream: injector<LedgerHardwareService>().ledgerWallets(),
@@ -171,7 +169,7 @@ class _LinkLedgerPageState extends State<LinkLedgerPage> {
             );
           }
         } else {
-          return CupertinoActivityIndicator();
+          return const CupertinoActivityIndicator();
         }
       },
       future: injector<LedgerHardwareService>().scanForLedgerWallet(),
@@ -184,12 +182,13 @@ class _LinkLedgerPageState extends State<LinkLedgerPage> {
     if (!ledger.isConnected) {
       final result = await injector<LedgerHardwareService>().connect(ledger);
       if (!result) {
+        if (!mounted) return;
         UIHelper.hideInfoDialog(context);
         return await _dismissAndShowError(
             context, ledger, "Failed to connect!");
       }
 
-      await Future.delayed(Duration(seconds: 1));
+      await Future.delayed(const Duration(seconds: 1));
     }
 
     // probe for opening app
@@ -197,27 +196,29 @@ class _LinkLedgerPageState extends State<LinkLedgerPage> {
       final openingApplication = await LedgerCommand.application(ledger);
       final name = openingApplication["name"];
       late String ledgerAppname;
-      switch (blockchain) {
+      switch (widget.payload) {
         case "Tezos":
           ledgerAppname = "Tezos Wallet";
           break;
         default:
-          ledgerAppname = blockchain;
+          ledgerAppname = widget.payload;
           break;
       }
       if (name != ledgerAppname) {
+        if (!mounted) return;
         return await _dismissAndShowError(context, ledger,
-            "Please open the $blockchain app on your ledger.\nIf you haven't installed, please do it in the Ledger Live app.");
+            "Please open the ${widget.payload} app on your ledger.\nIf you haven't installed, please do it in the Ledger Live app.");
       }
 
-      await Future.delayed(Duration(seconds: 1));
+      await Future.delayed(const Duration(seconds: 1));
 
+      if (!mounted) return;
       UIHelper.hideInfoDialog(context);
       UIHelper.showInfoDialog(context, ledger.name,
           "Verify and approve the address sharing on your wallet.");
 
       late Map<String, dynamic> data;
-      switch (blockchain) {
+      switch (widget.payload) {
         case "Ethereum":
           data = await LedgerCommand.getEthAddress(ledger, "44'/60'/0'/0/0",
               verify: true);
@@ -230,6 +231,7 @@ class _LinkLedgerPageState extends State<LinkLedgerPage> {
           throw "Unknown blockchain";
       }
 
+      if (!mounted) return;
       if (data["address"] == null) {
         return await _dismissAndShowError(context, ledger,
             "Cannot get an address from your ETH app.\nMake sure you have created an account in the Ledger wallet.");
@@ -237,15 +239,15 @@ class _LinkLedgerPageState extends State<LinkLedgerPage> {
         final address = data["address"] as String;
         log.info("Catched an address: $address");
         UIHelper.hideInfoDialog(context);
-
         context.read<AccountsBloc>().add(LinkLedgerWalletEvent(
-            address, blockchain, ledger.name, ledger.device.id.id, data));
+            address, widget.payload, ledger.name, ledger.device.id.id, data));
 
         Vibrate.feedback(FeedbackType.success);
       }
     } catch (error) {
       log.warning("Error when connecting to ledger: $error");
       await injector<LedgerHardwareService>().disconnect(ledger);
+      if (!mounted) return;
       return await _dismissAndShowError(context, ledger,
           "Failed to send message to ledger.\nMake sure your ledger is unlocked.");
     }
@@ -253,7 +255,7 @@ class _LinkLedgerPageState extends State<LinkLedgerPage> {
 
   _dismissAndShowError(BuildContext context, LedgerHardwareWallet ledger,
       String errorMessage) async {
-    return await Future.delayed(Duration(milliseconds: 300), () async {
+    return await Future.delayed(const Duration(milliseconds: 300), () async {
       await UIHelper.showInfoDialog(context, ledger.name, errorMessage,
           autoDismissAfter: 2, feedback: FeedbackType.error);
     });

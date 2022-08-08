@@ -10,6 +10,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tokens_service.dart';
@@ -26,7 +27,6 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:url_launcher/url_launcher_string.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 
 class LinkAccountPage extends StatefulWidget {
   const LinkAccountPage({Key? key}) : super(key: key);
@@ -80,11 +80,11 @@ class _LinkAccountPageState extends State<LinkAccountPage>
               ),
               addTitleSpace(),
               _bitmarkLinkView(context),
-              SizedBox(height: 40),
+              const SizedBox(height: 40),
               _ethereumLinkView(context),
-              SizedBox(height: 40),
+              const SizedBox(height: 40),
               _tezosLinkView(context),
-              SizedBox(height: 40),
+              const SizedBox(height: 40),
             ],
           ),
         ),
@@ -104,7 +104,7 @@ class _LinkAccountPageState extends State<LinkAccountPage>
             leftWidget: Row(
               children: [
                 SvgPicture.asset("assets/images/feralfileAppIcon.svg"),
-                SizedBox(width: 16),
+                const SizedBox(width: 16),
                 Text("Feral File", style: appTextTheme.headline4),
               ],
             ),
@@ -120,11 +120,12 @@ class _LinkAccountPageState extends State<LinkAccountPage>
               wcURI = Uri.encodeQueryComponent(wcURI);
 
               final network = injector<ConfigurationService>().getNetwork();
-              final url = Environment.networkedFeralFileWebsiteURL(network) +
-                  '/exhibitions?callbackUrl=autonomy%3A%2F%2F&wc=$wcURI';
+              final url =
+                  '${Environment.networkedFeralFileWebsiteURL(network)}/exhibitions?callbackUrl=autonomy%3A%2F%2F&wc=$wcURI';
 
               await launchUrlString(url, mode: LaunchMode.externalApplication);
 
+              if (!mounted) return;
               UIHelper.showLinkRequestedDialog(context);
             }),
       ],
@@ -139,14 +140,14 @@ class _LinkAccountPageState extends State<LinkAccountPage>
           "ETHEREUM",
           style: appTextTheme.headline4,
         ),
-        SizedBox(
+        const SizedBox(
           height: 4,
         ),
         TappableForwardRow(
           leftWidget: Row(
             children: [
               Image.asset("assets/images/metamask-alternative.png"),
-              SizedBox(width: 16),
+              const SizedBox(width: 16),
               Text("MetaMask", style: appTextTheme.headline4),
             ],
           ),
@@ -160,7 +161,7 @@ class _LinkAccountPageState extends State<LinkAccountPage>
             leftWidget: Row(
               children: [
                 Image.asset("assets/images/walletconnect-alternative.png"),
-                SizedBox(width: 16),
+                const SizedBox(width: 16),
                 Text("Other Ethereum wallets", style: appTextTheme.headline4),
               ],
             ),
@@ -180,14 +181,14 @@ class _LinkAccountPageState extends State<LinkAccountPage>
           "TEZOS",
           style: appTextTheme.headline4,
         ),
-        SizedBox(
+        const SizedBox(
           height: 20,
         ),
         TappableForwardRow(
             leftWidget: Row(
               children: [
                 Image.asset("assets/images/kukai_wallet.png"),
-                SizedBox(width: 16),
+                const SizedBox(width: 16),
                 Text("Kukai", style: appTextTheme.headline4),
               ],
             ),
@@ -199,7 +200,7 @@ class _LinkAccountPageState extends State<LinkAccountPage>
             leftWidget: Row(
               children: [
                 Image.asset("assets/images/temple_wallet.png"),
-                SizedBox(width: 16),
+                const SizedBox(width: 16),
                 Text("Temple", style: appTextTheme.headline4),
               ],
             ),
@@ -212,12 +213,14 @@ class _LinkAccountPageState extends State<LinkAccountPage>
             leftWidget: Row(
               children: [
                 Image.asset("assets/images/tezos_wallet.png"),
-                SizedBox(width: 16),
+                const SizedBox(width: 16),
                 Text("Other Tezos wallets", style: appTextTheme.headline4),
               ],
             ),
             onTap: () async {
               final uri = await tezosBeaconService.getConnectionURI();
+
+              if (!mounted) return;
               Navigator.of(context)
                   .pushNamed(AppRouter.linkBeaconConnectPage, arguments: uri);
             }),
@@ -233,7 +236,7 @@ class _LinkAccountPageState extends State<LinkAccountPage>
             leftWidget: Row(
               children: [
                 SvgPicture.asset("assets/images/iconLedger.svg"),
-                SizedBox(width: 16),
+                const SizedBox(width: 16),
                 Text("Ledger", style: appTextTheme.headline4),
               ],
             ),
@@ -287,6 +290,7 @@ class _LinkAccountPageState extends State<LinkAccountPage>
       final connection =
           await injector<FeralFileService>().linkFF(apiToken, delayLink: false);
 
+      if (!mounted) return;
       UIHelper.hideInfoDialog(context);
       UIHelper.showFFAccountLinked(context, connection.name);
 
@@ -325,6 +329,8 @@ class _LinkAccountPageState extends State<LinkAccountPage>
       final walletName =
           linkedAccount.wcConnectedSession?.sessionStore.remotePeerMeta.name ??
               'your wallet';
+
+      if (!mounted) return;
       UIHelper.showAccountLinked(context, linkedAccount, walletName);
       _isLinking = false;
     } on AlreadyLinkedException catch (exception) {

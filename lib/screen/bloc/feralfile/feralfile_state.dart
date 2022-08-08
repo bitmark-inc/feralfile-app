@@ -56,8 +56,8 @@ class FeralFileState {
 
   FeralFileState setEvent(FeralFileBlocStateEvent? event) {
     return FeralFileState(
-      refreshState: this.refreshState,
-      connection: this.connection,
+      refreshState: refreshState,
+      connection: connection,
       event: event,
     );
   }

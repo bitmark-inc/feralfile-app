@@ -35,7 +35,7 @@ class _LinkBeaconConnectPageState extends State<LinkBeaconConnectPage> {
       ),
       body: Container(
         margin:
-            EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
+            const EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -53,7 +53,7 @@ class _LinkBeaconConnectPageState extends State<LinkBeaconConnectPage> {
                       "If your wallet is on another device, you can open it and scan the QR code below to link your account to Autonomy: ",
                       style: appTextTheme.bodyText1,
                     ),
-                    SizedBox(height: 24),
+                    const SizedBox(height: 24),
                     GestureDetector(
                       child: Container(
                         alignment: Alignment.center,
@@ -61,7 +61,6 @@ class _LinkBeaconConnectPageState extends State<LinkBeaconConnectPage> {
                         height: 180,
                         child: QrImage(
                           data: "tezos://${widget.uri}",
-                          version: QrVersions.auto,
                           size: 180.0,
                         ),
                       ),
@@ -75,8 +74,8 @@ class _LinkBeaconConnectPageState extends State<LinkBeaconConnectPage> {
                       },
                     ),
                     if (_copied) ...[
-                      SizedBox(height: 24),
-                      Center(child: Text("Copied", style: copiedTextStyle)),
+                      const SizedBox(height: 24),
+                      const Center(child: Text("Copied", style: copiedTextStyle)),
                     ]
                   ],
                 ),

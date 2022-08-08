@@ -28,7 +28,7 @@ class PenroseTopBarView extends StatefulWidget {
   final ScrollController scrollController;
   final PenroseTopBarViewStyle style;
 
-  PenroseTopBarView(this.scrollController, this.style);
+  const PenroseTopBarView(this.scrollController, this.style, {Key? key}) : super(key: key);
 
   @override
   State<PenroseTopBarView> createState() => _PenroseTopBarViewState();
@@ -68,6 +68,7 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
     widget.scrollController.removeListener(_scrollListener);
   }
 
+  @override
   void didPushNext() {
     // Reset to normal SystemUIMode
     if (Platform.isIOS) {
@@ -98,7 +99,7 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      builder: (context, value) => Stack(fit: StackFit.loose, children: [
+      builder: (context, value) => Stack(children: [
         Opacity(opacity: _opacity, child: _headerWidget()),
       ]),
       animation: widget.scrollController,
@@ -110,19 +111,19 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
       case PenroseTopBarViewStyle.main:
         return Container(
           alignment: Alignment.topCenter,
-          padding: EdgeInsets.fromLTRB(7, 40, 2, 90),
+          padding: const EdgeInsets.fromLTRB(7, 40, 2, 90),
           child: _mainHeaderWidget(isInSettingsPage: false),
         );
       case PenroseTopBarViewStyle.settings:
         return Container(
           alignment: Alignment.topCenter,
-          padding: EdgeInsets.fromLTRB(7, 40, 2, 90),
+          padding: const EdgeInsets.fromLTRB(7, 40, 2, 90),
           child: _mainHeaderWidget(isInSettingsPage: true),
         );
       case PenroseTopBarViewStyle.back:
         return Container(
           alignment: Alignment.topCenter,
-          padding: EdgeInsets.fromLTRB(16, 52, 12, 90),
+          padding: const EdgeInsets.fromLTRB(16, 52, 12, 90),
           child: _backHeaderWidget(),
         );
     }
@@ -139,7 +140,7 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
             Row(
               children: [
                 SvgPicture.asset('assets/images/nav-arrow-left.svg'),
-                SizedBox(width: 7),
+                const SizedBox(width: 7),
                 Text(
                   "BACK",
                   style: appTextTheme.caption,
@@ -154,13 +155,11 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
 
   Widget _mainHeaderWidget({required bool isInSettingsPage}) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Container(
-          padding: EdgeInsets.fromLTRB(0, 0, 9, 12),
+          padding: const EdgeInsets.fromLTRB(0, 0, 9, 12),
           child: IconButton(
-            constraints: BoxConstraints(),
+            constraints: const BoxConstraints(),
             icon: SvgPicture.asset("assets/images/iconQr.svg"),
             onPressed: () {
               if (_opacity == 0) return;
@@ -170,10 +169,10 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
           ),
         ),
         _discovery(),
-        Spacer(),
+        const Spacer(),
         _customerSupportIconWidget(),
         Container(
-          padding: EdgeInsets.fromLTRB(17, 0, 0, 10),
+          padding: const EdgeInsets.fromLTRB(17, 0, 0, 10),
           child: IconButton(
             tooltip: "Settings",
             onPressed: () {
@@ -195,7 +194,7 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
 
   Widget _discovery() {
     return Container(
-      padding: EdgeInsets.fromLTRB(0, 0, 12, 12),
+      padding: const EdgeInsets.fromLTRB(0, 0, 12, 12),
       child: IconButton(
           onPressed: () {
             if (_opacity == 0) return;
@@ -214,7 +213,7 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
           return GestureDetector(
             behavior: HitTestBehavior.translucent,
             child: Container(
-              padding: EdgeInsets.fromLTRB(20, 10, 0, 20),
+              padding: const EdgeInsets.fromLTRB(20, 10, 0, 20),
               child: Stack(
                 clipBehavior: Clip.none,
                 children: [

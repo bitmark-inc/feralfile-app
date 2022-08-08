@@ -45,15 +45,14 @@ class LinkTezosKukaiPage extends StatelessWidget {
                       "Since Kukai only exists as a web wallet, you will need to follow these additional steps to link it to Autonomy: ",
                       style: appTextTheme.bodyText1,
                     ),
-                    SizedBox(height: 20),
+                    const SizedBox(height: 20),
                     _stepWidget('1',
                         'Generate a link request and send it to the web browser where you are currently signed in to Kukai.'),
-                    SizedBox(height: 10),
+                    const SizedBox(height: 10),
                     _stepWidget('2',
                         'When prompted by Kukai, approve Autonomy’s permissions requests. '),
-                    SizedBox(height: 40),
+                    const SizedBox(height: 40),
                     Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Expanded(
@@ -83,17 +82,16 @@ class LinkTezosKukaiPage extends StatelessWidget {
 
   Widget _stepWidget(String stepNumber, String stepGuide) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.only(top: 2),
+          padding: const EdgeInsets.only(top: 2),
           child: Text(
             stepNumber,
             style: appTextTheme.caption,
           ),
         ),
-        SizedBox(
+        const SizedBox(
           width: 10,
         ),
         Expanded(

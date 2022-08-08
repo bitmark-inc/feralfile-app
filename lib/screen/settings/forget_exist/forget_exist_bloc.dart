@@ -21,14 +21,14 @@ import 'package:autonomy_flutter/util/notification_util.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
-  AuthService _authService;
-  AccountService _accountService;
-  AutonomyService _autonomyService;
-  IAPApi _iapApi;
-  CloudDatabase _cloudDatabase;
-  AppDatabase _mainnetDatabase;
-  AppDatabase _testnetDatabase;
-  ConfigurationService _configurationService;
+  final AuthService _authService;
+  final AccountService _accountService;
+  final AutonomyService _autonomyService;
+  final IAPApi _iapApi;
+  final CloudDatabase _cloudDatabase;
+  final AppDatabase _mainnetDatabase;
+  final AppDatabase _testnetDatabase;
+  final ConfigurationService _configurationService;
 
   ForgetExistBloc(
       this._authService,
@@ -51,15 +51,15 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
       await _autonomyService.clearLinkedAddresses();
       PackageInfo packageInfo = await PackageInfo.fromPlatform();
       String? deviceId = await MigrationUtil.getBackupDeviceID();
-      final requester = "$deviceId\_${packageInfo.packageName}";
+      final requester = "${deviceId}_${packageInfo.packageName}";
       await _iapApi.deleteAllProfiles(requester);
       await _iapApi.deleteUserData();
 
       final List<Persona> personas =
           await _cloudDatabase.personaDao.getPersonas();
-      personas.forEach((persona) async {
+      for (var persona in personas) {
         await _accountService.deletePersona(persona);
-      });
+      }
 
       await _cloudDatabase.removeAll();
       await _mainnetDatabase.removeAll();

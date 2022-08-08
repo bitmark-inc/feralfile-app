@@ -21,9 +21,9 @@ import 'package:libauk_dart/libauk_dart.dart';
 part 'feralfile_state.dart';
 
 class FeralfileBloc extends AuBloc<FeralFileEvent, FeralFileState> {
-  ConfigurationService _configurationService;
-  FeralFileService _feralFileService;
-  CloudDatabase _cloudDB;
+  final ConfigurationService _configurationService;
+  final FeralFileService _feralFileService;
+  final CloudDatabase _cloudDB;
 
   // TODO: Improve using cache?
   Future<Persona?> getPersonaFromETHAddress(String address) async {
@@ -101,7 +101,7 @@ class FeralfileBloc extends AuBloc<FeralFileEvent, FeralFileState> {
           // loop with delay because FeralFile may take time to execute 2FA
           if (retries < retryLimit) {
             retries++;
-            await Future.delayed(Duration(seconds: 5));
+            await Future.delayed(const Duration(seconds: 5));
           } else {
             final code = decodeErrorResponse(error);
             if (code == null) rethrow;
@@ -128,7 +128,6 @@ class FeralfileBloc extends AuBloc<FeralFileEvent, FeralFileState> {
         await _cloudDB.connectionDao.deleteConnection(ffConnection);
       }
       emit(state.copyWith(
-          connection: null,
           event: FFUnlinked()
       ));
     });

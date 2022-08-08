@@ -30,7 +30,7 @@ class NamePersonaPage extends StatefulWidget {
 }
 
 class _NamePersonaPageState extends State<NamePersonaPage> {
-  TextEditingController _nameController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
 
   @override
   void didChangeDependencies() {
@@ -64,7 +64,7 @@ class _NamePersonaPageState extends State<NamePersonaPage> {
         },
         child: Container(
           margin:
-              EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
+              const EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -82,7 +82,7 @@ class _NamePersonaPageState extends State<NamePersonaPage> {
                         "You can add an optional alias for this account to help you recognize it. This alias will only be visible to you in Autonomy.",
                         style: appTextTheme.bodyText1,
                       ),
-                      SizedBox(height: 40),
+                      const SizedBox(height: 40),
                       AuTextField(
                           title: "",
                           placeholder: "Enter alias",
@@ -128,6 +128,8 @@ class _NamePersonaPageState extends State<NamePersonaPage> {
       final isAndroidEndToEndEncryptionAvailable =
           await injector<AccountService>()
               .isAndroidEndToEndEncryptionAvailable();
+
+      if (!mounted) return;
 
       if (injector<ConfigurationService>().isDoneOnboarding()) {
         Navigator.of(context).pushReplacementNamed(AppRouter.cloudAndroidPage,

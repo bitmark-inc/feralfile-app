@@ -62,12 +62,12 @@ class CloudPage extends StatelessWidget {
                             style: appTextTheme.bodyText1,
                           ),
                           if (isAvailable) ...[
-                            SizedBox(height: 40),
+                            const SizedBox(height: 40),
                             Center(
                                 child: SvgPicture.asset(
                                     "assets/images/cloudOn.svg")),
                           ] else ...[
-                            SizedBox(height: 16),
+                            const SizedBox(height: 16),
                             Text(
                               "iCloud is currently turned off on your device. We recommend you enable it so we can safely back up your account.",
                               style: appTextTheme.headline4,
@@ -76,7 +76,7 @@ class CloudPage extends StatelessWidget {
                             Center(
                                 child: SvgPicture.asset(
                                     "assets/images/icloudKeychainGuide.svg")),
-                            SizedBox(height: 20),
+                            const SizedBox(height: 20),
                           ],
                         ]),
                   ),
@@ -126,7 +126,7 @@ class CloudPage extends StatelessWidget {
 
       case "settings":
         if (isAvailable) {
-          return SizedBox();
+          return const SizedBox();
         } else {
           return Row(
             children: [
@@ -141,7 +141,7 @@ class CloudPage extends StatelessWidget {
         }
 
       default:
-        return SizedBox();
+        return const SizedBox();
     }
   }
 

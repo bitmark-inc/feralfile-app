@@ -52,7 +52,7 @@ class _LinkWalletConnectPageState extends State<LinkWalletConnectPage> {
       ),
       body: Container(
         margin:
-            EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
+            const EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -71,17 +71,17 @@ class _LinkWalletConnectPageState extends State<LinkWalletConnectPage> {
                           "We were unable to open ${widget.unableOpenAppname} on this device.",
                           style: appTextTheme.bodyText1
                               ?.copyWith(fontWeight: FontWeight.bold)),
-                      SizedBox(height: 24),
+                      const SizedBox(height: 24),
                     ],
                     Text(
                       "If your wallet is on another device, you can open it and scan the QR code below to link your account to Autonomy: ",
                       style: appTextTheme.bodyText1,
                     ),
-                    SizedBox(height: 24),
+                    const SizedBox(height: 24),
                     _wcQRCode(),
                     if (_copied) ...[
-                      SizedBox(height: 24),
-                      Center(child: Text("Copied", style: copiedTextStyle)),
+                      const SizedBox(height: 24),
+                      const Center(child: Text("Copied", style: copiedTextStyle)),
                     ]
                   ],
                 ),
@@ -105,10 +105,9 @@ class _LinkWalletConnectPageState extends State<LinkWalletConnectPage> {
               child: wcURI != null
                   ? QrImage(
                       data: wcURI,
-                      version: QrVersions.auto,
                       size: 180.0,
                     )
-                  : CupertinoActivityIndicator(
+                  : const CupertinoActivityIndicator(
                       // color: Colors.black,
                       ),
             ),

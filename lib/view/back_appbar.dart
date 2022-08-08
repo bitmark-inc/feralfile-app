@@ -16,17 +16,15 @@ AppBar getBackAppBar(BuildContext context,
     required Function()? onBack,
     Function()? action}) {
   return AppBar(
-    systemOverlayStyle: SystemUiOverlayStyle(
+    systemOverlayStyle: const SystemUiOverlayStyle(
       statusBarColor: Colors.white,
       statusBarIconBrightness: Brightness.dark,
       statusBarBrightness: Brightness.light,
     ),
-    leading: SizedBox(),
+    leading: const SizedBox(),
     leadingWidth: 0.0,
-    automaticallyImplyLeading: true,
     title: Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         GestureDetector(
           behavior: HitTestBehavior.translucent,
@@ -39,7 +37,7 @@ AppBar getBackAppBar(BuildContext context,
                   Row(
                     children: [
                       SvgPicture.asset('assets/images/nav-arrow-left.svg'),
-                      SizedBox(width: 7),
+                      const SizedBox(width: 7),
                       Text(
                         backTitle,
                         style: appTextTheme.caption,
@@ -47,7 +45,7 @@ AppBar getBackAppBar(BuildContext context,
                     ],
                   ),
                 ] else ...[
-                  SizedBox(width: 60),
+                  const SizedBox(width: 60),
                 ],
               ],
             ),
@@ -63,13 +61,13 @@ AppBar getBackAppBar(BuildContext context,
         ),
         action != null
             ? IconButton(
-                constraints: BoxConstraints(maxWidth: 36.0),
+                constraints: const BoxConstraints(maxWidth: 36.0),
                 onPressed: action,
-                icon: Icon(
+                icon: const Icon(
                   Icons.more_horiz,
                   color: Colors.black,
                 ))
-            : SizedBox(width: 60),
+            : const SizedBox(width: 60),
       ],
     ),
     backgroundColor: Colors.transparent,
@@ -81,14 +79,13 @@ AppBar getBackAppBar(BuildContext context,
 AppBar getCloseAppBar(BuildContext context,
     {String title = "", required Function()? onBack}) {
   return AppBar(
-    systemOverlayStyle: SystemUiOverlayStyle(
+    systemOverlayStyle: const SystemUiOverlayStyle(
       statusBarColor: Colors.white,
       statusBarIconBrightness: Brightness.dark,
       statusBarBrightness: Brightness.light,
     ),
-    leading: SizedBox(),
+    leading: const SizedBox(),
     leadingWidth: 0.0,
-    automaticallyImplyLeading: true,
     title: Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -100,7 +97,7 @@ AppBar getCloseAppBar(BuildContext context,
                   padding: const EdgeInsets.fromLTRB(0, 7, 18, 8),
                   child: closeIcon(),
                 )
-              : SizedBox(width: 60),
+              : const SizedBox(width: 60),
         ),
         Expanded(
           child: Text(
@@ -110,7 +107,7 @@ AppBar getCloseAppBar(BuildContext context,
             textAlign: TextAlign.center,
           ),
         ),
-        SizedBox(width: 60),
+        const SizedBox(width: 60),
       ],
     ),
     backgroundColor: Colors.transparent,

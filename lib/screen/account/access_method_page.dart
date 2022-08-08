@@ -58,7 +58,7 @@ class AccessMethodPage extends StatelessWidget {
               style: appTextTheme.bodyText1,
             ),
             if (walletApp == 'WalletApp.MetaMask') ...[
-              SizedBox(height: 15),
+              const SizedBox(height: 15),
               Text(
                 'Autonomy currently only links to wallets on the Ethereum Mainnet. Other networks like Polygon are not yet supported.',
                 style: bodySmall.copyWith(
@@ -98,7 +98,7 @@ class AccessMethodPage extends StatelessWidget {
           Text(
               'View and control your NFTs, sign authorizations, and connect to other platforms with Autonomy.',
               style: appTextTheme.bodyText1),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           learnMoreAboutAutonomySecurityWidget(context),
         ],
       ),

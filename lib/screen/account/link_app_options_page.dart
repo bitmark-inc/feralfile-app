@@ -8,7 +8,6 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/wallet_connect_dapp_service/wallet_connect_dapp_service.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -84,12 +83,12 @@ class _LinkAppOptionsPageState extends State<LinkAppOptionsPage> {
     _wcURIListener = () {
       log.info("_wcURIListener Get Notifier");
       if (_isPageInactive) return;
-      final _uri = injector<WalletConnectDappService>().wcURI.value;
-      log.info("_wcURIListener Get wcURI $_uri");
+      final uri = injector<WalletConnectDappService>().wcURI.value;
+      log.info("_wcURIListener Get wcURI $uri");
 
-      if (_uri == null) return;
+      if (uri == null) return;
       final metamaskLink =
-          "https://metamask.app.link/wc?uri=" + Uri.encodeComponent(_uri);
+          "https://metamask.app.link/wc?uri=${Uri.encodeComponent(uri)}";
       log.info(metamaskLink);
       _launchURL(metamaskLink);
     };
@@ -111,8 +110,8 @@ class _LinkAppOptionsPageState extends State<LinkAppOptionsPage> {
     injector<WalletConnectDappService>().connect();
   }
 
-  void _launchURL(String _url) async {
-    if (!await launch(_url, forceSafariVC: false, universalLinksOnly: true)) {
+  void _launchURL(String url) async {
+    if (!await launch(url, forceSafariVC: false, universalLinksOnly: true)) {
       _isPageInactive = true;
       Navigator.of(context)
           .pushNamed(AppRouter.linkWalletConnectPage, arguments: 'MetaMask');

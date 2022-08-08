@@ -31,7 +31,7 @@ class _TextShufflerState extends State<TextShuffler> {
   ShufflerStep _step = ShufflerStep.dashes;
   final characters =
       "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890!@#\$%^&*-=";
-  Random _rnd = Random();
+  final Random _rnd = Random();
   Timer? _timer;
 
   @override
@@ -94,7 +94,7 @@ class _TextShufflerState extends State<TextShuffler> {
       return _currentText;
     }
 
-    return _currentText + "-";
+    return "$_currentText-";
   }
 
   String _fillRandomPositions() {

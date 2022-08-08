@@ -30,7 +30,7 @@ class NotificationOnboardingPage extends StatelessWidget {
       ),
       body: Container(
         margin:
-            EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
+            const EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -44,24 +44,25 @@ class NotificationOnboardingPage extends StatelessWidget {
                       "Notifications",
                       style: appTextTheme.headline1,
                     ),
-                    SizedBox(height: 30),
+                    const SizedBox(height: 30),
                     Markdown(
                       data:
-                          '''**Grant Autonomy permission to notify you when:** 
+                          '''
+**Grant Autonomy permission to notify you when:** 
 * An NFT is added to your collection or someone sends you an NFT
 * You receive a signing requests from a dapp or service (coming soon)
 * You receive a customer support message 
 ''',
                       softLineBreak: true,
-                      padding: EdgeInsets.only(bottom: 50),
+                      padding: const EdgeInsets.only(bottom: 50),
                       shrinkWrap: true,
                       styleSheet: markDownLightStyle.copyWith(blockSpacing: 8),
                     ),
                     Center(
                         child: Padding(
+                      padding: const EdgeInsets.only(left: 25),
                       child: SvgPicture.asset(
                           'assets/images/notification_onboarding.svg'),
-                      padding: EdgeInsets.only(left: 25),
                     ))
                   ],
                 ),
@@ -88,7 +89,7 @@ class NotificationOnboardingPage extends StatelessWidget {
                         .setNotificationEnabled(false);
                     Navigator.of(context).pop();
                   },
-                  child: Text(
+                  child: const Text(
                     "NOT NOW",
                     style: TextStyle(
                         color: Colors.black,

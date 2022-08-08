@@ -10,7 +10,6 @@ import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/settings/networks/select_network_bloc.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/tokens_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/material.dart';
@@ -18,6 +17,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 class SelectNetworkPage extends StatelessWidget {
   static const String tag = 'select_network';
+
+  const SelectNetworkPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +48,7 @@ class SelectNetworkPage extends StatelessWidget {
                 "Networks",
                 style: appTextTheme.headline1,
               ),
-              SizedBox(height: 22),
+              const SizedBox(height: 22),
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 title: Text(
@@ -70,7 +71,7 @@ class SelectNetworkPage extends StatelessWidget {
                   ),
                 ),
               ),
-              Divider(height: 1),
+              const Divider(height: 1),
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 title: Text(

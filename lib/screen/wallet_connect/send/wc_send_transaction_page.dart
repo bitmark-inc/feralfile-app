@@ -26,7 +26,7 @@ class WCSendTransactionPage extends StatefulWidget {
   const WCSendTransactionPage({Key? key, required this.args}) : super(key: key);
 
   @override
-  _WCSendTransactionPageState createState() => _WCSendTransactionPageState();
+  State<WCSendTransactionPage> createState() => _WCSendTransactionPageState();
 }
 
 class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
@@ -74,42 +74,42 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            SizedBox(height: 8.0),
+                            const SizedBox(height: 8.0),
                             Text(
                               "Confirm",
                               style: appTextTheme.headline1,
                             ),
-                            SizedBox(height: 40.0),
+                            const SizedBox(height: 40.0),
                             Text(
                               "Asset",
                               style: appTextTheme.headline4,
                             ),
-                            SizedBox(height: 16.0),
+                            const SizedBox(height: 16.0),
                             Text(
                               "Ethereum (ETH)",
                               style: appTextTheme.bodyText2,
                             ),
-                            Divider(height: 32),
+                            const Divider(height: 32),
                             Text(
                               "From",
                               style: appTextTheme.headline4,
                             ),
-                            SizedBox(height: 16.0),
+                            const SizedBox(height: 16.0),
                             Text(
                               widget.args.transaction.from,
                               style: appTextTheme.bodyText2,
                             ),
-                            Divider(height: 32),
+                            const Divider(height: 32),
                             Text(
                               "Connection",
                               style: appTextTheme.headline4,
                             ),
-                            SizedBox(height: 16.0),
+                            const SizedBox(height: 16.0),
                             Text(
                               widget.args.peerMeta.name,
                               style: appTextTheme.bodyText2,
                             ),
-                            Divider(height: 32),
+                            const Divider(height: 32),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
@@ -123,7 +123,7 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                                 ),
                               ],
                             ),
-                            Divider(height: 32),
+                            const Divider(height: 32),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
@@ -137,7 +137,7 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                                 ),
                               ],
                             ),
-                            Divider(height: 32),
+                            const Divider(height: 32),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
@@ -184,8 +184,8 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                 ),
               ),
               state.isSending
-                  ? Center(child: CupertinoActivityIndicator())
-                  : SizedBox(),
+                  ? const Center(child: CupertinoActivityIndicator())
+                  : const SizedBox(),
             ],
           );
         },

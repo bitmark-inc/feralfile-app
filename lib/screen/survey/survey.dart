@@ -44,7 +44,7 @@ class _SurveyPageState extends State<SurveyPage> {
         },
       ),
       body: Container(
-        margin: EdgeInsets.all(16.0),
+        margin: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -54,13 +54,13 @@ class _SurveyPageState extends State<SurveyPage> {
                   : "Which NFT marketplace? ",
               style: appTextTheme.headline1,
             ),
-            SizedBox(height: 40.0),
+            const SizedBox(height: 40.0),
             Expanded(
                 child: PageView(
               /// [PageView.scrollDirection] defaults to [Axis.horizontal].
               /// Use [Axis.vertical] to scroll vertically.
               controller: _pageController,
-              physics: NeverScrollableScrollPhysics(),
+              physics: const NeverScrollableScrollPhysics(),
               children: <Widget>[
                 _page1(context),
                 _page2(context),
@@ -80,7 +80,7 @@ class _SurveyPageState extends State<SurveyPage> {
                   Navigator.of(context)
                       .pushReplacementNamed(SurveyThankyouPage.tag);
                 }),
-            SizedBox(height: 27.0),
+            const SizedBox(height: 27.0),
           ],
         ),
       ),
@@ -143,7 +143,7 @@ class _SurveyPageState extends State<SurveyPage> {
 
   Future<void> _moveToPage(int page) async {
     await _pageController.animateToPage(page,
-        duration: Duration(milliseconds: 200), curve: Curves.easeInOut);
+        duration: const Duration(milliseconds: 200), curve: Curves.easeInOut);
     setState(() {
       _currentPage = page;
     });
@@ -156,7 +156,7 @@ class SurveyQuestionarePage extends StatefulWidget {
   final Function(String)? onOtherItemSelected;
   final Function(int)? onItemSelected;
 
-  SurveyQuestionarePage(
+  const SurveyQuestionarePage(
       {Key? key,
       required this.questionItems,
       this.header,
@@ -188,8 +188,8 @@ class _SurveyQuestionarePageState extends State<SurveyQuestionarePage> {
 
             return GestureDetector(
               child: Container(
-                  padding: EdgeInsets.symmetric(vertical: 18),
-                  decoration: BoxDecoration(
+                  padding: const EdgeInsets.symmetric(vertical: 18),
+                  decoration: const BoxDecoration(
                       border: Border(
                           bottom: BorderSide(
                               color: Color.fromRGBO(227, 227, 227, 1)))),
@@ -221,13 +221,13 @@ class _SurveyQuestionarePageState extends State<SurveyQuestionarePage> {
         )),
         SliverToBoxAdapter(
           child: Container(
-              padding: EdgeInsets.symmetric(vertical: 18),
+              padding: const EdgeInsets.symmetric(vertical: 18),
               decoration: BoxDecoration(
                   border: Border(
                       bottom: BorderSide(
                           color: selection == widget.questionItems.length
                               ? Colors.black
-                              : Color.fromRGBO(227, 227, 227, 1)))),
+                              : const Color.fromRGBO(227, 227, 227, 1)))),
               child: Row(
                 children: [
                   Expanded(
@@ -279,7 +279,7 @@ class _SurveyQuestionarePageState extends State<SurveyQuestionarePage> {
                 ],
               )),
         ),
-        SliverPadding(padding: EdgeInsets.only(bottom: 6))
+        const SliverPadding(padding: EdgeInsets.only(bottom: 6))
       ],
     );
   }

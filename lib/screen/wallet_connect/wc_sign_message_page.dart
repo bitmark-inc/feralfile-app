@@ -56,27 +56,27 @@ class WCSignMessagePage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(height: 8.0),
+                    const SizedBox(height: 8.0),
                     Text(
                       "Confirm",
                       style: appTextTheme.headline1,
                     ),
-                    SizedBox(height: 40.0),
+                    const SizedBox(height: 40.0),
                     Text(
                       "Connection",
                       style: appTextTheme.headline4,
                     ),
-                    SizedBox(height: 16.0),
+                    const SizedBox(height: 16.0),
                     Text(
                       args.peerMeta.name,
                       style: appTextTheme.bodyText2,
                     ),
-                    Divider(height: 32),
+                    const Divider(height: 32),
                     Text(
                       "Message",
                       style: appTextTheme.headline4,
                     ),
-                    SizedBox(height: 16.0),
+                    const SizedBox(height: 16.0),
                     Text(
                       messageInUtf8,
                       style: appTextTheme.bodyText2,

@@ -117,18 +117,18 @@ class _CloudAndroidPageState extends State<CloudAndroidPage>
                       style: appTextTheme.bodyText1,
                     ),
                     if (isEncryptionAvailable == true) ...[
-                      SizedBox(height: 40),
+                      const SizedBox(height: 40),
                       Center(
                           child: SvgPicture.asset("assets/images/cloudOn.svg")),
                     ] else ...[
-                      SizedBox(height: 16),
+                      const SizedBox(height: 16),
                       Text(
                         isEncryptionAvailable == false
                             ? "Automatic Google cloud backups are enabled, but you are not using end-to-end encryption. We recommend enabling it so we can securely back up your account."
                             : "Google cloud backup is currently turned off on your device. If your device supports it, we recommend you enable it so we can safely back up your account.",
                         style: appTextTheme.headline4,
                       ),
-                      SizedBox(height: 40),
+                      const SizedBox(height: 40),
                       Center(
                           child: SvgPicture.asset(isEncryptionAvailable == false
                               ? "assets/images/cloudEncryption.svg"

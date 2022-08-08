@@ -10,7 +10,7 @@ import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 
 class SelectNetworkBloc extends AuBloc<SelectNetworkEvent, Network> {
-  ConfigurationService _configurationService;
+  final ConfigurationService _configurationService;
 
   SelectNetworkBloc(this._configurationService)
       : super(_configurationService.getNetwork()) {

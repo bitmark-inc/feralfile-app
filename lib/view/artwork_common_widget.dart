@@ -47,11 +47,11 @@ Widget tokenThumbnailWidget(BuildContext context, AssetToken token) {
             memCacheWidth: (screenWidth * 3).floor(),
             cacheManager: injector<AUCacheManager>(),
             placeholder: (context, url) => placeholder(),
-            placeholderFadeInDuration: Duration(milliseconds: 300),
+            placeholderFadeInDuration: const Duration(milliseconds: 300),
             fit: BoxFit.cover,
             errorWidget: (context, url, error) => Container(
-              color: Color.fromRGBO(227, 227, 227, 1),
-              padding: EdgeInsets.symmetric(vertical: 133),
+              color: const Color.fromRGBO(227, 227, 227, 1),
+              padding: const EdgeInsets.symmetric(vertical: 133),
               child: brokenTokenWidget(
                   context, AuThemeManager.anyProblemNFTTheme.textTheme, token),
             ),
@@ -68,7 +68,7 @@ Widget tokenGalleryThumbnailWidget(
     child: ext == ".svg"
         ? SvgPicture.network(token.galleryThumbnailURL!,
             placeholderBuilder: (context) =>
-                Container(color: Color.fromRGBO(227, 227, 227, 1)))
+                Container(color: const Color.fromRGBO(227, 227, 227, 1)))
         : CachedNetworkImage(
             imageUrl: token.galleryThumbnailURL!,
             fit: BoxFit.cover,
@@ -76,10 +76,10 @@ Widget tokenGalleryThumbnailWidget(
             memCacheWidth: cachedImageSize,
             cacheManager: injector<AUCacheManager>(),
             placeholder: (context, index) =>
-                Container(color: Color.fromRGBO(227, 227, 227, 1)),
-            placeholderFadeInDuration: Duration(milliseconds: 300),
+                Container(color: const Color.fromRGBO(227, 227, 227, 1)),
+            placeholderFadeInDuration: const Duration(milliseconds: 300),
             errorWidget: (context, url, error) => Container(
-                color: Color.fromRGBO(227, 227, 227, 1),
+                color: const Color.fromRGBO(227, 227, 227, 1),
                 child: Center(
                   child: SvgPicture.asset(
                     'assets/images/image_error.svg',
@@ -94,13 +94,13 @@ Widget tokenGalleryThumbnailWidget(
 Widget placeholder() {
   return AspectRatio(
     aspectRatio: 1,
-    child: Container(color: Color.fromRGBO(227, 227, 227, 1)),
+    child: Container(color: const Color.fromRGBO(227, 227, 227, 1)),
   );
 }
 
 Widget reportNFTProblemContainer(
     AssetToken? token, bool isShowingArtwortReportProblemContainer) {
-  if (token == null) return SizedBox();
+  if (token == null) return const SizedBox();
   return AnimatedContainer(
     duration: const Duration(milliseconds: 300),
     height: isShowingArtwortReportProblemContainer ? 62 : 0,
@@ -157,12 +157,12 @@ Widget brokenTokenWidget(
       Text('IPFS file failed to load.', style: textTheme.bodyText2),
       TextButton(
         onPressed: () => showReportIssueDialog(context, token),
-        child:
-            Text('Report issue?', style: makeLinkStyle(textTheme.bodyText2!)),
         style: TextButton.styleFrom(
             minimumSize: Size.zero,
-            padding: EdgeInsets.all(8),
+            padding: const EdgeInsets.all(8),
             tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+        child:
+            Text('Report issue?', style: makeLinkStyle(textTheme.bodyText2!)),
       ),
     ]),
   );
@@ -193,7 +193,7 @@ void _showReportRenderingDialogSuccess(BuildContext context, String githubURL) {
           'Thank you for reporting this NFT. Our team is looking into it.',
           style: theme.textTheme.bodyText1,
         ),
-        SizedBox(height: 40),
+        const SizedBox(height: 40),
         Row(
           children: [
             Expanded(
@@ -214,12 +214,11 @@ void _showReportRenderingDialogSuccess(BuildContext context, String githubURL) {
             ),
           ],
         ),
-        SizedBox(height: 7),
+        const SizedBox(height: 7),
         Align(
-          alignment: Alignment.center,
           child: TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(
+            child: const Text(
               'CLOSE',
               style: TextStyle(
                   color: Colors.white,
@@ -229,7 +228,7 @@ void _showReportRenderingDialogSuccess(BuildContext context, String githubURL) {
             ),
           ),
         ),
-        SizedBox(height: 15),
+        const SizedBox(height: 15),
       ],
     ),
     isDismissible: true,
@@ -244,7 +243,7 @@ Widget get previewPlaceholder {
 }
 
 Widget debugInfoWidget(AssetToken? token) {
-  if (token == null) return SizedBox();
+  if (token == null) return const SizedBox();
 
   return FutureBuilder<bool>(
       future: isAppCenterBuild().then((value) {
@@ -253,7 +252,7 @@ Widget debugInfoWidget(AssetToken? token) {
         return injector<ConfigurationService>().showTokenDebugInfo();
       }),
       builder: (context, snapshot) {
-        if (snapshot.data == false) return SizedBox();
+        if (snapshot.data == false) return const SizedBox();
 
         TextButton _buildInfo(String text, String value) {
           return TextButton(
@@ -291,9 +290,9 @@ Widget artworkDetailsRightSection(BuildContext context, AssetToken token) {
   return token.source == "feralfile"
       ? Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [SizedBox(height: 40.0), _artworkRightView(context)],
+          children: [const SizedBox(height: 40.0), _artworkRightView(context)],
         )
-      : SizedBox();
+      : const SizedBox();
 }
 
 Widget artworkDetailsValueSection(
@@ -302,11 +301,11 @@ Widget artworkDetailsValueSection(
       ? Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(height: 40.0),
+            const SizedBox(height: 40.0),
             _valueView(context, token, assetPrice),
           ],
         )
-      : SizedBox();
+      : const SizedBox();
 }
 
 Widget artworkDetailsMetadataSection(
@@ -318,10 +317,10 @@ Widget artworkDetailsMetadataSection(
         "Metadata",
         style: appTextTheme.headline2,
       ),
-      SizedBox(height: 16.0),
+      const SizedBox(height: 16.0),
       _rowItem(context, "Title", asset.title),
       if (artistName != null) ...[
-        Divider(height: 32.0),
+        const Divider(height: 32.0),
         _rowItem(
           context,
           "Artist",
@@ -335,14 +334,14 @@ Widget artworkDetailsMetadataSection(
       (asset.maxEdition ?? 0) > 0
           ? Column(
               children: [
-                Divider(height: 32.0),
+                const Divider(height: 32.0),
                 _rowItem(context, "Edition number", asset.edition.toString()),
-                Divider(height: 32.0),
+                const Divider(height: 32.0),
                 _rowItem(context, "Edition size", asset.maxEdition.toString()),
               ],
             )
-          : SizedBox(),
-      Divider(height: 32.0),
+          : const SizedBox(),
+      const Divider(height: 32.0),
       _rowItem(
         context,
         "Token",
@@ -350,7 +349,7 @@ Widget artworkDetailsMetadataSection(
         tapLink: asset.assetURL,
         forceSafariVC: false,
       ),
-      Divider(height: 32.0),
+      const Divider(height: 32.0),
       _rowItem(
         context,
         "Contract",
@@ -358,9 +357,9 @@ Widget artworkDetailsMetadataSection(
         tapLink: asset.blockchainURL,
         forceSafariVC: false,
       ),
-      Divider(height: 32.0),
+      const Divider(height: 32.0),
       _rowItem(context, "Medium", asset.medium?.capitalize()),
-      Divider(height: 32.0),
+      const Divider(height: 32.0),
       _rowItem(
           context,
           "Date minted",
@@ -370,11 +369,11 @@ Widget artworkDetailsMetadataSection(
       asset.assetData != null && asset.assetData!.isNotEmpty
           ? Column(
               children: [
-                Divider(height: 32.0),
+                const Divider(height: 32.0),
                 _rowItem(context, "Artwork data", asset.assetData)
               ],
             )
-          : SizedBox(),
+          : const SizedBox(),
     ],
   );
 }
@@ -387,7 +386,7 @@ Widget artworkDetailsProvenanceSectionNotEmpty(
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      SizedBox(height: 40.0),
+      const SizedBox(height: 40.0),
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -395,24 +394,23 @@ Widget artworkDetailsProvenanceSectionNotEmpty(
             "Provenance",
             style: appTextTheme.headline2,
           ),
-          SizedBox(height: 23.0),
+          const SizedBox(height: 23.0),
           ...provenances.map((el) {
             final identity = identityMap[el.owner];
             final identityTitle = el.owner.toIdentityOrMask(identityMap);
             final youTitle = youAddresses.contains(el.owner) ? " (You)" : "";
-            final provenanceTitle = identityTitle ?? '' + youTitle;
-            final onNameTap = () => identity != null
-                ? UIHelper.showIdentityDetailDialog(context,
-                    name: identity, address: el.owner)
-                : null;
+            final provenanceTitle = "${identityTitle ?? ''}$youTitle";
             return Column(
               children: [
                 _rowItem(
                     context, provenanceTitle, localTimeString(el.timestamp),
                     subTitle: el.blockchain.toUpperCase(),
                     tapLink: el.txURL,
-                    onNameTap: onNameTap),
-                Divider(height: 32.0),
+                    onNameTap: () => identity != null
+                        ? UIHelper.showIdentityDetailDialog(context,
+                        name: identity, address: el.owner)
+                        : null),
+                const Divider(height: 32.0),
               ],
             );
           }).toList()
@@ -430,12 +428,12 @@ Widget _artworkRightView(BuildContext context) {
         "Rights",
         style: appTextTheme.headline2,
       ),
-      SizedBox(height: 16.0),
+      const SizedBox(height: 16.0),
       Text(
         "Feral File protects artist and collector rights.",
         style: appTextTheme.bodyText1,
       ),
-      SizedBox(height: 18.0),
+      const SizedBox(height: 18.0),
       TextButton(
         style: textButtonNoPadding,
         onPressed: () =>
@@ -445,25 +443,25 @@ Widget _artworkRightView(BuildContext context) {
               fontWeight: FontWeight.w500,
             )),
       ),
-      SizedBox(height: 23.0),
+      const SizedBox(height: 23.0),
       _artworkRightItem(context, "Download",
           "As a collector, you have access to a permanent link where you can download the work’s original, full-resolution files and technical details."),
-      Divider(height: 32.0),
+      const Divider(height: 32.0),
       _artworkRightItem(context, "Display",
           "Using the artist’s installation guidelines, you have the right to display the work both privately and publicly."),
-      Divider(height: 32.0),
+      const Divider(height: 32.0),
       _artworkRightItem(context, "Authenticate",
           "You have the right to be assured of the work’s authenticity. Feral File guarantees the provenance of every edition using a public ledger recorded on the Bitmark blockchain."),
-      Divider(height: 32.0),
+      const Divider(height: 32.0),
       _artworkRightItem(context, "Loan or lease",
           "You may grant others the temporary right to display the work."),
-      Divider(height: 32.0),
+      const Divider(height: 32.0),
       _artworkRightItem(context, "Resell or transfer",
           "You are entitled to transfer your rights to the work to another collector or entity. Keep in mind that if you resell the work, the artist will earn 10% of the sale and Feral File will earn 5%."),
-      Divider(height: 32.0),
+      const Divider(height: 32.0),
       _artworkRightItem(context, "Remain anonymous",
           "While all sales are recorded publicly on the public blockchain, you can use an alias to keep your collection private."),
-      Divider(height: 32.0),
+      const Divider(height: 32.0),
       _artworkRightItem(context, "Respect the artist’s rights",
           "Feral File protects artists by forefronting their rights, just like we forefront your rights as a collector. Learn more on the Artist + Collector Rights page."),
     ],
@@ -495,28 +493,28 @@ Widget _valueView(
         style: appTextTheme.headline2,
       ),
       if (assetPrice != null) ...[
-        SizedBox(height: 16.0),
+        const SizedBox(height: 16.0),
         _rowItem(context, "Purchase price",
             "${assetPrice.purchasedPrice.toStringAsFixed(2)} ${assetPrice.currency.toUpperCase()}")
       ],
       if (assetPrice != null &&
           assetPrice.listingPrice > 0 &&
           assetPrice.onSale == true) ...[
-        Divider(height: 32.0),
+        const Divider(height: 32.0),
         _rowItem(context, "Listed for resale",
             "${assetPrice.listingPrice.toStringAsFixed(2)} ${assetPrice.currency.toUpperCase()}"),
       ],
       if (assetPrice != null && assetPrice.minPrice != 0) ...[
-        Divider(height: 32.0),
+        const Divider(height: 32.0),
         _rowItem(context, "Estimated value\n(floor price)",
             "${assetPrice.minPrice.toStringAsFixed(2)} ${assetPrice.currency.toUpperCase()}"),
       ],
       if (changedPriceText.isNotEmpty) ...[
-        Divider(height: 32.0),
+        const Divider(height: 32.0),
         _rowItem(context, "Change (\$)", changedPriceText),
       ],
       if (roiText.isNotEmpty) ...[
-        Divider(height: 32.0),
+        const Divider(height: 32.0),
         _rowItem(context, "Return on investment (ROI)", roiText),
       ],
     ],
@@ -527,7 +525,6 @@ Widget _artworkRightItem(BuildContext context, String name, String body) {
   return Column(
     children: [
       Row(
-        mainAxisAlignment: MainAxisAlignment.start,
         children: [
           Text(
             name,
@@ -535,7 +532,7 @@ Widget _artworkRightItem(BuildContext context, String name, String body) {
           ),
         ],
       ),
-      SizedBox(height: 16.0),
+      const SizedBox(height: 16.0),
       Text(
         body,
         textAlign: TextAlign.start,
@@ -566,11 +563,11 @@ Widget _rowItem(BuildContext context, String name, String? value,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             GestureDetector(
-              child: Text(name, style: appTextTheme.headline4),
               onTap: onNameTap,
+              child: Text(name, style: appTextTheme.headline4),
             ),
             if (subTitle != null) ...[
-              SizedBox(height: 2),
+              const SizedBox(height: 2),
               Text(subTitle,
                   style: appTextTheme.headline4?.copyWith(fontSize: 12)),
             ]
@@ -584,21 +581,21 @@ Widget _rowItem(BuildContext context, String name, String? value,
           children: [
             Expanded(
                 child: GestureDetector(
+              onTap: onValueTap,
               child: Text(
                 value ?? "",
                 textAlign: TextAlign.end,
                 style: TextStyle(
                     color:
-                        onValueTap != null ? Colors.black : Color(0xFF828080),
+                        onValueTap != null ? Colors.black : const Color(0xFF828080),
                     fontSize: 16,
                     fontWeight: FontWeight.w300,
                     fontFamily: "IBMPlexMono",
                     height: 1.377),
               ),
-              onTap: onValueTap,
             )),
             if (onValueTap != null) ...[
-              SizedBox(width: 8.0),
+              const SizedBox(width: 8.0),
               SvgPicture.asset('assets/images/iconForward.svg'),
             ]
           ],

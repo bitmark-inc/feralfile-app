@@ -83,13 +83,13 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _addressesSection(uuid),
-              SizedBox(height: 40),
+              const SizedBox(height: 40),
               _cryptoSection(uuid, network),
-              SizedBox(height: 40),
+              const SizedBox(height: 40),
               _preferencesSection(),
-              SizedBox(height: 40),
+              const SizedBox(height: 40),
               _backupSection(),
-              SizedBox(height: 40),
+              const SizedBox(height: 40),
             ],
           ),
         ),
@@ -105,7 +105,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
           "Addresses",
           style: appTextTheme.headline1,
         ),
-        SizedBox(height: 24),
+        const SizedBox(height: 24),
         FutureBuilder<String>(
             future: Persona.newPersona(uuid: uuid).wallet().getBitmarkAddress(),
             builder: (context, snapshot) {
@@ -115,7 +115,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
                   type: CryptoType.BITMARK,
                 );
               } else {
-                return SizedBox();
+                return const SizedBox();
               }
             }),
         addDivider(),
@@ -149,14 +149,14 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
               SvgPicture.asset('assets/images/iconForward.svg'),
             ],
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           Row(
             children: [
               Expanded(
                 child: Text(
                   address,
                   style: addressStyle,
-                  key: Key("fullAccount_address"),
+                  key: const Key("fullAccount_address"),
                 ),
               ),
             ],
@@ -183,7 +183,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
           "Crypto",
           style: appTextTheme.headline1,
         ),
-        SizedBox(
+        const SizedBox(
           height: 8,
         ),
         Column(
@@ -192,7 +192,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
               builder: (context, state) {
                 final ethAddress = state.personaAddresses?[uuid];
                 final ethBalance = state.ethBalances[network]?[ethAddress];
-                final cryptoType = CryptoType.ETH;
+                const cryptoType = CryptoType.ETH;
 
                 return TappableForwardRow(
                     leftWidget: Text(cryptoType.fullCode,
@@ -215,7 +215,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
               builder: (context, state) {
                 final tezosAddress = state.personaAddresses?[uuid];
                 final xtzBalance = state.balances[network]?[tezosAddress];
-                final cryptoType = CryptoType.XTZ;
+                const cryptoType = CryptoType.XTZ;
 
                 return TappableForwardRow(
                     leftWidget: Text(cryptoType.fullCode,
@@ -245,7 +245,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
         "Preferences",
         style: appTextTheme.headline1,
       ),
-      SizedBox(
+      const SizedBox(
         height: 14,
       ),
       Column(
@@ -268,14 +268,14 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
               )
             ],
           ),
-          SizedBox(height: 14),
+          const SizedBox(height: 14),
           Text(
             "Do not show this account's NFTs in the collection view.",
             style: appTextTheme.bodyText1,
           ),
         ],
       ),
-      SizedBox(height: 12),
+      const SizedBox(height: 12),
     ]);
   }
 
@@ -285,7 +285,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
         "Backup",
         style: appTextTheme.headline1,
       ),
-      SizedBox(
+      const SizedBox(
         height: 8,
       ),
       TappableForwardRow(
@@ -307,6 +307,8 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
             }
 
             final words = await widget.persona.wallet().exportMnemonicWords();
+
+            if (!mounted) return;
 
             Navigator.of(context).pushNamed(AppRouter.recoveryPhrasePage,
                 arguments: words.split(" "));

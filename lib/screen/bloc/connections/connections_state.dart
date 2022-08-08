@@ -54,8 +54,6 @@ class ConnectionsState {
   }
 
   ConnectionsState resetConnectionItems() {
-    return ConnectionsState(
-      connectionItems: null,
-    );
+    return ConnectionsState();
   }
 }

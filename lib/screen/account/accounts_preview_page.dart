@@ -13,7 +13,7 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/src/provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class AccountsPreviewPage extends StatefulWidget {
   const AccountsPreviewPage({Key? key}) : super(key: key);
@@ -39,7 +39,7 @@ class _AccountsPreviewPageState extends State<AccountsPreviewPage> {
       ),
       body: Container(
         margin:
-            EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
+            const EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -52,7 +52,7 @@ class _AccountsPreviewPageState extends State<AccountsPreviewPage> {
                       "Accounts",
                       style: appTextTheme.headline1,
                     ),
-                    SizedBox(height: 24),
+                    const SizedBox(height: 24),
                     AccountsView(isInSettingsPage: false),
                   ],
                 ),

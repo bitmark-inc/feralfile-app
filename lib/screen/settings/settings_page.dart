@@ -24,7 +24,6 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tokens_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -37,6 +36,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 class SettingsPage extends StatefulWidget {
+  const SettingsPage({Key? key}) : super(key: key);
+
   @override
   State<SettingsPage> createState() => _SettingsPageState();
 }
@@ -90,18 +91,17 @@ class _SettingsPageState extends State<SettingsPage>
       controller: _controller,
       child: Scaffold(
           body: Stack(
-        fit: StackFit.loose,
         children: [
           SingleChildScrollView(
-            padding: EdgeInsets.symmetric(horizontal: 15),
+            padding: const EdgeInsets.symmetric(horizontal: 15),
             controller: _controller,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Center(
                   child: Container(
+                    padding: const EdgeInsets.fromLTRB(0, 72, 0, 45),
                     child: autonomyLogo,
-                    padding: EdgeInsets.fromLTRB(0, 72, 0, 45),
                   ),
                 ),
                 Column(
@@ -117,7 +117,7 @@ class _SettingsPageState extends State<SettingsPage>
                         _cloudAvailabilityWidget(),
                       ],
                     ),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
                     AccountsView(
                         key: ValueKey(_forceAccountsViewRedraw),
                         isInSettingsPage: true),
@@ -132,26 +132,26 @@ class _SettingsPageState extends State<SettingsPage>
                         child: Text('+ Account',
                             style: appTextTheme.bodyText2
                                 ?.copyWith(color: Colors.black))),
-                    SizedBox(width: 13),
+                    const SizedBox(width: 13),
                   ],
                 ),
-                SizedBox(height: 40),
+                const SizedBox(height: 40),
                 BlocProvider(
                   create: (_) => PreferencesBloc(
                       injector(), injector<NetworkConfigInjector>().I()),
                   child: PreferenceView(),
                 ),
-                SizedBox(height: 40.0),
+                const SizedBox(height: 40.0),
                 BlocProvider.value(
                   value: _upgradesBloc,
                   child: UpgradesView(),
                 ),
-                SizedBox(height: 40),
+                const SizedBox(height: 40),
                 Text(
                   "Networks",
                   style: appTextTheme.headline1,
                 ),
-                SizedBox(height: 24.0),
+                const SizedBox(height: 24.0),
                 _settingItem(
                     context,
                     "Select network",
@@ -161,13 +161,13 @@ class _SettingsPageState extends State<SettingsPage>
                         : "Main network", () async {
                   await Navigator.of(context).pushNamed(SelectNetworkPage.tag);
                 }),
-                SizedBox(height: 40.0),
+                const SizedBox(height: 40.0),
                 // START HELP US IMPROVE
                 Text(
                   "Help us improve",
                   style: appTextTheme.headline1,
                 ),
-                SizedBox(height: 8.0),
+                const SizedBox(height: 8.0),
                 TappableForwardRow(
                     leftWidget: Text('Participate in bug bounty',
                         style: appTextTheme.headline4),
@@ -180,12 +180,12 @@ class _SettingsPageState extends State<SettingsPage>
                     onTap: () => Navigator.of(context)
                         .pushNamed(AppRouter.participateUserTestPage)),
                 // END HELP US IMPROVE
-                SizedBox(height: 40.0),
+                const SizedBox(height: 40.0),
                 Text(
                   "Data management",
                   style: appTextTheme.headline1,
                 ),
-                SizedBox(height: 24.0),
+                const SizedBox(height: 24.0),
                 TappableForwardRowWithContent(
                     leftWidget: Text(
                       'Rebuild metadata',
@@ -205,9 +205,8 @@ class _SettingsPageState extends State<SettingsPage>
                         'Erase all information about me and delete my keys from my cloud backup including the keys on this device.',
                         style: appTextTheme.bodyText1),
                     onTap: () => _showForgetIExistDialog()),
-                SizedBox(height: 56),
+                const SizedBox(height: 56),
                 Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       if (_packageInfo != null)
                         GestureDetector(
@@ -218,13 +217,12 @@ class _SettingsPageState extends State<SettingsPage>
                             onTap: () async {
                               int now = DateTime.now().millisecondsSinceEpoch;
                               if (now - _lastTap < 1000) {
-                                print("Consecutive tap");
                                 _consecutiveTaps++;
-                                print("taps = " + _consecutiveTaps.toString());
                                 if (_consecutiveTaps == 3) {
                                   final newValue =
                                       await injector<ConfigurationService>()
                                           .toggleDemoArtworksMode();
+                                  if (!mounted) return;
                                   await UIHelper.showInfoDialog(
                                       context,
                                       "Demo mode",
@@ -239,11 +237,11 @@ class _SettingsPageState extends State<SettingsPage>
                       TextButton(
                           onPressed: () => injector<VersionService>()
                               .showReleaseNotes(onlyWhenUnread: false),
-                          child: Text("Release notes", style: linkStyle2)),
-                      SizedBox(height: 10),
+                          child: const Text("Release notes", style: linkStyle2)),
+                      const SizedBox(height: 10),
                       eulaAndPrivacyView(context),
                     ]),
-                SizedBox(height: 60),
+                const SizedBox(height: 60),
               ],
             ),
           ),
@@ -259,8 +257,9 @@ class _SettingsPageState extends State<SettingsPage>
   Widget _settingItem(
       BuildContext context, String name, String value, Function() onTap) {
     return GestureDetector(
+      onTap: onTap,
       child: Padding(
-        padding: EdgeInsets.symmetric(vertical: 8.0),
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -269,20 +268,19 @@ class _SettingsPageState extends State<SettingsPage>
               children: [
                 Text(
                   value,
-                  style: TextStyle(
+                  style: const TextStyle(
                       color: Colors.black,
                       fontSize: 16,
                       fontWeight: FontWeight.w300,
                       fontFamily: "IBMPlexMono"),
                 ),
-                SizedBox(width: 8.0),
+                const SizedBox(width: 8.0),
                 SvgPicture.asset('assets/images/iconForward.svg'),
               ],
             )
           ],
         ),
       ),
-      onTap: onTap,
     );
   }
 
@@ -298,7 +296,7 @@ class _SettingsPageState extends State<SettingsPage>
         valueListenable: injector<CloudService>().isAvailableNotifier,
         builder: (BuildContext context, bool isAvailable, Widget? child) {
           if (isAvailable) {
-            return SizedBox();
+            return const SizedBox();
           } else {
             return IconButton(
               onPressed: () => Navigator.of(context)
@@ -325,7 +323,6 @@ class _SettingsPageState extends State<SettingsPage>
             injector()),
         child: ForgetExistView(),
       ),
-      isDismissible: false,
     );
   }
 
@@ -337,7 +334,7 @@ class _SettingsPageState extends State<SettingsPage>
       "REBUILD",
       () async {
         await injector<TokensService>().purgeCachedGallery();
-
+        if (!mounted) return;
         Navigator.of(context).popUntil((route) =>
             route.settings.name == AppRouter.homePage ||
             route.settings.name == AppRouter.homePageNoTransition);
