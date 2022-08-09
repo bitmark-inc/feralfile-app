@@ -61,6 +61,7 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
   void setMaxTimeToken() {
     _maxTimeTokenTimer?.cancel();
     _maxTimeTokenTimer = Timer(Duration(seconds: 10), () {
+      _disposeCurrentDisplay();
       context.read<FeedBloc>().add(MoveToNextFeedEvent());
     });
   }
@@ -144,11 +145,6 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
             (state.appFeedData == null || state.viewingFeedEvent == null))
           return _emptyOrLoadingDiscoveryWidget(state.appFeedData);
 
-        // dispose previous playback when viewingToken is changed
-        if (latestToken != null && latestToken?.id == state.viewingToken?.id) {
-          _disposeCurrentDisplay();
-        }
-
         latestToken = state.viewingToken;
         latestEvent = state.viewingFeedEvent;
 
@@ -164,8 +160,10 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
                     onHorizontalDragEnd: (dragEndDetails) {
                       print(dragEndDetails.primaryVelocity);
                       if (dragEndDetails.primaryVelocity! < -300) {
+                        _disposeCurrentDisplay();
                         context.read<FeedBloc>().add(MoveToNextFeedEvent());
                       } else if (dragEndDetails.primaryVelocity! > 300) {
+                        _disposeCurrentDisplay();
                         context.read<FeedBloc>().add(MoveToPreviousFeedEvent());
                       }
                     },
