@@ -45,6 +45,7 @@ Widget tokenThumbnailWidget(BuildContext context, AssetToken token) {
             imageUrl: token.thumbnailURL!,
             width: double.infinity,
             memCacheWidth: (screenWidth * 3).floor(),
+            maxWidthDiskCache: (screenWidth * 3).floor(),
             cacheManager: injector<AUCacheManager>(),
             placeholder: (context, url) => placeholder(),
             placeholderFadeInDuration: Duration(milliseconds: 300),
@@ -74,6 +75,8 @@ Widget tokenGalleryThumbnailWidget(
             fit: BoxFit.cover,
             memCacheHeight: cachedImageSize,
             memCacheWidth: cachedImageSize,
+            maxWidthDiskCache: cachedImageSize,
+            maxHeightDiskCache: cachedImageSize,
             cacheManager: injector<AUCacheManager>(),
             placeholder: (context, index) =>
                 Container(color: Color.fromRGBO(227, 227, 227, 1)),
