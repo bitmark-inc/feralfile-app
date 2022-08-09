@@ -72,7 +72,7 @@ extension BiometricAuthenticationViewController {
         case .none:
             return UIImage(named: "auth_passcode")
         case .touchID:
-            return UIImage(named: "auth_touchid")
+            return UIImage(named: "auth_fingerprint")
         case .faceID:
             return UIImage(named: "auth_faceid")
         default:
