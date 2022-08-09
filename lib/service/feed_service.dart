@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get_it/get_it.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:uuid/uuid.dart';
@@ -121,6 +122,7 @@ class FeedServiceImpl extends FeedService {
       Environment.feedURL,
       Environment.indexerMainnetURL,
       Environment.indexerTestnetURL,
+      dotenv,
     ]);
   }
 
@@ -189,6 +191,7 @@ class FeedServiceImpl extends FeedService {
 
   static void _isolateEntry(List<dynamic> arguments) async {
     SendPort sendPort = arguments[0];
+    dotenv = arguments[5];
 
     final receivePort = ReceivePort();
     receivePort.listen(_handleMessageInIsolate);
