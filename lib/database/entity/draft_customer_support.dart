@@ -20,7 +20,7 @@ enum CSMessageType {
 }
 
 extension RawValue on CSMessageType {
-  String get rawValue => this.toString().split('.').last;
+  String get rawValue => toString().split('.').last;
 }
 
 @entity

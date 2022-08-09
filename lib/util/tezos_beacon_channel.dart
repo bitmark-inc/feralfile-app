@@ -15,9 +15,9 @@ import 'package:flutter/services.dart';
 import 'package:tezart/tezart.dart';
 
 class TezosBeaconChannel {
-  static const MethodChannel _channel = const MethodChannel('tezos_beacon');
+  static const MethodChannel _channel = MethodChannel('tezos_beacon');
   static const EventChannel _eventChannel =
-      const EventChannel('tezos_beacon/event');
+      EventChannel('tezos_beacon/event');
 
   TezosBeaconChannel({required this.handler}) {
     listen();

@@ -497,7 +497,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
   Future<String> getAccountHMACSecret() async {
     final value = _preferences.getString(ACCOUNT_HMAC_SECRET);
     if (value == null) {
-      final setValue = Uuid().v4();
+      final setValue = const Uuid().v4();
       await _preferences.setString(ACCOUNT_HMAC_SECRET, setValue);
       return setValue;
     }

@@ -25,14 +25,16 @@ class GlobalReceiveDetailPage extends StatefulWidget {
       : super(key: key);
   @override
   State<GlobalReceiveDetailPage> createState() =>
-      _GlobalReceiveDetailPageState(payload as Account);
+      _GlobalReceiveDetailPageState();
 }
 
 class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
-  final Account _account;
+  late Account _account;
   bool _copied = false;
 
-  _GlobalReceiveDetailPageState(this._account);
+  _GlobalReceiveDetailPageState() {
+    _account = widget.payload as Account;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +47,7 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
       body: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         Expanded(
             child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(horizontal: 16.0),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -56,23 +58,23 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
               addTitleSpace(),
               Center(
                 child: GestureDetector(
+                    onTap: copy,
                     child: QrImage(
                       data: _account.accountNumber,
                       size: 180.0,
-                    ),
-                    onTap: copy),
+                    )),
               ),
-              SizedBox(height: 48),
+              const SizedBox(height: 48),
               Text((_blockchainNFTText(_account.blockchain)),
                   style: appTextTheme.headline4),
               accountItem(context, _account),
               GestureDetector(
+                  onTap: copy,
                   child: Container(
-                    padding: EdgeInsets.fromLTRB(8, 8, 8, 16),
-                    decoration: BoxDecoration(
+                    padding: const EdgeInsets.fromLTRB(8, 8, 8, 16),
+                    decoration: const BoxDecoration(
                       border: Border(
                         top: BorderSide(
-                            width: 1.0,
                             color: Color.fromRGBO(227, 227, 227, 1)),
                       ),
                       color: Color.fromRGBO(237, 237, 237, 0.3),
@@ -87,28 +89,27 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
                                 fontSize: 12,
                                 color: AppColorTheme.secondaryDimGrey),
                           ),
-                          SizedBox(height: 4.0),
+                          const SizedBox(height: 4.0),
                           Padding(
                             padding: const EdgeInsets.only(left: 8),
                             child: Text(
                               _account.accountNumber,
                               textAlign: TextAlign.start,
                               softWrap: true,
-                              style: TextStyle(
+                              style: const TextStyle(
                                   fontSize: 12, fontFamily: "IBMPlexMono"),
                             ),
                           ),
                         ]),
-                  ),
-                  onTap: copy),
+                  )),
               SizedBox(
                   height: 22,
                   child: Container(
                       alignment: Alignment.center,
                       child: _copied
-                          ? Text("Copied", style: copiedTextStyle)
-                          : SizedBox())),
-              SizedBox(height: 4),
+                          ? const Text("Copied", style: copiedTextStyle)
+                          : const SizedBox())),
+              const SizedBox(height: 4),
               Text(_blockchainWarningText(_account.blockchain),
                   style: paragraph),
             ],

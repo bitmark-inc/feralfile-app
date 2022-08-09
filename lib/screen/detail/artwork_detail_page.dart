@@ -32,7 +32,6 @@ import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:html_unescape/html_unescape.dart';
-import 'package:path/path.dart' as p;
 
 class ArtworkDetailPage extends StatefulWidget {
   final ArtworkDetailPayload payload;
@@ -97,7 +96,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     final unescape = HtmlUnescape();
 
     return Stack(
-      fit: StackFit.loose,
       children: [
         Scaffold(
           appBar: getBackAppBar(context,
@@ -133,91 +131,89 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
               }
               subTitle += getEditionSubTitle(asset);
 
-              return Container(
-                child: SingleChildScrollView(
-                  controller: _scrollController,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(height: 16.0),
+              return SingleChildScrollView(
+                controller: _scrollController,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 16.0),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Text(
+                        asset.title,
+                        style: appTextTheme.headline1,
+                      ),
+                    ),
+                    const SizedBox(height: 8.0),
+                    if (subTitle.isNotEmpty) ...[
                       Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16.0),
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
                         child: Text(
-                          asset.title,
-                          style: appTextTheme.headline1,
+                          subTitle,
+                          style: appTextTheme.headline3,
                         ),
                       ),
-                      SizedBox(height: 8.0),
-                      if (subTitle.isNotEmpty) ...[
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 16.0),
-                          child: Text(
-                            subTitle,
-                            style: appTextTheme.headline3,
-                          ),
-                        ),
-                      ],
-                      SizedBox(height: 16.0),
-                      GestureDetector(
-                          child: tokenThumbnailWidget(context, asset),
-                          onTap: () {
-                            if (injector<ConfigurationService>()
-                                .isImmediateInfoViewEnabled()) {
-                              Navigator.of(context).pushNamed(
-                                  AppRouter.artworkPreviewPage,
-                                  arguments: widget.payload);
-                            } else {
-                              Navigator.of(context).pop();
-                            }
-                          }),
-                      debugInfoWidget(currentAsset),
-                      SizedBox(height: 16.0),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              width: 165,
-                              height: 48,
-                              child: AuOutlinedButton(
-                                text: "VIEW ARTWORK",
-                                onPress: () {
-                                  if (injector<ConfigurationService>()
-                                      .isImmediateInfoViewEnabled()) {
-                                    Navigator.of(context).pushNamed(
-                                        AppRouter.artworkPreviewPage,
-                                        arguments: widget.payload);
-                                  } else {
-                                    Navigator.of(context).pop();
-                                  }
-                                },
-                              ),
-                            ),
-                            SizedBox(height: 40.0),
-                            Text(
-                              unescape.convert(asset.desc ?? ""),
-                              style: appTextTheme.bodyText1,
-                            ),
-                            artworkDetailsRightSection(context, asset),
-                            artworkDetailsValueSection(
-                                context, asset, state.assetPrice),
-                            SizedBox(height: 40.0),
-                            artworkDetailsMetadataSection(
-                                context, asset, artistName),
-                            state.provenances.isNotEmpty
-                                ? _provenanceView(context, state.provenances)
-                                : SizedBox(),
-                            SizedBox(height: 80.0),
-                          ],
-                        ),
-                      )
                     ],
-                  ),
+                    const SizedBox(height: 16.0),
+                    GestureDetector(
+                        child: tokenThumbnailWidget(context, asset),
+                        onTap: () {
+                          if (injector<ConfigurationService>()
+                              .isImmediateInfoViewEnabled()) {
+                            Navigator.of(context).pushNamed(
+                                AppRouter.artworkPreviewPage,
+                                arguments: widget.payload);
+                          } else {
+                            Navigator.of(context).pop();
+                          }
+                        }),
+                    debugInfoWidget(currentAsset),
+                    const SizedBox(height: 16.0),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(
+                            width: 165,
+                            height: 48,
+                            child: AuOutlinedButton(
+                              text: "VIEW ARTWORK",
+                              onPress: () {
+                                if (injector<ConfigurationService>()
+                                    .isImmediateInfoViewEnabled()) {
+                                  Navigator.of(context).pushNamed(
+                                      AppRouter.artworkPreviewPage,
+                                      arguments: widget.payload);
+                                } else {
+                                  Navigator.of(context).pop();
+                                }
+                              },
+                            ),
+                          ),
+                          const SizedBox(height: 40.0),
+                          Text(
+                            unescape.convert(asset.desc ?? ""),
+                            style: appTextTheme.bodyText1,
+                          ),
+                          artworkDetailsRightSection(context, asset),
+                          artworkDetailsValueSection(
+                              context, asset, state.assetPrice),
+                          const SizedBox(height: 40.0),
+                          artworkDetailsMetadataSection(
+                              context, asset, artistName),
+                          state.provenances.isNotEmpty
+                              ? _provenanceView(context, state.provenances)
+                              : const SizedBox(),
+                          const SizedBox(height: 80.0),
+                        ],
+                      ),
+                    )
+                  ],
                 ),
               );
             } else {
-              return SizedBox();
+              return const SizedBox();
             }
           }),
         ),
@@ -253,84 +249,85 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
 
     Widget optionRow({required String title, Function()? onTap}) {
       return InkWell(
+        onTap: onTap,
         child: Padding(
-          padding: EdgeInsets.symmetric(vertical: 16.0),
+          padding: const EdgeInsets.symmetric(vertical: 16.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(title, style: theme.textTheme.headline4),
-              Icon(Icons.navigate_next, color: Colors.white),
+              const Icon(Icons.navigate_next, color: Colors.white),
             ],
           ),
         ),
-        onTap: onTap,
       );
     }
 
     final ownerWallet = await asset.getOwnerWallet();
 
+    if (!mounted) return;
     UIHelper.showDialog(
       context,
       "Options",
-      Container(
-        child: Column(
-          children: [
-            optionRow(
-              title: asset.isHidden() ? 'Unhide artwork' : 'Hide artwork',
-              onTap: () async {
-                final appDatabase =
-                    injector<NetworkConfigInjector>().I<AppDatabase>();
-                if (asset.isHidden()) {
-                  asset.hidden = null;
-                } else {
-                  asset.hidden = 1;
-                }
-                await appDatabase.assetDao.updateAsset(asset);
-                await injector<ConfigurationService>()
-                    .updateTempStorageHiddenTokenIDs(
-                        [asset.id], asset.hidden == 1);
-                injector<SettingsDataService>().backup();
+      Column(
+        children: [
+          optionRow(
+            title: asset.isHidden() ? 'Unhide artwork' : 'Hide artwork',
+            onTap: () async {
+              final appDatabase =
+                  injector<NetworkConfigInjector>().I<AppDatabase>();
+              if (asset.isHidden()) {
+                asset.hidden = null;
+              } else {
+                asset.hidden = 1;
+              }
+              await appDatabase.assetDao.updateAsset(asset);
+              await injector<ConfigurationService>()
+                  .updateTempStorageHiddenTokenIDs(
+                      [asset.id], asset.hidden == 1);
+              injector<SettingsDataService>().backup();
 
-                Navigator.of(context).pop();
-                UIHelper.showHideArtworkResultDialog(context, asset.isHidden(),
-                    onOK: () {
-                  Navigator.of(context).popUntil((route) =>
-                      route.settings.name == AppRouter.homePage ||
-                      route.settings.name == AppRouter.homePageNoTransition);
-                });
+              if (!mounted) return;
+
+              Navigator.of(context).pop();
+              UIHelper.showHideArtworkResultDialog(context, asset.isHidden(),
+                  onOK: () {
+                Navigator.of(context).popUntil((route) =>
+                    route.settings.name == AppRouter.homePage ||
+                    route.settings.name == AppRouter.homePageNoTransition);
+              });
+            },
+          ),
+          if (ownerWallet != null) ...[
+            const Divider(
+              color: Colors.white,
+              height: 1,
+              thickness: 1,
+            ),
+            optionRow(
+              title: "Send artwork",
+              onTap: () async {
+                Navigator.of(context).popAndPushNamed(
+                    AppRouter.sendArtworkPage,
+                    arguments: SendArtworkPayload(asset, ownerWallet));
               },
             ),
-            if (ownerWallet != null) ...[
-              Divider(
-                color: Colors.white,
-                height: 1,
-                thickness: 1,
-              ),
-              optionRow(
-                title: "Send artwork",
-                onTap: () async {
-                  Navigator.of(context).popAndPushNamed(
-                      AppRouter.sendArtworkPage,
-                      arguments: SendArtworkPayload(asset, ownerWallet));
-                },
-              ),
-            ],
-            const SizedBox(
-              height: 18,
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(
-                "CANCEL",
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    fontFamily: "IBMPlexMono"),
-              ),
-            ),
           ],
-        ),
+          const SizedBox(
+            height: 18,
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              "CANCEL",
+              style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  fontFamily: "IBMPlexMono"),
+            ),
+          ),
+        ],
       ),
       isDismissible: true,
     );

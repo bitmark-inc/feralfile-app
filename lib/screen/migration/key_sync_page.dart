@@ -15,6 +15,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class KeySyncPage extends StatelessWidget {
+  const KeySyncPage({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<KeySyncBloc, KeySyncState>(
@@ -46,7 +48,7 @@ class KeySyncPage extends StatelessWidget {
                           "Conflict detected",
                           style: appTextTheme.headline1,
                         ),
-                        SizedBox(height: 40),
+                        const SizedBox(height: 40),
                         Text(
                           "We have detected a conflict of keychains.",
                           style: appTextTheme.headline4,
@@ -55,7 +57,7 @@ class KeySyncPage extends StatelessWidget {
                           "This might occur if you have signed in to a different cloud on this device. You are required to define a default keychain for identification before continuing with other actions inside the app:",
                           style: appTextTheme.bodyText1,
                         ),
-                        SizedBox(height: 20),
+                        const SizedBox(height: 20),
                         ListTile(
                           contentPadding: EdgeInsets.zero,
                           title: Text(
@@ -79,7 +81,7 @@ class KeySyncPage extends StatelessWidget {
                             ),
                           ),
                         ),
-                        Divider(height: 1),
+                        const Divider(height: 1),
                         ListTile(
                           contentPadding: EdgeInsets.zero,
                           title: Text(
@@ -103,39 +105,38 @@ class KeySyncPage extends StatelessWidget {
                             ),
                           ),
                         ),
-                        SizedBox(height: 40.0),
+                        const SizedBox(height: 40.0),
                         Container(
-                          padding: EdgeInsets.all(10),
+                          padding: const EdgeInsets.all(10),
                           color: AppColorTheme.secondaryDimGreyBackground,
                           child: Column(
-                              mainAxisAlignment: MainAxisAlignment.start,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('How does it work?',
+                                const Text('How does it work?',
                                     style: TextStyle(
                                         color: AppColorTheme.secondaryDimGrey,
                                         fontSize: 14,
                                         fontWeight: FontWeight.bold,
                                         fontFamily: "AtlasGrotesk",
                                         height: 1.377)),
-                                SizedBox(height: 5),
-                                Text(
+                                const SizedBox(height: 5),
+                                const Text(
                                     "All the data contained in the other keychain will be imported into the defined default one and converted into a full account. If you were using it as the main wallet, you will be able to continue to do so after the conversion. No keys are lost.",
                                     style: bodySmall),
-                                SizedBox(height: 10),
+                                const SizedBox(height: 10),
                                 TextButton(
                                     onPressed: () => Navigator.of(context)
                                         .pushNamed(
                                             AppRouter.autonomySecurityPage),
-                                    child: Text(
-                                        'Learn about Autonomy security...',
-                                        style: linkStyle),
                                     style: TextButton.styleFrom(
                                       minimumSize: Size.zero,
                                       padding: EdgeInsets.zero,
                                       tapTargetSize:
                                           MaterialTapTargetSize.shrinkWrap,
-                                    )),
+                                    ),
+                                    child: const Text(
+                                        'Learn about Autonomy security...',
+                                        style: linkStyle)),
                               ]),
                         )
                       ],

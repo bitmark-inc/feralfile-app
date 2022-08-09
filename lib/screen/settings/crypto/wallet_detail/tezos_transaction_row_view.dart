@@ -28,49 +28,45 @@ class TezosTXRowView extends StatelessWidget {
   Widget build(BuildContext context) {
     final DateFormat formatter = DateFormat('MMM d hh:mm');
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 18),
+      padding: const EdgeInsets.symmetric(vertical: 18),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
             formatter.format(tx.timestamp.toLocal()),
-            style: TextStyle(
+            style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w400,
                 fontFamily: "IBMPlexMono"),
           ),
-          SizedBox(height: 3),
+          const SizedBox(height: 3),
           Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               _transactionImage(),
-              SizedBox(width: 13),
+              const SizedBox(width: 13),
               Text(_transactionTitle(), style: appTextTheme.headline4),
-              Spacer(),
+              const Spacer(),
               Text(_totalAmount(),
-                  style: TextStyle(
+                  style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
                       fontFamily: "IBMPlexMono"))
             ],
           ),
-          SizedBox(height: 4),
+          const SizedBox(height: 4),
           Row(
-            mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(width: 43),
+              const SizedBox(width: 43),
               Text(_transactionStatus(),
-                  style: TextStyle(
+                  style: const TextStyle(
                       color: Colors.black,
                       fontSize: 12,
                       fontWeight: FontWeight.w300,
                       fontFamily: "AtlasGrotesk")),
-              Spacer(),
-              Text(tx.quote.usd.toStringAsPrecision(2) + "  USD",
-                  style: TextStyle(
+              const Spacer(),
+              Text("${tx.quote.usd.toStringAsPrecision(2)} USD",
+                  style: const TextStyle(
                       color: Colors.black,
                       fontSize: 12,
                       fontWeight: FontWeight.w300,

@@ -6,8 +6,6 @@
 //
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/common/network_config_injector.dart';
-import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
@@ -15,7 +13,6 @@ import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:wallet_connect/wallet_connect.dart';
 
-// TODO: This page currently doesn't work but it's no used. Update when it's used.
 class WCDisconnectPage extends StatefulWidget {
   static const String tag = 'wc_disconnect';
 
@@ -49,7 +46,7 @@ class _WCDisconnectPageState extends State<WCDisconnectPage> {
         },
       ),
       body: Container(
-        margin: EdgeInsets.all(16.0),
+        margin: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -57,17 +54,17 @@ class _WCDisconnectPageState extends State<WCDisconnectPage> {
               peerData?.name ?? "",
               style: appTextTheme.headline1,
             ),
-            SizedBox(height: 40.0),
+            const SizedBox(height: 40.0),
             Text(
               "Public address",
               style: appTextTheme.headline4,
             ),
-            SizedBox(height: 16.0),
+            const SizedBox(height: 16.0),
             Text(
               address,
               style: appTextTheme.bodyText2,
             ),
-            Expanded(child: SizedBox()),
+            const Expanded(child: SizedBox()),
             Row(
               children: [
                 Expanded(

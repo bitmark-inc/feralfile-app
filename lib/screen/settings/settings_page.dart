@@ -139,12 +139,12 @@ class _SettingsPageState extends State<SettingsPage>
                 BlocProvider(
                   create: (_) => PreferencesBloc(
                       injector(), injector<NetworkConfigInjector>().I()),
-                  child: PreferenceView(),
+                  child: const PreferenceView(),
                 ),
                 const SizedBox(height: 40.0),
                 BlocProvider.value(
                   value: _upgradesBloc,
-                  child: UpgradesView(),
+                  child: const UpgradesView(),
                 ),
                 const SizedBox(height: 40),
                 Text(
@@ -321,7 +321,7 @@ class _SettingsPageState extends State<SettingsPage>
             injector<NetworkConfigInjector>().mainnetInjector(),
             injector<NetworkConfigInjector>().testnetInjector(),
             injector()),
-        child: ForgetExistView(),
+        child: const ForgetExistView(),
       ),
     );
   }

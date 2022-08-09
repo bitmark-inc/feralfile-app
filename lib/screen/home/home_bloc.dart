@@ -30,13 +30,13 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:autonomy_flutter/util/log.dart';
 
 class HomeBloc extends AuBloc<HomeEvent, HomeState> {
-  TokensService _tokensService;
-  WalletConnectService _walletConnectService;
-  TezosBeaconService _tezosBeaconService;
-  NetworkConfigInjector _networkConfigInjector;
-  CloudDatabase _cloudDB;
-  FeedService _feedService;
-  AccountService _accountService;
+  final TokensService _tokensService;
+  final WalletConnectService _walletConnectService;
+  final TezosBeaconService _tezosBeaconService;
+  final NetworkConfigInjector _networkConfigInjector;
+  final CloudDatabase _cloudDB;
+  final FeedService _feedService;
+  final AccountService _accountService;
 
   AssetTokenDao get _assetTokenDao =>
       _networkConfigInjector.I<AppDatabase>().assetDao;

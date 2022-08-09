@@ -35,15 +35,15 @@ class AuThemeManager {
   static final ThemeData mainTheme = ThemeData(
     scaffoldBackgroundColor: Colors.white,
     primarySwatch: Colors.grey,
-    secondaryHeaderColor: Color(0xFF6D6B6B),
-    errorColor: Color(0xFFA1200A),
+    secondaryHeaderColor: const Color(0xFF6D6B6B),
+    errorColor: const Color(0xFFA1200A),
     textTheme: appTextTheme,
   );
 
   static final ThemeData sheetTheme = ThemeData(
     backgroundColor: Colors.black,
     primaryColor: Colors.white,
-    disabledColor: Color(0xFF999999),
+    disabledColor: const Color(0xFF999999),
     textTheme: ThemeData.light().textTheme.copyWith(
           headline1: appTextTheme.headline1?.copyWith(color: Colors.white),
           headline2: appTextTheme.headline2?.copyWith(color: Colors.white),
@@ -58,9 +58,9 @@ class AuThemeManager {
   );
 
   static final ThemeData anyProblemNFTTheme = ThemeData(
-      backgroundColor: Color(0xFFEDEDED),
+      backgroundColor: const Color(0xFFEDEDED),
       primaryColor: Colors.black,
-      textTheme: TextTheme(
+      textTheme: const TextTheme(
         bodyText1: TextStyle(
             color: Colors.black,
             fontSize: 14,
@@ -75,7 +75,7 @@ class AuThemeManager {
 
   static final ThemeData anyProblemNFTDarkTheme = ThemeData(
       backgroundColor: Colors.black,
-      textTheme: TextTheme(
+      textTheme: const TextTheme(
           bodyText1: TextStyle(
               color: Color(0xFFEDEDED),
               fontSize: 14,
@@ -89,7 +89,7 @@ class AuThemeManager {
 
   static final ThemeData previewNFTTheme = ThemeData(
     backgroundColor: Colors.black,
-    textTheme: TextTheme(
+    textTheme: const TextTheme(
       bodyText1: TextStyle(
           color: Colors.white,
           fontWeight: FontWeight.w700,

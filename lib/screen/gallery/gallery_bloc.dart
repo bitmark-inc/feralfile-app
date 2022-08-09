@@ -8,7 +8,7 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 part 'gallery_state.dart';
 
 class GalleryBloc extends AuBloc<GalleryEvent, GalleryState> {
-  IndexerApi _indexerApi;
+  final IndexerApi _indexerApi;
 
   GalleryBloc(this._indexerApi)
       : super(GalleryState(
@@ -29,7 +29,7 @@ class GalleryBloc extends AuBloc<GalleryEvent, GalleryState> {
             .toList();
         // reload if tokensLength's 0 because it might be indexing case
         final isLastPage =
-            tokens.length == 0 ? false : tokens.length < INDEXER_TOKENS_MAXIMUM;
+            tokens.isEmpty ? false : tokens.length < INDEXER_TOKENS_MAXIMUM;
 
         List<AssetToken> allTokens = (state.tokens ?? []) + tokens;
 

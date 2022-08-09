@@ -72,7 +72,7 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                           "Confirmation",
                           style: appTextTheme.headline1,
                         ),
-                        SizedBox(height: 40.0),
+                        const SizedBox(height: 40.0),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -89,7 +89,7 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                             ),
                           ],
                         ),
-                        Divider(height: 32),
+                        const Divider(height: 32),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -103,7 +103,7 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                             ),
                           ],
                         ),
-                        Divider(height: 32),
+                        const Divider(height: 32),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -117,17 +117,17 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                             ),
                           ],
                         ),
-                        SizedBox(height: 32.0),
+                        const SizedBox(height: 32.0),
                         Text(
                           "To",
                           style: appTextTheme.headline4,
                         ),
-                        SizedBox(height: 16.0),
+                        const SizedBox(height: 16.0),
                         Text(
                           widget.payload.address,
                           style: appTextTheme.bodyText2,
                         ),
-                        Divider(height: 32),
+                        const Divider(height: 32),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -143,7 +143,7 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                             ),
                           ],
                         ),
-                        SizedBox(height: 24.0),
+                        const SizedBox(height: 24.0),
                       ],
                     ),
                   ),
@@ -188,6 +188,7 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                                           BigInt.zero,
                                           null,
                                           data);
+                                  if (!mounted) return;
                                   Navigator.of(context).pop(txHash);
                                 } else {
                                   final tezosService =
@@ -207,6 +208,7 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                                   final opHash = await tezosService
                                       .sendOperationTransaction(
                                           tezosWallet, [operation]);
+                                  if (!mounted) return;
                                   Navigator.of(context).pop(opHash);
                                 }
 
@@ -218,11 +220,11 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                     ),
                   ],
                 ),
-                SizedBox(height: 16.0),
+                const SizedBox(height: 16.0),
               ],
             ),
           ),
-          _isSending ? Center(child: CupertinoActivityIndicator()) : SizedBox(),
+          _isSending ? const Center(child: CupertinoActivityIndicator()) : const SizedBox(),
         ],
       ),
     );

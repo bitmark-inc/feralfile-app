@@ -336,14 +336,14 @@ class TokensServiceImpl extends TokensService {
     try {
       final owners = addresses.join(",");
 
-      final _isolateIndexerAPI =
+      final isolateIndexerAPI =
           isTestnet ? testnetInjector<IndexerApi>() : injector<IndexerApi>();
 
       var offset = 0;
       Set<String> tokenIDs = {};
 
       while (true) {
-        final assets = await _isolateIndexerAPI.getNftTokensByOwner(
+        final assets = await isolateIndexerAPI.getNftTokensByOwner(
             owners, offset, INDEXER_TOKENS_MAXIMUM);
         tokenIDs.addAll(assets.map((e) => e.id));
 
@@ -371,13 +371,13 @@ class TokensServiceImpl extends TokensService {
 
   static void _reindexAddressesInIndexer(
       String uuid, List<String> addresses, bool isTestnet) async {
-    final _indexerAPI =
+    final indexerAPI =
         isTestnet ? testnetInjector<IndexerApi>() : injector<IndexerApi>();
     for (final address in addresses) {
       if (address.startsWith("tz")) {
-        _indexerAPI.requestIndex({"owner": address, "blockchain": "tezos"});
+        indexerAPI.requestIndex({"owner": address, "blockchain": "tezos"});
       } else if (address.startsWith("0x")) {
-        _indexerAPI.requestIndex({"owner": address});
+        indexerAPI.requestIndex({"owner": address});
       }
     }
 

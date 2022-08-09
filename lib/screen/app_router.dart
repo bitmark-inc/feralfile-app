@@ -97,7 +97,6 @@ import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_disconnect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -206,7 +205,7 @@ class AppRouter {
                             networkInjector.I<AppDatabase>(),
                             networkInjector.I())),
                   ],
-                  child: HomePage(),
+                  child: const HomePage(),
                 ),
             transitionDuration: const Duration());
 
@@ -230,7 +229,7 @@ class AppRouter {
                             networkInjector.I<AppDatabase>(),
                             networkInjector.I())),
                   ],
-                  child: HomePage(),
+                  child: const HomePage(),
                 ));
       case beOwnGalleryPage:
         return CupertinoPageRoute(
@@ -477,7 +476,7 @@ class AppRouter {
                           )),
                   BlocProvider.value(value: ethereumBloc),
                   BlocProvider.value(value: tezosBloc),
-                ], child: SettingsPage()));
+                ], child: const SettingsPage()));
 
       case personaDetailsPage:
         return CupertinoPageRoute(
@@ -633,7 +632,7 @@ class AppRouter {
             settings: settings,
             builder: (context) => BlocProvider(
                   create: (_) => SelectNetworkBloc(injector()),
-                  child: SelectNetworkPage(),
+                  child: const SelectNetworkPage(),
                 ));
       case artworkDetailsPage:
         return PageTransition(
@@ -769,7 +768,7 @@ class AppRouter {
             settings: settings,
             builder: (context) => BlocProvider(
                   create: (_) => HiddenArtworksBloc(networkInjector.I()),
-                  child: HiddenArtworksPage(),
+                  child: const HiddenArtworksPage(),
                 ));
 
       case SurveyPage.tag:
@@ -779,7 +778,7 @@ class AppRouter {
             builder: (context) => const SurveyPage());
       case SurveyThankyouPage.tag:
         return CupertinoPageRoute(
-            settings: settings, builder: (context) => SurveyThankyouPage());
+            settings: settings, builder: (context) => const SurveyThankyouPage());
 
       case githubDocPage:
         return CupertinoPageRoute(
@@ -792,7 +791,7 @@ class AppRouter {
             settings: settings,
             builder: (context) => BlocProvider(
                   create: (_) => KeySyncBloc(injector(), injector()),
-                  child: KeySyncPage(),
+                  child: const KeySyncPage(),
                 ));
 
       case tvConnectPage:

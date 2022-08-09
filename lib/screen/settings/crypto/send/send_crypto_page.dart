@@ -36,8 +36,8 @@ class SendCryptoPage extends StatefulWidget {
 }
 
 class _SendCryptoPageState extends State<SendCryptoPage> {
-  TextEditingController _addressController = TextEditingController();
-  TextEditingController _amountController = TextEditingController();
+  final TextEditingController _addressController = TextEditingController();
+  final TextEditingController _amountController = TextEditingController();
 
   @override
   void initState() {
@@ -64,7 +64,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
       body: BlocBuilder<SendCryptoBloc, SendCryptoState>(
           builder: (context, state) {
         return Container(
-          margin: EdgeInsets.all(16.0),
+          margin: const EdgeInsets.all(16.0),
           child: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -73,7 +73,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                   "Send ${type == CryptoType.ETH ? "ETH" : "XTZ"}",
                   style: appTextTheme.headline1,
                 ),
-                SizedBox(height: 40.0),
+                const SizedBox(height: 40.0),
                 AuTextField(
                   title: "To",
                   placeholder: "Paste or scan address",
@@ -97,6 +97,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                                 : ScannerItem.XTZ_ADDRESS);
                         if (address != null && address is String) {
                           _addressController.text = address;
+                          if (!mounted) return;
                           context
                               .read<SendCryptoBloc>()
                               .add(AddressChangedEvent(address));
@@ -110,18 +111,18 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                         .add(AddressChangedEvent(_addressController.text));
                   },
                 ),
-                SizedBox(height: 16.0),
+                const SizedBox(height: 16.0),
                 AuTextField(
                   title: "Send",
                   placeholder: "0",
                   isError: state.isAmountError,
                   controller: _amountController,
-                  keyboardType: TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   subTitleView: state.maxAllow != null
                       ? GestureDetector(
                           child: Text(
                             _maxAmountText(state),
-                            style: TextStyle(
+                            style: const TextStyle(
                                 fontSize: 12,
                                 decoration: TextDecoration.underline,
                                 fontFamily: "AtlasGrotesk",
@@ -177,13 +178,13 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                         _amountController.text.replaceAll(",", ".")));
                   },
                 ),
-                SizedBox(height: 8.0),
+                const SizedBox(height: 8.0),
                 Text(_gasFee(state),
-                    style: TextStyle(
+                    style: const TextStyle(
                         color: Colors.black,
                         fontSize: 12,
                         fontFamily: "AtlasGrotesk")),
-                SizedBox(height: 24.0),
+                const SizedBox(height: 24.0),
                 // Expanded(child: SizedBox()),
                 Row(
                   children: [
@@ -203,6 +204,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                                     .pushNamed(SendReviewPage.tag,
                                         arguments: payload);
                                 if (txHash != null && txHash is String) {
+                                  if (!mounted) return;
                                   Navigator.of(context).pop();
                                 }
                               }

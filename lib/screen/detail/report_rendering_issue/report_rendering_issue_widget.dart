@@ -29,7 +29,7 @@ class ReportRenderingIssueWidget extends StatefulWidget {
 
 class _ReportRenderingIssueWidgetState
     extends State<ReportRenderingIssueWidget> {
-  List<String> _selectedTopices = [];
+  final List<String> _selectedTopices = [];
   bool _isSubmissionEnabled = false;
   bool _isProcessing = false;
 
@@ -46,82 +46,80 @@ class _ReportRenderingIssueWidgetState
       'Provenance'
     ];
 
-    return Container(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text('Select a TOPIC BELOW:'.toUpperCase(),
-                  style: theme.textTheme.headline5),
-              SizedBox(height: 16),
-              ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: topics.length,
-                  itemBuilder: (context, index) {
-                    return Column(
-                      children: [
-                        GestureDetector(
-                          behavior: HitTestBehavior.translucent,
-                          onTap: () => _selectTopics(topics[index]),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 15.0),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(topics[index],
-                                    style: theme.textTheme.headline4),
-                                RoundCheckBox(
-                                    uncheckedColor: Colors.transparent,
-                                    checkedColor: Colors.white,
-                                    checkedWidget: Icon(Icons.check,
-                                        color: Colors.black, size: 16),
-                                    animationDuration:
-                                        Duration(milliseconds: 100),
-                                    isChecked: _selectedTopices
-                                        .contains(topics[index]),
-                                    size: 24,
-                                    onTap: (_) => _selectTopics(topics[index])),
-                              ],
-                            ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text('Select a TOPIC BELOW:'.toUpperCase(),
+                style: theme.textTheme.headline5),
+            const SizedBox(height: 16),
+            ListView.builder(
+                shrinkWrap: true,
+                itemCount: topics.length,
+                itemBuilder: (context, index) {
+                  return Column(
+                    children: [
+                      GestureDetector(
+                        behavior: HitTestBehavior.translucent,
+                        onTap: () => _selectTopics(topics[index]),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 15.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(topics[index],
+                                  style: theme.textTheme.headline4),
+                              RoundCheckBox(
+                                  uncheckedColor: Colors.transparent,
+                                  checkedColor: Colors.white,
+                                  checkedWidget: const Icon(Icons.check,
+                                      color: Colors.black, size: 16),
+                                  animationDuration:
+                                      const Duration(milliseconds: 100),
+                                  isChecked: _selectedTopices
+                                      .contains(topics[index]),
+                                  size: 24,
+                                  onTap: (_) => _selectTopics(topics[index])),
+                            ],
                           ),
                         ),
-                        if (index != topics.length - 1) ...[
-                          const Divider(height: 0, color: Colors.white),
-                        ]
-                      ],
-                    );
-                  }),
-              SizedBox(height: 15),
-              Row(
-                children: [
-                  Expanded(
-                    child: AuFilledButton(
-                      text: "REPORT ISSUE",
-                      onPress: () => _reportIssue(),
-                      isProcessing: _isProcessing,
-                      color: theme.primaryColor,
-                      textStyle: TextStyle(
-                          color: _isSubmissionEnabled
-                              ? theme.backgroundColor
-                              : theme.disabledColor,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          fontFamily: "IBMPlexMono"),
-                    ),
+                      ),
+                      if (index != topics.length - 1) ...[
+                        const Divider(height: 0, color: Colors.white),
+                      ]
+                    ],
+                  );
+                }),
+            const SizedBox(height: 15),
+            Row(
+              children: [
+                Expanded(
+                  child: AuFilledButton(
+                    text: "REPORT ISSUE",
+                    onPress: () => _reportIssue(),
+                    isProcessing: _isProcessing,
+                    color: theme.primaryColor,
+                    textStyle: TextStyle(
+                        color: _isSubmissionEnabled
+                            ? theme.backgroundColor
+                            : theme.disabledColor,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        fontFamily: "IBMPlexMono"),
                   ),
-                ],
-              ),
-              TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: Text("CANCEL",
-                      style:
-                          appTextTheme.button?.copyWith(color: Colors.white))),
-            ],
-          ),
-        ],
-      ),
+                ),
+              ],
+            ),
+            TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text("CANCEL",
+                    style:
+                        appTextTheme.button?.copyWith(color: Colors.white))),
+          ],
+        ),
+      ],
     );
   }
 
@@ -148,6 +146,7 @@ class _ReportRenderingIssueWidgetState
     final githubURL = await injector<CustomerSupportService>()
         .createRenderingIssueReport(widget.token, _selectedTopices);
 
+    if (!mounted) return;
     Navigator.pop(context);
     widget.onReported(githubURL);
   }

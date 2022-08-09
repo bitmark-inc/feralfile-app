@@ -97,7 +97,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   types.CustomMessage get _resolvedMessager => types.CustomMessage(
         id: _resolvedMessagerID,
         author: _bitmark,
-        metadata: {"status": "resolved"},
+        metadata: const {"status": "resolved"},
       );
 
   @override

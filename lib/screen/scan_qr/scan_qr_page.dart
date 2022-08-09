@@ -39,7 +39,7 @@ class ScanQRPage extends StatefulWidget {
       : super(key: key);
 
   @override
-  _ScanQRPageState createState() => _ScanQRPageState();
+  State<ScanQRPage> createState() => _ScanQRPageState();
 }
 
 class _ScanQRPageState extends State<ScanQRPage> with RouteAware {
@@ -72,7 +72,7 @@ class _ScanQRPageState extends State<ScanQRPage> with RouteAware {
       openAppSettings();
     } else {
       if (Platform.isAndroid) {
-        Future.delayed(Duration(seconds: 1), () {
+        Future.delayed(const Duration(seconds: 1), () {
           controller.resumeCamera();
         });
       }
@@ -115,19 +115,17 @@ class _ScanQRPageState extends State<ScanQRPage> with RouteAware {
       child: Scaffold(
         body: Stack(
           children: <Widget>[
-            Container(
-              child: QRView(
-                key: qrKey,
-                overlay: QrScannerOverlayShape(
-                  borderColor: isScanDataError ? Colors.red : Colors.white,
-                  cutOutSize: qrSize,
-                  borderWidth: 8,
-                  borderRadius: 40,
-                  // borderLength: qrSize / 2,
-                  cutOutBottomOffset: 32 + cutPaddingTop,
-                ),
-                onQRViewCreated: _onQRViewCreated,
+            QRView(
+              key: qrKey,
+              overlay: QrScannerOverlayShape(
+                borderColor: isScanDataError ? Colors.red : Colors.white,
+                cutOutSize: qrSize,
+                borderWidth: 8,
+                borderRadius: 40,
+                // borderLength: qrSize / 2,
+                cutOutBottomOffset: 32 + cutPaddingTop,
               ),
+              onQRViewCreated: _onQRViewCreated,
             ),
             GestureDetector(
                 behavior: HitTestBehavior.translucent,
@@ -150,7 +148,7 @@ class _ScanQRPageState extends State<ScanQRPage> with RouteAware {
                 child: Align(
               alignment: Alignment.bottomCenter,
               child: Padding(
-                padding: EdgeInsets.fromLTRB(16.0, 0, 16.0, 32.0),
+                padding: const EdgeInsets.fromLTRB(16.0, 0, 16.0, 32.0),
                 child: AuFilledButton(
                     text: "SHOW MY QR CODE",
                     icon: SvgPicture.asset(
@@ -166,7 +164,7 @@ class _ScanQRPageState extends State<ScanQRPage> with RouteAware {
               ),
             )),
             if (_isLoading) ...[
-              Center(
+              const Center(
                 child:
                     CupertinoActivityIndicator(color: Colors.black, radius: 16),
               ),
@@ -184,14 +182,12 @@ class _ScanQRPageState extends State<ScanQRPage> with RouteAware {
       case ScannerItem.FERALFILE_TOKEN:
       case ScannerItem.GLOBAL:
         return Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Text(
               "Scan QR code to connect to".toUpperCase(),
               style: appTextTheme.button?.copyWith(color: Colors.white),
             ),
-            SizedBox(height: 24),
+            const SizedBox(height: 24),
             Text(
               "Apps",
               style: appTextTheme.headline4
@@ -200,7 +196,7 @@ class _ScanQRPageState extends State<ScanQRPage> with RouteAware {
             Text('Such as OpenSea or objkt.com',
                 style: appTextTheme.bodyText1
                     ?.copyWith(color: Colors.white, fontSize: 12)),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
               "Wallets",
               style: appTextTheme.headline4
@@ -209,7 +205,7 @@ class _ScanQRPageState extends State<ScanQRPage> with RouteAware {
             Text('Such as MetaMask',
                 style: appTextTheme.bodyText1
                     ?.copyWith(color: Colors.white, fontSize: 12)),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
               "Autonomy",
               style: appTextTheme.headline4
@@ -224,8 +220,6 @@ class _ScanQRPageState extends State<ScanQRPage> with RouteAware {
       case ScannerItem.ETH_ADDRESS:
       case ScannerItem.XTZ_ADDRESS:
         return Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Text(
               "SCAN QR CODE",
@@ -334,6 +328,7 @@ class _ScanQRPageState extends State<ScanQRPage> with RouteAware {
           code.replacePrefix(FF_TOKEN_DEEPLINK_PREFIX, ""),
           delayLink: false);
       injector<NavigationService>().popUntilHomeOrSettings();
+      if (!mounted) return;
       UIHelper.showFFAccountLinked(context, connection.name);
     } catch (_) {
       Navigator.of(context).pop();

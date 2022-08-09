@@ -121,6 +121,7 @@ dependencies:
   web3dart: ^2.3.3
   web_socket_channel: ^2.1.0
   webview_flutter: ^3.0.0
+  json_annotation: ^4.6.0
 
 dependency_overrides:
   # Error using when import photo_view from dependencies:

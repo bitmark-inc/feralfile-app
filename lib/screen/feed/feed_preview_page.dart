@@ -53,14 +53,14 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
 
     context.read<FeedBloc>().add(GetFeedsEvent());
 
-    _timer = Timer.periodic(Duration(seconds: 10), (timer) {
+    _timer = Timer.periodic(const Duration(seconds: 10), (timer) {
       context.read<FeedBloc>().add(RetryMissingTokenInFeedsEvent());
     });
   }
 
   void setMaxTimeToken() {
     _maxTimeTokenTimer?.cancel();
-    _maxTimeTokenTimer = Timer(Duration(seconds: 10), () {
+    _maxTimeTokenTimer = Timer(const Duration(seconds: 10), () {
       context.read<FeedBloc>().add(MoveToNextFeedEvent());
     });
   }
@@ -94,7 +94,7 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
     routeObserver.unsubscribe(this);
     WidgetsBinding.instance.removeObserver(this);
     _renderingWidget?.dispose();
-    Sentry.getSpan()?.finish(status: SpanStatus.ok());
+    Sentry.getSpan()?.finish(status: const SpanStatus.ok());
     _timer?.cancel();
     _maxTimeTokenTimer?.cancel();
     super.dispose();
@@ -141,8 +141,9 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
         }
       }, builder: (context, state) {
         if (state.isFinishedOnBoarding() &&
-            (state.appFeedData == null || state.viewingFeedEvent == null))
+            (state.appFeedData == null || state.viewingFeedEvent == null)) {
           return _emptyOrLoadingDiscoveryWidget(state.appFeedData);
+        }
 
         // dispose previous playback when viewingToken is changed
         if (latestToken != null && latestToken?.id == state.viewingToken?.id) {
@@ -152,44 +153,41 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
         latestToken = state.viewingToken;
         latestEvent = state.viewingFeedEvent;
 
-        return Container(
-            child: Column(
+        return Column(
           children: [
-            Expanded(
-              child: Stack(
-                fit: StackFit.loose,
-                children: [
-                  GestureDetector(
-                    behavior: HitTestBehavior.translucent,
-                    onHorizontalDragEnd: (dragEndDetails) {
-                      print(dragEndDetails.primaryVelocity);
-                      if (dragEndDetails.primaryVelocity! < -300) {
-                        context.read<FeedBloc>().add(MoveToNextFeedEvent());
-                      } else if (dragEndDetails.primaryVelocity! > 300) {
-                        context.read<FeedBloc>().add(MoveToPreviousFeedEvent());
-                      }
-                    },
-                    child: Container(
-                      color: Colors.black,
-                      child: Center(
-                          child: state.isFinishedOnBoarding()
-                              ? _getArtworkPreviewView(state.viewingToken)
-                              : _getOnBoardingView(state.onBoardingStep)),
-                    ),
-                  ),
-                  // ),
-                  Align(
-                    alignment: Alignment.topCenter,
-                    child: state.isFinishedOnBoarding()
-                        ? _controlView(
-                            state.viewingFeedEvent!, state.viewingToken)
-                        : _controlViewOnBoarding(),
-                  ),
-                ],
+        Expanded(
+          child: Stack(
+            children: [
+              GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onHorizontalDragEnd: (dragEndDetails) {
+                  if (dragEndDetails.primaryVelocity! < -300) {
+                    context.read<FeedBloc>().add(MoveToNextFeedEvent());
+                  } else if (dragEndDetails.primaryVelocity! > 300) {
+                    context.read<FeedBloc>().add(MoveToPreviousFeedEvent());
+                  }
+                },
+                child: Container(
+                  color: Colors.black,
+                  child: Center(
+                      child: state.isFinishedOnBoarding()
+                          ? _getArtworkPreviewView(state.viewingToken)
+                          : _getOnBoardingView(state.onBoardingStep)),
+                ),
               ),
-            ),
+              // ),
+              Align(
+                alignment: Alignment.topCenter,
+                child: state.isFinishedOnBoarding()
+                    ? _controlView(
+                        state.viewingFeedEvent!, state.viewingToken)
+                    : _controlViewOnBoarding(),
+              ),
+            ],
+          ),
+        ),
           ],
-        ));
+        );
       }),
     );
   }
@@ -210,11 +208,10 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
       padding: EdgeInsets.fromLTRB(15, safeAreaTop, 15, 0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           SvgPicture.asset("assets/images/iconInfo.svg",
               color: AppColorTheme.secondarySpanishGrey),
-          SizedBox(width: 13),
+          const SizedBox(width: 13),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -232,14 +229,14 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
                   Text(getDateTimeRepresentation(event.timestamp.toLocal()),
                       style: theme.textTheme.bodyText2),
                 ]),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 RichText(
                     overflow: TextOverflow.ellipsis,
                     text: TextSpan(
                       style: theme.textTheme.bodyText2,
                       children: <TextSpan>[
                         TextSpan(
-                          text: event.actionRepresentation + ' ',
+                          text: '${event.actionRepresentation} ',
                         ),
                         TextSpan(
                           text: 'nft currently indexing...',
@@ -250,7 +247,7 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
               ],
             ),
           ),
-          SizedBox(),
+          const SizedBox(),
           previewCloseIcon(context),
         ],
       ),
@@ -267,10 +264,9 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
       padding: EdgeInsets.fromLTRB(15, safeAreaTop, 15, 0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           SvgPicture.asset("assets/images/iconFeed.svg", color: Colors.white),
-          SizedBox(width: 13),
+          const SizedBox(width: 13),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -281,7 +277,7 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
                   style: theme.textTheme.bodyText1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Text(
                   "introducing Discovery",
                   style: theme.textTheme.bodyText2,
@@ -290,7 +286,7 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
               ],
             ),
           ),
-          SizedBox(),
+          const SizedBox(),
           previewCloseIcon(context),
         ],
       ),
@@ -321,10 +317,9 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
         onTap: () => _moveToInfo(asset),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             SvgPicture.asset("assets/images/iconInfo.svg", color: Colors.white),
-            SizedBox(width: 13),
+            const SizedBox(width: 13),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -342,14 +337,14 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
                     Text(getDateTimeRepresentation(event.timestamp.toLocal()),
                         style: theme.textTheme.bodyText2),
                   ]),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   RichText(
                       overflow: TextOverflow.ellipsis,
                       text: TextSpan(
                         style: theme.textTheme.bodyText2,
                         children: <TextSpan>[
                           TextSpan(
-                            text: event.actionRepresentation + ' ',
+                            text: '${event.actionRepresentation} ',
                           ),
                           TextSpan(
                             text: asset.title.isEmpty ? 'nft' : asset.title,
@@ -366,7 +361,7 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
                 ],
               ),
             ),
-            SizedBox(),
+            const SizedBox(),
             previewCloseIcon(context),
           ],
         ),
@@ -393,8 +388,8 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
   }
 
   Widget _getOnBoardingView(int step) {
-    final assetPath;
-    final title;
+    final String assetPath;
+    final String title;
 
     switch (step) {
       case 1:
@@ -411,18 +406,17 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
     }
 
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          SizedBox(height: 32),
+          const SizedBox(height: 32),
           Text(
             title,
             textAlign: TextAlign.center,
             style: appTextTheme.headline2?.copyWith(color: Colors.white),
           ),
-          SizedBox(height: 24),
+          const SizedBox(height: 24),
           Image.asset(
             assetPath,
             height: MediaQuery.of(context).size.height * 2 / 3,
@@ -464,22 +458,20 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
     return Padding(
       padding: pageEdgeInsets.copyWith(top: safeAreaTop + 6, right: 15),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               previewCloseIcon(context),
             ],
           ),
-          SizedBox(height: 24),
+          const SizedBox(height: 24),
           Text(
             "Discovery",
             style: appTextTheme.headline1?.copyWith(color: Colors.white),
           ),
-          SizedBox(height: 48),
+          const SizedBox(height: 48),
           if (appFeedData == null) ...[
             Center(child: loadingIndicator(valueColor: Colors.white)),
           ] else if (appFeedData.events.isEmpty) ...[

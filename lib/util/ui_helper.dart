@@ -31,8 +31,8 @@ import 'package:share/share.dart';
 
 enum ActionState { notRequested, loading, error, done }
 
-const SHOW_DIALOG_DURATION = const Duration(seconds: 2);
-const SHORT_SHOW_DIALOG_DURATION = const Duration(seconds: 1);
+const SHOW_DIALOG_DURATION = Duration(seconds: 2);
+const SHORT_SHOW_DIALOG_DURATION = Duration(seconds: 1);
 
 void doneOnboarding(BuildContext context) async {
   injector<ConfigurationService>().setDoneOnboarding(true);
@@ -49,7 +49,7 @@ Future askForNotification() async {
     return;
   }
 
-  await Future<dynamic>.delayed(Duration(seconds: 1), () async {
+  await Future<dynamic>.delayed(const Duration(seconds: 1), () async {
     final context = injector<NavigationService>().navigatorKey.currentContext;
     if (context == null) return null;
 
@@ -72,7 +72,7 @@ void showSurveysNotification() {
 
   showCustomNotifications(
       "Take a one-question survey and be entered to win a Feral File artwork.",
-      Key(Survey.onboarding),
+      const Key(Survey.onboarding),
       notificationOpenedHandler: () =>
           injector<NavigationService>().navigateTo(SurveyPage.tag));
 }
@@ -127,7 +127,7 @@ class UIHelper {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(title, style: theme.textTheme.headline1),
-                      SizedBox(height: 40),
+                      const SizedBox(height: 40),
                       content,
                     ],
                   ),
@@ -165,9 +165,9 @@ class UIHelper {
                 style: theme.textTheme.bodyText1,
               ),
             ],
-            SizedBox(height: 40),
+            const SizedBox(height: 40),
             if (closeButton.isNotEmpty) ...[
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               Row(
                 children: [
                   Expanded(
@@ -175,7 +175,7 @@ class UIHelper {
                       onPressed: () => Navigator.pop(context),
                       child: Text(
                         closeButton,
-                        style: TextStyle(
+                        style: const TextStyle(
                             color: Colors.white,
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
@@ -185,7 +185,7 @@ class UIHelper {
                   ),
                 ],
               ),
-              SizedBox(height: 15),
+              const SizedBox(height: 15),
             ]
           ],
         ),
@@ -214,7 +214,7 @@ class UIHelper {
                   style: theme.textTheme.bodyText1,
                   text: "Autonomy has sent a request to ",
                 ),
-                TextSpan(
+                const TextSpan(
                   style: TextStyle(
                       color: Colors.white,
                       fontSize: 16,
@@ -230,7 +230,7 @@ class UIHelper {
                 ),
               ]),
             ),
-            SizedBox(height: 67),
+            const SizedBox(height: 67),
           ],
         ),
         isDismissible: true);
@@ -253,7 +253,7 @@ class UIHelper {
                       "Autonomy has received authorization to link to your Feral File account ",
                 ),
                 TextSpan(
-                  style: TextStyle(
+                  style: const TextStyle(
                       color: Colors.white,
                       fontSize: 16,
                       fontFamily: "AtlasGrotesk-Light",
@@ -268,7 +268,7 @@ class UIHelper {
                 ),
               ]),
             ),
-            SizedBox(height: 67),
+            const SizedBox(height: 67),
           ],
         ),
         isDismissible: true,
@@ -283,7 +283,7 @@ class UIHelper {
             connection.wcConnection?.sessionStore.remotePeerMeta;
         final appIcons = remotePeerMeta?.icons ?? [];
         if (appIcons.isEmpty) {
-          return Container(
+          return SizedBox(
               width: size,
               height: size,
               child:
@@ -293,7 +293,7 @@ class UIHelper {
             imageUrl: appIcons.first,
             width: size,
             height: size,
-            errorWidget: (context, url, error) => Container(
+            errorWidget: (context, url, error) => SizedBox(
               width: size,
               height: size,
               child: Image.asset("assets/images/walletconnect-alternative.png"),
@@ -323,7 +323,7 @@ class UIHelper {
         }
 
       default:
-        return SizedBox();
+        return const SizedBox();
     }
   }
 
@@ -340,13 +340,13 @@ class UIHelper {
           children: [
             Text('MULTI-CHAIN ACCOUNT GENERATED WITH:',
                 style: theme.textTheme.headline5),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Text('• Bitmark address', style: theme.textTheme.headline4),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Text('• Ethereum address', style: theme.textTheme.headline4),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Text('• Tezos address', style: theme.textTheme.headline4),
-            SizedBox(height: 40),
+            const SizedBox(height: 40),
             Row(
               children: [
                 Expanded(
@@ -363,10 +363,9 @@ class UIHelper {
                 ),
               ],
             ),
-            SizedBox(height: 15),
+            const SizedBox(height: 15),
           ],
-        ),
-        isDismissible: false);
+        ));
   }
 
   static showImportedPersonaDialog(BuildContext context,
@@ -381,13 +380,13 @@ class UIHelper {
           children: [
             Text('MULTI-CHAIN ACCOUNT GENERATED WITH:',
                 style: theme.textTheme.headline5),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Text('• Bitmark address', style: theme.textTheme.headline4),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Text('• Ethereum address', style: theme.textTheme.headline4),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Text('• Tezos address', style: theme.textTheme.headline4),
-            SizedBox(height: 40),
+            const SizedBox(height: 40),
             Row(
               children: [
                 Expanded(
@@ -404,10 +403,9 @@ class UIHelper {
                 ),
               ],
             ),
-            SizedBox(height: 15),
+            const SizedBox(height: 15),
           ],
-        ),
-        isDismissible: false);
+        ));
   }
 
   static showHideArtworkResultDialog(BuildContext context, bool isHidden,
@@ -428,7 +426,7 @@ class UIHelper {
                         text:
                             "This artwork will no longer appear in your collection. You can still find it in the ",
                       ),
-                      TextSpan(
+                      const TextSpan(
                         style: TextStyle(
                             color: Colors.white,
                             fontSize: 16,
@@ -448,7 +446,7 @@ class UIHelper {
                     "This artwork will now be visible in your collection.",
                     style: theme.textTheme.bodyText1,
                   ),
-            SizedBox(height: 40),
+            const SizedBox(height: 40),
             Row(
               children: [
                 Expanded(
@@ -465,7 +463,7 @@ class UIHelper {
                 ),
               ],
             ),
-            SizedBox(height: 15),
+            const SizedBox(height: 15),
           ],
         ));
   }
@@ -482,7 +480,7 @@ class UIHelper {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text('ALIAS', style: theme.textTheme.headline5),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
               Expanded(
                   child: Text(
@@ -495,21 +493,21 @@ class UIHelper {
                 onTap: () => Share.share(address),
               )
             ]),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Text(
               address,
-              style: TextStyle(
+              style: const TextStyle(
                   color: Colors.white,
                   fontSize: 14,
                   fontWeight: FontWeight.w400,
                   fontFamily: "IBMPlexMono"),
             ),
-            SizedBox(height: 56),
+            const SizedBox(height: 56),
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: Text(
+              child: const Text(
                 "CLOSE",
                 style: TextStyle(
                     color: Colors.white,
@@ -518,10 +516,9 @@ class UIHelper {
                     fontFamily: "IBMPlexMono"),
               ),
             ),
-            SizedBox(height: 15),
+            const SizedBox(height: 15),
           ],
-        )),
-        isDismissible: false);
+        )));
   }
 
   static showAccountLinked(
@@ -529,7 +526,7 @@ class UIHelper {
     UIHelper.showInfoDialog(context, "Account linked",
         "Autonomy has received autorization to link to your NFTs in $walletName.");
 
-    Future.delayed(Duration(seconds: 3), () {
+    Future.delayed(const Duration(seconds: 3), () {
       UIHelper.hideInfoDialog(context);
 
       if (injector<ConfigurationService>().isDoneOnboarding()) {
@@ -575,15 +572,15 @@ class UIHelper {
           children: [
             Text('This feature requires subscription',
                 style: theme.textTheme.bodyText1),
-            SizedBox(height: 40),
+            const SizedBox(height: 40),
             UpgradeBoxView.getMoreAutonomyWidget(theme, feature),
-            SizedBox(height: 24),
+            const SizedBox(height: 24),
             Row(
               children: [
                 Expanded(
                   child: TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: Text(
+                    child: const Text(
                       "CANCEL",
                       style: TextStyle(
                           color: Colors.white,
@@ -595,7 +592,7 @@ class UIHelper {
                 ),
               ],
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
           ],
         ),
         isDismissible: true);
@@ -607,12 +604,12 @@ learnMoreAboutAutonomySecurityWidget(BuildContext context,
   return TextButton(
       onPressed: () =>
           Navigator.of(context).pushNamed(AppRouter.autonomySecurityPage),
-      child: Text(title, style: linkStyle),
       style: TextButton.styleFrom(
         minimumSize: Size.zero,
         padding: EdgeInsets.zero,
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      ));
+      ),
+      child: Text(title, style: linkStyle));
 }
 
 wantMoreSecurityWidget(BuildContext context, WalletApp walletApp) {
@@ -626,32 +623,31 @@ wantMoreSecurityWidget(BuildContext context, WalletApp walletApp) {
   return GestureDetector(
     onTap: () => Navigator.of(context).pushNamed(AppRouter.importAccountPage),
     child: Container(
-      padding: EdgeInsets.all(10),
+      padding: const EdgeInsets.all(10),
       color: AppColorTheme.secondaryDimGreyBackground,
       child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Want more security and portability?',
+            const Text('Want more security and portability?',
                 style: TextStyle(
                     color: AppColorTheme.secondaryDimGrey,
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
                     fontFamily: "AtlasGrotesk",
                     height: 1.377)),
-            SizedBox(height: 5),
+            const SizedBox(height: 5),
             Text(introText, style: bodySmall),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             TextButton(
                 onPressed: () => Navigator.of(context)
                     .pushNamed(AppRouter.unsafeWebWalletPage),
-                child: Text('Learn why browse-extension wallets are unsafe...',
-                    style: linkStyle),
                 style: TextButton.styleFrom(
                   minimumSize: Size.zero,
                   padding: EdgeInsets.zero,
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                )),
+                ),
+                child: const Text('Learn why browse-extension wallets are unsafe...',
+                    style: linkStyle)),
           ]),
     ),
   );

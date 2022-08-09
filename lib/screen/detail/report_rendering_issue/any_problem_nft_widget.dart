@@ -24,14 +24,14 @@ class AnyProblemNFTWidget extends StatelessWidget {
       onTap: () => showReportIssueDialog(context, asset),
       child: Container(
         alignment: Alignment.bottomCenter,
-        padding: EdgeInsets.fromLTRB(0, 18, 0, 24),
+        padding: const EdgeInsets.fromLTRB(0, 18, 0, 24),
         color: theme.backgroundColor,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text('ANY PROBLEMS WITH THIS NFT?',
                 style: theme.textTheme.bodyText1),
-            SizedBox(
+            const SizedBox(
               width: 4,
             ),
             SvgPicture.asset("assets/images/iconSharpFeedback.svg",

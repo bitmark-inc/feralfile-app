@@ -124,7 +124,7 @@ class AssetToken {
 
     WalletStorage? wallet;
     for (final persona in personas) {
-      final address;
+      final String address;
       if (blockchain == "ethereum") {
         address = await persona.wallet().getETHAddress();
       } else {
