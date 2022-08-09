@@ -10,7 +10,6 @@ import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/settings/networks/select_network_bloc.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/tokens_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/material.dart';
@@ -48,55 +47,40 @@ class SelectNetworkPage extends StatelessWidget {
                 style: appTextTheme.headline1,
               ),
               SizedBox(height: 22),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                title: Text(
-                  "Main Network",
-                  style: appTextTheme.headline4,
-                ),
-                trailing: Transform.scale(
-                  scale: 1.25,
-                  child: Radio(
-                    activeColor: Colors.black,
-                    value: Network.MAINNET,
-                    groupValue: state,
-                    onChanged: (Network? value) {
-                      if (value != null) {
-                        context
-                            .read<SelectNetworkBloc>()
-                            .add(SelectNetworkEvent(value));
-                      }
-                    },
-                  ),
-                ),
-              ),
+              _networkItem(context, state, "Main Network", Network.MAINNET),
               Divider(height: 1),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                title: Text(
-                  'Test Network',
-                  style: appTextTheme.headline4,
-                ),
-                trailing: Transform.scale(
-                  scale: 1.25,
-                  child: Radio(
-                    activeColor: Colors.black,
-                    value: Network.TESTNET,
-                    groupValue: state,
-                    onChanged: (Network? value) {
-                      if (value != null) {
-                        context
-                            .read<SelectNetworkBloc>()
-                            .add(SelectNetworkEvent(value));
-                      }
-                    },
-                  ),
-                ),
-              ),
+              _networkItem(context, state, "Test Network", Network.TESTNET),
             ],
           ),
         );
       }),
+    );
+  }
+
+  Widget _networkItem(
+      BuildContext ctx, Network currentNetwork, String title, Network network) {
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      title: Text(
+        title,
+        style: appTextTheme.headline4,
+      ),
+      trailing: Transform.scale(
+        scale: 1.25,
+        child: Radio(
+          activeColor: Colors.black,
+          value: network,
+          groupValue: currentNetwork,
+          onChanged: (Network? value) {
+            if (value != null) {
+              ctx.read<SelectNetworkBloc>().add(SelectNetworkEvent(value));
+            }
+          },
+        ),
+      ),
+      onTap: () {
+        ctx.read<SelectNetworkBloc>().add(SelectNetworkEvent(network));
+      },
     );
   }
 }
