@@ -158,7 +158,7 @@ class VersionService {
         "What’s new?"; // avoid showing multiple what's new screens
     if (UIHelper.currentDialogTitle == screenKey) return;
 
-    releaseNotes = "[$currentVersion]\n\n" + releaseNotes;
+    releaseNotes = "[$currentVersion]\n\n$releaseNotes";
     UIHelper.currentDialogTitle = screenKey;
 
     await _configurationService.setReadReleaseNotesInVersion(currentVersion);

@@ -121,7 +121,7 @@ class _SendReviewPageState extends State<SendReviewPage> {
                     ),
                   ],
                 ),
-                const Expanded(child: const SizedBox()),
+                const Expanded(child: SizedBox()),
                 Row(
                   children: [
                     Expanded(
@@ -168,6 +168,7 @@ class _SendReviewPageState extends State<SendReviewPage> {
                                             null,
                                             null);
 
+                                    if (!mounted) return;
                                     Navigator.of(context).pop(txHash);
                                     break;
                                   case CryptoType.XTZ:
@@ -181,6 +182,7 @@ class _SendReviewPageState extends State<SendReviewPage> {
                                             widget.payload.address,
                                             widget.payload.amount.toInt());
 
+                                    if (!mounted) return;
                                     Navigator.of(context).pop(sig);
                                     break;
                                   case CryptoType.BITMARK:
@@ -199,7 +201,7 @@ class _SendReviewPageState extends State<SendReviewPage> {
               ],
             ),
           ),
-          _isSending ? const Center(child: const CupertinoActivityIndicator()) : const SizedBox(),
+          _isSending ? const Center(child: CupertinoActivityIndicator()) : const SizedBox(),
         ],
       ),
     );

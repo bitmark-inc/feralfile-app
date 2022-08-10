@@ -5,6 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
+// ignore_for_file: depend_on_referenced_packages
+
 import 'dart:async';
 import 'dart:collection';
 import 'dart:io';

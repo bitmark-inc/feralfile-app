@@ -30,6 +30,7 @@ import 'package:autonomy_flutter/util/migration/migration_util.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:fast_base58/fast_base58.dart';
 import 'package:libauk_dart/libauk_dart.dart';
+// ignore: depend_on_referenced_packages
 import 'package:elliptic/elliptic.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:uuid/uuid.dart';

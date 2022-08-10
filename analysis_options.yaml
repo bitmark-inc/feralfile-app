@@ -37,3 +37,8 @@ linter:
     curly_braces_in_flow_control_structures: true
     # doc comments
     slash_for_doc_comments: true
+
+analyzer:
+  exclude:
+    - '**/*.g.dart'
+    - 'integration_test/*'

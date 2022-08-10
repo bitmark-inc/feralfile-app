@@ -13,9 +13,6 @@ import 'package:logging/logging.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:synchronized/synchronized.dart' as synchronization;
-import 'package:sentry/sentry.dart';
-
-import 'package:autonomy_flutter/util/device.dart';
 
 final log = Logger('App');
 final apiLog = Logger('API');

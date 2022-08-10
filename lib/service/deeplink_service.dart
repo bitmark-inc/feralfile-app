@@ -41,6 +41,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
     this._navigationService,
   );
 
+  @override
   Future setup() async {
     try {
       final initialLink = await getInitialLink();

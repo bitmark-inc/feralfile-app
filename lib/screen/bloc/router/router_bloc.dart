@@ -5,8 +5,6 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'dart:io';
-
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';

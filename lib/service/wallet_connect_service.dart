@@ -144,11 +144,11 @@ class WalletConnectService {
     wcClient.rejectRequest(id: id);
   }
 
-  WCClient? _createWCClient(String? _topic, Connection? connection) {
+  WCClient? _createWCClient(String? sessionTopic, Connection? connection) {
     final wcConnection = connection?.wcConnection;
     final sessionStore = wcConnection?.sessionStore;
 
-    final topic = _topic ?? sessionStore?.session.topic;
+    final topic = sessionTopic ?? sessionStore?.session.topic;
     if (topic == null) return null;
 
     WCPeerMeta? currentPeerMeta = sessionStore?.remotePeerMeta;

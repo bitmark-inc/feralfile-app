@@ -135,10 +135,10 @@ class _LinkLedgerPageState extends State<LinkLedgerPage> {
     return FutureBuilder<bool>(
       builder: (context, snapshot) {
         if (snapshot.hasData) {
-          if (snapshot.data == true)
+          if (snapshot.data == true) {
             return StreamBuilder<Iterable<LedgerHardwareWallet>>(
               builder: (context, snapshot) {
-                log.info("snapshot: " + snapshot.toString());
+                log.info("snapshot: $snapshot");
                 final deviceList = snapshot.data;
                 if (deviceList == null) {
                   return const CupertinoActivityIndicator();
@@ -162,7 +162,7 @@ class _LinkLedgerPageState extends State<LinkLedgerPage> {
               },
               stream: injector<LedgerHardwareService>().ledgerWallets(),
             );
-          else {
+          } else {
             return Text(
               "Your Bluetooth device is not available at the moment.\n Please make sure it's turned on in the iOS Settings.",
               style: appTextTheme.headline4,

@@ -53,7 +53,7 @@ class _AccountsPreviewPageState extends State<AccountsPreviewPage> {
                       style: appTextTheme.headline1,
                     ),
                     const SizedBox(height: 24),
-                    AccountsView(isInSettingsPage: false),
+                    const AccountsView(isInSettingsPage: false),
                   ],
                 ),
               ),

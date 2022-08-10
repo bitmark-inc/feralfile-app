@@ -11,7 +11,6 @@ import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/util/isolated_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:dio/dio.dart';
-import 'package:sentry/sentry.dart';
 import 'dart:convert';
 
 import 'package:sentry_flutter/sentry_flutter.dart';

@@ -5,8 +5,6 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'dart:ffi';
-
 import 'package:json_annotation/json_annotation.dart';
 
 part 'ff_account.g.dart';
