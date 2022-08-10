@@ -16,6 +16,7 @@ class AuFilledButton extends StatelessWidget {
   final bool enabled;
   final Widget? icon;
   final TextStyle? textStyle;
+  final TextAlign? textAlign;
   final bool isProcessing;
 
   const AuFilledButton(
@@ -26,7 +27,8 @@ class AuFilledButton extends StatelessWidget {
       this.enabled = true,
       this.color = Colors.black,
       this.isProcessing = false,
-      this.textStyle})
+      this.textStyle,
+      this.textAlign })
       : super(key: key);
 
   @override
@@ -62,6 +64,7 @@ class AuFilledButton extends StatelessWidget {
             Text(
               text.toUpperCase(),
               style: textStyle ?? appTextTheme.button,
+              textAlign: textAlign,
             ),
           ],
         ),

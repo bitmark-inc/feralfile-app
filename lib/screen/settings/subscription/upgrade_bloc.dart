@@ -45,6 +45,7 @@ class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
     on<UpgradeIAPInfoEvent>((event, emit) async {
       ProductDetails? productDetail;
       IAPProductStatus state = IAPProductStatus.loading;
+      DateTime? trialExpireDate;
 
       if (_iapService.products.value.isNotEmpty) {
         final productId = _iapService.products.value.keys.first;
@@ -52,9 +53,13 @@ class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
 
         final subscriptionState = _iapService.purchases.value[productId];
         state = subscriptionState ?? IAPProductStatus.notPurchased;
+        if (state == IAPProductStatus.trial) {
+          trialExpireDate = _iapService.trialExpireDates.value[productId];
+        }
       }
 
-      emit(UpgradeState(state, productDetail));
+      emit(UpgradeState(state, productDetail,
+          trialExpiredDate: trialExpireDate));
     });
 
 // Update new state if needed

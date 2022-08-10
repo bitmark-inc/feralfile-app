@@ -5,6 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:io';
+
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
@@ -17,6 +19,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:intl/intl.dart';
 
 class UpgradesView extends StatelessWidget {
   static const String tag = 'select_network';
@@ -44,6 +47,16 @@ class UpgradesView extends StatelessWidget {
     });
   }
 
+  static String get _subscriptionsManagementLocation {
+    if (Platform.isIOS) {
+      return "Settings > Apple ID > Subscriptions.";
+    } else if (Platform.isAndroid) {
+      return "Play Store -> Payments & subscriptions -> Subscriptions.";
+    } else {
+      return "";
+    }
+  }
+
   static Widget _subscribeView(BuildContext context, UpgradeState state) {
     switch (state.status) {
       case IAPProductStatus.completed:
@@ -52,21 +65,22 @@ class UpgradesView extends StatelessWidget {
           children: [
             Text("Subscribed", style: appTextTheme.headline4),
             const SizedBox(height: 16.0),
-            Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    ' •  ',
-                    style: appTextTheme.bodyText1,
-                    textAlign: TextAlign.start,
-                  ),
-                  Expanded(
-                    child: Text(
-                      'Thank you for your support.',
-                      style: appTextTheme.bodyText1,
-                    ),
-                  ),
-                ])
+            Text(
+                "Thank you for your support. Manage your subscription in $_subscriptionsManagementLocation",
+                style: appTextTheme.bodyText1),
+          ],
+        );
+      case IAPProductStatus.trial:
+        final df = DateFormat("yyyy-MMM-dd");
+        final trialExpireDate = df.format(state.trialExpiredDate!);
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("Subscribed (30-day free trial)", style: appTextTheme.headline4),
+            const SizedBox(height: 16.0),
+            Text(
+                "You will be charged ${state.productDetails?.price ?? "US\$4.99"}/month starting $trialExpireDate. To cancel your subscription, go to $_subscriptionsManagementLocation",
+                style: appTextTheme.bodyText1),
           ],
         );
       case IAPProductStatus.loading:
@@ -92,9 +106,8 @@ class UpgradesView extends StatelessWidget {
               ]),
               const SizedBox(height: 16.0),
               ...[
-                'View your collection on TVs and projectors.',
-                'Preserve and authenticate your artworks for the long-term.',
-                'Priority Support.'
+                "View your collection on TV and projectors.",
+                "Priority support."
               ]
                   .map((item) => Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -148,7 +161,8 @@ class UpgradesView extends StatelessWidget {
               style: theme.textTheme.headline5),
           const SizedBox(height: 40),
           AuFilledButton(
-            text: "SUBSCRIBE FOR ${price ?? "4.99"}/MONTH",
+            text: "SUBSCRIBE FOR A 30-DAY FREE TRIAL\n(THEN ${price ?? "4.99"}/MONTH)",
+            textAlign: TextAlign.center,
             onPress: () {
               if (onPressSubscribe != null) onPressSubscribe();
               Navigator.of(context).pop();

@@ -230,19 +230,20 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
               ),
               bubbleBuilder: _bubbleBuilder,
               theme: _chatTheme,
-              sendButtonVisibilityMode: SendButtonVisibilityMode.always,
               customMessageBuilder: _customMessageBuilder,
               emptyState: const CupertinoActivityIndicator(),
               messages: messages,
               onAttachmentPressed: _handleAtachmentPressed,
               onSendPressed: _handleSendPressed,
-              onTextChanged: (text) {
-                setState(() {
-                  _sendIcon = text.trim() != ''
-                      ? "assets/images/sendMessageFilled.svg"
-                      : "assets/images/sendMessage.svg";
-                });
-              },
+              inputOptions: InputOptions(
+                  sendButtonVisibilityMode: SendButtonVisibilityMode.always,
+                  onTextChanged: (text) {
+                    setState(() {
+                      _sendIcon = text.trim() != ''
+                          ? "assets/images/sendMessageFilled.svg"
+                          : "assets/images/sendMessage.svg";
+                    });
+                  }),
               user: _user,
               customBottomWidget:
                   _status == 'closed' ? const SizedBox(height: 40) : null,
