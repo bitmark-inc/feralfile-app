@@ -21,6 +21,8 @@ import 'package:path/path.dart' as p;
 import 'hidden_artworks_bloc.dart';
 
 class HiddenArtworksPage extends StatefulWidget {
+  const HiddenArtworksPage({Key? key}) : super(key: key);
+
   @override
   State<HiddenArtworksPage> createState() => _HiddenArtworksPageState();
 }
@@ -66,7 +68,7 @@ class _HiddenArtworksPageState extends State<HiddenArtworksPage> {
       slivers: [
         SliverToBoxAdapter(
           child: Container(
-            padding: EdgeInsets.fromLTRB(14, 24, 24, 14),
+            padding: const EdgeInsets.fromLTRB(14, 24, 24, 14),
             child: Text(
               "Hidden",
               style: appTextTheme.headline1,
@@ -78,7 +80,6 @@ class _HiddenArtworksPageState extends State<HiddenArtworksPage> {
               crossAxisCount: cellPerRow,
               crossAxisSpacing: cellSpacing,
               mainAxisSpacing: cellSpacing,
-              childAspectRatio: 1.0,
             ),
             delegate: SliverChildBuilderDelegate(
               (BuildContext context, int index) {
@@ -96,11 +97,11 @@ class _HiddenArtworksPageState extends State<HiddenArtworksPage> {
                             memCacheWidth: _cachedImageSize,
                             cacheManager: injector<AUCacheManager>(),
                             placeholder: (context, index) => Container(
-                                color: Color.fromRGBO(227, 227, 227, 1)),
+                                color: const Color.fromRGBO(227, 227, 227, 1)),
                             placeholderFadeInDuration:
-                                Duration(milliseconds: 300),
+                                const Duration(milliseconds: 300),
                             errorWidget: (context, url, error) => Container(
-                                color: Color.fromRGBO(227, 227, 227, 1),
+                                color: const Color.fromRGBO(227, 227, 227, 1),
                                 child: Center(
                                   child: SvgPicture.asset(
                                     'assets/images/image_error.svg',

@@ -27,8 +27,8 @@ class IsolatedUtil {
   var _isolateReady = Completer<void>();
   static SendPort? _isolateSendPort;
   Future<void> get isolateReady => _isolateReady.future;
-  Map<String, Completer<bool>> _boolCompleters = {};
-  Map<String, Completer<dynamic>> _stringCompleters = {};
+  final Map<String, Completer<bool>> _boolCompleters = {};
+  final Map<String, Completer<dynamic>> _stringCompleters = {};
 
   static const SHOULD_SHORT_API_RESPONSE_LOG = 'SHOULD_SHORT_API_RESPONSE_LOG';
   static const SHOULD_SHORT_CURL_LOG = 'SHOULD_SHORT_CURL_LOG';
@@ -58,7 +58,7 @@ class IsolatedUtil {
   Future<bool> shouldShortCurlLog(String curl) async {
     await startIsolateOrWait();
 
-    final uuid = Uuid().v4();
+    final uuid = const Uuid().v4();
     final completer = Completer<bool>();
     _boolCompleters[uuid] = completer;
 
@@ -69,7 +69,7 @@ class IsolatedUtil {
   Future<bool> shouldShortAPIResponseLog(String curl) async {
     await startIsolateOrWait();
 
-    final uuid = Uuid().v4();
+    final uuid = const Uuid().v4();
     final completer = Completer<bool>();
     _boolCompleters[uuid] = completer;
 
@@ -80,7 +80,7 @@ class IsolatedUtil {
   Future<dynamic> parseAndDecode(String response) async {
     await startIsolateOrWait();
 
-    final uuid = Uuid().v4();
+    final uuid = const Uuid().v4();
     final completer = Completer<dynamic>();
     _stringCompleters[uuid] = completer;
 
@@ -136,13 +136,13 @@ class IsolatedUtil {
   }
 
   static void _shortAPIResponseLog(String uuid, String curl) {
-    List<RegExp> _logFilterRegex = [
+    List<RegExp> logFilterRegex = [
       RegExp(r'.*\/nft.*'),
       RegExp(r'.*support.*\/issues.*'),
     ];
 
     final matched =
-        _logFilterRegex.firstWhereOrNull((regex) => regex.hasMatch(curl)) !=
+        logFilterRegex.firstWhereOrNull((regex) => regex.hasMatch(curl)) !=
             null;
     _isolateSendPort?.send(BoolResult(uuid, matched));
   }

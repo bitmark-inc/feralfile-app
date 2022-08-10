@@ -20,22 +20,20 @@ Widget accountWithConnectionItem(
     case 'Persona':
       return Row(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          Container(
+          SizedBox(
               width: 24,
               height: 24,
               child: Image.asset("assets/images/autonomyIcon.png")),
-          SizedBox(width: 16),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Text(categorizedAccounts.category,
                     overflow: TextOverflow.ellipsis,
                     style: appTextTheme.headline4),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 ...categorizedAccounts.accounts
                     .map((a) => Container(
                         child: _blockchainAddressView(a,
@@ -50,19 +48,17 @@ Widget accountWithConnectionItem(
       );
     case 'Connection':
       final connection = categorizedAccounts.accounts.first.connections?.first;
-      if (connection == null) return SizedBox();
+      if (connection == null) return const SizedBox();
 
       return Row(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.start,
         children: [
           Container(
               alignment: Alignment.topCenter, child: _appLogo(connection)),
-          SizedBox(width: 16),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -76,7 +72,7 @@ Widget accountWithConnectionItem(
                           style: appTextTheme.headline4),
                       _linkedBox(),
                     ]),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 ...categorizedAccounts.accounts
                     .map((a) => Container(
                         child: _blockchainAddressView(a,
@@ -91,7 +87,7 @@ Widget accountWithConnectionItem(
       );
 
     default:
-      return SizedBox();
+      return const SizedBox();
   }
 }
 
@@ -101,11 +97,9 @@ Widget accountItem(BuildContext context, Account account,
   if (persona != null) {
     return TappableForwardRow(
         leftWidget: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.start,
           children: [
             accountLogo(account),
-            SizedBox(width: 16),
+            const SizedBox(width: 16),
             Text(
                 account.name.isNotEmpty
                     ? account.name.maskIfNeeded()
@@ -120,11 +114,9 @@ Widget accountItem(BuildContext context, Account account,
   if (connection != null) {
     return TappableForwardRow(
         leftWidget: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.start,
           children: [
             accountLogo(account),
-            SizedBox(width: 16),
+            const SizedBox(width: 16),
             Text(
                 connection.name.isNotEmpty
                     ? connection.name.maskIfNeeded()
@@ -136,30 +128,28 @@ Widget accountItem(BuildContext context, Account account,
         onTap: onConnectionTap);
   }
 
-  return SizedBox();
+  return const SizedBox();
 }
 
 Widget _blockchainAddressView(Account account, {Function()? onTap}) {
   return TappableForwardRow(
-    padding: EdgeInsets.symmetric(vertical: 7),
+    padding: const EdgeInsets.symmetric(vertical: 7),
     leftWidget: Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      mainAxisAlignment: MainAxisAlignment.start,
       children: [
         _blockchainLogo(account.blockchain),
-        SizedBox(width: 8),
+        const SizedBox(width: 8),
         Text(
           _blockchainName(account.blockchain),
-          style: TextStyle(
+          style: const TextStyle(
               color: Colors.black,
               fontSize: 12,
               fontWeight: FontWeight.w700,
               fontFamily: "AtlasGrotesk"),
         ),
-        SizedBox(width: 8),
+        const SizedBox(width: 8),
         Text(
           account.accountNumber.mask(4),
-          style: TextStyle(
+          style: const TextStyle(
               color: Colors.black,
               fontSize: 14,
               fontWeight: FontWeight.w400,
@@ -183,7 +173,7 @@ Widget _blockchainLogo(String? blockchain) {
     case "walletBeacon":
       return SvgPicture.asset('assets/images/iconXtz.svg');
     default:
-      return SizedBox();
+      return const SizedBox();
   }
 }
 
@@ -204,7 +194,7 @@ String _blockchainName(String? blockchain) {
 
 Widget accountLogo(Account account) {
   if (account.persona != null) {
-    return Container(
+    return SizedBox(
         width: 24,
         height: 24,
         child: Image.asset("assets/images/autonomyIcon.png"));
@@ -215,7 +205,7 @@ Widget accountLogo(Account account) {
     return _appLogo(connection);
   }
 
-  return SizedBox(
+  return const SizedBox(
     width: 24,
   );
 }
@@ -260,13 +250,13 @@ Widget _appLogo(Connection connection) {
         case "MetaMask":
           return Image.asset("assets/images/metamask-alternative.png");
         default:
-          return SizedBox(
+          return const SizedBox(
             width: 24,
           );
       }
 
     default:
-      return SizedBox(
+      return const SizedBox(
         width: 24,
       );
   }
@@ -274,10 +264,10 @@ Widget _appLogo(Connection connection) {
 
 Widget _linkedBox() {
   return Container(
-    padding: EdgeInsets.symmetric(vertical: 5, horizontal: 8),
+    padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
     decoration:
-        BoxDecoration(border: Border.all(color: Color(0xFF6D6B6B), width: 1)),
-    child: Text(
+        BoxDecoration(border: Border.all(color: const Color(0xFF6D6B6B))),
+    child: const Text(
       "LINKED",
       style: TextStyle(
           color: Color(0xFF6D6B6B), fontSize: 12, fontFamily: "IBMPlexMono"),

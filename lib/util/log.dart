@@ -9,7 +9,6 @@ import 'dart:core';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -45,7 +44,7 @@ APIErrorCode? getAPIErrorCode(int code) {
 
 Future<File> getLogFile() async {
   final directory = (await getTemporaryDirectory()).path;
-  final fileName = "app.log";
+  const fileName = "app.log";
 
   return _createLogFile("$directory/$fileName");
 }
@@ -78,7 +77,7 @@ class FileLogger {
       _logFile.writeAsBytes(current.sublist(current.length - shrinkSize));
     }
 
-    final text = '${new DateTime.now()}: LOGGING STARTED\n';
+    final text = '${DateTime.now()}: LOGGING STARTED\n';
 
     /// per its documentation, `writeAsString` “Opens the file, writes
     /// the string in the given encoding, and closes the file”

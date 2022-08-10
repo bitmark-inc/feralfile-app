@@ -16,11 +16,11 @@ import 'package:web3dart/web3dart.dart';
 part 'ethereum_state.dart';
 
 class EthereumBloc extends AuBloc<EthereumEvent, EthereumState> {
-  ConfigurationService _configurationService;
-  EthereumService _ethereumService;
+  final ConfigurationService _configurationService;
+  final EthereumService _ethereumService;
 
   EthereumBloc(this._configurationService, this._ethereumService)
-      : super(EthereumState(ethBalances: {
+      : super(EthereumState(null, {
           Network.MAINNET: {},
           Network.TESTNET: {},
         })) {
@@ -28,7 +28,7 @@ class EthereumBloc extends AuBloc<EthereumEvent, EthereumState> {
       if (state.personaAddresses?[event.uuid] != null) return;
       final address =
           await Persona.newPersona(uuid: event.uuid).wallet().getETHEip55Address();
-      var personaAddresses = state.personaAddresses ?? Map();
+      var personaAddresses = state.personaAddresses ?? {};
       personaAddresses[event.uuid] = address;
 
       emit(state.copyWith(personaAddresses: personaAddresses));

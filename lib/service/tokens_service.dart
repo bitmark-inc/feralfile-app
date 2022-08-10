@@ -37,8 +37,8 @@ abstract class TokensService {
 }
 
 class TokensServiceImpl extends TokensService {
-  NetworkConfigInjector _networkConfigInjector;
-  ConfigurationService _configurationService;
+  final NetworkConfigInjector _networkConfigInjector;
+  final ConfigurationService _configurationService;
 
   static const REFRESH_ALL_TOKENS = 'REFRESH_ALL_TOKENS';
   static const FETCH_TOKENS = 'FETCH_TOKENS';
@@ -86,6 +86,7 @@ class TokensServiceImpl extends TokensService {
     }
   }
 
+  @override
   void disposeIsolate() {
     log.info("[TokensService][disposeIsolate] Start");
     _isolate?.kill();
@@ -98,6 +99,7 @@ class TokensServiceImpl extends TokensService {
     log.info("[TokensService][disposeIsolate] Done");
   }
 
+  @override
   Future purgeCachedGallery() async {
     disposeIsolate();
     final hiddenAssets = await _assetDao.findAllHiddenAssets();
@@ -108,6 +110,7 @@ class TokensServiceImpl extends TokensService {
     await _assetDao.removeAll();
   }
 
+  @override
   Future<Stream<int>> refreshTokensInIsolate(
       List<String> addresses, List<String> debugTokenIDs) async {
     if (_currentAddresses != null) {
@@ -152,6 +155,7 @@ class TokensServiceImpl extends TokensService {
   bool get _getIsTestnet =>
       _configurationService.getNetwork() == Network.TESTNET;
 
+  @override
   Future<List<Asset>> fetchLatestAssets(
       List<String> addresses, int size) async {
     var owners = addresses.join(',');
@@ -160,10 +164,11 @@ class TokensServiceImpl extends TokensService {
         .getNftTokensByOwner(owners, 0, size);
   }
 
+  @override
   Future reindexAddresses(List<String> addresses) async {
     await startIsolateOrWait();
 
-    final uuid = Uuid().v4();
+    final uuid = const Uuid().v4();
     final completer = Completer();
     _reindexAddressesCompleters[uuid] = completer;
 
@@ -178,6 +183,7 @@ class TokensServiceImpl extends TokensService {
     return completer.future;
   }
 
+  @override
   Future insertAssetsWithProvenance(List<Asset> assets) async {
     List<AssetToken> tokens = [];
     List<Provenance> provenance = [];
@@ -211,10 +217,11 @@ class TokensServiceImpl extends TokensService {
         .getNftIDsByOwner(addresses.join(","));
   }
 
+  @override
   Future fetchTokensForAddresses(List<String> addresses) async {
     await startIsolateOrWait();
 
-    final uuid = Uuid().v4();
+    final uuid = const Uuid().v4();
     final completer = Completer();
     _fetchTokensCompleters[uuid] = completer;
 
@@ -329,14 +336,14 @@ class TokensServiceImpl extends TokensService {
     try {
       final owners = addresses.join(",");
 
-      final _isolateIndexerAPI =
+      final isolateIndexerAPI =
           isTestnet ? testnetInjector<IndexerApi>() : injector<IndexerApi>();
 
       var offset = 0;
       Set<String> tokenIDs = {};
 
       while (true) {
-        final assets = await _isolateIndexerAPI.getNftTokensByOwner(
+        final assets = await isolateIndexerAPI.getNftTokensByOwner(
             owners, offset, INDEXER_TOKENS_MAXIMUM);
         tokenIDs.addAll(assets.map((e) => e.id));
 
@@ -364,13 +371,13 @@ class TokensServiceImpl extends TokensService {
 
   static void _reindexAddressesInIndexer(
       String uuid, List<String> addresses, bool isTestnet) async {
-    final _indexerAPI =
+    final indexerAPI =
         isTestnet ? testnetInjector<IndexerApi>() : injector<IndexerApi>();
     for (final address in addresses) {
       if (address.startsWith("tz")) {
-        _indexerAPI.requestIndex({"owner": address, "blockchain": "tezos"});
+        indexerAPI.requestIndex({"owner": address, "blockchain": "tezos"});
       } else if (address.startsWith("0x")) {
-        _indexerAPI.requestIndex({"owner": address});
+        indexerAPI.requestIndex({"owner": address});
       }
     }
 

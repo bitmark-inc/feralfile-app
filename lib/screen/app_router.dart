@@ -9,7 +9,6 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
-import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/screen/account/access_method_page.dart';
@@ -98,7 +97,6 @@ import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_disconnect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -185,12 +183,12 @@ class AppRouter {
                       injector(),
                       injector<AuditService>(),
                     ),
-                child: OnboardingPage()));
+                child: const OnboardingPage()));
 
       case homePageNoTransition:
         return PageRouteBuilder(
             settings: settings,
-            pageBuilder: (context, animetion1, animation2) => MultiBlocProvider(
+            pageBuilder: (context, animation1, animation2) => MultiBlocProvider(
                   providers: [
                     BlocProvider(
                         create: (_) => HomeBloc(
@@ -207,9 +205,9 @@ class AppRouter {
                             networkInjector.I<AppDatabase>(),
                             networkInjector.I())),
                   ],
-                  child: HomePage(),
+                  child: const HomePage(),
                 ),
-            transitionDuration: Duration(seconds: 0));
+            transitionDuration: const Duration());
 
       case homePage:
         return CupertinoPageRoute(
@@ -231,26 +229,26 @@ class AppRouter {
                             networkInjector.I<AppDatabase>(),
                             networkInjector.I())),
                   ],
-                  child: HomePage(),
+                  child: const HomePage(),
                 ));
       case beOwnGalleryPage:
         return CupertinoPageRoute(
           settings: settings,
-          builder: (context) => BeOwnGalleryPage(),
+          builder: (context) => const BeOwnGalleryPage(),
         );
       case moreAutonomyPage:
         return CupertinoPageRoute(
           settings: settings,
           builder: (context) => BlocProvider(
             create: (_) => UpgradesBloc(injector(), injector()),
-            child: MoreAutonomyPage(),
+            child: const MoreAutonomyPage(),
           ),
         );
       case notificationOnboardingPage:
         return CupertinoPageRoute(
           settings: settings,
           fullscreenDialog: true,
-          builder: (context) => NotificationOnboardingPage(),
+          builder: (context) => const NotificationOnboardingPage(),
         );
       case newAccountPage:
         return CupertinoPageRoute(
@@ -262,7 +260,7 @@ class AppRouter {
                       injector(),
                       injector<AuditService>(),
                     ),
-                child: NewAccountPage()));
+                child: const NewAccountPage()));
 
       case addAccountPage:
         return CupertinoPageRoute(
@@ -274,7 +272,7 @@ class AppRouter {
                       injector(),
                       injector<AuditService>(),
                     ),
-                child: AddAccountPage()));
+                child: const AddAccountPage()));
 
       case AppRouter.linkAccountpage:
         return CupertinoPageRoute(
@@ -284,7 +282,7 @@ class AppRouter {
                   BlocProvider(
                       create: (_) => FeralfileBloc(
                           injector(), injector(), injector<CloudDatabase>())),
-                ], child: LinkAccountPage()));
+                ], child: const LinkAccountPage()));
 
       case accountsPreviewPage:
         return CupertinoPageRoute(
@@ -299,7 +297,7 @@ class AppRouter {
                       injector<AuditService>(),
                     ),
                   ),
-                ], child: AccountsPreviewPage()));
+                ], child: const AccountsPreviewPage()));
 
       case accessMethodPage:
         return CupertinoPageRoute(
@@ -317,7 +315,7 @@ class AppRouter {
             builder: (context) => BlocProvider(
                 create: (_) => FeralfileBloc(
                     injector(), injector(), injector<CloudDatabase>()),
-                child: LinkAppOptionsPage()));
+                child: const LinkAppOptionsPage()));
 
       case linkMetamaskPage:
         return CupertinoPageRoute(
@@ -325,15 +323,15 @@ class AppRouter {
             builder: (context) => BlocProvider(
                 create: (_) => FeralfileBloc(
                     injector(), injector(), injector<CloudDatabase>()),
-                child: LinkMetamaskPage()));
+                child: const LinkMetamaskPage()));
 
       case linkTezosKukaiPage:
         return CupertinoPageRoute(
-            settings: settings, builder: (context) => LinkTezosKukaiPage());
+            settings: settings, builder: (context) => const LinkTezosKukaiPage());
 
       case linkTezosTemplePage:
         return CupertinoPageRoute(
-            settings: settings, builder: (context) => LinkTezosTemplePage());
+            settings: settings, builder: (context) => const LinkTezosTemplePage());
 
       case linkBeaconConnectPage:
         return CupertinoPageRoute(
@@ -380,7 +378,7 @@ class AppRouter {
 
       case importAccountPage:
         return CupertinoPageRoute(
-            settings: settings, builder: (context) => ImportAccountPage());
+            settings: settings, builder: (context) => const ImportAccountPage());
 
       case wcConnectPage:
         final argument = settings.arguments;
@@ -457,7 +455,7 @@ class AppRouter {
         return PageTransition(
             type: PageTransitionType.topToBottom,
             curve: Curves.easeIn,
-            duration: Duration(milliseconds: 250),
+            duration: const Duration(milliseconds: 250),
             child: BlocProvider(
                 create: (_) => FeralfileBloc(
                     injector(), injector(), injector<CloudDatabase>()),
@@ -478,7 +476,7 @@ class AppRouter {
                           )),
                   BlocProvider.value(value: ethereumBloc),
                   BlocProvider.value(value: tezosBloc),
-                ], child: SettingsPage()));
+                ], child: const SettingsPage()));
 
       case personaDetailsPage:
         return CupertinoPageRoute(
@@ -565,7 +563,7 @@ class AppRouter {
         return PageTransition(
             type: PageTransitionType.fade,
             curve: Curves.easeIn,
-            duration: Duration(milliseconds: 250),
+            duration: const Duration(milliseconds: 250),
             settings: settings,
             child: MultiBlocProvider(
               providers: [
@@ -585,7 +583,7 @@ class AppRouter {
         return PageTransition(
             type: PageTransitionType.fade,
             curve: Curves.easeIn,
-            duration: Duration(milliseconds: 250),
+            duration: const Duration(milliseconds: 250),
             settings: settings,
             child: MultiBlocProvider(
               providers: [
@@ -594,14 +592,14 @@ class AppRouter {
                     create: (_) => IdentityBloc(
                         networkInjector.I<AppDatabase>(), networkInjector.I())),
               ],
-              child: FeedPreviewPage(),
+              child: const FeedPreviewPage(),
             ));
 
       case feedArtworkDetailsPage:
         return PageTransition(
             type: PageTransitionType.fade,
             curve: Curves.easeIn,
-            duration: Duration(milliseconds: 250),
+            duration: const Duration(milliseconds: 250),
             settings: settings,
             child: MultiBlocProvider(providers: [
               BlocProvider.value(value: accountsBloc),
@@ -609,7 +607,7 @@ class AppRouter {
               BlocProvider(
                   create: (_) => IdentityBloc(
                       networkInjector.I<AppDatabase>(), networkInjector.I())),
-            ], child: FeedArtworkDetailsPage()));
+            ], child: const FeedArtworkDetailsPage()));
 
       case galleryPage:
         return CupertinoPageRoute(
@@ -634,13 +632,13 @@ class AppRouter {
             settings: settings,
             builder: (context) => BlocProvider(
                   create: (_) => SelectNetworkBloc(injector()),
-                  child: SelectNetworkPage(),
+                  child: const SelectNetworkPage(),
                 ));
       case artworkDetailsPage:
         return PageTransition(
             type: PageTransitionType.fade,
             curve: Curves.easeIn,
-            duration: Duration(milliseconds: 250),
+            duration: const Duration(milliseconds: 250),
             settings: settings,
             child: MultiBlocProvider(
                 providers: [
@@ -707,7 +705,7 @@ class AppRouter {
                   ),
                   BlocProvider.value(value: ethereumBloc),
                   BlocProvider.value(value: tezosBloc),
-                ], child: GlobalReceivePage()));
+                ], child: const GlobalReceivePage()));
 
       case GlobalReceiveDetailPage.tag:
         return CupertinoPageRoute(
@@ -718,17 +716,16 @@ class AppRouter {
 
       case autonomySecurityPage:
         return CupertinoPageRoute(
-            settings: settings, builder: (context) => AutonomySecurityPage());
+            settings: settings, builder: (context) => const AutonomySecurityPage());
 
       case unsafeWebWalletPage:
         return CupertinoPageRoute(
-            settings: settings, builder: (context) => UnsafeWebWalletPage());
+            settings: settings, builder: (context) => const UnsafeWebWalletPage());
 
       case releaseNotesPage:
         return PageTransition(
             type: PageTransitionType.bottomToTop,
             curve: Curves.easeIn,
-            duration: Duration(milliseconds: 200),
             child: ReleaseNotesPage(
               releaseNotes: settings.arguments as String,
             ));
@@ -737,12 +734,12 @@ class AppRouter {
         return PageTransition(
             type: PageTransitionType.topToBottom,
             curve: Curves.easeIn,
-            duration: Duration(milliseconds: 250),
-            child: SupportCustomerPage());
+            duration: const Duration(milliseconds: 250),
+            child: const SupportCustomerPage());
 
       case supportListPage:
         return CupertinoPageRoute(
-            settings: settings, builder: (context) => SupportListPage());
+            settings: settings, builder: (context) => const SupportListPage());
 
       case supportThreadPage:
         return CupertinoPageRoute(
@@ -752,12 +749,12 @@ class AppRouter {
 
       case bugBountyPage:
         return CupertinoPageRoute(
-            settings: settings, builder: (context) => BugBountyPage());
+            settings: settings, builder: (context) => const BugBountyPage());
 
       case participateUserTestPage:
         return CupertinoPageRoute(
             settings: settings,
-            builder: (context) => ParticipateUserTestPage());
+            builder: (context) => const ParticipateUserTestPage());
 
       case linkManually:
         return CupertinoPageRoute(
@@ -771,17 +768,17 @@ class AppRouter {
             settings: settings,
             builder: (context) => BlocProvider(
                   create: (_) => HiddenArtworksBloc(networkInjector.I()),
-                  child: HiddenArtworksPage(),
+                  child: const HiddenArtworksPage(),
                 ));
 
       case SurveyPage.tag:
         return CupertinoPageRoute(
             settings: settings,
             fullscreenDialog: true,
-            builder: (context) => SurveyPage());
+            builder: (context) => const SurveyPage());
       case SurveyThankyouPage.tag:
         return CupertinoPageRoute(
-            settings: settings, builder: (context) => SurveyThankyouPage());
+            settings: settings, builder: (context) => const SurveyThankyouPage());
 
       case githubDocPage:
         return CupertinoPageRoute(
@@ -794,7 +791,7 @@ class AppRouter {
             settings: settings,
             builder: (context) => BlocProvider(
                   create: (_) => KeySyncBloc(injector(), injector()),
-                  child: KeySyncPage(),
+                  child: const KeySyncPage(),
                 ));
 
       case tvConnectPage:

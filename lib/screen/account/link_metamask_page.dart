@@ -65,15 +65,14 @@ class _LinkMetamaskPageState extends State<LinkMetamaskPage> {
                       "To link your MetaMask browser extension to Autonomy:",
                       style: appTextTheme.bodyText1,
                     ),
-                    SizedBox(height: 20),
+                    const SizedBox(height: 20),
                     _stepWidget('1',
                         'Generate a link request and send it to the web browser where you are currently signed in to MetaMask.'),
-                    SizedBox(height: 10),
+                    const SizedBox(height: 10),
                     _stepWidget('2',
                         'When prompted by MetaMask, approve Autonomy’s permissions requests.'),
-                    SizedBox(height: 40),
+                    const SizedBox(height: 40),
                     Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Expanded(
@@ -100,17 +99,16 @@ class _LinkMetamaskPageState extends State<LinkMetamaskPage> {
 
   Widget _stepWidget(String stepNumber, String stepGuide) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.only(top: 2),
+          padding: const EdgeInsets.only(top: 2),
           child: Text(
             stepNumber,
             style: appTextTheme.caption,
           ),
         ),
-        SizedBox(
+        const SizedBox(
           width: 10,
         ),
         Expanded(
@@ -129,15 +127,13 @@ class _LinkMetamaskPageState extends State<LinkMetamaskPage> {
       _websocketChannel!.sink.close();
     }
 
-    final sessionID = Uuid().v4();
+    final sessionID = const Uuid().v4();
 
     final network = injector<ConfigurationService>().getNetwork();
-    final link = Environment.networkedExtensionSupportURL(network) +
-        "/metamask-wallet?session_id=$sessionID";
+    final link = "${Environment.networkedExtensionSupportURL(network)}/metamask-wallet?session_id=$sessionID";
 
     _websocketChannel = WebSocketChannel.connect(
-      Uri.parse(Environment.networkedWebsocketURL(network) +
-          '/init?session_id=$sessionID'),
+      Uri.parse('${Environment.networkedWebsocketURL(network)}/init?session_id=$sessionID'),
     );
 
     if (_websocketChannel == null) return;
@@ -170,6 +166,8 @@ class _LinkMetamaskPageState extends State<LinkMetamaskPage> {
       _websocketChannel?.sink.add(json.encode({
         'type': 'success',
       }));
+
+      if (!mounted) return;
 
       UIHelper.showAccountLinked(
           context, linkedAccount, WalletApp.MetaMask.rawValue);

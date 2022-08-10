@@ -14,8 +14,8 @@ import 'package:autonomy_flutter/util/helpers.dart';
 
 class ArtworkPreviewBloc
     extends AuBloc<ArtworkPreviewEvent, ArtworkPreviewState> {
-  AssetTokenDao _assetTokenDao;
-  ConfigurationService _configurationService;
+  final AssetTokenDao _assetTokenDao;
+  final ConfigurationService _configurationService;
 
   ArtworkPreviewBloc(this._assetTokenDao, this._configurationService)
       : super(ArtworkPreviewState()) {

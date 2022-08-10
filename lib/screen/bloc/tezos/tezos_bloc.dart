@@ -14,11 +14,11 @@ import 'package:autonomy_flutter/service/tezos_service.dart';
 part 'tezos_state.dart';
 
 class TezosBloc extends AuBloc<TezosEvent, TezosState> {
-  ConfigurationService _configurationService;
-  TezosService _tezosService;
+  final ConfigurationService _configurationService;
+  final TezosService _tezosService;
 
   TezosBloc(this._configurationService, this._tezosService)
-      : super(TezosState(balances: {
+      : super(TezosState(null, {
           Network.MAINNET: {},
           Network.TESTNET: {},
         })) {
@@ -27,7 +27,7 @@ class TezosBloc extends AuBloc<TezosEvent, TezosState> {
       final tezosWallet =
           await Persona.newPersona(uuid: event.uuid).wallet().getTezosWallet();
       final address = tezosWallet.address;
-      var personaAddresses = state.personaAddresses ?? Map();
+      var personaAddresses = state.personaAddresses ?? {};
       personaAddresses[event.uuid] = address;
 
       emit(state.copyWith(personaAddresses: personaAddresses));

@@ -51,8 +51,8 @@ class _WalletDetailPageState extends State<WalletDetailPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  SizedBox(height: 16.0),
-                  Container(
+                  const SizedBox(height: 16.0),
+                  SizedBox(
                     width: double.infinity,
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -61,18 +61,18 @@ class _WalletDetailPageState extends State<WalletDetailPage> {
                           state.balance.isNotEmpty
                               ? state.balance
                               : "-- ${widget.payload.type == CryptoType.ETH ? "ETH" : "XTZ"}",
-                          style: TextStyle(
+                          style: const TextStyle(
                               color: Colors.black,
                               fontSize: 24,
                               fontWeight: FontWeight.w600,
                               fontFamily: "IBMPlexMono"),
                         ),
-                        SizedBox(height: 8.0),
+                        const SizedBox(height: 8.0),
                         Text(
                           state.balanceInUSD.isNotEmpty
                               ? state.balanceInUSD
                               : "-- USD",
-                          style: TextStyle(
+                          style: const TextStyle(
                               color: Colors.black,
                               fontSize: 16,
                               fontWeight: FontWeight.w300,
@@ -81,13 +81,13 @@ class _WalletDetailPageState extends State<WalletDetailPage> {
                       ],
                     ),
                   ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   Expanded(
                     child: widget.payload.type == CryptoType.XTZ
                         ? TezosTXListView(address: state.address)
                         : Container(),
                   ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   Row(
                     children: [
                       Expanded(
@@ -100,7 +100,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> {
                           },
                         ),
                       ),
-                      SizedBox(
+                      const SizedBox(
                         width: 16.0,
                       ),
                       Expanded(

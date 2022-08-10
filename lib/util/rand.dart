@@ -10,9 +10,9 @@ import 'dart:math';
 var random = Random.secure();
 
 String generateRandomString(int len) {
-  const _chars =
+  const chars =
       'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
-  return List.generate(len, (index) => _chars[random.nextInt(_chars.length)])
+  return List.generate(len, (index) => chars[random.nextInt(chars.length)])
       .join();
 }
 

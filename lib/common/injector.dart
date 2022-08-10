@@ -5,8 +5,6 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'dart:convert';
-
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
@@ -43,18 +41,16 @@ import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/au_cached_manager.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
 import 'package:autonomy_flutter/util/isolated_util.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:dio/dio.dart';
-import 'package:sentry_dio/sentry_dio.dart';
 import 'package:dio_smart_retry/dio_smart_retry.dart';
-import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart';
+import 'package:logging/logging.dart';
+import 'package:sentry_dio/sentry_dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'network_config_injector.dart';
-
-import 'package:logging/logging.dart';
-import 'package:autonomy_flutter/util/log.dart';
 
 final injector = GetIt.instance;
 final testnetInjector = GetIt.asNewInstance();
@@ -64,7 +60,6 @@ Future<void> setup() async {
 
   Logger.root.level = Level.ALL; // defaults to Level.INFO
   Logger.root.onRecord.listen((record) {
-    print('${record.level.name}: ${record.time}: ${record.message}');
     FileLogger.log(record);
     SentryBreadcrumbLogger.log(record);
   });
@@ -129,7 +124,6 @@ Future<void> setup() async {
     logPrint: (message) {
       log.warning("[request retry] $message");
     },
-    retries: 3,
     retryDelays: const [
       // set delays between retries
       Duration(seconds: 1),

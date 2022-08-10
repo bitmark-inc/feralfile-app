@@ -138,21 +138,22 @@ Future showErrorDialog(BuildContext context, String title, String description,
                 children: [
                   Text(title, style: theme.textTheme.headline1),
                   if (description.isNotEmpty) ...[
-                    SizedBox(height: 40),
+                    const SizedBox(height: 40),
                     Text(
                       description,
                       style: theme.textTheme.bodyText1,
                     ),
-                    SizedBox(height: 40),
+                    const SizedBox(height: 40),
                     AuFilledButton(
                       text: defaultButton,
                       onPress: () {
                         Navigator.of(context).pop();
-                        if (defaultButtonOnPress != null)
+                        if (defaultButtonOnPress != null) {
                           defaultButtonOnPress();
+                        }
                       },
                       color: Colors.white,
-                      textStyle: TextStyle(
+                      textStyle: const TextStyle(
                           color: Colors.black,
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
@@ -168,13 +169,13 @@ Future showErrorDialog(BuildContext context, String title, String description,
                             cancelButtonOnPress();
                           }
                         },
-                        textStyle: TextStyle(
+                        textStyle: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
                             fontFamily: "IBMPlexMono"),
                       ),
                   ],
-                  SizedBox(height: 40),
+                  const SizedBox(height: 40),
                 ],
               ),
             ),
@@ -182,7 +183,7 @@ Future showErrorDialog(BuildContext context, String title, String description,
         );
       });
 
-  await Future.delayed(Duration(seconds: 1), () {
+  await Future.delayed(const Duration(seconds: 1), () {
     isShowErrorDialogWorking = null;
   });
 }
@@ -258,7 +259,7 @@ void showErrorDialogFromException(Object exception,
   // avoid to bother user when user has just foregrounded the app.
   if (memoryValues.inForegroundAt != null &&
       DateTime.now()
-              .subtract(Duration(seconds: 5))
+              .subtract(const Duration(seconds: 5))
               .compareTo(memoryValues.inForegroundAt!) <
           0) {
     Sentry.captureException(exception,

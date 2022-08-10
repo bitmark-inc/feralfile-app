@@ -29,21 +29,22 @@ Widget _simpleNotificationToast(String notification, Key key,
   return ClipPath(
       clipper: AutonomyButtonClipper(),
       child: ConstrainedBox(
-          constraints: BoxConstraints(minHeight: 68),
+          constraints: const BoxConstraints(minHeight: 68),
           child: GestureDetector(
               onTap: () {
                 hideOverlay(key);
-                if (notificationOpenedHandler != null)
+                if (notificationOpenedHandler != null) {
                   notificationOpenedHandler();
+                }
               },
               child: Container(
                 color: Colors.black.withOpacity(0.8),
-                padding: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
                 child: Center(
                     child: Text(
                   notification,
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: const TextStyle(
                       color: Colors.white,
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -58,9 +59,8 @@ void showNotifications(OSNotification notification,
       _notificationToast(notification,
           notificationOpenedHandler: notificationOpenedHandler),
       background: Colors.transparent,
-      duration: Duration(seconds: 3),
+      duration: const Duration(seconds: 3),
       elevation: 0,
-      autoDismiss: true,
       key: Key(notification.notificationId),
       slideDismissDirection: DismissDirection.up);
   Vibrate.feedback(FeedbackType.warning);
@@ -88,5 +88,5 @@ void hideOverlay(Key key) {
 
   final overlayEntry = overlaySupport.getEntry(key: key);
 
-  overlayEntry?.dismiss(animate: true);
+  overlayEntry?.dismiss();
 }

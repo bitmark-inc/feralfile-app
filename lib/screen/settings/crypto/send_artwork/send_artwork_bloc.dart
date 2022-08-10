@@ -21,10 +21,10 @@ import 'package:tezart/tezart.dart';
 import 'package:web3dart/web3dart.dart';
 
 class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
-  EthereumService _ethereumService;
-  TezosService _tezosService;
-  CurrencyService _currencyService;
-  AssetToken _asset;
+  final EthereumService _ethereumService;
+  final TezosService _tezosService;
+  final CurrencyService _currencyService;
+  final AssetToken _asset;
   String? cachedAddress;
   BigInt? cachedBalance;
   bool isEstimating = false;

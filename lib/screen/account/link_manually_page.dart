@@ -25,7 +25,7 @@ class LinkManuallyPage extends StatefulWidget {
 }
 
 class _LinkManuallyPageState extends State<LinkManuallyPage> {
-  TextEditingController _addressController = TextEditingController();
+  final TextEditingController _addressController = TextEditingController();
 
   String get title {
     switch (widget.type) {
@@ -75,7 +75,7 @@ class _LinkManuallyPageState extends State<LinkManuallyPage> {
                       description,
                       style: appTextTheme.bodyText1,
                     ),
-                    SizedBox(height: 40),
+                    const SizedBox(height: 40),
                     AuTextField(
                       title: "",
                       placeholder: "Paste ${widget.type}",
@@ -106,6 +106,7 @@ class _LinkManuallyPageState extends State<LinkManuallyPage> {
       case 'address':
         await injector<AccountService>()
             .linkManuallyAddress(_addressController.text);
+        if (!mounted) return;
         UIHelper.showInfoDialog(
             context, 'Account linked', 'Autonomy has linked your address.');
         break;
@@ -113,6 +114,7 @@ class _LinkManuallyPageState extends State<LinkManuallyPage> {
       case 'indexerTokenID':
         await injector<AccountService>()
             .linkIndexerTokenID(_addressController.text);
+        if (!mounted) return;
         UIHelper.showInfoDialog(
             context, 'Account linked', 'Autonomy has linked your address.');
         break;

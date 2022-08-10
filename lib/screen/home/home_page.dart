@@ -48,8 +48,10 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 class HomePage extends StatefulWidget {
   static const tag = "home";
 
+  const HomePage({Key? key}) : super(key: key);
+
   @override
-  _HomePageState createState() => _HomePageState();
+  State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage>
@@ -71,7 +73,7 @@ class _HomePageState extends State<HomePage>
         .setNotificationWillShowInForegroundHandler(_shouldShowNotifications);
     injector<AuditService>().auditFirstLog();
     OneSignal.shared.setNotificationOpenedHandler((openedResult) {
-      Future.delayed(Duration(milliseconds: 500), () {
+      Future.delayed(const Duration(milliseconds: 500), () {
         _handleNotificationClicked(openedResult.notification);
       });
     });
@@ -106,6 +108,7 @@ class _HomePageState extends State<HomePage>
     super.didPopNext();
     final connectivityResult = await (Connectivity().checkConnectivity());
 
+    if (!mounted) return;
     context.read<HomeBloc>().add(RefreshTokensEvent());
     if (connectivityResult == ConnectivityResult.mobile ||
         connectivityResult == ConnectivityResult.wifi) {
@@ -133,11 +136,10 @@ class _HomePageState extends State<HomePage>
           .contains(state.fetchTokenState)) {
         contentWidget = Center(
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
             children: [
               Container(
+                padding: const EdgeInsets.fromLTRB(0, 72, 0, 48),
                 child: autonomyLogo,
-                padding: EdgeInsets.fromLTRB(0, 72, 0, 48),
               ),
               loadingIndicator(),
             ],
@@ -154,7 +156,6 @@ class _HomePageState extends State<HomePage>
       controller: _controller,
       child: Scaffold(
         body: Stack(
-          fit: StackFit.loose,
           children: [
             contentWidget,
             PenroseTopBarView(
@@ -169,17 +170,17 @@ class _HomePageState extends State<HomePage>
 
   Widget _emptyGallery() {
     return ListView(
-      padding: EdgeInsets.symmetric(horizontal: 16.0),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
       children: [
         Container(
+          padding: const EdgeInsets.fromLTRB(0, 72, 0, 48),
           child: autonomyLogo,
-          padding: EdgeInsets.fromLTRB(0, 72, 0, 48),
         ),
         Text(
           "Collection",
           style: appTextTheme.headline1,
         ),
-        SizedBox(height: 24.0),
+        const SizedBox(height: 24.0),
         Text(
           "Your collection is empty for now.",
           style: appTextTheme.bodyText1,
@@ -219,15 +220,14 @@ class _HomePageState extends State<HomePage>
     sources = [
       SliverToBoxAdapter(
           child: Container(
+        padding: const EdgeInsets.fromLTRB(0, 72, 0, 48),
         child: autonomyLogo,
-        padding: EdgeInsets.fromLTRB(0, 72, 0, 48),
       )),
       SliverGrid(
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: cellPerRow,
           crossAxisSpacing: cellSpacing,
           mainAxisSpacing: cellSpacing,
-          childAspectRatio: 1.0,
         ),
         delegate: SliverChildBuilderDelegate(
           (BuildContext context, int index) {
@@ -254,7 +254,7 @@ class _HomePageState extends State<HomePage>
           childCount: tokens.length,
         ),
       ),
-      SliverToBoxAdapter(child: SizedBox(height: 30)),
+      const SliverToBoxAdapter(child: SizedBox(height: 30)),
     ];
 
     return CustomScrollView(
@@ -273,6 +273,7 @@ class _HomePageState extends State<HomePage>
     final defaultAccounts = await cloudDatabase.personaDao.getDefaultPersonas();
 
     if (defaultAccounts.length >= 2) {
+      if (!mounted) return;
       Navigator.of(context).pushNamed(AppRouter.keySyncPage);
     }
   }
@@ -342,7 +343,7 @@ class _HomePageState extends State<HomePage>
                 route.settings.name == AppRouter.homePage ||
                 route.settings.name == AppRouter.homePageNoTransition),
             arguments:
-                DetailIssuePayload(reportIssueType: "", issueID: '$issueID'));
+                DetailIssuePayload(reportIssueType: "", issueID: issueID));
         break;
       default:
         log.warning("unhandled notification type: $notificationType");

@@ -25,14 +25,14 @@ import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 class MigrationUtil {
-  static const MethodChannel _channel = const MethodChannel('migration_util');
-  ConfigurationService _configurationService;
-  CloudDatabase _cloudDB;
-  AccountService _accountService;
-  NavigationService _navigationService;
-  IAPService _iapService;
-  AuditService _auditService;
-  BackupService _backupService;
+  static const MethodChannel _channel = MethodChannel('migration_util');
+  final ConfigurationService _configurationService;
+  final CloudDatabase _cloudDB;
+  final AccountService _accountService;
+  final NavigationService _navigationService;
+  final IAPService _iapService;
+  final AuditService _auditService;
+  final BackupService _backupService;
 
   MigrationUtil(
       this._configurationService,

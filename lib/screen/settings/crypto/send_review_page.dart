@@ -63,17 +63,17 @@ class _SendReviewPageState extends State<SendReviewPage> {
                   "Confirmation",
                   style: appTextTheme.headline1,
                 ),
-                SizedBox(height: 40.0),
+                const SizedBox(height: 40.0),
                 Text(
                   "To",
                   style: appTextTheme.headline4,
                 ),
-                SizedBox(height: 16.0),
+                const SizedBox(height: 16.0),
                 Text(
                   widget.payload.address,
                   style: appTextTheme.bodyText2,
                 ),
-                Divider(height: 32),
+                const Divider(height: 32),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -89,7 +89,7 @@ class _SendReviewPageState extends State<SendReviewPage> {
                     ),
                   ],
                 ),
-                Divider(height: 32),
+                const Divider(height: 32),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -105,7 +105,7 @@ class _SendReviewPageState extends State<SendReviewPage> {
                     ),
                   ],
                 ),
-                Divider(height: 32),
+                const Divider(height: 32),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -121,7 +121,7 @@ class _SendReviewPageState extends State<SendReviewPage> {
                     ),
                   ],
                 ),
-                Expanded(child: SizedBox()),
+                const Expanded(child: const SizedBox()),
                 Row(
                   children: [
                     Expanded(
@@ -199,7 +199,7 @@ class _SendReviewPageState extends State<SendReviewPage> {
               ],
             ),
           ),
-          _isSending ? Center(child: CupertinoActivityIndicator()) : SizedBox(),
+          _isSending ? const Center(child: const CupertinoActivityIndicator()) : const SizedBox(),
         ],
       ),
     );

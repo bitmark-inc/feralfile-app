@@ -6,7 +6,6 @@
 //
 
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
@@ -70,7 +69,7 @@ class SupportThreadPage extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _SupportThreadPageState createState() => _SupportThreadPageState();
+  State<SupportThreadPage> createState() => _SupportThreadPageState();
 }
 
 class _SupportThreadPageState extends State<SupportThreadPage> {
@@ -98,7 +97,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   types.CustomMessage get _resolvedMessager => types.CustomMessage(
         id: _resolvedMessagerID,
         author: _bitmark,
-        metadata: {"status": "resolved"},
+        metadata: const {"status": "resolved"},
       );
 
   @override
@@ -116,7 +115,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     if (payload is NewIssuePayload) {
       _reportIssueType = payload.reportIssueType;
       if (_reportIssueType == ReportIssueType.Bug) {
-        Future.delayed(Duration(milliseconds: 300), () {
+        Future.delayed(const Duration(milliseconds: 300), () {
           _askForAttachCrashLog(context, onConfirm: (attachCrashLog) {
             if (attachCrashLog) {
               _addAppLogs();
@@ -133,7 +132,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
               payload.issueID;
     } else if (payload is ExceptionErrorPayload) {
       _reportIssueType = ReportIssueType.Exception;
-      Future.delayed(Duration(milliseconds: 300), () {
+      Future.delayed(const Duration(milliseconds: 300), () {
         _askForAttachCrashLog(context, onConfirm: (attachCrashLog) {
           if (attachCrashLog) {
             _addAppLogs();
@@ -180,7 +179,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
           Text(
               "Would you like to attach a crash log with your support request? The crash log is anonymous and will help our engineers identify the issue.",
               style: theme.textTheme.bodyText1),
-          SizedBox(height: 40),
+          const SizedBox(height: 40),
           AuFilledButton(
             text: "ATTACH CRASH LOG",
             color: theme.primaryColor,
@@ -193,13 +192,13 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
           ),
           AuFilledButton(
             text: "CONTINUE WITHOUT CRASH LOG",
-            textStyle: TextStyle(
+            textStyle: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
                 fontFamily: "IBMPlexMono"),
             onPress: () => onConfirm(false),
           ),
-          SizedBox(height: 40),
+          const SizedBox(height: 40),
         ],
       ),
       isDismissible: true,
@@ -213,7 +212,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       messages.insert(0, _resolvedMessager);
     }
 
-    if (_issueID == null || messages.length > 0) {
+    if (_issueID == null || messages.isNotEmpty) {
       messages.add(_introMessager);
     }
 
@@ -233,7 +232,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
               theme: _chatTheme,
               sendButtonVisibilityMode: SendButtonVisibilityMode.always,
               customMessageBuilder: _customMessageBuilder,
-              emptyState: CupertinoActivityIndicator(),
+              emptyState: const CupertinoActivityIndicator(),
               messages: messages,
               onAttachmentPressed: _handleAtachmentPressed,
               onSendPressed: _handleSendPressed,
@@ -246,7 +245,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
               },
               user: _user,
               customBottomWidget:
-                  _status == 'closed' ? SizedBox(height: 40) : null,
+                  _status == 'closed' ? const SizedBox(height: 40) : null,
             )));
   }
 
@@ -264,7 +263,6 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     }
 
     return Bubble(
-      child: child,
       color: color,
       margin: nextMessageInGroup
           ? const BubbleEdges.symmetric(horizontal: 6)
@@ -274,6 +272,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
           : _user.id != message.author.id
               ? BubbleNip.leftBottom
               : BubbleNip.rightBottom,
+      child: child,
     );
   }
 
@@ -282,13 +281,12 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     switch (message.metadata?["status"]) {
       case "resolved":
         return Container(
-          padding: EdgeInsets.symmetric(vertical: 14),
+          padding: const EdgeInsets.symmetric(vertical: 14),
           color: AppColorTheme.chatSecondaryColor,
           child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Text(
+                const Text(
                     "Issue resolved.\nOur team thanks you for helping us improve Autonomy.",
                     textAlign: TextAlign.center,
                     style: TextStyle(
@@ -297,7 +295,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
                         fontFamily: "AtlasGrotesk-Bold",
                         fontWeight: FontWeight.w700,
                         height: 1.377)),
-                SizedBox(height: 24),
+                const SizedBox(height: 24),
                 TextButton(
                     onPressed: () {
                       setState(() {
@@ -313,7 +311,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
         );
 
       default:
-        return SizedBox();
+        return const SizedBox();
     }
   }
 
@@ -322,17 +320,18 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     final issueDetails =
         await injector<CustomerSupportService>().getDetails(_issueID!);
 
-    final _parsedMessages = (await Future.wait(
+    final parsedMessages = (await Future.wait(
             issueDetails.messages.map((e) => _convertChatMessage(e, null))))
         .expand((i) => i)
         .toList();
 
-    if (mounted)
+    if (mounted) {
       setState(() {
         _status = issueDetails.issue.status;
         _reportIssueType = issueDetails.issue.reportIssueType;
-        _messages = _parsedMessages;
+        _messages = parsedMessages;
       });
+    }
   }
 
   Future _loadDrafts() async {
@@ -344,10 +343,11 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
             .expand((i) => i)
             .toList();
 
-    if (mounted)
+    if (mounted) {
       setState(() {
         _draftMessages = draftMessages;
       });
+    }
   }
 
   void _loadCustomerSupportUpdates() async {
@@ -373,14 +373,14 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     List<String> mutedMessages = [];
     if (_issueID == null) {
       messageType = CSMessageType.CreateIssue.rawValue;
-      _issueID = "TEMP-" + Uuid().v4();
+      _issueID = "TEMP-${const Uuid().v4()}";
 
       final payload = widget.payload;
       if (payload is ExceptionErrorPayload) {
-        final _sentryID = payload.sentryID;
-        if (_sentryID.isNotEmpty) {
+        final sentryID = payload.sentryID;
+        if (sentryID.isNotEmpty) {
           mutedMessages.add(
-              "[SENTRY REPORT $_sentryID](https://sentry.io/organizations/bitmark-inc/issues/?query=$_sentryID)");
+              "[SENTRY REPORT $sentryID](https://sentry.io/organizations/bitmark-inc/issues/?query=$sentryID)");
         }
 
         if (payload.metadata.isNotEmpty) {
@@ -390,7 +390,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     }
 
     final draft = DraftCustomerSupport(
-      uuid: Uuid().v4(),
+      uuid: const Uuid().v4(),
       issueID: _issueID!,
       type: messageType,
       data: json.encode(data),
@@ -419,7 +419,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   void _handleSendPressed(types.PartialText message) async {
     _submit(
       CSMessageType.PostMessage.rawValue,
-      DraftCustomerSupportData(text: message.text, attachments: null),
+      DraftCustomerSupportData(text: message.text),
     );
   }
 
@@ -437,10 +437,10 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     await _submit(
         CSMessageType.PostLogs.rawValue,
         DraftCustomerSupportData(
-          text: null,
           attachments: [LocalAttachment(fileName: filename, path: localPath)],
         ));
 
+    if (!mounted) return;
     Navigator.pop(context);
   }
 
@@ -475,16 +475,15 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
               child: Text('Debug log', style: theme.textTheme.headline4),
             ),
           ),
-          SizedBox(height: 40),
+          const SizedBox(height: 40),
           Align(
-            alignment: Alignment.center,
             child: TextButton(
               onPressed: () => Navigator.of(context).pop(),
               child: Text("CANCEL",
                   style: theme.textTheme.button?.copyWith(color: Colors.white)),
             ),
           ),
-          SizedBox(height: 15),
+          const SizedBox(height: 15),
         ],
       ),
       isDismissible: true,
@@ -507,7 +506,6 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     await _submit(
         CSMessageType.PostPhotos.rawValue,
         DraftCustomerSupportData(
-          text: null,
           attachments: attachments,
         ));
   }
@@ -556,7 +554,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     if (message is app.Message) {
       for (var attachment in message.attachments) {
         titles.add(attachment.title);
-        uris.add(storedDirectory + "/" + attachment.title);
+        uris.add("$storedDirectory/${attachment.title}");
         contentTypes.add(attachment.contentType);
       }
       //
@@ -605,12 +603,10 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     return DefaultChatTheme(
       messageInsetsVertical: 14,
       messageInsetsHorizontal: 14,
-      inputPadding: EdgeInsets.fromLTRB(0, 24, 0, 20),
-      inputMargin: EdgeInsets.zero,
+      inputPadding: const EdgeInsets.fromLTRB(0, 24, 0, 20),
       backgroundColor: Colors.transparent,
       inputBackgroundColor: Colors.black,
       inputTextStyle: appTextTheme.bodyText1!,
-      inputTextColor: Colors.white,
       attachmentButtonIcon: SvgPicture.asset(
         "assets/images/joinFile.svg",
         color: Colors.white,
@@ -622,37 +618,36 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       inputTextCursorColor: Colors.white,
       emptyChatPlaceholderTextStyle: appTextTheme.headline4!
           .copyWith(color: AppColorTheme.secondarySpanishGrey),
-      dateDividerMargin: EdgeInsets.symmetric(vertical: 12),
-      dateDividerTextStyle: TextStyle(
+      dateDividerMargin: const EdgeInsets.symmetric(vertical: 12),
+      dateDividerTextStyle: const TextStyle(
           color: AppColorTheme.chatDateDividerColor,
           fontSize: 12,
           fontFamily: "AtlasGrotesk",
           height: 1.377),
       primaryColor: Colors.transparent,
-      sentMessageBodyTextStyle: TextStyle(
+      sentMessageBodyTextStyle: const TextStyle(
           color: Colors.black,
           fontSize: 14,
           fontFamily: "AtlasGrotesk",
           height: 1.377),
       secondaryColor: AppColorTheme.chatSecondaryColor,
-      receivedMessageBodyTextStyle: TextStyle(
+      receivedMessageBodyTextStyle: const TextStyle(
           color: Colors.white,
           fontSize: 14,
           fontFamily: "AtlasGrotesk",
           height: 1.377),
       receivedMessageDocumentIconColor: Colors.white,
-      sentMessageDocumentIconColor: Colors.white,
       documentIcon: Image.asset(
         "assets/images/chatFileIcon.png",
         width: 20,
       ),
-      sentMessageCaptionTextStyle: TextStyle(
+      sentMessageCaptionTextStyle: const TextStyle(
           color: Colors.black,
           fontSize: 14,
           fontWeight: FontWeight.w300,
           fontFamily: "AtlasGrotesk-Light",
           height: 1.377),
-      receivedMessageCaptionTextStyle: TextStyle(
+      receivedMessageCaptionTextStyle: const TextStyle(
           color: Colors.white,
           fontSize: 14,
           fontWeight: FontWeight.w300,
@@ -661,8 +656,8 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       sendingIcon: Container(
         width: 16,
         height: 12,
-        padding: EdgeInsets.only(left: 3),
-        child: CircularProgressIndicator(
+        padding: const EdgeInsets.only(left: 3),
+        child: const CircularProgressIndicator(
           color: AppColorTheme.secondarySpanishGrey,
           strokeWidth: 2,
         ),

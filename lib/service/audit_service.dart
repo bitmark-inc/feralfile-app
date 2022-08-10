@@ -19,20 +19,21 @@ abstract class AuditService {
 }
 
 class AuditCategory {
-  static const FullAccount = 'fullAccount';
+  static const fullAccount = 'fullAccount';
 }
 
 class AuditServiceImpl extends AuditService {
-  CloudDatabase _cloudDB;
+  final CloudDatabase _cloudDB;
 
   AuditServiceImpl(
     this._cloudDB,
   );
 
+  @override
   void auditFirstLog() async {
     final audits =
-        await _cloudDB.auditDao.getAuditsBy(AuditCategory.FullAccount, 'init');
-    if (audits.length > 0) return; // ignore if already init.
+        await _cloudDB.auditDao.getAuditsBy(AuditCategory.fullAccount, 'init');
+    if (audits.isNotEmpty) return; // ignore if already init.
 
     final personas = await _cloudDB.personaDao.getPersonas();
     final metadata = {
@@ -47,8 +48,8 @@ class AuditServiceImpl extends AuditService {
     };
 
     final audit = Audit(
-      uuid: Uuid().v4(),
-      category: AuditCategory.FullAccount,
+      uuid: const Uuid().v4(),
+      category: AuditCategory.fullAccount,
       action: 'init',
       createdAt: DateTime.now(),
       metadata: jsonEncode(metadata),
@@ -57,6 +58,7 @@ class AuditServiceImpl extends AuditService {
     await _cloudDB.auditDao.insertAudit(audit);
   }
 
+  @override
   Future auditPersonaAction(String action, Persona? persona) async {
     Map<String, dynamic> metadata = {};
 
@@ -70,8 +72,8 @@ class AuditServiceImpl extends AuditService {
     }
 
     final audit = Audit(
-      uuid: Uuid().v4(),
-      category: AuditCategory.FullAccount,
+      uuid: const Uuid().v4(),
+      category: AuditCategory.fullAccount,
       action: action,
       createdAt: DateTime.now(),
       metadata: jsonEncode(metadata),
@@ -80,8 +82,9 @@ class AuditServiceImpl extends AuditService {
     await _cloudDB.auditDao.insertAudit(audit);
   }
 
+  @override
   Future<List<int>> export() async {
     final audits = await _cloudDB.auditDao.getAudits();
-    return utf8.encode('\n -- ACCOUNT AUDITS --\n' + jsonEncode(audits));
+    return utf8.encode('\n -- ACCOUNT AUDITS --\n${jsonEncode(audits)}');
   }
 }

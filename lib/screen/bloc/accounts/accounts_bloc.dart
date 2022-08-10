@@ -21,17 +21,15 @@ import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
-import 'package:collection/collection.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 part 'accounts_state.dart';
 
 class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
-  ConfigurationService _configurationService;
-  CloudDatabase _cloudDB;
-  BackupService _backupService;
-  AuditService _auditService;
-  AccountService _accountService;
+  final ConfigurationService _configurationService;
+  final CloudDatabase _cloudDB;
+  final BackupService _backupService;
+  final AuditService _auditService;
+  final AccountService _accountService;
 
   AccountsBloc(this._configurationService, this._cloudDB, this._backupService,
       this._auditService, this._accountService)
@@ -330,7 +328,7 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
       emit(state.setEvent(FetchAllAddressesSuccessEvent(addresses)));
 
       // reset the event after triggering
-      await Future.delayed(Duration(milliseconds: 500), () {
+      await Future.delayed(const Duration(milliseconds: 500), () {
         emit(state.setEvent(null));
       });
     });

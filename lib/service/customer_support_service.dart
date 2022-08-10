@@ -63,7 +63,7 @@ abstract class CustomerSupportService {
 
 class CustomerSupportServiceImpl extends CustomerSupportService {
 
-  static int _ipfsReportThreshold = 24 * 60 * 60 * 1000; // 1 day.
+  static const int _ipfsReportThreshold = 24 * 60 * 60 * 1000; // 1 day.
 
   final DraftCustomerSupportDao _draftCustomerSupportDao;
   final CustomerSupportApi _customerSupportApi;
@@ -71,10 +71,14 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
   final AccountService _accountService;
   final ConfigurationService _configurationService;
 
+  @override
   ValueNotifier<List<int>?> numberOfIssuesInfo = ValueNotifier(null);
+  @override
   ValueNotifier<int> triggerReloadMessages = ValueNotifier(0);
+  @override
   ValueNotifier<CustomerSupportUpdate?> customerSupportUpdate =
       ValueNotifier(null);
+  @override
   Map<String, String> tempIssueIDMap = {};
 
   CustomerSupportServiceImpl(
@@ -87,6 +91,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
 
   bool _isProcessingDraftMessages = false;
 
+  @override
   Future<List<Issue>> getIssues() async {
     final issues = await _customerSupportApi.getIssues();
     issues.removeWhere(
@@ -139,15 +144,18 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     return issues;
   }
 
+  @override
   Future<IssueDetails> getDetails(String issueID) async {
     return await _customerSupportApi.getDetails(issueID);
   }
 
+  @override
   Future draftMessage(DraftCustomerSupport draft) async {
     await _draftCustomerSupportDao.insertDraft(draft);
     processMessages();
   }
 
+  @override
   Future processMessages() async {
     log.info('[CS-Service][trigger] processMessages');
     if (_isProcessingDraftMessages) return;
@@ -251,6 +259,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     processMessages();
   }
 
+  @override
   Future<List<DraftCustomerSupport>> getDrafts(String issueID) async {
     return _draftCustomerSupportDao.getDrafts(issueID);
   }
@@ -301,6 +310,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     return await _customerSupportApi.createIssue(payload);
   }
 
+  @override
   Future<String> createRenderingIssueReport(
     AssetToken token,
     List<String> topics,
@@ -357,8 +367,9 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
 
     final result = await _renderingReportApi.report(payload);
     final githubURL = result["url"];
-    if (githubURL == null)
+    if (githubURL == null) {
       throw SystemException("_renderingReportApi missing url $result");
+    }
     return githubURL;
   }
 
@@ -372,12 +383,14 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     return await _customerSupportApi.commentIssue(issueID, payload);
   }
 
+  @override
   Future<String> getStoredDirectory() async {
     Directory appDocumentsDirectory = await getApplicationDocumentsDirectory();
     String appDocumentsPath = appDocumentsDirectory.path;
     return '$appDocumentsPath/customer-support';
   }
 
+  @override
   Future<String> storeFile(String filename, List<int> bytes) async {
     log.info('[start] storeFile $filename');
     final directory = await getStoredDirectory();
@@ -390,6 +403,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     return file.path;
   }
 
+  @override
   Future reopen(String issueID) async {
     return _customerSupportApi.reOpenIssue(issueID);
   }

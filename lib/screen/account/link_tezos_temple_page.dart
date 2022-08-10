@@ -70,15 +70,14 @@ class _LinkTezosTemplePageState extends State<LinkTezosTemplePage> {
                       "Since Temple only exists as a browser extension, you will need to follow these additional steps to link it to Autonomy: ",
                       style: appTextTheme.bodyText1,
                     ),
-                    SizedBox(height: 20),
+                    const SizedBox(height: 20),
                     _stepWidget('1',
                         'Generate a link request and send it to the web browser where you are currently signed in to Temple.'),
-                    SizedBox(height: 10),
+                    const SizedBox(height: 10),
                     _stepWidget('2',
                         'When prompted by Temple, approve Autonomy’s permissions requests. '),
-                    SizedBox(height: 40),
+                    const SizedBox(height: 40),
                     Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Expanded(
@@ -105,17 +104,16 @@ class _LinkTezosTemplePageState extends State<LinkTezosTemplePage> {
 
   Widget _stepWidget(String stepNumber, String stepGuide) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.only(top: 2),
+          padding: const EdgeInsets.only(top: 2),
           child: Text(
             stepNumber,
             style: appTextTheme.caption,
           ),
         ),
-        SizedBox(
+        const SizedBox(
           width: 10,
         ),
         Expanded(
@@ -138,16 +136,14 @@ class _LinkTezosTemplePageState extends State<LinkTezosTemplePage> {
     final tezosBeaconService = injector<TezosBeaconService>();
 
     final payload = await tezosBeaconService.getPostMessageConnectionURI();
-    final sessionID = Uuid().v4();
+    final sessionID = const Uuid().v4();
 
     final network = injector<ConfigurationService>().getNetwork();
 
-    final link = Environment.networkedExtensionSupportURL(network) +
-        "?session_id=$sessionID&data=$payload";
+    final link = "${Environment.networkedExtensionSupportURL(network)}?session_id=$sessionID&data=$payload";
 
     _websocketChannel = WebSocketChannel.connect(
-      Uri.parse(Environment.networkedWebsocketURL(network) +
-          '/init?session_id=$sessionID'),
+      Uri.parse('${Environment.networkedWebsocketURL(network)}/init?session_id=$sessionID'),
     );
 
     if (_websocketChannel == null) return;
@@ -186,6 +182,7 @@ class _LinkTezosTemplePageState extends State<LinkTezosTemplePage> {
       _websocketChannel?.sink.add(json.encode(wcEvent));
 
       log.info('[LinkTemple][done] _handlePostMessageOpenChannel');
+      if (!mounted) return;
       UIHelper.showInfoDialog(context, "Link requested",
           "Autonomy has sent a request to ${peer.name} to link to your account. Please open the wallet and authorize the request.");
     }
@@ -200,6 +197,7 @@ class _LinkTezosTemplePageState extends State<LinkTezosTemplePage> {
       final tzAddress = result[0];
       final response = result[1];
 
+      if (!mounted) return;
       UIHelper.hideInfoDialog(context);
 
       if (_peer != null &&
@@ -215,6 +213,7 @@ class _LinkTezosTemplePageState extends State<LinkTezosTemplePage> {
         injector<TokensService>().fetchTokensForAddresses([tzAddress]);
 
         log.info('[LinkTemple][Done] _handleMessageResponse');
+        if (!mounted) return;
         UIHelper.showInfoDialog(context, "Account linked",
             "Autonomy has received autorization to link to your NFTs in ${_peer!.name}.");
 
@@ -234,7 +233,7 @@ class _LinkTezosTemplePageState extends State<LinkTezosTemplePage> {
         throw SystemException(
             '[LinkTemple][error] _handleMessageResponse: unexpect param $_peer; $tzAddress; $response');
       }
-    } on AbortedException catch (exception) {
+    } on AbortedException catch (_) {
       UIHelper.hideInfoDialog(context);
       _websocketChannel?.sink.add(json.encode({
         'type': 'aborted',

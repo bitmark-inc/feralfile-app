@@ -27,7 +27,7 @@ enum ConnectionType {
 }
 
 extension RawValue on ConnectionType {
-  String get rawValue => this.toString().split('.').last;
+  String get rawValue => toString().split('.').last;
 }
 
 @entity
@@ -115,16 +115,14 @@ class Connection {
       final newFFConnection = FeralFileConnection(
           source: ffConnection.source, ffAccount: ffAccount);
 
-      return this
-          .copyWith(name: mergedName, data: json.encode(newFFConnection));
+      return copyWith(name: mergedName, data: json.encode(newFFConnection));
     } else if (ffWeb3Connection != null) {
       final newFFWeb3Connection = FeralFileWeb3Connection(
           personaAddress: ffWeb3Connection.personaAddress,
           source: ffWeb3Connection.source,
           ffAccount: ffAccount);
 
-      return this
-          .copyWith(name: mergedName, data: json.encode(newFFWeb3Connection));
+      return copyWith(name: mergedName, data: json.encode(newFFWeb3Connection));
     } else {
       throw Exception("incorrectDataFlow");
     }
@@ -151,49 +149,49 @@ class Connection {
   FeralFileConnection? get ffConnection {
     if (connectionType != ConnectionType.feralFileToken.rawValue) return null;
 
-    final jsonData = json.decode(this.data);
+    final jsonData = json.decode(data);
     return FeralFileConnection.fromJson(jsonData);
   }
 
   FeralFileWeb3Connection? get ffWeb3Connection {
     if (connectionType != ConnectionType.feralFileWeb3.rawValue) return null;
 
-    final jsonData = json.decode(this.data);
+    final jsonData = json.decode(data);
     return FeralFileWeb3Connection.fromJson(jsonData);
   }
 
   WalletConnectConnection? get wcConnection {
     if (connectionType != ConnectionType.dappConnect.rawValue) return null;
 
-    final jsonData = json.decode(this.data);
+    final jsonData = json.decode(data);
     return WalletConnectConnection.fromJson(jsonData);
   }
 
   TezosConnection? get walletBeaconConnection {
     if (connectionType != ConnectionType.walletBeacon.rawValue) return null;
 
-    final jsonData = json.decode(this.data);
+    final jsonData = json.decode(data);
     return TezosConnection.fromJson(jsonData);
   }
 
   BeaconConnectConnection? get beaconConnectConnection {
     if (connectionType != ConnectionType.beaconP2PPeer.rawValue) return null;
 
-    final jsonData = json.decode(this.data);
+    final jsonData = json.decode(data);
     return BeaconConnectConnection.fromJson(jsonData);
   }
 
   WCConnectedSession? get wcConnectedSession {
     if (connectionType != ConnectionType.walletConnect.rawValue) return null;
 
-    final jsonData = json.decode(this.data);
+    final jsonData = json.decode(data);
     return WCConnectedSession.fromJson(jsonData);
   }
 
   LedgerConnection? get ledgerConnection {
     if (connectionType != ConnectionType.ledger.rawValue) return null;
 
-    final jsonData = json.decode(this.data);
+    final jsonData = json.decode(data);
     return LedgerConnection.fromJson(jsonData);
   }
 
@@ -210,12 +208,12 @@ class Connection {
   }
 
   List<String> get accountNumbers {
-    switch (this.connectionType) {
+    switch (connectionType) {
       case 'feralFileWeb3':
       case 'feralFileToken':
         var addresses = [accountNumber];
         final ffAccount =
-            this.ffConnection?.ffAccount ?? this.ffWeb3Connection?.ffAccount;
+            ffConnection?.ffAccount ?? ffWeb3Connection?.ffAccount;
         final ethereumAddress = ffAccount?.ethereumAddress;
         final tezosAddress = ffAccount?.tezosAddress;
 
@@ -225,14 +223,14 @@ class Connection {
         return addresses;
 
       default:
-        return this.accountNumber.split("||");
+        return accountNumber.split("||");
     }
   }
 
   String get hiddenGalleryKey {
     switch (connectionType) {
       case 'ledger':
-        return 'ledger_' + key;
+        return 'ledger_$key';
       default:
         return accountNumber;
     }

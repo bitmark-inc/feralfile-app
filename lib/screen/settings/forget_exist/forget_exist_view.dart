@@ -16,6 +16,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:roundcheckbox/roundcheckbox.dart';
 
 class ForgetExistView extends StatelessWidget {
+  const ForgetExistView({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     final theme = AuThemeManager.get(AppTheme.sheetTheme);
@@ -27,132 +29,130 @@ class ForgetExistView extends StatelessWidget {
             .pushNamedAndRemoveUntil(AppRouter.onboardingPage, (_) => false);
       }
     }, builder: (context, state) {
-      return Container(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "• ",
-                  style: theme.textTheme.bodyText1,
-                ),
-                Expanded(
-                  child: RichText(
-                    text: TextSpan(
-                      style: theme.textTheme.bodyText1,
-                      children: <TextSpan>[
-                        TextSpan(
-                            text: "This action is irrevocable.",
-                            style:
-                                const TextStyle(fontWeight: FontWeight.bold)),
-                        TextSpan(
-                          text:
-                              " Your accounts and data from your device and your cloud backup will be deleted. Autonomy will not be able to help you recover access.",
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "• ",
-                  style: theme.textTheme.bodyText1,
-                ),
-                Expanded(
-                  child: Text(
-                    "This will not affect private keys of linked accounts",
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "• ",
+                style: theme.textTheme.bodyText1,
+              ),
+              Expanded(
+                child: RichText(
+                  text: TextSpan(
                     style: theme.textTheme.bodyText1,
+                    children: const <TextSpan>[
+                      TextSpan(
+                          text: "This action is irrevocable.",
+                          style:
+                              TextStyle(fontWeight: FontWeight.bold)),
+                      TextSpan(
+                        text:
+                            " Your accounts and data from your device and your cloud backup will be deleted. Autonomy will not be able to help you recover access.",
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "• ",
+              ),
+            ],
+          ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "• ",
+                style: theme.textTheme.bodyText1,
+              ),
+              Expanded(
+                child: Text(
+                  "This will not affect private keys of linked accounts",
                   style: theme.textTheme.bodyText1,
                 ),
-                Expanded(
+              ),
+            ],
+          ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "• ",
+                style: theme.textTheme.bodyText1,
+              ),
+              Expanded(
+                child: Text(
+                  "If you have an active subscription, you will need to manually cancel it in your device’s settings.",
+                  style: theme.textTheme.bodyText1,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(
+            height: 16,
+          ),
+          Row(
+            children: [
+              RoundCheckBox(
+                size: 24.0,
+                borderColor: Colors.white,
+                uncheckedColor: Colors.black,
+                checkedColor: Colors.white,
+                isChecked: state.isChecked,
+                checkedWidget: const Icon(
+                  CupertinoIcons.checkmark,
+                  color: Colors.black,
+                  size: 14,
+                ),
+                // checkedColor: Colors,
+                onTap: (bool? value) {
+                  context
+                      .read<ForgetExistBloc>()
+                      .add(UpdateCheckEvent(value ?? false));
+                },
+              ),
+              const SizedBox(width: 15),
+              const Expanded(
                   child: Text(
-                    "If you have an active subscription, you will need to manually cancel it in your device’s settings.",
-                    style: theme.textTheme.bodyText1,
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(
-              height: 16,
-            ),
-            Row(
-              children: [
-                RoundCheckBox(
-                  size: 24.0,
-                  borderColor: Colors.white,
-                  uncheckedColor: Colors.black,
-                  checkedColor: Colors.white,
-                  isChecked: state.isChecked,
-                  checkedWidget: Icon(
-                    CupertinoIcons.checkmark,
-                    color: Colors.black,
-                    size: 14,
-                  ),
-                  // checkedColor: Colors,
-                  onTap: (bool? value) {
-                    context
-                        .read<ForgetExistBloc>()
-                        .add(UpdateCheckEvent(value ?? false));
-                  },
-                ),
-                SizedBox(width: 15),
-                Expanded(
-                    child: Text(
-                  "I understand that this action cannot be undone.",
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontFamily: "AtlasGrotesk",
-                      fontWeight: FontWeight.w400,
-                      height: 1.4),
-                )),
-              ],
-            ),
-            SizedBox(
-              height: 40,
-            ),
-            AuFilledButton(
-              text: state.isProcessing == true ? "FORGETTING…" : "CONFIRM",
-              enabled: state.isProcessing == null && state.isChecked,
-              onPress: () {
-                context.read<ForgetExistBloc>().add(ConfirmForgetExistEvent());
-              },
-              color: theme.primaryColor,
-              isProcessing: state.isProcessing == true,
-              textStyle: TextStyle(
-                  color: theme.backgroundColor,
+                "I understand that this action cannot be undone.",
+                style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontFamily: "AtlasGrotesk",
+                    fontWeight: FontWeight.w400,
+                    height: 1.4),
+              )),
+            ],
+          ),
+          const SizedBox(
+            height: 40,
+          ),
+          AuFilledButton(
+            text: state.isProcessing == true ? "FORGETTING…" : "CONFIRM",
+            enabled: state.isProcessing == null && state.isChecked,
+            onPress: () {
+              context.read<ForgetExistBloc>().add(ConfirmForgetExistEvent());
+            },
+            color: theme.primaryColor,
+            isProcessing: state.isProcessing == true,
+            textStyle: TextStyle(
+                color: theme.backgroundColor,
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                fontFamily: "IBMPlexMono"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              "CANCEL",
+              style: TextStyle(
+                  color: Colors.white,
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
                   fontFamily: "IBMPlexMono"),
             ),
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(
-                "CANCEL",
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    fontFamily: "IBMPlexMono"),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       );
     });
   }

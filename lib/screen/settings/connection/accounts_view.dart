@@ -25,7 +25,7 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 class AccountsView extends StatefulWidget {
   final bool isInSettingsPage;
 
-  AccountsView({required this.isInSettingsPage, Key? key}) : super(key: key);
+  const AccountsView({required this.isInSettingsPage, Key? key}) : super(key: key);
 
   @override
   State<AccountsView> createState() => _AccountsViewState();
@@ -33,7 +33,7 @@ class AccountsView extends StatefulWidget {
 
 class _AccountsViewState extends State<AccountsView> {
   String? _editingAccountKey;
-  TextEditingController _nameController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -51,8 +51,8 @@ class _AccountsViewState extends State<AccountsView> {
       }
     }, builder: (context, state) {
       final accounts = state.accounts;
-      if (accounts == null) return CupertinoActivityIndicator();
-      if (accounts.isEmpty) return SizedBox();
+      if (accounts == null) return const CupertinoActivityIndicator();
+      if (accounts.isEmpty) return const SizedBox();
 
       if (!widget.isInSettingsPage) {
         return _noEditAccountsListWidget(accounts);
@@ -69,7 +69,6 @@ class _AccountsViewState extends State<AccountsView> {
                     Slidable(
                       key: UniqueKey(),
                       groupTag: 'accountsView',
-                      closeOnScroll: true,
                       endActionPane: ActionPane(
                         motion: const DrawerMotion(),
                         dragDismissible: false,
@@ -169,16 +168,13 @@ class _AccountsViewState extends State<AccountsView> {
 
   Widget _editAccountItem(Account account) {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      mainAxisAlignment: MainAxisAlignment.start,
       children: [
         accountLogo(account),
-        SizedBox(width: 16),
+        const SizedBox(width: 16),
         Expanded(
           child: TextField(
             autofocus: true,
-            maxLines: 1,
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               isDense: true,
               border: InputBorder.none,
               contentPadding: EdgeInsets.zero,
@@ -198,6 +194,7 @@ class _AccountsViewState extends State<AccountsView> {
               setState(() {
                 _editingAccountKey = null;
               });
+              if (!mounted) return;
               context.read<AccountsBloc>().add(GetAccountsEvent());
             },
           ),
@@ -232,12 +229,12 @@ class _AccountsViewState extends State<AccountsView> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('Delete account', style: theme.textTheme.headline1),
-                    SizedBox(height: 40),
+                    const SizedBox(height: 40),
                     RichText(
                       text: TextSpan(
                         style: theme.textTheme.bodyText1,
                         children: <TextSpan>[
-                          TextSpan(
+                          const TextSpan(
                             text:
                                 'Are you sure you want to delete the account ',
                           ),
@@ -245,18 +242,18 @@ class _AccountsViewState extends State<AccountsView> {
                               text: '“$accountName”',
                               style:
                                   const TextStyle(fontWeight: FontWeight.bold)),
-                          TextSpan(
+                          const TextSpan(
                             text: '?',
                           ),
                           if (account.persona != null) ...[
-                            TextSpan(
+                            const TextSpan(
                                 text:
                                     ' If you haven’t backed up your recovery phrase, you will lose access to your funds.')
                           ]
                         ],
                       ),
                     ),
-                    SizedBox(height: 40),
+                    const SizedBox(height: 40),
                     Row(
                       children: [
                         Expanded(
@@ -277,7 +274,6 @@ class _AccountsViewState extends State<AccountsView> {
                       ],
                     ),
                     Align(
-                      alignment: Alignment.center,
                       child: TextButton(
                           onPressed: () => Navigator.of(context).pop(),
                           child: Text("CANCEL",

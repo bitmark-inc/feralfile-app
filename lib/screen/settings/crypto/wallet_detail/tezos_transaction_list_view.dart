@@ -21,7 +21,7 @@ class TezosTXListView extends StatefulWidget {
   const TezosTXListView({Key? key, required this.address}) : super(key: key);
 
   @override
-  _TezosTXListViewState createState() => _TezosTXListViewState();
+  State<TezosTXListView> createState() => _TezosTXListViewState();
 }
 
 class _TezosTXListViewState extends State<TezosTXListView> {
@@ -74,7 +74,7 @@ class _TezosTXListViewState extends State<TezosTXListView> {
   @override
   Widget build(BuildContext context) {
     return widget.address.isEmpty
-        ? SizedBox()
+        ? const SizedBox()
         : CustomScrollView(
             slivers: [
               PagedSliverList.separated(
@@ -83,7 +83,7 @@ class _TezosTXListViewState extends State<TezosTXListView> {
                     animateTransitions: true,
                     newPageErrorIndicatorBuilder: (context) {
                       return Container(
-                        padding: EdgeInsets.only(top: 30),
+                        padding: const EdgeInsets.only(top: 30),
                         child: Text(
                             "Currently unable to load transaction data from tzkt.io.",
                             style: appTextTheme.bodyText1),
@@ -91,7 +91,7 @@ class _TezosTXListViewState extends State<TezosTXListView> {
                     },
                     noItemsFoundIndicatorBuilder: (context) {
                       return Container(
-                        padding: EdgeInsets.only(top: 30),
+                        padding: const EdgeInsets.only(top: 30),
                         child: Text("Your transactions will appear here.",
                             style: appTextTheme.bodyText1),
                       );
@@ -112,7 +112,7 @@ class _TezosTXListViewState extends State<TezosTXListView> {
                     },
                   ),
                   separatorBuilder: (context, index) {
-                    return Divider();
+                    return const Divider();
                   })
             ],
           );

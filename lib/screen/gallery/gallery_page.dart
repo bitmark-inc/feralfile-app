@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -50,7 +49,7 @@ class _GalleryPageState extends State<GalleryPage> {
     context.read<GalleryBloc>().add(GetTokensEvent(address));
     context.read<GalleryBloc>().add(ReindexIndexerEvent(address));
 
-    _timer = Timer.periodic(Duration(seconds: 5), (timer) {
+    _timer = Timer.periodic(const Duration(seconds: 5), (timer) {
       context.read<GalleryBloc>().add(GetTokensEvent(widget.payload.address));
     });
   }
@@ -76,7 +75,6 @@ class _GalleryPageState extends State<GalleryPage> {
       controller: _scrollController,
       child: Scaffold(
         body: Stack(
-          fit: StackFit.loose,
           children: [
             BlocConsumer<GalleryBloc, GalleryState>(listener: (context, state) {
               final tokens = state.tokens;
@@ -116,18 +114,18 @@ class _GalleryPageState extends State<GalleryPage> {
     sources = [
       SliverToBoxAdapter(
           child: Container(
+        padding: const EdgeInsets.fromLTRB(0, 72, 0, 48),
         child: autonomyLogo,
-        padding: EdgeInsets.fromLTRB(0, 72, 0, 48),
       )),
       SliverToBoxAdapter(
         child: Container(
           alignment: Alignment.topLeft,
-          padding: EdgeInsets.fromLTRB(6, 0, 14, 14),
+          padding: const EdgeInsets.fromLTRB(6, 0, 14, 14),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               TextButton(
-                style: ButtonStyle(alignment: Alignment.centerRight),
+                style: const ButtonStyle(alignment: Alignment.centerRight),
                 onPressed: artistURL != null ? () => launch(artistURL) : null,
                 child: Text(
                   widget.payload.artistName,
@@ -152,7 +150,6 @@ class _GalleryPageState extends State<GalleryPage> {
             crossAxisCount: cellPerRow,
             crossAxisSpacing: cellSpacing,
             mainAxisSpacing: cellSpacing,
-            childAspectRatio: 1.0,
           ),
           delegate: SliverChildBuilderDelegate(
             (BuildContext context, int index) {
@@ -167,7 +164,6 @@ class _GalleryPageState extends State<GalleryPage> {
             crossAxisCount: cellPerRow,
             crossAxisSpacing: cellSpacing,
             mainAxisSpacing: cellSpacing,
-            childAspectRatio: 1.0,
           ),
           delegate: SliverChildBuilderDelegate(
             (BuildContext context, int index) {
@@ -183,7 +179,7 @@ class _GalleryPageState extends State<GalleryPage> {
       if (isLoading) ...[
         SliverToBoxAdapter(
           child: Container(
-            padding: EdgeInsets.fromLTRB(16, 24, 24, 14),
+            padding: const EdgeInsets.fromLTRB(16, 24, 24, 14),
             child: Center(child: loadingIndicator()),
           ),
         ),

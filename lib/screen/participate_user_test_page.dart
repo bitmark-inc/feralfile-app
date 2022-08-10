@@ -53,7 +53,6 @@ What to expect:
                       'We may ask you to install a development build on your device.',
                     ]
                         .map((e) => Row(
-                                mainAxisAlignment: MainAxisAlignment.start,
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(

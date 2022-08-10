@@ -26,7 +26,7 @@ class TezosTXDetailPage extends StatelessWidget {
     Key? key,
     required this.currentAddress,
     required this.tx,
-  });
+  }) : super(key: key);
 
   factory TezosTXDetailPage.fromPayload({
     Key? key,
@@ -48,11 +48,10 @@ class TezosTXDetailPage extends StatelessWidget {
               right: 16.0,
               bottom: MediaQuery.of(context).padding.bottom),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(_transactionTitle(), style: appTextTheme.headline1),
-              SizedBox(height: 27),
+              const SizedBox(height: 27),
               Expanded(
                 child: ListView(
                   children: [
@@ -104,37 +103,35 @@ class TezosTXDetailPage extends StatelessWidget {
   }
 
   String _transactionAmount() {
-    return ((tx.amount ?? 0) / _nanoTEZFactor).toString() + " XTZ";
+    return "${(tx.amount ?? 0) / _nanoTEZFactor} XTZ";
   }
 
   String _txURL() {
-    return "https://tzkt.io/" + tx.hash;
+    return "https://tzkt.io/${tx.hash}";
   }
 
   Widget _transactionInfo(String title, String? detail) {
     return Column(
-      mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Padding(
-            padding: EdgeInsets.symmetric(vertical: 16),
+            padding: const EdgeInsets.symmetric(vertical: 16),
             child: Wrap(
                 alignment: WrapAlignment.spaceBetween,
                 spacing: 16,
                 runSpacing: 16,
                 runAlignment: WrapAlignment.center,
-                crossAxisAlignment: WrapCrossAlignment.start,
                 children: [
                   Text(title, style: appTextTheme.headline4),
                   if (detail != null)
                     Text(detail,
                         textAlign: TextAlign.right,
-                        style: TextStyle(
+                        style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w400,
                             fontFamily: "IBMPlexMono")),
                 ])),
-        Divider(),
+        const Divider(),
       ],
     );
   }
@@ -143,10 +140,9 @@ class TezosTXDetailPage extends StatelessWidget {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       child: Container(
-        padding: EdgeInsets.symmetric(vertical: 16),
+        padding: const EdgeInsets.symmetric(vertical: 16),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             RichText(
                 text: TextSpan(
@@ -171,21 +167,15 @@ class TezosTXDetailPage extends StatelessWidget {
   }
 
   String _gasFee() {
-    return ((tx.bakerFee + (tx.storageFee ?? 0) + (tx.allocationFee ?? 0)) /
-                _nanoTEZFactor)
-            .toString() +
-        " XTZ";
+    return "${(tx.bakerFee + (tx.storageFee ?? 0) + (tx.allocationFee ?? 0)) /
+                _nanoTEZFactor} XTZ";
   }
 
   String _totalAmount() {
-    return (((tx.amount ?? 0) +
+    return "${((tx.amount ?? 0) +
                     tx.bakerFee +
                     (tx.storageFee ?? 0) +
                     (tx.allocationFee ?? 0)) /
-                _nanoTEZFactor)
-            .toString() +
-        " XTZ (" +
-        tx.quote.usd.toStringAsPrecision(2) +
-        " USD)";
+                _nanoTEZFactor} XTZ (${tx.quote.usd.toStringAsPrecision(2)} USD)";
   }
 }

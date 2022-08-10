@@ -22,15 +22,17 @@ class GithubDocPage extends StatefulWidget {
 
   const GithubDocPage({Key? key, required this.payload}) : super(key: key);
   @override
-  State<GithubDocPage> createState() =>
-      _GithubDocPageState(payload["document"]!, payload["title"]!);
+  State<GithubDocPage> createState() => _GithubDocPageState();
 }
 
 class _GithubDocPageState extends State<GithubDocPage> {
-  final String document;
-  final String title;
+  late String document;
+  late String title;
 
-  _GithubDocPageState(this.document, this.title);
+  _GithubDocPageState() {
+    document = widget.payload["document"]!;
+    title = widget.payload["title"]!;
+  }
 
   final dio = Dio(BaseOptions(
     baseUrl: "https://raw.githubusercontent.com",
@@ -61,7 +63,7 @@ class _GithubDocPageState extends State<GithubDocPage> {
                   title,
                   style: appTextTheme.headline1,
                 )),
-                SliverPadding(padding: EdgeInsets.only(bottom: 40)),
+                const SliverPadding(padding: EdgeInsets.only(bottom: 40)),
               ],
               _contentView(context, snapshot)
             ],
@@ -81,8 +83,8 @@ class _GithubDocPageState extends State<GithubDocPage> {
               data: snapshot.data!.data!,
               softLineBreak: true,
               shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
-              padding: EdgeInsets.only(bottom: 50),
+              physics: const NeverScrollableScrollPhysics(),
+              padding: const EdgeInsets.only(bottom: 50),
               styleSheet: markDownLightStyle,
               onTapLink: (text, href, title) async {
                 if (href == null) return;
@@ -94,7 +96,7 @@ class _GithubDocPageState extends State<GithubDocPage> {
                         "title": ""
                       });
                 } else {
-                  launchUrlString(href, mode: LaunchMode.platformDefault);
+                  launchUrlString(href);
                 }
               }));
     } else if (snapshot.hasError ||
@@ -106,7 +108,7 @@ class _GithubDocPageState extends State<GithubDocPage> {
         style: appTextTheme.headline4,
       )));
     } else {
-      return SliverFillRemaining(
+      return const SliverFillRemaining(
           child: Center(child: CupertinoActivityIndicator()));
     }
   }

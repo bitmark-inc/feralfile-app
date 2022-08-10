@@ -51,6 +51,7 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
 
     if (currentWallet == null) {
       injector<TezosBeaconService>().signResponse(widget.request.id, null);
+      if (!mounted) return;
       Navigator.of(context).pop();
       return;
     }
@@ -87,27 +88,27 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(height: 8.0),
+                    const SizedBox(height: 8.0),
                     Text(
                       "Confirm",
                       style: appTextTheme.headline1,
                     ),
-                    SizedBox(height: 40.0),
+                    const SizedBox(height: 40.0),
                     Text(
                       "Connection",
                       style: appTextTheme.headline4,
                     ),
-                    SizedBox(height: 16.0),
+                    const SizedBox(height: 16.0),
                     Text(
                       widget.request.appName ?? "",
                       style: appTextTheme.bodyText2,
                     ),
-                    Divider(height: 32),
+                    const Divider(height: 32),
                     Text(
                       "Message",
                       style: appTextTheme.headline4,
                     ),
-                    SizedBox(height: 16.0),
+                    const SizedBox(height: 16.0),
                     Text(
                       messageInUtf8,
                       style: appTextTheme.bodyText2,
@@ -130,6 +131,7 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
                                   .signMessage(wallet, message);
                               injector<TezosBeaconService>()
                                   .signResponse(widget.request.id, signature);
+                              if (!mounted) return;
                               Navigator.of(context).pop();
                             })
                         : null,

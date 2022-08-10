@@ -53,7 +53,7 @@ class GallerySortProperty {
 }
 
 extension RawValue on WalletApp {
-  String get rawValue => this.toString().split('.').last;
+  String get rawValue => toString().split('.').last;
 }
 
 class ReportIssueType {
@@ -109,7 +109,7 @@ enum PremiumFeature {
 }
 
 extension PremiumFeatureExtension on PremiumFeature {
-  String get rawValue => this.toString().split('.').last;
+  String get rawValue => toString().split('.').last;
 
   String get description {
     switch (rawValue) {

@@ -45,11 +45,11 @@ class FileDownloadInfo {
 class AUCacheManager extends CacheManager with ImageCacheManager {
   static const key = 'AUCache';
   static const reiszedPrefix = 'resized_';
-  ReceivePort _port = ReceivePort();
+  final ReceivePort _port = ReceivePort();
 
-  static late final AUCacheManager _instance = AUCacheManager._();
+  static final AUCacheManager _instance = AUCacheManager._();
   final Map<String, FileDownloadInfo> _memCache = {};
-  HashMap<String, BehaviorSubject<FileResponse>> _requestedUrls =
+  final HashMap<String, BehaviorSubject<FileResponse>> _requestedUrls =
       HashMap.identity();
 
   late String savedDir;
@@ -60,13 +60,13 @@ class AUCacheManager extends CacheManager with ImageCacheManager {
 
   AUCacheManager._()
       : super(Config(key,
-            stalePeriod: Duration(days: 30),
+            stalePeriod: const Duration(days: 30),
             repo: AUCacheInfoRepository(),
             maxNrOfCacheObjects: 10000));
 
   Future<dynamic> setup() async {
     String tempDir = (await getTemporaryDirectory()).path;
-    savedDir = tempDir + "/" + key + "/";
+    savedDir = "$tempDir/$key/";
 
     FlutterImageCompress.validator.ignoreCheckExtName = true;
     IsolateNameServer.registerPortWithName(
@@ -198,10 +198,10 @@ class AUCacheManager extends CacheManager with ImageCacheManager {
       // If the file is already in Cloudflare image service, not resize
       if (fileDownloadInfo.url.startsWith(CLOUDFLAREIMAGEURLPREFIX)) {
         // Store the original file
-        await this.store.putFile(CacheObject(fileDownloadInfo.url,
+        await store.putFile(CacheObject(fileDownloadInfo.url,
             key: key,
             relativePath: fileDownloadInfo.localOriginalFile,
-            validTill: DateTime.now().add(Duration(days: 30))));
+            validTill: DateTime.now().add(const Duration(days: 30))));
       } else {
         // Store the resized file
         await FlutterImageCompress.compressAndGetFile(
@@ -212,10 +212,10 @@ class AUCacheManager extends CacheManager with ImageCacheManager {
           quality: 90,
         );
 
-        await this.store.putFile(CacheObject(fileDownloadInfo.url,
+        await store.putFile(CacheObject(fileDownloadInfo.url,
             key: key,
             relativePath: fileDownloadInfo.localCompressedFile,
-            validTill: DateTime.now().add(Duration(days: 30))));
+            validTill: DateTime.now().add(const Duration(days: 30))));
 
         // delete the original file
         cacheLogger.log(
@@ -223,7 +223,7 @@ class AUCacheManager extends CacheManager with ImageCacheManager {
             CacheManagerLogLevel.debug);
         File(savedDir + fileDownloadInfo.localOriginalFile).delete();
       }
-      final file = await this.store.getFile(key);
+      final file = await store.getFile(key);
       if (file != null) {
         fileDownloadInfo.progress.add(file);
       }
@@ -249,6 +249,7 @@ class AUCacheLogger extends CacheLogger {
   }
 
   /// Function to log a message on a certain loglevel
+  @override
   void log(String message, CacheManagerLogLevel level) {
     l.log.log(logLevel(level), message);
   }

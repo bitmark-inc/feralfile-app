@@ -20,9 +20,9 @@ import 'package:local_auth/local_auth.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class PreferencesBloc extends AuBloc<PreferenceEvent, PreferenceState> {
-  ConfigurationService _configurationService;
-  AppDatabase _appDatabase;
-  LocalAuthentication _localAuth = LocalAuthentication();
+  final ConfigurationService _configurationService;
+  final AppDatabase _appDatabase;
+  final LocalAuthentication _localAuth = LocalAuthentication();
   List<BiometricType> _availableBiometrics = List.empty();
 
   PreferencesBloc(this._configurationService, this._appDatabase)

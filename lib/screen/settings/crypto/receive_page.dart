@@ -38,23 +38,23 @@ class ReceivePage extends StatelessWidget {
               "Receive ${payload.type == CryptoType.ETH ? "ETH" : "XTZ"}",
               style: appTextTheme.headline1,
             ),
-            SizedBox(height: 96),
+            const SizedBox(height: 96),
             Center(
               child: QrImage(
                 data: payload.address,
                 size: 200.0,
               ),
             ),
-            SizedBox(height: 24),
+            const SizedBox(height: 24),
             Container(
               width: MediaQuery.of(context).size.width,
               alignment: Alignment.centerLeft,
-              color: Color(0x44EDEDED),
-              padding: EdgeInsets.all(8.0),
+              color: const Color(0x44EDEDED),
+              padding: const EdgeInsets.all(8.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  const Text(
                     "Deposit address",
                     style: TextStyle(
                         color: AppColorTheme.secondaryHeaderColor,
@@ -63,12 +63,12 @@ class ReceivePage extends StatelessWidget {
                         fontFamily: "AtlasGrotesk"),
                   ),
                   Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
                     child: Text(
                       payload.address,
                       textAlign: TextAlign.start,
                       softWrap: true,
-                      style: TextStyle(
+                      style: const TextStyle(
                           color: Colors.black,
                           fontSize: 12,
                           fontWeight: FontWeight.w300,
@@ -78,7 +78,7 @@ class ReceivePage extends StatelessWidget {
                 ],
               ),
             ),
-            Expanded(child: SizedBox()),
+            const Expanded(child: SizedBox()),
             Row(
               children: [
                 Expanded(

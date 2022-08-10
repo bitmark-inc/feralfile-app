@@ -5,7 +5,6 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'dart:typed_data';
 import 'package:autonomy_flutter/service/ledger_hardware/ledger_hardware_transport.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter_blue/flutter_blue.dart';
@@ -21,8 +20,8 @@ class LedgerHardwareService {
   static const String serviceUuid = "13d63400-2c97-0004-0000-4c6564676572";
 
   final FlutterBlue flutterBlue = FlutterBlue.instance;
-  Map<String, LedgerHardwareWallet> _connectedLedgers =
-      Map<String, LedgerHardwareWallet>();
+  final Map<String, LedgerHardwareWallet> _connectedLedgers =
+      <String, LedgerHardwareWallet>{};
 
   Future<bool> _isAvailable() async {
     final isOn = await FlutterBlue.instance.isOn;
@@ -34,19 +33,20 @@ class LedgerHardwareService {
 
   Future<bool> scanForLedgerWallet() async {
     FlutterBlue.instance.setLogFunc(
-        (level, message) => log.info("[LedgerHardwareService] " + message));
+        (level, message) => log.info("[LedgerHardwareService] $message"));
     if (!(await _isAvailable())) {
       log.info(
-          "[LedgerHardwareService] BLE is not available on the first check. Do the second attempt.");
+          "[LedgerHardwareService] BLE is not available on the first check."
+              " Do the second attempt.");
       // Delay 300 milisecond and perform the second check
-      await Future.delayed(Duration(microseconds: 300));
+      await Future.delayed(const Duration(microseconds: 300));
       if (!(await _isAvailable())) {
         return false;
       }
     }
 
     await FlutterBlue.instance.startScan(
-        withServices: [Guid(serviceUuid)], timeout: Duration(seconds: 10));
+        withServices: [Guid(serviceUuid)], timeout: const Duration(seconds: 10));
     log.info("[LedgerHardwareService] Start scanning for ledgers");
 
     return true;
@@ -67,7 +67,7 @@ class LedgerHardwareService {
 
   Future<bool> connect(LedgerHardwareWallet ledger) async {
     await stopScanning();
-    await ledger.device.connect(autoConnect: true);
+    await ledger.device.connect();
     List<BluetoothService> services = await ledger.device.discoverServices();
     await Future.forEach(services, (s) async {
       final service = s as BluetoothService;

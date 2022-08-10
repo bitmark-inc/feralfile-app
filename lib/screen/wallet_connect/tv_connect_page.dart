@@ -78,9 +78,10 @@ class _TVConnectPageState extends State<TVConnectPage>
             ? 1
             : 4;
 
-    await injector<WalletConnectService>().approveSession(Uuid().v4(),
+    await injector<WalletConnectService>().approveSession(const Uuid().v4(),
         widget.wcConnectArgs.peerMeta, [authorizedKeypair], chainId);
 
+    if (!mounted) return;
     Navigator.of(context).pop();
   }
 
@@ -92,12 +93,10 @@ class _TVConnectPageState extends State<TVConnectPage>
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        leading: SizedBox(),
+        leading: const SizedBox(),
         leadingWidth: 0.0,
-        automaticallyImplyLeading: true,
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             GestureDetector(
               behavior: HitTestBehavior.translucent,
@@ -112,7 +111,7 @@ class _TVConnectPageState extends State<TVConnectPage>
                           'assets/images/nav-arrow-left.svg',
                           color: Colors.white,
                         ),
-                        SizedBox(width: 7),
+                        const SizedBox(width: 7),
                         Text(
                           "BACK",
                           style: appTextTheme.caption,
@@ -136,20 +135,20 @@ class _TVConnectPageState extends State<TVConnectPage>
             "Connect to Autonomy Viewer",
             style: appTextTheme.headline1,
           ),
-          SizedBox(height: 24),
+          const SizedBox(height: 24),
           Text(
               "Instantly set up your personal NFT art gallery on TVs and projectors anywhere you go.",
               style: appTextTheme.bodyText1),
-          Divider(
+          const Divider(
             height: 64,
             color: Colors.white,
           ),
           Text("Autonomy Viewer is requesting to: ",
               style: appTextTheme.bodyText1),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           Text("• View your Autonomy NFT collections",
               style: appTextTheme.bodyText1),
-          Expanded(child: SizedBox()),
+          const Expanded(child: SizedBox()),
           Row(
             children: [
               Expanded(

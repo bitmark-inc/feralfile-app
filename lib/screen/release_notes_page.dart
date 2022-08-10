@@ -39,18 +39,18 @@ class _ReleaseNotesPageState extends State<ReleaseNotesPage> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(height: 40),
+          const SizedBox(height: 40),
           Text("What’s new?", style: theme.textTheme.headline1),
-          SizedBox(height: 40),
+          const SizedBox(height: 40),
           Expanded(
             child: Markdown(
               data: widget.releaseNotes.replaceAll('\n', '\u3164\n'),
               softLineBreak: true,
-              padding: EdgeInsets.only(bottom: 50),
+              padding: const EdgeInsets.only(bottom: 50),
               styleSheet: markDownBlackStyle,
             ),
           ),
-          SizedBox(height: 35),
+          const SizedBox(height: 35),
           Row(
             children: [
               Expanded(

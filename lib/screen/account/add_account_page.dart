@@ -21,6 +21,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class AddAccountPage extends StatefulWidget {
+  const AddAccountPage({Key? key}) : super(key: key);
+
   @override
   State<AddAccountPage> createState() => _AddAccountPageState();
 }
@@ -39,7 +41,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
       ),
       body: Container(
         margin:
-            EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
+            const EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -104,12 +106,12 @@ class _AddAccountPageState extends State<AddAccountPage> {
                     )
                   ],
                 ),
-                SizedBox(height: 40),
+                const SizedBox(height: 40),
               ],
             );
           }
 
-          return SizedBox();
+          return const SizedBox();
         });
   }
 
@@ -131,7 +133,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
               injector<CloudDatabase>().connectionDao.deleteConnectionsByType(
                   ConnectionType.manuallyIndexerTokenID.rawValue);
             },
-            child: Text("Delete All Debug Linked IndexerTokenIDs")),
+            child: const Text("Delete All Debug Linked IndexerTokenIDs")),
       ],
     );
   }

@@ -13,8 +13,8 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 
 class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
-  IAPService _iapService;
-  ConfigurationService _configurationService;
+  final IAPService _iapService;
+  final ConfigurationService _configurationService;
 
   UpgradesBloc(this._iapService, this._configurationService)
       : super(UpgradeState(IAPProductStatus.loading, null)) {
@@ -86,9 +86,7 @@ class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
   }
 
   void _onNewIAPEventFunc() {
-    if (!this.isClosed) {
-      add(UpgradeIAPInfoEvent());
-    }
+    add(UpgradeIAPInfoEvent());
   }
 
   @override

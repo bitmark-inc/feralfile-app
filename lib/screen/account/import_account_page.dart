@@ -11,7 +11,6 @@ import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/tokens_service.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/theme_manager.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
@@ -28,7 +27,7 @@ class ImportAccountPage extends StatefulWidget {
 }
 
 class _ImportAccountPageState extends State<ImportAccountPage> {
-  TextEditingController _phraseTextController = TextEditingController();
+  final TextEditingController _phraseTextController = TextEditingController();
   bool _isSubmissionEnabled = false;
 
   bool isError = false;
@@ -61,12 +60,12 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
                       "Importing your account will also add support for all chains featured in Autonomy. We will automatically back up your account in your iCloud Keychain.",
                       style: appTextTheme.bodyText1,
                     ),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
                     learnMoreAboutAutonomySecurityWidget(
                       context,
                       title: 'Learn why this is safe...',
                     ),
-                    SizedBox(height: 40),
+                    const SizedBox(height: 40),
                     Container(
                       height: 120,
                       child: Column(
@@ -93,7 +92,7 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
                         ],
                       ),
                     ),
-                    SizedBox(),
+                    const SizedBox(),
                   ],
                 ),
               ),
@@ -131,6 +130,8 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
         (await persona.wallet().getTezosWallet()).address,
         (await persona.wallet().getBitmarkAddress()),
       ]);
+
+      if (!mounted) return;
 
       Navigator.of(context)
           .popAndPushNamed(AppRouter.namePersonaPage, arguments: persona.uuid);

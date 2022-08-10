@@ -23,12 +23,12 @@ class UpgradeBoxView {
             ),
           ],
         ),
-        SizedBox(height: 16),
+        const SizedBox(height: 16),
         Text(
           feature.description,
           style: theme.textTheme.bodyText1,
         ),
-        SizedBox(height: 16),
+        const SizedBox(height: 16),
       ],
     );
   }
@@ -48,14 +48,12 @@ class _SubscribeViewState extends State<_SubscribeView> {
   Widget build(BuildContext context) {
     context.read<UpgradesBloc>().add(UpgradeQueryInfoEvent());
     return BlocBuilder<UpgradesBloc, UpgradeState>(builder: (context, state) {
-      return Container(
+      return SizedBox(
           height: 24.0,
           child: OutlinedButton(
               style: OutlinedButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.zero, // <-- Radius
-                ),
-                side: BorderSide(width: 1.0, color: Colors.white),
+                shape: const RoundedRectangleBorder(),
+                side: const BorderSide(color: Colors.white),
                 // maximumSize: Size.fromHeight(30)
               ),
               onPressed: () => UpgradesView.showSubscriptionDialog(
@@ -64,7 +62,7 @@ class _SubscribeViewState extends State<_SubscribeView> {
                     context.read<UpgradesBloc>().add(UpgradePurchaseEvent());
                     Navigator.of(context).pop();
                   })),
-              child: Text(
+              child: const Text(
                 "SUBSCRIBE",
                 style: TextStyle(
                     color: Colors.white,

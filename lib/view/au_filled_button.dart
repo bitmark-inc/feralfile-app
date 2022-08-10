@@ -37,36 +37,34 @@ class AuFilledButton extends StatelessWidget {
         style: ElevatedButton.styleFrom(
             primary: enabled ? color : color.withOpacity(0.6),
             onSurface: color,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.zero,
-            ),
+            shape: const RoundedRectangleBorder(),
             splashFactory: enabled ? InkRipple.splashFactory : NoSplash.splashFactory,
             padding: const EdgeInsets.symmetric(vertical: 14)),
+        onPressed: enabled ? onPress : () {},
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             isProcessing
                 ? Container(
-                    child: CircularProgressIndicator(
+                    height: 14.0,
+                    width: 14.0,
+                    margin: const EdgeInsets.only(right: 8.0),
+                    child: const CircularProgressIndicator(
                       color: Colors.black,
                       backgroundColor: Colors.grey,
                       strokeWidth: 2.0,
                     ),
-                    height: 14.0,
-                    width: 14.0,
-                    margin: EdgeInsets.only(right: 8.0),
                   )
-                : SizedBox(),
+                : const SizedBox(),
             icon != null
-                ? Container(child: icon!, margin: EdgeInsets.only(right: 8.0))
-                : SizedBox(),
+                ? Container(margin: const EdgeInsets.only(right: 8.0), child: icon!)
+                : const SizedBox(),
             Text(
               text.toUpperCase(),
               style: textStyle ?? appTextTheme.button,
             ),
           ],
         ),
-        onPressed: enabled ? onPress : () {},
       ),
     );
   }

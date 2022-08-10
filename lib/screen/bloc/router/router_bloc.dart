@@ -23,13 +23,13 @@ import 'package:autonomy_flutter/util/migration/migration_util.dart';
 part 'router_state.dart';
 
 class RouterBloc extends AuBloc<RouterEvent, RouterState> {
-  ConfigurationService _configurationService;
-  BackupService _backupService;
-  AccountService _accountService;
-  CloudDatabase _cloudDB;
-  NavigationService _navigationService;
-  IAPService _iapService;
-  AuditService _auditService;
+  final ConfigurationService _configurationService;
+  final BackupService _backupService;
+  final AccountService _accountService;
+  final CloudDatabase _cloudDB;
+  final NavigationService _navigationService;
+  final IAPService _iapService;
+  final AuditService _auditService;
 
   Future<bool> hasAccounts() async {
     final personas = await _cloudDB.personaDao.getPersonas();
@@ -70,7 +70,7 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
       }
 
       //Soft delay 1s waiting for database synchronizing
-      await Future.delayed(Duration(seconds: 1));
+      await Future.delayed(const Duration(seconds: 1));
 
       if (await hasAccounts()) {
         final backupVersion = await _backupService

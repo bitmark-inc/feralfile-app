@@ -131,7 +131,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_SENT_TEZOS_ARTWORK_METRIC =
       "sent_tezos_artwork_metric";
 
-  SharedPreferences _preferences;
+  final SharedPreferences _preferences;
 
   ConfigurationServiceImpl(this._preferences);
 
@@ -201,11 +201,13 @@ class ConfigurationServiceImpl implements ConfigurationService {
         Network.MAINNET;
   }
 
+  @override
   Future<void> setImmediateInfoViewEnabled(bool value) async {
     log.info("setImmediateInfoViewEnabled: $value");
     await _preferences.setBool(KEY_IMMEDIATE_INFOVIEW, value);
   }
 
+  @override
   bool isImmediateInfoViewEnabled() {
     return _preferences.getBool(KEY_IMMEDIATE_INFOVIEW) ?? false;
   }
@@ -236,6 +238,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
     return _preferences.getBool(KEY_DONE_ONBOARING) ?? false;
   }
 
+  @override
   bool isDoneOnboardingOnce() {
     return _preferences.getBool(KEY_DONE_ONBOARING_ONCE) ?? false;
   }
@@ -275,6 +278,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
     await _preferences.setBool(KEY_FULLSCREEN_INTRO, value);
   }
 
+  @override
   Future<void> setHidePersonaInGallery(
       List<String> personaUUIDs, bool isEnabled,
       {bool override = false}) async {
@@ -293,15 +297,18 @@ class ConfigurationServiceImpl implements ConfigurationService {
     }
   }
 
+  @override
   List<String> getPersonaUUIDsHiddenInGallery() {
     return _preferences.getStringList(KEY_HIDDEN_PERSONAS_IN_GALLERY) ?? [];
   }
 
+  @override
   bool isPersonaHiddenInGallery(String value) {
     var personaUUIDs = getPersonaUUIDsHiddenInGallery();
     return personaUUIDs.contains(value);
   }
 
+  @override
   Future<void> setHideLinkedAccountInGallery(
       List<String> addresses, bool isEnabled,
       {bool override = false}) async {
@@ -321,16 +328,19 @@ class ConfigurationServiceImpl implements ConfigurationService {
     }
   }
 
+  @override
   List<String> getLinkedAccountsHiddenInGallery() {
     return _preferences.getStringList(KEY_HIDDEN_LINKED_ACCOUNTS_IN_GALLERY) ??
         [];
   }
 
+  @override
   bool isLinkedAccountHiddenInGallery(String value) {
     var hiddenLinkedAccounts = getLinkedAccountsHiddenInGallery();
     return hiddenLinkedAccounts.contains(value);
   }
 
+  @override
   List<String> getTempStorageHiddenTokenIDs({Network? network}) {
     final key = (network ?? getNetwork()) == Network.MAINNET
         ? KEY_TEMP_STORAGE_HIDDEN_TOKEN_IDS_MAINNET
@@ -338,6 +348,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
     return _preferences.getStringList(key) ?? [];
   }
 
+  @override
   Future updateTempStorageHiddenTokenIDs(List<String> tokenIDs, bool isAdd,
       {Network? network, bool override = false}) async {
     final key = (network ?? getNetwork()) == Network.MAINNET
@@ -398,10 +409,12 @@ class ConfigurationServiceImpl implements ConfigurationService {
     return _preferences.getStringList(KEY_WC_DAPP_ACCOUNTS);
   }
 
+  @override
   Future<void> setReadReleaseNotesInVersion(String version) async {
     await _preferences.setString(KEY_READ_RELEASE_NOTES_VERSION, version);
   }
 
+  @override
   String? getReadReleaseNotesVersion() {
     return _preferences.getString(KEY_READ_RELEASE_NOTES_VERSION);
   }
@@ -434,6 +447,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
     return DateTime.fromMillisecondsSinceEpoch(time);
   }
 
+  @override
   Future<bool> setLatestRefreshTokens(DateTime? value) {
     final key = getNetwork() == Network.MAINNET
         ? KEY_LASTEST_REFRESH_TOKENS_MAINNET
@@ -479,10 +493,11 @@ class ConfigurationServiceImpl implements ConfigurationService {
     await _preferences.setBool(KEY_FINISHED_FEED_ONBOARDING, true);
   }
 
+  @override
   Future<String> getAccountHMACSecret() async {
     final value = _preferences.getString(ACCOUNT_HMAC_SECRET);
     if (value == null) {
-      final setValue = Uuid().v4();
+      final setValue = const Uuid().v4();
       await _preferences.setString(ACCOUNT_HMAC_SECRET, setValue);
       return setValue;
     }
@@ -490,10 +505,12 @@ class ConfigurationServiceImpl implements ConfigurationService {
     return value;
   }
 
+  @override
   bool showTokenDebugInfo() {
     return _preferences.getBool(KEY_SHOW_TOKEN_DEBUG_INFO) ?? false;
   }
 
+  @override
   Future setShowTokenDebugInfo(bool show) async {
     await _preferences.setBool(KEY_SHOW_TOKEN_DEBUG_INFO, show);
   }

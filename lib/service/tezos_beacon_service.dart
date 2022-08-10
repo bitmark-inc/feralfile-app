@@ -159,7 +159,8 @@ class TezosBeaconService implements BeaconHandler {
     UIHelper.showInfoDialog(
         _navigationService.navigatorKey.currentContext!,
         "Link requested",
-        "Autonomy has sent a request to ${peer.name} to link to your account. Please open the wallet and authorize the request. ");
+        "Autonomy has sent a request to ${peer.name} to link to your account."
+            " Please open the wallet and authorize the request. ");
   }
 
   Future<Connection> onPostMessageLinked(

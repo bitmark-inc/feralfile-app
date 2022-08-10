@@ -70,7 +70,7 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
               ),
               addTitleSpace(),
               _reportItemsWidget(context),
-              SizedBox(height: 60),
+              const SizedBox(height: 60),
               _resourcesWidget(context),
             ],
           ),
@@ -107,16 +107,16 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
         valueListenable: injector<CustomerSupportService>().numberOfIssuesInfo,
         builder: (BuildContext context, List<int>? numberOfIssuesInfo,
             Widget? child) {
-          if (numberOfIssuesInfo == null)
-            return Center(child: CupertinoActivityIndicator());
-          if (numberOfIssuesInfo[0] == 0) return SizedBox();
+          if (numberOfIssuesInfo == null) {
+            return const Center(child: CupertinoActivityIndicator());
+          }
+          if (numberOfIssuesInfo[0] == 0) return const SizedBox();
 
           return Column(
-            mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('RESOURCES', style: appTextTheme.headline4),
-              SizedBox(height: 19),
+              const SizedBox(height: 19),
               TappableForwardRow(
                   leftWidget:
                       Text('Support history', style: appTextTheme.headline4),

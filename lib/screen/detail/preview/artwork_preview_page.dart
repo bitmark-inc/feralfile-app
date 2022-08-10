@@ -71,10 +71,10 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   late int currentIndex;
   INFTRenderingWidget? _renderingWidget;
 
-  Future<List<CastDevice>> _castDevicesFuture = CastDiscoveryService().search();
+  final Future<List<CastDevice>> _castDevicesFuture = CastDiscoveryService().search();
   String? swipeDirection;
 
-  static List<AUCastDevice> _defaultCastDevices = [
+  static final List<AUCastDevice> _defaultCastDevices = [
     AUCastDevice(AUCastDeviceType.Airplay)
   ];
 
@@ -143,7 +143,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
           overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom]);
     }
-    Sentry.getSpan()?.finish(status: SpanStatus.ok());
+    Sentry.getSpan()?.finish(status: const SpanStatus.ok());
     super.dispose();
   }
 
@@ -171,7 +171,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
       }, builder: (context, state) {
         if (state.asset != null) {
           asset = state.asset!;
-          Sentry.startTransaction("view: " + asset!.id, "load");
+          Sentry.startTransaction("view: ${asset!.id}", "load");
 
           return SafeArea(
               top: false,
@@ -182,7 +182,6 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                 children: [
                   Expanded(
                     child: Stack(
-                      fit: StackFit.loose,
                       children: [
                         GestureDetector(
                           behavior: HitTestBehavior.translucent,
@@ -214,7 +213,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                             child: Opacity(
                               // height: !isFullscreen ? 64 : 0,
                               opacity: isFullscreen ? 0 : 1,
-                              child: Container(
+                              child: SizedBox(
                                 height: 64,
                                 child: AnyProblemNFTWidget(
                                     asset: asset!,
@@ -230,7 +229,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                 ],
               ));
         } else {
-          return SizedBox();
+          return const SizedBox();
         }
       }),
     );
@@ -248,7 +247,6 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
       padding: EdgeInsets.fromLTRB(15, safeAreaTop, 15, 0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(
             child: GestureDetector(
@@ -256,19 +254,18 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
               onTap: () => _moveToInfo(asset),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   SvgPicture.asset("assets/images/iconInfo.svg",
                       color: Colors.white),
-                  SizedBox(width: 13),
+                  const SizedBox(width: 13),
                   _titleAndArtistNameWidget(asset, artistName),
-                  SizedBox(width: 5),
+                  const SizedBox(width: 5),
                 ],
               ),
             ),
           ),
           _castButton(context),
-          SizedBox(width: 8),
+          const SizedBox(width: 8),
           IconButton(
             onPressed: () async {
               setState(() {
@@ -286,7 +283,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                 );
               }
             },
-            icon: Icon(
+            icon: const Icon(
               Icons.fullscreen,
               color: Colors.white,
               size: 32,
@@ -350,7 +347,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
             style: theme.textTheme.bodyText1,
           ),
           if (artistName != null) ...[
-            SizedBox(height: 4.0),
+            const SizedBox(height: 4.0),
             Text(
               "by $artistName",
               overflow: TextOverflow.ellipsis,
@@ -376,7 +373,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   Widget _fullscreenIntroPopup() {
     return Container(
       height: 300,
-      padding: EdgeInsets.symmetric(horizontal: 16.0),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
       color: Colors.black,
       child: Center(
         child: Column(
@@ -384,7 +381,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Text(
+            const Text(
               "Full screen",
               style: TextStyle(
                   color: Colors.white,
@@ -392,8 +389,8 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                   fontWeight: FontWeight.w700,
                   fontFamily: "AtlasGrotesk"),
             ),
-            SizedBox(height: 40.0),
-            Text(
+            const SizedBox(height: 40.0),
+            const Text(
               "Shake your phone to exit fullscreen mode.",
               style: TextStyle(
                   color: Colors.white,
@@ -401,14 +398,14 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                   fontWeight: FontWeight.w300,
                   fontFamily: "AtlasGrotesk"),
             ),
-            SizedBox(height: 40.0),
+            const SizedBox(height: 40.0),
             Row(
               children: [
                 Expanded(
                   child: AuFilledButton(
                     text: "OK",
                     color: Colors.white,
-                    textStyle: TextStyle(
+                    textStyle: const TextStyle(
                         color: Colors.black,
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
@@ -420,10 +417,10 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                 )
               ],
             ),
-            SizedBox(height: 14.0),
+            const SizedBox(height: 14.0),
             Center(
               child: GestureDetector(
-                child: Text(
+                child: const Text(
                   "DON’T SHOW AGAIN",
                   textAlign: TextAlign.center,
                   style: TextStyle(
@@ -466,13 +463,14 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
         child: SvgPicture.asset('assets/images/chromecast.svg'),
       );
     } else {
-      return SizedBox();
+      return const SizedBox();
     }
   }
 
   Widget _airplayItem(BuildContext context, bool isSubscribed) {
     final theme = AuThemeManager.get(AppTheme.sheetTheme);
     return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
         child: SizedBox(
           height: 44,
           child: Stack(
@@ -481,7 +479,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
               Align(
                 alignment: Alignment.centerLeft,
                 child: Padding(
-                  padding: EdgeInsets.only(left: 41, bottom: 5),
+                  padding: const EdgeInsets.only(left: 41, bottom: 5),
                   child: Text(
                     "Airplay",
                     style: theme.textTheme.headline4?.copyWith(
@@ -492,28 +490,27 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                 ),
               ),
               isSubscribed
-                  ? AirPlayRoutePickerView(
+                  ? const AirPlayRoutePickerView(
                       tintColor: Colors.grey,
                       activeTintColor: Colors.grey,
                       backgroundColor: Colors.transparent,
                       prioritizesVideoDevices: true,
                     )
-                  : Align(
+                  : const Align(
                       alignment: Alignment.centerLeft,
                       child: Icon(Icons.airplay_outlined,
                           color: AppColorTheme.secondaryDimGrey),
                     ),
             ],
           ),
-        ),
-        padding: EdgeInsets.symmetric(vertical: 6));
+        ));
   }
 
   Widget _castingListView(
       BuildContext context, List<AUCastDevice> devices, bool isSubscribed) {
     final theme = AuThemeManager.get(AppTheme.sheetTheme);
     return ConstrainedBox(
-        constraints: new BoxConstraints(
+        constraints: const BoxConstraints(
           minHeight: 35.0,
           maxHeight: 160.0,
         ),
@@ -525,33 +522,14 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
               switch (device.type) {
                 case AUCastDeviceType.Airplay:
                   return GestureDetector(
-                      child: _airplayItem(context, isSubscribed),
                       behavior: HitTestBehavior.translucent,
                       onTap: () {
                         injector<AWSService>()
                             .storeEventWithDeviceData("stream_airplay");
-                      });
+                      },
+                      child: _airplayItem(context, isSubscribed));
                 case AUCastDeviceType.Chromecast:
                   return GestureDetector(
-                    child: Padding(
-                      child: Row(
-                        children: [
-                          Icon(Icons.cast,
-                              color: isSubscribed
-                                  ? Colors.white
-                                  : AppColorTheme.secondaryDimGrey),
-                          SizedBox(width: 17),
-                          Text(
-                            device.chromecastDevice!.name,
-                            style: theme.textTheme.headline4?.copyWith(
-                                color: isSubscribed
-                                    ? Colors.white
-                                    : AppColorTheme.secondaryDimGrey),
-                          ),
-                        ],
-                      ),
-                      padding: EdgeInsets.symmetric(vertical: 17),
-                    ),
                     onTap: isSubscribed
                         ? () {
                             injector<AWSService>()
@@ -570,10 +548,29 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                             _castDevices[index] = copiedDevice;
                           }
                         : null,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 17),
+                      child: Row(
+                        children: [
+                          Icon(Icons.cast,
+                              color: isSubscribed
+                                  ? Colors.white
+                                  : AppColorTheme.secondaryDimGrey),
+                          const SizedBox(width: 17),
+                          Text(
+                            device.chromecastDevice!.name,
+                            style: theme.textTheme.headline4?.copyWith(
+                                color: isSubscribed
+                                    ? Colors.white
+                                    : AppColorTheme.secondaryDimGrey),
+                          ),
+                        ],
+                      ),
+                    ),
                   );
               }
             }),
-            separatorBuilder: ((context, index) => Divider(
+            separatorBuilder: ((context, index) => const Divider(
                   thickness: 1,
                   color: AppColorTheme.secondarySpanishGrey,
                 )),
@@ -620,7 +617,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                         _castingListView(context, castDevices, true),
                         TextButton(
                           onPressed: () => Navigator.pop(context),
-                          child: Text(
+                          child: const Text(
                             "CANCEL",
                             style: TextStyle(
                                 color: Colors.white,
@@ -629,7 +626,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                                 fontFamily: "IBMPlexMono"),
                           ),
                         ),
-                        SizedBox(height: 20),
+                        const SizedBox(height: 20),
                       ],
                     );
                   } else {
@@ -640,7 +637,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                         _castingListView(context, castDevices, false),
                         TextButton(
                           onPressed: () => Navigator.pop(context),
-                          child: Text(
+                          child: const Text(
                             "CANCEL",
                             style: TextStyle(
                                 color: Colors.white,
@@ -649,7 +646,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                                 fontFamily: "IBMPlexMono"),
                           ),
                         ),
-                        SizedBox(height: 20),
+                        const SizedBox(height: 20),
                       ],
                     );
                   }
@@ -664,13 +661,12 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     final device = _castDevices[index];
     if (device.chromecastDevice == null) return;
     final session = await CastSessionManager()
-        .startSession(device.chromecastDevice!, Duration(seconds: 5));
+        .startSession(device.chromecastDevice!, const Duration(seconds: 5));
     device.chromecastSession = session;
     _castDevices[index] = device;
 
     log.info("[Chromecast] Connecting to ${device.chromecastDevice!.name}");
     session.stateStream.listen((state) {
-      print("[Chromecast] State: $state");
       log.info("[Chromecast] device status: ${state.name}");
       if (state == CastSessionState.connected) {
         log.info(
@@ -680,7 +676,6 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     });
 
     session.messageStream.listen((message) {
-      print('[Chromecast] receive message: $message');
     });
 
     session.sendMessage(CastSession.kNamespaceReceiver, {
@@ -715,7 +710,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
       'currentTime': 0,
       'media': message,
     });
-    print("[Chromecast] Send message play video: $message");
+    log.info("[Chromecast] Send message play video: $message");
   }
 
   void _stopAndDisconnectChomecast(int index) {
@@ -724,9 +719,9 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   }
 
   void _stopAllChromecastDevices() {
-    _castDevices.forEach((element) {
+    for (var element in _castDevices) {
       element.chromecastSession?.close();
-    });
+    }
     _castDevices = [];
   }
 }

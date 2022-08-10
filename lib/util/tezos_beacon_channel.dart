@@ -15,9 +15,9 @@ import 'package:flutter/services.dart';
 import 'package:tezart/tezart.dart';
 
 class TezosBeaconChannel {
-  static const MethodChannel _channel = const MethodChannel('tezos_beacon');
+  static const MethodChannel _channel = MethodChannel('tezos_beacon');
   static const EventChannel _eventChannel =
-      const EventChannel('tezos_beacon/event');
+      EventChannel('tezos_beacon/event');
 
   TezosBeaconChannel({required this.handler}) {
     listen();
@@ -116,7 +116,7 @@ class TezosBeaconChannel {
               final String? sourceAddress = params["sourceAddress"];
 
               List<Operation> operations = [];
-              operationsDetails.forEach((element) {
+              for (var element in operationsDetails) {
                 final String? kind = element["kind"];
                 final String? storageLimit = element["storageLimit"];
                 final String? gasLimit = element["gasLimit"];
@@ -160,7 +160,7 @@ class TezosBeaconChannel {
 
                   operations.add(operation);
                 }
-              });
+              }
 
               request.operations = operations;
               request.sourceAddress = sourceAddress;

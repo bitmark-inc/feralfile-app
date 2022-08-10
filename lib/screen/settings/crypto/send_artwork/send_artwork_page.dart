@@ -36,7 +36,7 @@ class SendArtworkPage extends StatefulWidget {
 }
 
 class _SendArtworkPageState extends State<SendArtworkPage> {
-  TextEditingController _addressController = TextEditingController();
+  final TextEditingController _addressController = TextEditingController();
 
   @override
   void initState() {
@@ -82,7 +82,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                             "Send artwork",
                             style: appTextTheme.headline1,
                           ),
-                          SizedBox(height: 40.0),
+                          const SizedBox(height: 40.0),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -99,7 +99,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                               ),
                             ],
                           ),
-                          Divider(height: 32),
+                          const Divider(height: 32),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -113,7 +113,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                               ),
                             ],
                           ),
-                          Divider(height: 32),
+                          const Divider(height: 32),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -127,11 +127,10 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                               ),
                             ],
                           ),
-                          SizedBox(height: 32.0),
+                          const SizedBox(height: 32.0),
                           AuTextField(
                             title: "To",
                             placeholder: "Paste or scan address",
-                            isError: false,
                             controller: _addressController,
                             suffix: IconButton(
                               icon: SvgPicture.asset(state.isScanQR
@@ -152,6 +151,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                                                   : ScannerItem.XTZ_ADDRESS);
                                   if (address != null && address is String) {
                                     _addressController.text = address;
+                                    if (!mounted) return;
                                     context
                                         .read<SendArtworkBloc>()
                                         .add(AddressChangedEvent(address));
@@ -164,13 +164,13 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                                   AddressChangedEvent(_addressController.text));
                             },
                           ),
-                          SizedBox(height: 8.0),
+                          const SizedBox(height: 8.0),
                           Text(_gasFee(state),
-                              style: TextStyle(
+                              style: const TextStyle(
                                   color: Colors.black,
                                   fontSize: 12,
                                   fontFamily: "AtlasGrotesk")),
-                          SizedBox(height: 24.0),
+                          const SizedBox(height: 24.0),
                         ],
                       ),
                     ),
@@ -192,6 +192,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                                               state.fee!,
                                               state.exchangeRate));
                                   if (txHash != null && txHash is String) {
+                                    if (!mounted) return;
                                     Navigator.of(context).pop();
                                   }
                                 }
@@ -200,7 +201,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                       ),
                     ],
                   ),
-                  SizedBox(height: 16.0),
+                  const SizedBox(height: 16.0),
                 ],
               ),
             );

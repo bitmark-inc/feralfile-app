@@ -10,8 +10,6 @@ import 'dart:developer';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/router/router_bloc.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
@@ -23,6 +21,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class OnboardingPage extends StatefulWidget {
+  const OnboardingPage({Key? key}) : super(key: key);
+
   @override
   State<OnboardingPage> createState() => _OnboardingPageState();
 }
@@ -44,7 +44,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
       penroseWidth = 380;
     }
 
-    final edgeInsets =
+    const edgeInsets =
         EdgeInsets.only(top: 135.0, bottom: 32.0, left: 16.0, right: 16.0);
 
     return Scaffold(
@@ -83,8 +83,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                   margin: edgeInsets,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
+                    children: const [
                       Text(
                         "AUTONOMY",
                         textAlign: TextAlign.center,
@@ -96,19 +95,19 @@ class _OnboardingPageState extends State<OnboardingPage> {
                     ],
                   ),
                 )
-              : SizedBox(),
+              : const SizedBox(),
           SafeArea(
             child: Center(
                 child: Container(
-                    margin: EdgeInsets.fromLTRB(0, 0, 0, 0), child: _logo())),
+                    margin: const EdgeInsets.fromLTRB(0, 0, 0, 0), child: _logo())),
           ),
           Container(
             margin: edgeInsets,
             child: Column(mainAxisAlignment: MainAxisAlignment.end, children: [
               state.onboardingStep != OnboardingStep.undefined
                   ? eulaAndPrivacyView(context)
-                  : SizedBox(),
-              SizedBox(height: 32.0),
+                  : const SizedBox(),
+              const SizedBox(height: 32.0),
               _getStartupButton(state),
             ]),
           )
@@ -151,7 +150,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
         );
 
       default:
-        return SizedBox();
+        return const SizedBox();
     }
   }
 

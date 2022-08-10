@@ -83,7 +83,7 @@ const linkStyle = TextStyle(
   fontFamily: "AtlasGrotesk-Medium",
   height: 1.377,
   fontWeight: FontWeight.w400,
-  shadows: [Shadow(color: Colors.black, offset: Offset(0, -1))],
+  shadows: [Shadow(offset: Offset(0, -1))],
   decoration: TextDecoration.underline,
   decorationStyle: TextDecorationStyle.solid,
   decorationColor: Colors.black,
@@ -96,7 +96,7 @@ const linkStyle2 = TextStyle(
   fontFamily: "AtlasGrotesk-Bold",
   height: 1.377,
   fontWeight: FontWeight.w500,
-  shadows: [Shadow(color: Colors.black, offset: Offset(0, -1))],
+  shadows: [Shadow(offset: Offset(0, -1))],
   decoration: TextDecoration.underline,
   decorationStyle: TextDecorationStyle.solid,
   decorationColor: Colors.black,
@@ -133,7 +133,7 @@ TextStyle makeLinkStyle(TextStyle style) {
   final color = style.color ?? Colors.black;
   return style.copyWith(
     color: Colors.transparent,
-    shadows: [Shadow(color: color, offset: Offset(0, -1))],
+    shadows: [Shadow(color: color, offset: const Offset(0, -1))],
     decoration: TextDecoration.underline,
     decorationStyle: TextDecorationStyle.solid,
     decorationColor: color,
@@ -158,10 +158,10 @@ MarkdownStyleSheet markDownStyle(ThemeData theme, Color textColor) {
         decoration: TextDecoration.underline,
         fontWeight: FontWeight.w600),
     p: bodyText2?.copyWith(color: textColor),
-    pPadding: EdgeInsets.only(bottom: 15),
+    pPadding: const EdgeInsets.only(bottom: 15),
     code: bodyText2!.copyWith(backgroundColor: Colors.transparent),
     h1: theme.textTheme.headline1,
-    h1Padding: EdgeInsets.only(bottom: 40),
+    h1Padding: const EdgeInsets.only(bottom: 40),
     h2: theme.textTheme.headline2,
     h2Padding: EdgeInsets.zero,
     h3: theme.textTheme.headline3,
@@ -189,7 +189,6 @@ MarkdownStyleSheet markDownStyle(ThemeData theme, Color textColor) {
     tableHeadAlign: TextAlign.center,
     tableBorder: TableBorder.all(
       color: theme.dividerColor,
-      width: 1,
     ),
     tableColumnWidth: const FlexColumnWidth(),
     tableCellsPadding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
@@ -227,7 +226,7 @@ Divider addDivider({double height = 32}) {
 }
 
 Divider addOnlyDivider() {
-  return Divider(
+  return const Divider(
     height: 1.0,
     thickness: 1.0,
   );
@@ -296,7 +295,7 @@ class AppColorTheme {
   static const chatPrimaryColor = Color(0xFFEDEDED);
 }
 
-final grantPermissions = const [
+const grantPermissions = [
   'View account balance and NFTs',
   'Request approval for transactions',
 ];

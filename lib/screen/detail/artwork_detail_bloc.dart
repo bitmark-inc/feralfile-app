@@ -13,9 +13,9 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 
 class ArtworkDetailBloc extends AuBloc<ArtworkDetailEvent, ArtworkDetailState> {
-  FeralFileService _feralFileService;
-  AssetTokenDao _assetTokenDao;
-  ProvenanceDao _provenanceDao;
+  final FeralFileService _feralFileService;
+  final AssetTokenDao _assetTokenDao;
+  final ProvenanceDao _provenanceDao;
 
   ArtworkDetailBloc(
       this._feralFileService, this._assetTokenDao, this._provenanceDao)

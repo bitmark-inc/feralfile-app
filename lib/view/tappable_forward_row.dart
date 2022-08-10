@@ -27,8 +27,8 @@ class TappableForwardRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
-      child: _contentRow(),
       onTap: onTap,
+      child: _contentRow(),
     );
   }
 
@@ -36,15 +36,14 @@ class TappableForwardRow extends StatelessWidget {
     return Padding(
       padding: padding,
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          leftWidget ?? SizedBox(),
+          leftWidget ?? const SizedBox(),
           Row(
             children: [
-              rightWidget ?? SizedBox(),
+              rightWidget ?? const SizedBox(),
               if (onTap != null) ...[
-                SizedBox(width: 8.0),
+                const SizedBox(width: 8.0),
                 SvgPicture.asset('assets/images/iconForward.svg'),
               ],
             ],
@@ -72,8 +71,8 @@ class TappableForwardRowWithContent extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
-      child: _content(),
       onTap: onTap,
+      child: _content(),
     );
   }
 
@@ -81,7 +80,7 @@ class TappableForwardRowWithContent extends StatelessWidget {
     return Column(
       children: [
         _contentRow(),
-        SizedBox(height: 16),
+        const SizedBox(height: 16),
         Row(children: [Expanded(child: bottomWidget)]),
       ],
     );
@@ -95,9 +94,9 @@ class TappableForwardRowWithContent extends StatelessWidget {
         Expanded(child: leftWidget),
         Row(
           children: [
-            rightWidget ?? SizedBox(),
+            rightWidget ?? const SizedBox(),
             if (onTap != null) ...[
-              SizedBox(width: 8.0),
+              const SizedBox(width: 8.0),
               SvgPicture.asset('assets/images/iconForward.svg'),
             ],
           ],

@@ -10,7 +10,7 @@ import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
 
 class HiddenArtworksBloc extends AuBloc<HiddenArtworksEvent, List<AssetToken>> {
-  AppDatabase _appDatabase;
+  final AppDatabase _appDatabase;
 
   HiddenArtworksBloc(this._appDatabase) : super([]) {
     on<HiddenArtworksEvent>((event, emit) async {

@@ -14,6 +14,8 @@ import 'package:flutter/material.dart';
 class SurveyThankyouPage extends StatelessWidget {
   static const String tag = 'survey_thankyou';
 
+  const SurveyThankyouPage({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -22,7 +24,7 @@ class SurveyThankyouPage extends StatelessWidget {
         onBack: null,
       ),
       body: Container(
-        margin: EdgeInsets.all(16.0),
+        margin: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -30,17 +32,17 @@ class SurveyThankyouPage extends StatelessWidget {
               "Thank you!",
               style: appTextTheme.headline1,
             ),
-            SizedBox(height: 40.0),
+            const SizedBox(height: 40.0),
             Text(
                 "You’ve been automatically entered in this month’s drawing to win a Feral File artwork. If you win, we’ll transfer the NFT to your Autonomy account and notify you.",
                 style: appTextTheme.bodyText1),
-            Spacer(),
+            const Spacer(),
             AuFilledButton(
                 text: "Continue",
                 onPress: () => Navigator.of(context).popUntil((route) =>
                     route.settings.name == AppRouter.homePage ||
                     route.settings.name == AppRouter.homePageNoTransition)),
-            SizedBox(height: 27.0),
+            const SizedBox(height: 27.0),
           ],
         ),
       ),

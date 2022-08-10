@@ -21,13 +21,15 @@ import 'package:flutter_svg/flutter_svg.dart';
 class UpgradesView extends StatelessWidget {
   static const String tag = 'select_network';
 
+  const UpgradesView({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     context.read<UpgradesBloc>().add(UpgradeQueryInfoEvent());
 
     return BlocBuilder<UpgradesBloc, UpgradeState>(builder: (context, state) {
       return Container(
-          margin: EdgeInsets.symmetric(vertical: 16.0),
+          margin: const EdgeInsets.symmetric(vertical: 16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -35,7 +37,7 @@ class UpgradesView extends StatelessWidget {
                 "More Autonomy",
                 style: appTextTheme.headline1,
               ),
-              SizedBox(height: 16.0),
+              const SizedBox(height: 16.0),
               _subscribeView(context, state),
             ],
           ));
@@ -49,9 +51,8 @@ class UpgradesView extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text("Subscribed", style: appTextTheme.headline4),
-            SizedBox(height: 16.0),
+            const SizedBox(height: 16.0),
             Row(
-                mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
@@ -73,7 +74,7 @@ class UpgradesView extends StatelessWidget {
         return Container(
           height: 80,
           alignment: Alignment.center,
-          child: CupertinoActivityIndicator(),
+          child: const CupertinoActivityIndicator(),
         );
       case IAPProductStatus.notPurchased:
       case IAPProductStatus.expired:
@@ -86,17 +87,16 @@ class UpgradesView extends StatelessWidget {
             children: [
               Row(children: [
                 Text("Subscribe", style: appTextTheme.headline4),
-                Spacer(),
+                const Spacer(),
                 SvgPicture.asset('assets/images/iconForward.svg'),
               ]),
-              SizedBox(height: 16.0),
+              const SizedBox(height: 16.0),
               ...[
                 'View your collection on TVs and projectors.',
                 'Preserve and authenticate your artworks for the long-term.',
                 'Priority Support.'
               ]
                   .map((item) => Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
@@ -135,18 +135,18 @@ class UpgradesView extends StatelessWidget {
           if (feature != null) ...[
             Text(feature.moreAutonomyDescription,
                 style: theme.textTheme.bodyText1),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
           ],
           Text('Upgrading gives you:', style: theme.textTheme.bodyText1),
           SvgPicture.asset(
             'assets/images/premium_comparation.svg',
             height: 320,
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           Text(
               "*Google TV app plus AirPlay & Chromecast streaming",
               style: theme.textTheme.headline5),
-          SizedBox(height: 40),
+          const SizedBox(height: 40),
           AuFilledButton(
             text: "SUBSCRIBE FOR ${price ?? "4.99"}/MONTH",
             onPress: () {
@@ -154,7 +154,7 @@ class UpgradesView extends StatelessWidget {
               Navigator.of(context).pop();
             },
             color: Colors.white,
-            textStyle: TextStyle(
+            textStyle: const TextStyle(
                 color: Colors.black,
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
@@ -162,7 +162,7 @@ class UpgradesView extends StatelessWidget {
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text(
+            child: const Text(
               "NOT NOW",
               style: TextStyle(
                   color: Colors.white,

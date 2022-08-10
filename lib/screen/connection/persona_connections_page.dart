@@ -83,7 +83,7 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
       ),
       body: Container(
         margin:
-            EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
+            const EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -94,7 +94,7 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
                   children: [
                     _addressSection(),
                     if (widget.payload.type != CryptoType.BITMARK) ...[
-                      SizedBox(height: 40),
+                      const SizedBox(height: 40),
                       _connectionsSection(),
                     ],
                   ],
@@ -118,7 +118,7 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
           "Address",
           style: appTextTheme.headline1,
         ),
-        SizedBox(height: 24),
+        const SizedBox(height: 24),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -129,7 +129,8 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
                 TextButton(
                   onPressed: () =>
                       Share.share(address),
-                  child: Text(
+                  style: const ButtonStyle(alignment: Alignment.centerRight),
+                  child: const Text(
                     "Share",
                     style: TextStyle(
                         color: Colors.black,
@@ -137,7 +138,6 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
                         fontFamily: "AtlasGrotesk",
                         fontWeight: FontWeight.bold),
                   ),
-                  style: ButtonStyle(alignment: Alignment.centerRight),
                 )
               ],
             ),
@@ -163,10 +163,10 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
         "Connections",
         style: appTextTheme.headline1,
       ),
-      SizedBox(height: 24),
+      const SizedBox(height: 24),
       BlocBuilder<ConnectionsBloc, ConnectionsState>(builder: (context, state) {
         final connectionItems = state.connectionItems;
-        if (connectionItems == null) return SizedBox();
+        if (connectionItems == null) return const SizedBox();
 
         if (connectionItems.isEmpty) {
           return _emptyConnectionsWidget();
@@ -197,7 +197,7 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
       TappableForwardRowWithContent(
           leftWidget: Row(children: [
             SvgPicture.asset("assets/images/iconQr.svg"),
-            SizedBox(width: 17.5),
+            const SizedBox(width: 17.5),
             Text('Add connection', style: appTextTheme.headline4),
           ]),
           bottomWidget: Text(
@@ -231,7 +231,7 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
         leftWidget: Expanded(
           child: Row(children: [
             UIHelper.buildConnectionAppWidget(connection, 24),
-            SizedBox(width: 16),
+            const SizedBox(width: 16),
             Expanded(
                 child: Text(connection.appName, style: appTextTheme.headline4)),
           ]),

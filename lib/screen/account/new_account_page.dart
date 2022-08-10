@@ -15,6 +15,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class NewAccountPage extends StatelessWidget {
+  const NewAccountPage({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     final canPop = Navigator.of(context).canPop();
@@ -30,7 +32,7 @@ class NewAccountPage extends StatelessWidget {
       ),
       body: Container(
         margin:
-            EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
+            const EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -42,11 +44,10 @@ class NewAccountPage extends StatelessWidget {
                       "Do you have NFTs you want to view with Autonomy?",
                       style: appTextTheme.headline1,
                     ),
-                    SizedBox(height: 30),
+                    const SizedBox(height: 30),
                     Wrap(
                       spacing: 16,
                       runSpacing: 16,
-                      crossAxisAlignment: WrapCrossAlignment.start,
                       children: [
                         _optionItem(context, "Yes",
                             "I already have NFTs in other wallets that I want to view with Autonomy.",
@@ -54,7 +55,7 @@ class NewAccountPage extends StatelessWidget {
                           Navigator.of(context)
                               .pushNamed(AppRouter.linkAccountpage);
                         }),
-                        Divider(
+                        const Divider(
                           height: 1,
                         ),
                         createPersonaOption(),
@@ -106,27 +107,25 @@ class NewAccountPage extends StatelessWidget {
       {required Function() onTap}) {
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
-      child: Container(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  title,
-                  style: appTextTheme.headline4,
-                ),
-                SvgPicture.asset('assets/images/iconForward.svg'),
-              ],
-            ),
-            SizedBox(height: 16),
-            Text(
-              description,
-              style: appTextTheme.bodyText1,
-            ),
-          ],
-        ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                title,
+                style: appTextTheme.headline4,
+              ),
+              SvgPicture.asset('assets/images/iconForward.svg'),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            description,
+            style: appTextTheme.bodyText1,
+          ),
+        ],
       ),
       onTap: () => onTap(),
     );

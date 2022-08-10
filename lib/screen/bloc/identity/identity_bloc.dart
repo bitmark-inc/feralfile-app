@@ -14,8 +14,8 @@ import 'package:autonomy_flutter/util/log.dart';
 part 'identity_state.dart';
 
 class IdentityBloc extends AuBloc<IdentityEvent, IdentityState> {
-  AppDatabase _appDB;
-  IndexerApi _indexerApi;
+  final AppDatabase _appDB;
+  final IndexerApi _indexerApi;
 
   static const localIdentityCacheDuration = Duration(days: 7);
 

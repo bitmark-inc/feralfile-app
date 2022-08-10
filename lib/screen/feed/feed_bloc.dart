@@ -16,8 +16,8 @@ import 'package:collection/collection.dart';
 part 'feed_state.dart';
 
 class FeedBloc extends AuBloc<FeedBlocEvent, FeedState> {
-  FeedService _feedService;
-  ConfigurationService _configurationService;
+  final FeedService _feedService;
+  final ConfigurationService _configurationService;
 
   FeedBloc(this._feedService, this._configurationService)
       : super(FeedState(
@@ -68,10 +68,8 @@ class FeedBloc extends AuBloc<FeedBlocEvent, FeedState> {
 
       // Reload viewingToken if empty
       var viewingToken = state.viewingToken;
-      if (viewingToken == null) {
-        viewingToken = insertedAppFeedData.tokens.firstWhereOrNull(
+      viewingToken ??= insertedAppFeedData.tokens.firstWhereOrNull(
             (element) => element.id == state.viewingFeedEvent?.indexerID);
-      }
 
       emit(state.copyWith(
           appFeedData: insertedAppFeedData,

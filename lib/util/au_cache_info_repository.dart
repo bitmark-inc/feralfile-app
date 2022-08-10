@@ -161,7 +161,7 @@ class AUCacheInfoRepository extends CacheInfoRepository
   }
 
   void _cacheUpdated() {
-    EasyDebounce.debounce('saveFile', Duration(seconds: 3), _saveFile);
+    EasyDebounce.debounce('saveFile', const Duration(seconds: 3), _saveFile);
   }
 
   Future _saveFile() async {

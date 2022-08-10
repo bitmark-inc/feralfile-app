@@ -36,7 +36,7 @@ class TBSendTransactionPage extends StatefulWidget {
       : super(key: key);
 
   @override
-  _TBSendTransactionPageState createState() => _TBSendTransactionPageState();
+  State<TBSendTransactionPage> createState() => _TBSendTransactionPageState();
 }
 
 class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
@@ -60,6 +60,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
 
     if (currentWallet == null) {
       injector<TezosBeaconService>().signResponse(widget.request.id, null);
+      if (!mounted) return;
       Navigator.of(context).pop();
       return;
     }
@@ -119,42 +120,42 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        SizedBox(height: 8.0),
+                        const SizedBox(height: 8.0),
                         Text(
                           "Confirm",
                           style: appTextTheme.headline1,
                         ),
-                        SizedBox(height: 40.0),
+                        const SizedBox(height: 40.0),
                         Text(
                           "Asset",
                           style: appTextTheme.headline4,
                         ),
-                        SizedBox(height: 16.0),
+                        const SizedBox(height: 16.0),
                         Text(
                           "Tezos (XTZ)",
                           style: appTextTheme.bodyText2,
                         ),
-                        Divider(height: 32),
+                        const Divider(height: 32),
                         Text(
                           "From",
                           style: appTextTheme.headline4,
                         ),
-                        SizedBox(height: 16.0),
+                        const SizedBox(height: 16.0),
                         Text(
                           widget.request.sourceAddress ?? "",
                           style: appTextTheme.bodyText2,
                         ),
-                        Divider(height: 32),
+                        const Divider(height: 32),
                         Text(
                           "Connection",
                           style: appTextTheme.headline4,
                         ),
-                        SizedBox(height: 16.0),
+                        const SizedBox(height: 16.0),
                         Text(
                           widget.request.appName ?? "",
                           style: appTextTheme.bodyText2,
                         ),
-                        Divider(height: 32),
+                        const Divider(height: 32),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -168,7 +169,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                             ),
                           ],
                         ),
-                        Divider(height: 32),
+                        const Divider(height: 32),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -182,7 +183,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                             ),
                           ],
                         ),
-                        Divider(height: 32),
+                        const Divider(height: 32),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -243,9 +244,11 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                                   injector<TezosBeaconService>()
                                       .operationResponse(
                                           widget.request.id, txHash);
+                                  if (!mounted) return;
                                   Navigator.of(context).pop();
                                 } on TezartNodeError catch (err) {
                                   log.info(err);
+                                  if (!mounted) return;
                                   UIHelper.showInfoDialog(
                                     context,
                                     "Operation failed",
@@ -269,7 +272,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
               ],
             ),
           ),
-          _isSending ? Center(child: CupertinoActivityIndicator()) : SizedBox(),
+          _isSending ? const Center(child: CupertinoActivityIndicator()) : const SizedBox(),
         ],
       ),
     );

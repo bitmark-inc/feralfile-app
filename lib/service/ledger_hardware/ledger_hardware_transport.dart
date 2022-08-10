@@ -6,14 +6,11 @@
 //
 
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:autonomy_flutter/util/endian_int_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:convert/convert.dart';
-import 'package:tezart/tezart.dart';
-import 'package:async/async.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 
 // Ref: https://blog.ledger.com/btchip-doc/bitcoin-technical.html
@@ -41,7 +38,6 @@ class LedgerHardwareWallet {
   BluetoothCharacteristic? writeCharacteristic;
   BluetoothCharacteristic? writeCMDCharacteristic;
   BluetoothCharacteristic? notifyCharacteristic;
-  int _currentCounter = 0;
 
   LedgerHardwareWallet(this.name, this.device);
 
@@ -51,19 +47,19 @@ class LedgerHardwareWallet {
   Future<dynamic> connect(BluetoothService service) async {
     for (BluetoothCharacteristic characteristic in service.characteristics) {
       if (characteristic.uuid == Guid(notifyUuid)) {
-        this.notifyCharacteristic = characteristic;
-        await this.notifyCharacteristic!.setNotifyValue(true);
+        notifyCharacteristic = characteristic;
+        await notifyCharacteristic!.setNotifyValue(true);
       } else if (characteristic.uuid == Guid(writeUuid)) {
-        this.writeCharacteristic = characteristic;
+        writeCharacteristic = characteristic;
       } else if (characteristic.uuid == Guid(writeCmdUuid)) {
-        this.writeCMDCharacteristic = characteristic;
+        writeCMDCharacteristic = characteristic;
       }
     }
   }
 
   Future<dynamic> disconnect() {
     isConnected = false;
-    return this.device.disconnect();
+    return device.disconnect();
   }
 
   List<int> _wrapCommandAPDU(
@@ -185,22 +181,22 @@ class LedgerHardwareWallet {
     if (writeCharacteristic == null) {
       throw ("writeCharacteristic is null");
     }
-    log.info("[LedgerHardwareService] => Before wrapping: " + hex.encode(data));
+    log.info("[LedgerHardwareService] => Before wrapping: ${hex.encode(data)}");
     final buf = _wrapCommandAPDU(
       channel: 0,
       command: data,
       packetSize: _MTU,
       hasChannel: false,
     );
-    log.info("[LedgerHardwareService] => After wrapping: " + hex.encode(buf));
+    log.info("[LedgerHardwareService] => After wrapping: ${hex.encode(buf)}");
 
     await writeCharacteristic!.write(buf);
   }
 
   Future<List<int>> _response(List<int> data) async {
-    log.info("[LedgerHardwareService] <= Before unwrap: " + hex.encode(data));
+    log.info("[LedgerHardwareService] <= Before unwrap: ${hex.encode(data)}");
     final res = _unwrapResponseAPDU(0, data, data.length, false);
-    log.info("[LedgerHardwareService] <= After unwrap" + hex.encode(res));
+    log.info("[LedgerHardwareService] <= After unwrap${hex.encode(res)}");
     final command = res.sublist(0, res.length - 2);
     final lastSW = (res[res.length - 2] << 8) + res[res.length - 1];
     if (lastSW != SWCode.OK) {
