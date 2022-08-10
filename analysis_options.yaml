@@ -24,7 +24,6 @@ linter:
   rules:
     # style rules
     constant_identifier_names: false
-    implementation_imports: false
     camel_case_types: true
     library_names: true
     avoid_catching_errors: true

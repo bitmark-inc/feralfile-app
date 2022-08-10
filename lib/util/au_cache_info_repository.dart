@@ -5,7 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
-// ignore_for_file: depend_on_referenced_packages
+// ignore_for_file: depend_on_referenced_packages, implementation_imports
 
 import 'dart:async';
 import 'dart:math';

@@ -137,7 +137,10 @@ class VersionService {
                 child: AuFilledButton(
                   text: "UPDATE",
                   onPress: () {
-                    launch(link, forceSafariVC: false);
+                    final uri = Uri.tryParse(link);
+                    if (uri != null) {
+                      launchUrl(uri, mode: LaunchMode.inAppWebView);
+                    }
                   },
                   color: theme.primaryColor,
                   textStyle: TextStyle(

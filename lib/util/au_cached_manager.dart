@@ -16,6 +16,7 @@ import 'dart:ui';
 import 'package:autonomy_flutter/util/au_cache_info_repository.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart' as l;
+// ignore: implementation_imports
 import 'package:flutter_cache_manager/src/storage/cache_object.dart';
 
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';

@@ -7,6 +7,7 @@
 
 import 'dart:typed_data';
 
+// ignore: implementation_imports
 import 'package:tezart/src/crypto/crypto.dart' as crypto;
 
 class XtzAmountFormatter {

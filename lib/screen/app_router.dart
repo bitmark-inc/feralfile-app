@@ -180,7 +180,6 @@ class AppRouter {
                       injector(),
                       injector<CloudDatabase>(),
                       injector(),
-                      injector(),
                       injector<AuditService>(),
                     ),
                 child: const OnboardingPage()));
@@ -280,8 +279,7 @@ class AppRouter {
             builder: (context) => MultiBlocProvider(providers: [
                   BlocProvider.value(value: accountsBloc),
                   BlocProvider(
-                      create: (_) => FeralfileBloc(
-                          injector(), injector(), injector<CloudDatabase>())),
+                      create: (_) => FeralfileBloc.create()),
                 ], child: const LinkAccountPage()));
 
       case accountsPreviewPage:
@@ -303,8 +301,7 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider(
-                create: (_) => FeralfileBloc(
-                    injector(), injector(), injector<CloudDatabase>()),
+                create: (_) => FeralfileBloc.create(),
                 child: AccessMethodPage(
                   walletApp: settings.arguments as String,
                 )));
@@ -313,16 +310,14 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider(
-                create: (_) => FeralfileBloc(
-                    injector(), injector(), injector<CloudDatabase>()),
+                create: (_) => FeralfileBloc.create(),
                 child: const LinkAppOptionsPage()));
 
       case linkMetamaskPage:
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider(
-                create: (_) => FeralfileBloc(
-                    injector(), injector(), injector<CloudDatabase>()),
+                create: (_) => FeralfileBloc.create(),
                 child: const LinkMetamaskPage()));
 
       case linkTezosKukaiPage:
@@ -436,8 +431,7 @@ class AppRouter {
         return CupertinoPageRoute(
           settings: settings,
           builder: (context) => BlocProvider(
-              create: (_) => FeralfileBloc(
-                  injector(), injector(), injector<CloudDatabase>()),
+              create: (_) => FeralfileBloc.create(),
               child: WCSignMessagePage(
                   args: settings.arguments as WCSignMessagePageArgs)),
         );
@@ -457,8 +451,7 @@ class AppRouter {
             curve: Curves.easeIn,
             duration: const Duration(milliseconds: 250),
             child: BlocProvider(
-                create: (_) => FeralfileBloc(
-                    injector(), injector(), injector<CloudDatabase>()),
+                create: (_) => FeralfileBloc.create(),
                 child: ScanQRPage(
                     scannerItem: settings.arguments as ScannerItem)));
       case settingsPage:
@@ -519,11 +512,7 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider(
-                  create: (_) => FeralfileBloc(
-                    injector(),
-                    injector(),
-                    injector(),
-                  ),
+                  create: (_) => FeralfileBloc.create(),
                   child: LinkedAccountDetailsPage(
                       connection: settings.arguments as Connection),
                 ));

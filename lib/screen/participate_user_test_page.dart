@@ -75,8 +75,8 @@ What to expect:
                 Expanded(
                   child: AuFilledButton(
                     text: "SCHEDULE YOUR USER TEST".toUpperCase(),
-                    onPress: () =>
-                        launch(USER_TEST_CALENDAR_LINK, forceSafariVC: false),
+                    onPress: () => launchUrl(Uri.parse(USER_TEST_CALENDAR_LINK),
+                        mode: LaunchMode.inAppWebView),
                   ),
                 ),
               ],

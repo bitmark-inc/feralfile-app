@@ -1,13 +1,12 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/screen/gallery/gallery_bloc.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/penrose_top_bar_view.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -25,6 +24,7 @@ class GalleryPagePayload {
 
 class GalleryPage extends StatefulWidget {
   final GalleryPagePayload payload;
+
   const GalleryPage({Key? key, required this.payload}) : super(key: key);
 
   @override
@@ -126,7 +126,14 @@ class _GalleryPageState extends State<GalleryPage> {
             children: [
               TextButton(
                 style: const ButtonStyle(alignment: Alignment.centerRight),
-                onPressed: artistURL != null ? () => launch(artistURL) : null,
+                onPressed: artistURL != null
+                    ? () {
+                        final uri = Uri.tryParse(artistURL);
+                        if (uri != null) {
+                          launchUrl(uri);
+                        }
+                      }
+                    : null,
                 child: Text(
                   widget.payload.artistName,
                   style: artistURL != null
