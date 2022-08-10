@@ -105,12 +105,12 @@ DateTime? isShowErrorDialogWorking;
 Future showErrorDialog(BuildContext context, String title, String description,
     String defaultButton,
     [Function()? defaultButtonOnPress,
-    String? cancelButton,
-    Function()? cancelButtonOnPress]) async {
+      String? cancelButton,
+      Function()? cancelButtonOnPress]) async {
   if (isShowErrorDialogWorking != null &&
       isShowErrorDialogWorking!
-              .add(const Duration(seconds: 2))
-              .compareTo(DateTime.now()) >
+          .add(const Duration(seconds: 2))
+          .compareTo(DateTime.now()) >
           0) {
     log.info("showErrorDialog is working");
     return;
@@ -188,12 +188,11 @@ Future showErrorDialog(BuildContext context, String title, String description,
   });
 }
 
-void showErrorDiablog(
-  BuildContext context,
-  ErrorEvent event, {
-  Function()? defaultAction,
-  Function()? cancelAction,
-}) {
+void showErrorDiablog(BuildContext context,
+    ErrorEvent event, {
+      Function()? defaultAction,
+      Function()? cancelAction,
+    }) {
   String defaultButton = "";
   String? cancelButton;
   switch (event.state) {
@@ -223,13 +222,20 @@ void showErrorDiablog(
     default:
       break;
   }
-  showErrorDialog(context, event.title, event.message, defaultButton,
-      defaultAction, cancelButton, cancelAction);
+  showErrorDialog(
+      context,
+      event.title,
+      event.message,
+      defaultButton,
+      defaultAction,
+      cancelButton,
+      cancelAction);
 }
 
 void showErrorDialogFromException(Object exception,
     {StackTrace? stackTrace, String? library}) async {
-  final context = injector<NavigationService>().navigatorKey.currentContext;
+  final navigationService = injector<NavigationService>();
+  final context = navigationService.navigatorKey.currentContext;
 
   if (exception is PlatformException) {
     if (lastException != null && lastException?.message == exception.message) {
@@ -259,8 +265,8 @@ void showErrorDialogFromException(Object exception,
   // avoid to bother user when user has just foregrounded the app.
   if (memoryValues.inForegroundAt != null &&
       DateTime.now()
-              .subtract(const Duration(seconds: 5))
-              .compareTo(memoryValues.inForegroundAt!) <
+          .subtract(const Duration(seconds: 5))
+          .compareTo(memoryValues.inForegroundAt!) <
           0) {
     Sentry.captureException(exception,
         stackTrace: stackTrace,
@@ -291,21 +297,17 @@ void showErrorDialogFromException(Object exception,
         sentryMetadata = exception.toString();
       }
 
-      showErrorDiablog(
-        context,
+      navigationService.showErrorDialog(
         event,
-        defaultAction: () => Navigator.of(context).pushNamed(
-          AppRouter.supportThreadPage,
-          arguments: ExceptionErrorPayload(
-              sentryID: sentryID, metadata: sentryMetadata),
-        ),
+        defaultAction: () =>
+            Navigator.of(context).pushNamed(
+              AppRouter.supportThreadPage,
+              arguments: ExceptionErrorPayload(
+                  sentryID: sentryID, metadata: sentryMetadata),
+            ),
       );
     } else {
-      showErrorDiablog(
-        context,
-        event,
-        defaultAction: null,
-      );
+      navigationService.showErrorDialog(event);
     }
   }
 }
@@ -319,7 +321,7 @@ String getTezosErrorMessage(TezartNodeError err) {
   if (err.message.contains("empty_implicit_contract") ||
       err.message.contains("balance_too_low")) {
     message =
-        "Transaction is likely to fail. Please make sure you have enough of Tezos balance to perform this action.";
+    "Transaction is likely to fail. Please make sure you have enough of Tezos balance to perform this action.";
   } else if (err.message.contains("script_rejected")) {
     message = "The operation failed. Contract malformed or deprecated.";
   } else {

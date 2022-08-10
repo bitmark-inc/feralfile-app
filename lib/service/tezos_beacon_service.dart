@@ -114,13 +114,11 @@ class TezosBeaconService implements BeaconHandler {
   @override
   Future<void> onLinked(TezosConnection tezosConnection) async {
     log.info("TezosBeaconService: ${tezosConnection.toJson()}");
-    final context = _navigationService.navigatorKey.currentContext!;
-
-    final alreadyLinkedAccount = await getExistingAccount(tezosConnection.address);
+    final alreadyLinkedAccount =
+        await getExistingAccount(tezosConnection.address);
     if (alreadyLinkedAccount != null) {
-      UIHelper.hideInfoDialog(context);
-      showErrorDiablog(
-          context,
+      _navigationService.hideInfoDialog();
+      _navigationService.showErrorDialog(
           ErrorEvent(
               null,
               "Already linked",
@@ -148,7 +146,7 @@ class TezosBeaconService implements BeaconHandler {
       hashingData: {"address": tezosConnection.address},
     );
 
-    UIHelper.hideInfoDialog(context);
+    _navigationService.hideInfoDialog();
     _navigationService.navigateTo(AppRouter.nameLinkedAccountPage,
         arguments: connection);
   }

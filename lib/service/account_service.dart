@@ -185,7 +185,6 @@ class AccountServiceImpl extends AccountService {
               _configurationService,
               _cloudDB,
               this,
-              injector<NavigationService>(),
               injector(),
               _auditService,
               _backupService)

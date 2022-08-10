@@ -48,7 +48,6 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
         _configurationService,
         _cloudDB,
         _accountService,
-        _navigationService,
         _iapService,
         _auditService,
         _backupService);
