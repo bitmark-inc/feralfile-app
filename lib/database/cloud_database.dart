@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/database/entity/audit.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:floor/floor.dart';
+// ignore: depend_on_referenced_packages
 import 'package:sqflite/sqflite.dart' as sqflite;
 
 part 'cloud_database.g.dart'; // the generated code will be there

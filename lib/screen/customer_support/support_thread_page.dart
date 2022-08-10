@@ -24,7 +24,7 @@ import 'package:autonomy_flutter/model/customer_support.dart' as app;
 import 'package:autonomy_flutter/model/customer_support.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/log.dart' as logUtil;
+import 'package:autonomy_flutter/util/log.dart' as log_util;
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/theme_manager.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -370,7 +370,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   }
 
   Future _submit(String messageType, DraftCustomerSupportData data) async {
-    logUtil.log.info('[CS-Thread][start] _submit $messageType - $data');
+    log_util.log.info('[CS-Thread][start] _submit $messageType - $data');
     List<String> mutedMessages = [];
     if (_issueID == null) {
       messageType = CSMessageType.CreateIssue.rawValue;
@@ -425,7 +425,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   }
 
   Future _addAppLogs() async {
-    final file = await logUtil.getLogFile();
+    final file = await log_util.getLogFile();
     final bytes = await file.readAsBytes();
     final auditBytes = await injector<AuditService>().export();
     final combinedBytes = bytes + auditBytes;
@@ -492,7 +492,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   }
 
   void _handleImageSelection() async {
-    logUtil.log.info('[_handleImageSelection] begin');
+    log_util.log.info('[_handleImageSelection] begin');
     final result = await ImagePicker().pickMultiImage();
     if (result == null) return;
 
@@ -513,7 +513,11 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
 
   Future<List<types.Message>> _convertChatMessage(
       dynamic message, String? tempID) async {
-    late var id, author, status, createdAt, text;
+    String id;
+    types.User author;
+    types.Status status;
+    DateTime createdAt;
+    String? text;
 
     if (message is app.Message) {
       id = tempID ?? "${message.id}";
@@ -572,7 +576,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     for (var i = 0; i < titles.length; i += 1) {
       if (contentTypes[i].contains("image")) {
         result.add(types.ImageMessage(
-          id: id + '$i',
+          id: '$id$i',
           author: author,
           createdAt: createdAt.millisecondsSinceEpoch,
           status: status,
@@ -585,7 +589,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
         final sizeAndRealTitle =
             ReceiveAttachment.extractSizeAndRealTitle(titles[i]);
         result.add(types.FileMessage(
-          id: id + '$i',
+          id: '$id$i',
           author: author,
           createdAt: createdAt.millisecondsSinceEpoch,
           status: status,

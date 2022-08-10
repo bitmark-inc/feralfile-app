@@ -5,6 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
+// ignore_for_file: implementation_imports
+
 import 'dart:math';
 import 'dart:typed_data';
 

@@ -41,36 +41,34 @@ class _GlobalReceivePageState extends State<GlobalReceivePage> {
           );
         }
 
-        return Container(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 16.0),
-                Text(
-                  "Receive",
-                  style: appTextTheme.headline1,
-                ),
-                const SizedBox(height: 40.0),
-                Text(
-                  "Select an address on the appropriate blockchain where you want to receive your NFT or cryptocurrency:",
-                  style: appTextTheme.bodyText1,
-                ),
-                const SizedBox(height: 24),
-                ListView.separated(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemBuilder: ((context, index) => Container(
-                          padding: const EdgeInsets.only(top: 16, bottom: 16),
-                          child: accountWithConnectionItem(
-                              context, categorizedAccounts[index]),
-                        )),
-                    separatorBuilder: ((context, index) =>
-                        addDivider(height: 0)),
-                    itemCount: categorizedAccounts.length)
-              ],
-            ),
+        return SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 16.0),
+              Text(
+                "Receive",
+                style: appTextTheme.headline1,
+              ),
+              const SizedBox(height: 40.0),
+              Text(
+                "Select an address on the appropriate blockchain where you want to receive your NFT or cryptocurrency:",
+                style: appTextTheme.bodyText1,
+              ),
+              const SizedBox(height: 24),
+              ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemBuilder: ((context, index) => Container(
+                        padding: const EdgeInsets.only(top: 16, bottom: 16),
+                        child: accountWithConnectionItem(
+                            context, categorizedAccounts[index]),
+                      )),
+                  separatorBuilder: ((context, index) =>
+                      addDivider(height: 0)),
+                  itemCount: categorizedAccounts.length)
+            ],
           ),
         );
       }),

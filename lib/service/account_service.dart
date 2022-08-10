@@ -18,7 +18,6 @@ import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
@@ -30,6 +29,7 @@ import 'package:autonomy_flutter/util/migration/migration_util.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:fast_base58/fast_base58.dart';
 import 'package:libauk_dart/libauk_dart.dart';
+// ignore: depend_on_referenced_packages
 import 'package:elliptic/elliptic.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:uuid/uuid.dart';
@@ -184,7 +184,6 @@ class AccountServiceImpl extends AccountService {
               _configurationService,
               _cloudDB,
               this,
-              injector<NavigationService>(),
               injector(),
               _auditService,
               _backupService)

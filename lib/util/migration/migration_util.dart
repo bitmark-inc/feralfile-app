@@ -17,7 +17,6 @@ import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
-import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/migration/migration_data.dart';
@@ -29,7 +28,6 @@ class MigrationUtil {
   final ConfigurationService _configurationService;
   final CloudDatabase _cloudDB;
   final AccountService _accountService;
-  final NavigationService _navigationService;
   final IAPService _iapService;
   final AuditService _auditService;
   final BackupService _backupService;
@@ -38,7 +36,6 @@ class MigrationUtil {
       this._configurationService,
       this._cloudDB,
       this._accountService,
-      this._navigationService,
       this._iapService,
       this._auditService,
       this._backupService);

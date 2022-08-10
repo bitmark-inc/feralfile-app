@@ -137,7 +137,10 @@ class VersionService {
                 child: AuFilledButton(
                   text: "UPDATE",
                   onPress: () {
-                    launch(link, forceSafariVC: false);
+                    final uri = Uri.tryParse(link);
+                    if (uri != null) {
+                      launchUrl(uri, mode: LaunchMode.inAppWebView);
+                    }
                   },
                   color: theme.primaryColor,
                   textStyle: TextStyle(
@@ -158,7 +161,7 @@ class VersionService {
         "What’s new?"; // avoid showing multiple what's new screens
     if (UIHelper.currentDialogTitle == screenKey) return;
 
-    releaseNotes = "[$currentVersion]\n\n" + releaseNotes;
+    releaseNotes = "[$currentVersion]\n\n$releaseNotes";
     UIHelper.currentDialogTitle = screenKey;
 
     await _configurationService.setReadReleaseNotesInVersion(currentVersion);

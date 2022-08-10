@@ -17,7 +17,6 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:collection/collection.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:uni_links/uni_links.dart';
 
@@ -26,7 +25,7 @@ abstract class DeeplinkService {
 }
 
 class DeeplinkServiceImpl extends DeeplinkService {
-  StreamSubscription? _streamSubscription;
+  // StreamSubscription? _streamSubscription;
   final ConfigurationService _configurationService;
   final WalletConnectService _walletConnectService;
   final TezosBeaconService _tezosBeaconService;
@@ -41,12 +40,11 @@ class DeeplinkServiceImpl extends DeeplinkService {
     this._navigationService,
   );
 
+  @override
   Future setup() async {
     try {
       final initialLink = await getInitialLink();
       _handleDeeplink(initialLink);
-
-      _streamSubscription = linkStream.listen(_handleDeeplink);
     } on PlatformException {
       //Ignore
     }
@@ -61,12 +59,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
     log.info("[DeeplinkService] receive deeplink $link");
 
     Timer.periodic(const Duration(seconds: 2), (timer) async {
-      final context = _navigationService.navigatorKey.currentContext;
-      if (context == null) return;
       timer.cancel();
-
-      _handleDappConnectDeeplink(link) ||
-          await _handleFeralFileDeeplink(context, link);
+      _handleDappConnectDeeplink(link) || await _handleFeralFileDeeplink(link);
     });
   }
 
@@ -74,7 +68,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
     log.info("[DeeplinkService] _handleDappConnectDeeplink");
     final wcPrefixes = [
       "https://au.bitmark.com/apps/wc?uri=",
-      "https://au.bitmark.com/apps/wc/wc?uri=", // maybe something wrong with WC register; fix by this for now
+      "https://au.bitmark.com/apps/wc/wc?uri=",
+      // maybe something wrong with WC register; fix by this for now
       "https://autonomy.io/apps/wc?uri=",
       "https://autonomy.io/apps/wc/wc?uri=",
     ];
@@ -129,8 +124,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
     return false;
   }
 
-  Future<bool> _handleFeralFileDeeplink(
-      BuildContext context, String link) async {
+  Future<bool> _handleFeralFileDeeplink(String link) async {
     log.info("[DeeplinkService] _handleFeralFileDeeplink");
 
     if (link.startsWith(FF_TOKEN_DEEPLINK_PREFIX)) {
@@ -142,13 +136,13 @@ class DeeplinkServiceImpl extends DeeplinkService {
       );
 
       if (doneOnboarding) {
-        UIHelper.showFFAccountLinked(context, connection.name);
+        _navigationService.showFFAccountLinked(connection.name);
 
         await Future.delayed(SHORT_SHOW_DIALOG_DURATION, () {
           _navigationService.popUntilHomeOrSettings();
         });
       } else {
-        UIHelper.showFFAccountLinked(context, connection.name,
+        _navigationService.showFFAccountLinked(connection.name,
             inOnboarding: true);
       }
 

@@ -66,7 +66,7 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
                       title: 'Learn why this is safe...',
                     ),
                     const SizedBox(height: 40),
-                    Container(
+                    SizedBox(
                       height: 120,
                       child: Column(
                         children: [

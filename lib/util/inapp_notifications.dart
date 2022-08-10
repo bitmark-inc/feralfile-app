@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:overlay_support/overlay_support.dart';
+// ignore: implementation_imports
 import 'package:overlay_support/src/overlay_state_finder.dart';
 
 Widget _notificationToast(OSNotification notification,

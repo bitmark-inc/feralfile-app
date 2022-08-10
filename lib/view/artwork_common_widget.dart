@@ -21,6 +21,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:nft_rendering/nft_rendering.dart';
+
+// ignore: depend_on_referenced_packages
 import 'package:path/path.dart' as p;
 import 'package:url_launcher/url_launcher.dart';
 
@@ -204,7 +206,10 @@ void _showReportRenderingDialogSuccess(BuildContext context, String githubURL) {
                 icon: SvgPicture.asset('assets/images/external_link.svg'),
                 text: "VIEW ISSUE STATUS",
                 onPress: () {
-                  launch(githubURL, forceSafariVC: false);
+                  final uri = Uri.tryParse(githubURL);
+                  if (uri != null) {
+                    launchUrl(uri, mode: LaunchMode.inAppWebView);
+                  }
                   Navigator.of(context).pop();
                 },
                 color: theme.primaryColor,
@@ -261,9 +266,9 @@ Widget debugInfoWidget(AssetToken? token) {
           return TextButton(
             onPressed: () async {
               Vibrate.feedback(FeedbackType.light);
-
-              if (await canLaunch(value)) {
-                launch(value, forceSafariVC: false);
+              final uri = Uri.tryParse(value);
+              if (uri != null && await canLaunchUrl(uri)) {
+                launchUrl(uri, mode: LaunchMode.inAppWebView);
               } else {
                 Clipboard.setData(ClipboardData(text: value));
               }
@@ -411,7 +416,7 @@ Widget artworkDetailsProvenanceSectionNotEmpty(
                     tapLink: el.txURL,
                     onNameTap: () => identity != null
                         ? UIHelper.showIdentityDetailDialog(context,
-                        name: identity, address: el.owner)
+                            name: identity, address: el.owner)
                         : null),
                 const Divider(height: 32.0),
               ],
@@ -439,8 +444,10 @@ Widget _artworkRightView(BuildContext context) {
       const SizedBox(height: 18.0),
       TextButton(
         style: textButtonNoPadding,
-        onPressed: () =>
-            launch("https://feralfile.com/docs/artist-collector-rights"),
+        onPressed: () {
+          launchUrl(
+              Uri.parse("https://feralfile.com/docs/artist-collector-rights"));
+        },
         child: Text('Learn more on the Artist + Collector Rights page...',
             style: linkStyle.copyWith(
               fontWeight: FontWeight.w500,
@@ -553,8 +560,10 @@ Widget _rowItem(BuildContext context, String name, String? value,
     Function()? onValueTap}) {
   if (onValueTap == null && tapLink != null) {
     final uri = Uri.parse(tapLink);
-    onValueTap =
-        () => launch(uri.toString(), forceSafariVC: forceSafariVC ?? true);
+    onValueTap = () => launchUrl(uri,
+        mode: forceSafariVC == true
+            ? LaunchMode.externalApplication
+            : LaunchMode.platformDefault);
   }
 
   return Row(
@@ -589,8 +598,9 @@ Widget _rowItem(BuildContext context, String name, String? value,
                 value ?? "",
                 textAlign: TextAlign.end,
                 style: TextStyle(
-                    color:
-                        onValueTap != null ? Colors.black : const Color(0xFF828080),
+                    color: onValueTap != null
+                        ? Colors.black
+                        : const Color(0xFF828080),
                     fontSize: 16,
                     fontWeight: FontWeight.w300,
                     fontFamily: "IBMPlexMono",

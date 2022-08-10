@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
 import 'package:autonomy_flutter/database/entity/identity.dart';
 import 'package:autonomy_flutter/model/provenance.dart';
 import 'package:floor/floor.dart';
+// ignore: depend_on_referenced_packages
 import 'package:sqflite/sqflite.dart' as sqflite;
 
 part 'app_database.g.dart'; // the generated code will be there

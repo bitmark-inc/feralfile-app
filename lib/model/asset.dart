@@ -257,5 +257,5 @@ String _replaceIPFS(String url) {
 String _refineToCloudflareURL(String url, String thumbnailID, String variant) {
   return thumbnailID.isEmpty
       ? _replaceIPFS(url)
-      : CLOUDFLAREIMAGEURLPREFIX + thumbnailID + "/" + variant;
+      : "$CLOUDFLAREIMAGEURLPREFIX$thumbnailID/$variant";
 }

@@ -90,7 +90,7 @@ class SettingsDataServiceImpl implements SettingsDataService {
     }
 
     String dir = (await getTemporaryDirectory()).path;
-    File backupFile = new File('$dir/$_filename');
+    File backupFile = File('$dir/$_filename');
     await backupFile.writeAsBytes(dataBytes);
 
     var isSuccess = false;
@@ -115,6 +115,7 @@ class SettingsDataServiceImpl implements SettingsDataService {
     log.info('[SettingsDataService][Done] backup');
   }
 
+  @override
   Future restoreSettingsData() async {
     log.info('[SettingsDataService][Start] restoreSettingsData');
     final response =

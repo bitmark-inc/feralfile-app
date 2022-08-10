@@ -16,6 +16,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
+// ignore: depend_on_referenced_packages
 import 'package:path/path.dart' as p;
 
 import 'hidden_artworks_bloc.dart';

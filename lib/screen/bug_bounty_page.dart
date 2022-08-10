@@ -62,8 +62,9 @@ class BugBountyPage extends StatelessWidget {
                       ),
                       TextSpan(
                           recognizer: TapGestureRecognizer()
-                            ..onTap = () =>
-                                launch(KNOWN_BUGS_LINK, forceSafariVC: true),
+                            ..onTap = () => launchUrl(
+                                Uri.parse(KNOWN_BUGS_LINK),
+                                mode: LaunchMode.externalApplication),
                           text: 'Known Bugs',
                           style: linkStyle),
                       const TextSpan(

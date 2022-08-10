@@ -8,7 +8,9 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:flutter/material.dart';
 
 class NavigationService {
@@ -28,6 +30,37 @@ class NavigationService {
 
     return navigatorKey.currentState
         ?.pushNamed(routeName, arguments: arguments);
+  }
+
+  void showFFAccountLinked(String alias, {bool inOnboarding = false}) {
+    if (navigatorKey.currentState?.mounted == true &&
+        navigatorKey.currentContext != null) {
+      UIHelper.showFFAccountLinked(navigatorKey.currentContext!, alias,
+          inOnboarding: inOnboarding);
+    }
+  }
+
+  void showErrorDialog(
+    ErrorEvent event, {
+    Function()? defaultAction,
+    Function()? cancelAction,
+  }) {
+    if (navigatorKey.currentState?.mounted == true &&
+        navigatorKey.currentContext != null) {
+      showErrorDiablog(
+        navigatorKey.currentContext!,
+        event,
+        defaultAction: defaultAction,
+        cancelAction: cancelAction,
+      );
+    }
+  }
+
+  void hideInfoDialog() {
+    if (navigatorKey.currentState?.mounted == true &&
+        navigatorKey.currentContext != null) {
+      UIHelper.hideInfoDialog(navigatorKey.currentContext!);
+    }
   }
 
   void goBack() {

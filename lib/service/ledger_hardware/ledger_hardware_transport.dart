@@ -5,6 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
+// ignore_for_file: depend_on_referenced_packages, non_constant_identifier_names
+
 import 'dart:convert';
 
 import 'package:autonomy_flutter/util/endian_int_ext.dart';
@@ -185,8 +187,6 @@ class LedgerHardwareWallet {
     final buf = _wrapCommandAPDU(
       channel: 0,
       command: data,
-      packetSize: _MTU,
-      hasChannel: false,
     );
     log.info("[LedgerHardwareService] => After wrapping: ${hex.encode(buf)}");
 

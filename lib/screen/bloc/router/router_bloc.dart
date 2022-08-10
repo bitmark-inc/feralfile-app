@@ -5,8 +5,6 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'dart:io';
-
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
@@ -16,7 +14,6 @@ import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
-import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/migration/migration_util.dart';
 
@@ -27,7 +24,6 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
   final BackupService _backupService;
   final AccountService _accountService;
   final CloudDatabase _cloudDB;
-  final NavigationService _navigationService;
   final IAPService _iapService;
   final AuditService _auditService;
 
@@ -42,7 +38,6 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
       this._backupService,
       this._accountService,
       this._cloudDB,
-      this._navigationService,
       this._iapService,
       this._auditService)
       : super(RouterState(onboardingStep: OnboardingStep.undefined)) {
@@ -50,7 +45,6 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
         _configurationService,
         _cloudDB,
         _accountService,
-        _navigationService,
         _iapService,
         _auditService,
         _backupService);

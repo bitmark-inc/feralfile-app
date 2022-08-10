@@ -8,5 +8,5 @@
 enum Network { TESTNET, MAINNET }
 
 extension RawValue on Network {
-  String get rawValue => this.toString().split('.').last;
+  String get rawValue => toString().split('.').last;
 }

@@ -5,15 +5,16 @@
 //  that can be found in the LICENSE file.
 //
 
+// ignore_for_file: depend_on_referenced_packages, implementation_imports
+
 import 'dart:async';
-import 'dart:io';
 import 'dart:math';
 
 import 'package:collection/collection.dart';
 import 'package:easy_debounce/easy_debounce.dart';
-import 'package:flutter_cache_manager/src/storage/cache_object.dart';
 import 'package:flutter_cache_manager/src/storage/cache_info_repositories/cache_info_repository.dart';
 import 'package:flutter_cache_manager/src/storage/cache_info_repositories/helper_methods.dart';
+import 'package:flutter_cache_manager/src/storage/cache_object.dart';
 import 'package:hive/hive.dart';
 
 class AUCacheInfoRepository extends CacheInfoRepository
@@ -29,7 +30,7 @@ class AUCacheInfoRepository extends CacheInfoRepository
   /// is stored as {databaseName}.json in the directory,
   // AUCacheInfoRepository.withFile(File file) : _file = file;
 
-  final Map<int, Map<String, dynamic>> _AUCache = {};
+  final Map<int, Map<String, dynamic>> _auCache = {};
 
   late Box<Map> _box;
   static const String defaultBoxName = 'au_image_cache';
@@ -67,7 +68,7 @@ class AUCacheInfoRepository extends CacheInfoRepository
     if (cacheObject.id != null) {
       throw ArgumentError("Inserted objects shouldn't have an existing id.");
     }
-    var keys = _AUCache.keys;
+    var keys = _auCache.keys;
     var lastId = keys.isEmpty ? 0 : keys.reduce(max);
     var id = lastId + 1;
 
@@ -147,7 +148,7 @@ class AUCacheInfoRepository extends CacheInfoRepository
 
   CacheObject _put(CacheObject cacheObject, bool setTouchedToNow) {
     final map = cacheObject.toMap(setTouchedToNow: setTouchedToNow);
-    _AUCache[cacheObject.id!] = map;
+    _auCache[cacheObject.id!] = map;
     var updatedCacheObject = CacheObject.fromMap(map);
     _box.put(cacheObject.key, cacheObject.toMap());
     _cacheUpdated();
@@ -156,7 +157,7 @@ class AUCacheInfoRepository extends CacheInfoRepository
 
   void _remove(CacheObject cacheObject) {
     _box.delete(cacheObject.key);
-    _AUCache.remove(cacheObject.id);
+    _auCache.remove(cacheObject.id);
     _cacheUpdated();
   }
 

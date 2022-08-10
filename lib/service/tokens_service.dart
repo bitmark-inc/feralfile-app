@@ -56,7 +56,7 @@ class TokensServiceImpl extends TokensService {
   StreamController<int>? _refreshAllTokensWorker;
   List<String>? _currentAddresses;
   Map<String, Completer<void>> _fetchTokensCompleters = {};
-  Map<String, Completer<void>> _reindexAddressesCompleters = {};
+  final Map<String, Completer<void>> _reindexAddressesCompleters = {};
   Future<void> get isolateReady => _isolateReady.future;
 
   AssetTokenDao get _assetDao =>
