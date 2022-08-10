@@ -43,6 +43,11 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
     super.initState();
 
     context.read<SendArtworkBloc>().add(GetBalanceEvent(widget.payload.wallet));
+    if (widget.payload.asset.artistName != null) {
+      context
+          .read<IdentityBloc>()
+          .add(GetIdentityEvent([widget.payload.asset.artistName!]));
+    }
   }
 
   @override
