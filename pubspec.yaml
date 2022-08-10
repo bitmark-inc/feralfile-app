@@ -47,7 +47,7 @@ dependencies:
       url: https://github.com/autonomy-system/flutter_blue.git
       ref: 4f1f28c7bab5596afa6fa175f81c3a953f7c993f
   flutter_chat_types: ^3.3.1
-  flutter_chat_ui: ^1.5.8
+  flutter_chat_ui: ^1.6.4
   flutter_dotenv: ^5.0.2
   flutter_downloader: ^1.8.0
   flutter_email_sender: ^5.1.0
