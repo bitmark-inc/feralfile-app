@@ -1,6 +1,4 @@
 const XTZ_GETBACK_ADDRESS = 'tz1Td5qwQxz5mDZiwk7TsRGhDU2HBvXgULip';
-const SEEDS_TO_RESTORE_FOR_TEST =
-    'spin toward remind wagon flame hen sell tragic hundred verb culture believe';
 const IMAGE_ARTWORK = 'Kamisaki';
 const VIDEO_ARTWORK = 'Caught Red Handed';
 const ARTWORK_4 = 'EVOLVE Magazine Issue 03';
@@ -17,5 +15,14 @@ const LIST_CHECK_ARTWORKS = [
   'Space Shuttle Discovery',
   'Tezosaurus #11 - Gift for our fans',
 ];
-// Debug Indexer TokenID
-// Delete All Debug Linked IndexerTokenIDs
+
+const LIST_CHECK_ARTWORKSID_ADD_MANUAL = [
+  'tez-KT1U6EHmNxJTkvaWJ4ThczG4FSDaHC21ssvi-873515',
+  'tez-KT1TG3hqXr5Emip4KBbijKP9LM5hmCCjE2HM-2',
+  'tez-KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton-757148',
+  'tez-KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton-759675',
+  'tez-KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton-761761',
+  'tez-KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton-693627',
+  'tez-KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton-633068',
+  'tez-KT1KXXZ758wtyf2NBjWKPeXugDh5Mm7kyckw-10',
+];

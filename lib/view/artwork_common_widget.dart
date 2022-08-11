@@ -68,6 +68,7 @@ Widget tokenGalleryThumbnailWidget(
 
   return Hero(
     tag: token.id,
+    key: Key('Artwork_Thumbnail'),
     child: ext == ".svg"
         ? SvgPicture.network(token.galleryThumbnailURL!,
             placeholderBuilder: (context) =>
@@ -93,7 +94,6 @@ Widget tokenGalleryThumbnailWidget(
                   ),
                 )),
           ),
-    key: Key('Artwork_Thumbnail'),
   );
 }
 

@@ -5,13 +5,13 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
-import 'package:flutter/widgets.dart';
 
+import '../../lib/main.dart' as app;
 import '../commons/test_util.dart';
-import '../pages/access_method_page.dart';
 import '../pages/onboarding_page.dart';
 import '../test_data/test_constants.dart';
 
@@ -21,43 +21,59 @@ void main() async {
   group(
       "Verify that user open Artwork detail without spinner after timeout time - ",
       () {
+    // setUp(() async {
+    //   app.main();
+    //   // await tester.pumpAndSettle(Duration(seconds: 5));
+    // });
+
     testWidgets("Image", (tester) async {
+      await initAppAutonomy(tester);
+      await launchAutonomy(tester);
       await onboardingSteps(tester);
 
-      // await addDelay(5000);
-      await selectSubSettingMenu(tester, "Settings->+ Account");
-      // await restoreAccountBySeeds(tester, 'MetaMask', SEEDS_TO_RESTORE_FOR_TEST);
+      for (var id in LIST_CHECK_ARTWORKSID_ADD_MANUAL) {
+        await addDelay(2000);
+        await selectSubSettingMenu(tester, "Settings->+ Account");
 
-      await tester.tap(find.text('Delete All Debug Linked IndexerTokenIDs'));
-      await tester.pumpAndSettle(Duration(seconds: 1));
-      await tester.tap(find.text('Debug Indexer TokenID'));
-      await tester.pumpAndSettle(Duration(seconds: 3));
+        await tester.tap(find.text('Delete All Debug Linked IndexerTokenIDs'));
+        await tester.pumpAndSettle(Duration(seconds: 3));
+        await tester.tap(find.text('Debug Indexer TokenID'));
+        await tester.pumpAndSettle(Duration(seconds: 3));
 
-      await tester.enterText(find.byType(TextField),
-          'bmk--899600b02d99d0474c7c0037f6e14829b308286923cd04dc4217845be9c701f8');
+        await tester.enterText(find.byType(TextField), id);
 
-      await tester.tap(find.text('LINK'));
-      await tester.pumpAndSettle(Duration(seconds: 5));
-      await tester.pumpAndSettle(Duration(seconds: 3));
+        await tester.tap(find.text('LINK'));
+        await tester.pump(Duration(seconds: 10));
+        await tester.pump(Duration(seconds: 10));
 
-      await tester.tap(find.byTooltip('Settings'));
-      await tester.pumpAndSettle(Duration(seconds: 5));
-      // await tester.pumpAndSettle(Duration(seconds: 5));
-      // await addDelay(10000);
+        // Add delay to load after link TokenID
+        await addDelay(5000);
 
-      // for (var artwork in LIST_CHECK_ARTWORKS) {
-      //   await tester.tap(find.byKey(Key(artwork)));
-      //   await tester.pumpAndSettle();
-      //   expect(find.byType(CircularProgressIndicator), findsNothing);
-      //   await tester.tap(find.byTooltip('CloseArtwork'));
-      //   await tester.pumpAndSettle();
-      // }
+        await tester.tap(find.byTooltip('Settings'));
+        await tester.pumpAndSettle(Duration(seconds: 5));
+        await tester.pump(Duration(seconds: 5));
 
-      await tester.tap(find.byKey(Key('Artwork_Thumbnail')));
-      expect(find.byType(CircularProgressIndicator), findsNothing);
-      await tester.tap(find.byTooltip('CloseArtwork'));
-      await tester.pumpAndSettle();
-      await tester.pumpAndSettle();
+        // add delay to wait for artwork display
+        await addDelay(5000);
+
+        await tester.ensureVisible(find.byType(CachedNetworkImage));
+        await tester.pump(const Duration(milliseconds: 4000));
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.byType(CachedNetworkImage));
+        // Pump Pump2 times because application is not stable
+        await tester.pump();
+        await tester.pump();
+
+        // Add delay to wait for Artwork loading successful
+        await addDelay(5000);
+        print(
+            "This is a bug happens in only Automation test, the artwork does not display after adding debug TokenID");
+        expect(find.byType(CircularProgressIndicator).evaluate().length, 0);
+        await tester.tap(find.byTooltip('CloseArtwork'));
+        await tester.pumpAndSettle();
+        await tester.pumpAndSettle();
+      }
     });
   });
 }

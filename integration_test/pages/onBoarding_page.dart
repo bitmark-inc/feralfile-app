@@ -11,7 +11,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:flutter/material.dart';
+
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../lib/main.dart' as app;
@@ -26,19 +26,15 @@ final Finder skipbutton = find.text("SKIP");
 final Finder restorebutton = find.text("RESTORE");
 final Finder nftcollections = find.text("Collection");
 final Finder conflictdetectheader = find.text('Conflict detected');
+final Finder continueWithouItbutton = find.text("CONTINUE WITHOUT IT");
 
 Future<void> onboardingSteps(WidgetTester tester) async {
-  app.main();
-  await tester.pumpAndSettle(Duration(seconds: 5));
-  await tester.pumpWidget(AutonomyApp());
-  await tester.pumpAndSettle(Duration(seconds: 3));
-
-  expect(autonomyheader, findsOneWidget);
+  // await initAppAutonomy(tester);
+  //expect(autonomyheader, findsOneWidget);
 
   // Temporary ignore the survey and the Enable notification page to make the application stable to test.
   await injector<ConfigurationService>().setFinishedSurvey([Survey.onboarding]);
   await injector<ConfigurationService>().setNotificationEnabled(false);
-
   if (startbutton.evaluate().isNotEmpty) {
     // Fresh start
     await tester.tap(startbutton);
@@ -67,13 +63,13 @@ Future<void> onboardingSteps(WidgetTester tester) async {
 
     await tester.pumpAndSettle();
 
-    await tester.tap(continuebutton);
+    await tester.tap(continueWithouItbutton);
 
     await tester.pumpAndSettle(Duration(seconds: 5));
     sleep(Duration(seconds: 3));
 
     expect(nftcollections, findsOneWidget);
-  } else {
+  } else if (restorebutton.evaluate().isNotEmpty) {
     //Restore
 
     await tester.tap(restorebutton);
@@ -86,7 +82,6 @@ Future<void> onboardingSteps(WidgetTester tester) async {
       await tester.tap(notnowbutton);
       await tester.pumpAndSettle(Duration(seconds: 8));
     }
-
-    await handleConflictDetected(tester);
   }
+  await handleConflictDetected(tester);
 }
