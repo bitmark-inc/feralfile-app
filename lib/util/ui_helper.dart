@@ -81,7 +81,7 @@ Future newAccountPageOrSkipInCondition(BuildContext context) async {
   if (memoryValues.linkedFFConnections?.isNotEmpty ?? false) {
     doneOnboarding(context);
   } else {
-    await Navigator.of(context).pushNamed(AppRouter.newAccountPage);
+    Navigator.of(context).pushNamed(AppRouter.newAccountPage);
   }
 }
 
