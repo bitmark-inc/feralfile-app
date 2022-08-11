@@ -112,7 +112,8 @@ class _LinkAppOptionsPageState extends State<LinkAppOptionsPage> {
 
   void _launchURL(String url) async {
     final uri = Uri.tryParse(url);
-    if (uri != null && !await launchUrl(uri, mode: LaunchMode.inAppWebView)) {
+    if (uri != null &&
+        !await launchUrl(uri, mode: LaunchMode.externalNonBrowserApplication)) {
       _isPageInactive = true;
       Navigator.of(context)
           .pushNamed(AppRouter.linkWalletConnectPage, arguments: 'MetaMask');
