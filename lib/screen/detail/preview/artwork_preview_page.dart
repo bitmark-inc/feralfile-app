@@ -74,9 +74,8 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   Future<List<CastDevice>> _castDevicesFuture = CastDiscoveryService().search();
   String? swipeDirection;
 
-  static List<AUCastDevice> _defaultCastDevices = [
-    AUCastDevice(AUCastDeviceType.Airplay)
-  ];
+  static final List<AUCastDevice> _defaultCastDevices =
+  Platform.isIOS ? [AUCastDevice(AUCastDeviceType.Airplay)] : [];
 
   List<AUCastDevice> _castDevices = [];
 
