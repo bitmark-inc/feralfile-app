@@ -113,7 +113,6 @@ class AuTextField extends StatelessWidget {
           // height: 1.2,
           fontFamily: "IBMPlexMono",
           color: Colors.black,
-
         ),
         controller: controller,
         onChanged: onChanged,

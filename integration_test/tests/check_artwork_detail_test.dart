@@ -10,7 +10,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
-import '../../lib/main.dart' as app;
 import '../commons/test_util.dart';
 import '../pages/onboarding_page.dart';
 import '../test_data/test_constants.dart';
@@ -21,11 +20,6 @@ void main() async {
   group(
       "Verify that user open Artwork detail without spinner after timeout time - ",
       () {
-    // setUp(() async {
-    //   app.main();
-    //   // await tester.pumpAndSettle(Duration(seconds: 5));
-    // });
-
     testWidgets("Image", (tester) async {
       await initAppAutonomy(tester);
       await launchAutonomy(tester);

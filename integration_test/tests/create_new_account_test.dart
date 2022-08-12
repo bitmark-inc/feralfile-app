@@ -5,9 +5,6 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'dart:io';
-
-import 'package:autonomy_flutter/main.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter/material.dart';
 
@@ -22,8 +19,6 @@ void main() async {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   group("Create a new full account", () {
-    // setUp((tester) async {});
-
     testWidgets("with alias and check balance", (tester) async {
       await initAppAutonomy(tester);
       await launchAutonomy(tester);

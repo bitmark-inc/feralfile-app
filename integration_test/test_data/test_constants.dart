@@ -26,3 +26,10 @@ const LIST_CHECK_ARTWORKSID_ADD_MANUAL = [
   'tez-KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton-633068',
   'tez-KT1KXXZ758wtyf2NBjWKPeXugDh5Mm7kyckw-10',
 ];
+const SEEDS_TO_RESTORE_FULLACCOUNT =
+    'spin toward remind wagon flame hen sell tragic hundred verb culture believe';
+
+const SEED_TO_RESTORE_KUKAI =
+    'boring unveil betray damage idea educate entry cruise elevator hair cabin scatter royal alpha bicycle trade bonus stock just youth effort skate flash remember';
+const SEED_TO_RESTORE_TEMPLE =
+    'hidden laundry process risk unveil merge pyramid arrange hollow jeans motion scrap';
