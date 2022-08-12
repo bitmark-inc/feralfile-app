@@ -9,13 +9,15 @@ import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/global_receive/receive_detail_page.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 
 Widget accountWithConnectionItem(
     BuildContext context, CategorizedAccounts categorizedAccounts) {
+  final theme = Theme.of(context);
+
   switch (categorizedAccounts.className) {
     case 'Persona':
       return Row(
@@ -32,11 +34,11 @@ Widget accountWithConnectionItem(
               children: [
                 Text(categorizedAccounts.category,
                     overflow: TextOverflow.ellipsis,
-                    style: appTextTheme.headline4),
+                    style: theme.textTheme.headline4),
                 const SizedBox(height: 8),
                 ...categorizedAccounts.accounts
                     .map((a) => Container(
-                        child: _blockchainAddressView(a,
+                        child: _blockchainAddressView(context, a,
                             onTap: () => Navigator.of(context).pushNamed(
                                 GlobalReceiveDetailPage.tag,
                                 arguments: a))))
@@ -69,13 +71,13 @@ Widget accountWithConnectionItem(
                               ? connection.name
                               : "Unnamed",
                           overflow: TextOverflow.ellipsis,
-                          style: appTextTheme.headline4),
-                      _linkedBox(),
+                          style: theme.textTheme.headline4),
+                      _linkedBox(context),
                     ]),
                 const SizedBox(height: 8),
                 ...categorizedAccounts.accounts
                     .map((a) => Container(
-                        child: _blockchainAddressView(a,
+                        child: _blockchainAddressView(context, a,
                             onTap: () => Navigator.of(context).pushNamed(
                                 GlobalReceiveDetailPage.tag,
                                 arguments: a))))
@@ -93,6 +95,7 @@ Widget accountWithConnectionItem(
 
 Widget accountItem(BuildContext context, Account account,
     {Function()? onPersonaTap, Function()? onConnectionTap}) {
+  final theme = Theme.of(context);
   final persona = account.persona;
   if (persona != null) {
     return TappableForwardRow(
@@ -104,7 +107,7 @@ Widget accountItem(BuildContext context, Account account,
                 account.name.isNotEmpty
                     ? account.name.maskIfNeeded()
                     : account.accountNumber.mask(4),
-                style: appTextTheme.headline4),
+                style: theme.textTheme.headline4),
           ],
         ),
         onTap: onPersonaTap);
@@ -121,17 +124,22 @@ Widget accountItem(BuildContext context, Account account,
                 connection.name.isNotEmpty
                     ? connection.name.maskIfNeeded()
                     : connection.accountNumber.mask(4),
-                style: appTextTheme.headline4),
+                style: theme.textTheme.headline4),
           ],
         ),
-        rightWidget: _linkedBox(),
+        rightWidget: _linkedBox(context),
         onTap: onConnectionTap);
   }
 
   return const SizedBox();
 }
 
-Widget _blockchainAddressView(Account account, {Function()? onTap}) {
+Widget _blockchainAddressView(
+  BuildContext context,
+  Account account, {
+  Function()? onTap,
+}) {
+  final theme = Theme.of(context);
   return TappableForwardRow(
     padding: const EdgeInsets.symmetric(vertical: 7),
     leftWidget: Row(
@@ -140,20 +148,12 @@ Widget _blockchainAddressView(Account account, {Function()? onTap}) {
         const SizedBox(width: 8),
         Text(
           _blockchainName(account.blockchain),
-          style: const TextStyle(
-              color: Colors.black,
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              fontFamily: "AtlasGrotesk"),
+          style: theme.textTheme.headline5,
         ),
         const SizedBox(width: 8),
         Text(
           account.accountNumber.mask(4),
-          style: const TextStyle(
-              color: Colors.black,
-              fontSize: 14,
-              fontWeight: FontWeight.w400,
-              fontFamily: "IBMPlexMono"),
+          style: theme.textTheme.ibmBlackNormal14,
         ),
       ],
     ),
@@ -262,15 +262,17 @@ Widget _appLogo(Connection connection) {
   }
 }
 
-Widget _linkedBox() {
+Widget _linkedBox(BuildContext context) {
+  final theme = Theme.of(context);
   return Container(
     padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
-    decoration:
-        BoxDecoration(border: Border.all(color: const Color(0xFF6D6B6B))),
-    child: const Text(
+    decoration: BoxDecoration(
+        border: Border.all(
+      color: theme.colorScheme.surface,
+    )),
+    child: Text(
       "LINKED",
-      style: TextStyle(
-          color: Color(0xFF6D6B6B), fontSize: 12, fontFamily: "IBMPlexMono"),
+      style: theme.textTheme.ibmGreyNormal12,
     ),
   );
 }

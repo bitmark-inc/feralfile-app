@@ -7,7 +7,6 @@
 
 import 'package:autonomy_flutter/model/tzkt_operation.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/material.dart';
@@ -37,6 +36,7 @@ class TezosTXDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final DateFormat formatter = DateFormat('yyyy-MM-dd hh:mm');
 
     return Scaffold(
@@ -50,30 +50,32 @@ class TezosTXDetailPage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(_transactionTitle(), style: appTextTheme.headline1),
+              Text(_transactionTitle(), style: theme.textTheme.headline1),
               const SizedBox(height: 27),
               Expanded(
                 child: ListView(
                   children: [
                     if (tx.parameter != null) ...[
-                      _transactionInfo("Call", tx.parameter?.entrypoint),
                       _transactionInfo(
-                          "Contract", tx.target?.alias ?? tx.target?.address)
+                          context, "Call", tx.parameter?.entrypoint),
+                      _transactionInfo(context, "Contract",
+                          tx.target?.alias ?? tx.target?.address)
                     ] else if (tx.type == "transaction") ...[
                       tx.sender?.address == currentAddress
-                          ? _transactionInfo("To", tx.target?.address)
-                          : _transactionInfo("From", tx.sender?.address),
+                          ? _transactionInfo(context, "To", tx.target?.address)
+                          : _transactionInfo(
+                              context, "From", tx.sender?.address),
                     ],
-                    _transactionInfo("Status", _transactionStatus()),
-                    _transactionInfo(
-                        "Date", formatter.format(tx.timestamp.toLocal())),
+                    _transactionInfo(context, "Status", _transactionStatus()),
+                    _transactionInfo(context, "Date",
+                        formatter.format(tx.timestamp.toLocal())),
                     if (tx.type == "transaction")
-                      _transactionInfo("Amount", _transactionAmount()),
+                      _transactionInfo(context, "Amount", _transactionAmount()),
                     if (tx.sender?.address == currentAddress) ...[
-                      _transactionInfo("Gas fee", _gasFee()),
-                      _transactionInfo("Total amount", _totalAmount()),
+                      _transactionInfo(context, "Gas fee", _gasFee()),
+                      _transactionInfo(context, "Total amount", _totalAmount()),
                     ],
-                    _viewOnTZKT(),
+                    _viewOnTZKT(context),
                   ],
                 ),
               ),
@@ -110,33 +112,38 @@ class TezosTXDetailPage extends StatelessWidget {
     return "https://tzkt.io/${tx.hash}";
   }
 
-  Widget _transactionInfo(String title, String? detail) {
+  Widget _transactionInfo(BuildContext context, String title, String? detail) {
+    final theme = Theme.of(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            child: Wrap(
-                alignment: WrapAlignment.spaceBetween,
-                spacing: 16,
-                runSpacing: 16,
-                runAlignment: WrapAlignment.center,
-                children: [
-                  Text(title, style: appTextTheme.headline4),
-                  if (detail != null)
-                    Text(detail,
-                        textAlign: TextAlign.right,
-                        style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w400,
-                            fontFamily: "IBMPlexMono")),
-                ])),
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            spacing: 16,
+            runSpacing: 16,
+            runAlignment: WrapAlignment.center,
+            children: [
+              Text(title, style: theme.textTheme.headline4),
+              if (detail != null)
+                Text(
+                  detail,
+                  textAlign: TextAlign.right,
+                  style: theme.textTheme.subtitle1,
+                ),
+            ],
+          ),
+        ),
         const Divider(),
       ],
     );
   }
 
-  Widget _viewOnTZKT() {
+  Widget _viewOnTZKT(BuildContext context) {
+    final theme = Theme.of(context);
+
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       child: Container(
@@ -146,15 +153,15 @@ class TezosTXDetailPage extends StatelessWidget {
           children: [
             RichText(
                 text: TextSpan(
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14.0,
-                color: Colors.black,
+                color: theme.colorScheme.primary,
               ),
               children: <TextSpan>[
-                TextSpan(text: 'View on ', style: appTextTheme.headline4),
+                TextSpan(text: 'View on ', style: theme.textTheme.headline4),
                 TextSpan(
                     text: 'tzkt.io',
-                    style: appTextTheme.headline4
+                    style: theme.textTheme.headline4
                         ?.copyWith(decoration: TextDecoration.underline)),
               ],
             )),
@@ -167,15 +174,10 @@ class TezosTXDetailPage extends StatelessWidget {
   }
 
   String _gasFee() {
-    return "${(tx.bakerFee + (tx.storageFee ?? 0) + (tx.allocationFee ?? 0)) /
-                _nanoTEZFactor} XTZ";
+    return "${(tx.bakerFee + (tx.storageFee ?? 0) + (tx.allocationFee ?? 0)) / _nanoTEZFactor} XTZ";
   }
 
   String _totalAmount() {
-    return "${((tx.amount ?? 0) +
-                    tx.bakerFee +
-                    (tx.storageFee ?? 0) +
-                    (tx.allocationFee ?? 0)) /
-                _nanoTEZFactor} XTZ (${tx.quote.usd.toStringAsPrecision(2)} USD)";
+    return "${((tx.amount ?? 0) + tx.bakerFee + (tx.storageFee ?? 0) + (tx.allocationFee ?? 0)) / _nanoTEZFactor} XTZ (${tx.quote.usd.toStringAsPrecision(2)} USD)";
   }
 }

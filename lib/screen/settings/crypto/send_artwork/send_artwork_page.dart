@@ -14,7 +14,6 @@ import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwor
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_state.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
@@ -52,6 +51,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final asset = widget.payload.asset;
 
     final identityState = context.watch<IdentityBloc>().state;
@@ -85,7 +85,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                         children: [
                           Text(
                             "Send artwork",
-                            style: appTextTheme.headline1,
+                            style: theme.textTheme.headline1,
                           ),
                           const SizedBox(height: 40.0),
                           Row(
@@ -93,13 +93,13 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                             children: [
                               Text(
                                 "Title",
-                                style: appTextTheme.headline4,
+                                style: theme.textTheme.headline4,
                               ),
                               Expanded(
                                 child: Text(
                                   asset.title,
                                   textAlign: TextAlign.right,
-                                  style: appTextTheme.bodyText2,
+                                  style: theme.textTheme.bodyText2,
                                 ),
                               ),
                             ],
@@ -110,11 +110,11 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                             children: [
                               Text(
                                 "Artist",
-                                style: appTextTheme.headline4,
+                                style: theme.textTheme.headline4,
                               ),
                               Text(
                                 artistName ?? "",
-                                style: appTextTheme.bodyText2,
+                                style: theme.textTheme.bodyText2,
                               ),
                             ],
                           ),
@@ -124,11 +124,11 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                             children: [
                               Text(
                                 "Edition",
-                                style: appTextTheme.headline4,
+                                style: theme.textTheme.headline4,
                               ),
                               Text(
                                 "${asset.edition}/${asset.maxEdition}",
-                                style: appTextTheme.bodyText2,
+                                style: theme.textTheme.bodyText2,
                               ),
                             ],
                           ),
@@ -171,10 +171,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                           ),
                           const SizedBox(height: 8.0),
                           Text(_gasFee(state),
-                              style: const TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 12,
-                                  fontFamily: "AtlasGrotesk")),
+                              style: theme.textTheme.headline5),
                           const SizedBox(height: 24.0),
                         ],
                       ),

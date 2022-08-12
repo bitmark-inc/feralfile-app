@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share/share.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 
 class ReceivePage extends StatelessWidget {
   static const String tag = 'receive';
@@ -22,6 +23,8 @@ class ReceivePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: getBackAppBar(
         context,
@@ -36,7 +39,7 @@ class ReceivePage extends StatelessWidget {
           children: [
             Text(
               "Receive ${payload.type == CryptoType.ETH ? "ETH" : "XTZ"}",
-              style: appTextTheme.headline1,
+              style: theme.textTheme.headline1,
             ),
             const SizedBox(height: 96),
             Center(
@@ -54,13 +57,9 @@ class ReceivePage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     "Deposit address",
-                    style: TextStyle(
-                        color: AppColorTheme.secondaryHeaderColor,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        fontFamily: "AtlasGrotesk"),
+                    style: theme.textTheme.atlasGreyBold12,
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -68,11 +67,7 @@ class ReceivePage extends StatelessWidget {
                       payload.address,
                       textAlign: TextAlign.start,
                       softWrap: true,
-                      style: const TextStyle(
-                          color: Colors.black,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w300,
-                          fontFamily: "IBMPlexMono"),
+                      style: theme.textTheme.subtitle2,
                     ),
                   ),
                 ],

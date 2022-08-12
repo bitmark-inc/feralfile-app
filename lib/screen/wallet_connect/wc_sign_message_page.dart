@@ -26,7 +26,6 @@ import 'package:wallet_connect/models/wc_peer_meta.dart';
 import 'package:web3dart/crypto.dart';
 
 class WCSignMessagePage extends StatefulWidget {
-
   static const String tag = 'wc_sign_message';
 
   final WCSignMessagePageArgs args;
@@ -38,11 +37,11 @@ class WCSignMessagePage extends StatefulWidget {
 }
 
 class _WCSignMessagePageState extends State<WCSignMessagePage> {
-
   @override
   Widget build(BuildContext context) {
     final message = hexToBytes(widget.args.message);
     final messageInUtf8 = utf8.decode(message, allowMalformed: true);
+    final theme = Theme.of(context);
 
     return Scaffold(
       appBar: getBackAppBar(
@@ -66,27 +65,27 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
                     const SizedBox(height: 8.0),
                     Text(
                       "Confirm",
-                      style: appTextTheme.headline1,
+                      style: theme.textTheme.headline1,
                     ),
                     const SizedBox(height: 40.0),
                     Text(
                       "Connection",
-                      style: appTextTheme.headline4,
+                      style: theme.textTheme.headline4,
                     ),
                     const SizedBox(height: 16.0),
                     Text(
                       widget.args.peerMeta.name,
-                      style: appTextTheme.bodyText2,
+                      style: theme.textTheme.bodyText2,
                     ),
                     const Divider(height: 32),
                     Text(
                       "Message",
-                      style: appTextTheme.headline4,
+                      style: theme.textTheme.headline4,
                     ),
                     const SizedBox(height: 16.0),
                     Text(
                       messageInUtf8,
-                      style: appTextTheme.bodyText2,
+                      style: theme.textTheme.bodyText2,
                     ),
                   ],
                 ),
@@ -140,13 +139,14 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
             child: AuFilledButton(
               text: "Sign".toUpperCase(),
               onPress: () => withDebounce(() async {
-                final WalletStorage wallet = LibAukDart.getWallet(widget.args.uuid);
+                final WalletStorage wallet =
+                    LibAukDart.getWallet(widget.args.uuid);
                 final signature = await networkInjector
                     .I<EthereumService>()
                     .signPersonalMessage(wallet, message);
 
-                injector<WalletConnectService>()
-                    .approveRequest(widget.args.peerMeta, widget.args.id, signature);
+                injector<WalletConnectService>().approveRequest(
+                    widget.args.peerMeta, widget.args.id, signature);
 
                 if (!mounted) return;
 
@@ -154,26 +154,29 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
                   if (messageInUtf8.contains(
                       'Feral File is requesting to connect your wallet address')) {
                     context.read<FeralfileBloc>().add(LinkFFWeb3AccountEvent(
-                        widget.args.topic, widget.args.peerMeta.url, wallet, true));
+                        widget.args.topic,
+                        widget.args.peerMeta.url,
+                        wallet,
+                        true));
                   } else if (messageInUtf8.contains(
                       'Feral File is requesting authorization to sign in')) {
                     context.read<FeralfileBloc>().add(LinkFFWeb3AccountEvent(
-                        widget.args.topic, widget.args.peerMeta.url, wallet, false));
+                        widget.args.topic,
+                        widget.args.peerMeta.url,
+                        wallet,
+                        false));
                   } else if (messageInUtf8.contains(
                       "Feral File is requesting authorization to disconnect your wallet from your Feral File account")) {
-                    final matched = RegExp("Wallet address:\\n(0[xX][0-9a-fA-F]+)\\n")
-                        .firstMatch(messageInUtf8);
+                    final matched =
+                        RegExp("Wallet address:\\n(0[xX][0-9a-fA-F]+)\\n")
+                            .firstMatch(messageInUtf8);
                     final address = matched?.group(0)?.split("\n")[1].trim();
                     if (address == null) {
                       Navigator.of(context).pop();
                       return;
                     }
-                    context.read<FeralfileBloc>().add(
-                        UnlinkFFWeb3AccountEvent(
-                            source: widget.args.peerMeta.url,
-                            address: address
-                        )
-                    );
+                    context.read<FeralfileBloc>().add(UnlinkFFWeb3AccountEvent(
+                        source: widget.args.peerMeta.url, address: address));
                   } else {
                     Navigator.of(context).pop();
                   }

@@ -7,7 +7,7 @@
 
 import 'package:autonomy_flutter/screen/bloc/connections/connections_bloc.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/theme_manager.dart';
+
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
@@ -23,6 +23,7 @@ class ConnectionDetailsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final connection = connectionItem.representative;
+    final theme = Theme.of(context);
 
     return Scaffold(
       appBar: getBackAppBar(
@@ -44,7 +45,7 @@ class ConnectionDetailsPage extends StatelessWidget {
                   children: [
                     Text(
                       "Rights",
-                      style: appTextTheme.headline1,
+                      style: theme.textTheme.headline1,
                     ),
                     addTitleSpace(),
                     Row(
@@ -56,10 +57,10 @@ class ConnectionDetailsPage extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(connection.appName,
-                                  style: appTextTheme.headline4),
+                                  style: theme.textTheme.headline4),
                               Text(
                                 "You have granted permission to:",
-                                style: appTextTheme.bodyText1,
+                                style: theme.textTheme.bodyText1,
                               ),
                             ],
                           ),
@@ -75,7 +76,7 @@ class ConnectionDetailsPage extends StatelessWidget {
                           ...grantPermissions
                               .map((permission) => Column(children: [
                                     Text("• $permission",
-                                        style: appTextTheme.bodyText1),
+                                        style: theme.textTheme.bodyText1),
                                     const SizedBox(height: 4),
                                   ]))
                               .toList(),
@@ -90,7 +91,7 @@ class ConnectionDetailsPage extends StatelessWidget {
               child: TextButton(
                 onPressed: () => _showDeleteConnectionConfiguration(context),
                 child: Text('DISCONNECT & REVOKE RIGHTS',
-                    style: appTextTheme.button?.copyWith(color: Colors.black)),
+                    style: theme.textTheme.button),
               ),
             ),
           ],
@@ -99,12 +100,12 @@ class ConnectionDetailsPage extends StatelessWidget {
     );
   }
 
-  void _showDeleteConnectionConfiguration(BuildContext pageContext) {
-    final theme = AuThemeManager.get(AppTheme.sheetTheme);
+  void _showDeleteConnectionConfiguration(BuildContext context) {
+    final theme = Theme.of(context);
     final connection = connectionItem.representative;
 
     showModalBottomSheet(
-        context: pageContext,
+        context: context,
         enableDrag: false,
         backgroundColor: Colors.transparent,
         builder: (context) {
@@ -113,26 +114,26 @@ class ConnectionDetailsPage extends StatelessWidget {
             child: ClipPath(
               clipper: AutonomyTopRightRectangleClipper(),
               child: Container(
-                color: theme.backgroundColor,
+                color: theme.colorScheme.primary,
                 padding:
                     const EdgeInsets.symmetric(horizontal: 14, vertical: 32),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Revoke all rights', style: theme.textTheme.headline1),
+                    Text('Revoke all rights',
+                        style: theme.primaryTextTheme.headline1),
                     const SizedBox(height: 40),
                     RichText(
                       text: TextSpan(
-                        style: theme.textTheme.bodyText1,
+                        style: theme.primaryTextTheme.bodyText1,
                         children: <TextSpan>[
                           const TextSpan(
                             text: 'Are you sure you want to revoke ',
                           ),
                           const TextSpan(
                               text: 'Autonomy',
-                              style:
-                                  TextStyle(fontWeight: FontWeight.bold)),
+                              style: TextStyle(fontWeight: FontWeight.bold)),
                           const TextSpan(
                             text: ' from all rights on ',
                           ),
@@ -150,28 +151,26 @@ class ConnectionDetailsPage extends StatelessWidget {
                           child: AuFilledButton(
                             text: "REVOKE ALL",
                             onPress: () {
-                              pageContext
+                              context
                                   .read<ConnectionsBloc>()
                                   .add(DeleteConnectionsEvent(connectionItem));
                               Navigator.of(context).pop();
-                              Navigator.of(pageContext).pop();
+                              Navigator.of(context).pop();
                             },
-                            color: theme.primaryColor,
-                            textStyle: TextStyle(
-                                color: theme.backgroundColor,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
-                                fontFamily: "IBMPlexMono"),
+                            color: theme.colorScheme.secondary,
+                            textStyle: theme.textTheme.button,
                           ),
                         ),
                       ],
                     ),
                     Align(
                       child: TextButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          child: Text("CANCEL",
-                              style: theme.textTheme.button
-                                  ?.copyWith(color: Colors.white))),
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: Text(
+                          "CANCEL",
+                          style: theme.primaryTextTheme.button,
+                        ),
+                      ),
                     )
                   ],
                 ),

@@ -16,7 +16,7 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/theme_manager.dart';
+
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -87,11 +87,10 @@ class _TVConnectPageState extends State<TVConnectPage>
 
   @override
   Widget build(BuildContext context) {
-    final theme = AuThemeManager.get(AppTheme.sheetTheme);
-    final appTextTheme = theme.textTheme;
+    final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: theme.colorScheme.primary,
       appBar: AppBar(
         leading: const SizedBox(),
         leadingWidth: 0.0,
@@ -109,12 +108,12 @@ class _TVConnectPageState extends State<TVConnectPage>
                       children: [
                         SvgPicture.asset(
                           'assets/images/nav-arrow-left.svg',
-                          color: Colors.white,
+                          color: theme.colorScheme.secondary,
                         ),
                         const SizedBox(width: 7),
                         Text(
                           "BACK",
-                          style: appTextTheme.caption,
+                          style: theme.textTheme.button,
                         ),
                       ],
                     ),
@@ -133,21 +132,21 @@ class _TVConnectPageState extends State<TVConnectPage>
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(
             "Connect to Autonomy Viewer",
-            style: appTextTheme.headline1,
+            style: theme.textTheme.headline1,
           ),
           const SizedBox(height: 24),
           Text(
               "Instantly set up your personal NFT art gallery on TVs and projectors anywhere you go.",
-              style: appTextTheme.bodyText1),
-          const Divider(
+              style: theme.textTheme.bodyText1),
+          Divider(
             height: 64,
-            color: Colors.white,
+            color: theme.colorScheme.secondary,
           ),
           Text("Autonomy Viewer is requesting to: ",
-              style: appTextTheme.bodyText1),
+              style: theme.textTheme.bodyText1),
           const SizedBox(height: 8),
           Text("• View your Autonomy NFT collections",
-              style: appTextTheme.bodyText1),
+              style: theme.textTheme.bodyText1),
           const Expanded(child: SizedBox()),
           Row(
             children: [
@@ -155,12 +154,8 @@ class _TVConnectPageState extends State<TVConnectPage>
                 child: AuFilledButton(
                   text: "Authorize".toUpperCase(),
                   onPress: () => withDebounce(() => _approve()),
-                  color: theme.primaryColor,
-                  textStyle: TextStyle(
-                      color: theme.backgroundColor,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      fontFamily: "IBMPlexMono"),
+                  color: theme.colorScheme.secondary,
+                  textStyle: theme.textTheme.button,
                 ),
               )
             ],

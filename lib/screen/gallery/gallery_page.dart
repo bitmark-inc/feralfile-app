@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 
 class GalleryPagePayload {
   String address;
@@ -100,6 +101,8 @@ class _GalleryPageState extends State<GalleryPage> {
   }
 
   Widget _assetsWidget(List<AssetToken>? tokens, bool isLoading) {
+    final theme = Theme.of(context);
+
     const int cellPerRow = 3;
     const double cellSpacing = 3.0;
     final artistURL = widget.payload.artistURL;
@@ -137,13 +140,12 @@ class _GalleryPageState extends State<GalleryPage> {
                 child: Text(
                   widget.payload.artistName,
                   style: artistURL != null
-                      ? makeLinkStyle(appTextTheme.headline2!)
-                      : appTextTheme.headline2,
+                      ? makeLinkStyle(theme.textTheme.headline2!)
+                      : theme.textTheme.headline2,
                 ),
               ),
               if (tokens != null && tokens.isEmpty) ...[
-                Text('indexing...',
-                    style: appTextTheme.headline2?.copyWith(fontSize: 12)),
+                Text('indexing...', style: theme.textTheme.atlasBlackBold12),
               ]
             ],
           ),

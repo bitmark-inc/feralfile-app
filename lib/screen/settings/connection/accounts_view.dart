@@ -13,10 +13,11 @@ import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/theme_manager.dart';
+
 import 'package:autonomy_flutter/view/account_view.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -25,7 +26,8 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 class AccountsView extends StatefulWidget {
   final bool isInSettingsPage;
 
-  const AccountsView({required this.isInSettingsPage, Key? key}) : super(key: key);
+  const AccountsView({required this.isInSettingsPage, Key? key})
+      : super(key: key);
 
   @override
   State<AccountsView> createState() => _AccountsViewState();
@@ -37,6 +39,7 @@ class _AccountsViewState extends State<AccountsView> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return BlocConsumer<AccountsBloc, AccountsState>(
         listener: (context, state) {
       final accounts = state.accounts;
@@ -93,7 +96,7 @@ class _AccountsViewState extends State<AccountsView> {
                             color: (_editingAccountKey == null ||
                                     _editingAccountKey != account.key)
                                 ? null
-                                : Colors.black)
+                                : theme.colorScheme.primary)
                         : const SizedBox(),
                   ],
                 );
@@ -106,10 +109,11 @@ class _AccountsViewState extends State<AccountsView> {
   }
 
   List<SlidableAction> slidableActions(Account account, bool isDefault) {
+    final theme = Theme.of(context);
     var actions = [
       SlidableAction(
-        backgroundColor: AppColorTheme.secondarySpanishGrey,
-        foregroundColor: Colors.white,
+        backgroundColor: AppColor.secondarySpanishGrey,
+        foregroundColor: theme.colorScheme.secondary,
         icon: CupertinoIcons.pencil,
         onPressed: (_) {
           setState(() {
@@ -122,8 +126,8 @@ class _AccountsViewState extends State<AccountsView> {
 
     if (!isDefault) {
       actions.add(SlidableAction(
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
+        backgroundColor: theme.colorScheme.primary,
+        foregroundColor: theme.colorScheme.secondary,
         icon: CupertinoIcons.delete,
         onPressed: (_) {
           _showDeleteAccountConfirmation(context, account);
@@ -167,6 +171,8 @@ class _AccountsViewState extends State<AccountsView> {
   }
 
   Widget _editAccountItem(Account account) {
+    final theme = Theme.of(context);
+
     return Row(
       children: [
         accountLogo(account),
@@ -179,7 +185,7 @@ class _AccountsViewState extends State<AccountsView> {
               border: InputBorder.none,
               contentPadding: EdgeInsets.zero,
             ),
-            style: appTextTheme.headline4,
+            style: theme.textTheme.headline4,
             controller: _nameController,
             onSubmitted: (String value) async {
               final persona = account.persona;
@@ -205,7 +211,7 @@ class _AccountsViewState extends State<AccountsView> {
 
   void _showDeleteAccountConfirmation(
       BuildContext pageContext, Account account) {
-    final theme = AuThemeManager.get(AppTheme.sheetTheme);
+    final theme = Theme.of(context);
     var accountName = account.name;
     if (accountName.isEmpty) {
       accountName = account.accountNumber.mask(4);
@@ -221,18 +227,19 @@ class _AccountsViewState extends State<AccountsView> {
             child: ClipPath(
               clipper: AutonomyTopRightRectangleClipper(),
               child: Container(
-                color: theme.backgroundColor,
+                color: theme.colorScheme.primary,
                 padding:
                     const EdgeInsets.symmetric(horizontal: 14, vertical: 32),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Delete account', style: theme.textTheme.headline1),
+                    Text('Delete account',
+                        style: theme.primaryTextTheme.headline1),
                     const SizedBox(height: 40),
                     RichText(
                       text: TextSpan(
-                        style: theme.textTheme.bodyText1,
+                        style: theme.primaryTextTheme.bodyText1,
                         children: <TextSpan>[
                           const TextSpan(
                             text:
@@ -263,22 +270,18 @@ class _AccountsViewState extends State<AccountsView> {
                               Navigator.of(context).pop();
                               _deleteAccount(pageContext, account);
                             },
-                            color: theme.primaryColor,
-                            textStyle: TextStyle(
-                                color: theme.backgroundColor,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
-                                fontFamily: "IBMPlexMono"),
+                            color: theme.colorScheme.secondary,
+                            textStyle: theme.textTheme.button,
                           ),
                         ),
                       ],
                     ),
                     Align(
                       child: TextButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          child: Text("CANCEL",
-                              style: theme.textTheme.button
-                                  ?.copyWith(color: Colors.white))),
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: Text("CANCEL",
+                            style: theme.primaryTextTheme.button),
+                      ),
                     )
                   ],
                 ),

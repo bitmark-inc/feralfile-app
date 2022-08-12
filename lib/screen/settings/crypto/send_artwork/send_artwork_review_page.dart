@@ -14,7 +14,6 @@ import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -39,6 +38,7 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final asset = widget.payload.asset;
 
     final identityState = context.watch<IdentityBloc>().state;
@@ -70,7 +70,7 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                       children: [
                         Text(
                           "Confirmation",
-                          style: appTextTheme.headline1,
+                          style: theme.textTheme.headline1,
                         ),
                         const SizedBox(height: 40.0),
                         Row(
@@ -78,13 +78,13 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                           children: [
                             Text(
                               "Title",
-                              style: appTextTheme.headline4,
+                              style: theme.textTheme.headline4,
                             ),
                             Expanded(
                               child: Text(
                                 asset.title,
                                 textAlign: TextAlign.right,
-                                style: appTextTheme.bodyText2,
+                                style: theme.textTheme.bodyText2,
                               ),
                             ),
                           ],
@@ -95,11 +95,11 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                           children: [
                             Text(
                               "Artist",
-                              style: appTextTheme.headline4,
+                              style: theme.textTheme.headline4,
                             ),
                             Text(
                               artistName ?? "",
-                              style: appTextTheme.bodyText2,
+                              style: theme.textTheme.bodyText2,
                             ),
                           ],
                         ),
@@ -109,23 +109,23 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                           children: [
                             Text(
                               "Edition",
-                              style: appTextTheme.headline4,
+                              style: theme.textTheme.headline4,
                             ),
                             Text(
                               "${asset.edition}/${asset.maxEdition}",
-                              style: appTextTheme.bodyText2,
+                              style: theme.textTheme.bodyText2,
                             ),
                           ],
                         ),
                         const SizedBox(height: 32.0),
                         Text(
                           "To",
-                          style: appTextTheme.headline4,
+                          style: theme.textTheme.headline4,
                         ),
                         const SizedBox(height: 16.0),
                         Text(
                           widget.payload.address,
-                          style: appTextTheme.bodyText2,
+                          style: theme.textTheme.bodyText2,
                         ),
                         const Divider(height: 32),
                         Row(
@@ -133,13 +133,13 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                           children: [
                             Text(
                               "Gas fee",
-                              style: appTextTheme.headline4,
+                              style: theme.textTheme.headline4,
                             ),
                             Text(
                               widget.payload.asset.blockchain == "ethereum"
                                   ? "${EthAmountFormatter(widget.payload.fee).format()} ETH (${widget.payload.exchangeRate.ethToUsd(widget.payload.fee)} USD)"
                                   : "${XtzAmountFormatter(widget.payload.fee.toInt()).format()} XTZ (${widget.payload.exchangeRate.xtzToUsd(widget.payload.fee.toInt())} USD)",
-                              style: appTextTheme.bodyText2,
+                              style: theme.textTheme.bodyText2,
                             ),
                           ],
                         ),
@@ -224,7 +224,9 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
               ],
             ),
           ),
-          _isSending ? const Center(child: CupertinoActivityIndicator()) : const SizedBox(),
+          _isSending
+              ? const Center(child: CupertinoActivityIndicator())
+              : const SizedBox(),
         ],
       ),
     );

@@ -69,6 +69,7 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
     final messageInUtf8 = utf8.decode(message, allowMalformed: true);
 
     final networkInjector = injector<NetworkConfigInjector>();
+    final theme = Theme.of(context);
 
     return Scaffold(
       appBar: getBackAppBar(
@@ -91,27 +92,27 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
                     const SizedBox(height: 8.0),
                     Text(
                       "Confirm",
-                      style: appTextTheme.headline1,
+                      style: theme.textTheme.headline1,
                     ),
                     const SizedBox(height: 40.0),
                     Text(
                       "Connection",
-                      style: appTextTheme.headline4,
+                      style: theme.textTheme.headline4,
                     ),
                     const SizedBox(height: 16.0),
                     Text(
                       widget.request.appName ?? "",
-                      style: appTextTheme.bodyText2,
+                      style: theme.textTheme.bodyText2,
                     ),
                     const Divider(height: 32),
                     Text(
                       "Message",
-                      style: appTextTheme.headline4,
+                      style: theme.textTheme.headline4,
                     ),
                     const SizedBox(height: 16.0),
                     Text(
                       messageInUtf8,
-                      style: appTextTheme.bodyText2,
+                      style: theme.textTheme.bodyText2,
                     ),
                   ],
                 ),

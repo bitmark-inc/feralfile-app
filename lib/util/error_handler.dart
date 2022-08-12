@@ -14,7 +14,7 @@ import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/theme_manager.dart';
+
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
@@ -105,19 +105,19 @@ DateTime? isShowErrorDialogWorking;
 Future showErrorDialog(BuildContext context, String title, String description,
     String defaultButton,
     [Function()? defaultButtonOnPress,
-      String? cancelButton,
-      Function()? cancelButtonOnPress]) async {
+    String? cancelButton,
+    Function()? cancelButtonOnPress]) async {
   if (isShowErrorDialogWorking != null &&
       isShowErrorDialogWorking!
-          .add(const Duration(seconds: 2))
-          .compareTo(DateTime.now()) >
+              .add(const Duration(seconds: 2))
+              .compareTo(DateTime.now()) >
           0) {
     log.info("showErrorDialog is working");
     return;
   }
 
   isShowErrorDialogWorking = DateTime.now();
-  final theme = AuThemeManager.get(AppTheme.sheetTheme);
+  final theme = Theme.of(context);
 
   Vibrate.feedback(FeedbackType.warning);
   await showModalBottomSheet(
@@ -130,18 +130,18 @@ Future showErrorDialog(BuildContext context, String title, String description,
           child: ClipPath(
             clipper: AutonomyTopRightRectangleClipper(),
             child: Container(
-              color: theme.backgroundColor,
+              color: theme.colorScheme.primary,
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 32),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text(title, style: theme.textTheme.headline1),
+                  Text(title, style: theme.primaryTextTheme.headline1),
                   if (description.isNotEmpty) ...[
                     const SizedBox(height: 40),
                     Text(
                       description,
-                      style: theme.textTheme.bodyText1,
+                      style: theme.primaryTextTheme.bodyText1,
                     ),
                     const SizedBox(height: 40),
                     AuFilledButton(
@@ -152,12 +152,8 @@ Future showErrorDialog(BuildContext context, String title, String description,
                           defaultButtonOnPress();
                         }
                       },
-                      color: Colors.white,
-                      textStyle: const TextStyle(
-                          color: Colors.black,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          fontFamily: "IBMPlexMono"),
+                      color: theme.colorScheme.secondary,
+                      textStyle: theme.textTheme.button,
                     ),
                     if (cancelButton != null)
                       AuFilledButton(
@@ -169,10 +165,7 @@ Future showErrorDialog(BuildContext context, String title, String description,
                             cancelButtonOnPress();
                           }
                         },
-                        textStyle: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            fontFamily: "IBMPlexMono"),
+                        textStyle: theme.primaryTextTheme.button,
                       ),
                   ],
                   const SizedBox(height: 40),
@@ -188,11 +181,12 @@ Future showErrorDialog(BuildContext context, String title, String description,
   });
 }
 
-void showErrorDiablog(BuildContext context,
-    ErrorEvent event, {
-      Function()? defaultAction,
-      Function()? cancelAction,
-    }) {
+void showErrorDiablog(
+  BuildContext context,
+  ErrorEvent event, {
+  Function()? defaultAction,
+  Function()? cancelAction,
+}) {
   String defaultButton = "";
   String? cancelButton;
   switch (event.state) {
@@ -222,14 +216,8 @@ void showErrorDiablog(BuildContext context,
     default:
       break;
   }
-  showErrorDialog(
-      context,
-      event.title,
-      event.message,
-      defaultButton,
-      defaultAction,
-      cancelButton,
-      cancelAction);
+  showErrorDialog(context, event.title, event.message, defaultButton,
+      defaultAction, cancelButton, cancelAction);
 }
 
 void showErrorDialogFromException(Object exception,
@@ -265,8 +253,8 @@ void showErrorDialogFromException(Object exception,
   // avoid to bother user when user has just foregrounded the app.
   if (memoryValues.inForegroundAt != null &&
       DateTime.now()
-          .subtract(const Duration(seconds: 5))
-          .compareTo(memoryValues.inForegroundAt!) <
+              .subtract(const Duration(seconds: 5))
+              .compareTo(memoryValues.inForegroundAt!) <
           0) {
     Sentry.captureException(exception,
         stackTrace: stackTrace,
@@ -299,12 +287,11 @@ void showErrorDialogFromException(Object exception,
 
       navigationService.showErrorDialog(
         event,
-        defaultAction: () =>
-            Navigator.of(context).pushNamed(
-              AppRouter.supportThreadPage,
-              arguments: ExceptionErrorPayload(
-                  sentryID: sentryID, metadata: sentryMetadata),
-            ),
+        defaultAction: () => Navigator.of(context).pushNamed(
+          AppRouter.supportThreadPage,
+          arguments: ExceptionErrorPayload(
+              sentryID: sentryID, metadata: sentryMetadata),
+        ),
       );
     } else {
       navigationService.showErrorDialog(event);
@@ -321,7 +308,7 @@ String getTezosErrorMessage(TezartNodeError err) {
   if (err.message.contains("empty_implicit_contract") ||
       err.message.contains("balance_too_low")) {
     message =
-    "Transaction is likely to fail. Please make sure you have enough of Tezos balance to perform this action.";
+        "Transaction is likely to fail. Please make sure you have enough of Tezos balance to perform this action.";
   } else if (err.message.contains("script_rejected")) {
     message = "The operation failed. Contract malformed or deprecated.";
   } else {

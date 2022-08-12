@@ -13,12 +13,15 @@ import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 
 class KeySyncPage extends StatelessWidget {
   const KeySyncPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return BlocConsumer<KeySyncBloc, KeySyncState>(
       listener: (context, state) async {
         if (state.isProcessing == false) {
@@ -46,28 +49,28 @@ class KeySyncPage extends StatelessWidget {
                       children: [
                         Text(
                           "Conflict detected",
-                          style: appTextTheme.headline1,
+                          style: theme.textTheme.headline1,
                         ),
                         const SizedBox(height: 40),
                         Text(
                           "We have detected a conflict of keychains.",
-                          style: appTextTheme.headline4,
+                          style: theme.textTheme.headline4,
                         ),
                         Text(
                           "This might occur if you have signed in to a different cloud on this device. You are required to define a default keychain for identification before continuing with other actions inside the app:",
-                          style: appTextTheme.bodyText1,
+                          style: theme.textTheme.bodyText1,
                         ),
                         const SizedBox(height: 20),
                         ListTile(
                           contentPadding: EdgeInsets.zero,
                           title: Text(
                             "Device keychain",
-                            style: appTextTheme.headline4,
+                            style: theme.textTheme.headline4,
                           ),
                           trailing: Transform.scale(
                             scale: 1.25,
                             child: Radio(
-                              activeColor: Colors.black,
+                              activeColor: theme.colorScheme.primary,
                               value: true,
                               groupValue: state.isLocalSelected,
                               onChanged: (bool? value) {
@@ -86,12 +89,12 @@ class KeySyncPage extends StatelessWidget {
                           contentPadding: EdgeInsets.zero,
                           title: Text(
                             'Cloud keychain',
-                            style: appTextTheme.headline4,
+                            style: theme.textTheme.headline4,
                           ),
                           trailing: Transform.scale(
                             scale: 1.25,
                             child: Radio(
-                              activeColor: Colors.black,
+                              activeColor: theme.colorScheme.primary,
                               value: false,
                               groupValue: state.isLocalSelected,
                               onChanged: (bool? value) {
@@ -108,36 +111,33 @@ class KeySyncPage extends StatelessWidget {
                         const SizedBox(height: 40.0),
                         Container(
                           padding: const EdgeInsets.all(10),
-                          color: AppColorTheme.secondaryDimGreyBackground,
+                          color: AppColor.secondaryDimGreyBackground,
                           child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text('How does it work?',
-                                    style: TextStyle(
-                                        color: AppColorTheme.secondaryDimGrey,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold,
-                                        fontFamily: "AtlasGrotesk",
-                                        height: 1.377)),
-                                const SizedBox(height: 5),
-                                const Text(
-                                    "All the data contained in the other keychain will be imported into the defined default one and converted into a full account. If you were using it as the main wallet, you will be able to continue to do so after the conversion. No keys are lost.",
-                                    style: bodySmall),
-                                const SizedBox(height: 10),
-                                TextButton(
-                                    onPressed: () => Navigator.of(context)
-                                        .pushNamed(
-                                            AppRouter.autonomySecurityPage),
-                                    style: TextButton.styleFrom(
-                                      minimumSize: Size.zero,
-                                      padding: EdgeInsets.zero,
-                                      tapTargetSize:
-                                          MaterialTapTargetSize.shrinkWrap,
-                                    ),
-                                    child: const Text(
-                                        'Learn about Autonomy security...',
-                                        style: linkStyle)),
-                              ]),
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'How does it work?',
+                                style: theme.textTheme.atlasDimgreyBold14,
+                              ),
+                              const SizedBox(height: 5),
+                              Text(
+                                  "All the data contained in the other keychain will be imported into the defined default one and converted into a full account. If you were using it as the main wallet, you will be able to continue to do so after the conversion. No keys are lost.",
+                                  style: theme.textTheme.atlasBlackNormal14),
+                              const SizedBox(height: 10),
+                              TextButton(
+                                onPressed: () => Navigator.of(context)
+                                    .pushNamed(AppRouter.autonomySecurityPage),
+                                style: TextButton.styleFrom(
+                                  minimumSize: Size.zero,
+                                  padding: EdgeInsets.zero,
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                ),
+                                child: Text('Learn about Autonomy security...',
+                                    style: theme.textTheme.linkStyle),
+                              ),
+                            ],
+                          ),
                         )
                       ],
                     ),

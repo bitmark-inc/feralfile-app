@@ -8,7 +8,6 @@
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -22,6 +21,7 @@ class MoreAutonomyPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     context.read<UpgradesBloc>().add(UpgradeQueryInfoEvent());
+    final theme = Theme.of(context);
 
     return Scaffold(
       appBar: getBackAppBar(
@@ -45,16 +45,16 @@ class MoreAutonomyPage extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text("More Autonomy", style: appTextTheme.headline1),
+                Text("More Autonomy", style: theme.textTheme.headline1),
                 const SizedBox(height: 40),
-                Text('Upgrading gives you:', style: appTextTheme.bodyText1),
+                Text('Upgrading gives you:', style: theme.textTheme.bodyText1),
                 SvgPicture.asset(
                   'assets/images/premium_comparation_light.svg',
                   height: 320,
                 ),
                 const SizedBox(height: 16),
                 Text("*Google TV app plus AirPlay & Chromecast streaming",
-                    style: appTextTheme.headline5),
+                    style: theme.textTheme.headline5),
                 const Expanded(child: SizedBox()),
                 AuFilledButton(
                   text:
@@ -68,21 +68,13 @@ class MoreAutonomyPage extends StatelessWidget {
                               .read<UpgradesBloc>()
                               .add(UpgradePurchaseEvent());
                         },
-                  textStyle: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      fontFamily: "IBMPlexMono"),
+                  textStyle: theme.primaryTextTheme.button,
                 ),
                 TextButton(
                   onPressed: () => newAccountPageOrSkipInCondition(context),
-                  child: const Text(
+                  child: Text(
                     "NOT NOW",
-                    style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        fontFamily: "IBMPlexMono"),
+                    style: theme.textTheme.button,
                   ),
                 ),
               ],

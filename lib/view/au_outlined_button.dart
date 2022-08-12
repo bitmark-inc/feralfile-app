@@ -5,7 +5,6 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:flutter/material.dart';
 
@@ -18,12 +17,16 @@ class AuOutlinedButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Stack(
       children: [
         ClipPath(
           clipper: AutonomyOutlineButtonClipper(),
           child: Container(
-              width: double.infinity, height: 48, color: Colors.black),
+              width: double.infinity,
+              height: 48,
+              color: theme.colorScheme.primary),
         ),
         SizedBox(
           width: double.infinity,
@@ -31,13 +34,13 @@ class AuOutlinedButton extends StatelessWidget {
               clipper: AutonomyButtonClipper(),
               child: TextButton(
                 style: TextButton.styleFrom(
-                    primary: Colors.black,
+                    primary: theme.colorScheme.primary,
                     shape: const RoundedRectangleBorder(),
                     padding: const EdgeInsets.symmetric(vertical: 14)),
                 onPressed: onPress,
                 child: Text(
                   text.toUpperCase(),
-                  style: appTextTheme.caption,
+                  style: theme.textTheme.button,
                 ),
               )),
         ),
