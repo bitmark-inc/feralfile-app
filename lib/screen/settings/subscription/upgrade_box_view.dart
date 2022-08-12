@@ -15,7 +15,7 @@ class UpgradeBoxView {
           children: [
             Text(
               "Get more Autonomy",
-              style: theme.textTheme.headline4,
+              style: theme.primaryTextTheme.headline4,
             ),
             BlocProvider.value(
               value: UpgradesBloc(injector(), injector()),
@@ -26,7 +26,7 @@ class UpgradeBoxView {
         const SizedBox(height: 16),
         Text(
           feature.description,
-          style: theme.textTheme.bodyText1,
+          style: theme.primaryTextTheme.bodyText1,
         ),
         const SizedBox(height: 16),
       ],
