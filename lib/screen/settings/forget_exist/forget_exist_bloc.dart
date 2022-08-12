@@ -26,8 +26,7 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
   final AutonomyService _autonomyService;
   final IAPApi _iapApi;
   final CloudDatabase _cloudDatabase;
-  final AppDatabase _mainnetDatabase;
-  final AppDatabase _testnetDatabase;
+  final AppDatabase _appDatabase;
   final ConfigurationService _configurationService;
 
   ForgetExistBloc(
@@ -36,8 +35,7 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
       this._autonomyService,
       this._iapApi,
       this._cloudDatabase,
-      this._mainnetDatabase,
-      this._testnetDatabase,
+      this._appDatabase,
       this._configurationService)
       : super(ForgetExistState(false, null)) {
     on<UpdateCheckEvent>((event, emit) async {
@@ -62,8 +60,7 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
       }
 
       await _cloudDatabase.removeAll();
-      await _mainnetDatabase.removeAll();
-      await _testnetDatabase.removeAll();
+      await _appDatabase.removeAll();
       await _configurationService.removeAll();
 
       _authService.reset();

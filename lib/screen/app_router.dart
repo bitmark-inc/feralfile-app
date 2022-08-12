@@ -6,7 +6,6 @@
 //
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
@@ -162,10 +161,8 @@ class AppRouter {
   static const sendArtworkReviewPage = 'send_artwork_review_page';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
-    final networkInjector = injector<NetworkConfigInjector>();
-
-    final ethereumBloc = EthereumBloc(injector(), networkInjector.I());
-    final tezosBloc = TezosBloc(injector(), networkInjector.I());
+    final ethereumBloc = EthereumBloc(injector(), injector());
+    final tezosBloc = TezosBloc(injector(), injector());
     final accountsBloc = AccountsBloc(injector(), injector<CloudDatabase>(),
         injector(), injector<AuditService>(), injector());
 
@@ -194,15 +191,15 @@ class AppRouter {
                               injector(),
                               injector(),
                               injector(),
-                              networkInjector,
-                              injector<CloudDatabase>(),
                               injector(),
+                              injector(),
+                              injector(),
+                              injector<AppDatabase>().assetDao,
+                              injector<AppDatabase>().provenanceDao,
                               injector(),
                             )),
                     BlocProvider(
-                        create: (_) => IdentityBloc(
-                            networkInjector.I<AppDatabase>(),
-                            networkInjector.I())),
+                        create: (_) => IdentityBloc(injector(), injector())),
                   ],
                   child: const HomePage(),
                 ),
@@ -218,15 +215,15 @@ class AppRouter {
                               injector(),
                               injector(),
                               injector(),
-                              networkInjector,
-                              injector<CloudDatabase>(),
                               injector(),
+                              injector(),
+                              injector(),
+                              injector<AppDatabase>().assetDao,
+                              injector<AppDatabase>().provenanceDao,
                               injector(),
                             )),
                     BlocProvider(
-                        create: (_) => IdentityBloc(
-                            networkInjector.I<AppDatabase>(),
-                            networkInjector.I())),
+                        create: (_) => IdentityBloc(injector(), injector())),
                   ],
                   child: const HomePage(),
                 ));
@@ -278,8 +275,7 @@ class AppRouter {
             settings: settings,
             builder: (context) => MultiBlocProvider(providers: [
                   BlocProvider.value(value: accountsBloc),
-                  BlocProvider(
-                      create: (_) => FeralfileBloc.create()),
+                  BlocProvider(create: (_) => FeralfileBloc.create()),
                 ], child: const LinkAccountPage()));
 
       case accountsPreviewPage:
@@ -322,11 +318,13 @@ class AppRouter {
 
       case linkTezosKukaiPage:
         return CupertinoPageRoute(
-            settings: settings, builder: (context) => const LinkTezosKukaiPage());
+            settings: settings,
+            builder: (context) => const LinkTezosKukaiPage());
 
       case linkTezosTemplePage:
         return CupertinoPageRoute(
-            settings: settings, builder: (context) => const LinkTezosTemplePage());
+            settings: settings,
+            builder: (context) => const LinkTezosTemplePage());
 
       case linkBeaconConnectPage:
         return CupertinoPageRoute(
@@ -373,7 +371,8 @@ class AppRouter {
 
       case importAccountPage:
         return CupertinoPageRoute(
-            settings: settings, builder: (context) => const ImportAccountPage());
+            settings: settings,
+            builder: (context) => const ImportAccountPage());
 
       case wcConnectPage:
         final argument = settings.arguments;
@@ -440,7 +439,7 @@ class AppRouter {
           settings: settings,
           builder: (context) => BlocProvider(
             create: (_) => WCSendTransactionBloc(
-                injector(), networkInjector.I(), injector(), injector()),
+                injector(), injector(), injector(), injector()),
             child: WCSendTransactionPage(
                 args: settings.arguments as WCSendTransactionPageArgs),
           ),
@@ -521,8 +520,8 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider(
-                  create: (_) => WalletDetailBloc(
-                      networkInjector.I(), networkInjector.I(), injector()),
+                  create: (_) =>
+                      WalletDetailBloc(injector(), injector(), injector()),
                   child: WalletDetailPage(
                       payload: settings.arguments as WalletDetailsPayload),
                 ));
@@ -535,11 +534,8 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider(
-                  create: (_) => SendCryptoBloc(
-                      networkInjector.I(),
-                      networkInjector.I(),
-                      injector(),
-                      (settings.arguments as SendData).type),
+                  create: (_) => SendCryptoBloc(injector(), injector(),
+                      injector(), (settings.arguments as SendData).type),
                   child: SendCryptoPage(data: settings.arguments as SendData),
                 ));
       case SendReviewPage.tag:
@@ -558,10 +554,10 @@ class AppRouter {
               providers: [
                 BlocProvider(
                     create: (_) => ArtworkPreviewBloc(
-                        networkInjector.I<AppDatabase>().assetDao, injector())),
+                        injector<AppDatabase>().assetDao, injector())),
                 BlocProvider(
-                    create: (_) => IdentityBloc(
-                        networkInjector.I<AppDatabase>(), networkInjector.I())),
+                    create: (_) =>
+                        IdentityBloc(injector<AppDatabase>(), injector())),
               ],
               child: ArtworkPreviewPage(
                 payload: settings.arguments as ArtworkDetailPayload,
@@ -578,8 +574,8 @@ class AppRouter {
               providers: [
                 BlocProvider(create: (_) => FeedBloc(injector(), injector())),
                 BlocProvider(
-                    create: (_) => IdentityBloc(
-                        networkInjector.I<AppDatabase>(), networkInjector.I())),
+                    create: (_) =>
+                        IdentityBloc(injector<AppDatabase>(), injector())),
               ],
               child: const FeedPreviewPage(),
             ));
@@ -594,8 +590,8 @@ class AppRouter {
               BlocProvider.value(value: accountsBloc),
               BlocProvider.value(value: settings.arguments as FeedBloc),
               BlocProvider(
-                  create: (_) => IdentityBloc(
-                      networkInjector.I<AppDatabase>(), networkInjector.I())),
+                  create: (_) =>
+                      IdentityBloc(injector<AppDatabase>(), injector())),
             ], child: const FeedArtworkDetailsPage()));
 
       case galleryPage:
@@ -605,12 +601,10 @@ class AppRouter {
                     providers: [
                       BlocProvider(
                           create: (_) => GalleryBloc(
-                                networkInjector.I(),
+                                injector(),
                               )),
                       BlocProvider(
-                          create: (_) => IdentityBloc(
-                              networkInjector.I<AppDatabase>(),
-                              networkInjector.I())),
+                          create: (_) => IdentityBloc(injector(), injector())),
                     ],
                     child: GalleryPage(
                       payload: settings.arguments as GalleryPagePayload,
@@ -633,14 +627,12 @@ class AppRouter {
                 providers: [
                   BlocProvider.value(value: accountsBloc),
                   BlocProvider(
-                      create: (_) => IdentityBloc(
-                          networkInjector.I<AppDatabase>(),
-                          networkInjector.I())),
+                      create: (_) => IdentityBloc(injector(), injector())),
                   BlocProvider(
                       create: (_) => ArtworkDetailBloc(
                             injector(),
-                            networkInjector.I<AppDatabase>().assetDao,
-                            networkInjector.I<AppDatabase>().provenanceDao,
+                            injector<AppDatabase>().assetDao,
+                            injector<AppDatabase>().provenanceDao,
                           )),
                 ],
                 child: ArtworkDetailPage(
@@ -705,11 +697,13 @@ class AppRouter {
 
       case autonomySecurityPage:
         return CupertinoPageRoute(
-            settings: settings, builder: (context) => const AutonomySecurityPage());
+            settings: settings,
+            builder: (context) => const AutonomySecurityPage());
 
       case unsafeWebWalletPage:
         return CupertinoPageRoute(
-            settings: settings, builder: (context) => const UnsafeWebWalletPage());
+            settings: settings,
+            builder: (context) => const UnsafeWebWalletPage());
 
       case releaseNotesPage:
         return PageTransition(
@@ -756,7 +750,7 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider(
-                  create: (_) => HiddenArtworksBloc(networkInjector.I()),
+                  create: (_) => HiddenArtworksBloc(injector()),
                   child: const HiddenArtworksPage(),
                 ));
 
@@ -767,7 +761,8 @@ class AppRouter {
             builder: (context) => const SurveyPage());
       case SurveyThankyouPage.tag:
         return CupertinoPageRoute(
-            settings: settings, builder: (context) => const SurveyThankyouPage());
+            settings: settings,
+            builder: (context) => const SurveyThankyouPage());
 
       case githubDocPage:
         return CupertinoPageRoute(
@@ -811,27 +806,31 @@ class AppRouter {
       case sendArtworkPage:
         return CupertinoPageRoute(
           settings: settings,
-          builder: (context) => MultiBlocProvider(providers: [
-            BlocProvider(
-                create: (_) => SendArtworkBloc(
-                    networkInjector.I(),
-                    networkInjector.I(),
-                    injector(),
-                    (settings.arguments as SendArtworkPayload).asset)),
-            BlocProvider(
-                create: (_) => IdentityBloc(
-                    networkInjector.I<AppDatabase>(), networkInjector.I())),
-          ], child: SendArtworkPage(payload: settings.arguments as SendArtworkPayload)),
+          builder: (context) => MultiBlocProvider(
+              providers: [
+                BlocProvider(
+                    create: (_) => SendArtworkBloc(
+                        injector(),
+                        injector(),
+                        injector(),
+                        (settings.arguments as SendArtworkPayload).asset)),
+                BlocProvider(
+                    create: (_) =>
+                        IdentityBloc(injector<AppDatabase>(), injector())),
+              ],
+              child: SendArtworkPage(
+                  payload: settings.arguments as SendArtworkPayload)),
         );
 
       case sendArtworkReviewPage:
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider(
-              create: (_) => IdentityBloc(
-                  networkInjector.I<AppDatabase>(), networkInjector.I()),
-              child: SendArtworkReviewPage(payload: settings.arguments as SendArtworkReviewPayload),
-            ));
+                  create: (_) =>
+                      IdentityBloc(injector<AppDatabase>(), injector()),
+                  child: SendArtworkReviewPage(
+                      payload: settings.arguments as SendArtworkReviewPayload),
+                ));
       default:
         throw Exception('Invalid route: ${settings.name}');
     }

@@ -7,8 +7,6 @@
 
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/common/network_config_injector.dart';
-import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/dao/asset_token_dao.dart';
 import 'package:autonomy_flutter/database/dao/provenance_dao.dart';
@@ -25,24 +23,21 @@ import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tokens_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
-import 'package:autonomy_flutter/util/log.dart';
 
 class HomeBloc extends AuBloc<HomeEvent, HomeState> {
   final TokensService _tokensService;
   final WalletConnectService _walletConnectService;
   final TezosBeaconService _tezosBeaconService;
-  final NetworkConfigInjector _networkConfigInjector;
   final CloudDatabase _cloudDB;
   final FeedService _feedService;
   final AccountService _accountService;
 
-  AssetTokenDao get _assetTokenDao =>
-      _networkConfigInjector.I<AppDatabase>().assetDao;
-  ProvenanceDao get _provenanceDao =>
-      _networkConfigInjector.I<AppDatabase>().provenanceDao;
-  IndexerApi get _indexerApi => _networkConfigInjector.I<IndexerApi>();
+  final AssetTokenDao _assetTokenDao;
+  final ProvenanceDao _provenanceDao;
+  final IndexerApi _indexerApi;
 
   List<String> _hiddenOwners = [];
 
@@ -63,10 +58,12 @@ class HomeBloc extends AuBloc<HomeEvent, HomeState> {
     this._tokensService,
     this._walletConnectService,
     this._tezosBeaconService,
-    this._networkConfigInjector,
     this._cloudDB,
     this._feedService,
     this._accountService,
+    this._assetTokenDao,
+    this._provenanceDao,
+    this._indexerApi,
   ) : super(HomeState()) {
     on<HomeConnectWCEvent>((event, emit) {
       log.info('[HomeConnectWCEvent] connect ${event.uri}');

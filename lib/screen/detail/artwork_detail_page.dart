@@ -273,8 +273,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
           optionRow(
             title: asset.isHidden() ? 'Unhide artwork' : 'Hide artwork',
             onTap: () async {
-              final appDatabase =
-                  injector<NetworkConfigInjector>().I<AppDatabase>();
+              final appDatabase = injector<AppDatabase>();
               if (asset.isHidden()) {
                 asset.hidden = null;
               } else {

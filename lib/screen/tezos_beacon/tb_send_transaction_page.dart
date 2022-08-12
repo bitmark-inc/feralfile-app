@@ -6,7 +6,6 @@
 //
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
@@ -74,8 +73,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
 
   Future _estimateFee(TezosWallet wallet) async {
     try {
-      final fee = await injector<NetworkConfigInjector>()
-          .I<TezosService>()
+      final fee = await injector<TezosService>()
           .estimateOperationFee(wallet, widget.request.operations!);
       setState(() {
         _fee = fee;
@@ -237,8 +235,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
 
                                 try {
                                   final txHash =
-                                      await injector<NetworkConfigInjector>()
-                                          .I<TezosService>()
+                                      await injector<TezosService>()
                                           .sendOperationTransaction(
                                               _currentWallet!,
                                               widget.request.operations!);

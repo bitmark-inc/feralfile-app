@@ -6,7 +6,6 @@
 //
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/model/currency_exchange.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
@@ -164,8 +163,7 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                                 if (widget.payload.asset.blockchain ==
                                     "ethereum") {
                                   final ethereumService =
-                                      injector<NetworkConfigInjector>()
-                                          .I<EthereumService>();
+                                      injector<EthereumService>();
 
                                   final contractAddress =
                                       EthereumAddress.fromHex(
@@ -191,9 +189,7 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                                   if (!mounted) return;
                                   Navigator.of(context).pop(txHash);
                                 } else {
-                                  final tezosService =
-                                      injector<NetworkConfigInjector>()
-                                          .I<TezosService>();
+                                  final tezosService = injector<TezosService>();
                                   final tokenId = asset.tokenId!;
 
                                   final tezosWallet = await widget

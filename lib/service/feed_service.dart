@@ -10,8 +10,6 @@ import 'dart:isolate';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/common/network_config_injector.dart';
-import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/dao/asset_token_dao.dart';
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/gateway/feed_api.dart';
@@ -86,8 +84,8 @@ class AppFeedData {
 }
 
 class FeedServiceImpl extends FeedService {
-  final NetworkConfigInjector _networkConfigInjector;
   final ConfigurationService _configurationService;
+  final AssetTokenDao _assetDao;
 
   static const REFRESH_FOLLOWINGS = 'REFRESH_FOLLOWINGS';
   static const FETCH_FEEDS = 'FETCH_FEEDS';
@@ -99,7 +97,7 @@ class FeedServiceImpl extends FeedService {
   final Map<String, Completer<List<AssetToken>>>
       _fetchTokensByIndexerIDCompleters = {};
 
-  FeedServiceImpl(this._networkConfigInjector, this._configurationService);
+  FeedServiceImpl(this._configurationService, this._assetDao);
 
   SendPort? _sendPort;
   ReceivePort? _receivePort;
@@ -108,9 +106,6 @@ class FeedServiceImpl extends FeedService {
   static SendPort? _isolateSendPort;
 
   Future<void> get isolateReady => _isolateReady.future;
-
-  AssetTokenDao get _assetDao =>
-      _networkConfigInjector.I<AppDatabase>().assetDao;
 
   Future<void> start() async {
     if (_sendPort != null) return;

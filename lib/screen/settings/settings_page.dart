@@ -6,15 +6,12 @@
 //
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/connection/accounts_view.dart';
 import 'package:autonomy_flutter/screen/settings/forget_exist/forget_exist_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/forget_exist/forget_exist_view.dart';
-import 'package:autonomy_flutter/screen/settings/networks/select_network_page.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_view.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
@@ -24,13 +21,13 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tokens_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/eula_privacy.dart';
 import 'package:autonomy_flutter/view/penrose_top_bar_view.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -142,8 +139,7 @@ class _SettingsPageState extends State<SettingsPage>
                 ),
                 const SizedBox(height: 40),
                 BlocProvider(
-                  create: (_) => PreferencesBloc(
-                      injector(), injector<NetworkConfigInjector>().I()),
+                  create: (_) => PreferencesBloc(injector(), injector()),
                   child: const PreferenceView(),
                 ),
                 const SizedBox(height: 40.0),
@@ -152,21 +148,6 @@ class _SettingsPageState extends State<SettingsPage>
                   child: const UpgradesView(),
                 ),
                 const SizedBox(height: 40),
-                Text(
-                  "Networks",
-                  style: theme.textTheme.headline1,
-                ),
-                const SizedBox(height: 24.0),
-                _settingItem(
-                    context,
-                    "Select network",
-                    injector<ConfigurationService>().getNetwork() ==
-                            Network.TESTNET
-                        ? "Test network"
-                        : "Main network", () async {
-                  await Navigator.of(context).pushNamed(SelectNetworkPage.tag);
-                }),
-                const SizedBox(height: 40.0),
                 // START HELP US IMPROVE
                 Text(
                   "Help us improve",
@@ -259,37 +240,6 @@ class _SettingsPageState extends State<SettingsPage>
     );
   }
 
-  Widget _settingItem(
-      BuildContext context, String name, String value, Function() onTap) {
-    final theme = Theme.of(context);
-
-    return GestureDetector(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              name,
-              style: theme.textTheme.headline4,
-            ),
-            Row(
-              children: [
-                Text(
-                  value,
-                  style: theme.textTheme.subtitle1,
-                ),
-                const SizedBox(width: 8.0),
-                SvgPicture.asset('assets/images/iconForward.svg'),
-              ],
-            )
-          ],
-        ),
-      ),
-    );
-  }
-
   Future<void> _loadPackageInfo() async {
     final info = await PackageInfo.fromPlatform();
     setState(() {
@@ -318,15 +268,8 @@ class _SettingsPageState extends State<SettingsPage>
       context,
       "Forget I exist",
       BlocProvider(
-        create: (_) => ForgetExistBloc(
-            injector(),
-            injector(),
-            injector(),
-            injector(),
-            injector(),
-            injector<NetworkConfigInjector>().mainnetInjector(),
-            injector<NetworkConfigInjector>().testnetInjector(),
-            injector()),
+        create: (_) => ForgetExistBloc(injector(), injector(), injector(),
+            injector(), injector(), injector(), injector()),
         child: const ForgetExistView(),
       ),
     );

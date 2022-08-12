@@ -6,7 +6,6 @@
 //
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/network.dart';
@@ -112,8 +111,7 @@ class _WCConnectPageState extends State<WCConnectPage>
     late CryptoType payloadType;
 
     if (wcConnectArgs != null) {
-      final address = await injector<NetworkConfigInjector>()
-          .I<EthereumService>()
+      final address = await injector<EthereumService>()
           .getETHAddress(selectedPersona!.wallet());
 
       final chainId =
@@ -156,8 +154,7 @@ class _WCConnectPageState extends State<WCConnectPage>
 
     if (beaconRequest != null) {
       final tezosWallet = await selectedPersona!.wallet().getTezosWallet();
-      final publicKey = await injector<NetworkConfigInjector>()
-          .I<TezosService>()
+      final publicKey = await injector<TezosService>()
           .getPublicKey(tezosWallet);
       await injector<TezosBeaconService>().permissionResponse(
         selectedPersona!.uuid,
