@@ -82,8 +82,12 @@ class _SupportListPageState extends State<SupportListPage>
   }
 
   Widget _issuesWidget() {
+    final theme = Theme.of(context);
+
     final issues = _issues;
-    if (issues == null) return const Center(child: CupertinoActivityIndicator());
+    if (issues == null) {
+      return const Center(child: CupertinoActivityIndicator());
+    }
 
     if (issues.isEmpty) return const SizedBox();
 
@@ -93,7 +97,7 @@ class _SupportListPageState extends State<SupportListPage>
             padding: pageEdgeInsets.copyWith(bottom: 40),
             child: Text(
               "Support history",
-              style: appTextTheme.headline1,
+              style: theme.textTheme.headline1,
             )),
       ),
       SliverList(
@@ -121,6 +125,8 @@ class _SupportListPageState extends State<SupportListPage>
   }
 
   Widget _contentRow(Issue issue, bool hasDivider) {
+    final theme = Theme.of(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -131,15 +137,17 @@ class _SupportListPageState extends State<SupportListPage>
               children: [
                 Text(
                   ReportIssueType.toTitle(issue.reportIssueType),
-                  style: appTextTheme.headline4,
+                  style: theme.textTheme.headline4,
                 ),
                 if (issue.unread > 0) ...[
                   const SizedBox(width: 8),
                   Padding(
                     padding: const EdgeInsets.only(top: 4),
                     child: Container(
-                      decoration: const BoxDecoration(
-                          color: Colors.black, shape: BoxShape.circle),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primary,
+                        shape: BoxShape.circle,
+                      ),
                       width: 10,
                       height: 10,
                     ),
@@ -167,7 +175,7 @@ class _SupportListPageState extends State<SupportListPage>
                 : getLastMessage(issue),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: appTextTheme.bodyText1,
+            style: theme.textTheme.bodyText1,
           ),
         ),
         hasDivider

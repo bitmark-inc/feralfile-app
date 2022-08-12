@@ -3,7 +3,7 @@ description: Autonomy cross platform
 
 # The following line prevents the package from being accidentally published to
 # pub.dev using `pub publish`. This is preferred for private packages.
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
 # The following defines the version and build number for your application.
 # A version number is three numbers separated by dots, like 1.2.43
@@ -123,6 +123,9 @@ dependencies:
   webview_flutter: ^3.0.0
   json_annotation: ^4.6.0
   iso_duration_parser: ^1.1.1
+  autonomy_theme:
+    git:
+      url: https://github.com/bitmark-inc/autonomy-client-shared-theme.git
 
 dependency_overrides:
   # Error using when import photo_view from dependencies:
@@ -150,7 +153,6 @@ dev_dependencies:
 # following page: https://dart.dev/tools/pub/pubspec
 # The following section is specific to Flutter.
 flutter:
-
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
@@ -160,67 +162,7 @@ flutter:
   assets:
     - .env
     - assets/erc721-abi.json
-    - assets/images/arrow.svg
-    - assets/images/arrow_2.svg
-    - assets/images/penrose.svg
-    - assets/images/penrose_appcenter.svg
-    - assets/images/lock_penrose.svg
-    - assets/images/lock_penrose_appcenter.png
-    - assets/images/penrose_onboarding.png
-    - assets/images/penrose_onboarding_appcenter.png
-    - assets/images/guidedPenrose.svg
-    - assets/images/iconQr.svg
-    - assets/images/iconEth.svg
-    - assets/images/iconUsd.svg
-    - assets/images/iconXtz.svg
-    - assets/images/iconBitmark.svg
-    - assets/images/iconClose.svg
-    - assets/images/iconReceive.svg
-    - assets/images/iconCloudOff.svg
-    - assets/images/iconCustomerSupport.svg
-    - assets/images/iconForward.svg
-    - assets/images/iconFeed.svg
-    - assets/images/iconInfo.svg
-    - assets/images/iconSharpFeedback.svg
-    - assets/images/cil_external-link.svg
-    - assets/images/tezos_social_icon.svg
-    - assets/images/feralfileAppIcon.svg
-    - assets/images/autonomyIcon.png
-    - assets/images/rainbow.png
-    - assets/images/iconLedger.svg
-    - assets/images/trust-alternative.png
-    - assets/images/metamask-alternative.png
-    - assets/images/walletconnect-alternative.png
-    - assets/images/kukai_wallet.png
-    - assets/images/temple_wallet.png
-    - assets/images/tezos_wallet.png
-    - assets/images/premium_comparation.svg
-    - assets/images/premium_comparation_light.svg
-    - assets/images/face_id.svg
-    - assets/images/touch_id.svg
-    - assets/images/cloudOff.svg
-    - assets/images/cloudOn.svg
-    - assets/images/cloudEncryption.svg
-    - assets/images/nav-arrow-left.svg
-    - assets/images/image_error.svg
-    - assets/images/chromecast.svg
-    - assets/images/notification_onboarding.svg
-    #   - images/a_dot_ham.jpeg
-    - assets/images/joinFile.svg
-    - assets/images/sendMessage.svg
-    - assets/images/sendMessageFilled.svg
-    - assets/images/icloudKeychainGuide.svg
-    - assets/images/chatFileIcon.png
-    - assets/images/radio_unselected.svg
-    - assets/images/radio_selected.svg
-    - assets/images/tezos_tx_sent.svg
-    - assets/images/tezos_tx_received.svg
-    - assets/images/tezos_tx_smartcontract.svg
-    - assets/images/external_link.svg
-    - assets/images/userOutlinedIcon.svg
-    - assets/images/feed_onboarding.png
-    - assets/images/feed_onboarding_insight.png
-    - assets/images/feed_onboarding_swipe.png
+    - assets/images/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

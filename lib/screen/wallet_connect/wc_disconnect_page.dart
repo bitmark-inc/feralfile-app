@@ -7,7 +7,6 @@
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/material.dart';
@@ -37,6 +36,7 @@ class _WCDisconnectPageState extends State<WCDisconnectPage> {
   @override
   Widget build(BuildContext context) {
     final peerData = widget.client.remotePeerMeta;
+    final theme = Theme.of(context);
 
     return Scaffold(
       appBar: getBackAppBar(
@@ -52,17 +52,17 @@ class _WCDisconnectPageState extends State<WCDisconnectPage> {
           children: [
             Text(
               peerData?.name ?? "",
-              style: appTextTheme.headline1,
+              style: theme.textTheme.headline1,
             ),
             const SizedBox(height: 40.0),
             Text(
               "Public address",
-              style: appTextTheme.headline4,
+              style: theme.textTheme.headline4,
             ),
             const SizedBox(height: 16.0),
             Text(
               address,
-              style: appTextTheme.bodyText2,
+              style: theme.textTheme.bodyText2,
             ),
             const Expanded(child: SizedBox()),
             Row(

@@ -62,9 +62,6 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
         .isPersonaHiddenInGallery(widget.persona.uuid);
   }
 
-  final addressStyle = appTextTheme.bodyText2?.copyWith(color: Colors.black);
-  final balanceStyle = appTextTheme.bodyText2?.copyWith(color: Colors.black);
-
   @override
   Widget build(BuildContext context) {
     final network = injector<ConfigurationService>().getNetwork();
@@ -98,12 +95,14 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
   }
 
   Widget _addressesSection(String uuid) {
+    final theme = Theme.of(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           "Addresses",
-          style: appTextTheme.headline1,
+          style: theme.textTheme.headline1,
         ),
         const SizedBox(height: 24),
         FutureBuilder<String>(
@@ -137,6 +136,9 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
   }
 
   Widget _addressRow({required String address, required CryptoType type}) {
+    final theme = Theme.of(context);
+    final addressStyle = theme.textTheme.subtitle1;
+
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       child: Column(
@@ -145,7 +147,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(type.source, style: appTextTheme.headline4),
+              Text(type.source, style: theme.textTheme.headline4),
               SvgPicture.asset('assets/images/iconForward.svg'),
             ],
           ),
@@ -176,12 +178,14 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
   }
 
   Widget _cryptoSection(String uuid, Network network) {
+    final theme = Theme.of(context);
+    final balanceStyle = theme.textTheme.subtitle1;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           "Crypto",
-          style: appTextTheme.headline1,
+          style: theme.textTheme.headline1,
         ),
         const SizedBox(
           height: 8,
@@ -196,7 +200,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
 
                 return TappableForwardRow(
                     leftWidget: Text(cryptoType.fullCode,
-                        style: appTextTheme.headline4),
+                        style: theme.textTheme.headline4),
                     rightWidget: Text(
                         ethBalance == null
                             ? "-- ETH"
@@ -219,7 +223,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
 
                 return TappableForwardRow(
                     leftWidget: Text(cryptoType.fullCode,
-                        style: appTextTheme.headline4),
+                        style: theme.textTheme.headline4),
                     rightWidget: Text(
                         xtzBalance == null
                             ? "-- XTZ"
@@ -240,10 +244,11 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
   }
 
   Widget _preferencesSection() {
+    final theme = Theme.of(context);
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Text(
         "Preferences",
-        style: appTextTheme.headline1,
+        style: theme.textTheme.headline1,
       ),
       const SizedBox(
         height: 14,
@@ -254,7 +259,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Hide from collection', style: appTextTheme.headline4),
+              Text('Hide from collection', style: theme.textTheme.headline4),
               CupertinoSwitch(
                 value: isHideGalleryEnabled,
                 onChanged: (value) async {
@@ -264,14 +269,14 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
                     isHideGalleryEnabled = value;
                   });
                 },
-                activeColor: Colors.black,
+                activeColor: theme.colorScheme.primary,
               )
             ],
           ),
           const SizedBox(height: 14),
           Text(
             "Do not show this account's NFTs in the collection view.",
-            style: appTextTheme.bodyText1,
+            style: theme.textTheme.bodyText1,
           ),
         ],
       ),
@@ -280,10 +285,12 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
   }
 
   Widget _backupSection() {
+    final theme = Theme.of(context);
+
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Text(
         "Backup",
-        style: appTextTheme.headline1,
+        style: theme.textTheme.headline1,
       ),
       const SizedBox(
         height: 8,
@@ -291,7 +298,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
       TappableForwardRow(
           leftWidget: Text(
             'Recovery phrase',
-            style: appTextTheme.headline4,
+            style: theme.textTheme.headline4,
           ),
           onTap: () async {
             final configurationService = injector<ConfigurationService>();

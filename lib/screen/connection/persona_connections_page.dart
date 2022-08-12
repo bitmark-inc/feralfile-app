@@ -19,6 +19,7 @@ import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:share/share.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 
 class PersonaConnectionsPage extends StatefulWidget {
   final PersonaConnectionsPayload payload;
@@ -31,8 +32,6 @@ class PersonaConnectionsPage extends StatefulWidget {
 
 class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
     with RouteAware, WidgetsBindingObserver {
-  final addressStyle = appTextTheme.bodyText2?.copyWith(color: Colors.black);
-
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -82,8 +81,8 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
         },
       ),
       body: Container(
-        margin:
-            const EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
+        margin: const EdgeInsets.only(
+            top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -110,13 +109,14 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
   Widget _addressSection() {
     var address = widget.payload.address;
     final addressSource = widget.payload.type.source;
-
+    final theme = Theme.of(context);
+    final addressStyle = theme.textTheme.subtitle1;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           "Address",
-          style: appTextTheme.headline1,
+          style: theme.textTheme.headline1,
         ),
         const SizedBox(height: 24),
         Column(
@@ -125,18 +125,12 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(addressSource, style: appTextTheme.headline4),
+                Text(addressSource, style: theme.textTheme.headline4),
                 TextButton(
-                  onPressed: () =>
-                      Share.share(address),
-                  style: const ButtonStyle(alignment: Alignment.centerRight),
-                  child: const Text(
+                  onPressed: () => Share.share(address),
+                  child: Text(
                     "Share",
-                    style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 12,
-                        fontFamily: "AtlasGrotesk",
-                        fontWeight: FontWeight.bold),
+                    style: theme.textTheme.atlasBlackBold12,
                   ),
                 )
               ],
@@ -158,10 +152,12 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
   }
 
   Widget _connectionsSection() {
+    final theme = Theme.of(context);
+
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Text(
         "Connections",
-        style: appTextTheme.headline1,
+        style: theme.textTheme.headline1,
       ),
       const SizedBox(height: 24),
       BlocBuilder<ConnectionsBloc, ConnectionsState>(builder: (context, state) {
@@ -193,16 +189,17 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
   }
 
   Widget _emptyConnectionsWidget() {
+    final theme = Theme.of(context);
     return Column(children: [
       TappableForwardRowWithContent(
           leftWidget: Row(children: [
             SvgPicture.asset("assets/images/iconQr.svg"),
             const SizedBox(width: 17.5),
-            Text('Add connection', style: appTextTheme.headline4),
+            Text('Add connection', style: theme.textTheme.headline4),
           ]),
           bottomWidget: Text(
               "Connect this address to an external dapp or platform.",
-              style: appTextTheme.bodyText1),
+              style: theme.textTheme.bodyText1),
           onTap: () {
             late ScannerItem scanItem;
 
@@ -226,6 +223,7 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
 
   Widget _connectionItemWidget(ConnectionItem connectionItem) {
     final connection = connectionItem.representative;
+    final theme = Theme.of(context);
 
     return TappableForwardRow(
         leftWidget: Expanded(
@@ -233,7 +231,8 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
             UIHelper.buildConnectionAppWidget(connection, 24),
             const SizedBox(width: 16),
             Expanded(
-                child: Text(connection.appName, style: appTextTheme.headline4)),
+                child:
+                    Text(connection.appName, style: theme.textTheme.headline4)),
           ]),
         ),
         onTap: () => Navigator.of(context).pushNamed(

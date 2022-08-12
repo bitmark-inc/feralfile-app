@@ -19,6 +19,7 @@ import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/eula_privacy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 
 class OnboardingPage extends StatefulWidget {
   const OnboardingPage({Key? key}) : super(key: key);
@@ -43,7 +44,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
     if (penroseWidth > 380 || penroseWidth < 0) {
       penroseWidth = 380;
     }
-
+    final theme = Theme.of(context);
     const edgeInsets =
         EdgeInsets.only(top: 135.0, bottom: 32.0, left: 16.0, right: 16.0);
 
@@ -63,8 +64,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
             await askForNotification();
             await injector<VersionService>().checkForUpdate();
 
-            await Future.delayed(
-                SHORT_SHOW_DIALOG_DURATION, showSurveysNotification);
+            await Future.delayed(SHORT_SHOW_DIALOG_DURATION,
+                () => showSurveysNotification(context));
             break;
 
           default:
@@ -83,14 +84,11 @@ class _OnboardingPageState extends State<OnboardingPage> {
                   margin: edgeInsets,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: const [
+                    children: [
                       Text(
                         "AUTONOMY",
                         textAlign: TextAlign.center,
-                        style: TextStyle(
-                            fontFamily: "DomaineSansText",
-                            fontSize: 48,
-                            color: Colors.black),
+                        style: theme.textTheme.largeTitle,
                       ),
                     ],
                   ),
@@ -99,7 +97,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
           SafeArea(
             child: Center(
                 child: Container(
-                    margin: const EdgeInsets.fromLTRB(0, 0, 0, 0), child: _logo())),
+                    margin: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+                    child: _logo())),
           ),
           Container(
             margin: edgeInsets,

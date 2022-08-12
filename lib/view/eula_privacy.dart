@@ -6,11 +6,12 @@
 //
 
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:flutter/material.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 
 Widget eulaAndPrivacyView(BuildContext context) {
-  final customLinkStyle = linkStyle.copyWith(
+  final theme = Theme.of(context);
+  final customLinkStyle = theme.textTheme.linkStyle.copyWith(
     fontSize: 12,
     fontWeight: FontWeight.w500,
   );
@@ -30,10 +31,9 @@ Widget eulaAndPrivacyView(BuildContext context) {
           "title": ""
         }),
       ),
-      const Text(
+      Text(
         " and ",
-        style: TextStyle(
-            fontFamily: "AtlasGrotesk", fontSize: 12, color: Colors.black),
+        style: theme.textTheme.headline5,
       ),
       GestureDetector(
         child: Text(

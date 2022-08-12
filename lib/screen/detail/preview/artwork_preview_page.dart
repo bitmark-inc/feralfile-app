@@ -25,7 +25,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/theme_manager.dart';
+
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
@@ -40,6 +40,7 @@ import 'package:nft_rendering/nft_rendering.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shake/shake.dart';
 import 'package:wakelock/wakelock.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 
 enum AUCastDeviceType { Airplay, Chromecast }
 
@@ -71,12 +72,12 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   late int currentIndex;
   INFTRenderingWidget? _renderingWidget;
 
-  final Future<List<CastDevice>> _castDevicesFuture = CastDiscoveryService().search();
+  final Future<List<CastDevice>> _castDevicesFuture =
+      CastDiscoveryService().search();
   String? swipeDirection;
 
-
   static final List<AUCastDevice> _defaultCastDevices =
-  Platform.isIOS ? [AUCastDevice(AUCastDeviceType.Airplay)] : [];
+      Platform.isIOS ? [AUCastDevice(AUCastDeviceType.Airplay)] : [];
 
   List<AUCastDevice> _castDevices = [];
 
@@ -160,8 +161,9 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: theme.colorScheme.primary,
       body: BlocConsumer<ArtworkPreviewBloc, ArtworkPreviewState>(
           listener: (context, state) {
         if (state.asset?.artistName == null) return;
@@ -216,9 +218,8 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                               child: SizedBox(
                                 height: 64,
                                 child: AnyProblemNFTWidget(
-                                    asset: asset!,
-                                    theme: AuThemeManager.get(
-                                        AppTheme.anyProblemNFTDarkTheme)),
+                                  asset: asset!,
+                                ),
                               ),
                             ),
                           )
@@ -240,9 +241,9 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     final artistName =
         asset.artistName?.toIdentityOrMask(identityState.identityMap);
     double safeAreaTop = MediaQuery.of(context).padding.top;
-
+    final theme = Theme.of(context);
     return Container(
-      color: Colors.black,
+      color: theme.colorScheme.primary,
       height: safeAreaTop + 52,
       padding: EdgeInsets.fromLTRB(15, safeAreaTop, 15, 0),
       child: Row(
@@ -256,7 +257,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   SvgPicture.asset("assets/images/iconInfo.svg",
-                      color: Colors.white),
+                      color: theme.colorScheme.secondary),
                   const SizedBox(width: 13),
                   _titleAndArtistNameWidget(asset, artistName),
                   const SizedBox(width: 5),
@@ -283,9 +284,9 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                 );
               }
             },
-            icon: const Icon(
+            icon: Icon(
               Icons.fullscreen,
-              color: Colors.white,
+              color: theme.colorScheme.secondary,
               size: 32,
             ),
           ),
@@ -334,7 +335,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   }
 
   Widget _titleAndArtistNameWidget(AssetToken asset, String? artistName) {
-    final theme = AuThemeManager.get(AppTheme.previewNFTTheme);
+    final theme = Theme.of(context);
 
     return Expanded(
       child: Column(
@@ -344,14 +345,14 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
           Text(
             asset.title,
             overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.bodyText1,
+            style: theme.textTheme.atlasWhiteBold12,
           ),
           if (artistName != null) ...[
             const SizedBox(height: 4.0),
             Text(
               "by $artistName",
               overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.bodyText2,
+              style: theme.primaryTextTheme.headline5,
             )
           ]
         ],
@@ -371,32 +372,25 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   }
 
   Widget _fullscreenIntroPopup() {
+    final theme = Theme.of(context);
     return Container(
       height: 300,
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      color: Colors.black,
+      color: theme.colorScheme.primary,
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            const Text(
+            Text(
               "Full screen",
-              style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 36,
-                  fontWeight: FontWeight.w700,
-                  fontFamily: "AtlasGrotesk"),
+              style: theme.primaryTextTheme.headline1,
             ),
             const SizedBox(height: 40.0),
-            const Text(
+            Text(
               "Shake your phone to exit fullscreen mode.",
-              style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w300,
-                  fontFamily: "AtlasGrotesk"),
+              style: theme.primaryTextTheme.bodyText1,
             ),
             const SizedBox(height: 40.0),
             Row(
@@ -404,12 +398,8 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                 Expanded(
                   child: AuFilledButton(
                     text: "OK",
-                    color: Colors.white,
-                    textStyle: const TextStyle(
-                        color: Colors.black,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        fontFamily: "IBMPlexMono"),
+                    color: theme.colorScheme.secondary,
+                    textStyle: theme.textTheme.button,
                     onPress: () {
                       Navigator.of(context).pop();
                     },
@@ -420,14 +410,10 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
             const SizedBox(height: 14.0),
             Center(
               child: GestureDetector(
-                child: const Text(
+                child: Text(
                   "DON’T SHOW AGAIN",
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w300,
-                      fontFamily: "IBMPlexMono"),
+                  style: theme.primaryTextTheme.button,
                 ),
                 onTap: () {
                   injector<ConfigurationService>()
@@ -468,7 +454,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   }
 
   Widget _airplayItem(BuildContext context, bool isSubscribed) {
-    final theme = AuThemeManager.get(AppTheme.sheetTheme);
+    final theme = Theme.of(context);
     return Padding(
         padding: const EdgeInsets.symmetric(vertical: 6),
         child: SizedBox(
@@ -482,24 +468,24 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                   padding: const EdgeInsets.only(left: 41, bottom: 5),
                   child: Text(
                     "Airplay",
-                    style: theme.textTheme.headline4?.copyWith(
+                    style: theme.primaryTextTheme.headline4?.copyWith(
                         color: isSubscribed
-                            ? Colors.white
-                            : AppColorTheme.secondaryDimGrey),
+                            ? theme.colorScheme.secondary
+                            : AppColor.secondaryDimGrey),
                   ),
                 ),
               ),
               isSubscribed
-                  ? const AirPlayRoutePickerView(
-                      tintColor: Colors.grey,
-                      activeTintColor: Colors.grey,
+                  ? AirPlayRoutePickerView(
+                      tintColor: theme.colorScheme.surface,
+                      activeTintColor: theme.colorScheme.surface,
                       backgroundColor: Colors.transparent,
                       prioritizesVideoDevices: true,
                     )
                   : const Align(
                       alignment: Alignment.centerLeft,
                       child: Icon(Icons.airplay_outlined,
-                          color: AppColorTheme.secondaryDimGrey),
+                          color: AppColor.secondaryDimGrey),
                     ),
             ],
           ),
@@ -508,7 +494,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
 
   Widget _castingListView(
       BuildContext context, List<AUCastDevice> devices, bool isSubscribed) {
-    final theme = AuThemeManager.get(AppTheme.sheetTheme);
+    final theme = Theme.of(context);
     return ConstrainedBox(
         constraints: const BoxConstraints(
           minHeight: 35.0,
@@ -554,15 +540,15 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                         children: [
                           Icon(Icons.cast,
                               color: isSubscribed
-                                  ? Colors.white
-                                  : AppColorTheme.secondaryDimGrey),
+                                  ? theme.colorScheme.secondary
+                                  : AppColor.secondaryDimGrey),
                           const SizedBox(width: 17),
                           Text(
                             device.chromecastDevice!.name,
-                            style: theme.textTheme.headline4?.copyWith(
+                            style: theme.primaryTextTheme.headline4?.copyWith(
                                 color: isSubscribed
-                                    ? Colors.white
-                                    : AppColorTheme.secondaryDimGrey),
+                                    ? theme.colorScheme.secondary
+                                    : AppColor.secondaryDimGrey),
                           ),
                         ],
                       ),
@@ -572,7 +558,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
             }),
             separatorBuilder: ((context, index) => const Divider(
                   thickness: 1,
-                  color: AppColorTheme.secondarySpanishGrey,
+                  color: AppColor.secondaryDimGrey,
                 )),
             itemCount: devices.length));
   }
@@ -607,7 +593,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                   .toList();
             }
 
-            final theme = AuThemeManager.get(AppTheme.sheetTheme);
+            final theme = Theme.of(context);
 
             return FutureBuilder<bool>(
                 builder: (context, snapshot) {
@@ -617,13 +603,9 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                         _castingListView(context, castDevices, true),
                         TextButton(
                           onPressed: () => Navigator.pop(context),
-                          child: const Text(
+                          child: Text(
                             "CANCEL",
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
-                                fontFamily: "IBMPlexMono"),
+                            style: theme.primaryTextTheme.button,
                           ),
                         ),
                         const SizedBox(height: 20),
@@ -637,13 +619,9 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                         _castingListView(context, castDevices, false),
                         TextButton(
                           onPressed: () => Navigator.pop(context),
-                          child: const Text(
+                          child: Text(
                             "CANCEL",
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
-                                fontFamily: "IBMPlexMono"),
+                            style: theme.primaryTextTheme.button,
                           ),
                         ),
                         const SizedBox(height: 20),
@@ -675,8 +653,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
       }
     });
 
-    session.messageStream.listen((message) {
-    });
+    session.messageStream.listen((message) {});
 
     session.sendMessage(CastSession.kNamespaceReceiver, {
       'type': 'LAUNCH',

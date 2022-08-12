@@ -10,6 +10,7 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/account_view.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
@@ -42,6 +43,8 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
   @override
   Widget build(BuildContext context) {
     double safeAreaBottom = MediaQuery.of(context).padding.bottom;
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: getBackAppBar(
         context,
@@ -56,7 +59,7 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
             children: [
               Text(
                 "Receive",
-                style: appTextTheme.headline1,
+                style: theme.textTheme.headline1,
               ),
               addTitleSpace(),
               Center(
@@ -69,7 +72,7 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
               ),
               const SizedBox(height: 48),
               Text((_blockchainNFTText(_account.blockchain)),
-                  style: appTextTheme.headline4),
+                  style: theme.textTheme.headline4),
               accountItem(context, _account),
               GestureDetector(
                   onTap: copy,
@@ -88,9 +91,7 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
                           Text(
                             "Account address",
                             textAlign: TextAlign.left,
-                            style: appTextTheme.headline4?.copyWith(
-                                fontSize: 12,
-                                color: AppColorTheme.secondaryDimGrey),
+                            style: theme.textTheme.atlasGreyBold12,
                           ),
                           const SizedBox(height: 4.0),
                           Padding(
@@ -99,8 +100,7 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
                               _account.accountNumber,
                               textAlign: TextAlign.start,
                               softWrap: true,
-                              style: const TextStyle(
-                                  fontSize: 12, fontFamily: "IBMPlexMono"),
+                              style: theme.textTheme.subtitle2,
                             ),
                           ),
                         ]),
@@ -110,11 +110,14 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
                   child: Container(
                       alignment: Alignment.center,
                       child: _copied
-                          ? const Text("Copied", style: copiedTextStyle)
+                          ? Text("Copied",
+                              style: theme.textTheme.atlasBlackBold12)
                           : const SizedBox())),
               const SizedBox(height: 4),
-              Text(_blockchainWarningText(_account.blockchain),
-                  style: paragraph),
+              Text(
+                _blockchainWarningText(_account.blockchain),
+                style: theme.textTheme.atlasGreyNormal12,
+              ),
             ],
           ),
         )),

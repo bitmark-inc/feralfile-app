@@ -51,6 +51,7 @@ class _LinkManuallyPageState extends State<LinkManuallyPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: getBackAppBar(
         context,
@@ -68,12 +69,12 @@ class _LinkManuallyPageState extends State<LinkManuallyPage> {
                   children: [
                     Text(
                       title,
-                      style: appTextTheme.headline1,
+                      style: theme.textTheme.headline1,
                     ),
                     addTitleSpace(),
                     Text(
                       description,
-                      style: appTextTheme.bodyText1,
+                      style: theme.textTheme.bodyText1,
                     ),
                     const SizedBox(height: 40),
                     AuTextField(

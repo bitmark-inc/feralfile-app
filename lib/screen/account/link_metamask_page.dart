@@ -42,6 +42,7 @@ class _LinkMetamaskPageState extends State<LinkMetamaskPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
         appBar: getBackAppBar(
           context,
@@ -58,12 +59,12 @@ class _LinkMetamaskPageState extends State<LinkMetamaskPage> {
                   children: [
                     Text(
                       "Link to extension",
-                      style: appTextTheme.headline1,
+                      style: theme.textTheme.headline1,
                     ),
                     addTitleSpace(),
                     Text(
                       "To link your MetaMask browser extension to Autonomy:",
-                      style: appTextTheme.bodyText1,
+                      style: theme.textTheme.bodyText1,
                     ),
                     const SizedBox(height: 20),
                     _stepWidget('1',
@@ -98,6 +99,7 @@ class _LinkMetamaskPageState extends State<LinkMetamaskPage> {
   }
 
   Widget _stepWidget(String stepNumber, String stepGuide) {
+    final theme = Theme.of(context);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -105,14 +107,14 @@ class _LinkMetamaskPageState extends State<LinkMetamaskPage> {
           padding: const EdgeInsets.only(top: 2),
           child: Text(
             stepNumber,
-            style: appTextTheme.caption,
+            style: theme.textTheme.button,
           ),
         ),
         const SizedBox(
           width: 10,
         ),
         Expanded(
-          child: Text(stepGuide, style: appTextTheme.bodyText1),
+          child: Text(stepGuide, style: theme.textTheme.bodyText1),
         )
       ],
     );

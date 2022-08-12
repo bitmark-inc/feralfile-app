@@ -44,6 +44,8 @@ class _GithubDocPageState extends State<GithubDocPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: getBackAppBar(
         context,
@@ -58,7 +60,7 @@ class _GithubDocPageState extends State<GithubDocPage> {
                 SliverToBoxAdapter(
                     child: Text(
                   title,
-                  style: appTextTheme.headline1,
+                  style: theme.textTheme.headline1,
                 )),
                 const SliverPadding(padding: EdgeInsets.only(bottom: 40)),
               ],
@@ -74,6 +76,8 @@ class _GithubDocPageState extends State<GithubDocPage> {
 
   Widget _contentView(
       BuildContext context, AsyncSnapshot<Response<String>> snapshot) {
+    final theme = Theme.of(context);
+
     if (snapshot.hasData && snapshot.data?.statusCode == 200) {
       return SliverToBoxAdapter(
           child: Markdown(
@@ -82,7 +86,7 @@ class _GithubDocPageState extends State<GithubDocPage> {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               padding: const EdgeInsets.only(bottom: 50),
-              styleSheet: markDownLightStyle,
+              styleSheet: markDownLightStyle(context),
               onTapLink: (text, href, title) async {
                 if (href == null) return;
                 if (!(await canLaunchUrlString(href))) {
@@ -102,7 +106,7 @@ class _GithubDocPageState extends State<GithubDocPage> {
           child: Center(
               child: Text(
         "Error when loading the content",
-        style: appTextTheme.headline4,
+        style: theme.textTheme.headline4,
       )));
     } else {
       return const SliverFillRemaining(

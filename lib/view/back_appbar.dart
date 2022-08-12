@@ -15,9 +15,11 @@ AppBar getBackAppBar(BuildContext context,
     String title = "",
     required Function()? onBack,
     Function()? action}) {
+  final theme = Theme.of(context);
+
   return AppBar(
-    systemOverlayStyle: const SystemUiOverlayStyle(
-      statusBarColor: Colors.white,
+    systemOverlayStyle: SystemUiOverlayStyle(
+      statusBarColor: theme.colorScheme.secondary,
       statusBarIconBrightness: Brightness.dark,
       statusBarBrightness: Brightness.light,
     ),
@@ -40,7 +42,7 @@ AppBar getBackAppBar(BuildContext context,
                       const SizedBox(width: 7),
                       Text(
                         backTitle,
-                        style: appTextTheme.caption,
+                        style: theme.textTheme.button,
                       ),
                     ],
                   ),
@@ -55,7 +57,7 @@ AppBar getBackAppBar(BuildContext context,
           child: Text(
             title,
             overflow: TextOverflow.ellipsis,
-            style: appTextTheme.caption,
+            style: theme.textTheme.button,
             textAlign: TextAlign.center,
           ),
         ),
@@ -63,9 +65,9 @@ AppBar getBackAppBar(BuildContext context,
             ? IconButton(
                 constraints: const BoxConstraints(maxWidth: 36.0),
                 onPressed: action,
-                icon: const Icon(
+                icon: Icon(
                   Icons.more_horiz,
-                  color: Colors.black,
+                  color: theme.colorScheme.primary,
                 ))
             : const SizedBox(width: 60),
       ],
@@ -78,9 +80,11 @@ AppBar getBackAppBar(BuildContext context,
 
 AppBar getCloseAppBar(BuildContext context,
     {String title = "", required Function()? onBack}) {
+  final theme = Theme.of(context);
+
   return AppBar(
-    systemOverlayStyle: const SystemUiOverlayStyle(
-      statusBarColor: Colors.white,
+    systemOverlayStyle: SystemUiOverlayStyle(
+      statusBarColor: theme.colorScheme.secondary,
       statusBarIconBrightness: Brightness.dark,
       statusBarBrightness: Brightness.light,
     ),
@@ -103,7 +107,7 @@ AppBar getCloseAppBar(BuildContext context,
           child: Text(
             title,
             overflow: TextOverflow.ellipsis,
-            style: appTextTheme.caption,
+            style: theme.textTheme.button,
             textAlign: TextAlign.center,
           ),
         ),

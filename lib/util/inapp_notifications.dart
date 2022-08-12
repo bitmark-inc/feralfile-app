@@ -14,10 +14,10 @@ import 'package:overlay_support/overlay_support.dart';
 // ignore: implementation_imports
 import 'package:overlay_support/src/overlay_state_finder.dart';
 
-Widget _notificationToast(OSNotification notification,
+Widget _notificationToast(BuildContext context, OSNotification notification,
     {Function(OSNotification notification)? notificationOpenedHandler}) {
   return _simpleNotificationToast(
-      notification.body ?? "", Key(notification.notificationId),
+      context, notification.body ?? "", Key(notification.notificationId),
       notificationOpenedHandler: () {
     if (notificationOpenedHandler != null) {
       notificationOpenedHandler(notification);
@@ -25,8 +25,10 @@ Widget _notificationToast(OSNotification notification,
   });
 }
 
-Widget _simpleNotificationToast(String notification, Key key,
+Widget _simpleNotificationToast(
+    BuildContext context, String notification, Key key,
     {Function()? notificationOpenedHandler}) {
+  final theme = Theme.of(context);
   return ClipPath(
       clipper: AutonomyButtonClipper(),
       child: ConstrainedBox(
@@ -39,25 +41,22 @@ Widget _simpleNotificationToast(String notification, Key key,
                 }
               },
               child: Container(
-                color: Colors.black.withOpacity(0.8),
-                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+                color: theme.colorScheme.primary.withOpacity(0.8),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
                 child: Center(
                     child: Text(
                   notification,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      fontFamily: "IBMPlexMono"),
+                  style: theme.primaryTextTheme.button,
                 )),
               ))));
 }
 
-void showNotifications(OSNotification notification,
+void showNotifications(BuildContext context, OSNotification notification,
     {Function(OSNotification notification)? notificationOpenedHandler}) {
   showSimpleNotification(
-      _notificationToast(notification,
+      _notificationToast(context, notification,
           notificationOpenedHandler: notificationOpenedHandler),
       background: Colors.transparent,
       duration: const Duration(seconds: 3),
@@ -67,10 +66,10 @@ void showNotifications(OSNotification notification,
   Vibrate.feedback(FeedbackType.warning);
 }
 
-void showCustomNotifications(String notification, Key key,
+void showCustomNotifications(BuildContext context, String notification, Key key,
     {Function()? notificationOpenedHandler}) {
   showSimpleNotification(
-      _simpleNotificationToast(notification, key,
+      _simpleNotificationToast(context, notification, key,
           notificationOpenedHandler: notificationOpenedHandler),
       background: Colors.transparent,
       elevation: 0,

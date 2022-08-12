@@ -24,6 +24,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tokens_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -87,6 +88,8 @@ class _SettingsPageState extends State<SettingsPage>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return PrimaryScrollController(
       controller: _controller,
       child: Scaffold(
@@ -112,7 +115,7 @@ class _SettingsPageState extends State<SettingsPage>
                       children: [
                         Text(
                           "Accounts",
-                          style: appTextTheme.headline1,
+                          style: theme.textTheme.headline1,
                         ),
                         _cloudAvailabilityWidget(),
                       ],
@@ -127,11 +130,13 @@ class _SettingsPageState extends State<SettingsPage>
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     TextButton(
-                        onPressed: () => Navigator.of(context)
-                            .pushNamed(AppRouter.addAccountPage),
-                        child: Text('+ Account',
-                            style: appTextTheme.bodyText2
-                                ?.copyWith(color: Colors.black))),
+                      onPressed: () => Navigator.of(context)
+                          .pushNamed(AppRouter.addAccountPage),
+                      child: Text(
+                        '+ Account',
+                        style: theme.textTheme.subtitle1,
+                      ),
+                    ),
                     const SizedBox(width: 13),
                   ],
                 ),
@@ -149,7 +154,7 @@ class _SettingsPageState extends State<SettingsPage>
                 const SizedBox(height: 40),
                 Text(
                   "Networks",
-                  style: appTextTheme.headline1,
+                  style: theme.textTheme.headline1,
                 ),
                 const SizedBox(height: 24.0),
                 _settingItem(
@@ -165,82 +170,82 @@ class _SettingsPageState extends State<SettingsPage>
                 // START HELP US IMPROVE
                 Text(
                   "Help us improve",
-                  style: appTextTheme.headline1,
+                  style: theme.textTheme.headline1,
                 ),
                 const SizedBox(height: 8.0),
                 TappableForwardRow(
                     leftWidget: Text('Participate in bug bounty',
-                        style: appTextTheme.headline4),
+                        style: theme.textTheme.headline4),
                     onTap: () => Navigator.of(context)
                         .pushNamed(AppRouter.bugBountyPage)),
                 addOnlyDivider(),
                 TappableForwardRow(
                     leftWidget: Text('Participate in a user test',
-                        style: appTextTheme.headline4),
+                        style: theme.textTheme.headline4),
                     onTap: () => Navigator.of(context)
                         .pushNamed(AppRouter.participateUserTestPage)),
                 // END HELP US IMPROVE
                 const SizedBox(height: 40.0),
                 Text(
                   "Data management",
-                  style: appTextTheme.headline1,
+                  style: theme.textTheme.headline1,
                 ),
                 const SizedBox(height: 24.0),
                 TappableForwardRowWithContent(
                     leftWidget: Text(
                       'Rebuild metadata',
-                      style: appTextTheme.headline4,
+                      style: theme.textTheme.headline4,
                     ),
                     bottomWidget: Text(
                         'Clear local cache and re-download all artwork metadata.',
-                        style: appTextTheme.bodyText1),
+                        style: theme.textTheme.bodyText1),
                     onTap: () => _showRebuildGalleryDialog()),
                 addDivider(),
                 TappableForwardRowWithContent(
                     leftWidget: Text(
                       'Forget I exist',
-                      style: appTextTheme.headline4,
+                      style: theme.textTheme.headline4,
                     ),
                     bottomWidget: Text(
                         'Erase all information about me and delete my keys from my cloud backup including the keys on this device.',
-                        style: appTextTheme.bodyText1),
+                        style: theme.textTheme.bodyText1),
                     onTap: () => _showForgetIExistDialog()),
                 const SizedBox(height: 56),
-                Column(
-                    children: [
-                      if (_packageInfo != null)
-                        GestureDetector(
-                            child: Text(
-                              "Version ${_packageInfo!.version}(${_packageInfo!.buildNumber})",
-                              style: appTextTheme.headline5,
-                            ),
-                            onTap: () async {
-                              int now = DateTime.now().millisecondsSinceEpoch;
-                              if (now - _lastTap < 1000) {
-                                _consecutiveTaps++;
-                                if (_consecutiveTaps == 3) {
-                                  final newValue =
-                                      await injector<ConfigurationService>()
-                                          .toggleDemoArtworksMode();
-                                  if (!mounted) return;
-                                  await UIHelper.showInfoDialog(
-                                      context,
-                                      "Demo mode",
-                                      "Demo mode ${newValue ? 'enabled' : 'disabled'}!",
-                                      autoDismissAfter: 1);
-                                }
-                              } else {
-                                _consecutiveTaps = 0;
-                              }
-                              _lastTap = now;
-                            }),
-                      TextButton(
-                          onPressed: () => injector<VersionService>()
-                              .showReleaseNotes(onlyWhenUnread: false),
-                          child: const Text("Release notes", style: linkStyle2)),
-                      const SizedBox(height: 10),
-                      eulaAndPrivacyView(context),
-                    ]),
+                Column(children: [
+                  if (_packageInfo != null)
+                    GestureDetector(
+                        child: Text(
+                          "Version ${_packageInfo!.version}(${_packageInfo!.buildNumber})",
+                          style: theme.textTheme.headline5,
+                        ),
+                        onTap: () async {
+                          int now = DateTime.now().millisecondsSinceEpoch;
+                          if (now - _lastTap < 1000) {
+                            _consecutiveTaps++;
+                            if (_consecutiveTaps == 3) {
+                              final newValue =
+                                  await injector<ConfigurationService>()
+                                      .toggleDemoArtworksMode();
+                              if (!mounted) return;
+                              await UIHelper.showInfoDialog(
+                                  context,
+                                  "Demo mode",
+                                  "Demo mode ${newValue ? 'enabled' : 'disabled'}!",
+                                  autoDismissAfter: 1);
+                            }
+                          } else {
+                            _consecutiveTaps = 0;
+                          }
+                          _lastTap = now;
+                        }),
+                  TextButton(
+                      onPressed: () => injector<VersionService>()
+                          .showReleaseNotes(onlyWhenUnread: false),
+                      child: Text("Release notes",
+                          style: theme.textTheme.linkStyle2)),
+                  const SizedBox(height: 10),
+                  eulaAndPrivacyView(context),
+                ]),
                 const SizedBox(height: 60),
               ],
             ),
@@ -256,6 +261,8 @@ class _SettingsPageState extends State<SettingsPage>
 
   Widget _settingItem(
       BuildContext context, String name, String value, Function() onTap) {
+    final theme = Theme.of(context);
+
     return GestureDetector(
       onTap: onTap,
       child: Padding(
@@ -263,16 +270,15 @@ class _SettingsPageState extends State<SettingsPage>
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(name, style: appTextTheme.headline4),
+            Text(
+              name,
+              style: theme.textTheme.headline4,
+            ),
             Row(
               children: [
                 Text(
                   value,
-                  style: const TextStyle(
-                      color: Colors.black,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w300,
-                      fontFamily: "IBMPlexMono"),
+                  style: theme.textTheme.subtitle1,
                 ),
                 const SizedBox(width: 8.0),
                 SvgPicture.asset('assets/images/iconForward.svg'),

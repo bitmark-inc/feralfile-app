@@ -12,30 +12,28 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 class AnyProblemNFTWidget extends StatelessWidget {
   final AssetToken asset;
-  final ThemeData theme;
 
-  const AnyProblemNFTWidget(
-      {Key? key, required this.asset, required this.theme})
-      : super(key: key);
+  const AnyProblemNFTWidget({Key? key, required this.asset}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return GestureDetector(
       onTap: () => showReportIssueDialog(context, asset),
       child: Container(
         alignment: Alignment.bottomCenter,
         padding: const EdgeInsets.fromLTRB(0, 18, 0, 24),
-        color: theme.backgroundColor,
+        color: theme.colorScheme.primary,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text('ANY PROBLEMS WITH THIS NFT?',
-                style: theme.textTheme.bodyText1),
+                style: theme.primaryTextTheme.button),
             const SizedBox(
               width: 4,
             ),
             SvgPicture.asset("assets/images/iconSharpFeedback.svg",
-                color: theme.textTheme.bodyText1?.color),
+                color: theme.colorScheme.secondary),
           ],
         ),
       ),

@@ -23,6 +23,7 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 
 class LinkedAccountDetailsPage extends StatefulWidget {
   final Connection connection;
@@ -195,6 +196,7 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
   }
 
   Widget _addressesSection() {
+    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -202,7 +204,7 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
           contextedAddresses.length > 1
               ? "Linked addresses"
               : "Linked adddress",
-          style: appTextTheme.headline1,
+          style: theme.textTheme.headline1,
         ),
         const SizedBox(height: 10),
         Column(
@@ -224,6 +226,7 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
   }
 
   Widget _cryptoSection() {
+    final theme = Theme.of(context);
     if (contextedAddresses.isEmpty) return const SizedBox();
 
     return Column(
@@ -231,7 +234,7 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
       children: [
         Text(
           "Crypto",
-          style: appTextTheme.headline1,
+          style: theme.textTheme.headline1,
         ),
         const SizedBox(height: 24),
         Column(
@@ -259,22 +262,18 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
   }
 
   Widget _addressRow(CryptoType type, {required String address}) {
-    final addressStyle = appTextTheme.bodyText2?.copyWith(color: Colors.black);
+    final theme = Theme.of(context);
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(type.source, style: appTextTheme.headline4),
+          Text(type.source, style: theme.textTheme.headline4),
           TextButton(
             onPressed: () => Share.share(address),
             style: const ButtonStyle(alignment: Alignment.centerRight),
-            child: const Text(
+            child: Text(
               "Share",
-              style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 12,
-                  fontFamily: "AtlasGrotesk",
-                  fontWeight: FontWeight.bold),
+              style: theme.textTheme.atlasBlackBold12,
             ),
           )
         ],
@@ -282,7 +281,10 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
       Row(
         children: [
           Expanded(
-            child: Text(address, style: addressStyle),
+            child: Text(
+              address,
+              style: theme.textTheme.subtitle1,
+            ),
           ),
         ],
       )
@@ -290,21 +292,23 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
   }
 
   Widget _balanceRow(CryptoType type, {required String balanceString}) {
-    final balanceStyle = appTextTheme.bodyText2?.copyWith(color: Colors.black);
+    final theme = Theme.of(context);
+    final balanceStyle = theme.textTheme.subtitle1;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(type.fullCode, style: appTextTheme.headline4),
+        Text(type.fullCode, style: theme.textTheme.headline4),
         Text(balanceString, style: balanceStyle),
       ],
     );
   }
 
   Widget _preferencesSection() {
+    final theme = Theme.of(context);
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Text(
         "Preferences",
-        style: appTextTheme.headline1,
+        style: theme.textTheme.headline1,
       ),
       const SizedBox(
         height: 14,
@@ -315,7 +319,7 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Hide from collection', style: appTextTheme.headline4),
+              Text('Hide from collection', style: theme.textTheme.headline4),
               CupertinoSwitch(
                 value: isHideGalleryEnabled,
                 onChanged: (value) async {
@@ -326,14 +330,14 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
                     isHideGalleryEnabled = value;
                   });
                 },
-                activeColor: Colors.black,
+                activeColor: theme.colorScheme.primary,
               )
             ],
           ),
           const SizedBox(height: 14),
           Text(
             "Do not show this account's NFTs in the collection view.",
-            style: appTextTheme.bodyText1,
+            style: theme.textTheme.bodyText1,
           ),
         ],
       ),
@@ -342,19 +346,20 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
   }
 
   Widget _backupSection() {
+    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text("Backup", style: appTextTheme.headline1),
+        Text("Backup", style: theme.textTheme.headline1),
         const SizedBox(height: 24),
         if (_source == 'FeralFile') ...[
           Text(
               'The keys for this account are either automically backed up by Feral File or managed by your web3 wallet (if you connected one).',
-              style: appTextTheme.bodyText1),
+              style: theme.textTheme.bodyText1),
         ] else ...[
           Text(
               "The keys for this account are in $_source. You should manage your key backups there.",
-              style: appTextTheme.bodyText1),
+              style: theme.textTheme.bodyText1),
         ],
       ],
     );

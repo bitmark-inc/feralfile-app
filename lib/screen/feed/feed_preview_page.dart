@@ -19,7 +19,7 @@ import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/theme_manager.dart';
+
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:flutter/material.dart';
@@ -29,6 +29,7 @@ import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:nft_rendering/nft_rendering.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:wakelock/wakelock.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 
 class FeedPreviewPage extends StatefulWidget {
   const FeedPreviewPage({Key? key}) : super(key: key);
@@ -117,8 +118,9 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: theme.colorScheme.primary,
       body: BlocConsumer<FeedBloc, FeedState>(listener: (context, state) {
         if (state.isFinishedOnBoarding()) {
           setMaxTimeToken();
@@ -150,39 +152,38 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
 
         return Column(
           children: [
-        Expanded(
-          child: Stack(
-            children: [
-              GestureDetector(
-                behavior: HitTestBehavior.translucent,
-                onHorizontalDragEnd: (dragEndDetails) {
-                  if (dragEndDetails.primaryVelocity! < -300) {
-                    _disposeCurrentDisplay();
-                    context.read<FeedBloc>().add(MoveToNextFeedEvent());
-                  } else if (dragEndDetails.primaryVelocity! > 300) {
-                    _disposeCurrentDisplay();
-                    context.read<FeedBloc>().add(MoveToPreviousFeedEvent());
-                  }
-                },
-                child: Container(
-                  color: Colors.black,
-                  child: Center(
-                      child: state.isFinishedOnBoarding()
-                          ? _getArtworkPreviewView(state.viewingToken)
-                          : _getOnBoardingView(state.onBoardingStep)),
-                ),
+            Expanded(
+              child: Stack(
+                children: [
+                  GestureDetector(
+                    behavior: HitTestBehavior.translucent,
+                    onHorizontalDragEnd: (dragEndDetails) {
+                      if (dragEndDetails.primaryVelocity! < -300) {
+                        _disposeCurrentDisplay();
+                        context.read<FeedBloc>().add(MoveToNextFeedEvent());
+                      } else if (dragEndDetails.primaryVelocity! > 300) {
+                        _disposeCurrentDisplay();
+                        context.read<FeedBloc>().add(MoveToPreviousFeedEvent());
+                      }
+                    },
+                    child: Container(
+                      color: theme.colorScheme.primary,
+                      child: Center(
+                          child: state.isFinishedOnBoarding()
+                              ? _getArtworkPreviewView(state.viewingToken)
+                              : _getOnBoardingView(state.onBoardingStep)),
+                    ),
+                  ),
+                  Align(
+                    alignment: Alignment.topCenter,
+                    child: state.isFinishedOnBoarding()
+                        ? _controlView(
+                            state.viewingFeedEvent!, state.viewingToken)
+                        : _controlViewOnBoarding(),
+                  ),
+                ],
               ),
-              // ),
-              Align(
-                alignment: Alignment.topCenter,
-                child: state.isFinishedOnBoarding()
-                    ? _controlView(
-                        state.viewingFeedEvent!, state.viewingToken)
-                    : _controlViewOnBoarding(),
-              ),
-            ],
-          ),
-        ),
+            ),
           ],
         );
       }),
@@ -197,17 +198,16 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
         event.recipient.toIdentityOrMask(identityState.identityMap) ??
             event.recipient;
 
-    final theme = AuThemeManager.get(AppTheme.previewNFTTheme);
-
+    final theme = Theme.of(context);
     return Container(
-      color: Colors.black,
+      color: theme.colorScheme.primary,
       height: safeAreaTop + 52,
       padding: EdgeInsets.fromLTRB(15, safeAreaTop, 15, 0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           SvgPicture.asset("assets/images/iconInfo.svg",
-              color: AppColorTheme.secondarySpanishGrey),
+              color: AppColor.secondarySpanishGrey),
           const SizedBox(width: 13),
           Expanded(
             child: Column(
@@ -218,26 +218,26 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
                   Flexible(
                     child: Text(
                       followingName,
-                      style: theme.textTheme.bodyText1,
+                      style: theme.textTheme.atlasWhiteBold12,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  Text(" • ", style: theme.textTheme.bodyText2),
+                  Text(" • ", style: theme.primaryTextTheme.headline5),
                   Text(getDateTimeRepresentation(event.timestamp.toLocal()),
-                      style: theme.textTheme.bodyText2),
+                      style: theme.primaryTextTheme.headline5),
                 ]),
                 const SizedBox(height: 4),
                 RichText(
                     overflow: TextOverflow.ellipsis,
                     text: TextSpan(
-                      style: theme.textTheme.bodyText2,
+                      style: theme.primaryTextTheme.headline5,
                       children: <TextSpan>[
                         TextSpan(
                           text: '${event.actionRepresentation} ',
                         ),
                         TextSpan(
                           text: 'nft currently indexing...',
-                          style: theme.textTheme.caption,
+                          style: theme.textTheme.atlasWhiteItalic12,
                         ),
                       ],
                     )),
@@ -253,16 +253,16 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
 
   Widget _controlViewOnBoarding() {
     final safeAreaTop = MediaQuery.of(context).padding.top;
-    final theme = AuThemeManager.get(AppTheme.previewNFTTheme);
-
+    final theme = Theme.of(context);
     return Container(
-      color: Colors.black,
+      color: theme.colorScheme.primary,
       height: MediaQuery.of(context).padding.top + 52,
       padding: EdgeInsets.fromLTRB(15, safeAreaTop, 15, 0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          SvgPicture.asset("assets/images/iconFeed.svg", color: Colors.white),
+          SvgPicture.asset("assets/images/iconFeed.svg",
+              color: theme.colorScheme.secondary),
           const SizedBox(width: 13),
           Expanded(
             child: Column(
@@ -271,13 +271,13 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
               children: [
                 Text(
                   "Autonomy",
-                  style: theme.textTheme.bodyText1,
+                  style: theme.textTheme.atlasWhiteBold12,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),
                 Text(
                   "introducing Discovery",
-                  style: theme.textTheme.bodyText2,
+                  style: theme.primaryTextTheme.headline5,
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
@@ -303,10 +303,9 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
             event.recipient;
     final artistName =
         asset.artistName?.toIdentityOrMask(identityState.identityMap);
-    final theme = AuThemeManager.get(AppTheme.previewNFTTheme);
-
+    final theme = Theme.of(context);
     return Container(
-      color: Colors.black,
+      color: theme.colorScheme.primary,
       height: safeAreaTop + 52,
       padding: EdgeInsets.fromLTRB(15, safeAreaTop, 15, 0),
       child: GestureDetector(
@@ -315,7 +314,8 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            SvgPicture.asset("assets/images/iconInfo.svg", color: Colors.white),
+            SvgPicture.asset("assets/images/iconInfo.svg",
+                color: theme.colorScheme.secondary),
             const SizedBox(width: 13),
             Expanded(
               child: Column(
@@ -326,32 +326,32 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
                     Flexible(
                       child: Text(
                         followingName,
-                        style: theme.textTheme.bodyText1,
+                        style: theme.textTheme.atlasWhiteBold12,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    Text(" • ", style: theme.textTheme.bodyText2),
+                    Text(" • ", style: theme.primaryTextTheme.headline5),
                     Text(getDateTimeRepresentation(event.timestamp.toLocal()),
-                        style: theme.textTheme.bodyText2),
+                        style: theme.primaryTextTheme.headline5),
                   ]),
                   const SizedBox(height: 4),
                   RichText(
                       overflow: TextOverflow.ellipsis,
                       text: TextSpan(
-                        style: theme.textTheme.bodyText2,
+                        style: theme.primaryTextTheme.headline5,
                         children: <TextSpan>[
                           TextSpan(
                             text: '${event.actionRepresentation} ',
                           ),
                           TextSpan(
                             text: asset.title.isEmpty ? 'nft' : asset.title,
-                            style: theme.textTheme.caption,
+                            style: theme.textTheme.atlasWhiteItalic12,
                           ),
                           if (event.action == 'transfer' &&
                               artistName != null) ...[
                             TextSpan(
                                 text: ' by $artistName',
-                                style: theme.textTheme.bodyText2),
+                                style: theme.primaryTextTheme.headline5),
                           ]
                         ],
                       )),
@@ -385,6 +385,8 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
   }
 
   Widget _getOnBoardingView(int step) {
+    final theme = Theme.of(context);
+
     final String assetPath;
     final String title;
 
@@ -411,7 +413,7 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
           Text(
             title,
             textAlign: TextAlign.center,
-            style: appTextTheme.headline2?.copyWith(color: Colors.white),
+            style: theme.primaryTextTheme.headline2,
           ),
           const SizedBox(height: 24),
           Image.asset(
@@ -430,7 +432,7 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
       final screenWidth = MediaQuery.of(context).size.width;
       final screenHeight = MediaQuery.of(context).size.height;
       return Container(
-        color: AppColorTheme.secondarySpanishGrey,
+        color: AppColor.secondarySpanishGrey,
         width: screenWidth,
         height: screenHeight * 0.55,
       );
@@ -451,6 +453,7 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
 
   Widget _emptyOrLoadingDiscoveryWidget(AppFeedData? appFeedData) {
     double safeAreaTop = MediaQuery.of(context).padding.top;
+    final theme = Theme.of(context);
 
     return Padding(
       padding: pageEdgeInsets.copyWith(top: safeAreaTop + 6, right: 15),
@@ -466,15 +469,17 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
           const SizedBox(height: 24),
           Text(
             "Discovery",
-            style: appTextTheme.headline1?.copyWith(color: Colors.white),
+            style: theme.primaryTextTheme.headline1,
           ),
           const SizedBox(height: 48),
           if (appFeedData == null) ...[
-            Center(child: loadingIndicator(valueColor: Colors.white)),
+            Center(
+                child:
+                    loadingIndicator(valueColor: theme.colorScheme.secondary)),
           ] else if (appFeedData.events.isEmpty) ...[
             Text(
               'Your favorite artists haven’t created or collected anything new yet. Once they do, you can view it here.',
-              style: appTextTheme.bodyText1?.copyWith(color: Colors.white),
+              style: theme.primaryTextTheme.bodyText1,
             )
           ]
         ],

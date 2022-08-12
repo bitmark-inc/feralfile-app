@@ -40,7 +40,7 @@ class FeralfileBloc extends AuBloc<FeralFileEvent, FeralFileState> {
     return FeralfileBloc(injector(), injector());
   }
 
-  FeralfileBloc( this._feralFileService, this._cloudDB)
+  FeralfileBloc(this._feralFileService, this._cloudDB)
       : super(FeralFileState()) {
     on<GetFFAccountInfoEvent>((event, emit) async {
       try {
@@ -129,9 +129,7 @@ class FeralfileBloc extends AuBloc<FeralFileEvent, FeralFileState> {
       if (ffConnection != null) {
         await _cloudDB.connectionDao.deleteConnection(ffConnection);
       }
-      emit(state.copyWith(
-          event: FFUnlinked()
-      ));
+      emit(state.copyWith(event: FFUnlinked()));
     });
   }
 

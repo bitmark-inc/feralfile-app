@@ -6,7 +6,6 @@
 //
 
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/material.dart';
@@ -18,6 +17,8 @@ class SurveyThankyouPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: getBackAppBar(
         context,
@@ -30,12 +31,12 @@ class SurveyThankyouPage extends StatelessWidget {
           children: [
             Text(
               "Thank you!",
-              style: appTextTheme.headline1,
+              style: theme.textTheme.headline1,
             ),
             const SizedBox(height: 40.0),
             Text(
                 "You’ve been automatically entered in this month’s drawing to win a Feral File artwork. If you win, we’ll transfer the NFT to your Autonomy account and notify you.",
-                style: appTextTheme.bodyText1),
+                style: theme.textTheme.bodyText1),
             const Spacer(),
             AuFilledButton(
                 text: "Continue",

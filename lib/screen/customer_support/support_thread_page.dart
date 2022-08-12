@@ -26,9 +26,9 @@ import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart' as log_util;
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/theme_manager.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 
 abstract class SupportThreadPayload {}
 
@@ -169,7 +169,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
 
   void _askForAttachCrashLog(BuildContext context,
       {required void Function(bool attachCrashLog) onConfirm}) {
-    final theme = AuThemeManager.get(AppTheme.sheetTheme);
+    final theme = Theme.of(context);
     UIHelper.showDialog(
       context,
       "Attach crash log?",
@@ -178,24 +178,17 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
         children: [
           Text(
               "Would you like to attach a crash log with your support request? The crash log is anonymous and will help our engineers identify the issue.",
-              style: theme.textTheme.bodyText1),
+              style: theme.primaryTextTheme.bodyText1),
           const SizedBox(height: 40),
           AuFilledButton(
             text: "ATTACH CRASH LOG",
-            color: theme.primaryColor,
-            textStyle: TextStyle(
-                color: theme.backgroundColor,
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                fontFamily: "IBMPlexMono"),
+            color: theme.colorScheme.secondary,
+            textStyle: theme.textTheme.button,
             onPress: () => onConfirm(true),
           ),
           AuFilledButton(
             text: "CONTINUE WITHOUT CRASH LOG",
-            textStyle: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                fontFamily: "IBMPlexMono"),
+            textStyle: theme.primaryTextTheme.button,
             onPress: () => onConfirm(false),
           ),
           const SizedBox(height: 40),
@@ -256,8 +249,8 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     required nextMessageInGroup,
   }) {
     var color = _user.id != message.author.id
-        ? AppColorTheme.chatSecondaryColor
-        : AppColorTheme.chatPrimaryColor;
+        ? AppColor.chatSecondaryColor
+        : AppColor.chatPrimaryColor;
 
     if (message.type == types.MessageType.image) {
       color = Colors.transparent;
@@ -279,36 +272,31 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
 
   Widget _customMessageBuilder(types.CustomMessage message,
       {required int messageWidth}) {
+    final theme = Theme.of(context);
     switch (message.metadata?["status"]) {
       case "resolved":
         return Container(
           padding: const EdgeInsets.symmetric(vertical: 14),
-          color: AppColorTheme.chatSecondaryColor,
-          child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text(
-                    "Issue resolved.\nOur team thanks you for helping us improve Autonomy.",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontFamily: "AtlasGrotesk-Bold",
-                        fontWeight: FontWeight.w700,
-                        height: 1.377)),
-                const SizedBox(height: 24),
-                TextButton(
-                    onPressed: () {
-                      setState(() {
-                        _status = "clickToReopen";
-                      });
-                    },
-                    style: textButtonNoPadding,
-                    child: Text("Still experiencing the same problem?",
-                        style: whitelinkStyle.copyWith(
-                          fontWeight: FontWeight.w500,
-                        ))),
-              ]),
+          color: AppColor.chatSecondaryColor,
+          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+            Text(
+                "Issue resolved.\nOur team thanks you for helping us improve Autonomy.",
+                textAlign: TextAlign.center,
+                style: theme.textTheme.atlasWhiteBold14),
+            const SizedBox(height: 24),
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  _status = "clickToReopen";
+                });
+              },
+              style: theme.textButtonNoPadding,
+              child: Text(
+                "Still experiencing the same problem?",
+                style: theme.textTheme.whitelinkStyle,
+              ),
+            ),
+          ]),
         );
 
       default:
@@ -446,7 +434,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   }
 
   void _handleAtachmentPressed() {
-    final theme = AuThemeManager.get(AppTheme.sheetTheme);
+    final theme = Theme.of(context);
 
     UIHelper.showDialog(
       context,
@@ -455,33 +443,32 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           TextButton(
-            style: textButtonNoPadding,
+            style: theme.textButtonNoPadding,
             onPressed: () {
               _handleImageSelection();
               Navigator.of(context).pop();
             },
             child: Align(
               alignment: Alignment.centerLeft,
-              child: Text('Photo', style: theme.textTheme.headline4),
+              child: Text('Photo', style: theme.primaryTextTheme.headline4),
             ),
           ),
           addDialogDivider(),
           TextButton(
-            style: textButtonNoPadding,
+            style: theme.textButtonNoPadding,
             onPressed: () async {
               await _addAppLogs();
             },
             child: Align(
               alignment: Alignment.centerLeft,
-              child: Text('Debug log', style: theme.textTheme.headline4),
+              child: Text('Debug log', style: theme.primaryTextTheme.headline4),
             ),
           ),
           const SizedBox(height: 40),
           Align(
             child: TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: Text("CANCEL",
-                  style: theme.textTheme.button?.copyWith(color: Colors.white)),
+              child: Text("CANCEL", style: theme.primaryTextTheme.button),
             ),
           ),
           const SizedBox(height: 15),
@@ -605,65 +592,48 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   }
 
   DefaultChatTheme get _chatTheme {
+    final theme = Theme.of(context);
     return DefaultChatTheme(
       messageInsetsVertical: 14,
       messageInsetsHorizontal: 14,
       inputPadding: const EdgeInsets.fromLTRB(0, 24, 0, 20),
       backgroundColor: Colors.transparent,
-      inputBackgroundColor: Colors.black,
-      inputTextStyle: appTextTheme.bodyText1!,
+      inputBackgroundColor: theme.colorScheme.primary,
+      inputTextStyle: theme.textTheme.bodyText1!,
+      inputTextColor: theme.colorScheme.secondary,
       attachmentButtonIcon: SvgPicture.asset(
         "assets/images/joinFile.svg",
-        color: Colors.white,
+        color: theme.colorScheme.secondary,
       ),
       inputBorderRadius: BorderRadius.zero,
       sendButtonIcon: SvgPicture.asset(
         _sendIcon,
       ),
-      inputTextCursorColor: Colors.white,
-      emptyChatPlaceholderTextStyle: appTextTheme.headline4!
-          .copyWith(color: AppColorTheme.secondarySpanishGrey),
+      inputTextCursorColor: theme.colorScheme.secondary,
+      emptyChatPlaceholderTextStyle: theme.textTheme.headline4!
+          .copyWith(color: AppColor.secondarySpanishGrey),
       dateDividerMargin: const EdgeInsets.symmetric(vertical: 12),
-      dateDividerTextStyle: const TextStyle(
-          color: AppColorTheme.chatDateDividerColor,
-          fontSize: 12,
-          fontFamily: "AtlasGrotesk",
-          height: 1.377),
+      dateDividerTextStyle: theme.textTheme.dateDividerTextStyle,
       primaryColor: Colors.transparent,
-      sentMessageBodyTextStyle: const TextStyle(
-          color: Colors.black,
-          fontSize: 14,
-          fontFamily: "AtlasGrotesk",
-          height: 1.377),
-      secondaryColor: AppColorTheme.chatSecondaryColor,
-      receivedMessageBodyTextStyle: const TextStyle(
-          color: Colors.white,
-          fontSize: 14,
-          fontFamily: "AtlasGrotesk",
-          height: 1.377),
-      receivedMessageDocumentIconColor: Colors.white,
+      sentMessageBodyTextStyle: theme.textTheme.sentMessageBodyTextStyle,
+      secondaryColor: AppColor.chatSecondaryColor,
+      receivedMessageBodyTextStyle:
+          theme.textTheme.receivedMessageBodyTextStyle,
+      receivedMessageDocumentIconColor: theme.colorScheme.secondary,
+      sentMessageDocumentIconColor: theme.colorScheme.secondary,
       documentIcon: Image.asset(
         "assets/images/chatFileIcon.png",
         width: 20,
       ),
-      sentMessageCaptionTextStyle: const TextStyle(
-          color: Colors.black,
-          fontSize: 14,
-          fontWeight: FontWeight.w300,
-          fontFamily: "AtlasGrotesk-Light",
-          height: 1.377),
-      receivedMessageCaptionTextStyle: const TextStyle(
-          color: Colors.white,
-          fontSize: 14,
-          fontWeight: FontWeight.w300,
-          fontFamily: "AtlasGrotesk-Light",
-          height: 1.377),
+      sentMessageCaptionTextStyle: theme.textTheme.sentMessageCaptionTextStyle,
+      receivedMessageCaptionTextStyle:
+          theme.textTheme.receivedMessageCaptionTextStyle,
       sendingIcon: Container(
         width: 16,
         height: 12,
         padding: const EdgeInsets.only(left: 3),
         child: const CircularProgressIndicator(
-          color: AppColorTheme.secondarySpanishGrey,
+          color: AppColor.secondarySpanishGrey,
           strokeWidth: 2,
         ),
       ),

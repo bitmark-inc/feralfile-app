@@ -130,6 +130,8 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
   }
 
   Widget _backHeaderWidget() {
+    final theme = Theme.of(context);
+
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: () => Navigator.of(context).pop(),
@@ -143,7 +145,7 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
                 const SizedBox(width: 7),
                 Text(
                   "BACK",
-                  style: appTextTheme.caption,
+                  style: theme.textTheme.button,
                 ),
               ],
             ),

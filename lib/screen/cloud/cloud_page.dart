@@ -39,6 +39,8 @@ class CloudPage extends StatelessWidget {
   }
 
   Widget _contentWidget(BuildContext context) {
+    final theme = Theme.of(context);
+
     return ValueListenableBuilder<bool>(
         valueListenable: injector<CloudService>().isAvailableNotifier,
         builder: (BuildContext context, bool isAvailable, Widget? child) {
@@ -54,12 +56,12 @@ class CloudPage extends StatelessWidget {
                         children: [
                           Text(
                             isAvailable ? "Backed up" : "Sign in to iCloud",
-                            style: appTextTheme.headline1,
+                            style: theme.textTheme.headline1,
                           ),
                           addTitleSpace(),
                           Text(
                             "Autonomy will automatically back up all of your account information securely, including cryptographic material from accounts you manage as well as links to your accounts. If you ever lose your phone, you will be able to recover everything.",
-                            style: appTextTheme.bodyText1,
+                            style: theme.textTheme.bodyText1,
                           ),
                           if (isAvailable) ...[
                             const SizedBox(height: 40),
@@ -70,7 +72,7 @@ class CloudPage extends StatelessWidget {
                             const SizedBox(height: 16),
                             Text(
                               "iCloud is currently turned off on your device. We recommend you enable it so we can safely back up your account.",
-                              style: appTextTheme.headline4,
+                              style: theme.textTheme.headline4,
                             ),
                             SizedBox(height: section == "settings" ? 40 : 80),
                             Center(
@@ -89,6 +91,7 @@ class CloudPage extends StatelessWidget {
   }
 
   Widget _buttonsGroup(BuildContext context, bool isAvailable) {
+    final theme = Theme.of(context);
     switch (section) {
       case "nameAlias":
         if (isAvailable) {
@@ -118,8 +121,7 @@ class CloudPage extends StatelessWidget {
               TextButton(
                   onPressed: () => openAppSettings(),
                   child: Text("OPEN ICLOUD SETTINGS",
-                      style:
-                          appTextTheme.button?.copyWith(color: Colors.black))),
+                      style: theme.textTheme.button)),
             ],
           );
         }
