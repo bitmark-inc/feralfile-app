@@ -5,7 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:flutter/material.dart';
 
 class AuTextField extends StatelessWidget {
@@ -38,13 +38,14 @@ class AuTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Expanded(
         flex: expanded ? 1 : 0,
         child: Container(
             padding: const EdgeInsets.only(top: 8.0, left: 8.0, bottom: 8.0),
             decoration: BoxDecoration(
                 border: Border.all(
-                    color: isError ? AppColorTheme.errorColor : Colors.black)),
+                    color: isError ? AppColor.red : theme.colorScheme.primary)),
             child: Row(
               children: [
                 Expanded(
@@ -56,21 +57,13 @@ class AuTextField extends StatelessWidget {
                           if (title.isNotEmpty) ...[
                             Text(
                               title,
-                              style: const TextStyle(
-                                  fontSize: 12,
-                                  fontFamily: "AtlasGrotesk",
-                                  color: AppColorTheme.secondaryHeaderColor,
-                                  fontWeight: FontWeight.w700),
+                              style: theme.textTheme.atlasGreyBold12,
                             ),
                           ],
                           subTitleView != null
-                              ? const Text(
+                              ? Text(
                                   " | ",
-                                  style: TextStyle(
-                                      fontSize: 12,
-                                      fontFamily: "AtlasGrotesk",
-                                      color: AppColorTheme.secondaryHeaderColor,
-                                      fontWeight: FontWeight.w300),
+                                  style: theme.textTheme.atlasGreyNormal12,
                                 )
                               : const SizedBox(),
                           subTitleView ?? const SizedBox(),
@@ -92,6 +85,7 @@ class AuTextField extends StatelessWidget {
   }
 
   Widget _textFieldWidget(BuildContext context) {
+    final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
       child: TextField(
@@ -101,19 +95,10 @@ class AuTextField extends StatelessWidget {
           border: InputBorder.none,
           hintText: placeholder,
           hintMaxLines: hintMaxLines,
-          hintStyle: const TextStyle(
-            fontSize: 16,
-            fontFamily: "AtlasGrotesk",
-          ),
+          hintStyle: theme.textTheme.atlasSpanishGreyNormal16,
         ),
         keyboardType: keyboardType,
-        style: const TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w300,
-          // height: 1.2,
-          fontFamily: "IBMPlexMono",
-          color: Colors.black,
-        ),
+        style: theme.textTheme.subtitle1,
         controller: controller,
         onChanged: onChanged,
         onSubmitted: onChanged,

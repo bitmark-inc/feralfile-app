@@ -201,6 +201,8 @@ class _WCConnectPageState extends State<WCConnectPage>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: getBackAppBar(
         context,
@@ -211,7 +213,7 @@ class _WCConnectPageState extends State<WCConnectPage>
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(
             "Connect",
-            style: appTextTheme.headline1,
+            style: theme.textTheme.headline1,
           ),
           const SizedBox(height: 24.0),
           _appInfo(),
@@ -223,8 +225,8 @@ class _WCConnectPageState extends State<WCConnectPage>
               children: [
                 ...grantPermissions
                     .map(
-                      (permission) =>
-                          Text("• $permission", style: appTextTheme.bodyText1),
+                      (permission) => Text("• $permission",
+                          style: theme.textTheme.bodyText1),
                     )
                     .toList(),
               ],
@@ -279,6 +281,8 @@ class _WCConnectPageState extends State<WCConnectPage>
   }
 
   Widget _wcAppInfo(WCPeerMeta peerMeta) {
+    final theme = Theme.of(context);
+
     return Column(
       children: [
         Row(
@@ -306,10 +310,10 @@ class _WCConnectPageState extends State<WCConnectPage>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(peerMeta.name, style: appTextTheme.headline4),
+                  Text(peerMeta.name, style: theme.textTheme.headline4),
                   Text(
                     "requests permission to:",
-                    style: appTextTheme.bodyText1,
+                    style: theme.textTheme.bodyText1,
                   ),
                 ],
               ),
@@ -321,6 +325,8 @@ class _WCConnectPageState extends State<WCConnectPage>
   }
 
   Widget _tbAppInfo(BeaconRequest request) {
+    final theme = Theme.of(context);
+
     return Column(
       children: [
         Row(
@@ -346,10 +352,10 @@ class _WCConnectPageState extends State<WCConnectPage>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(request.appName ?? "", style: appTextTheme.headline4),
+                  Text(request.appName ?? "", style: theme.textTheme.headline4),
                   Text(
                     "requests permission to:",
-                    style: appTextTheme.bodyText1,
+                    style: theme.textTheme.bodyText1,
                   ),
                 ],
               ),
@@ -362,13 +368,14 @@ class _WCConnectPageState extends State<WCConnectPage>
 
   Widget _selectPersonaWidget(List<Persona> personas) {
     bool hasRadio = personas.length > 1;
+    final theme = Theme.of(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           "Select an account to grant access:",
-          style: appTextTheme.headline4,
+          style: theme.textTheme.headline4,
         ),
         const SizedBox(height: 16.0),
         Expanded(
@@ -387,7 +394,7 @@ class _WCConnectPageState extends State<WCConnectPage>
                                         "assets/images/autonomyIcon.png")),
                                 const SizedBox(width: 16.0),
                                 Text(persona.name,
-                                    style: appTextTheme.headline4)
+                                    style: theme.textTheme.headline4)
                               ],
                             ),
                             contentPadding: EdgeInsets.zero,
@@ -395,7 +402,7 @@ class _WCConnectPageState extends State<WCConnectPage>
                                 ? Transform.scale(
                                     scale: 1.2,
                                     child: Radio(
-                                      activeColor: Colors.black,
+                                      activeColor: theme.colorScheme.primary,
                                       value: persona,
                                       groupValue: selectedPersona,
                                       onChanged: (Persona? value) {
@@ -429,6 +436,8 @@ class _WCConnectPageState extends State<WCConnectPage>
   }
 
   Widget _suggestToCreatePersona() {
+    final theme = Theme.of(context);
+
     return BlocConsumer<PersonaBloc, PersonaState>(
       listener: (context, state) {
         switch (state.createAccountState) {
@@ -457,15 +466,16 @@ class _WCConnectPageState extends State<WCConnectPage>
                 children: [
                   Text(
                       'This service requires a full Autonomy account to connect to the dapp.',
-                      style: appTextTheme.bodyText1),
+                      style: theme.textTheme.bodyText1),
                   const SizedBox(height: 24),
-                  Text('Would you like to generate a full Autonomy account?',
-                      style: appTextTheme.bodyText1
-                          ?.copyWith(fontWeight: FontWeight.bold)),
+                  Text(
+                    'Would you like to generate a full Autonomy account?',
+                    style: theme.textTheme.headline4,
+                  ),
                   const SizedBox(height: 24),
                   Text(
                       'The newly generated account would also get an address for each of the chains that we support.',
-                      style: appTextTheme.bodyText1),
+                      style: theme.textTheme.bodyText1),
                 ],
               ),
             ),

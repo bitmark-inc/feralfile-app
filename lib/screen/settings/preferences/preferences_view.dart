@@ -6,6 +6,7 @@
 //
 
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_state.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -19,6 +20,7 @@ class PreferenceView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     context.read<PreferencesBloc>().add(PreferenceInfoEvent());
+    final theme = Theme.of(context);
 
     return BlocBuilder<PreferencesBloc, PreferenceState>(
         builder: (context, state) {
@@ -27,7 +29,7 @@ class PreferenceView extends StatelessWidget {
         children: [
           Text(
             "Preferences",
-            style: appTextTheme.headline1,
+            style: theme.textTheme.headline1,
           ),
           const SizedBox(height: 24),
           _preferenceItem(
@@ -78,12 +80,13 @@ class PreferenceView extends StatelessWidget {
               children: [
                 Text(
                   "Contribute anonymized, aggregate usage data to help improve Autonomy.",
-                  style: appTextTheme.bodyText1,
+                  style: theme.textTheme.bodyText1,
                 ),
                 const SizedBox(height: 10),
                 GestureDetector(
-                    child: const Text("Learn how we anonymize your data...",
-                        textAlign: TextAlign.left, style: linkStyle),
+                    child: Text("Learn how we anonymize your data...",
+                        textAlign: TextAlign.left,
+                        style: theme.textTheme.linkStyle),
                     onTap: () => Navigator.of(context).pushNamed(
                           AppRouter.githubDocPage,
                           arguments: {
@@ -107,8 +110,11 @@ class PreferenceView extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text("Hidden artworks", style: appTextTheme.headline4),
-                      const Icon(Icons.navigate_next, color: Colors.black),
+                      Text("Hidden artworks", style: theme.textTheme.headline4),
+                      Icon(
+                        Icons.navigate_next,
+                        color: theme.colorScheme.primary,
+                      ),
                     ],
                   ),
                   onTap: () {
@@ -124,24 +130,26 @@ class PreferenceView extends StatelessWidget {
 
   Widget _preferenceItem(BuildContext context, String title, String description,
       bool isEnabled, ValueChanged<bool> onChanged) {
+    final theme = Theme.of(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(title, style: appTextTheme.headline4),
+            Text(title, style: theme.textTheme.headline4),
             CupertinoSwitch(
               value: isEnabled,
               onChanged: onChanged,
-              activeColor: Colors.black,
+              activeColor: theme.colorScheme.primary,
             )
           ],
         ),
         const SizedBox(height: 7),
         Text(
           description,
-          style: appTextTheme.bodyText1,
+          style: theme.textTheme.bodyText1,
         ),
       ],
     );
@@ -151,17 +159,19 @@ class PreferenceView extends StatelessWidget {
       {bool isEnabled = false,
       WidgetBuilder? description,
       ValueChanged<bool>? onChanged}) {
+    final theme = Theme.of(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(title, style: appTextTheme.headline4),
+            Text(title, style: theme.textTheme.headline4),
             CupertinoSwitch(
               value: isEnabled,
               onChanged: onChanged,
-              activeColor: Colors.black,
+              activeColor: theme.colorScheme.primary,
             )
           ],
         ),

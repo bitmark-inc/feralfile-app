@@ -12,7 +12,6 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/theme_manager.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -25,6 +24,7 @@ import 'package:nft_rendering/nft_rendering.dart';
 // ignore: depend_on_referenced_packages
 import 'package:path/path.dart' as p;
 import 'package:url_launcher/url_launcher.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 
 import '../common/injector.dart';
 
@@ -55,8 +55,7 @@ Widget tokenThumbnailWidget(BuildContext context, AssetToken token) {
             errorWidget: (context, url, error) => Container(
               color: const Color.fromRGBO(227, 227, 227, 1),
               padding: const EdgeInsets.symmetric(vertical: 133),
-              child: brokenTokenWidget(
-                  context, AuThemeManager.anyProblemNFTTheme.textTheme, token),
+              child: brokenTokenWidget(context, token),
             ),
           ),
   );
@@ -112,7 +111,7 @@ Widget reportNFTProblemContainer(
     height: isShowingArtwortReportProblemContainer ? 62 : 0,
     child: AnyProblemNFTWidget(
       asset: token,
-      theme: AuThemeManager.get(AppTheme.anyProblemNFTTheme),
+      // theme: AuThemeManager.get(AppTheme.anyProblemNFTTheme),
     ),
   );
 }
@@ -146,29 +145,29 @@ INFTRenderingWidget buildRenderingWidget(
   renderingWidget.setRenderWidgetBuilder(RenderingWidgetBuilder(
     previewURL: token.previewURL,
     thumbnailURL: token.thumbnailURL,
-    loadingWidget: previewPlaceholder,
-    errorWidget: brokenTokenWidget(
-        context, AuThemeManager.anyProblemNFTDarkTheme.textTheme, token),
+    loadingWidget: previewPlaceholder(context),
+    errorWidget: brokenTokenWidget(context, token),
     cacheManager: injector<AUCacheManager>(),
   ));
 
   return renderingWidget;
 }
 
-Widget brokenTokenWidget(
-    BuildContext context, TextTheme textTheme, AssetToken token) {
+Widget brokenTokenWidget(BuildContext context, AssetToken token) {
   injector<CustomerSupportService>().reportIPFSLoadingError(token);
+  final theme = Theme.of(context);
   return Center(
     child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-      Text('IPFS file failed to load.', style: textTheme.bodyText2),
+      Text('IPFS file failed to load.',
+          style: theme.textTheme.atlasGreyNormal12),
       TextButton(
         onPressed: () => showReportIssueDialog(context, token),
         style: TextButton.styleFrom(
             minimumSize: Size.zero,
             padding: const EdgeInsets.all(8),
             tapTargetSize: MaterialTapTargetSize.shrinkWrap),
-        child:
-            Text('Report issue?', style: makeLinkStyle(textTheme.bodyText2!)),
+        child: Text('Report issue?',
+            style: makeLinkStyle(theme.textTheme.atlasGreyNormal12)),
       ),
     ]),
   );
@@ -187,7 +186,7 @@ void showReportIssueDialog(BuildContext context, AssetToken token) {
 }
 
 void _showReportRenderingDialogSuccess(BuildContext context, String githubURL) {
-  final theme = AuThemeManager.get(AppTheme.sheetTheme);
+  final theme = Theme.of(context);
   UIHelper.showDialog(
     context,
     'Report received',
@@ -213,12 +212,8 @@ void _showReportRenderingDialogSuccess(BuildContext context, String githubURL) {
                   }
                   Navigator.of(context).pop();
                 },
-                color: theme.primaryColor,
-                textStyle: TextStyle(
-                    color: theme.backgroundColor,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    fontFamily: "IBMPlexMono"),
+                color: theme.colorScheme.secondary,
+                textStyle: theme.textTheme.button,
               ),
             ),
           ],
@@ -227,13 +222,9 @@ void _showReportRenderingDialogSuccess(BuildContext context, String githubURL) {
         Align(
           child: TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text(
+            child: Text(
               'CLOSE',
-              style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  fontFamily: "IBMPlexMono"),
+              style: theme.primaryTextTheme.button,
             ),
           ),
         ),
@@ -245,13 +236,16 @@ void _showReportRenderingDialogSuccess(BuildContext context, String githubURL) {
   );
 }
 
-Widget get previewPlaceholder {
+Widget previewPlaceholder(BuildContext context) {
+  final theme = Theme.of(context);
   return Center(
-    child: loadingIndicator(valueColor: Colors.white),
+    child: loadingIndicator(valueColor: theme.colorScheme.secondary),
   );
 }
 
-Widget debugInfoWidget(AssetToken? token) {
+Widget debugInfoWidget(BuildContext context, AssetToken? token) {
+  final theme = Theme.of(context);
+
   if (token == null) return const SizedBox();
 
   return FutureBuilder<bool>(
@@ -283,7 +277,7 @@ Widget debugInfoWidget(AssetToken? token) {
             addDivider(),
             Text(
               "DEBUG INFO",
-              style: appTextTheme.headline4,
+              style: theme.textTheme.headline4,
             ),
             _buildInfo('IndexerID', token.id),
             _buildInfo('galleryThumbnailURL', token.galleryThumbnailURL ?? ''),
@@ -319,12 +313,14 @@ Widget artworkDetailsValueSection(
 
 Widget artworkDetailsMetadataSection(
     BuildContext context, AssetToken asset, String? artistName) {
+  final theme = Theme.of(context);
+
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       Text(
         "Metadata",
-        style: appTextTheme.headline2,
+        style: theme.textTheme.headline2,
       ),
       const SizedBox(height: 16.0),
       _rowItem(context, "Title", asset.title),
@@ -392,6 +388,8 @@ Widget artworkDetailsProvenanceSectionNotEmpty(
     List<Provenance> provenances,
     HashSet<String> youAddresses,
     Map<String, String> identityMap) {
+  final theme = Theme.of(context);
+
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
@@ -401,7 +399,7 @@ Widget artworkDetailsProvenanceSectionNotEmpty(
         children: [
           Text(
             "Provenance",
-            style: appTextTheme.headline2,
+            style: theme.textTheme.headline2,
           ),
           const SizedBox(height: 23.0),
           ...provenances.map((el) {
@@ -430,27 +428,27 @@ Widget artworkDetailsProvenanceSectionNotEmpty(
 }
 
 Widget _artworkRightView(BuildContext context) {
+  final theme = Theme.of(context);
+
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       Text(
         "Rights",
-        style: appTextTheme.headline2,
+        style: theme.textTheme.headline2,
       ),
       const SizedBox(height: 16.0),
       Text(
         "Feral File protects artist and collector rights.",
-        style: appTextTheme.bodyText1,
+        style: theme.textTheme.bodyText1,
       ),
       const SizedBox(height: 18.0),
       TextButton(
-        style: textButtonNoPadding,
-        onPressed: () {
-          launchUrl(
-              Uri.parse("https://feralfile.com/docs/artist-collector-rights"));
-        },
+        style: theme.textButtonNoPadding,
+        onPressed: () => launchUrl(
+            Uri.parse("https://feralfile.com/docs/artist-collector-rights")),
         child: Text('Learn more on the Artist + Collector Rights page...',
-            style: linkStyle.copyWith(
+            style: theme.textTheme.linkStyle.copyWith(
               fontWeight: FontWeight.w500,
             )),
       ),
@@ -495,13 +493,14 @@ Widget _valueView(
       roiText = "${roi >= 0 ? "+" : ""}${roi.toStringAsFixed(2)}%";
     }
   }
+  final theme = Theme.of(context);
 
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       Text(
         "Value",
-        style: appTextTheme.headline2,
+        style: theme.textTheme.headline2,
       ),
       if (assetPrice != null) ...[
         const SizedBox(height: 16.0),
@@ -533,13 +532,15 @@ Widget _valueView(
 }
 
 Widget _artworkRightItem(BuildContext context, String name, String body) {
+  final theme = Theme.of(context);
+
   return Column(
     children: [
       Row(
         children: [
           Text(
             name,
-            style: appTextTheme.headline4,
+            style: theme.textTheme.headline4,
           ),
         ],
       ),
@@ -547,7 +548,7 @@ Widget _artworkRightItem(BuildContext context, String name, String body) {
       Text(
         body,
         textAlign: TextAlign.start,
-        style: appTextTheme.bodyText1,
+        style: theme.textTheme.bodyText1,
       ),
     ],
   );
@@ -566,6 +567,7 @@ Widget _rowItem(BuildContext context, String name, String? value,
             ? LaunchMode.externalApplication
             : LaunchMode.platformDefault);
   }
+  final theme = Theme.of(context);
 
   return Row(
     crossAxisAlignment: CrossAxisAlignment.start,
@@ -577,12 +579,11 @@ Widget _rowItem(BuildContext context, String name, String? value,
           children: [
             GestureDetector(
               onTap: onNameTap,
-              child: Text(name, style: appTextTheme.headline4),
+              child: Text(name, style: theme.textTheme.headline4),
             ),
             if (subTitle != null) ...[
               const SizedBox(height: 2),
-              Text(subTitle,
-                  style: appTextTheme.headline4?.copyWith(fontSize: 12)),
+              Text(subTitle, style: theme.textTheme.atlasBlackBold12),
             ]
           ],
         ),
@@ -598,14 +599,9 @@ Widget _rowItem(BuildContext context, String name, String? value,
               child: Text(
                 value ?? "",
                 textAlign: TextAlign.end,
-                style: TextStyle(
-                    color: onValueTap != null
-                        ? Colors.black
-                        : const Color(0xFF828080),
-                    fontSize: 16,
-                    fontWeight: FontWeight.w300,
-                    fontFamily: "IBMPlexMono",
-                    height: 1.377),
+                style: onValueTap != null
+                    ? theme.textTheme.subtitle1
+                    : theme.textTheme.ibmGreyMediumNormal16,
               ),
             )),
             if (onValueTap != null) ...[
@@ -620,9 +616,10 @@ Widget _rowItem(BuildContext context, String name, String? value,
 }
 
 Widget previewCloseIcon(BuildContext context) {
+  final theme = Theme.of(context);
   return IconButton(
     onPressed: () => Navigator.of(context).pop(),
-    icon: closeIcon(color: Colors.white),
+    icon: closeIcon(color: theme.colorScheme.secondary),
     tooltip: "CloseArtwork",
   );
 }

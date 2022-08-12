@@ -14,7 +14,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/helpers.dart';
-import 'package:autonomy_flutter/util/theme_manager.dart';
+
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:flutter/foundation.dart';
@@ -121,15 +121,15 @@ class VersionService {
     final context = _navigationService.navigatorKey.currentContext;
     if (context == null) return;
 
-    final theme = AuThemeManager.get(AppTheme.sheetTheme);
+    final theme = Theme.of(context);
     await UIHelper.showDialog(
         context,
         "Update Required",
         Column(children: [
           Text(
               "There is a newer version available for download!"
-                  " Please update the app to continue.",
-              style: theme.textTheme.bodyText1),
+              " Please update the app to continue.",
+              style: theme.primaryTextTheme.bodyText1),
           const SizedBox(height: 35),
           Row(
             children: [
@@ -142,12 +142,8 @@ class VersionService {
                       launchUrl(uri, mode: LaunchMode.inAppWebView);
                     }
                   },
-                  color: theme.primaryColor,
-                  textStyle: TextStyle(
-                      color: theme.backgroundColor,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      fontFamily: "IBMPlexMono"),
+                  color: theme.colorScheme.secondary,
+                  textStyle: theme.textTheme.button,
                 ),
               ),
             ],

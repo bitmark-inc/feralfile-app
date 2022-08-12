@@ -17,6 +17,7 @@ class RecoveryPhrasePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final itemsEachRow = words.length ~/ 2;
+    final theme = Theme.of(context);
 
     return Scaffold(
       appBar: getBackAppBar(
@@ -26,8 +27,8 @@ class RecoveryPhrasePage extends StatelessWidget {
         },
       ),
       body: Container(
-        margin:
-            const EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
+        margin: const EdgeInsets.only(
+            top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -38,12 +39,12 @@ class RecoveryPhrasePage extends StatelessWidget {
                   children: [
                     Text(
                       "Your recovery phrase",
-                      style: appTextTheme.headline1,
+                      style: theme.textTheme.headline1,
                     ),
                     addTitleSpace(),
                     RichText(
                       text: TextSpan(
-                        style: appTextTheme.bodyText1,
+                        style: theme.textTheme.bodyText1,
                         children: const <TextSpan>[
                           TextSpan(
                             text:
@@ -51,8 +52,7 @@ class RecoveryPhrasePage extends StatelessWidget {
                           ),
                           TextSpan(
                               text: ' iCloud Keychain',
-                              style:
-                                  TextStyle(fontWeight: FontWeight.bold)),
+                              style: TextStyle(fontWeight: FontWeight.bold)),
                           TextSpan(
                             text:
                                 '. You may also back it up to use it in another BIP-39 standard wallet:',
@@ -63,14 +63,14 @@ class RecoveryPhrasePage extends StatelessWidget {
                     const SizedBox(height: 40),
                     Container(
                       decoration: BoxDecoration(
-                          border: Border.all()),
+                          border: Border.all(color: theme.colorScheme.primary)),
                       alignment: Alignment.center,
                       padding: const EdgeInsets.symmetric(vertical: 24),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          _buildRow(0, itemsEachRow),
-                          _buildRow(itemsEachRow, itemsEachRow)
+                          _buildRow(context, 0, itemsEachRow),
+                          _buildRow(context, itemsEachRow, itemsEachRow)
                         ],
                       ),
                     )
@@ -84,7 +84,9 @@ class RecoveryPhrasePage extends StatelessWidget {
     );
   }
 
-  Widget _buildRow(int offset, int itemsEachRow) {
+  Widget _buildRow(BuildContext context, int offset, int itemsEachRow) {
+    final theme = Theme.of(context);
+
     return Column(
       children: List.generate(itemsEachRow, (index) {
         final word = words[index + offset];
@@ -96,8 +98,8 @@ class RecoveryPhrasePage extends StatelessWidget {
                   width: 28,
                   alignment: Alignment.centerRight,
                   child: Text("${index + offset + 1}. ",
-                      style: appTextTheme.headline4)),
-              Text(word, style: appTextTheme.headline4),
+                      style: theme.textTheme.headline4)),
+              Text(word, style: theme.textTheme.headline4),
             ]),
             const SizedBox(height: 4),
           ]),

@@ -15,7 +15,7 @@ class UpgradeBoxView {
           children: [
             Text(
               "Get more Autonomy",
-              style: theme.textTheme.headline4,
+              style: theme.primaryTextTheme.headline4,
             ),
             BlocProvider.value(
               value: UpgradesBloc(injector(), injector()),
@@ -26,7 +26,7 @@ class UpgradeBoxView {
         const SizedBox(height: 16),
         Text(
           feature.description,
-          style: theme.textTheme.bodyText1,
+          style: theme.primaryTextTheme.bodyText1,
         ),
         const SizedBox(height: 16),
       ],
@@ -46,30 +46,28 @@ class _SubscribeView extends StatefulWidget {
 class _SubscribeViewState extends State<_SubscribeView> {
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     context.read<UpgradesBloc>().add(UpgradeQueryInfoEvent());
     return BlocBuilder<UpgradesBloc, UpgradeState>(builder: (context, state) {
       return SizedBox(
-          height: 24.0,
-          child: OutlinedButton(
-              style: OutlinedButton.styleFrom(
-                shape: const RoundedRectangleBorder(),
-                side: const BorderSide(color: Colors.white),
-                // maximumSize: Size.fromHeight(30)
-              ),
-              onPressed: () => UpgradesView.showSubscriptionDialog(
-                      context, state.productDetails?.price, widget.feature,
-                      (() {
-                    context.read<UpgradesBloc>().add(UpgradePurchaseEvent());
-                    Navigator.of(context).pop();
-                  })),
-              child: const Text(
-                "SUBSCRIBE",
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w300,
-                    fontFamily: "IBMPlexMono"),
-              )));
+        height: 24.0,
+        child: OutlinedButton(
+          style: OutlinedButton.styleFrom(
+            shape: const RoundedRectangleBorder(),
+            side: BorderSide(color: theme.colorScheme.secondary),
+            // maximumSize: Size.fromHeight(30)
+          ),
+          onPressed: () => UpgradesView.showSubscriptionDialog(
+              context, state.productDetails?.price, widget.feature, (() {
+            context.read<UpgradesBloc>().add(UpgradePurchaseEvent());
+            Navigator.of(context).pop();
+          })),
+          child: Text(
+            "SUBSCRIBE",
+            style: theme.primaryTextTheme.subtitle2,
+          ),
+        ),
+      );
     });
   }
 }

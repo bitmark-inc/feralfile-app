@@ -6,7 +6,6 @@
 //
 
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/theme_manager.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:flutter/material.dart';
@@ -30,24 +29,24 @@ class _ReleaseNotesPageState extends State<ReleaseNotesPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = AuThemeManager.get(AppTheme.sheetTheme);
+    final theme = Theme.of(context);
 
     return Container(
-      color: theme.backgroundColor,
+      color: theme.colorScheme.primary,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 32),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 40),
-          Text("What’s new?", style: theme.textTheme.headline1),
+          Text("What’s new?", style: theme.primaryTextTheme.headline1),
           const SizedBox(height: 40),
           Expanded(
             child: Markdown(
               data: widget.releaseNotes.replaceAll('\n', '\u3164\n'),
               softLineBreak: true,
               padding: const EdgeInsets.only(bottom: 50),
-              styleSheet: markDownBlackStyle,
+              styleSheet: markDownBlackStyle(context),
             ),
           ),
           const SizedBox(height: 35),
@@ -57,12 +56,8 @@ class _ReleaseNotesPageState extends State<ReleaseNotesPage> {
                 child: AuFilledButton(
                   text: "CLOSE",
                   onPress: () => Navigator.of(context).pop(),
-                  color: theme.primaryColor,
-                  textStyle: TextStyle(
-                      color: theme.backgroundColor,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      fontFamily: "IBMPlexMono"),
+                  color: theme.colorScheme.secondary,
+                  textStyle: theme.textTheme.button,
                 ),
               ),
             ],

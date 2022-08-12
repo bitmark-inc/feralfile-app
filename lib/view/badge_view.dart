@@ -6,6 +6,7 @@
 //
 
 import 'package:flutter/material.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 
 class BadgeView extends StatelessWidget {
   final int number;
@@ -13,23 +14,19 @@ class BadgeView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
         width: 16,
         height: 16,
         decoration: BoxDecoration(
-            color: Colors.black,
+            color: theme.colorScheme.primary,
             shape: BoxShape.circle,
-            border: Border.all(color: Colors.white)),
+            border: Border.all(color: theme.colorScheme.secondary)),
         alignment: Alignment.center,
         child: Text(
           '$number',
           textAlign: TextAlign.center,
-          style: const TextStyle(
-              color: Colors.white,
-              fontSize: 10,
-              fontFamily: "AtlasGrotesk",
-              fontWeight: FontWeight.w700,
-              height: 1.33),
+          style: theme.textTheme.atlasWhiteBold12,
         ));
   }
 }

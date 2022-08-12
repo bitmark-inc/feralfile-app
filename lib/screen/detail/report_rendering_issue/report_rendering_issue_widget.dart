@@ -8,11 +8,11 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
-import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/theme_manager.dart';
+
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:flutter/material.dart';
 import 'package:roundcheckbox/roundcheckbox.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 
 class ReportRenderingIssueWidget extends StatefulWidget {
   final AssetToken token;
@@ -33,8 +33,6 @@ class _ReportRenderingIssueWidgetState
   bool _isSubmissionEnabled = false;
   bool _isProcessing = false;
 
-  final theme = AuThemeManager.get(AppTheme.sheetTheme);
-
   @override
   Widget build(BuildContext context) {
     const topics = [
@@ -45,6 +43,7 @@ class _ReportRenderingIssueWidgetState
       'Metadata',
       'Provenance'
     ];
+    final theme = Theme.of(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -53,7 +52,7 @@ class _ReportRenderingIssueWidgetState
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text('Select a TOPIC BELOW:'.toUpperCase(),
-                style: theme.textTheme.headline5),
+                style: theme.primaryTextTheme.headline5),
             const SizedBox(height: 16),
             ListView.builder(
                 shrinkWrap: true,
@@ -70,16 +69,19 @@ class _ReportRenderingIssueWidgetState
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(topics[index],
-                                  style: theme.textTheme.headline4),
+                                  style: theme.primaryTextTheme.headline4),
                               RoundCheckBox(
                                   uncheckedColor: Colors.transparent,
-                                  checkedColor: Colors.white,
-                                  checkedWidget: const Icon(Icons.check,
-                                      color: Colors.black, size: 16),
+                                  checkedColor: theme.colorScheme.secondary,
+                                  checkedWidget: Icon(
+                                    Icons.check,
+                                    color: theme.colorScheme.primary,
+                                    size: 16,
+                                  ),
                                   animationDuration:
                                       const Duration(milliseconds: 100),
-                                  isChecked: _selectedTopices
-                                      .contains(topics[index]),
+                                  isChecked:
+                                      _selectedTopices.contains(topics[index]),
                                   size: 24,
                                   onTap: (_) => _selectTopics(topics[index])),
                             ],
@@ -87,7 +89,7 @@ class _ReportRenderingIssueWidgetState
                         ),
                       ),
                       if (index != topics.length - 1) ...[
-                        const Divider(height: 0, color: Colors.white),
+                        Divider(height: 0, color: theme.colorScheme.secondary),
                       ]
                     ],
                   );
@@ -100,23 +102,21 @@ class _ReportRenderingIssueWidgetState
                     text: "REPORT ISSUE",
                     onPress: () => _reportIssue(),
                     isProcessing: _isProcessing,
-                    color: theme.primaryColor,
-                    textStyle: TextStyle(
-                        color: _isSubmissionEnabled
-                            ? theme.backgroundColor
-                            : theme.disabledColor,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        fontFamily: "IBMPlexMono"),
+                    color: theme.colorScheme.secondary,
+                    textStyle: _isSubmissionEnabled
+                        ? theme.textTheme.button
+                        : theme.textTheme.ibmGreyBold14,
                   ),
                 ),
               ],
             ),
             TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text("CANCEL",
-                    style:
-                        appTextTheme.button?.copyWith(color: Colors.white))),
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                "CANCEL",
+                style: theme.primaryTextTheme.button,
+              ),
+            ),
           ],
         ),
       ],

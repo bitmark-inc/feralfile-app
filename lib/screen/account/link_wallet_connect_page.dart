@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 
 class LinkWalletConnectPage extends StatefulWidget {
   final String unableOpenAppname;
@@ -43,6 +44,7 @@ class _LinkWalletConnectPageState extends State<LinkWalletConnectPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: getBackAppBar(
         context,
@@ -51,8 +53,8 @@ class _LinkWalletConnectPageState extends State<LinkWalletConnectPage> {
         },
       ),
       body: Container(
-        margin:
-            const EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
+        margin: const EdgeInsets.only(
+            top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -63,25 +65,26 @@ class _LinkWalletConnectPageState extends State<LinkWalletConnectPage> {
                   children: [
                     Text(
                       "Scan code to link",
-                      style: appTextTheme.headline1,
+                      style: theme.textTheme.headline1,
                     ),
                     addTitleSpace(),
                     if (widget.unableOpenAppname.isNotEmpty) ...[
                       Text(
                           "We were unable to open ${widget.unableOpenAppname} on this device.",
-                          style: appTextTheme.bodyText1
-                              ?.copyWith(fontWeight: FontWeight.bold)),
+                          style: theme.textTheme.headline4),
                       const SizedBox(height: 24),
                     ],
                     Text(
                       "If your wallet is on another device, you can open it and scan the QR code below to link your account to Autonomy: ",
-                      style: appTextTheme.bodyText1,
+                      style: theme.textTheme.bodyText1,
                     ),
                     const SizedBox(height: 24),
                     _wcQRCode(),
                     if (_copied) ...[
                       const SizedBox(height: 24),
-                      const Center(child: Text("Copied", style: copiedTextStyle)),
+                      Center(
+                          child: Text("Copied",
+                              style: theme.textTheme.atlasBlackBold12)),
                     ]
                   ],
                 ),

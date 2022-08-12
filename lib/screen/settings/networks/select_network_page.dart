@@ -24,6 +24,7 @@ class SelectNetworkPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final configService = injector<ConfigurationService>();
     final oldNetwork = configService.getNetwork();
+    final theme = Theme.of(context);
 
     return Scaffold(
       appBar: getBackAppBar(
@@ -46,7 +47,7 @@ class SelectNetworkPage extends StatelessWidget {
             children: [
               Text(
                 "Networks",
-                style: appTextTheme.headline1,
+                style: theme.textTheme.headline1,
               ),
               const SizedBox(height: 22),
               _networkItem(context, state, "Main Network", Network.MAINNET),
@@ -59,13 +60,14 @@ class SelectNetworkPage extends StatelessWidget {
     );
   }
 
-  Widget _networkItem(
-      BuildContext ctx, Network currentNetwork, String title, Network network) {
+  Widget _networkItem(BuildContext context, Network currentNetwork,
+      String title, Network network) {
+    final theme = Theme.of(context);
     return ListTile(
       contentPadding: EdgeInsets.zero,
       title: Text(
         title,
-        style: appTextTheme.headline4,
+        style: theme.textTheme.headline4,
       ),
       trailing: Transform.scale(
         scale: 1.25,
@@ -75,13 +77,13 @@ class SelectNetworkPage extends StatelessWidget {
           groupValue: currentNetwork,
           onChanged: (Network? value) {
             if (value != null) {
-              ctx.read<SelectNetworkBloc>().add(SelectNetworkEvent(value));
+              context.read<SelectNetworkBloc>().add(SelectNetworkEvent(value));
             }
           },
         ),
       ),
       onTap: () {
-        ctx.read<SelectNetworkBloc>().add(SelectNetworkEvent(network));
+        context.read<SelectNetworkBloc>().add(SelectNetworkEvent(network));
       },
     );
   }

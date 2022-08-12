@@ -42,6 +42,8 @@ class _NamePersonaPageState extends State<NamePersonaPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: getBackAppBar(
         context,
@@ -75,12 +77,12 @@ class _NamePersonaPageState extends State<NamePersonaPage> {
                     children: [
                       Text(
                         "Account alias",
-                        style: appTextTheme.headline1,
+                        style: theme.textTheme.headline1,
                       ),
                       addTitleSpace(),
                       Text(
                         "You can add an optional alias for this account to help you recognize it. This alias will only be visible to you in Autonomy.",
-                        style: appTextTheme.bodyText1,
+                        style: theme.textTheme.bodyText1,
                       ),
                       const SizedBox(height: 40),
                       AuTextField(
@@ -111,9 +113,7 @@ class _NamePersonaPageState extends State<NamePersonaPage> {
                       onPressed: () {
                         _doneNaming();
                       },
-                      child: Text("SKIP",
-                          style: appTextTheme.button
-                              ?.copyWith(color: Colors.black))),
+                      child: Text("SKIP", style: theme.textTheme.button)),
                 ],
               ),
             ],

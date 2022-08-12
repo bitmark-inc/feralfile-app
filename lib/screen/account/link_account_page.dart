@@ -61,6 +61,7 @@ class _LinkAccountPageState extends State<LinkAccountPage>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: getBackAppBar(
         context,
@@ -76,7 +77,7 @@ class _LinkAccountPageState extends State<LinkAccountPage>
             children: [
               Text(
                 "Add account",
-                style: appTextTheme.headline1,
+                style: theme.textTheme.headline1,
               ),
               addTitleSpace(),
               _bitmarkLinkView(context),
@@ -93,19 +94,20 @@ class _LinkAccountPageState extends State<LinkAccountPage>
   }
 
   Widget _bitmarkLinkView(BuildContext context) {
+    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           "BITMARK",
-          style: appTextTheme.headline4,
+          style: theme.textTheme.headline4,
         ),
         TappableForwardRow(
             leftWidget: Row(
               children: [
                 SvgPicture.asset("assets/images/feralfileAppIcon.svg"),
                 const SizedBox(width: 16),
-                Text("Feral File", style: appTextTheme.headline4),
+                Text("Feral File", style: theme.textTheme.headline4),
               ],
             ),
             onTap: () async {
@@ -133,12 +135,13 @@ class _LinkAccountPageState extends State<LinkAccountPage>
   }
 
   Widget _ethereumLinkView(BuildContext context) {
+    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           "ETHEREUM",
-          style: appTextTheme.headline4,
+          style: theme.textTheme.headline4,
         ),
         const SizedBox(
           height: 4,
@@ -148,7 +151,7 @@ class _LinkAccountPageState extends State<LinkAccountPage>
             children: [
               Image.asset("assets/images/metamask-alternative.png"),
               const SizedBox(width: 16),
-              Text("MetaMask", style: appTextTheme.headline4),
+              Text("MetaMask", style: theme.textTheme.headline4),
             ],
           ),
           onTap: () => Navigator.of(context).pushNamed(
@@ -162,7 +165,8 @@ class _LinkAccountPageState extends State<LinkAccountPage>
               children: [
                 Image.asset("assets/images/walletconnect-alternative.png"),
                 const SizedBox(width: 16),
-                Text("Other Ethereum wallets", style: appTextTheme.headline4),
+                Text("Other Ethereum wallets",
+                    style: theme.textTheme.headline4),
               ],
             ),
             onTap: () => Navigator.of(context)
@@ -173,13 +177,13 @@ class _LinkAccountPageState extends State<LinkAccountPage>
 
   Widget _tezosLinkView(BuildContext context) {
     final tezosBeaconService = injector<TezosBeaconService>();
-
+    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           "TEZOS",
-          style: appTextTheme.headline4,
+          style: theme.textTheme.headline4,
         ),
         const SizedBox(
           height: 20,
@@ -189,7 +193,7 @@ class _LinkAccountPageState extends State<LinkAccountPage>
               children: [
                 Image.asset("assets/images/kukai_wallet.png"),
                 const SizedBox(width: 16),
-                Text("Kukai", style: appTextTheme.headline4),
+                Text("Kukai", style: theme.textTheme.headline4),
               ],
             ),
             onTap: () => Navigator.of(context).pushNamed(
@@ -201,7 +205,7 @@ class _LinkAccountPageState extends State<LinkAccountPage>
               children: [
                 Image.asset("assets/images/temple_wallet.png"),
                 const SizedBox(width: 16),
-                Text("Temple", style: appTextTheme.headline4),
+                Text("Temple", style: theme.textTheme.headline4),
               ],
             ),
             onTap: () => Navigator.of(context).pushNamed(
@@ -214,7 +218,7 @@ class _LinkAccountPageState extends State<LinkAccountPage>
               children: [
                 Image.asset("assets/images/tezos_wallet.png"),
                 const SizedBox(width: 16),
-                Text("Other Tezos wallets", style: appTextTheme.headline4),
+                Text("Other Tezos wallets", style: theme.textTheme.headline4),
               ],
             ),
             onTap: () async {
@@ -229,6 +233,7 @@ class _LinkAccountPageState extends State<LinkAccountPage>
   }
 
   Widget _linkLedger(String blockchain) {
+    final theme = Theme.of(context);
     return Column(
       children: [
         addOnlyDivider(),
@@ -237,7 +242,7 @@ class _LinkAccountPageState extends State<LinkAccountPage>
               children: [
                 SvgPicture.asset("assets/images/iconLedger.svg"),
                 const SizedBox(width: 16),
-                Text("Ledger", style: appTextTheme.headline4),
+                Text("Ledger", style: theme.textTheme.headline4),
               ],
             ),
             onTap: () => Navigator.of(context).pushNamed(

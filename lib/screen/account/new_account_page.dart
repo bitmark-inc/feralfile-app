@@ -7,7 +7,6 @@
 
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/material.dart';
@@ -20,6 +19,7 @@ class NewAccountPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final canPop = Navigator.of(context).canPop();
+    final theme = Theme.of(context);
 
     return Scaffold(
       appBar: getBackAppBar(
@@ -31,8 +31,8 @@ class NewAccountPage extends StatelessWidget {
             : null,
       ),
       body: Container(
-        margin:
-            const EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
+        margin: const EdgeInsets.only(
+            top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -42,7 +42,7 @@ class NewAccountPage extends StatelessWidget {
                   children: [
                     Text(
                       "Do you have NFTs you want to view with Autonomy?",
-                      style: appTextTheme.headline1,
+                      style: theme.textTheme.headline1,
                     ),
                     const SizedBox(height: 30),
                     Wrap(
@@ -96,15 +96,17 @@ class NewAccountPage extends StatelessWidget {
         return _optionItem(context, "No",
             "Make a new account with addresses you can use to collect or receive NFTs on Ethereum, Feral File, and Tezos.",
             onTap: () {
-              if (state.createAccountState == ActionState.loading) return;
-              context.read<PersonaBloc>().add(CreatePersonaEvent());
-            });
+          if (state.createAccountState == ActionState.loading) return;
+          context.read<PersonaBloc>().add(CreatePersonaEvent());
+        });
       },
     );
   }
 
   Widget _optionItem(BuildContext context, String title, String description,
       {required Function() onTap}) {
+    final theme = Theme.of(context);
+
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       child: Column(
@@ -115,7 +117,7 @@ class NewAccountPage extends StatelessWidget {
             children: [
               Text(
                 title,
-                style: appTextTheme.headline4,
+                style: theme.textTheme.headline4,
               ),
               SvgPicture.asset('assets/images/iconForward.svg'),
             ],
@@ -123,7 +125,7 @@ class NewAccountPage extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             description,
-            style: appTextTheme.bodyText1,
+            style: theme.textTheme.bodyText1,
           ),
         ],
       ),

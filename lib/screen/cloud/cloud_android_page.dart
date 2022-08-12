@@ -93,6 +93,7 @@ class _CloudAndroidPageState extends State<CloudAndroidPage>
   }
 
   Widget _contentWidget(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
       margin: pageEdgeInsetsWithSubmitButton,
       child: Column(
@@ -109,12 +110,12 @@ class _CloudAndroidPageState extends State<CloudAndroidPage>
                           : isEncryptionAvailable == false
                               ? "Enable backup encryption "
                               : "Google cloud backup unavailable",
-                      style: appTextTheme.headline1,
+                      style: theme.textTheme.headline1,
                     ),
                     addTitleSpace(),
                     Text(
                       "Autonomy will automatically back up all of your account information securely, including cryptographic material from accounts you manage as well as links to your accounts. If you ever lose your phone, you will be able to recover everything.",
-                      style: appTextTheme.bodyText1,
+                      style: theme.textTheme.bodyText1,
                     ),
                     if (isEncryptionAvailable == true) ...[
                       const SizedBox(height: 40),
@@ -126,7 +127,7 @@ class _CloudAndroidPageState extends State<CloudAndroidPage>
                         isEncryptionAvailable == false
                             ? "Automatic Google cloud backups are enabled, but you are not using end-to-end encryption. We recommend enabling it so we can securely back up your account."
                             : "Google cloud backup is currently turned off on your device. If your device supports it, we recommend you enable it so we can safely back up your account.",
-                        style: appTextTheme.headline4,
+                        style: theme.textTheme.headline4,
                       ),
                       const SizedBox(height: 40),
                       Center(
@@ -144,6 +145,8 @@ class _CloudAndroidPageState extends State<CloudAndroidPage>
   }
 
   Widget _buttonsGroup(BuildContext context) {
+    final theme = Theme.of(context);
+
     if (isEncryptionAvailable == true) {
       return Row(
         children: [
@@ -172,8 +175,8 @@ class _CloudAndroidPageState extends State<CloudAndroidPage>
           ),
           TextButton(
               onPressed: () => _continue(context),
-              child: Text("CONTINUE WITHOUT IT",
-                  style: appTextTheme.button?.copyWith(color: Colors.black))),
+              child:
+                  Text("CONTINUE WITHOUT IT", style: theme.textTheme.button)),
         ],
       );
     }
