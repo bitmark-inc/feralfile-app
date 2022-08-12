@@ -7,10 +7,29 @@
 
 import 'dart:convert';
 import 'dart:math';
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 
+import '../../lib/main.dart' as app;
+
+import 'package:autonomy_flutter/main.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
+
+final Finder autonomyHeader = find.text('AUTONOMY');
+final Finder conflictDetectHeader = find.text('Conflict detected');
+final Finder deviceKeychainRadio = find.descendant(
+  of: find.text('Device keychain'),
+  matching: find.byType(Radio),
+);
+final Finder cloudKeychain = find.descendant(
+  of: find.text('Cloud keychain'),
+  matching: find.byType(Radio),
+);
+final Finder proceedButton = find.text("PROCEED");
 
 Future<void> addDelay(int ms) async {
   await Future<void>.delayed(Duration(milliseconds: ms));
@@ -39,9 +58,9 @@ Future<void> selectSubSettingMenu(WidgetTester tester, String menu) async {
 
     if (sub_menu == "Settings") {
       await tester.tap(find.byTooltip("Settings"));
-      // await tester.pump(Duration(seconds: 5));
-    } else
+    } else {
       await tester.tap(find.text(sub_menu));
+    }
     await tester.pump(Duration(seconds: 5));
   }
   await tester.tap(find.text(menu));
@@ -52,8 +71,25 @@ Future<String> genTestDataRandom(String baseString) async {
   var rng = Random();
 
   baseString = baseString + rng.nextInt(10000).toString();
-  print(baseString);
   return baseString;
+}
+
+Future<void> handleConflictDetected(WidgetTester tester) async {
+  if (conflictDetectHeader.evaluate().isNotEmpty) {
+    await tester.tap(proceedButton);
+    await tester.pumpAndSettle(Duration(seconds: 5));
+    await tester.pumpAndSettle();
+  }
+}
+
+Future<void> launchAutonomy(WidgetTester tester) async {
+  await tester.pumpWidget(AutonomyApp());
+  await tester.pumpAndSettle(Duration(seconds: 7));
+}
+
+Future<void> initAppAutonomy(WidgetTester tester) async {
+  app.main();
+  await tester.pumpAndSettle(Duration(seconds: 5));
 }
 
 Future<void> deleteAnAccount(String accountAlias) async {}

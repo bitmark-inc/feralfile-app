@@ -10,15 +10,15 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 // UI inspect is here
-final Finder settingsicon = find.byTooltip("Settings");
-final Finder backbutton = find.text("BACK");
-final Finder newbutton =
+final Finder settingsIcon = find.byTooltip("Settings");
+final Finder backButton = find.text("BACK");
+final Finder newButton =
     find.textContaining("Make a new account with addresses you can use");
-final Finder continuebutton = find.text("CONTINUE");
-final Finder aliastextbox = find.byType(TextField);
-final Finder saveAliasbutton = find.text("SAVE ALIAS");
-final Finder skipbutton = find.text("SKIP");
-final Finder openDeviceSettingbutton = find.text("OPEN DEVICE SETTINGS");
+final Finder continueButton = find.text("CONTINUE");
+final Finder aliasTextbox = find.byType(TextField);
+final Finder saveAliasButton = find.text("SAVE ALIAS");
+final Finder skipButton = find.text("SKIP");
+final Finder openDeviceSettingButton = find.text("OPEN DEVICE SETTINGS");
 final Finder continueWithouItbutton = find.text("CONTINUE WITHOUT IT");
 
 Future<void> addANewAccount(
@@ -26,18 +26,17 @@ Future<void> addANewAccount(
   // Do actions in here
 
   if (accountType == 'new') {
-    await tester.tap(newbutton);
-
+    await tester.tap(newButton);
     await tester.pumpAndSettle(Duration(seconds: 4));
     await tester.pumpAndSettle(Duration(seconds: 1));
 
-    await tester.tap(continuebutton);
+    await tester.tap(continueButton);
     await tester.pumpAndSettle(Duration(seconds: 4));
     await tester.pumpAndSettle(Duration(seconds: 1));
 
-    await tester.enterText(aliastextbox, alias);
+    await tester.enterText(aliasTextbox, alias);
 
-    await tester.tap(saveAliasbutton);
+    await tester.tap(saveAliasButton);
     await tester.pumpAndSettle(Duration(seconds: 4));
     await tester.pumpAndSettle(Duration(seconds: 1));
 
@@ -46,15 +45,15 @@ Future<void> addANewAccount(
       await tester.pump(Duration(seconds: 4));
     }
   } else if (accountType == 'skip') {
-    await tester.tap(newbutton);
+    await tester.tap(newButton);
     await tester.pumpAndSettle(Duration(seconds: 4));
     await tester.pumpAndSettle(Duration(seconds: 1));
 
-    await tester.tap(continuebutton);
+    await tester.tap(continueButton);
     await tester.pumpAndSettle(Duration(seconds: 4));
     await tester.pumpAndSettle(Duration(seconds: 1));
 
-    await tester.tap(skipbutton);
+    await tester.tap(skipButton);
     await tester.pumpAndSettle(Duration(seconds: 4));
     await tester.pumpAndSettle(Duration(seconds: 1));
 
@@ -67,11 +66,11 @@ Future<void> addANewAccount(
 
 Future<int> getNumberOfAccount() async {
   // Do actions in here
-  int b = find
+  int numberOfAccount = find
       .descendant(
           of: find.byType(SlidableAutoCloseBehavior),
           matching: find.byType(Slidable))
       .evaluate()
       .length;
-  return b;
+  return numberOfAccount;
 }
