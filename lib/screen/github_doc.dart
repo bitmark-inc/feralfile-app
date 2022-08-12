@@ -29,11 +29,6 @@ class _GithubDocPageState extends State<GithubDocPage> {
   late String document;
   late String title;
 
-  _GithubDocPageState() {
-    document = widget.payload["document"]!;
-    title = widget.payload["title"]!;
-  }
-
   final dio = Dio(BaseOptions(
     baseUrl: "https://raw.githubusercontent.com",
     connectTimeout: 2000,
@@ -42,6 +37,8 @@ class _GithubDocPageState extends State<GithubDocPage> {
   @override
   void initState() {
     super.initState();
+    document = widget.payload["document"]!;
+    title = widget.payload["title"]!;
     dio.interceptors.add(LoggingInterceptor());
   }
 

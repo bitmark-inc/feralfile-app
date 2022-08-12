@@ -32,8 +32,11 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
   late Account _account;
   bool _copied = false;
 
-  _GlobalReceiveDetailPageState() {
+  @override
+  void initState() {
+    // TODO: implement initState
     _account = widget.payload as Account;
+    super.initState();
   }
 
   @override
@@ -74,8 +77,8 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
                     padding: const EdgeInsets.fromLTRB(8, 8, 8, 16),
                     decoration: const BoxDecoration(
                       border: Border(
-                        top: BorderSide(
-                            color: Color.fromRGBO(227, 227, 227, 1)),
+                        top:
+                            BorderSide(color: Color.fromRGBO(227, 227, 227, 1)),
                       ),
                       color: Color.fromRGBO(237, 237, 237, 0.3),
                     ),
