@@ -82,6 +82,7 @@ class HomeBloc extends AuBloc<HomeEvent, HomeState> {
       if (!memoryValues.inGalleryView) return;
       final assetTokens =
           await _assetTokenDao.findAllAssetTokensWhereNot(_hiddenOwners);
+      assetTokens.removeWhere((element) => element.source == 'feralfile');
       emit(state.copyWith(tokens: assetTokens, fetchTokenState: event.state));
       log.info('[SubRefreshTokensEvent] load ${assetTokens.length} tokens');
 
