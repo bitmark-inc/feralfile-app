@@ -121,9 +121,8 @@ class _LinkAccountPageState extends State<LinkAccountPage>
               }
               wcURI = Uri.encodeQueryComponent(wcURI);
 
-              final network = injector<ConfigurationService>().getNetwork();
               final url =
-                  '${Environment.networkedFeralFileWebsiteURL(network)}/exhibitions?callbackUrl=autonomy%3A%2F%2F&wc=$wcURI';
+                  '${Environment.feralFileAPIURL}/exhibitions?callbackUrl=autonomy%3A%2F%2F&wc=$wcURI';
 
               await launchUrlString(url, mode: LaunchMode.externalApplication);
 

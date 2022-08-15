@@ -214,15 +214,15 @@ Future<void> setup() async {
   injector.registerLazySingleton(() => cloudService);
 
   injector.registerLazySingleton(
-      () => Web3Client(Environment.web3RpcMainnetURL, injector()));
+      () => Web3Client(Environment.web3RpcURL, injector()));
   injector.registerLazySingleton(
-      () => TezartClient(Environment.tezosNodeClientMainnetURL));
+      () => TezartClient(Environment.tezosNodeClientURL));
   injector.registerLazySingleton<FeralFileApi>(
-      () => FeralFileApi(dio, baseUrl: Environment.feralFileAPIMainnetURL));
+      () => FeralFileApi(dio, baseUrl: Environment.feralFileAPIURL));
   injector.registerLazySingleton<BitmarkApi>(
-      () => BitmarkApi(dio, baseUrl: Environment.bitmarkAPIMainnetURL));
+      () => BitmarkApi(dio, baseUrl: Environment.bitmarkAPIURL));
   injector.registerLazySingleton<IndexerApi>(
-      () => IndexerApi(dio, baseUrl: Environment.indexerMainnetURL));
+      () => IndexerApi(dio, baseUrl: Environment.indexerURL));
 
   injector.registerLazySingleton<EthereumService>(
       () => EthereumServiceImpl(injector(), injector()));

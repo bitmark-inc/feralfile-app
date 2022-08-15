@@ -5,77 +5,101 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:autonomy_flutter/model/network.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class Environment {
   static const String openSeaApiKey = "";
 
-  static String networkedWebsocketURL(Network network) {
-    return network == Network.MAINNET
-        ? Environment.connectWebsocketMainnetURL
-        : Environment.connectWebsocketTestnetURL;
-  }
+  static String get indexerURL =>
+      appTestnetConfig ? indexerTestnetURL : indexerMainnetURL;
 
-  static String networkedExtensionSupportURL(Network network) {
-    return network == Network.MAINNET
-        ? Environment.extensionSupportMainnetURL
-        : Environment.extensionSupportTestnetURL;
-  }
+  static String get web3RpcURL =>
+      appTestnetConfig ? web3RpcTestnetURL : web3RpcMainnetURL;
 
-  static String networkedFeralFileWebsiteURL(Network network) {
-    return network == Network.MAINNET
-        ? Environment.feralFileAPIMainnetURL
-        : Environment.feralFileAPITestnetURL;
-  }
+  static String get tezosNodeClientURL =>
+      appTestnetConfig ? tezosNodeClientTestnetURL : tezosNodeClientMainnetURL;
+
+  static String get bitmarkAPIURL =>
+      appTestnetConfig ? bitmarkAPITestnetURL : bitmarkAPIMainnetURL;
+
+  static String get feralFileAPIURL =>
+      appTestnetConfig ? feralFileAPITestnetURL : feralFileAPIMainnetURL;
+
+  static String get extensionSupportURL =>
+      appTestnetConfig ? extensionSupportTestnetURL : extensionSupportMainnetURL;
+
+  static String get connectWebsocketURL =>
+      appTestnetConfig ? connectWebsocketTestnetURL : connectWebsocketMainnetURL;
 
   static String get indexerMainnetURL =>
       dotenv.env['INDEXER_MAINNET_API_URL'] ?? '';
+
   static String get indexerTestnetURL =>
       dotenv.env['INDEXER_TESTNET_API_URL'] ?? '';
 
   static String get web3RpcMainnetURL =>
       dotenv.env['WEB3_RPC_MAINNET_URL'] ?? '';
+
   static String get web3RpcTestnetURL =>
       dotenv.env['WEB3_RPC_TESTNET_URL'] ?? '';
 
   static String get tezosNodeClientMainnetURL =>
       dotenv.env['TEZOS_NODE_CLIENT_MAINNET_URL'] ?? '';
+
   static String get tezosNodeClientTestnetURL =>
       dotenv.env['TEZOS_NODE_CLIENT_TESTNET_URL'] ?? '';
 
   static String get bitmarkAPIMainnetURL =>
       dotenv.env['BITMARK_API_MAINNET_URL'] ?? '';
+
   static String get bitmarkAPITestnetURL =>
       dotenv.env['BITMARK_API_TESTNET_URL'] ?? '';
+
   static String get feralFileAPIMainnetURL =>
       dotenv.env['FERAL_FILE_API_MAINNET_URL'] ?? '';
+
   static String get feralFileAPITestnetURL =>
       dotenv.env['FERAL_FILE_API_TESTNET_URL'] ?? '';
 
   static String get extensionSupportMainnetURL =>
       dotenv.env['EXTENSION_SUPPORT_MAINNET_URL'] ?? '';
+
   static String get extensionSupportTestnetURL =>
       dotenv.env['EXTENSION_SUPPORT_TESTNET_URL'] ?? '';
+
   static String get connectWebsocketMainnetURL =>
       dotenv.env['CONNECT_WEBSOCKET_MAINNET_URL'] ?? '';
+
   static String get connectWebsocketTestnetURL =>
       dotenv.env['CONNECT_WEBSOCKET_TESTNET_URL'] ?? '';
 
   static String get autonomyAuthURL => dotenv.env['AUTONOMY_AUTH_URL'] ?? '';
+
   static String get feedURL => dotenv.env['FEED_URL'] ?? '';
+
   static String get customerSupportURL =>
       dotenv.env['CUSTOMER_SUPPORT_URL'] ?? '';
+
   static String get currencyExchangeURL =>
       dotenv.env['CURRENCY_EXCHANGE_URL'] ?? '';
+
   static String get pubdocURL => dotenv.env['AUTONOMY_PUBDOC_URL'] ?? '';
+
   static String get sentryDSN => dotenv.env['SENTRY_DSN'] ?? '';
+
   static String get onesignalAppID => dotenv.env['ONESIGNAL_APP_ID'] ?? '';
+
   static String get awsIdentityPoolId =>
       dotenv.env['AWS_IDENTITY_POOL_ID'] ?? '';
+
   static String get renderingReportURL =>
       dotenv.env['RENDERING_REPORT_URL'] ?? '';
-  static String get autonomyIpfsPrefix => dotenv.env['AUTONOMY_IPFS_PREFIX'] ?? '';
+
+  static String get autonomyIpfsPrefix =>
+      dotenv.env['AUTONOMY_IPFS_PREFIX'] ?? '';
+
+  static bool get appTestnetConfig =>
+      dotenv.env['AUTONOMY_IPFS_PREFIX']?.toUpperCase() == "TRUE";
 }
 
 class Secret {
