@@ -49,11 +49,36 @@ class ErrorEvent {
 
 PlatformException? lastException;
 
+extension DioErrorEvent on DioError {
+  ErrorEvent? get errorEvent {
+    log.info("Dio Error: $this");
+    switch (type) {
+      case DioErrorType.connectTimeout:
+      case DioErrorType.sendTimeout:
+      case DioErrorType.receiveTimeout:
+        return ErrorEvent(null, "Connect timeout",
+            "Check your connection and try again.", ErrorItemState.tryAgain);
+      case DioErrorType.response:
+        if ((response?.statusCode ?? 0) / 100 == 5) {
+          return ErrorEvent(
+              null,
+              "Server error",
+              "We apologise and are fixing the problem.\nPlease try again at later stage.",
+              ErrorItemState.close);
+        } else {
+          return null;
+        }
+      default:
+        return null;
+    }
+  }
+}
+
 ErrorEvent? translateError(Object exception) {
   if (exception is DioError) {
-    if (exception.type != DioErrorType.response) {
-      return ErrorEvent(null, "Network error",
-          "Check your connection and try again.", ErrorItemState.tryAgain);
+    final dioErrorEvent = exception.errorEvent;
+    if (dioErrorEvent != null) {
+      return dioErrorEvent;
     }
   } else if (exception is CameraException) {
     return ErrorEvent(null, "Enable camera",
@@ -74,12 +99,15 @@ ErrorEvent? translateError(Object exception) {
         ErrorItemState.getReport);
   }
 
-  return ErrorEvent(
-    exception,
-    "😵",
-    "Autonomy has encountered an unexpected problem. We have automatically filed a crash report, and we will look into it. If you require further support or want to tell us more about the issue, please tap the button below.",
-    ErrorItemState.getReport,
-  );
+  // Ignore other errors
+  // return ErrorEvent(
+  //   exception,
+  //   "😵",
+  //   "Autonomy has encountered an unexpected problem. We have automatically filed a crash report, and we will look into it. If you require further support or want to tell us more about the issue, please tap the button below.",
+  //   ErrorItemState.getReport,
+  // );
+
+  return null;
 }
 
 bool onlySentryException(Object exception) {
@@ -296,6 +324,10 @@ void showErrorDialogFromException(Object exception,
     } else {
       navigationService.showErrorDialog(event);
     }
+  } else {
+    Sentry.captureException(exception,
+        stackTrace: stackTrace,
+        withScope: (Scope? scope) => scope?.setTag("library", library ?? ''));
   }
 }
 
