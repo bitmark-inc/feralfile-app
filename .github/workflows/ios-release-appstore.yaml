@@ -14,6 +14,11 @@ on:
       version:
           description: 'App version'
           required: true
+      testnet:
+        type: boolean
+        default: false
+        required: false
+        description: Network is Testnet
 
 jobs:
   fastlane-deploy:
@@ -99,7 +104,9 @@ jobs:
         if: steps.cache-cocoapods.outputs.cache-hit != 'true'
         run: |
           cd ios/
+          flutter clean
           flutter pub get
+          rm -rf Podfile.lock
           pod install
 
       - uses: mathieu-bour/setup-sentry-cli@main
