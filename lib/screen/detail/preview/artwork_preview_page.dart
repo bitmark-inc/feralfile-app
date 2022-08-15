@@ -9,7 +9,6 @@ import 'dart:io';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
@@ -21,6 +20,7 @@ import 'package:autonomy_flutter/screen/settings/subscription/upgrade_box_view.d
 import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -37,6 +37,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_to_airplay/airplay_route_picker_view.dart';
 import 'package:mime/mime.dart';
+import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_rendering/nft_rendering.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shake/shake.dart';
@@ -363,7 +364,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
 
   Widget _getArtworkView(AssetToken asset) {
     if (_renderingWidget == null ||
-        _renderingWidget!.previewURL != asset.previewURL) {
+        _renderingWidget!.previewURL != asset.getPreviewUrl()) {
       _renderingWidget = buildRenderingWidget(context, asset);
     }
 
@@ -664,7 +665,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
       log.info("[Chromecast] device status: ${state.name}");
       if (state == CastSessionState.connected) {
         log.info(
-            "[Chromecast] send cast message with url: ${asset!.previewURL!}");
+            "[Chromecast] send cast message with url: ${asset!.getPreviewUrl()}");
         _sendMessagePlayVideo(session);
       }
     });
@@ -680,8 +681,8 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   void _sendMessagePlayVideo(CastSession session) {
     var message = {
       // Here you can plug an URL to any mp4, webm, mp3 or jpg file with the proper contentType.
-      'contentId': asset!.previewURL!,
-      'contentType': asset?.mimeType ?? lookupMimeType(asset!.previewURL!),
+      'contentId': asset!.getPreviewUrl()!,
+      'contentType': asset?.mimeType ?? lookupMimeType(asset!.getPreviewUrl()!),
       'streamType': 'BUFFERED',
       // or LIVE
 
@@ -691,8 +692,8 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
         'metadataType': 0,
         'title': asset!.title,
         'images': [
-          {'url': asset?.thumbnailURL ?? ''},
-          {'url': asset!.previewURL!},
+          {'url': asset?.getThumbnailUrl() ?? ''},
+          {'url': asset!.getPreviewUrl()},
         ]
       }
     };

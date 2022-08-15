@@ -9,7 +9,6 @@ import 'dart:io';
 
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
@@ -18,15 +17,15 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/notification_util.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:nft_collection/database/dao/asset_token_dao.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class PreferencesBloc extends AuBloc<PreferenceEvent, PreferenceState> {
   final ConfigurationService _configurationService;
-  final AppDatabase _appDatabase;
   final LocalAuthentication _localAuth = LocalAuthentication();
   List<BiometricType> _availableBiometrics = List.empty();
 
-  PreferencesBloc(this._configurationService, this._appDatabase)
+  PreferencesBloc(this._configurationService)
       : super(PreferenceState(false, false, false, false, "", false)) {
     on<PreferenceInfoEvent>((event, emit) async {
       final isImmediateInfoViewEnabled =
@@ -40,11 +39,8 @@ class PreferencesBloc extends AuBloc<PreferenceEvent, PreferenceState> {
           _configurationService.isNotificationEnabled() ?? false;
       final analyticsEnabled = _configurationService.isAnalyticsEnabled();
 
-      final numOfHiddenArtworks =
-          await _appDatabase.assetDao.findNumOfHiddenAssets();
-
       final hasHiddenArtwork =
-          numOfHiddenArtworks != null && numOfHiddenArtworks > 0;
+          _configurationService.getTempStorageHiddenTokenIDs().isNotEmpty;
 
       emit(PreferenceState(
           isImmediateInfoViewEnabled,

@@ -28,6 +28,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:nft_collection/nft_collection.dart';
 
 class PersonaDetailsPage extends StatefulWidget {
   final Persona persona;
@@ -286,7 +287,12 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
                 onChanged: (value) async {
                   await injector<AccountService>()
                       .setHidePersonaInGallery(widget.persona.uuid, value);
+                  final hiddenAddress =
+                      await injector<AccountService>().getHiddenAddresses();
                   setState(() {
+                    context
+                        .read<NftCollectionBloc>()
+                        .add(UpdateHiddenTokens(ownerAddresses: hiddenAddress));
                     isHideGalleryEnabled = value;
                   });
                 },

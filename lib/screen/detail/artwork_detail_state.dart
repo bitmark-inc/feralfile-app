@@ -5,9 +5,9 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/model/asset_price.dart';
-import 'package:autonomy_flutter/model/provenance.dart';
+import 'package:nft_collection/models/asset_token.dart';
+import 'package:nft_collection/models/provenance.dart';
 
 abstract class ArtworkDetailEvent {}
 

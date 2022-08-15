@@ -133,6 +133,10 @@ dependencies:
   easy_localization: ^3.0.1
   rxdart: ^0.26.0
   in_app_review: ^2.0.4
+  nft_collection:
+    git:
+      url: https://github.com/autonomy-system/nft-collection
+      ref: 46a79374a893812de2da9651651fc4e85cf60b6d
 
 dependency_overrides:
   # Error using when import photo_view from dependencies:

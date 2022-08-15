@@ -10,13 +10,15 @@ import 'dart:async';
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
-import 'package:autonomy_flutter/database/entity/asset_token.dart';
+import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/model/blockchain.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
+import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
@@ -33,7 +35,6 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/penrose_top_bar_view.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -42,6 +43,8 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
+import 'package:nft_collection/models/asset_token.dart';
+import 'package:nft_collection/nft_collection.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
@@ -60,6 +63,20 @@ class _HomePageState extends State<HomePage>
   late ScrollController _controller;
   int _cachedImageSize = 0;
 
+  Future<List<String>> getAddresses() async {
+    final accountService = injector<AccountService>();
+    return await accountService.getAllAddresses();
+  }
+
+  Future<List<String>> getManualTokenIds() async {
+    final cloudDb = injector<CloudDatabase>();
+    final tokenIndexerIDs = (await cloudDb.connectionDao.getConnectionsByType(
+            ConnectionType.manuallyIndexerTokenID.rawValue))
+        .map((e) => e.key)
+        .toList();
+    return tokenIndexerIDs;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -67,9 +84,21 @@ class _HomePageState extends State<HomePage>
     WidgetsBinding.instance.addObserver(this);
     _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
     _controller = ScrollController();
-    context.read<HomeBloc>().add(RefreshTokensEvent());
-    context.read<HomeBloc>().add(ReindexIndexerEvent());
-    context.read<HomeBloc>().add(CheckReviewAppEvent());
+    final accountService = injector<AccountService>();
+    Future.wait([
+      getAddresses(),
+      getManualTokenIds(),
+      accountService.getHiddenAddresses()
+    ]).then((value) {
+      final addresses = value[0];
+      final indexerIds = value[1];
+      final hiddenAddresses = value[2];
+      final nftBloc = context.read<NftCollectionBloc>();
+      nftBloc.add(UpdateHiddenTokens(ownerAddresses: hiddenAddresses));
+      nftBloc.add(RefreshTokenEvent(addresses: addresses, debugTokens: indexerIds));
+      nftBloc.add(RequestIndexEvent(addresses));
+      context.read<HomeBloc>().add(CheckReviewAppEvent());
+    });
     OneSignal.shared
         .setNotificationWillShowInForegroundHandler(_shouldShowNotifications);
     injector<AuditService>().auditFirstLog();
@@ -110,11 +139,19 @@ class _HomePageState extends State<HomePage>
     final connectivityResult = await (Connectivity().checkConnectivity());
 
     if (!mounted) return;
-    context.read<HomeBloc>().add(RefreshTokensEvent());
+
+    Future.wait([getAddresses(), getManualTokenIds()]).then((value) {
+      final addresses = value[0];
+      final indexerIds = value[1];
+      context.read<NftCollectionBloc>().add(
+          RefreshTokenEvent(addresses: addresses, debugTokens: indexerIds));
+    });
     if (connectivityResult == ConnectivityResult.mobile ||
         connectivityResult == ConnectivityResult.wifi) {
-      Future.delayed(const Duration(milliseconds: 1000), () {
-        context.read<HomeBloc>().add(ReindexIndexerEvent());
+      Future.delayed(const Duration(milliseconds: 1000), () async {
+        context
+            .read<NftCollectionBloc>()
+            .add(RequestIndexEvent(await getAddresses()));
       });
     }
     memoryValues.inGalleryView = true;
@@ -126,32 +163,53 @@ class _HomePageState extends State<HomePage>
     super.didPushNext();
   }
 
+  void _onTokensUpdate(List<AssetToken> tokens) async {
+    final artistIds = tokens
+        .map((e) => e.artistID)
+        .where((value) => value?.isNotEmpty == true)
+        .map((e) => e as String)
+        .toList();
+    injector<FeedService>().refreshFollowings(artistIds);
+
+    // Check if there is any Tezos token in the list
+    List<String> allAccountNumbers =
+        await injector<AccountService>().getAllAddresses();
+    final hashedAddresses = allAccountNumbers.fold(
+        0, (int previousValue, element) => previousValue + element.hashCode);
+
+    if (injector<ConfigurationService>().sentTezosArtworkMetricValue() !=
+            hashedAddresses &&
+        tokens.any((asset) =>
+            asset.blockchain == Blockchain.TEZOS.name.toLowerCase())) {
+      await injector<AWSService>()
+          .storeEventWithDeviceData("collection_has_tezos");
+      injector<ConfigurationService>()
+          .setSentTezosArtworkMetric(hashedAddresses);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final state = context.watch<HomeBloc>().state;
-    final tokens = state.tokens;
-
-    late Widget contentWidget;
-    if (tokens == null || tokens.isEmpty) {
-      if ([ActionState.notRequested, ActionState.loading]
-          .contains(state.fetchTokenState)) {
-        contentWidget = Center(
-          child: Column(
-            children: [
-              Container(
-                padding: const EdgeInsets.fromLTRB(0, 72, 0, 48),
-                child: autonomyLogo,
-              ),
-              loadingIndicator(),
-            ],
-          ),
-        );
-      } else {
-        contentWidget = _emptyGallery();
-      }
-    } else {
-      contentWidget = _assetsWidget(tokens);
-    }
+    final contentWidget =
+        BlocConsumer<NftCollectionBloc, NftCollectionBlocState>(
+            builder: (context, state) {
+      final hiddenTokens =
+          injector<ConfigurationService>().getTempStorageHiddenTokenIDs();
+      return NftCollectionGrid(
+        state: state.state,
+        tokens: state.tokens
+            .where((value) => value.source != 'feralfile')
+            .where((element) => !hiddenTokens.contains(element.id))
+            .toList(),
+        loadingIndicatorBuilder: _loadingView,
+        emptyGalleryViewBuilder: _emptyGallery,
+        customGalleryViewBuilder: (context, tokens) =>
+            _assetsWidget(context, tokens),
+      );
+    }, listener: (context, state) async {
+      log.info("[NftCollectionBloc] State update $state");
+      _onTokensUpdate(state.tokens);
+    });
 
     return PrimaryScrollController(
       controller: _controller,
@@ -169,7 +227,20 @@ class _HomePageState extends State<HomePage>
     );
   }
 
-  Widget _emptyGallery() {
+  Widget _loadingView(BuildContext context) {
+    return Center(
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.fromLTRB(0, 72, 0, 48),
+              child: autonomyLogo,
+            ),
+            loadingIndicator(),
+          ],
+        ));
+  }
+
+  Widget _emptyGallery(BuildContext context) {
     final theme = Theme.of(context);
 
     return ListView(
@@ -193,7 +264,7 @@ class _HomePageState extends State<HomePage>
     );
   }
 
-  Widget _assetsWidget(List<AssetToken> tokens) {
+  Widget _assetsWidget(BuildContext context, List<AssetToken> tokens) {
     tokens.sort((a, b) {
       final aSource = a.source?.toLowerCase() ?? INDEXER_UNKNOWN_SOURCE;
       final bSource = b.source?.toLowerCase() ?? INDEXER_UNKNOWN_SOURCE;
@@ -312,7 +383,12 @@ class _HomePageState extends State<HomePage>
         break;
 
       case 'gallery_new_nft':
-        context.read<HomeBloc>().add(RefreshTokensEvent());
+        Future.wait([getAddresses(), getManualTokenIds()]).then((value) {
+          final addresses = value[0];
+          final indexerIds = value[1];
+          context.read<NftCollectionBloc>().add(
+              RefreshTokenEvent(addresses: addresses, debugTokens: indexerIds));
+        });
         break;
     }
 
@@ -368,9 +444,16 @@ class _HomePageState extends State<HomePage>
         Sentry.captureException(exception);
       }
     }
+
     Future.delayed(const Duration(milliseconds: 3500), () async {
-      context.read<HomeBloc>().add(RefreshTokensEvent());
-      context.read<HomeBloc>().add(ReindexIndexerEvent());
+      final addresses = await getAddresses();
+      final manualTokenIds = await getManualTokenIds();
+      final hiddenAddress = await injector<AccountService>().getHiddenAddresses();
+      final nftBloc = context.read<NftCollectionBloc>();
+      nftBloc.add(UpdateHiddenTokens(ownerAddresses: hiddenAddress));
+      nftBloc.add(
+          RefreshTokenEvent(addresses: addresses, debugTokens: manualTokenIds));
+      nftBloc.add(RequestIndexEvent(addresses));
       await injector<AWSService>()
           .storeEventWithDeviceData("device_foreground");
     });

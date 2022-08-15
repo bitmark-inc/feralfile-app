@@ -8,8 +8,8 @@
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/entity/identity.dart';
-import 'package:autonomy_flutter/gateway/indexer_api.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:nft_collection/data/api/indexer_api.dart';
 
 part 'identity_state.dart';
 

@@ -7,9 +7,7 @@
 
 import 'dart:collection';
 
-import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/model/feed.dart';
-import 'package:autonomy_flutter/model/provenance.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/feed/feed_bloc.dart';
@@ -27,6 +25,8 @@ import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:nft_collection/models/asset_token.dart';
+import 'package:nft_collection/models/provenance.dart';
 
 class FeedArtworkDetailsPage extends StatefulWidget {
   const FeedArtworkDetailsPage({Key? key}) : super(key: key);

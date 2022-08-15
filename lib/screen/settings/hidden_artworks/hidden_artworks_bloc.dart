@@ -6,15 +6,21 @@
 //
 
 import 'package:autonomy_flutter/au_bloc.dart';
-import 'package:autonomy_flutter/database/app_database.dart';
-import 'package:autonomy_flutter/database/entity/asset_token.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:nft_collection/database/dao/asset_token_dao.dart';
+import 'package:nft_collection/models/asset_token.dart';
 
 class HiddenArtworksBloc extends AuBloc<HiddenArtworksEvent, List<AssetToken>> {
-  final AppDatabase _appDatabase;
+  final ConfigurationService configurationService;
+  final AssetTokenDao assetTokenDao;
 
-  HiddenArtworksBloc(this._appDatabase) : super([]) {
+  HiddenArtworksBloc(this.configurationService, this.assetTokenDao)
+      : super([]) {
     on<HiddenArtworksEvent>((event, emit) async {
-      final assets = await _appDatabase.assetDao.findAllHiddenAssets();
+      final hiddenArtworks =
+          configurationService.getTempStorageHiddenTokenIDs();
+      final assets = await assetTokenDao.findAllAssetTokens();
+      assets.removeWhere((element) => !hiddenArtworks.contains(element.id));
       assets.removeWhere((element) => element.source == 'feralfile');
       emit(assets);
     });

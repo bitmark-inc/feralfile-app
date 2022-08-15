@@ -5,9 +5,9 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:collection/collection.dart';
 import 'package:libauk_dart/libauk_dart.dart';
+import 'package:nft_collection/models/asset_token.dart';
 import 'package:web3dart/credentials.dart';
 
 extension StringExtension on WalletStorage {

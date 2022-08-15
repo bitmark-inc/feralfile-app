@@ -94,9 +94,11 @@ import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_disconnect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:nft_collection/nft_collection.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:wallet_connect/wallet_connect.dart';
 
@@ -163,6 +165,7 @@ class AppRouter {
     final tezosBloc = TezosBloc(injector());
     final accountsBloc = AccountsBloc(injector(), injector<CloudDatabase>(),
         injector(), injector<AuditService>(), injector());
+    final nftCollectionBloc = injector<NftCollectionBloc>();
 
     switch (settings.name) {
       case onboardingPage:
@@ -188,16 +191,10 @@ class AppRouter {
                         create: (_) => HomeBloc(
                               injector(),
                               injector(),
-                              injector(),
-                              injector(),
-                              injector(),
-                              injector(),
-                              injector<AppDatabase>().assetDao,
-                              injector<AppDatabase>().provenanceDao,
-                              injector(),
                             )),
                     BlocProvider(
                         create: (_) => IdentityBloc(injector(), injector())),
+                    BlocProvider.value(value: nftCollectionBloc),
                   ],
                   child: const HomePage(),
                 ),
@@ -212,16 +209,10 @@ class AppRouter {
                         create: (_) => HomeBloc(
                               injector(),
                               injector(),
-                              injector(),
-                              injector(),
-                              injector(),
-                              injector(),
-                              injector<AppDatabase>().assetDao,
-                              injector<AppDatabase>().provenanceDao,
-                              injector(),
                             )),
                     BlocProvider(
                         create: (_) => IdentityBloc(injector(), injector())),
+                    BlocProvider.value(value: nftCollectionBloc),
                   ],
                   child: const HomePage(),
                 ));
@@ -475,6 +466,7 @@ class AppRouter {
                     providers: [
                       BlocProvider.value(value: ethereumBloc),
                       BlocProvider.value(value: tezosBloc),
+                      BlocProvider.value(value: nftCollectionBloc),
                     ],
                     child: PersonaDetailsPage(
                       persona: settings.arguments as Persona,
@@ -508,11 +500,13 @@ class AppRouter {
       case linkedAccountDetailsPage:
         return CupertinoPageRoute(
             settings: settings,
-            builder: (context) => BlocProvider(
-                  create: (_) => FeralfileBloc.create(),
-                  child: LinkedAccountDetailsPage(
-                      connection: settings.arguments as Connection),
-                ));
+            builder: (context) => MultiBlocProvider(
+                    providers: [
+                      BlocProvider(create: (_) => FeralfileBloc.create()),
+                      BlocProvider.value(value: nftCollectionBloc),
+                    ],
+                    child: LinkedAccountDetailsPage(
+                        connection: settings.arguments as Connection)));
 
       case walletDetailsPage:
         return CupertinoPageRoute(
@@ -552,7 +546,7 @@ class AppRouter {
               providers: [
                 BlocProvider(
                     create: (_) => ArtworkPreviewBloc(
-                        injector<AppDatabase>().assetDao, injector())),
+                        nftCollectionBloc.database.assetDao, injector())),
                 BlocProvider(
                     create: (_) =>
                         IdentityBloc(injector<AppDatabase>(), injector())),
@@ -622,9 +616,10 @@ class AppRouter {
                   BlocProvider(
                       create: (_) => ArtworkDetailBloc(
                             injector(),
-                            injector<AppDatabase>().assetDao,
-                            injector<AppDatabase>().provenanceDao,
+                            nftCollectionBloc.database.assetDao,
+                            nftCollectionBloc.database.provenanceDao,
                           )),
+                  BlocProvider.value(value: nftCollectionBloc),
                 ],
                 child: ArtworkDetailPage(
                     payload: settings.arguments as ArtworkDetailPayload)));
@@ -741,7 +736,9 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider(
-                  create: (_) => HiddenArtworksBloc(injector()),
+                  create: (_) => HiddenArtworksBloc(
+                      injector<ConfigurationService>(),
+                      injector<NftCollectionBloc>().database.assetDao),
                   child: const HiddenArtworksPage(),
                 ));
 
