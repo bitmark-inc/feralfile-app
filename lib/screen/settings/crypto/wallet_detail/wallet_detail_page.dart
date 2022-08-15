@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/receive_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/tezos_transaction_list_view.dart';
@@ -27,7 +28,28 @@ class WalletDetailPage extends StatefulWidget {
   State<WalletDetailPage> createState() => _WalletDetailPageState();
 }
 
-class _WalletDetailPageState extends State<WalletDetailPage> {
+class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
+  @override
+  void didChangeDependencies() {
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+    super.didChangeDependencies();
+  }
+
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  @override
+  void didPopNext() {
+    final cryptoType = widget.payload.type;
+    final wallet = widget.payload.wallet;
+    context
+        .read<WalletDetailBloc>()
+        .add(WalletDetailBalanceEvent(cryptoType, wallet));
+  }
+
   @override
   Widget build(BuildContext context) {
     context.read<WalletDetailBloc>().add(
