@@ -131,11 +131,10 @@ class _LinkMetamaskPageState extends State<LinkMetamaskPage> {
 
     final sessionID = const Uuid().v4();
 
-    final network = injector<ConfigurationService>().getNetwork();
-    final link = "${Environment.networkedExtensionSupportURL(network)}/metamask-wallet?session_id=$sessionID";
+    final link = "${Environment.extensionSupportURL}/metamask-wallet?session_id=$sessionID";
 
     _websocketChannel = WebSocketChannel.connect(
-      Uri.parse('${Environment.networkedWebsocketURL(network)}/init?session_id=$sessionID'),
+      Uri.parse('${Environment.connectWebsocketURL}/init?session_id=$sessionID'),
     );
 
     if (_websocketChannel == null) return;

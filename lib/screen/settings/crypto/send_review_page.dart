@@ -6,7 +6,6 @@
 //
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
@@ -134,8 +133,6 @@ class _SendReviewPageState extends State<SendReviewPage> {
                                   _isSending = true;
                                 });
 
-                                final networkInjector =
-                                    injector<NetworkConfigInjector>();
                                 final configurationService =
                                     injector<ConfigurationService>();
 
@@ -159,14 +156,14 @@ class _SendReviewPageState extends State<SendReviewPage> {
                                   case CryptoType.ETH:
                                     final address = EthereumAddress.fromHex(
                                         widget.payload.address);
-                                    final txHash = await networkInjector
-                                        .I<EthereumService>()
-                                        .sendTransaction(
-                                            widget.payload.wallet,
-                                            address,
-                                            widget.payload.amount,
-                                            null,
-                                            null);
+                                    final txHash =
+                                        await injector<EthereumService>()
+                                            .sendTransaction(
+                                                widget.payload.wallet,
+                                                address,
+                                                widget.payload.amount,
+                                                null,
+                                                null);
 
                                     if (!mounted) return;
                                     Navigator.of(context).pop(txHash);
@@ -175,8 +172,7 @@ class _SendReviewPageState extends State<SendReviewPage> {
                                     final tezosWallet = await widget
                                         .payload.wallet
                                         .getTezosWallet();
-                                    final sig = await networkInjector
-                                        .I<TezosService>()
+                                    final sig = await injector<TezosService>()
                                         .sendTransaction(
                                             tezosWallet,
                                             widget.payload.address,

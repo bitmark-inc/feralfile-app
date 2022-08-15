@@ -71,20 +71,18 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
                 connection.ffWeb3Connection?.source;
             if (source == null) continue;
 
-            if (_configurationService.matchFeralFileSourceInNetwork(source)) {
-              final accountNumber = connection.accountNumber;
-              try {
-                final account = accounts.firstWhere(
-                    (element) => element.accountNumber == accountNumber);
-                account.connections?.add(connection);
-              } catch (error) {
-                accounts.add(Account(
-                    key: connection.key,
-                    accountNumber: accountNumber,
-                    connections: [connection],
-                    name: connection.name,
-                    createdAt: connection.createdAt));
-              }
+            final accountNumber = connection.accountNumber;
+            try {
+              final account = accounts.firstWhere(
+                  (element) => element.accountNumber == accountNumber);
+              account.connections?.add(connection);
+            } catch (error) {
+              accounts.add(Account(
+                  key: connection.key,
+                  accountNumber: accountNumber,
+                  connections: [connection],
+                  name: connection.name,
+                  createdAt: connection.createdAt));
             }
             break;
 
@@ -109,8 +107,7 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
       }
 
       accounts.sort((a, b) => a.createdAt.compareTo(b.createdAt));
-      final network = _configurationService.getNetwork();
-      emit(AccountsState(accounts: accounts, network: network));
+      emit(AccountsState(accounts: accounts));
     });
 
     on<GetCategorizedAccountsEvent>((event, emit) async {

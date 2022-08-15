@@ -10,29 +10,29 @@ import 'dart:typed_data';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/common/network_config_injector.dart';
-import 'package:autonomy_flutter/database/entity/connection.dart';
-import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/service/aws_service.dart';
-import 'package:autonomy_flutter/service/tokens_service.dart';
-import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/log.dart';
-import 'package:collection/collection.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
+import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/gateway/feralfile_api.dart';
+import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/asset_price.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
-import 'package:autonomy_flutter/model/network.dart';
+import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/tokens_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
+import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 
 // TODO:
 abstract class FeralFileService {
   Future<Connection> linkFF(String token, {required bool delayLink});
+
   Future completeDelayedFFConnections();
+
   Future<FFAccount> getAccount(String token);
 
   Future<FFAccount> getWeb3Account(WalletStorage wallet);
@@ -41,17 +41,15 @@ abstract class FeralFileService {
 }
 
 class FeralFileServiceImpl extends FeralFileService {
-  final NetworkConfigInjector _networkConfigInjector;
   final ConfigurationService _configurationService;
   final CloudDatabase _cloudDB;
+  final FeralFileApi _feralFileApi;
 
   FeralFileServiceImpl(
-    this._networkConfigInjector,
     this._configurationService,
     this._cloudDB,
+    this._feralFileApi,
   );
-
-  FeralFileApi get _feralFileApi => _networkConfigInjector.I();
 
   @override
   Future<Connection> linkFF(String token, {required bool delayLink}) async {
@@ -59,11 +57,7 @@ class FeralFileServiceImpl extends FeralFileService {
     late Connection connection;
 
     try {
-      final network = _configurationService.getNetwork();
-      final ffSource = network == Network.MAINNET
-          ? Environment.feralFileAPIMainnetURL
-          : Environment.feralFileAPITestnetURL;
-
+      final ffSource = Environment.feralFileAPIURL;
       final ffAccount = await getAccount(token);
       final alreadyLinkedAccount = (await _cloudDB.connectionDao
               .getConnectionsByAccountNumber(ffAccount.id))

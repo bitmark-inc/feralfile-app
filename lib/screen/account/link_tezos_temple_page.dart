@@ -143,14 +143,12 @@ class _LinkTezosTemplePageState extends State<LinkTezosTemplePage> {
     final payload = await tezosBeaconService.getPostMessageConnectionURI();
     final sessionID = const Uuid().v4();
 
-    final network = injector<ConfigurationService>().getNetwork();
-
     final link =
-        "${Environment.networkedExtensionSupportURL(network)}?session_id=$sessionID&data=$payload";
+        "${Environment.extensionSupportURL}?session_id=$sessionID&data=$payload";
 
     _websocketChannel = WebSocketChannel.connect(
       Uri.parse(
-          '${Environment.networkedWebsocketURL(network)}/init?session_id=$sessionID'),
+          '${Environment.connectWebsocketURL}/init?session_id=$sessionID'),
     );
 
     if (_websocketChannel == null) return;

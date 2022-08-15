@@ -12,7 +12,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:share/share.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/screen/bloc/feralfile/feralfile_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
@@ -129,18 +128,14 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
   }
 
   Future fetchXtzBalance(String address) async {
-    int balance = await injector<NetworkConfigInjector>()
-        .I<TezosService>()
-        .getBalance(address);
+    int balance = await injector<TezosService>().getBalance(address);
     setState(() {
       _balances[address] = "${XtzAmountFormatter(balance).format()} XTZ";
     });
   }
 
   Future fetchETHBalance(String address) async {
-    final balance = await injector<NetworkConfigInjector>()
-        .I<EthereumService>()
-        .getBalance(address);
+    final balance = await injector<EthereumService>().getBalance(address);
     setState(() {
       _balances[address] =
           "${EthAmountFormatter(balance.getInWei).format()} ETH";

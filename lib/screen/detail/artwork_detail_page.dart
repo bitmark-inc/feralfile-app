@@ -9,7 +9,6 @@ import 'dart:collection';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/model/provenance.dart';
@@ -271,8 +270,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
           optionRow(
             title: asset.isHidden() ? 'Unhide artwork' : 'Hide artwork',
             onTap: () async {
-              final appDatabase =
-                  injector<NetworkConfigInjector>().I<AppDatabase>();
+              final appDatabase = injector<AppDatabase>();
               if (asset.isHidden()) {
                 asset.hidden = null;
               } else {

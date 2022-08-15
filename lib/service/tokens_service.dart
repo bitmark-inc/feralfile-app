@@ -10,13 +10,11 @@ import 'dart:isolate';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/common/network_config_injector.dart';
-import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/dao/asset_token_dao.dart';
+import 'package:autonomy_flutter/database/dao/provenance_dao.dart';
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/gateway/indexer_api.dart';
 import 'package:autonomy_flutter/model/asset.dart';
-import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/model/provenance.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -27,26 +25,36 @@ import 'package:uuid/uuid.dart';
 
 abstract class TokensService {
   Future fetchTokensForAddresses(List<String> addresses);
+
   Future<Stream<int>> refreshTokensInIsolate(
       List<String> addresses, List<String> debugTokenIDs);
+
   Future reindexAddresses(List<String> addresses);
+
   Future insertAssetsWithProvenance(List<Asset> assets);
+
   Future<List<Asset>> fetchLatestAssets(List<String> addresses, int size);
+
   void disposeIsolate();
+
   Future purgeCachedGallery();
 }
 
 class TokensServiceImpl extends TokensService {
-  final NetworkConfigInjector _networkConfigInjector;
   final ConfigurationService _configurationService;
+  final AssetTokenDao _assetDao;
+  final ProvenanceDao _provenanceDao;
+  final IndexerApi _indexerApi;
 
   static const REFRESH_ALL_TOKENS = 'REFRESH_ALL_TOKENS';
   static const FETCH_TOKENS = 'FETCH_TOKENS';
   static const REINDEX_ADDRESSES = 'REINDEX_ADDRESSES';
 
   TokensServiceImpl(
-    this._networkConfigInjector,
     this._configurationService,
+    this._assetDao,
+    this._provenanceDao,
+    this._indexerApi,
   );
 
   SendPort? _sendPort;
@@ -57,10 +65,8 @@ class TokensServiceImpl extends TokensService {
   List<String>? _currentAddresses;
   Map<String, Completer<void>> _fetchTokensCompleters = {};
   final Map<String, Completer<void>> _reindexAddressesCompleters = {};
-  Future<void> get isolateReady => _isolateReady.future;
 
-  AssetTokenDao get _assetDao =>
-      _networkConfigInjector.I<AppDatabase>().assetDao;
+  Future<void> get isolateReady => _isolateReady.future;
 
   Future<void> start() async {
     if (_sendPort != null) return;
@@ -130,10 +136,7 @@ class TokensServiceImpl extends TokensService {
     await startIsolateOrWait();
 
     final tokenIDs = await getTokenIDs(addresses);
-    await _networkConfigInjector
-        .I<AppDatabase>()
-        .assetDao
-        .deleteAssetsNotIn(tokenIDs + debugTokenIDs);
+    await _assetDao.deleteAssetsNotIn(tokenIDs + debugTokenIDs);
 
     final dbTokenIDs = (await _assetDao.findAllAssetTokenIDs()).toSet();
 
@@ -152,16 +155,13 @@ class TokensServiceImpl extends TokensService {
     return _refreshAllTokensWorker!.stream;
   }
 
-  bool get _getIsTestnet =>
-      _configurationService.getNetwork() == Network.TESTNET;
+  bool get _getIsTestnet => Environment.appTestnetConfig;
 
   @override
   Future<List<Asset>> fetchLatestAssets(
       List<String> addresses, int size) async {
     var owners = addresses.join(',');
-    return await _networkConfigInjector
-        .I<IndexerApi>()
-        .getNftTokensByOwner(owners, 0, size);
+    return await _indexerApi.getNftTokensByOwner(owners, 0, size);
   }
 
   @override
@@ -205,16 +205,11 @@ class TokensServiceImpl extends TokensService {
 
     await _assetDao.insertAssets(tokens);
 
-    await _networkConfigInjector
-        .I<AppDatabase>()
-        .provenanceDao
-        .insertProvenance(provenance);
+    await _provenanceDao.insertProvenance(provenance);
   }
 
-  Future<List<String>> getTokenIDs(List<String> addresses) async {
-    return _networkConfigInjector
-        .I<IndexerApi>()
-        .getNftIDsByOwner(addresses.join(","));
+  Future<List<String>> getTokenIDs(List<String> addresses) {
+    return _indexerApi.getNftIDsByOwner(addresses.join(","));
   }
 
   @override

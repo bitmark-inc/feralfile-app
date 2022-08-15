@@ -9,7 +9,6 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/feralfile/feralfile_bloc.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
@@ -131,8 +130,6 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
         });
       }
     }, builder: (context, state) {
-      final networkInjector = injector<NetworkConfigInjector>();
-
       return Row(
         children: [
           Expanded(
@@ -141,8 +138,7 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
               onPress: () => withDebounce(() async {
                 final WalletStorage wallet =
                     LibAukDart.getWallet(widget.args.uuid);
-                final signature = await networkInjector
-                    .I<EthereumService>()
+                final signature = await injector<EthereumService>()
                     .signPersonalMessage(wallet, message);
 
                 injector<WalletConnectService>().approveRequest(
