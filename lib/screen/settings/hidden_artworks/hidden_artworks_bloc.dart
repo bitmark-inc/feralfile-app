@@ -15,6 +15,7 @@ class HiddenArtworksBloc extends AuBloc<HiddenArtworksEvent, List<AssetToken>> {
   HiddenArtworksBloc(this._appDatabase) : super([]) {
     on<HiddenArtworksEvent>((event, emit) async {
       final assets = await _appDatabase.assetDao.findAllHiddenAssets();
+      assets.removeWhere((element) => element.source == 'feralfile');
       emit(assets);
     });
   }
