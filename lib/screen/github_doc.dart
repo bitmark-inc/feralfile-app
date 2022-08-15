@@ -21,6 +21,7 @@ class GithubDocPage extends StatefulWidget {
   final Map<String, String> payload;
 
   const GithubDocPage({Key? key, required this.payload}) : super(key: key);
+
   @override
   State<GithubDocPage> createState() => _GithubDocPageState();
 }
@@ -81,6 +82,7 @@ class _GithubDocPageState extends State<GithubDocPage> {
     if (snapshot.hasData && snapshot.data?.statusCode == 200) {
       return SliverToBoxAdapter(
           child: Markdown(
+              key: const Key("githubMarkdown"),
               data: snapshot.data!.data!,
               softLineBreak: true,
               shrinkWrap: true,

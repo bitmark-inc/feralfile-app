@@ -42,7 +42,6 @@ void main() async {
 
       final Finder xtzRow = find.text("Tezos (XTZ)");
       await tester.tap(xtzRow.first);
-
       await tester.pumpAndSettle(Duration(seconds: 2));
 
       await tester.tap(find.text("SEND"));

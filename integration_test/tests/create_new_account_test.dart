@@ -6,6 +6,8 @@
 //
 
 import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import '../pages/onboarding_page.dart';
@@ -17,8 +19,11 @@ void main() async {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   group("Create a new full account", () {
-    testWidgets(" with alias and check balance", (tester) async {
+    testWidgets("with alias and check balance", (tester) async {
+      await initAppAutonomy(tester);
+      await launchAutonomy(tester);
       await onboardingSteps(tester);
+
       await selectSubSettingMenu(tester, "Settings->+ Account");
       Future<String> accountAliasf = genTestDataRandom("account");
       String accountAlias = await accountAliasf;
@@ -45,8 +50,10 @@ void main() async {
       // await deleteAnAccount(accountAlias);
     });
 
-    testWidgets(" without alias", (tester) async {
-      await onboardingSteps(tester);
+    testWidgets("without alias", (tester) async {
+      // await onboardingSteps(tester);
+
+      await launchAutonomy(tester);
 
       await tester.tap(find.byTooltip("Settings"));
       await tester.pump(Duration(seconds: 5));

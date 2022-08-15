@@ -67,6 +67,7 @@ Widget tokenGalleryThumbnailWidget(
 
   return Hero(
     tag: token.id,
+    key: Key('Artwork_Thumbnail'),
     child: ext == ".svg"
         ? SvgPicture.network(token.galleryThumbnailURL!,
             placeholderBuilder: (context) =>
@@ -619,5 +620,6 @@ Widget previewCloseIcon(BuildContext context) {
   return IconButton(
     onPressed: () => Navigator.of(context).pop(),
     icon: closeIcon(color: theme.colorScheme.secondary),
+    tooltip: "CloseArtwork",
   );
 }
