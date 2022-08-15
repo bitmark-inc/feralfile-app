@@ -298,19 +298,6 @@ Widget artworkDetailsRightSection(BuildContext context, AssetToken token) {
       : const SizedBox();
 }
 
-Widget artworkDetailsValueSection(
-    BuildContext context, AssetToken token, AssetPrice? assetPrice) {
-  return assetPrice != null
-      ? Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 40.0),
-            _valueView(context, token, assetPrice),
-          ],
-        )
-      : const SizedBox();
-}
-
 Widget artworkDetailsMetadataSection(
     BuildContext context, AssetToken asset, String? artistName) {
   final theme = Theme.of(context);

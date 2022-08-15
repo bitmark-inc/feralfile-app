@@ -196,8 +196,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                             style: theme.textTheme.bodyText1,
                           ),
                           artworkDetailsRightSection(context, asset),
-                          artworkDetailsValueSection(
-                              context, asset, state.assetPrice),
                           const SizedBox(height: 40.0),
                           artworkDetailsMetadataSection(
                               context, asset, artistName),
