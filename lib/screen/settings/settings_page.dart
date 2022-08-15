@@ -216,6 +216,7 @@ class _SettingsPageState extends State<SettingsPage>
                     GestureDetector(
                         child: Text(
                           "Version ${_packageInfo!.version}(${_packageInfo!.buildNumber})",
+                          key: const Key("version"),
                           style: theme.textTheme.headline5,
                         ),
                         onTap: () async {

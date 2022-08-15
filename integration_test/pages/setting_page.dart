@@ -9,6 +9,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../commons/test_util.dart';
+
 // UI inspect is here
 final Finder settingsIcon = find.byTooltip("Settings");
 final Finder backButton = find.text("BACK");
@@ -68,9 +70,30 @@ Future<int> getNumberOfAccount() async {
   // Do actions in here
   int numberOfAccount = find
       .descendant(
-          of: find.byType(SlidableAutoCloseBehavior),
-          matching: find.byType(Slidable))
+      of: find.byType(SlidableAutoCloseBehavior),
+      matching: find.byType(Slidable))
       .evaluate()
       .length;
   return numberOfAccount;
 }
+
+Future<void> settingScrollToFinder(WidgetTester tester,Finder obj , Type scroll)async {
+  await tester.pumpAndSettle(const Duration(seconds: 5));
+  await tester.tap(settingsIcon);
+  await tester.pump(const Duration(seconds: 2));
+  await tester.pump(const Duration(seconds: 2));
+  final listFinder = find.byType(scroll);
+
+  await tester.pump(const Duration(seconds: 5));
+  await tester.pump(const Duration(seconds: 2));
+  await tester.scrollUntilVisible(
+    obj,
+    500.0,
+    scrollable: listFinder,
+  );
+  await tester.pump();
+  await tester.pump();
+  await addDelay(3000);
+}
+
+
