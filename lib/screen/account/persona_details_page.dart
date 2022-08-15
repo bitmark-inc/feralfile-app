@@ -7,6 +7,7 @@
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
+import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/ethereum/ethereum_bloc.dart';
@@ -37,7 +38,8 @@ class PersonaDetailsPage extends StatefulWidget {
   State<PersonaDetailsPage> createState() => _PersonaDetailsPageState();
 }
 
-class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
+class _PersonaDetailsPageState extends State<PersonaDetailsPage>
+    with RouteAware {
   bool isHideGalleryEnabled = false;
 
   @override
@@ -64,6 +66,26 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
 
   final addressStyle = appTextTheme.bodyText2?.copyWith(color: Colors.black);
   final balanceStyle = appTextTheme.bodyText2?.copyWith(color: Colors.black);
+
+  @override
+  void didChangeDependencies() {
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+    super.didChangeDependencies();
+  }
+
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  @override
+  void didPopNext() {
+    final uuid = widget.persona.uuid;
+    context.read<EthereumBloc>().add(GetEthereumBalanceWithUUIDEvent(uuid));
+    context.read<TezosBloc>().add(GetTezosBalanceWithUUIDEvent(uuid));
+    super.didPopNext();
+  }
 
   @override
   Widget build(BuildContext context) {
