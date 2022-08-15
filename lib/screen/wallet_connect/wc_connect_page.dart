@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/main.dart';
@@ -114,10 +115,7 @@ class _WCConnectPageState extends State<WCConnectPage>
       final address = await injector<EthereumService>()
           .getETHAddress(selectedPersona!.wallet());
 
-      final chainId =
-          injector<ConfigurationService>().getNetwork() == Network.MAINNET
-              ? 1
-              : 4;
+      final chainId = Environment.appTestnetConfig ? 4 : 1;
 
       final approvedAddresses = [address];
       log.info(

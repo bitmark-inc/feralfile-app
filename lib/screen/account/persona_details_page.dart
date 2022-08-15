@@ -7,7 +7,6 @@
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
-import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/ethereum/ethereum_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
@@ -64,7 +63,6 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final network = injector<ConfigurationService>().getNetwork();
     final uuid = widget.persona.uuid;
 
     return Scaffold(
@@ -81,7 +79,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
             children: [
               _addressesSection(uuid),
               const SizedBox(height: 40),
-              _cryptoSection(uuid, network),
+              _cryptoSection(uuid),
               const SizedBox(height: 40),
               _preferencesSection(),
               const SizedBox(height: 40),
@@ -177,7 +175,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
     );
   }
 
-  Widget _cryptoSection(String uuid, Network network) {
+  Widget _cryptoSection(String uuid) {
     final theme = Theme.of(context);
     final balanceStyle = theme.textTheme.subtitle1;
     return Column(
@@ -195,7 +193,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
             BlocBuilder<EthereumBloc, EthereumState>(
               builder: (context, state) {
                 final ethAddress = state.personaAddresses?[uuid];
-                final ethBalance = state.ethBalances[network]?[ethAddress];
+                final ethBalance = state.ethBalances[ethAddress];
                 const cryptoType = CryptoType.ETH;
 
                 return TappableForwardRow(
@@ -218,7 +216,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
             BlocBuilder<TezosBloc, TezosState>(
               builder: (context, state) {
                 final tezosAddress = state.personaAddresses?[uuid];
-                final xtzBalance = state.balances[network]?[tezosAddress];
+                final xtzBalance = state.balances[tezosAddress];
                 const cryptoType = CryptoType.XTZ;
 
                 return TappableForwardRow(

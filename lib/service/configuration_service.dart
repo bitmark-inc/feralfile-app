@@ -7,11 +7,9 @@
 
 import 'dart:convert';
 
-import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:collection/collection.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import 'package:wallet_connect/wallet_connect.dart';
@@ -23,8 +21,6 @@ abstract class ConfigurationService {
   JWT? getIAPJWT();
   Future<void> setWCSessions(List<WCSessionStore> value);
   List<WCSessionStore> getWCSessions();
-  Future<void> setNetwork(Network value);
-  Network getNetwork();
   Future<void> setDevicePasscodeEnabled(bool value);
   bool isDevicePasscodeEnabled();
   Future<void> setNotificationEnabled(bool value);
@@ -50,7 +46,6 @@ abstract class ConfigurationService {
   List<String> getTempStorageHiddenTokenIDs({Network? network});
   Future updateTempStorageHiddenTokenIDs(List<String> tokenIDs, bool isAdd,
       {Network? network, bool override = false});
-  bool matchFeralFileSourceInNetwork(String source);
   Future<void> setWCDappSession(String? value);
   String? getWCDappSession();
   Future<void> setWCDappAccounts(List<String>? value);
@@ -91,7 +86,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_IAP_RECEIPT = "key_iap_receipt";
   static const String KEY_IAP_JWT = "key_iap_jwt";
   static const String KEY_WC_SESSIONS = "key_wc_sessions";
-  static const String KEY_NETWORK = "key_network";
   static const String KEY_DEVICE_PASSCODE = "device_passcode";
   static const String KEY_NOTIFICATION = "notifications";
   static const String KEY_ANALYTICS = "analytics";
@@ -102,10 +96,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
       'hidden_personas_in_gallery';
   static const String KEY_HIDDEN_LINKED_ACCOUNTS_IN_GALLERY =
       'hidden_linked_accounts_in_gallery';
-  static const String KEY_TEMP_STORAGE_HIDDEN_TOKEN_IDS_MAINNET =
+  static const String KEY_TEMP_STORAGE_HIDDEN_TOKEN_IDS =
       'temp_storage_hidden_token_ids_mainnet';
-  static const String KEY_TEMP_STORAGE_HIDDEN_TOKEN_IDS_TESTNET =
-      'temp_storage_hidden_token_ids_testnet';
   static const String KEY_READ_RELEASE_NOTES_VERSION =
       'read_release_notes_version';
   static const String KEY_FINISHED_SURVEYS = "finished_surveys";
@@ -120,10 +112,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
   // ----- App Setting -----
   static const String KEY_APP_SETTING_DEMO_ARTWORKS =
       "show_demo_artworks_preference";
-  static const String KEY_LASTEST_REFRESH_TOKENS_MAINNET =
+  static const String KEY_LASTEST_REFRESH_TOKENS =
       "latest_refresh_tokens_mainnet_1";
-  static const String KEY_LASTEST_REFRESH_TOKENS_TESTNET =
-      "latest_refresh_tokens_testnet_1";
   static const String KEY_PREVIOUS_BUILD_NUMBER = "previous_build_number";
   static const String KEY_SHOW_TOKEN_DEBUG_INFO = "show_token_debug_info";
 
@@ -184,21 +174,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
     return List.from(sessions)
         .map((e) => WCSessionStore.fromJson(e))
         .toList(growable: false);
-  }
-
-  @override
-  Future<void> setNetwork(Network value) async {
-    log.info("setNetwork: $value");
-    await _preferences.setString(KEY_NETWORK, value.toString());
-  }
-
-  @override
-  Network getNetwork() {
-    final value =
-        _preferences.getString(KEY_NETWORK) ?? Network.MAINNET.toString();
-    return Network.values
-            .firstWhereOrNull((element) => element.toString() == value) ??
-        Network.MAINNET;
   }
 
   @override
@@ -342,18 +317,13 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
   @override
   List<String> getTempStorageHiddenTokenIDs({Network? network}) {
-    final key = (network ?? getNetwork()) == Network.MAINNET
-        ? KEY_TEMP_STORAGE_HIDDEN_TOKEN_IDS_MAINNET
-        : KEY_TEMP_STORAGE_HIDDEN_TOKEN_IDS_TESTNET;
-    return _preferences.getStringList(key) ?? [];
+    return _preferences.getStringList(KEY_TEMP_STORAGE_HIDDEN_TOKEN_IDS) ?? [];
   }
 
   @override
   Future updateTempStorageHiddenTokenIDs(List<String> tokenIDs, bool isAdd,
       {Network? network, bool override = false}) async {
-    final key = (network ?? getNetwork()) == Network.MAINNET
-        ? KEY_TEMP_STORAGE_HIDDEN_TOKEN_IDS_MAINNET
-        : KEY_TEMP_STORAGE_HIDDEN_TOKEN_IDS_TESTNET;
+    const key = KEY_TEMP_STORAGE_HIDDEN_TOKEN_IDS;
 
     if (override && isAdd) {
       await _preferences.setStringList(key, tokenIDs);
@@ -366,16 +336,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
               .removeWhere((element) => tokenIDs.contains(element));
       await _preferences.setStringList(
           key, tempHiddenTokenIDs.toSet().toList());
-    }
-  }
-
-  @override
-  bool matchFeralFileSourceInNetwork(String source) {
-    final network = getNetwork();
-    if (network == Network.MAINNET) {
-      return source == Environment.feralFileAPIMainnetURL;
-    } else {
-      return source != Environment.feralFileAPIMainnetURL;
     }
   }
 
@@ -438,9 +398,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
   @override
   DateTime? getLatestRefreshTokens() {
-    final key = getNetwork() == Network.MAINNET
-        ? KEY_LASTEST_REFRESH_TOKENS_MAINNET
-        : KEY_LASTEST_REFRESH_TOKENS_TESTNET;
+    const key = KEY_LASTEST_REFRESH_TOKENS;
     final time = _preferences.getInt(key);
 
     if (time == null) return null;
@@ -449,9 +407,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
   @override
   Future<bool> setLatestRefreshTokens(DateTime? value) {
-    final key = getNetwork() == Network.MAINNET
-        ? KEY_LASTEST_REFRESH_TOKENS_MAINNET
-        : KEY_LASTEST_REFRESH_TOKENS_TESTNET;
+    const key = KEY_LASTEST_REFRESH_TOKENS;
 
     if (value == null) {
       return _preferences.remove(key);

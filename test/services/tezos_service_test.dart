@@ -1,19 +1,15 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:libauk_dart/libauk_dart.dart';
-import 'package:mockito/mockito.dart';
 import 'package:tezart/tezart.dart';
 import 'package:web3dart/crypto.dart';
 
-class ConfigurationServiceMock extends Mock implements ConfigurationService {}
-
 main() {
   final client = TezartClient("https://ithacanet.ecadinfra.com");
-  final tezosService = TezosServiceImpl(client, ConfigurationServiceMock());
+  final tezosService = TezosServiceImpl(client);
   final wallet = TezosWallet(
     "tz1L76GWnRL8ottK7veac96JPuArFLEhZeVa",
     hexToBytes(

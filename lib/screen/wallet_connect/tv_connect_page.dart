@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/network.dart';
@@ -73,10 +74,7 @@ class _TVConnectPageState extends State<TVConnectPage>
     final authorizedKeypair =
         await injector<AccountService>().authorizeToViewer();
 
-    final chainId =
-        injector<ConfigurationService>().getNetwork() == Network.MAINNET
-            ? 1
-            : 4;
+    final chainId = Environment.appTestnetConfig ? 4 : 1;
 
     await injector<WalletConnectService>().approveSession(const Uuid().v4(),
         widget.wcConnectArgs.peerMeta, [authorizedKeypair], chainId);

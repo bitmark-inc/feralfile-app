@@ -99,7 +99,7 @@ class Environment {
       dotenv.env['AUTONOMY_IPFS_PREFIX'] ?? '';
 
   static bool get appTestnetConfig =>
-      dotenv.env['AUTONOMY_IPFS_PREFIX']?.toUpperCase() == "TRUE";
+      dotenv.env['APP_TESTNET_CONFIG']?.toUpperCase() == "TRUE";
 }
 
 class Secret {

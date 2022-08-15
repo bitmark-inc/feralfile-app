@@ -80,8 +80,6 @@ import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_det
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
 import 'package:autonomy_flutter/screen/settings/hidden_artworks/hidden_artworks_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/hidden_artworks/hidden_artworks_page.dart';
-import 'package:autonomy_flutter/screen/settings/networks/select_network_bloc.dart';
-import 'package:autonomy_flutter/screen/settings/networks/select_network_page.dart';
 import 'package:autonomy_flutter/screen/settings/settings_page.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/screen/survey/survey.dart';
@@ -161,8 +159,8 @@ class AppRouter {
   static const sendArtworkReviewPage = 'send_artwork_review_page';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
-    final ethereumBloc = EthereumBloc(injector(), injector());
-    final tezosBloc = TezosBloc(injector(), injector());
+    final ethereumBloc = EthereumBloc(injector());
+    final tezosBloc = TezosBloc(injector());
     final accountsBloc = AccountsBloc(injector(), injector<CloudDatabase>(),
         injector(), injector<AuditService>(), injector());
 
@@ -610,13 +608,6 @@ class AppRouter {
                       payload: settings.arguments as GalleryPagePayload,
                     )));
 
-      case SelectNetworkPage.tag:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => BlocProvider(
-                  create: (_) => SelectNetworkBloc(injector()),
-                  child: const SelectNetworkPage(),
-                ));
       case artworkDetailsPage:
         return PageTransition(
             type: PageTransitionType.fade,

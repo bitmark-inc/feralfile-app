@@ -15,7 +15,6 @@ import 'package:autonomy_flutter/database/dao/provenance_dao.dart';
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/gateway/indexer_api.dart';
 import 'package:autonomy_flutter/model/asset.dart';
-import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/model/provenance.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -156,8 +155,7 @@ class TokensServiceImpl extends TokensService {
     return _refreshAllTokensWorker!.stream;
   }
 
-  bool get _getIsTestnet =>
-      _configurationService.getNetwork() == Network.TESTNET;
+  bool get _getIsTestnet => Environment.appTestnetConfig;
 
   @override
   Future<List<Asset>> fetchLatestAssets(

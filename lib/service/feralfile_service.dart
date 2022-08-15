@@ -16,7 +16,6 @@ import 'package:autonomy_flutter/gateway/feralfile_api.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/asset_price.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
-import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/tokens_service.dart';
@@ -58,11 +57,7 @@ class FeralFileServiceImpl extends FeralFileService {
     late Connection connection;
 
     try {
-      final network = _configurationService.getNetwork();
-      final ffSource = network == Network.MAINNET
-          ? Environment.feralFileAPIMainnetURL
-          : Environment.feralFileAPITestnetURL;
-
+      final ffSource = Environment.feralFileAPIURL;
       final ffAccount = await getAccount(token);
       final alreadyLinkedAccount = (await _cloudDB.connectionDao
               .getConnectionsByAccountNumber(ffAccount.id))

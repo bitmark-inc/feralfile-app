@@ -225,9 +225,9 @@ Future<void> setup() async {
       () => IndexerApi(dio, baseUrl: Environment.indexerURL));
 
   injector.registerLazySingleton<EthereumService>(
-      () => EthereumServiceImpl(injector(), injector()));
+      () => EthereumServiceImpl(injector()));
   injector.registerLazySingleton<TezosService>(
-      () => TezosServiceImpl(injector(), injector()));
+      () => TezosServiceImpl(injector()));
   injector.registerLazySingleton<AppDatabase>(() => mainnetDB);
 
   injector.registerLazySingleton<TokensService>(() => TokensServiceImpl(
@@ -237,7 +237,7 @@ Future<void> setup() async {
         injector(),
       ));
   injector.registerLazySingleton<FeedService>(
-      () => FeedServiceImpl(injector(), injector<AppDatabase>().assetDao));
+      () => FeedServiceImpl(injector<AppDatabase>().assetDao));
 
   injector.registerLazySingleton<FeralFileService>(() => FeralFileServiceImpl(
         injector(),

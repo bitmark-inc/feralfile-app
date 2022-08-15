@@ -29,13 +29,13 @@ class GetEthereumAddressEvent extends EthereumEvent {
 
 class EthereumState {
   Map<String, String>? personaAddresses;
-  Map<Network, Map<String, EtherAmount>> ethBalances;
+  Map<String, EtherAmount> ethBalances;
 
   EthereumState(this.personaAddresses, this.ethBalances);
 
   EthereumState copyWith({
     Map<String, String>? personaAddresses,
-    Map<Network, Map<String, EtherAmount>>? ethBalances,
+    Map<String, EtherAmount>? ethBalances,
   }) {
     return EthereumState(
       personaAddresses ?? this.personaAddresses,
