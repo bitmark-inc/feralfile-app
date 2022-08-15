@@ -49,7 +49,10 @@ dependencies:
   flutter_chat_types: ^3.3.1
   flutter_chat_ui: ^1.5.8
   flutter_dotenv: ^5.0.2
-  flutter_downloader: ^1.8.0
+  flutter_downloader:
+    git:
+      url: https://github.com/autonomy-system/flutter_downloader
+      ref: 0b047c6fc539df5e00be03a87ce598e4ef71005f
   flutter_email_sender: ^5.1.0
   flutter_fgbg: ^0.2.0
   flutter_image_compress: ^1.1.0
