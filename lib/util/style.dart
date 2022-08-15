@@ -42,7 +42,7 @@ MarkdownStyleSheet markDownStyle(BuildContext context, Color textColor) {
       decoration: TextDecoration.underline,
       fontWeight: FontWeight.w600,
     ),
-    p: bodyText2.copyWith(color: textColor),
+    p: theme.textTheme.bodyText1?.copyWith(color: textColor),
     pPadding: const EdgeInsets.only(bottom: 15),
     code: bodyText2.copyWith(backgroundColor: Colors.transparent),
     h1: theme.textTheme.headline1,
