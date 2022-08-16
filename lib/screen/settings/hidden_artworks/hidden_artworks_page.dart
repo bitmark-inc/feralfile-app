@@ -10,7 +10,6 @@ import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/util/au_cached_manager.dart';
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -55,6 +54,8 @@ class _HiddenArtworksPageState extends State<HiddenArtworksPage> {
   }
 
   Widget _assetsWidget(List<AssetToken> tokens) {
+    final theme = Theme.of(context);
+
     final tokenIDs = tokens.map((e) => e.id).toList();
     const int cellPerRow = 3;
     const double cellSpacing = 3.0;
@@ -72,7 +73,7 @@ class _HiddenArtworksPageState extends State<HiddenArtworksPage> {
             padding: const EdgeInsets.fromLTRB(14, 24, 24, 14),
             child: Text(
               "Hidden",
-              style: appTextTheme.headline1,
+              style: theme.textTheme.headline1,
             ),
           ),
         ),

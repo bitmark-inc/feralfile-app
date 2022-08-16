@@ -27,6 +27,8 @@ class _GlobalReceivePageState extends State<GlobalReceivePage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: getBackAppBar(
         context,
@@ -49,12 +51,12 @@ class _GlobalReceivePageState extends State<GlobalReceivePage> {
               const SizedBox(height: 16.0),
               Text(
                 "Receive",
-                style: appTextTheme.headline1,
+                style: theme.textTheme.headline1,
               ),
               const SizedBox(height: 40.0),
               Text(
                 "Select an address on the appropriate blockchain where you want to receive your NFT or cryptocurrency:",
-                style: appTextTheme.bodyText1,
+                style: theme.textTheme.bodyText1,
               ),
               const SizedBox(height: 24),
               ListView.separated(
@@ -65,8 +67,7 @@ class _GlobalReceivePageState extends State<GlobalReceivePage> {
                         child: accountWithConnectionItem(
                             context, categorizedAccounts[index]),
                       )),
-                  separatorBuilder: ((context, index) =>
-                      addDivider(height: 0)),
+                  separatorBuilder: ((context, index) => addDivider(height: 0)),
                   itemCount: categorizedAccounts.length)
             ],
           ),

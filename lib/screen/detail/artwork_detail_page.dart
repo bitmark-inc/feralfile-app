@@ -9,7 +9,6 @@ import 'dart:collection';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/model/provenance.dart';
@@ -23,8 +22,6 @@ import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
-import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/theme_manager.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/au_outlined_button.dart';
@@ -94,6 +91,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   @override
   Widget build(BuildContext context) {
     final unescape = HtmlUnescape();
+    final theme = Theme.of(context);
 
     return Stack(
       children: [
@@ -141,7 +139,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
                       child: Text(
                         asset.title,
-                        style: appTextTheme.headline1,
+                        style: theme.textTheme.headline1,
                       ),
                     ),
                     const SizedBox(height: 8.0),
@@ -150,7 +148,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                         padding: const EdgeInsets.symmetric(horizontal: 16.0),
                         child: Text(
                           subTitle,
-                          style: appTextTheme.headline3,
+                          style: theme.textTheme.headline3,
                         ),
                       ),
                     ],
@@ -167,7 +165,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                             Navigator.of(context).pop();
                           }
                         }),
-                    debugInfoWidget(currentAsset),
+                    debugInfoWidget(context, currentAsset),
                     const SizedBox(height: 16.0),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -194,11 +192,9 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                           const SizedBox(height: 40.0),
                           Text(
                             unescape.convert(asset.desc ?? ""),
-                            style: appTextTheme.bodyText1,
+                            style: theme.textTheme.bodyText1,
                           ),
                           artworkDetailsRightSection(context, asset),
-                          artworkDetailsValueSection(
-                              context, asset, state.assetPrice),
                           const SizedBox(height: 40.0),
                           artworkDetailsMetadataSection(
                               context, asset, artistName),
@@ -245,7 +241,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   }
 
   Future _showArtworkOptionsDialog(AssetToken asset) async {
-    final theme = AuThemeManager.get(AppTheme.sheetTheme);
+    final theme = Theme.of(context);
 
     Widget optionRow({required String title, Function()? onTap}) {
       return InkWell(
@@ -255,8 +251,8 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(title, style: theme.textTheme.headline4),
-              const Icon(Icons.navigate_next, color: Colors.white),
+              Text(title, style: theme.primaryTextTheme.headline4),
+              Icon(Icons.navigate_next, color: theme.colorScheme.secondary),
             ],
           ),
         ),
@@ -274,8 +270,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
           optionRow(
             title: asset.isHidden() ? 'Unhide artwork' : 'Hide artwork',
             onTap: () async {
-              final appDatabase =
-                  injector<NetworkConfigInjector>().I<AppDatabase>();
+              final appDatabase = injector<AppDatabase>();
               if (asset.isHidden()) {
                 asset.hidden = null;
               } else {
@@ -299,34 +294,29 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
             },
           ),
           if (ownerWallet != null) ...[
-            const Divider(
-              color: Colors.white,
+            Divider(
+              color: theme.colorScheme.secondary,
               height: 1,
               thickness: 1,
             ),
             optionRow(
               title: "Send artwork",
               onTap: () async {
-                Navigator.of(context).popAndPushNamed(
-                    AppRouter.sendArtworkPage,
+                Navigator.of(context).popAndPushNamed(AppRouter.sendArtworkPage,
                     arguments: SendArtworkPayload(asset, ownerWallet));
               },
             ),
-          ],
-          const SizedBox(
-            height: 18,
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text(
-              "CANCEL",
-              style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  fontFamily: "IBMPlexMono"),
+            const SizedBox(
+              height: 18,
             ),
-          ),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                "CANCEL",
+                style: theme.primaryTextTheme.caption,
+              ),
+            ),
+          ],
         ],
       ),
       isDismissible: true,

@@ -34,6 +34,7 @@ class _LinkAppOptionsPageState extends State<LinkAppOptionsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: getBackAppBar(
         context,
@@ -48,7 +49,7 @@ class _LinkAppOptionsPageState extends State<LinkAppOptionsPage> {
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(
                 "Where are you using MetaMask?",
-                style: appTextTheme.headline1,
+                style: theme.textTheme.headline1,
               ),
               addTitleSpace(),
               _mobileAppOnThisDeviceOptionWidget(context),
@@ -63,16 +64,18 @@ class _LinkAppOptionsPageState extends State<LinkAppOptionsPage> {
   }
 
   Widget _mobileAppOnThisDeviceOptionWidget(BuildContext context) {
+    final theme = Theme.of(context);
     return TappableForwardRow(
       leftWidget:
-          Text('Mobile app on this device', style: appTextTheme.headline4),
+          Text('Mobile app on this device', style: theme.textTheme.headline4),
       onTap: () => _linkMetamask(),
     );
   }
 
   Widget _browserExtensionOptionWidget(BuildContext context) {
+    final theme = Theme.of(context);
     return TappableForwardRow(
-      leftWidget: Text('Browser extension', style: appTextTheme.headline4),
+      leftWidget: Text('Browser extension', style: theme.textTheme.headline4),
       onTap: () => Navigator.of(context).pushNamed(AppRouter.linkMetamaskPage),
     );
   }
@@ -112,7 +115,8 @@ class _LinkAppOptionsPageState extends State<LinkAppOptionsPage> {
 
   void _launchURL(String url) async {
     final uri = Uri.tryParse(url);
-    if (uri != null && !await launchUrl(uri, mode: LaunchMode.inAppWebView)) {
+    if (uri != null &&
+        !await launchUrl(uri, mode: LaunchMode.externalNonBrowserApplication)) {
       _isPageInactive = true;
       Navigator.of(context)
           .pushNamed(AppRouter.linkWalletConnectPage, arguments: 'MetaMask');

@@ -5,8 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:flutter/material.dart';
 
 class AuFilledButton extends StatelessWidget {
@@ -25,14 +25,16 @@ class AuFilledButton extends StatelessWidget {
       required this.onPress,
       this.icon,
       this.enabled = true,
-      this.color = Colors.black,
+      this.color = AppColor.primaryBlack,
       this.isProcessing = false,
       this.textStyle,
-      this.textAlign })
+      this.textAlign})
       : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return ClipPath(
       clipper: AutonomyButtonClipper(),
       child: ElevatedButton(
@@ -40,7 +42,8 @@ class AuFilledButton extends StatelessWidget {
             primary: enabled ? color : color.withOpacity(0.6),
             onSurface: color,
             shape: const RoundedRectangleBorder(),
-            splashFactory: enabled ? InkRipple.splashFactory : NoSplash.splashFactory,
+            splashFactory:
+                enabled ? InkRipple.splashFactory : NoSplash.splashFactory,
             padding: const EdgeInsets.symmetric(vertical: 14)),
         onPressed: enabled ? onPress : () {},
         child: Row(
@@ -51,20 +54,20 @@ class AuFilledButton extends StatelessWidget {
                     height: 14.0,
                     width: 14.0,
                     margin: const EdgeInsets.only(right: 8.0),
-                    child: const CircularProgressIndicator(
-                      color: Colors.black,
-                      backgroundColor: Colors.grey,
+                    child: CircularProgressIndicator(
+                      color: theme.colorScheme.primary,
+                      backgroundColor: theme.colorScheme.surface,
                       strokeWidth: 2.0,
                     ),
                   )
                 : const SizedBox(),
             icon != null
-                ? Container(margin: const EdgeInsets.only(right: 8.0), child: icon!)
+                ? Container(
+                    margin: const EdgeInsets.only(right: 8.0), child: icon!)
                 : const SizedBox(),
             Text(
               text.toUpperCase(),
-              style: textStyle ?? appTextTheme.button,
-              textAlign: textAlign,
+              style: textStyle ?? theme.primaryTextTheme.button,
             ),
           ],
         ),

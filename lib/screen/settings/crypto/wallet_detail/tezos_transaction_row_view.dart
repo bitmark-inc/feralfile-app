@@ -7,7 +7,7 @@
 
 import 'package:autonomy_flutter/model/tzkt_operation.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
-import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
@@ -26,6 +26,8 @@ class TezosTXRowView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     final DateFormat formatter = DateFormat('MMM d hh:mm');
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 18),
@@ -34,23 +36,16 @@ class TezosTXRowView extends StatelessWidget {
         children: [
           Text(
             formatter.format(tx.timestamp.toLocal()),
-            style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w400,
-                fontFamily: "IBMPlexMono"),
+            style: theme.textTheme.ibmBlackNormal14,
           ),
           const SizedBox(height: 3),
           Row(
             children: [
               _transactionImage(),
               const SizedBox(width: 13),
-              Text(_transactionTitle(), style: appTextTheme.headline4),
+              Text(_transactionTitle(), style: theme.textTheme.headline4),
               const Spacer(),
-              Text(_totalAmount(),
-                  style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      fontFamily: "IBMPlexMono"))
+              Text(_totalAmount(), style: theme.textTheme.caption)
             ],
           ),
           const SizedBox(height: 4),
@@ -58,19 +53,12 @@ class TezosTXRowView extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(width: 43),
-              Text(_transactionStatus(),
-                  style: const TextStyle(
-                      color: Colors.black,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w300,
-                      fontFamily: "AtlasGrotesk")),
+              Text(_transactionStatus(), style: theme.textTheme.headline5),
               const Spacer(),
-              Text("${tx.quote.usd.toStringAsPrecision(2)} USD",
-                  style: const TextStyle(
-                      color: Colors.black,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w300,
-                      fontFamily: "AtlasGrotesk"))
+              Text(
+                "${tx.quote.usd.toStringAsPrecision(2)}  USD",
+                style: theme.textTheme.headline5,
+              )
             ],
           ),
         ],

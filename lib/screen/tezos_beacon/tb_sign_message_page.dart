@@ -8,7 +8,6 @@
 import 'dart:convert';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
@@ -68,7 +67,7 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
     final message = hexToBytes(widget.request.payload!);
     final messageInUtf8 = utf8.decode(message, allowMalformed: true);
 
-    final networkInjector = injector<NetworkConfigInjector>();
+    final theme = Theme.of(context);
 
     return Scaffold(
       appBar: getBackAppBar(
@@ -91,27 +90,27 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
                     const SizedBox(height: 8.0),
                     Text(
                       "Confirm",
-                      style: appTextTheme.headline1,
+                      style: theme.textTheme.headline1,
                     ),
                     const SizedBox(height: 40.0),
                     Text(
                       "Connection",
-                      style: appTextTheme.headline4,
+                      style: theme.textTheme.headline4,
                     ),
                     const SizedBox(height: 16.0),
                     Text(
                       widget.request.appName ?? "",
-                      style: appTextTheme.bodyText2,
+                      style: theme.textTheme.bodyText2,
                     ),
                     const Divider(height: 32),
                     Text(
                       "Message",
-                      style: appTextTheme.headline4,
+                      style: theme.textTheme.headline4,
                     ),
                     const SizedBox(height: 16.0),
                     Text(
                       messageInUtf8,
-                      style: appTextTheme.bodyText2,
+                      style: theme.textTheme.bodyText2,
                     ),
                   ],
                 ),
@@ -126,8 +125,7 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
                         ? () => withDebounce(() async {
                               final wallet =
                                   await _currentPersona!.getTezosWallet();
-                              final signature = await networkInjector
-                                  .I<TezosService>()
+                              final signature = await injector<TezosService>()
                                   .signMessage(wallet, message);
                               injector<TezosBeaconService>()
                                   .signResponse(widget.request.id, signature);

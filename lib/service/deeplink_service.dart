@@ -25,7 +25,6 @@ abstract class DeeplinkService {
 }
 
 class DeeplinkServiceImpl extends DeeplinkService {
-  // StreamSubscription? _streamSubscription;
   final ConfigurationService _configurationService;
   final WalletConnectService _walletConnectService;
   final TezosBeaconService _tezosBeaconService;
@@ -45,6 +44,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
     try {
       final initialLink = await getInitialLink();
       _handleDeeplink(initialLink);
+
+      linkStream.listen(_handleDeeplink);
     } on PlatformException {
       //Ignore
     }

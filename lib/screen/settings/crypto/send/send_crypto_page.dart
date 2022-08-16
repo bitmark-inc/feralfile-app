@@ -14,7 +14,7 @@ import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_state.d
 import 'package:autonomy_flutter/screen/settings/crypto/send_review_page.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
-import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
@@ -53,6 +53,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
   @override
   Widget build(BuildContext context) {
     final type = widget.data.type;
+    final theme = Theme.of(context);
 
     return Scaffold(
       appBar: getBackAppBar(
@@ -71,7 +72,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
               children: [
                 Text(
                   "Send ${type == CryptoType.ETH ? "ETH" : "XTZ"}",
-                  style: appTextTheme.headline1,
+                  style: theme.textTheme.headline1,
                 ),
                 const SizedBox(height: 40.0),
                 AuTextField(
@@ -117,17 +118,13 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                   placeholder: "0",
                   isError: state.isAmountError,
                   controller: _amountController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
                   subTitleView: state.maxAllow != null
                       ? GestureDetector(
                           child: Text(
                             _maxAmountText(state),
-                            style: const TextStyle(
-                                fontSize: 12,
-                                decoration: TextDecoration.underline,
-                                fontFamily: "AtlasGrotesk",
-                                color: AppColorTheme.secondaryHeaderColor,
-                                fontWeight: FontWeight.w300),
+                            style: theme.textTheme.atlasGreyUnderline12,
                           ),
                           onTap: () {
                             String amountInStr = _maxAmount(state);
@@ -179,11 +176,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                   },
                 ),
                 const SizedBox(height: 8.0),
-                Text(_gasFee(state),
-                    style: const TextStyle(
-                        color: Colors.black,
-                        fontSize: 12,
-                        fontFamily: "AtlasGrotesk")),
+                Text(_gasFee(state), style: theme.textTheme.headline5),
                 const SizedBox(height: 24.0),
                 // Expanded(child: SizedBox()),
                 Row(

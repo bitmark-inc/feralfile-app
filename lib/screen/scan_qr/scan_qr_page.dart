@@ -22,6 +22,7 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -85,7 +86,7 @@ class _ScanQRPageState extends State<ScanQRPage> with RouteAware {
 
     var cutPaddingTop = qrSize + 460 - MediaQuery.of(context).size.height;
     if (cutPaddingTop < 0) cutPaddingTop = 0;
-
+    final theme = Theme.of(context);
     return BlocListener<FeralfileBloc, FeralFileState>(
       listener: (context, state) {
         final event = state.event;
@@ -118,7 +119,9 @@ class _ScanQRPageState extends State<ScanQRPage> with RouteAware {
             QRView(
               key: qrKey,
               overlay: QrScannerOverlayShape(
-                borderColor: isScanDataError ? Colors.red : Colors.white,
+                borderColor: isScanDataError
+                    ? AppColor.red
+                    : theme.colorScheme.secondary,
                 cutOutSize: qrSize,
                 borderWidth: 8,
                 borderRadius: 40,
@@ -132,7 +135,7 @@ class _ScanQRPageState extends State<ScanQRPage> with RouteAware {
                 onTap: () => Navigator.of(context).pop(),
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(15, 55, 15, 15),
-                  child: closeIcon(color: Colors.white),
+                  child: closeIcon(color: theme.colorScheme.secondary),
                 )),
             Padding(
               padding: EdgeInsets.fromLTRB(
@@ -153,7 +156,7 @@ class _ScanQRPageState extends State<ScanQRPage> with RouteAware {
                     text: "SHOW MY QR CODE",
                     icon: SvgPicture.asset(
                       "assets/images/iconQr.svg",
-                      color: Colors.white,
+                      color: theme.colorScheme.secondary,
                       height: 16.0,
                       width: 16.0,
                     ),
@@ -164,9 +167,11 @@ class _ScanQRPageState extends State<ScanQRPage> with RouteAware {
               ),
             )),
             if (_isLoading) ...[
-              const Center(
-                child:
-                    CupertinoActivityIndicator(color: Colors.black, radius: 16),
+              Center(
+                child: CupertinoActivityIndicator(
+                  color: theme.colorScheme.primary,
+                  radius: 16,
+                ),
               ),
             ]
           ],
@@ -176,6 +181,8 @@ class _ScanQRPageState extends State<ScanQRPage> with RouteAware {
   }
 
   Widget _instructionView() {
+    final theme = Theme.of(context);
+
     switch (widget.scannerItem) {
       case ScannerItem.WALLET_CONNECT:
       case ScannerItem.BEACON_CONNECT:
@@ -185,35 +192,35 @@ class _ScanQRPageState extends State<ScanQRPage> with RouteAware {
           children: [
             Text(
               "Scan QR code to connect to".toUpperCase(),
-              style: appTextTheme.button?.copyWith(color: Colors.white),
+              style: theme.primaryTextTheme.button,
             ),
             const SizedBox(height: 24),
             Text(
               "Apps",
-              style: appTextTheme.headline4
-                  ?.copyWith(color: Colors.white, fontSize: 12),
+              style: theme.textTheme.atlasWhiteBold12,
             ),
-            Text('Such as OpenSea or objkt.com',
-                style: appTextTheme.bodyText1
-                    ?.copyWith(color: Colors.white, fontSize: 12)),
+            Text(
+              'Such as OpenSea or objkt.com',
+              style: theme.primaryTextTheme.headline5,
+            ),
             const SizedBox(height: 8),
             Text(
               "Wallets",
-              style: appTextTheme.headline4
-                  ?.copyWith(color: Colors.white, fontSize: 12),
+              style: theme.textTheme.atlasWhiteBold12,
             ),
-            Text('Such as MetaMask',
-                style: appTextTheme.bodyText1
-                    ?.copyWith(color: Colors.white, fontSize: 12)),
+            Text(
+              'Such as MetaMask',
+              style: theme.primaryTextTheme.headline5,
+            ),
             const SizedBox(height: 8),
             Text(
               "Autonomy",
-              style: appTextTheme.headline4
-                  ?.copyWith(color: Colors.white, fontSize: 12),
+              style: theme.textTheme.atlasWhiteBold12,
             ),
-            Text('on TV or desktop',
-                style: appTextTheme.bodyText1
-                    ?.copyWith(color: Colors.white, fontSize: 12)),
+            Text(
+              'on TV or desktop',
+              style: theme.primaryTextTheme.headline5,
+            ),
           ],
         );
 
@@ -221,10 +228,7 @@ class _ScanQRPageState extends State<ScanQRPage> with RouteAware {
       case ScannerItem.XTZ_ADDRESS:
         return Column(
           children: [
-            Text(
-              "SCAN QR CODE",
-              style: appTextTheme.button?.copyWith(color: Colors.white),
-            ),
+            Text("SCAN QR CODE", style: theme.primaryTextTheme.button),
           ],
         );
     }

@@ -15,7 +15,6 @@ import 'package:autonomy_flutter/service/tokens_service.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
@@ -33,7 +32,6 @@ class LinkLedgerPage extends StatefulWidget {
 }
 
 class _LinkLedgerPageState extends State<LinkLedgerPage> {
-
   @override
   void initState() {
     super.initState();
@@ -48,6 +46,7 @@ class _LinkLedgerPageState extends State<LinkLedgerPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
         appBar: getBackAppBar(
           context,
@@ -113,14 +112,14 @@ class _LinkLedgerPageState extends State<LinkLedgerPage> {
                   children: [
                     Text(
                       "Ledger wallet",
-                      style: appTextTheme.headline1,
+                      style: theme.textTheme.headline1,
                     ),
                     const SizedBox(height: 30),
                     Row(
                       children: [
                         Text(
                           "Select your ledger wallet:",
-                          style: appTextTheme.headline4,
+                          style: theme.textTheme.headline4,
                         ),
                         const Spacer(),
                       ],
@@ -132,6 +131,7 @@ class _LinkLedgerPageState extends State<LinkLedgerPage> {
   }
 
   Widget _deviceList(BuildContext context) {
+    final theme = Theme.of(context);
     return FutureBuilder<bool>(
       builder: (context, snapshot) {
         if (snapshot.hasData) {
@@ -152,7 +152,7 @@ class _LinkLedgerPageState extends State<LinkLedgerPage> {
                       return TappableForwardRow(
                         leftWidget: Text(
                           list[index].name,
-                          style: appTextTheme.bodyText1,
+                          style: theme.textTheme.bodyText1,
                         ),
                         onTap: () => _onDeviceTap(context, list[index]),
                       );
@@ -165,7 +165,7 @@ class _LinkLedgerPageState extends State<LinkLedgerPage> {
           } else {
             return Text(
               "Your Bluetooth device is not available at the moment.\n Please make sure it's turned on in the iOS Settings.",
-              style: appTextTheme.headline4,
+              style: theme.textTheme.headline4,
             );
           }
         } else {

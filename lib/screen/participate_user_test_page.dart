@@ -18,6 +18,8 @@ class ParticipateUserTestPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
         appBar: getBackAppBar(
           context,
@@ -34,7 +36,7 @@ class ParticipateUserTestPage extends StatelessWidget {
                   children: [
                     Text(
                       "Participate in a user test",
-                      style: appTextTheme.headline1,
+                      style: theme.textTheme.headline1,
                     ),
                     addTitleSpace(),
                     Text(
@@ -43,7 +45,7 @@ Do you like to test new things?\n
 Help us verify new designs and features, and we will pay you \$50 in USDC for 30 minutes of your time. \n
 What to expect:
 """,
-                      style: appTextTheme.bodyText1,
+                      style: theme.textTheme.bodyText1,
                     ),
                     ...[
                       'The user test will be conducted via Zoom.',
@@ -57,12 +59,12 @@ What to expect:
                                 children: [
                                   Text(
                                     ' •  ',
-                                    style: appTextTheme.bodyText1,
+                                    style: theme.textTheme.bodyText1,
                                     textAlign: TextAlign.start,
                                   ),
                                   Expanded(
-                                    child:
-                                        Text(e, style: appTextTheme.bodyText1),
+                                    child: Text(e,
+                                        style: theme.textTheme.bodyText1),
                                   ),
                                 ]))
                         .toList(),

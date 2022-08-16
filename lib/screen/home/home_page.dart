@@ -168,6 +168,8 @@ class _HomePageState extends State<HomePage>
   }
 
   Widget _emptyGallery() {
+    final theme = Theme.of(context);
+
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       children: [
@@ -177,12 +179,12 @@ class _HomePageState extends State<HomePage>
         ),
         Text(
           "Collection",
-          style: appTextTheme.headline1,
+          style: theme.textTheme.headline1,
         ),
         const SizedBox(height: 24.0),
         Text(
           "Your collection is empty for now.",
-          style: appTextTheme.bodyText1,
+          style: theme.textTheme.bodyText1,
         ),
       ],
     );
@@ -311,7 +313,7 @@ class _HomePageState extends State<HomePage>
         break;
     }
 
-    showNotifications(event.notification,
+    showNotifications(context, event.notification,
         notificationOpenedHandler: _handleNotificationClicked);
     event.complete(null);
   }

@@ -7,8 +7,7 @@
 
 import 'dart:typed_data';
 
-import 'package:autonomy_flutter/model/network.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter/services.dart';
 import 'package:libauk_dart/libauk_dart.dart';
@@ -37,9 +36,8 @@ abstract class EthereumService {
 
 class EthereumServiceImpl extends EthereumService {
   final Web3Client _web3Client;
-  final ConfigurationService _configurationService;
 
-  EthereumServiceImpl(this._web3Client, this._configurationService);
+  EthereumServiceImpl(this._web3Client);
 
   @override
   Future<BigInt> estimateFee(WalletStorage wallet, EthereumAddress to,
@@ -97,8 +95,7 @@ class EthereumServiceImpl extends EthereumService {
     gasLimit ??=
         (await estimateFee(wallet, to, EtherAmount.inWei(value), data)) ~/
             gasPrice.getInWei;
-    final chainId =
-        _configurationService.getNetwork() == Network.MAINNET ? 1 : 4;
+    final chainId = Environment.appTestnetConfig ? 4 : 1;
 
     final signedTransaction = await wallet.signTransaction(
         nonce: nonce,

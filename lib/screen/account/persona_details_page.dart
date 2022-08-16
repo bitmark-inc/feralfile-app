@@ -7,7 +7,7 @@
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
-import 'package:autonomy_flutter/model/network.dart';
+import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/ethereum/ethereum_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
@@ -37,7 +37,8 @@ class PersonaDetailsPage extends StatefulWidget {
   State<PersonaDetailsPage> createState() => _PersonaDetailsPageState();
 }
 
-class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
+class _PersonaDetailsPageState extends State<PersonaDetailsPage>
+    with RouteAware {
   bool isHideGalleryEnabled = false;
 
   @override
@@ -62,12 +63,28 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
         .isPersonaHiddenInGallery(widget.persona.uuid);
   }
 
-  final addressStyle = appTextTheme.bodyText2?.copyWith(color: Colors.black);
-  final balanceStyle = appTextTheme.bodyText2?.copyWith(color: Colors.black);
+  @override
+  void didChangeDependencies() {
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+    super.didChangeDependencies();
+  }
+
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  @override
+  void didPopNext() {
+    final uuid = widget.persona.uuid;
+    context.read<EthereumBloc>().add(GetEthereumBalanceWithUUIDEvent(uuid));
+    context.read<TezosBloc>().add(GetTezosBalanceWithUUIDEvent(uuid));
+    super.didPopNext();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final network = injector<ConfigurationService>().getNetwork();
     final uuid = widget.persona.uuid;
 
     return Scaffold(
@@ -84,7 +101,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
             children: [
               _addressesSection(uuid),
               const SizedBox(height: 40),
-              _cryptoSection(uuid, network),
+              _cryptoSection(uuid),
               const SizedBox(height: 40),
               _preferencesSection(),
               const SizedBox(height: 40),
@@ -98,12 +115,14 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
   }
 
   Widget _addressesSection(String uuid) {
+    final theme = Theme.of(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           "Addresses",
-          style: appTextTheme.headline1,
+          style: theme.textTheme.headline1,
         ),
         const SizedBox(height: 24),
         FutureBuilder<String>(
@@ -137,6 +156,9 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
   }
 
   Widget _addressRow({required String address, required CryptoType type}) {
+    final theme = Theme.of(context);
+    final addressStyle = theme.textTheme.subtitle1;
+
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       child: Column(
@@ -145,7 +167,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(type.source, style: appTextTheme.headline4),
+              Text(type.source, style: theme.textTheme.headline4),
               SvgPicture.asset('assets/images/iconForward.svg'),
             ],
           ),
@@ -175,13 +197,15 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
     );
   }
 
-  Widget _cryptoSection(String uuid, Network network) {
+  Widget _cryptoSection(String uuid) {
+    final theme = Theme.of(context);
+    final balanceStyle = theme.textTheme.subtitle1;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           "Crypto",
-          style: appTextTheme.headline1,
+          style: theme.textTheme.headline1,
         ),
         const SizedBox(
           height: 8,
@@ -191,12 +215,12 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
             BlocBuilder<EthereumBloc, EthereumState>(
               builder: (context, state) {
                 final ethAddress = state.personaAddresses?[uuid];
-                final ethBalance = state.ethBalances[network]?[ethAddress];
+                final ethBalance = state.ethBalances[ethAddress];
                 const cryptoType = CryptoType.ETH;
 
                 return TappableForwardRow(
                     leftWidget: Text(cryptoType.fullCode,
-                        style: appTextTheme.headline4),
+                        style: theme.textTheme.headline4),
                     rightWidget: Text(
                         ethBalance == null
                             ? "-- ETH"
@@ -214,12 +238,12 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
             BlocBuilder<TezosBloc, TezosState>(
               builder: (context, state) {
                 final tezosAddress = state.personaAddresses?[uuid];
-                final xtzBalance = state.balances[network]?[tezosAddress];
+                final xtzBalance = state.balances[tezosAddress];
                 const cryptoType = CryptoType.XTZ;
 
                 return TappableForwardRow(
                     leftWidget: Text(cryptoType.fullCode,
-                        style: appTextTheme.headline4),
+                        style: theme.textTheme.headline4),
                     rightWidget: Text(
                         xtzBalance == null
                             ? "-- XTZ"
@@ -240,10 +264,11 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
   }
 
   Widget _preferencesSection() {
+    final theme = Theme.of(context);
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Text(
         "Preferences",
-        style: appTextTheme.headline1,
+        style: theme.textTheme.headline1,
       ),
       const SizedBox(
         height: 14,
@@ -254,7 +279,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Hide from collection', style: appTextTheme.headline4),
+              Text('Hide from collection', style: theme.textTheme.headline4),
               CupertinoSwitch(
                 value: isHideGalleryEnabled,
                 onChanged: (value) async {
@@ -264,14 +289,14 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
                     isHideGalleryEnabled = value;
                   });
                 },
-                activeColor: Colors.black,
+                activeColor: theme.colorScheme.primary,
               )
             ],
           ),
           const SizedBox(height: 14),
           Text(
             "Do not show this account's NFTs in the collection view.",
-            style: appTextTheme.bodyText1,
+            style: theme.textTheme.bodyText1,
           ),
         ],
       ),
@@ -280,10 +305,12 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
   }
 
   Widget _backupSection() {
+    final theme = Theme.of(context);
+
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Text(
         "Backup",
-        style: appTextTheme.headline1,
+        style: theme.textTheme.headline1,
       ),
       const SizedBox(
         height: 8,
@@ -291,7 +318,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage> {
       TappableForwardRow(
           leftWidget: Text(
             'Recovery phrase',
-            style: appTextTheme.headline4,
+            style: theme.textTheme.headline4,
           ),
           onTap: () async {
             final configurationService = injector<ConfigurationService>();

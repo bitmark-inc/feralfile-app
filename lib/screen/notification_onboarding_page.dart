@@ -23,14 +23,16 @@ class NotificationOnboardingPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: getBackAppBar(
         context,
         onBack: null,
       ),
       body: Container(
-        margin:
-            const EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
+        margin: const EdgeInsets.only(
+            top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -42,12 +44,11 @@ class NotificationOnboardingPage extends StatelessWidget {
                   children: [
                     Text(
                       "Notifications",
-                      style: appTextTheme.headline1,
+                      style: theme.textTheme.headline1,
                     ),
                     const SizedBox(height: 30),
                     Markdown(
-                      data:
-                          '''
+                      data: '''
 **Grant Autonomy permission to notify you when:** 
 * An NFT is added to your collection or someone sends you an NFT
 * You receive a signing requests from a dapp or service (coming soon)
@@ -56,7 +57,8 @@ class NotificationOnboardingPage extends StatelessWidget {
                       softLineBreak: true,
                       padding: const EdgeInsets.only(bottom: 50),
                       shrinkWrap: true,
-                      styleSheet: markDownLightStyle.copyWith(blockSpacing: 8),
+                      styleSheet:
+                          markDownLightStyle(context).copyWith(blockSpacing: 8),
                     ),
                     Center(
                         child: Padding(
@@ -89,13 +91,9 @@ class NotificationOnboardingPage extends StatelessWidget {
                         .setNotificationEnabled(false);
                     Navigator.of(context).pop();
                   },
-                  child: const Text(
+                  child: Text(
                     "NOT NOW",
-                    style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        fontFamily: "IBMPlexMono"),
+                    style: theme.textTheme.button,
                   ),
                 )
               ],

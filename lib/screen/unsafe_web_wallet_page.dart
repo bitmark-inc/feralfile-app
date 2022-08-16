@@ -14,6 +14,8 @@ class UnsafeWebWalletPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: getBackAppBar(
         context,
@@ -27,10 +29,10 @@ class UnsafeWebWalletPage extends StatelessWidget {
             children: [
               Text(
                 "Browser-Extension Wallets: A Threat to Your NFTs and Cryptocurrency",
-                style: appTextTheme.headline1,
+                style: theme.textTheme.headline1,
               ),
               addTitleSpace(),
-              _contentWidget,
+              _contentWidget(context),
               const SizedBox(height: 40),
             ],
           ),
@@ -39,10 +41,12 @@ class UnsafeWebWalletPage extends StatelessWidget {
     );
   }
 
-  Widget get _contentWidget {
+  Widget _contentWidget(BuildContext context) {
+    final theme = Theme.of(context);
+
     return RichText(
       text: TextSpan(
-        style: appTextTheme.bodyText1,
+        style: theme.textTheme.bodyText1,
         children: const <TextSpan>[
           TextSpan(
             text:

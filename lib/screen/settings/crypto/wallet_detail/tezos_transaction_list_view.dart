@@ -11,7 +11,6 @@ import 'package:autonomy_flutter/model/tzkt_operation.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/tezos_transaction_row_view.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:flutter/material.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 
@@ -73,6 +72,7 @@ class _TezosTXListViewState extends State<TezosTXListView> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return widget.address.isEmpty
         ? const SizedBox()
         : CustomScrollView(
@@ -86,14 +86,14 @@ class _TezosTXListViewState extends State<TezosTXListView> {
                         padding: const EdgeInsets.only(top: 30),
                         child: Text(
                             "Currently unable to load transaction data from tzkt.io.",
-                            style: appTextTheme.bodyText1),
+                            style: theme.textTheme.bodyText1),
                       );
                     },
                     noItemsFoundIndicatorBuilder: (context) {
                       return Container(
                         padding: const EdgeInsets.only(top: 30),
                         child: Text("Your transactions will appear here.",
-                            style: appTextTheme.bodyText1),
+                            style: theme.textTheme.bodyText1),
                       );
                     },
                     itemBuilder: (context, item, index) {

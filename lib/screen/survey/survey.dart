@@ -10,7 +10,6 @@ import 'package:autonomy_flutter/screen/survey/survey_thankyou.dart';
 import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/material.dart';
@@ -32,6 +31,8 @@ class _SurveyPageState extends State<SurveyPage> {
   _SurveyPageState();
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: getCloseAppBar(
         context,
@@ -52,7 +53,7 @@ class _SurveyPageState extends State<SurveyPage> {
               _currentPage == 0
                   ? "How did you hear about Autonomy? "
                   : "Which NFT marketplace? ",
-              style: appTextTheme.headline1,
+              style: theme.textTheme.headline1,
             ),
             const SizedBox(height: 40.0),
             Expanded(
@@ -176,6 +177,7 @@ class _SurveyQuestionarePageState extends State<SurveyQuestionarePage> {
   _SurveyQuestionarePageState();
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return CustomScrollView(
       controller: _scrollController,
       slivers: [
@@ -198,7 +200,7 @@ class _SurveyQuestionarePageState extends State<SurveyQuestionarePage> {
                       Expanded(
                           child: Text(
                         item,
-                        style: appTextTheme.headline4,
+                        style: theme.textTheme.headline4,
                         overflow: TextOverflow.ellipsis,
                       )),
                       SvgPicture.asset(selection == index
@@ -226,22 +228,22 @@ class _SurveyQuestionarePageState extends State<SurveyQuestionarePage> {
                   border: Border(
                       bottom: BorderSide(
                           color: selection == widget.questionItems.length
-                              ? Colors.black
+                              ? theme.colorScheme.primary
                               : const Color.fromRGBO(227, 227, 227, 1)))),
               child: Row(
                 children: [
                   Expanded(
                     child: TextField(
-                      style: appTextTheme.headline4,
+                      style: theme.textTheme.headline4,
                       focusNode: focusNode,
                       decoration: InputDecoration(
                         isDense: true,
                         border: InputBorder.none,
                         hintText: "Other",
                         hintMaxLines: 1,
-                        hintStyle: appTextTheme.headline4?.copyWith(
+                        hintStyle: theme.textTheme.headline4?.copyWith(
                             color: selection == widget.questionItems.length
-                                ? Colors.grey
+                                ? theme.colorScheme.surface
                                 : null),
                       ),
                       maxLines: null,

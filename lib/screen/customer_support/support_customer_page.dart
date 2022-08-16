@@ -53,6 +53,8 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: getCloseAppBar(
         context,
@@ -66,7 +68,7 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
             children: [
               Text(
                 "How can we help?",
-                style: appTextTheme.headline1,
+                style: theme.textTheme.headline1,
               ),
               addTitleSpace(),
               _reportItemsWidget(context),
@@ -80,6 +82,8 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
   }
 
   Widget _reportItemsWidget(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Column(
       children: [
         ...ReportIssueType.getSuggestList.map((item) {
@@ -87,7 +91,7 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
             children: [
               TappableForwardRow(
                 leftWidget: Text(ReportIssueType.toTitle(item),
-                    style: appTextTheme.headline4),
+                    style: theme.textTheme.headline4),
                 onTap: () => Navigator.of(context).pushNamed(
                     AppRouter.supportThreadPage,
                     arguments: NewIssuePayload(reportIssueType: item)),
@@ -103,6 +107,8 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
   }
 
   Widget _resourcesWidget(BuildContext context) {
+    final theme = Theme.of(context);
+
     return ValueListenableBuilder<List<int>?>(
         valueListenable: injector<CustomerSupportService>().numberOfIssuesInfo,
         builder: (BuildContext context, List<int>? numberOfIssuesInfo,
@@ -115,11 +121,11 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('RESOURCES', style: appTextTheme.headline4),
+              Text('RESOURCES', style: theme.textTheme.headline4),
               const SizedBox(height: 19),
               TappableForwardRow(
                   leftWidget:
-                      Text('Support history', style: appTextTheme.headline4),
+                      Text('Support history', style: theme.textTheme.headline4),
                   rightWidget: numberOfIssuesInfo[1] > 0
                       ? BadgeView(number: numberOfIssuesInfo[1])
                       : null,

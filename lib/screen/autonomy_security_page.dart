@@ -40,6 +40,8 @@ Of course all security ultimately rests on the code, and whether it makes the pr
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: getBackAppBar(
         context,
@@ -53,10 +55,10 @@ Of course all security ultimately rests on the code, and whether it makes the pr
             children: [
               Text(
                 "About Autonomy Security",
-                style: appTextTheme.headline1,
+                style: theme.textTheme.headline1,
               ),
               addTitleSpace(),
-              Text(securityContent, style: appTextTheme.bodyText1),
+              Text(securityContent, style: theme.textTheme.bodyText1),
             ],
           ),
         ),

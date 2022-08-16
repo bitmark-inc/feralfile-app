@@ -17,8 +17,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/theme_manager.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -40,7 +39,8 @@ void doneOnboarding(BuildContext context) async {
       .pushNamedAndRemoveUntil(AppRouter.homePage, (route) => false);
 
   await askForNotification();
-  Future.delayed(SHORT_SHOW_DIALOG_DURATION, showSurveysNotification);
+  Future.delayed(
+      SHORT_SHOW_DIALOG_DURATION, () => showSurveysNotification(context));
 }
 
 Future askForNotification() async {
@@ -59,7 +59,7 @@ Future askForNotification() async {
   });
 }
 
-void showSurveysNotification() {
+void showSurveysNotification(BuildContext context) {
   if (!injector<ConfigurationService>().isDoneOnboarding()) {
     // If the onboarding is not finished, skip this time.
     return;
@@ -71,6 +71,7 @@ void showSurveysNotification() {
   }
 
   showCustomNotifications(
+      context,
       "Take a one-question survey and be entered to win a Feral File artwork.",
       const Key(Survey.onboarding),
       notificationOpenedHandler: () =>
@@ -81,7 +82,7 @@ Future newAccountPageOrSkipInCondition(BuildContext context) async {
   if (memoryValues.linkedFFConnections?.isNotEmpty ?? false) {
     doneOnboarding(context);
   } else {
-    await Navigator.of(context).pushNamed(AppRouter.newAccountPage);
+    Navigator.of(context).pushNamed(AppRouter.newAccountPage);
   }
 }
 
@@ -95,7 +96,7 @@ class UIHelper {
       FeedbackType? feedback = FeedbackType.selection}) async {
     log.info("[UIHelper] showInfoDialog: $title");
     currentDialogTitle = title;
-    final theme = AuThemeManager.get(AppTheme.sheetTheme);
+    final theme = Theme.of(context);
 
     if (autoDismissAfter > 0) {
       Future.delayed(
@@ -118,7 +119,7 @@ class UIHelper {
             child: ClipPath(
               clipper: AutonomyTopRightRectangleClipper(),
               child: Container(
-                color: theme.backgroundColor,
+                color: theme.colorScheme.primary,
                 padding:
                     const EdgeInsets.symmetric(horizontal: 14, vertical: 32),
                 child: SingleChildScrollView(
@@ -126,7 +127,7 @@ class UIHelper {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(title, style: theme.textTheme.headline1),
+                      Text(title, style: theme.primaryTextTheme.headline1),
                       const SizedBox(height: 40),
                       content,
                     ],
@@ -145,7 +146,7 @@ class UIHelper {
       String closeButton = "",
       FeedbackType? feedback = FeedbackType.selection}) async {
     log.info("[UIHelper] showInfoDialog: $title, $description");
-    final theme = AuThemeManager.get(AppTheme.sheetTheme);
+    final theme = Theme.of(context);
 
     if (autoDismissAfter > 0) {
       Future.delayed(
@@ -162,7 +163,7 @@ class UIHelper {
             if (description.isNotEmpty) ...[
               Text(
                 description,
-                style: theme.textTheme.bodyText1,
+                style: theme.primaryTextTheme.bodyText1,
               ),
             ],
             const SizedBox(height: 40),
@@ -175,11 +176,7 @@ class UIHelper {
                       onPressed: () => Navigator.pop(context),
                       child: Text(
                         closeButton,
-                        style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            fontFamily: "IBMPlexMono"),
+                        style: theme.primaryTextTheme.button,
                       ),
                     ),
                   ),
@@ -201,7 +198,7 @@ class UIHelper {
   }
 
   static Future<void> showLinkRequestedDialog(BuildContext context) {
-    final theme = AuThemeManager.get(AppTheme.sheetTheme);
+    final theme = Theme.of(context);
     return showDialog(
         context,
         'Link requested',
@@ -211,20 +208,15 @@ class UIHelper {
             RichText(
               text: TextSpan(children: [
                 TextSpan(
-                  style: theme.textTheme.bodyText1,
+                  style: theme.primaryTextTheme.bodyText1,
                   text: "Autonomy has sent a request to ",
                 ),
-                const TextSpan(
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontFamily: "AtlasGrotesk-Light",
-                      fontWeight: FontWeight.w700,
-                      height: 1.377),
+                TextSpan(
+                  style: theme.primaryTextTheme.headline4,
                   text: "Feral File",
                 ),
                 TextSpan(
-                  style: theme.textTheme.bodyText1,
+                  style: theme.primaryTextTheme.bodyText1,
                   text:
                       " in your mobile browser to link to your account. Please make sure you are signed in and authorize the request.",
                 ),
@@ -238,7 +230,7 @@ class UIHelper {
 
   static Future showFFAccountLinked(BuildContext context, String alias,
       {bool inOnboarding = false}) {
-    final theme = AuThemeManager.get(AppTheme.sheetTheme);
+    final theme = Theme.of(context);
     return showDialog(
         context,
         'Account linked',
@@ -248,21 +240,16 @@ class UIHelper {
             RichText(
               text: TextSpan(children: [
                 TextSpan(
-                  style: theme.textTheme.bodyText1,
+                  style: theme.primaryTextTheme.bodyText1,
                   text:
                       "Autonomy has received authorization to link to your Feral File account ",
                 ),
                 TextSpan(
-                  style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontFamily: "AtlasGrotesk-Light",
-                      fontWeight: FontWeight.w700,
-                      height: 1.377),
+                  style: theme.primaryTextTheme.headline4,
                   text: alias,
                 ),
                 TextSpan(
-                  style: theme.textTheme.bodyText1,
+                  style: theme.primaryTextTheme.bodyText1,
                   text:
                       ". ${inOnboarding ? 'Please finish onboarding to view your collection.' : ''}",
                 ),
@@ -330,7 +317,7 @@ class UIHelper {
   // MARK: - Persona
   static showGeneratedPersonaDialog(BuildContext context,
       {required Function() onContinue}) {
-    final theme = AuThemeManager.get(AppTheme.sheetTheme);
+    final theme = Theme.of(context);
 
     showDialog(
         context,
@@ -339,13 +326,13 @@ class UIHelper {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('MULTI-CHAIN ACCOUNT GENERATED WITH:',
-                style: theme.textTheme.headline5),
+                style: theme.primaryTextTheme.headline5),
             const SizedBox(height: 16),
-            Text('• Bitmark address', style: theme.textTheme.headline4),
+            Text('• Bitmark address', style: theme.primaryTextTheme.headline4),
             const SizedBox(height: 16),
-            Text('• Ethereum address', style: theme.textTheme.headline4),
+            Text('• Ethereum address', style: theme.primaryTextTheme.headline4),
             const SizedBox(height: 16),
-            Text('• Tezos address', style: theme.textTheme.headline4),
+            Text('• Tezos address', style: theme.primaryTextTheme.headline4),
             const SizedBox(height: 40),
             Row(
               children: [
@@ -353,12 +340,8 @@ class UIHelper {
                   child: AuFilledButton(
                     text: "CONTINUE",
                     onPress: () => onContinue(),
-                    color: theme.primaryColor,
-                    textStyle: TextStyle(
-                        color: theme.backgroundColor,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        fontFamily: "IBMPlexMono"),
+                    color: theme.colorScheme.secondary,
+                    textStyle: theme.textTheme.button,
                   ),
                 ),
               ],
@@ -370,7 +353,7 @@ class UIHelper {
 
   static showImportedPersonaDialog(BuildContext context,
       {required Function() onContinue}) {
-    final theme = AuThemeManager.get(AppTheme.sheetTheme);
+    final theme = Theme.of(context);
 
     showDialog(
         context,
@@ -379,13 +362,13 @@ class UIHelper {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('MULTI-CHAIN ACCOUNT GENERATED WITH:',
-                style: theme.textTheme.headline5),
+                style: theme.primaryTextTheme.headline5),
             const SizedBox(height: 16),
-            Text('• Bitmark address', style: theme.textTheme.headline4),
+            Text('• Bitmark address', style: theme.primaryTextTheme.headline4),
             const SizedBox(height: 16),
-            Text('• Ethereum address', style: theme.textTheme.headline4),
+            Text('• Ethereum address', style: theme.primaryTextTheme.headline4),
             const SizedBox(height: 16),
-            Text('• Tezos address', style: theme.textTheme.headline4),
+            Text('• Tezos address', style: theme.primaryTextTheme.headline4),
             const SizedBox(height: 40),
             Row(
               children: [
@@ -393,12 +376,8 @@ class UIHelper {
                   child: AuFilledButton(
                     text: "CONTINUE",
                     onPress: () => onContinue(),
-                    color: theme.primaryColor,
-                    textStyle: TextStyle(
-                        color: theme.backgroundColor,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        fontFamily: "IBMPlexMono"),
+                    color: theme.colorScheme.secondary,
+                    textStyle: theme.textTheme.button,
                   ),
                 ),
               ],
@@ -410,7 +389,7 @@ class UIHelper {
 
   static showHideArtworkResultDialog(BuildContext context, bool isHidden,
       {required Function() onOK}) {
-    final theme = AuThemeManager.get(AppTheme.sheetTheme);
+    final theme = Theme.of(context);
 
     showDialog(
         context,
@@ -422,21 +401,16 @@ class UIHelper {
                 ? RichText(
                     text: TextSpan(children: [
                       TextSpan(
-                        style: theme.textTheme.bodyText1,
+                        style: theme.primaryTextTheme.bodyText1,
                         text:
                             "This artwork will no longer appear in your collection. You can still find it in the ",
                       ),
-                      const TextSpan(
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontFamily: "AtlasGrotesk-Light",
-                            fontWeight: FontWeight.w700,
-                            height: 1.377),
+                      TextSpan(
+                        style: theme.primaryTextTheme.headline4,
                         text: "Hidden artworks >",
                       ),
                       TextSpan(
-                        style: theme.textTheme.bodyText1,
+                        style: theme.primaryTextTheme.bodyText1,
                         text:
                             " section of settings if you want to view it or unhide it.",
                       ),
@@ -444,7 +418,7 @@ class UIHelper {
                   )
                 : Text(
                     "This artwork will now be visible in your collection.",
-                    style: theme.textTheme.bodyText1,
+                    style: theme.primaryTextTheme.bodyText1,
                   ),
             const SizedBox(height: 40),
             Row(
@@ -454,11 +428,7 @@ class UIHelper {
                     text: "OK",
                     onPress: onOK,
                     color: theme.primaryColor,
-                    textStyle: TextStyle(
-                        color: theme.backgroundColor,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        fontFamily: "IBMPlexMono"),
+                    textStyle: theme.primaryTextTheme.button,
                   ),
                 ),
               ],
@@ -470,7 +440,7 @@ class UIHelper {
 
   static showIdentityDetailDialog(BuildContext context,
       {required String name, required String address}) {
-    final theme = AuThemeManager.get(AppTheme.sheetTheme);
+    final theme = Theme.of(context);
 
     showDialog(
         context,
@@ -479,41 +449,33 @@ class UIHelper {
             child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('ALIAS', style: theme.textTheme.headline5),
+            Text('ALIAS', style: theme.primaryTextTheme.headline5),
             const SizedBox(height: 16),
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
               Expanded(
                   child: Text(
                 name,
-                style: theme.textTheme.headline4,
+                style: theme.primaryTextTheme.headline4,
                 overflow: TextOverflow.ellipsis,
               )),
               GestureDetector(
-                child: Text("Share", style: theme.textTheme.headline4),
+                child: Text("Share", style: theme.primaryTextTheme.headline4),
                 onTap: () => Share.share(address),
               )
             ]),
             const SizedBox(height: 16),
             Text(
               address,
-              style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w400,
-                  fontFamily: "IBMPlexMono"),
+              style: theme.textTheme.ibmWhiteNormal14,
             ),
             const SizedBox(height: 56),
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text(
+              child: Text(
                 "CLOSE",
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    fontFamily: "IBMPlexMono"),
+                style: theme.primaryTextTheme.button,
               ),
             ),
             const SizedBox(height: 15),
@@ -562,7 +524,7 @@ class UIHelper {
 
   static Future showFeatureRequiresSubscriptionDialog(
       BuildContext context, PremiumFeature feature) {
-    final theme = AuThemeManager.get(AppTheme.sheetTheme);
+    final theme = Theme.of(context);
 
     return showDialog(
         context,
@@ -571,7 +533,7 @@ class UIHelper {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('This feature requires subscription',
-                style: theme.textTheme.bodyText1),
+                style: theme.primaryTextTheme.bodyText1),
             const SizedBox(height: 40),
             UpgradeBoxView.getMoreAutonomyWidget(theme, feature),
             const SizedBox(height: 24),
@@ -580,13 +542,9 @@ class UIHelper {
                 Expanded(
                   child: TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text(
+                    child: Text(
                       "CANCEL",
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          fontFamily: "IBMPlexMono"),
+                      style: theme.primaryTextTheme.button,
                     ),
                   ),
                 ),
@@ -601,15 +559,17 @@ class UIHelper {
 
 learnMoreAboutAutonomySecurityWidget(BuildContext context,
     {String title = 'Learn more about Autonomy security ...'}) {
+  final theme = Theme.of(context);
   return TextButton(
-      onPressed: () =>
-          Navigator.of(context).pushNamed(AppRouter.autonomySecurityPage),
-      style: TextButton.styleFrom(
-        minimumSize: Size.zero,
-        padding: EdgeInsets.zero,
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      ),
-      child: Text(title, style: linkStyle));
+    onPressed: () =>
+        Navigator.of(context).pushNamed(AppRouter.autonomySecurityPage),
+    style: TextButton.styleFrom(
+      minimumSize: Size.zero,
+      padding: EdgeInsets.zero,
+      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    ),
+    child: Text(title, style: theme.textTheme.linkStyle),
+  );
 }
 
 wantMoreSecurityWidget(BuildContext context, WalletApp walletApp) {
@@ -619,36 +579,30 @@ wantMoreSecurityWidget(BuildContext context, WalletApp walletApp) {
   }
   introText +=
       ' functionality of ${walletApp.rawValue} in a mobile app by importing your account to Autonomy. Tap to do this now.';
-
+  final theme = Theme.of(context);
   return GestureDetector(
     onTap: () => Navigator.of(context).pushNamed(AppRouter.importAccountPage),
     child: Container(
       padding: const EdgeInsets.all(10),
-      color: AppColorTheme.secondaryDimGreyBackground,
-      child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Want more security and portability?',
-                style: TextStyle(
-                    color: AppColorTheme.secondaryDimGrey,
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    fontFamily: "AtlasGrotesk",
-                    height: 1.377)),
-            const SizedBox(height: 5),
-            Text(introText, style: bodySmall),
-            const SizedBox(height: 10),
-            TextButton(
-                onPressed: () => Navigator.of(context)
-                    .pushNamed(AppRouter.unsafeWebWalletPage),
-                style: TextButton.styleFrom(
-                  minimumSize: Size.zero,
-                  padding: EdgeInsets.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                child: const Text('Learn why browse-extension wallets are unsafe...',
-                    style: linkStyle)),
-          ]),
+      color: AppColor.secondaryDimGreyBackground,
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text('Want more security and portability?',
+            style: theme.textTheme.atlasDimgreyBold14),
+        const SizedBox(height: 5),
+        Text(introText, style: theme.textTheme.atlasBlackNormal14),
+        const SizedBox(height: 10),
+        TextButton(
+          onPressed: () =>
+              Navigator.of(context).pushNamed(AppRouter.unsafeWebWalletPage),
+          style: TextButton.styleFrom(
+            minimumSize: Size.zero,
+            padding: EdgeInsets.zero,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+          child: Text('Learn why browse-extension wallets are unsafe...',
+              style: theme.textTheme.linkStyle),
+        ),
+      ]),
     ),
   );
 }

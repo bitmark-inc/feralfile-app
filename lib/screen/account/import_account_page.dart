@@ -34,6 +34,7 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: getBackAppBar(
         context,
@@ -53,12 +54,12 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
                   children: [
                     Text(
                       "Import account",
-                      style: appTextTheme.headline1,
+                      style: theme.textTheme.headline1,
                     ),
                     addTitleSpace(),
                     Text(
                       "Importing your account will also add support for all chains featured in Autonomy. We will automatically back up your account in your iCloud Keychain.",
-                      style: appTextTheme.bodyText1,
+                      style: theme.textTheme.bodyText1,
                     ),
                     const SizedBox(height: 16),
                     learnMoreAboutAutonomySecurityWidget(

@@ -32,6 +32,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: getBackAppBar(
         context,
@@ -40,8 +41,8 @@ class _AddAccountPageState extends State<AddAccountPage> {
         },
       ),
       body: Container(
-        margin:
-            const EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
+        margin: const EdgeInsets.only(
+            top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -52,7 +53,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
                   children: [
                     Text(
                       "Set up account",
-                      style: appTextTheme.headline1,
+                      style: theme.textTheme.headline1,
                     ),
                     addTitleSpace(),
                     _linkAccountOption(context),
@@ -70,6 +71,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
   }
 
   Widget _linkDebugWidget() {
+    final theme = Theme.of(context);
     return FutureBuilder<bool>(
         future: isAppCenterBuild(),
         builder: (context, snapshot) {
@@ -79,10 +81,10 @@ class _AddAccountPageState extends State<AddAccountPage> {
                 addDivider(),
                 TappableForwardRowWithContent(
                   leftWidget:
-                      Text('Debug address', style: appTextTheme.headline4),
+                      Text('Debug address', style: theme.textTheme.headline4),
                   bottomWidget: Text(
                       'Manually input an address for debugging purposes.',
-                      style: appTextTheme.bodyText1),
+                      style: theme.textTheme.bodyText1),
                   onTap: () => Navigator.of(context)
                       .pushNamed(AppRouter.linkManually, arguments: 'address'),
                 ),
@@ -91,7 +93,8 @@ class _AddAccountPageState extends State<AddAccountPage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Show Token Debug log', style: appTextTheme.headline4),
+                    Text('Show Token Debug log',
+                        style: theme.textTheme.headline4),
                     CupertinoSwitch(
                       value:
                           injector<ConfigurationService>().showTokenDebugInfo(),
@@ -102,7 +105,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
                           _redrawObject = Object();
                         });
                       },
-                      activeColor: Colors.black,
+                      activeColor: theme.colorScheme.primary,
                     )
                   ],
                 ),
@@ -116,15 +119,16 @@ class _AddAccountPageState extends State<AddAccountPage> {
   }
 
   Widget _linkTokenIndexerIDWidget(BuildContext context) {
+    final theme = Theme.of(context);
     return Column(
       children: [
         addDivider(),
         TappableForwardRowWithContent(
           leftWidget:
-              Text('Debug Indexer TokenID', style: appTextTheme.headline4),
+              Text('Debug Indexer TokenID', style: theme.textTheme.headline4),
           bottomWidget: Text(
               'Manually input an indexer tokenID for debugging purposes',
-              style: appTextTheme.bodyText1),
+              style: theme.textTheme.bodyText1),
           onTap: () => Navigator.of(context)
               .pushNamed(AppRouter.linkManually, arguments: 'indexerTokenID'),
         ),
@@ -139,16 +143,18 @@ class _AddAccountPageState extends State<AddAccountPage> {
   }
 
   Widget _linkAccountOption(BuildContext context) {
+    final theme = Theme.of(context);
     return TappableForwardRowWithContent(
-      leftWidget: Text('Add', style: appTextTheme.headline4),
+      leftWidget: Text('Add', style: theme.textTheme.headline4),
       bottomWidget: Text(
           'I already have NFTs in other wallets that I want to view with Autonomy.',
-          style: appTextTheme.bodyText1),
+          style: theme.textTheme.bodyText1),
       onTap: () => Navigator.of(context).pushNamed(AppRouter.linkAccountpage),
     );
   }
 
   Widget _createAccountOption(BuildContext context) {
+    final theme = Theme.of(context);
     return BlocConsumer<PersonaBloc, PersonaState>(
       listener: (context, state) {
         switch (state.createAccountState) {
@@ -170,10 +176,10 @@ class _AddAccountPageState extends State<AddAccountPage> {
       },
       builder: (context, state) {
         return TappableForwardRowWithContent(
-          leftWidget: Text('New', style: appTextTheme.headline4),
+          leftWidget: Text('New', style: theme.textTheme.headline4),
           bottomWidget: Text(
               'Make a new account with addresses you can use to collect or receive NFTs on Ethereum, Feral File, and Tezos. ',
-              style: appTextTheme.bodyText1),
+              style: theme.textTheme.bodyText1),
           onTap: () {
             if (state.createAccountState == ActionState.loading) return;
             context.read<PersonaBloc>().add(CreatePersonaEvent());

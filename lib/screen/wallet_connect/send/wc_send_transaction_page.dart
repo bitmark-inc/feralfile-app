@@ -8,7 +8,6 @@
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_bloc.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_state.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/cupertino.dart';
@@ -44,6 +43,8 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: getBackAppBar(
         context,
@@ -77,37 +78,37 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                             const SizedBox(height: 8.0),
                             Text(
                               "Confirm",
-                              style: appTextTheme.headline1,
+                              style: theme.textTheme.headline1,
                             ),
                             const SizedBox(height: 40.0),
                             Text(
                               "Asset",
-                              style: appTextTheme.headline4,
+                              style: theme.textTheme.headline4,
                             ),
                             const SizedBox(height: 16.0),
                             Text(
                               "Ethereum (ETH)",
-                              style: appTextTheme.bodyText2,
+                              style: theme.textTheme.bodyText2,
                             ),
                             const Divider(height: 32),
                             Text(
                               "From",
-                              style: appTextTheme.headline4,
+                              style: theme.textTheme.headline4,
                             ),
                             const SizedBox(height: 16.0),
                             Text(
                               widget.args.transaction.from,
-                              style: appTextTheme.bodyText2,
+                              style: theme.textTheme.bodyText2,
                             ),
                             const Divider(height: 32),
                             Text(
                               "Connection",
-                              style: appTextTheme.headline4,
+                              style: theme.textTheme.headline4,
                             ),
                             const SizedBox(height: 16.0),
                             Text(
                               widget.args.peerMeta.name,
-                              style: appTextTheme.bodyText2,
+                              style: theme.textTheme.bodyText2,
                             ),
                             const Divider(height: 32),
                             Row(
@@ -115,11 +116,11 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                               children: [
                                 Text(
                                   "Send",
-                                  style: appTextTheme.headline4,
+                                  style: theme.textTheme.headline4,
                                 ),
                                 Text(
                                   "${EthAmountFormatter(amount.getInWei).format()} ETH",
-                                  style: appTextTheme.bodyText2,
+                                  style: theme.textTheme.bodyText2,
                                 ),
                               ],
                             ),
@@ -129,11 +130,11 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                               children: [
                                 Text(
                                   "Gas fee",
-                                  style: appTextTheme.headline4,
+                                  style: theme.textTheme.headline4,
                                 ),
                                 Text(
                                   "${state.fee != null ? EthAmountFormatter(state.fee!).format() : "-"} ETH",
-                                  style: appTextTheme.bodyText2,
+                                  style: theme.textTheme.bodyText2,
                                 ),
                               ],
                             ),
@@ -143,11 +144,11 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                               children: [
                                 Text(
                                   "Total Amount",
-                                  style: appTextTheme.headline4,
+                                  style: theme.textTheme.headline4,
                                 ),
                                 Text(
                                   "${total != null ? EthAmountFormatter(total).format() : "-"} ETH",
-                                  style: appTextTheme.headline4,
+                                  style: theme.textTheme.headline4,
                                 ),
                               ],
                             ),

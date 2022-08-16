@@ -22,7 +22,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:html_unescape/html_unescape.dart';
-
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -90,6 +90,7 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
   @override
   Widget build(BuildContext context) {
     final unescape = HtmlUnescape();
+    final theme = Theme.of(context);
 
     return Stack(
       children: [
@@ -118,118 +119,116 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
             return SingleChildScrollView(
               controller: _scrollController,
               child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        RichText(
-                            text: TextSpan(
-                          style: appTextTheme.headline4
-                              ?.copyWith(fontSize: 12),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            TextSpan(
-                              text: '${feedEvent.actionRepresentation} by ',
-                            ),
-                            TextSpan(
-                              text: followingName,
-                              style: makeLinkStyle(appTextTheme.headline4!
-                                  .copyWith(fontSize: 12)),
-                              recognizer: TapGestureRecognizer()
-                                ..onTap = () => Navigator.of(context)
-                                    .pushNamed(AppRouter.galleryPage,
-                                        arguments: GalleryPagePayload(
-                                          address: feedEvent.recipient,
-                                          artistName: followingName,
-                                        )),
-                            )
+                            RichText(
+                                text: TextSpan(
+                              style: theme.textTheme.atlasBlackBold12,
+                              children: [
+                                TextSpan(
+                                  text: '${feedEvent.actionRepresentation} by ',
+                                ),
+                                TextSpan(
+                                  text: followingName,
+                                  style: theme.textTheme.atlasBlackBold12,
+                                  recognizer: TapGestureRecognizer()
+                                    ..onTap = () => Navigator.of(context)
+                                        .pushNamed(AppRouter.galleryPage,
+                                            arguments: GalleryPagePayload(
+                                              address: feedEvent.recipient,
+                                              artistName: followingName,
+                                            )),
+                                )
+                              ],
+                            )),
+                            Text(getDateTimeRepresentation(feedEvent.timestamp),
+                                style: theme.textTheme.atlasBlackNormal12),
                           ],
-                        )),
-                        Text(getDateTimeRepresentation(feedEvent.timestamp),
-                            style: labelSmall),
+                        ),
+                        const SizedBox(height: 2.0),
+                        Text(
+                          token!.title,
+                          style: theme.textTheme.headline1,
+                        ),
+                        if (artistName != null && artistName.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          RichText(
+                              text: TextSpan(
+                                  style: theme.textTheme.headline3,
+                                  children: [
+                                const TextSpan(text: "by "),
+                                if (token!.artistID != null) ...[
+                                  TextSpan(
+                                    text: artistName,
+                                    recognizer: TapGestureRecognizer()
+                                      ..onTap = () => Navigator.of(context)
+                                          .pushNamed(AppRouter.galleryPage,
+                                              arguments: GalleryPagePayload(
+                                                address: token!.artistID!,
+                                                artistName: artistName,
+                                                artistURL: token!.artistURL,
+                                              )),
+                                    style: makeLinkStyle(
+                                        theme.textTheme.headline3!),
+                                  ),
+                                ] else ...[
+                                  TextSpan(
+                                    text: artistName,
+                                  )
+                                ],
+                                if (editionSubTitle.isNotEmpty) ...[
+                                  TextSpan(text: editionSubTitle)
+                                ]
+                              ]))
+                        ],
+                        const SizedBox(height: 15),
                       ],
                     ),
-                    const SizedBox(height: 2.0),
-                    Text(
-                      token!.title,
-                      style: appTextTheme.headline1,
+                  ),
+                  GestureDetector(
+                    child: tokenThumbnailWidget(context, token!),
+                    onTap: () => Navigator.of(context).pop(),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        debugInfoWidget(context, token),
+                        const SizedBox(height: 16.0),
+                        SizedBox(
+                          width: 165,
+                          height: 48,
+                          child: AuOutlinedButton(
+                            text: "VIEW ARTWORK",
+                            onPress: () => Navigator.of(context).pop(),
+                          ),
+                        ),
+                        const SizedBox(height: 40.0),
+                        Text(
+                          unescape.convert(token?.desc ?? ""),
+                          style: theme.textTheme.bodyText1,
+                        ),
+                        artworkDetailsRightSection(context, token!),
+                        const SizedBox(height: 40.0),
+                        artworkDetailsMetadataSection(
+                            context, token!, artistName),
+                        (token?.provenances ?? []).isNotEmpty
+                            ? _provenanceView(context, token!.provenances!)
+                            : const SizedBox(),
+                        const SizedBox(height: 80.0),
+                      ],
                     ),
-                    if (artistName != null && artistName.isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      RichText(
-                          text: TextSpan(
-                              style: appTextTheme.headline3,
-                              children: [
-                            const TextSpan(text: "by "),
-                            if (token!.artistID != null) ...[
-                              TextSpan(
-                                text: artistName,
-                                recognizer: TapGestureRecognizer()
-                                  ..onTap = () => Navigator.of(context)
-                                      .pushNamed(AppRouter.galleryPage,
-                                          arguments: GalleryPagePayload(
-                                            address: token!.artistID!,
-                                            artistName: artistName,
-                                            artistURL: token!.artistURL,
-                                          )),
-                                style:
-                                    makeLinkStyle(appTextTheme.headline3!),
-                              ),
-                            ] else ...[
-                              TextSpan(
-                                text: artistName,
-                              )
-                            ],
-                            if (editionSubTitle.isNotEmpty) ...[
-                              TextSpan(text: editionSubTitle)
-                            ]
-                          ]))
-                    ],
-                    const SizedBox(height: 15),
-                  ],
-                ),
-              ),
-              GestureDetector(
-                child: tokenThumbnailWidget(context, token!),
-                onTap: () => Navigator.of(context).pop(),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    debugInfoWidget(token),
-                    const SizedBox(height: 16.0),
-                    SizedBox(
-                      width: 165,
-                      height: 48,
-                      child: AuOutlinedButton(
-                        text: "VIEW ARTWORK",
-                        onPress: () => Navigator.of(context).pop(),
-                      ),
-                    ),
-                    const SizedBox(height: 40.0),
-                    Text(
-                      unescape.convert(token?.desc ?? ""),
-                      style: appTextTheme.bodyText1,
-                    ),
-                    artworkDetailsRightSection(context, token!),
-                    const SizedBox(height: 40.0),
-                    artworkDetailsMetadataSection(
-                        context, token!, artistName),
-                    (token?.provenances ?? []).isNotEmpty
-                        ? _provenanceView(context, token!.provenances!)
-                        : const SizedBox(),
-                    const SizedBox(height: 80.0),
-                  ],
-                ),
-              ),
-            ],
+                  ),
+                ],
               ),
             );
           }),

@@ -21,6 +21,7 @@ class LinkTezosKukaiPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tezosBeaconService = injector<TezosBeaconService>();
+    final theme = Theme.of(context);
 
     return Scaffold(
         appBar: getBackAppBar(
@@ -38,18 +39,18 @@ class LinkTezosKukaiPage extends StatelessWidget {
                   children: [
                     Text(
                       "Linking to Kukai",
-                      style: appTextTheme.headline1,
+                      style: theme.textTheme.headline1,
                     ),
                     addTitleSpace(),
                     Text(
                       "Since Kukai only exists as a web wallet, you will need to follow these additional steps to link it to Autonomy: ",
-                      style: appTextTheme.bodyText1,
+                      style: theme.textTheme.bodyText1,
                     ),
                     const SizedBox(height: 20),
-                    _stepWidget('1',
+                    _stepWidget(context, '1',
                         'Generate a link request and send it to the web browser where you are currently signed in to Kukai.'),
                     const SizedBox(height: 10),
-                    _stepWidget('2',
+                    _stepWidget(context, '2',
                         'When prompted by Kukai, approve Autonomy’s permissions requests. '),
                     const SizedBox(height: 40),
                     Row(
@@ -80,7 +81,10 @@ class LinkTezosKukaiPage extends StatelessWidget {
         ));
   }
 
-  Widget _stepWidget(String stepNumber, String stepGuide) {
+  Widget _stepWidget(
+      BuildContext context, String stepNumber, String stepGuide) {
+    final theme = Theme.of(context);
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -88,14 +92,14 @@ class LinkTezosKukaiPage extends StatelessWidget {
           padding: const EdgeInsets.only(top: 2),
           child: Text(
             stepNumber,
-            style: appTextTheme.caption,
+            style: theme.textTheme.button,
           ),
         ),
         const SizedBox(
           width: 10,
         ),
         Expanded(
-          child: Text(stepGuide, style: appTextTheme.bodyText1),
+          child: Text(stepGuide, style: theme.textTheme.bodyText1),
         )
       ],
     );

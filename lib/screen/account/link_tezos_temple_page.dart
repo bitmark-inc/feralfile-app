@@ -47,6 +47,8 @@ class _LinkTezosTemplePageState extends State<LinkTezosTemplePage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
         appBar: getBackAppBar(
           context,
@@ -63,18 +65,18 @@ class _LinkTezosTemplePageState extends State<LinkTezosTemplePage> {
                   children: [
                     Text(
                       "Linking to Temple",
-                      style: appTextTheme.headline1,
+                      style: theme.textTheme.headline1,
                     ),
                     addTitleSpace(),
                     Text(
                       "Since Temple only exists as a browser extension, you will need to follow these additional steps to link it to Autonomy: ",
-                      style: appTextTheme.bodyText1,
+                      style: theme.textTheme.bodyText1,
                     ),
                     const SizedBox(height: 20),
-                    _stepWidget('1',
+                    _stepWidget(context, '1',
                         'Generate a link request and send it to the web browser where you are currently signed in to Temple.'),
                     const SizedBox(height: 10),
-                    _stepWidget('2',
+                    _stepWidget(context, '2',
                         'When prompted by Temple, approve Autonomy’s permissions requests. '),
                     const SizedBox(height: 40),
                     Row(
@@ -102,7 +104,10 @@ class _LinkTezosTemplePageState extends State<LinkTezosTemplePage> {
         ));
   }
 
-  Widget _stepWidget(String stepNumber, String stepGuide) {
+  Widget _stepWidget(
+      BuildContext context, String stepNumber, String stepGuide) {
+    final theme = Theme.of(context);
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -110,14 +115,14 @@ class _LinkTezosTemplePageState extends State<LinkTezosTemplePage> {
           padding: const EdgeInsets.only(top: 2),
           child: Text(
             stepNumber,
-            style: appTextTheme.caption,
+            style: theme.textTheme.button,
           ),
         ),
         const SizedBox(
           width: 10,
         ),
         Expanded(
-          child: Text(stepGuide, style: appTextTheme.bodyText1),
+          child: Text(stepGuide, style: theme.textTheme.bodyText1),
         )
       ],
     );
@@ -138,12 +143,12 @@ class _LinkTezosTemplePageState extends State<LinkTezosTemplePage> {
     final payload = await tezosBeaconService.getPostMessageConnectionURI();
     final sessionID = const Uuid().v4();
 
-    final network = injector<ConfigurationService>().getNetwork();
-
-    final link = "${Environment.networkedExtensionSupportURL(network)}?session_id=$sessionID&data=$payload";
+    final link =
+        "${Environment.extensionSupportURL}?session_id=$sessionID&data=$payload";
 
     _websocketChannel = WebSocketChannel.connect(
-      Uri.parse('${Environment.networkedWebsocketURL(network)}/init?session_id=$sessionID'),
+      Uri.parse(
+          '${Environment.connectWebsocketURL}/init?session_id=$sessionID'),
     );
 
     if (_websocketChannel == null) return;

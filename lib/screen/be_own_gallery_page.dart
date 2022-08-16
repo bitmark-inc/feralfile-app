@@ -19,6 +19,8 @@ class BeOwnGalleryPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: getBackAppBar(
         context,
@@ -38,17 +40,17 @@ class BeOwnGalleryPage extends StatelessWidget {
                   children: [
                     Text(
                       "View your digital artwork collection anytime, anywhere.",
-                      style: appTextTheme.headline1,
+                      style: theme.textTheme.headline1,
                     ),
                     const SizedBox(height: 30),
                     Text(
                       "At home, on vacation, on the train — never be without your digital art collection. Digital artworks you own as NFTs on Ethereum, Feral File, or Tezos will automatically appear in your Autonomy.",
-                      style: appTextTheme.bodyText1,
+                      style: theme.textTheme.bodyText1,
                     ),
                     const SizedBox(height: 15),
                     Text(
                       "It is not possible to purchase NFTs in this app.",
-                      style: appTextTheme.headline4,
+                      style: theme.textTheme.headline4,
                     ),
                   ],
                 ),

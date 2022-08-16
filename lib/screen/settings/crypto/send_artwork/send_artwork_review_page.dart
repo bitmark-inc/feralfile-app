@@ -6,7 +6,6 @@
 //
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/model/currency_exchange.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
@@ -14,7 +13,6 @@ import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -39,6 +37,7 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final asset = widget.payload.asset;
 
     final identityState = context.watch<IdentityBloc>().state;
@@ -70,7 +69,7 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                       children: [
                         Text(
                           "Confirmation",
-                          style: appTextTheme.headline1,
+                          style: theme.textTheme.headline1,
                         ),
                         const SizedBox(height: 40.0),
                         Row(
@@ -78,13 +77,13 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                           children: [
                             Text(
                               "Title",
-                              style: appTextTheme.headline4,
+                              style: theme.textTheme.headline4,
                             ),
                             Expanded(
                               child: Text(
                                 asset.title,
                                 textAlign: TextAlign.right,
-                                style: appTextTheme.bodyText2,
+                                style: theme.textTheme.bodyText2,
                               ),
                             ),
                           ],
@@ -95,11 +94,11 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                           children: [
                             Text(
                               "Artist",
-                              style: appTextTheme.headline4,
+                              style: theme.textTheme.headline4,
                             ),
                             Text(
                               artistName ?? "",
-                              style: appTextTheme.bodyText2,
+                              style: theme.textTheme.bodyText2,
                             ),
                           ],
                         ),
@@ -109,23 +108,23 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                           children: [
                             Text(
                               "Edition",
-                              style: appTextTheme.headline4,
+                              style: theme.textTheme.headline4,
                             ),
                             Text(
                               "${asset.edition}/${asset.maxEdition}",
-                              style: appTextTheme.bodyText2,
+                              style: theme.textTheme.bodyText2,
                             ),
                           ],
                         ),
                         const SizedBox(height: 32.0),
                         Text(
                           "To",
-                          style: appTextTheme.headline4,
+                          style: theme.textTheme.headline4,
                         ),
                         const SizedBox(height: 16.0),
                         Text(
                           widget.payload.address,
-                          style: appTextTheme.bodyText2,
+                          style: theme.textTheme.bodyText2,
                         ),
                         const Divider(height: 32),
                         Row(
@@ -133,13 +132,13 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                           children: [
                             Text(
                               "Gas fee",
-                              style: appTextTheme.headline4,
+                              style: theme.textTheme.headline4,
                             ),
                             Text(
                               widget.payload.asset.blockchain == "ethereum"
                                   ? "${EthAmountFormatter(widget.payload.fee).format()} ETH (${widget.payload.exchangeRate.ethToUsd(widget.payload.fee)} USD)"
                                   : "${XtzAmountFormatter(widget.payload.fee.toInt()).format()} XTZ (${widget.payload.exchangeRate.xtzToUsd(widget.payload.fee.toInt())} USD)",
-                              style: appTextTheme.bodyText2,
+                              style: theme.textTheme.bodyText2,
                             ),
                           ],
                         ),
@@ -164,8 +163,7 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                                 if (widget.payload.asset.blockchain ==
                                     "ethereum") {
                                   final ethereumService =
-                                      injector<NetworkConfigInjector>()
-                                          .I<EthereumService>();
+                                      injector<EthereumService>();
 
                                   final contractAddress =
                                       EthereumAddress.fromHex(
@@ -191,9 +189,7 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                                   if (!mounted) return;
                                   Navigator.of(context).pop(txHash);
                                 } else {
-                                  final tezosService =
-                                      injector<NetworkConfigInjector>()
-                                          .I<TezosService>();
+                                  final tezosService = injector<TezosService>();
                                   final tokenId = asset.tokenId!;
 
                                   final tezosWallet = await widget
@@ -224,7 +220,9 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
               ],
             ),
           ),
-          _isSending ? const Center(child: CupertinoActivityIndicator()) : const SizedBox(),
+          _isSending
+              ? const Center(child: CupertinoActivityIndicator())
+              : const SizedBox(),
         ],
       ),
     );
