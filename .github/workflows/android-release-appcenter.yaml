@@ -18,7 +18,7 @@ on:
         description: Network is Testnet
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-java@v2
@@ -69,8 +69,6 @@ jobs:
           echo APP_TESTNET_CONFIG=${{ github.event.inputs.testnet }} >> .env
           cat .env
 
-      - run: rm -rf pubspec.lock
-      - run: flutter clean
       - run: flutter pub get
       - run: flutter build apk --flavor inhouse
       - name: upload artifact to App Center
