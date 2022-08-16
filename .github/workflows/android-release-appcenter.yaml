@@ -69,6 +69,7 @@ jobs:
           echo APP_TESTNET_CONFIG=${{ github.event.inputs.testnet }} >> .env
           cat .env
 
+      - run: flutter pub cache repair
       - run: flutter pub get
       - run: flutter build apk --flavor inhouse
       - name: upload artifact to App Center
