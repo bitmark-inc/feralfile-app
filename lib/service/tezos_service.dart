@@ -35,7 +35,7 @@ abstract class TezosService {
   Future<String> signMessage(TezosWallet wallet, Uint8List message);
 
   Future<Operation> getFa2TransferOperation(
-      String contract, String from, String to, int tokenId);
+      String contract, String from, String to, int tokenId, int quantity);
 }
 
 class TezosServiceImpl extends TezosService {
@@ -167,8 +167,8 @@ class TezosServiceImpl extends TezosService {
   }
 
   @override
-  Future<Operation> getFa2TransferOperation(
-      String contract, String from, String to, int tokenId) async {
+  Future<Operation> getFa2TransferOperation(String contract, String from,
+      String to, int tokenId, int quantity) async {
     final params = [
       {
         "prim": "Pair",
@@ -182,7 +182,7 @@ class TezosServiceImpl extends TezosService {
                   "prim": "Pair",
                   "args": [
                     {"int": "$tokenId"},
-                    {"int": "1"}
+                    {"int": "$quantity"}
                   ]
                 }
               ],

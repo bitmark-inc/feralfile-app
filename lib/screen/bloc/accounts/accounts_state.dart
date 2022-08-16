@@ -67,19 +67,25 @@ class CategorizedAccounts {
 }
 
 class AccountsState {
+  List<String> addresses;
   List<Account>? accounts;
   List<CategorizedAccounts>? categorizedAccounts;
   AccountBlocStateEvent? event;
 
   AccountsState(
-      {this.accounts, this.categorizedAccounts, this.event});
+      {this.addresses = const [],
+      this.accounts,
+      this.categorizedAccounts,
+      this.event});
 
   AccountsState copyWith(
-      {List<Account>? accounts,
+      {List<String>? addresses,
+      List<Account>? accounts,
       List<CategorizedAccounts>? categorizedAccounts,
       Network? network,
       AccountBlocStateEvent? event}) {
     return AccountsState(
+      addresses: addresses ?? this.addresses,
       accounts: accounts ?? this.accounts,
       categorizedAccounts: categorizedAccounts ?? this.categorizedAccounts,
       event: event ?? this.event,
@@ -88,6 +94,7 @@ class AccountsState {
 
   AccountsState setEvent(AccountBlocStateEvent? event) {
     return AccountsState(
+      addresses: addresses,
       accounts: accounts,
       categorizedAccounts: categorizedAccounts,
       event: event,

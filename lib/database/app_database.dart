@@ -21,9 +21,9 @@ import 'package:sqflite/sqflite.dart' as sqflite;
 
 part 'app_database.g.dart'; // the generated code will be there
 
-@TypeConverters([DateTimeConverter])
+@TypeConverters([DateTimeConverter, TokenOwnersConverter])
 @Database(
-    version: 13,
+    version: 14,
     entities: [AssetToken, Identity, Provenance, DraftCustomerSupport])
 abstract class AppDatabase extends FloorDatabase {
   AssetTokenDao get assetDao;
@@ -106,5 +106,11 @@ final migrateV11ToV12 = Migration(11, 12, (database) async {
 final migrateV12ToV13 = Migration(12, 13, (database) async {
   await database.execute("""
     ALTER TABLE AssetToken ADD COLUMN contractAddress TEXT, tokenId TEXT;
+  """);
+});
+
+final migrateV13ToV14 = Migration(13, 14, (database) async {
+  await database.execute("""
+    ALTER TABLE AssetToken ADD COLUMN owners TEXT, fungible BOOLEAN;
   """);
 });

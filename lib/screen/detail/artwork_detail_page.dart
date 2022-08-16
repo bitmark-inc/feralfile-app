@@ -23,6 +23,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/au_outlined_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -56,6 +57,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     context.read<ArtworkDetailBloc>().add(ArtworkDetailGetInfoEvent(
         widget.payload.ids[widget.payload.currentIndex]));
     context.read<AccountsBloc>().add(FetchAllAddressesEvent());
+    context.read<AccountsBloc>().add(GetAccountsEvent());
   }
 
   _scrollListener() {
@@ -199,9 +201,20 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                           const SizedBox(height: 40.0),
                           artworkDetailsMetadataSection(
                               context, asset, artistName),
-                          state.provenances.isNotEmpty
-                              ? _provenanceView(context, state.provenances)
-                              : const SizedBox(),
+                          if (asset.fungible == true) ...[
+                            const SizedBox(height: 40.0),
+                            BlocBuilder<AccountsBloc, AccountsState>(
+                              builder: (context, state) {
+                                final addresses = state.addresses;
+                                return tokenOwnership(
+                                    context, asset, addresses);
+                              },
+                            ),
+                          ] else ...[
+                            state.provenances.isNotEmpty
+                                ? _provenanceView(context, state.provenances)
+                                : const SizedBox()
+                          ],
                           const SizedBox(height: 80.0),
                         ],
                       ),
@@ -304,7 +317,8 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
               title: "send_artwork".tr(),
               onTap: () async {
                 Navigator.of(context).popAndPushNamed(AppRouter.sendArtworkPage,
-                    arguments: SendArtworkPayload(asset, ownerWallet));
+                    arguments: SendArtworkPayload(asset, ownerWallet,
+                        await ownerWallet.getOwnedQuantity(asset)));
               },
             ),
             const SizedBox(

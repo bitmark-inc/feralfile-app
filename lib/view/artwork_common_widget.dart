@@ -7,6 +7,7 @@ import 'package:autonomy_flutter/screen/detail/report_rendering_issue/any_proble
 import 'package:autonomy_flutter/screen/detail/report_rendering_issue/report_rendering_issue_widget.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_cached_manager.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
@@ -15,11 +16,13 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
+import 'package:intl/intl.dart';
 import 'package:nft_rendering/nft_rendering.dart';
 
 // ignore: depend_on_referenced_packages
@@ -371,6 +374,43 @@ Widget artworkDetailsMetadataSection(
   );
 }
 
+Widget tokenOwnership(
+    BuildContext context, AssetToken asset, List<String> addresses) {
+  final theme = Theme.of(context);
+
+  int ownedTokens =
+      addresses.map((address) => asset.owners[address] ?? 0).sum;
+  if (ownedTokens == 0) {
+    ownedTokens = addresses.contains(asset.ownerAddress) ? 1 : 0;
+  }
+  final sharedPercentage = ownedTokens / (asset.maxEdition ?? 1) * 100;
+  final nf = NumberFormat("###.##");
+  final sharedPctText  = nf.format(sharedPercentage);
+
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        "token_ownership".tr(),
+        style: theme.textTheme.headline2,
+      ),
+      const SizedBox(height: 23.0),
+      Text(
+        "how_many_shares_you_own".tr(),
+        style: theme.textTheme.bodyText1,
+      ),
+      const SizedBox(height: 16.0),
+      _rowItem(context, "total_token_supply".tr(), "${asset.maxEdition}",
+          tapLink: asset.tokenURL),
+      const Divider(height: 32.0),
+      _rowItem(context, "tokens_you_own".tr(), "$ownedTokens",
+          tapLink: asset.tokenURL),
+      const Divider(height: 32.0),
+      _rowItem(context, "your_share_of_total".tr(), "$sharedPctText%"),
+    ],
+  );
+}
+
 Widget artworkDetailsProvenanceSectionNotEmpty(
     BuildContext context,
     List<Provenance> provenances,
@@ -561,7 +601,6 @@ Widget _rowItem(BuildContext context, String name, String? value,
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       Expanded(
-        flex: 2,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -576,28 +615,24 @@ Widget _rowItem(BuildContext context, String name, String? value,
           ],
         ),
       ),
-      Expanded(
-        flex: 3,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            Expanded(
-                child: GestureDetector(
-              onTap: onValueTap,
-              child: Text(
-                value ?? "",
-                textAlign: TextAlign.end,
-                style: onValueTap != null
-                    ? theme.textTheme.subtitle1
-                    : theme.textTheme.ibmGreyMediumNormal16,
-              ),
-            )),
-            if (onValueTap != null) ...[
-              const SizedBox(width: 8.0),
-              SvgPicture.asset('assets/images/iconForward.svg'),
-            ]
-          ],
-        ),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          GestureDetector(
+            onTap: onValueTap,
+            child: Text(
+              value ?? "",
+              textAlign: TextAlign.end,
+              style: onValueTap != null
+                  ? theme.textTheme.subtitle1
+                  : theme.textTheme.ibmGreyMediumNormal16,
+            ),
+          ),
+          if (onValueTap != null) ...[
+            const SizedBox(width: 8.0),
+            SvgPicture.asset('assets/images/iconForward.svg'),
+          ]
+        ],
       )
     ],
   );
