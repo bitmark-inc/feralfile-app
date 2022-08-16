@@ -100,12 +100,12 @@ class ConnectionDetailsPage extends StatelessWidget {
     );
   }
 
-  void _showDeleteConnectionConfiguration(BuildContext context) {
-    final theme = Theme.of(context);
+  void _showDeleteConnectionConfiguration(BuildContext pageContext) {
+    final theme = Theme.of(pageContext);
     final connection = connectionItem.representative;
 
     showModalBottomSheet(
-        context: context,
+        context: pageContext,
         enableDrag: false,
         backgroundColor: Colors.transparent,
         builder: (context) {
@@ -151,11 +151,11 @@ class ConnectionDetailsPage extends StatelessWidget {
                           child: AuFilledButton(
                             text: "REVOKE ALL",
                             onPress: () {
-                              context
+                              pageContext
                                   .read<ConnectionsBloc>()
                                   .add(DeleteConnectionsEvent(connectionItem));
                               Navigator.of(context).pop();
-                              Navigator.of(context).pop();
+                              Navigator.of(pageContext).pop();
                             },
                             color: theme.colorScheme.secondary,
                             textStyle: theme.textTheme.button,
