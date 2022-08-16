@@ -73,7 +73,7 @@ jobs:
       - run: flutter pub get
       - run: flutter build apk --flavor inhouse
       - name: App Center Distribute
-        uses: devussy/AppCenter-Distribute-Github-Action@v1.0.5
+        uses: devussy/AppCenter-Distribute-Github-Action@v1.0.2
         with:
           app: support-zzd0-28/Autonomy-Android-1
           token: ${{secrets.APPCENTER_API_TOKEN}}
