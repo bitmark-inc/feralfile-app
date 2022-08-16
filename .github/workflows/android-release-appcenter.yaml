@@ -18,7 +18,7 @@ on:
         description: Network is Testnet
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-java@v2
@@ -72,12 +72,11 @@ jobs:
       - run: flutter pub cache repair
       - run: flutter pub get
       - run: flutter build apk --flavor inhouse
-      - name: upload artifact to App Center
-        uses: wzieba/AppCenter-Github-Action@v1
+      - name: App Center Distribute
+        uses: devussy/AppCenter-Distribute-Github-Action@v1.0.5
         with:
-          appName: support-zzd0-28/Autonomy-Android-1
-          token: ${{ secrets.APPCENTER_API_TOKEN }}
+          app: support-zzd0-28/Autonomy-Android-1
+          token: ${{secrets.APPCENTER_API_TOKEN}}
           group: Collaborators;Bitmark Internal Testers;Android Testers
           file: build/app/outputs/flutter-apk/app-inhouse-release.apk
-          notifyTesters: false
-          debug: false
+          silent: true
