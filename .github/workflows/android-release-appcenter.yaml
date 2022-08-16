@@ -69,6 +69,7 @@ jobs:
           echo APP_TESTNET_CONFIG=${{ github.event.inputs.testnet }} >> .env
           cat .env
 
+      - run: rm -rf pubspec.lock
       - run: flutter clean
       - run: flutter pub get
       - run: flutter build apk --flavor inhouse
