@@ -298,9 +298,9 @@ class _HomePageState extends State<HomePage>
       case "customer_support_close_issue":
         final notificationIssueID =
             '${event.notification.additionalData?['issue_id']}';
+        injector<CustomerSupportService>().triggerReloadMessages.value += 1;
+        injector<CustomerSupportService>().getIssues();
         if (notificationIssueID == memoryValues.viewingSupportThreadIssueID) {
-          injector<CustomerSupportService>().triggerReloadMessages.value += 1;
-          injector<CustomerSupportService>().getIssues();
           event.complete(null);
           return;
         }
