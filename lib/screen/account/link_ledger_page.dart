@@ -18,6 +18,7 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -62,14 +63,15 @@ class _LinkLedgerPageState extends State<LinkLedgerPage> {
               if (event is LinkAccountSuccess) {
                 final linkedAccount = event.connection;
                 final walletName =
-                    linkedAccount.ledgerConnection?.ledgerName ?? 'Ledger';
+                    linkedAccount.ledgerConnection?.ledgerName ?? 'ledger'.tr();
 
                 // SideEffect: pre-fetch tokens
                 injector<TokensService>()
                     .fetchTokensForAddresses(linkedAccount.accountNumbers);
 
-                UIHelper.showInfoDialog(context, "Account linked",
-                    "Autonomy has received autorization to link to your account ${linkedAccount.accountNumbers.last.mask(4)} in $walletName.");
+                UIHelper.showInfoDialog(context, "account_linked".tr(),
+                  "al_autonomy_has_received".tr(namedArgs: {"accountNumbers":linkedAccount.accountNumbers.last.mask(4),"walletName":walletName}),);
+                //"Autonomy has received autorization to link to your account ${linkedAccount.accountNumbers.last.mask(4)} in $walletName.");
 
                 const delay = 3;
 
@@ -93,8 +95,9 @@ class _LinkLedgerPageState extends State<LinkLedgerPage> {
                     context,
                     ErrorEvent(
                         null,
-                        "Already linked",
-                        "You’ve already linked this account to Autonomy.",
+                        "already_linked".tr(),
+                        "al_you’ve_already".tr(),
+                        //"You’ve already linked this account to Autonomy.",
                         ErrorItemState.seeAccount), defaultAction: () {
                   Navigator.of(context).pushNamed(
                       AppRouter.linkedAccountDetailsPage,
@@ -111,14 +114,14 @@ class _LinkLedgerPageState extends State<LinkLedgerPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Ledger wallet",
+                      "ledger_wallet".tr(),
                       style: theme.textTheme.headline1,
                     ),
                     const SizedBox(height: 30),
                     Row(
                       children: [
                         Text(
-                          "Select your ledger wallet:",
+                          "select_your_ledger_wallet:".tr(),
                           style: theme.textTheme.headline4,
                         ),
                         const Spacer(),
@@ -164,7 +167,8 @@ class _LinkLedgerPageState extends State<LinkLedgerPage> {
             );
           } else {
             return Text(
-              "Your Bluetooth device is not available at the moment.\n Please make sure it's turned on in the iOS Settings.",
+              "your_bluetooth_device_na".tr(),
+              //"Your Bluetooth device is not available at the moment.\n Please make sure it's turned on in the iOS Settings.",
               style: theme.textTheme.headline4,
             );
           }
@@ -177,7 +181,7 @@ class _LinkLedgerPageState extends State<LinkLedgerPage> {
   }
 
   _onDeviceTap(BuildContext context, LedgerHardwareWallet ledger) async {
-    UIHelper.showInfoDialog(context, ledger.name, "Connecting...",
+    UIHelper.showInfoDialog(context, ledger.name, "connecting".tr(),
         feedback: null);
     if (!ledger.isConnected) {
       final result = await injector<LedgerHardwareService>().connect(ledger);
@@ -185,7 +189,7 @@ class _LinkLedgerPageState extends State<LinkLedgerPage> {
         if (!mounted) return;
         UIHelper.hideInfoDialog(context);
         return await _dismissAndShowError(
-            context, ledger, "Failed to connect!");
+            context, ledger, "failed_to_connect".tr());
       }
 
       await Future.delayed(const Duration(seconds: 1));
@@ -198,7 +202,7 @@ class _LinkLedgerPageState extends State<LinkLedgerPage> {
       late String ledgerAppname;
       switch (widget.payload) {
         case "Tezos":
-          ledgerAppname = "Tezos Wallet";
+          ledgerAppname =  "tezos_wallet".tr();
           break;
         default:
           ledgerAppname = widget.payload;
@@ -207,7 +211,8 @@ class _LinkLedgerPageState extends State<LinkLedgerPage> {
       if (name != ledgerAppname) {
         if (!mounted) return;
         return await _dismissAndShowError(context, ledger,
-            "Please open the ${widget.payload} app on your ledger.\nIf you haven't installed, please do it in the Ledger Live app.");
+            "please_open_the_app".tr(args: [widget.payload]));
+            //"Please open the ${widget.payload} app on your ledger.\nIf you haven't installed, please do it in the Ledger Live app.");
       }
 
       await Future.delayed(const Duration(seconds: 1));
@@ -215,7 +220,8 @@ class _LinkLedgerPageState extends State<LinkLedgerPage> {
       if (!mounted) return;
       UIHelper.hideInfoDialog(context);
       UIHelper.showInfoDialog(context, ledger.name,
-          "Verify and approve the address sharing on your wallet.");
+          "verify_and_approve".tr());
+          //"Verify and approve the address sharing on your wallet.");
 
       late Map<String, dynamic> data;
       switch (widget.payload) {
@@ -228,13 +234,14 @@ class _LinkLedgerPageState extends State<LinkLedgerPage> {
               verify: true);
           break;
         default:
-          throw "Unknown blockchain";
+          throw "unknown_blockchain".tr();
       }
 
       if (!mounted) return;
       if (data["address"] == null) {
         return await _dismissAndShowError(context, ledger,
-            "Cannot get an address from your ETH app.\nMake sure you have created an account in the Ledger wallet.");
+            "cannot_get_an_address".tr());
+            //"Cannot get an address from your ETH app.\nMake sure you have created an account in the Ledger wallet.");
       } else {
         final address = data["address"] as String;
         log.info("Catched an address: $address");
@@ -249,7 +256,8 @@ class _LinkLedgerPageState extends State<LinkLedgerPage> {
       await injector<LedgerHardwareService>().disconnect(ledger);
       if (!mounted) return;
       return await _dismissAndShowError(context, ledger,
-          "Failed to send message to ledger.\nMake sure your ledger is unlocked.");
+          "failed_to_send_message".tr());
+          //"Failed to send message to ledger.\nMake sure your ledger is unlocked.");
     }
   }
 

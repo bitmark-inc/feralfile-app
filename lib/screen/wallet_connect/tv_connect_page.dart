@@ -19,6 +19,7 @@ import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:autonomy_flutter/util/style.dart';
 
 import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -110,7 +111,7 @@ class _TVConnectPageState extends State<TVConnectPage>
                         ),
                         const SizedBox(width: 7),
                         Text(
-                          "BACK",
+                          "back".tr(),
                           style: theme.textTheme.button,
                         ),
                       ],
@@ -129,28 +130,29 @@ class _TVConnectPageState extends State<TVConnectPage>
         margin: pageEdgeInsetsWithSubmitButton,
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(
-            "Connect to Autonomy Viewer",
+            "connect_au_viewer".tr(),
             style: theme.textTheme.headline1,
           ),
           const SizedBox(height: 24),
           Text(
-              "Instantly set up your personal NFT art gallery on TVs and projectors anywhere you go.",
+              "set_up_gallery".tr(),
+              //"Instantly set up your personal NFT art gallery on TVs and projectors anywhere you go.",
               style: theme.textTheme.bodyText1),
           Divider(
             height: 64,
             color: theme.colorScheme.secondary,
           ),
-          Text("Autonomy Viewer is requesting to: ",
+          Text("viewer_request_to".tr(),//"Autonomy Viewer is requesting to: ",
               style: theme.textTheme.bodyText1),
           const SizedBox(height: 8),
-          Text("• View your Autonomy NFT collections",
+          Text("view_collections".tr(),//"• View your Autonomy NFT collections",
               style: theme.textTheme.bodyText1),
           const Expanded(child: SizedBox()),
           Row(
             children: [
               Expanded(
                 child: AuFilledButton(
-                  text: "Authorize".toUpperCase(),
+                  text: "Authorize".tr().toUpperCase(),
                   onPress: () => withDebounce(() => _approve()),
                   color: theme.colorScheme.secondary,
                   textStyle: theme.textTheme.button,

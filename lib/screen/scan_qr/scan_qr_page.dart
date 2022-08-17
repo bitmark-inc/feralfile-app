@@ -23,6 +23,7 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -99,8 +100,9 @@ class _ScanQRPageState extends State<ScanQRPage> with RouteAware {
               context,
               ErrorEvent(
                   null,
-                  "Already linked",
-                  "You’ve already linked this account to Autonomy.",
+                  "already_linked".tr(),
+                  "al_you’ve_already".tr(),
+                  //"You’ve already linked this account to Autonomy.",
                   ErrorItemState.seeAccount), defaultAction: () {
             Navigator.of(context).pushReplacementNamed(
                 AppRouter.linkedAccountDetailsPage,
@@ -153,7 +155,7 @@ class _ScanQRPageState extends State<ScanQRPage> with RouteAware {
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16.0, 0, 16.0, 32.0),
                 child: AuFilledButton(
-                    text: "SHOW MY QR CODE",
+                    text: "show_qr".tr(),
                     icon: SvgPicture.asset(
                       "assets/images/iconQr.svg",
                       color: theme.colorScheme.secondary,
@@ -191,34 +193,34 @@ class _ScanQRPageState extends State<ScanQRPage> with RouteAware {
         return Column(
           children: [
             Text(
-              "Scan QR code to connect to".toUpperCase(),
+              "scan_qr_to".tr().toUpperCase(),
               style: theme.primaryTextTheme.button,
             ),
             const SizedBox(height: 24),
             Text(
-              "Apps",
+              "apps".tr(),
               style: theme.textTheme.atlasWhiteBold12,
             ),
             Text(
-              'Such as OpenSea or objkt.com',
+              "such_as_openSea".tr(),
               style: theme.primaryTextTheme.headline5,
             ),
             const SizedBox(height: 8),
             Text(
-              "Wallets",
+              "wallets".tr(),
               style: theme.textTheme.atlasWhiteBold12,
             ),
             Text(
-              'Such as MetaMask',
+              'such_as_metamask'.tr(),
               style: theme.primaryTextTheme.headline5,
             ),
             const SizedBox(height: 8),
             Text(
-              "Autonomy",
+              "h_autonomy".tr(),
               style: theme.textTheme.atlasWhiteBold12,
             ),
             Text(
-              'on TV or desktop',
+              'on_tv_or_desktop'.tr(),
               style: theme.primaryTextTheme.headline5,
             ),
           ],
@@ -228,7 +230,7 @@ class _ScanQRPageState extends State<ScanQRPage> with RouteAware {
       case ScannerItem.XTZ_ADDRESS:
         return Column(
           children: [
-            Text("SCAN QR CODE", style: theme.primaryTextTheme.button),
+            Text("scan_qr".tr(), style: theme.primaryTextTheme.button),
           ],
         );
     }

@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/model/tzkt_operation.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/tezos_transaction_row_view.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 
@@ -63,8 +64,8 @@ class _TezosTXListViewState extends State<TezosTXListView> {
       showErrorDialog(
           context,
           "😵",
-          "Currently unable to load transaction data from tzkt.io .",
-          "TRY AGAIN", () {
+          "unable_load_tzkt".tr(),
+          "try_again".tr(), () {
         _fetchPage(pageKey);
       });
     }
@@ -85,14 +86,14 @@ class _TezosTXListViewState extends State<TezosTXListView> {
                       return Container(
                         padding: const EdgeInsets.only(top: 30),
                         child: Text(
-                            "Currently unable to load transaction data from tzkt.io.",
+                            "unable_load_tzkt".tr(),
                             style: theme.textTheme.bodyText1),
                       );
                     },
                     noItemsFoundIndicatorBuilder: (context) {
                       return Container(
                         padding: const EdgeInsets.only(top: 30),
-                        child: Text("Your transactions will appear here.",
+                        child: Text("transaction_appear_hear".tr(),
                             style: theme.textTheme.bodyText1),
                       );
                     },

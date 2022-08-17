@@ -10,6 +10,7 @@ import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_state.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -28,14 +29,15 @@ class PreferenceView extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            "Preferences",
+            "preferences".tr(),
             style: theme.textTheme.headline1,
           ),
           const SizedBox(height: 24),
           _preferenceItem(
             context,
-            'Immediate info view',
-            "Enable info view when tapping on a thumbnail.",
+            'immediate_info_view'.tr(),
+            "enable_info".tr(),
+            //"Enable info view when tapping on a thumbnail.",
             state.isImmediateInfoViewEnabled,
             (value) {
               final newState =
@@ -49,7 +51,8 @@ class PreferenceView extends StatelessWidget {
           _preferenceItem(
             context,
             state.authMethodName,
-            "Use ${state.authMethodName != 'Device Passcode' ? state.authMethodName : 'device passcode'} to unlock the app, transact, and authenticate.",
+            "use_device_passcode".tr(args: [state.authMethodName != "device_passcode".tr() ? state.authMethodName : "device_passcode".tr()]),
+            //"Use ${state.authMethodName != 'Device Passcode' ? state.authMethodName : 'device passcode'} to unlock the app, transact, and authenticate.",
             state.isDevicePasscodeEnabled,
             (value) {
               final newState = state.copyWith(isDevicePasscodeEnabled: value);
@@ -61,8 +64,9 @@ class PreferenceView extends StatelessWidget {
           addDivider(),
           _preferenceItem(
             context,
-            "Notifications",
-            "Receive notifications when you get new NFTs, signing requests, or customer support messages.",
+            "notifications".tr(),
+            "receive_notification".tr(),
+            //"Receive notifications when you get new NFTs, signing requests, or customer support messages.",
             state.isNotificationEnabled,
             (value) {
               final newState = state.copyWith(isNotificationEnabled: value);
@@ -74,24 +78,25 @@ class PreferenceView extends StatelessWidget {
           addDivider(),
           _preferenceItemWithBuilder(
             context,
-            "Analytics",
+            "analytics".tr(),
             description: (context) => Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "Contribute anonymized, aggregate usage data to help improve Autonomy.",
+                  "contribute_anonymize".tr(),
+                  //"Contribute anonymized, aggregate usage data to help improve Autonomy.",
                   style: theme.textTheme.bodyText1,
                 ),
                 const SizedBox(height: 10),
                 GestureDetector(
-                    child: Text("Learn how we anonymize your data...",
+                    child: Text("learn_anonymize".tr(),
                         textAlign: TextAlign.left,
                         style: theme.textTheme.linkStyle),
                     onTap: () => Navigator.of(context).pushNamed(
                           AppRouter.githubDocPage,
                           arguments: {
                             "document": "protect_your_usage_data.md",
-                            "title": "How we protect your usage data"
+                            "title": "how_protect_data".tr()// "How we protect your usage data"
                           },
                         )),
               ],
@@ -110,7 +115,7 @@ class PreferenceView extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text("Hidden artworks", style: theme.textTheme.headline4),
+                      Text("hidden_artworks".tr(), style: theme.textTheme.headline4),
                       Icon(
                         Icons.navigate_next,
                         color: theme.colorScheme.primary,

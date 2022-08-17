@@ -7,6 +7,7 @@
 
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
@@ -47,12 +48,13 @@ class _LinkBeaconConnectPageState extends State<LinkBeaconConnectPage> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
-                      "Scan code to link",
+                      "scan_code_to_link".tr(),
                       style: theme.textTheme.headline1,
                     ),
                     addTitleSpace(),
                     Text(
-                      "If your wallet is on another device, you can open it and scan the QR code below to link your account to Autonomy: ",
+                      "sctl_if_your_wallet".tr(),
+                      //"If your wallet is on another device, you can open it and scan the QR code below to link your account to Autonomy: ",
                       style: theme.textTheme.bodyText1,
                     ),
                     const SizedBox(height: 24),
@@ -78,7 +80,7 @@ class _LinkBeaconConnectPageState extends State<LinkBeaconConnectPage> {
                     if (_copied) ...[
                       const SizedBox(height: 24),
                       Center(
-                          child: Text("Copied",
+                          child: Text("copied".tr(),
                               style: theme.textTheme.atlasBlackBold12)),
                     ]
                   ],

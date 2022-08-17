@@ -10,6 +10,7 @@ import 'package:autonomy_flutter/screen/settings/forget_exist/forget_exist_bloc.
 import 'package:autonomy_flutter/screen/settings/forget_exist/forget_exist_state.dart';
 
 import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -42,13 +43,14 @@ class ForgetExistView extends StatelessWidget {
                 child: RichText(
                   text: TextSpan(
                     style: theme.primaryTextTheme.bodyText1,
-                    children: const <TextSpan>[
+                    children: <TextSpan>[
                       TextSpan(
-                          text: "This action is irrevocable.",
+                          text: "action_irrevocable".tr(),
                           style: TextStyle(fontWeight: FontWeight.bold)),
                       TextSpan(
                         text:
-                            " Your accounts and data from your device and your cloud backup will be deleted. Autonomy will not be able to help you recover access.",
+                            "accounts_delete".tr(),
+                            //" Your accounts and data from your device and your cloud backup will be deleted. Autonomy will not be able to help you recover access.",
                       ),
                     ],
                   ),
@@ -65,7 +67,8 @@ class ForgetExistView extends StatelessWidget {
               ),
               Expanded(
                 child: Text(
-                  "This will not affect private keys of linked accounts",
+                  "this_not_effect".tr(),
+                  //"This will not affect private keys of linked accounts",
                   style: theme.primaryTextTheme.bodyText1,
                 ),
               ),
@@ -80,7 +83,8 @@ class ForgetExistView extends StatelessWidget {
               ),
               Expanded(
                 child: Text(
-                  "If you have an active subscription, you will need to manually cancel it in your device’s settings.",
+                  "active_subscription".tr(),
+                  //"If you have an active subscription, you will need to manually cancel it in your device’s settings.",
                   style: theme.primaryTextTheme.bodyText1,
                 ),
               ),
@@ -112,7 +116,8 @@ class ForgetExistView extends StatelessWidget {
               const SizedBox(width: 15),
               Expanded(
                   child: Text(
-                "I understand that this action cannot be undone.",
+                    "i_understand".tr(),
+                //"I understand that this action cannot be undone.",
                 style: theme.primaryTextTheme.headline5,
               )),
             ],
@@ -121,7 +126,7 @@ class ForgetExistView extends StatelessWidget {
             height: 40,
           ),
           AuFilledButton(
-            text: state.isProcessing == true ? "FORGETTING…" : "CONFIRM",
+            text: state.isProcessing == true ? "forgetting".tr() : "confirm".tr(),
             enabled: state.isProcessing == null && state.isChecked,
             onPress: () {
               context.read<ForgetExistBloc>().add(ConfirmForgetExistEvent());
@@ -133,7 +138,7 @@ class ForgetExistView extends StatelessWidget {
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
-              "CANCEL",
+              "cancel".tr(),
               style: theme.primaryTextTheme.button,
             ),
           ),

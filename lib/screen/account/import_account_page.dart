@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
@@ -53,18 +54,19 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Import account",
+                      "import_account".tr(),
                       style: theme.textTheme.headline1,
                     ),
                     addTitleSpace(),
                     Text(
-                      "Importing your account will also add support for all chains featured in Autonomy. We will automatically back up your account in your iCloud Keychain.",
+                      "ia_importing_your_account".tr(),
+                      //"Importing your account will also add support for all chains featured in Autonomy. We will automatically back up your account in your iCloud Keychain.",
                       style: theme.textTheme.bodyText1,
                     ),
                     const SizedBox(height: 16),
                     learnMoreAboutAutonomySecurityWidget(
                       context,
-                      title: 'Learn why this is safe...',
+                      title: 'learn_why_this_is_safe...'.tr(),
                     ),
                     const SizedBox(height: 40),
                     SizedBox(
@@ -74,7 +76,8 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
                           AuTextField(
                             title: "",
                             placeholder:
-                                "Enter recovery phrase with each word separated by a space",
+                                "enter_recovery_phrase".tr(),
+                                //"Enter recovery phrase with each word separated by a space",
                             keyboardType: TextInputType.multiline,
                             expanded: true,
                             maxLines: null,
@@ -103,7 +106,7 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
                 Expanded(
                   child: AuFilledButton(
                     enabled: _isSubmissionEnabled,
-                    text: "CONFIRM".toUpperCase(),
+                    text: "confirm".tr().toUpperCase(),
                     onPress: () {
                       if (_isSubmissionEnabled) _import();
                     },
@@ -141,8 +144,9 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
           context,
           ErrorEvent(
               null,
-              "Already Imported",
-              "You’ve already imported this account to Autonomy.",
+              "already_imported".tr(),
+              "ai_you’ve_already".tr(),
+              //"You’ve already imported this account to Autonomy.",
               ErrorItemState.seeAccount), defaultAction: () {
         Navigator.of(context).pushNamed(
           AppRouter.personaDetailsPage,

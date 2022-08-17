@@ -7,6 +7,7 @@
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/connection/accounts_view.dart';
@@ -21,12 +22,14 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tokens_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/eula_privacy.dart';
 import 'package:autonomy_flutter/view/penrose_top_bar_view.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -111,7 +114,7 @@ class _SettingsPageState extends State<SettingsPage>
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          "Accounts",
+                          "accounts".tr(),
                           style: theme.textTheme.headline1,
                         ),
                         _cloudAvailabilityWidget(),
@@ -130,7 +133,7 @@ class _SettingsPageState extends State<SettingsPage>
                       onPressed: () => Navigator.of(context)
                           .pushNamed(AppRouter.addAccountPage),
                       child: Text(
-                        '+ Account',
+                        'plus_account'.tr(),
                         style: theme.textTheme.subtitle1,
                       ),
                     ),
@@ -150,45 +153,46 @@ class _SettingsPageState extends State<SettingsPage>
                 const SizedBox(height: 40),
                 // START HELP US IMPROVE
                 Text(
-                  "Help us improve",
+                  "help_us_improve".tr(),
                   style: theme.textTheme.headline1,
                 ),
                 const SizedBox(height: 8.0),
                 TappableForwardRow(
-                    leftWidget: Text('Participate in bug bounty',
+                    leftWidget: Text('p_bug_bounty'.tr(),
                         style: theme.textTheme.headline4),
                     onTap: () => Navigator.of(context)
                         .pushNamed(AppRouter.bugBountyPage)),
                 addOnlyDivider(),
                 TappableForwardRow(
-                    leftWidget: Text('Participate in a user test',
+                    leftWidget: Text('p_user_test'.tr(),
                         style: theme.textTheme.headline4),
                     onTap: () => Navigator.of(context)
                         .pushNamed(AppRouter.participateUserTestPage)),
                 // END HELP US IMPROVE
                 const SizedBox(height: 40.0),
                 Text(
-                  "Data management",
+                  "data_management".tr(),
                   style: theme.textTheme.headline1,
                 ),
                 const SizedBox(height: 24.0),
                 TappableForwardRowWithContent(
                     leftWidget: Text(
-                      'Rebuild metadata',
+                      'rebuild_metadata'.tr(),
                       style: theme.textTheme.headline4,
                     ),
                     bottomWidget: Text(
-                        'Clear local cache and re-download all artwork metadata.',
+                        'clear_cache'.tr(),
                         style: theme.textTheme.bodyText1),
                     onTap: () => _showRebuildGalleryDialog()),
                 addDivider(),
                 TappableForwardRowWithContent(
                     leftWidget: Text(
-                      'Forget I exist',
+                      'forget_exist'.tr(),
                       style: theme.textTheme.headline4,
                     ),
                     bottomWidget: Text(
-                        'Erase all information about me and delete my keys from my cloud backup including the keys on this device.',
+                        "erase_all".tr(),
+                        //'Erase all information about me and delete my keys from my cloud backup including the keys on this device.',
                         style: theme.textTheme.bodyText1),
                     onTap: () => _showForgetIExistDialog()),
                 const SizedBox(height: 56),
@@ -196,7 +200,8 @@ class _SettingsPageState extends State<SettingsPage>
                   if (_packageInfo != null)
                     GestureDetector(
                         child: Text(
-                          "Version ${_packageInfo!.version}(${_packageInfo!.buildNumber})",
+                          "version_".tr(namedArgs: {"version":_packageInfo!.version,"buildNumber":_packageInfo!.buildNumber}),
+                          //"Version ${_packageInfo!.version}(${_packageInfo!.buildNumber})",
                           style: theme.textTheme.headline5,
                         ),
                         onTap: () async {
@@ -210,8 +215,9 @@ class _SettingsPageState extends State<SettingsPage>
                               if (!mounted) return;
                               await UIHelper.showInfoDialog(
                                   context,
-                                  "Demo mode",
-                                  "Demo mode ${newValue ? 'enabled' : 'disabled'}!",
+                                  "demo_mode".tr(),
+                                  "demo_mode_en".tr(args: [newValue ? "enable".tr() : "disable".tr()]),
+                                  //"Demo mode ${newValue ? 'enabled' : 'disabled'}!",
                                   autoDismissAfter: 1);
                             }
                           } else {
@@ -222,7 +228,7 @@ class _SettingsPageState extends State<SettingsPage>
                   TextButton(
                       onPressed: () => injector<VersionService>()
                           .showReleaseNotes(onlyWhenUnread: false),
-                      child: Text("Release notes",
+                      child: Text("release_notes".tr(),
                           style: theme.textTheme.linkStyle2)),
                   const SizedBox(height: 10),
                   eulaAndPrivacyView(context),
@@ -266,7 +272,7 @@ class _SettingsPageState extends State<SettingsPage>
   void _showForgetIExistDialog() {
     UIHelper.showDialog(
       context,
-      "Forget I exist",
+      "forget_exit".tr(),
       BlocProvider(
         create: (_) => ForgetExistBloc(injector(), injector(), injector(),
             injector(), injector(), injector(), injector()),
@@ -278,9 +284,10 @@ class _SettingsPageState extends State<SettingsPage>
   void _showRebuildGalleryDialog() {
     showErrorDialog(
       context,
-      "Rebuild metadata",
-      "This action will safely clear local cache and\nre-download all artwork metadata. We recommend only doing this if instructed to do so by customer support to resolve a problem.",
-      "REBUILD",
+      "rebuild_metadata".tr(),
+      "this_action_clear".tr(),
+      //"This action will safely clear local cache and\nre-download all artwork metadata. We recommend only doing this if instructed to do so by customer support to resolve a problem.",
+      "rebuild".tr(),
       () async {
         await injector<TokensService>().purgeCachedGallery();
         if (!mounted) return;
@@ -288,7 +295,7 @@ class _SettingsPageState extends State<SettingsPage>
             route.settings.name == AppRouter.homePage ||
             route.settings.name == AppRouter.homePageNoTransition);
       },
-      "CANCEL",
+      "cancel".tr(),
     );
   }
 }

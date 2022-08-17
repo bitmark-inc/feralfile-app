@@ -25,6 +25,7 @@ import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class TezosBeaconService implements BeaconHandler {
   final NavigationService _navigationService;
@@ -121,8 +122,8 @@ class TezosBeaconService implements BeaconHandler {
       _navigationService.showErrorDialog(
           ErrorEvent(
               null,
-              "Already linked",
-              "You’ve already linked this account to Autonomy.",
+              "already_linked".tr(),
+              "al_you’ve_already".tr(),
               ErrorItemState.seeAccount), defaultAction: () {
         _navigationService.navigateTo(AppRouter.linkedAccountDetailsPage,
             arguments: alreadyLinkedAccount);
@@ -156,9 +157,10 @@ class TezosBeaconService implements BeaconHandler {
     log.info("TezosBeaconService: ${peer.toJson()}");
     UIHelper.showInfoDialog(
         _navigationService.navigatorKey.currentContext!,
-        "Link requested",
-        "Autonomy has sent a request to ${peer.name} to link to your account."
-            " Please open the wallet and authorize the request. ");
+        "link_requested".tr(),
+        "autonomy_has_sent".tr(args: [peer.name]));
+        //"Autonomy has sent a request to ${peer.name} to link to your account."
+         //   " Please open the wallet and authorize the request. ");
   }
 
   Future<Connection> onPostMessageLinked(

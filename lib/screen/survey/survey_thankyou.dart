@@ -8,6 +8,7 @@
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 class SurveyThankyouPage extends StatelessWidget {
@@ -30,16 +31,17 @@ class SurveyThankyouPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              "Thank you!",
+              "thank_you".tr(),
               style: theme.textTheme.headline1,
             ),
             const SizedBox(height: 40.0),
             Text(
-                "You’ve been automatically entered in this month’s drawing to win a Feral File artwork. If you win, we’ll transfer the NFT to your Autonomy account and notify you.",
+                "entered_drawing".tr(),
+                //"You’ve been automatically entered in this month’s drawing to win a Feral File artwork. If you win, we’ll transfer the NFT to your Autonomy account and notify you.",
                 style: theme.textTheme.bodyText1),
             const Spacer(),
             AuFilledButton(
-                text: "Continue",
+                text: "continue".tr(),
                 onPress: () => Navigator.of(context).popUntil((route) =>
                     route.settings.name == AppRouter.homePage ||
                     route.settings.name == AppRouter.homePageNoTransition)),

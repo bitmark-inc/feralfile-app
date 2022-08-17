@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 class AccessMethodPage extends StatelessWidget {
@@ -35,7 +36,7 @@ class AccessMethodPage extends StatelessWidget {
             child:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(
-                "Access method",
+                "access_method".tr(),
                 style: theme.textTheme.headline1,
               ),
               addTitleSpace(),
@@ -52,18 +53,20 @@ class AccessMethodPage extends StatelessWidget {
   Widget _linkAccount(BuildContext context) {
     final theme = Theme.of(context);
     return TappableForwardRowWithContent(
-        leftWidget: Text('Link', style: theme.textTheme.headline4),
+        leftWidget: Text('link'.tr(), style: theme.textTheme.headline4),
         bottomWidget: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'View your NFTs without Autonomy accessing your private keys in ${walletApp.split('.').last}.',
+              //'View your NFTs without Autonomy accessing your private keys in ${walletApp.split('.').last}.',
+              "li_view_your_nfts".tr(args: [walletApp.split('.').last]),
               style: theme.textTheme.bodyText1,
             ),
             if (walletApp == 'WalletApp.MetaMask') ...[
               const SizedBox(height: 15),
               Text(
-                'Autonomy currently only links to wallets on the Ethereum Mainnet. Other networks like Polygon are not yet supported.',
+                "li_autonomy_currently_only".tr(),
+                //'Autonomy currently only links to wallets on the Ethereum Mainnet. Other networks like Polygon are not yet supported.',
                 style: theme.textTheme.atlasGreyNormal14,
               ),
             ],
@@ -92,12 +95,13 @@ class AccessMethodPage extends StatelessWidget {
   Widget _importAccount(BuildContext context) {
     final theme = Theme.of(context);
     return TappableForwardRowWithContent(
-      leftWidget: Text('Import', style: theme.textTheme.headline4),
+      leftWidget: Text('import'.tr(), style: theme.textTheme.headline4),
       bottomWidget: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-              'View and control your NFTs, sign authorizations, and connect to other platforms with Autonomy.',
+              "im_view_and_control".tr(),
+              //'View and control your NFTs, sign authorizations, and connect to other platforms with Autonomy.',
               style: theme.textTheme.bodyText1),
           const SizedBox(height: 16),
           learnMoreAboutAutonomySecurityWidget(context),

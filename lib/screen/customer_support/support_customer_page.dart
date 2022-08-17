@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/badge_view.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -67,7 +68,7 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "How can we help?",
+                "how_can_we_help".tr(),
                 style: theme.textTheme.headline1,
               ),
               addTitleSpace(),
@@ -121,11 +122,11 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('RESOURCES', style: theme.textTheme.headline4),
+              Text('resources'.tr(), style: theme.textTheme.headline4),
               const SizedBox(height: 19),
               TappableForwardRow(
                   leftWidget:
-                      Text('Support history', style: theme.textTheme.headline4),
+                      Text('support_history'.tr(), style: theme.textTheme.headline4),
                   rightWidget: numberOfIssuesInfo[1] > 0
                       ? BadgeView(number: numberOfIssuesInfo[1])
                       : null,

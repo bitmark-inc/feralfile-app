@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 class BeOwnGalleryPage extends StatelessWidget {
@@ -39,17 +40,19 @@ class BeOwnGalleryPage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "View your digital artwork collection anytime, anywhere.",
+                      "view_anytime".tr(),//"View your digital artwork collection anytime, anywhere.",
                       style: theme.textTheme.headline1,
                     ),
                     const SizedBox(height: 30),
                     Text(
-                      "At home, on vacation, on the train — never be without your digital art collection. Digital artworks you own as NFTs on Ethereum, Feral File, or Tezos will automatically appear in your Autonomy.",
+                      "at_home_vacation".tr(),
+                      //"At home, on vacation, on the train — never be without your digital art collection. Digital artworks you own as NFTs on Ethereum, Feral File, or Tezos will automatically appear in your Autonomy.",
                       style: theme.textTheme.bodyText1,
                     ),
                     const SizedBox(height: 15),
                     Text(
-                      "It is not possible to purchase NFTs in this app.",
+                      "not_purchase".tr(),
+                      //"It is not possible to purchase NFTs in this app.",
                       style: theme.textTheme.headline4,
                     ),
                   ],
@@ -60,7 +63,7 @@ class BeOwnGalleryPage extends StatelessWidget {
               children: [
                 Expanded(
                   child: AuFilledButton(
-                    text: "CONTINUE".toUpperCase(),
+                    text: "continue".tr().toUpperCase(),
                     onPress: () async {
                       if (await injector<IAPService>().isSubscribed()) {
                         await newAccountPageOrSkipInCondition(context);

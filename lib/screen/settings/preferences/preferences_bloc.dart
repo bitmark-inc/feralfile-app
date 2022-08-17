@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/biometrics_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/notification_util.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -66,7 +67,7 @@ class PreferencesBloc extends AuBloc<PreferenceEvent, PreferenceState> {
         final canCheckBiometrics = await authenticateIsAvailable();
         if (canCheckBiometrics) {
           final didAuthenticate = await _localAuth.authenticate(
-              localizedReason: 'Authentication for "Autonomy"');
+              localizedReason: "authen_for_autonomy".tr());
           if (didAuthenticate) {
             await _configurationService.setDevicePasscodeEnabled(
                 event.newState.isDevicePasscodeEnabled);
@@ -110,13 +111,13 @@ class PreferencesBloc extends AuBloc<PreferenceEvent, PreferenceState> {
     if (Platform.isIOS) {
       if (_availableBiometrics.contains(BiometricType.face)) {
         // Face ID.
-        return 'Face ID';
+        return 'face_id'.tr();
       } else if (_availableBiometrics.contains(BiometricType.fingerprint)) {
         // Touch ID.
-        return 'Touch ID';
+        return 'touch_id'.tr();
       }
     }
 
-    return 'Device Passcode';
+    return 'device_passcode'.tr();
   }
 }

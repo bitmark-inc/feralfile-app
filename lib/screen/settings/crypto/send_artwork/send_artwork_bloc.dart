@@ -17,6 +17,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:tezart/tezart.dart';
 import 'package:web3dart/web3dart.dart';
 
@@ -143,7 +144,7 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
           } on TezartNodeError catch (err) {
             UIHelper.showInfoDialog(
               injector<NavigationService>().navigatorKey.currentContext!,
-              "Estimation failed",
+              "estimation_failed".tr(),
               getTezosErrorMessage(err),
               isDismissible: true,
             );

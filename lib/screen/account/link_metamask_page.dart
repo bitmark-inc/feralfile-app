@@ -18,6 +18,7 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:share/share.dart';
 import 'package:uuid/uuid.dart';
@@ -58,20 +59,23 @@ class _LinkMetamaskPageState extends State<LinkMetamaskPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Link to extension",
+                      "link_to_extension".tr(),
                       style: theme.textTheme.headline1,
                     ),
                     addTitleSpace(),
                     Text(
-                      "To link your MetaMask browser extension to Autonomy:",
+                      "lte_to_link_your".tr(),
+                      //"To link your MetaMask browser extension to Autonomy:",
                       style: theme.textTheme.bodyText1,
                     ),
                     const SizedBox(height: 20),
                     _stepWidget('1',
-                        'Generate a link request and send it to the web browser where you are currently signed in to MetaMask.'),
+                        "lte_generate_a_link".tr()),
+                        //'Generate a link request and send it to the web browser where you are currently signed in to MetaMask.'),
                     const SizedBox(height: 10),
                     _stepWidget('2',
-                        'When prompted by MetaMask, approve Autonomy’s permissions requests.'),
+                        "lte_when_prompted_by".tr()),
+                        //'When prompted by MetaMask, approve Autonomy’s permissions requests.'),
                     const SizedBox(height: 40),
                     Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -88,7 +92,7 @@ class _LinkMetamaskPageState extends State<LinkMetamaskPage> {
               children: [
                 Expanded(
                   child: AuFilledButton(
-                    text: "GENERATE LINK".toUpperCase(),
+                    text: "generate_link".tr().toUpperCase(),
                     onPress: () => _generateLinkAndListen(),
                   ),
                 ),

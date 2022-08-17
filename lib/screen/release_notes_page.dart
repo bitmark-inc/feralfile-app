@@ -8,6 +8,7 @@
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 
@@ -39,7 +40,7 @@ class _ReleaseNotesPageState extends State<ReleaseNotesPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 40),
-          Text("What’s new?", style: theme.primaryTextTheme.headline1),
+          Text("what_new".tr(), style: theme.primaryTextTheme.headline1),
           const SizedBox(height: 40),
           Expanded(
             child: Markdown(
@@ -54,7 +55,7 @@ class _ReleaseNotesPageState extends State<ReleaseNotesPage> {
             children: [
               Expanded(
                 child: AuFilledButton(
-                  text: "CLOSE",
+                  text: "close".tr(),
                   onPress: () => Navigator.of(context).pop(),
                   color: theme.colorScheme.secondary,
                   textStyle: theme.textTheme.button,

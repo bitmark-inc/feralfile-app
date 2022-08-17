@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -44,7 +45,7 @@ class ConnectionDetailsPage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Rights",
+                      "rights".tr(),
                       style: theme.textTheme.headline1,
                     ),
                     addTitleSpace(),
@@ -59,7 +60,7 @@ class ConnectionDetailsPage extends StatelessWidget {
                               Text(connection.appName,
                                   style: theme.textTheme.headline4),
                               Text(
-                                "You have granted permission to:",
+                                "you_have_permission".tr(),
                                 style: theme.textTheme.bodyText1,
                               ),
                             ],
@@ -90,7 +91,7 @@ class ConnectionDetailsPage extends StatelessWidget {
             Center(
               child: TextButton(
                 onPressed: () => _showDeleteConnectionConfiguration(context),
-                child: Text('DISCONNECT & REVOKE RIGHTS',
+                child: Text('disconnect_and_revoke'.tr(),
                     style: theme.textTheme.button),
               ),
             ),
@@ -121,21 +122,21 @@ class ConnectionDetailsPage extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Revoke all rights',
+                    Text("revoke_all_rights".tr(),
                         style: theme.primaryTextTheme.headline1),
                     const SizedBox(height: 40),
                     RichText(
                       text: TextSpan(
                         style: theme.primaryTextTheme.bodyText1,
                         children: <TextSpan>[
-                          const TextSpan(
-                            text: 'Are you sure you want to revoke ',
+                          TextSpan(
+                            text: "sure_revoke".tr(),
                           ),
-                          const TextSpan(
-                              text: 'Autonomy',
+                          TextSpan(
+                              text: 'autonomyL'.tr(),
                               style: TextStyle(fontWeight: FontWeight.bold)),
-                          const TextSpan(
-                            text: ' from all rights on ',
+                          TextSpan(
+                            text: 'from_all_rights_on'.tr(),
                           ),
                           TextSpan(
                               text: connection.appName,
@@ -149,7 +150,7 @@ class ConnectionDetailsPage extends StatelessWidget {
                       children: [
                         Expanded(
                           child: AuFilledButton(
-                            text: "REVOKE ALL",
+                            text: "revoke_all".tr(),
                             onPress: () {
                               pageContext
                                   .read<ConnectionsBloc>()
@@ -167,7 +168,7 @@ class ConnectionDetailsPage extends StatelessWidget {
                       child: TextButton(
                         onPressed: () => Navigator.of(context).pop(),
                         child: Text(
-                          "CANCEL",
+                          "cancel".tr(),
                           style: theme.primaryTextTheme.button,
                         ),
                       ),

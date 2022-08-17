@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -48,7 +49,7 @@ class _LinkAppOptionsPageState extends State<LinkAppOptionsPage> {
             child:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(
-                "Where are you using MetaMask?",
+                "where_are_you_using_metamask".tr(),
                 style: theme.textTheme.headline1,
               ),
               addTitleSpace(),
@@ -67,7 +68,7 @@ class _LinkAppOptionsPageState extends State<LinkAppOptionsPage> {
     final theme = Theme.of(context);
     return TappableForwardRow(
       leftWidget:
-          Text('Mobile app on this device', style: theme.textTheme.headline4),
+          Text('mobile_app_on_this_device'.tr(), style: theme.textTheme.headline4),
       onTap: () => _linkMetamask(),
     );
   }
@@ -75,7 +76,7 @@ class _LinkAppOptionsPageState extends State<LinkAppOptionsPage> {
   Widget _browserExtensionOptionWidget(BuildContext context) {
     final theme = Theme.of(context);
     return TappableForwardRow(
-      leftWidget: Text('Browser extension', style: theme.textTheme.headline4),
+      leftWidget: Text('browser_extension'.tr(), style: theme.textTheme.headline4),
       onTap: () => Navigator.of(context).pushNamed(AppRouter.linkMetamaskPage),
     );
   }

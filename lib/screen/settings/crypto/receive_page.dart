@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share/share.dart';
@@ -38,7 +39,7 @@ class ReceivePage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              "Receive ${payload.type == CryptoType.ETH ? "ETH" : "XTZ"}",
+              payload.type == CryptoType.ETH ? "receive_eth".tr() : "receive_xtz".tr(),
               style: theme.textTheme.headline1,
             ),
             const SizedBox(height: 96),
@@ -58,7 +59,7 @@ class ReceivePage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Deposit address",
+                    "deposit_address".tr(),
                     style: theme.textTheme.atlasGreyBold12,
                   ),
                   Padding(
@@ -78,7 +79,7 @@ class ReceivePage extends StatelessWidget {
               children: [
                 Expanded(
                   child: AuFilledButton(
-                    text: "Share",
+                    text: "share".tr(),
                     onPress: () {
                       Share.share(payload.address);
                     },

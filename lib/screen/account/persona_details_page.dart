@@ -22,6 +22,7 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -121,7 +122,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "Addresses",
+          "addresses".tr(),
           style: theme.textTheme.headline1,
         ),
         const SizedBox(height: 24),
@@ -204,7 +205,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "Crypto",
+          "crypto".tr(),
           style: theme.textTheme.headline1,
         ),
         const SizedBox(
@@ -267,7 +268,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
     final theme = Theme.of(context);
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Text(
-        "Preferences",
+        "preferences".tr(),
         style: theme.textTheme.headline1,
       ),
       const SizedBox(
@@ -279,7 +280,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Hide from collection', style: theme.textTheme.headline4),
+              Text('hide_from_collection'.tr(), style: theme.textTheme.headline4),
               CupertinoSwitch(
                 value: isHideGalleryEnabled,
                 onChanged: (value) async {
@@ -295,7 +296,8 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
           ),
           const SizedBox(height: 14),
           Text(
-            "Do not show this account's NFTs in the collection view.",
+            "do_not_show_nft".tr(),
+            //"Do not show this account's NFTs in the collection view.",
             style: theme.textTheme.bodyText1,
           ),
         ],
@@ -309,7 +311,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
 
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Text(
-        "Backup",
+        "backup".tr(),
         style: theme.textTheme.headline1,
       ),
       const SizedBox(
@@ -317,7 +319,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
       ),
       TappableForwardRow(
           leftWidget: Text(
-            'Recovery phrase',
+            'recovery_phrase'.tr(),
             style: theme.textTheme.headline4,
           ),
           onTap: () async {
@@ -327,7 +329,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
                 await authenticateIsAvailable()) {
               final localAuth = LocalAuthentication();
               final didAuthenticate = await localAuth.authenticate(
-                  localizedReason: 'Authentication for "Autonomy"');
+                  localizedReason: "authen_for_autonomy".tr());
               if (!didAuthenticate) {
                 return;
               }

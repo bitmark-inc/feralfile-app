@@ -38,6 +38,7 @@ import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/penrose_top_bar_view.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
@@ -178,12 +179,13 @@ class _HomePageState extends State<HomePage>
           child: autonomyLogo,
         ),
         Text(
-          "Collection",
+          "collection".tr(),
           style: theme.textTheme.headline1,
         ),
         const SizedBox(height: 24.0),
         Text(
-          "Your collection is empty for now.",
+          "collection_empty_now".tr(),
+          //"Your collection is empty for now.",
           style: theme.textTheme.bodyText1,
         ),
       ],

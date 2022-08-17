@@ -21,6 +21,7 @@ import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
@@ -72,7 +73,7 @@ void showSurveysNotification(BuildContext context) {
 
   showCustomNotifications(
       context,
-      "Take a one-question survey and be entered to win a Feral File artwork.",
+      "take_survey".tr(),
       const Key(Survey.onboarding),
       notificationOpenedHandler: () =>
           injector<NavigationService>().navigateTo(SurveyPage.tag));
@@ -201,7 +202,7 @@ class UIHelper {
     final theme = Theme.of(context);
     return showDialog(
         context,
-        'Link requested',
+        'link_requested'.tr(),
         Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -209,16 +210,15 @@ class UIHelper {
               text: TextSpan(children: [
                 TextSpan(
                   style: theme.primaryTextTheme.bodyText1,
-                  text: "Autonomy has sent a request to ",
+                  text: "au_sent_survey".tr(),
                 ),
                 TextSpan(
                   style: theme.primaryTextTheme.headline4,
-                  text: "Feral File",
+                  text: "feral_file".tr(),
                 ),
                 TextSpan(
                   style: theme.primaryTextTheme.bodyText1,
-                  text:
-                      " in your mobile browser to link to your account. Please make sure you are signed in and authorize the request.",
+                  text: "in_your_mobile".tr(),
                 ),
               ]),
             ),
@@ -233,7 +233,7 @@ class UIHelper {
     final theme = Theme.of(context);
     return showDialog(
         context,
-        'Account linked',
+        'account_linked'.tr(),
         Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -241,8 +241,7 @@ class UIHelper {
               text: TextSpan(children: [
                 TextSpan(
                   style: theme.primaryTextTheme.bodyText1,
-                  text:
-                      "Autonomy has received authorization to link to your Feral File account ",
+                  text: "au_receive_auth".tr(),
                 ),
                 TextSpan(
                   style: theme.primaryTextTheme.headline4,
@@ -251,7 +250,7 @@ class UIHelper {
                 TextSpan(
                   style: theme.primaryTextTheme.bodyText1,
                   text:
-                      ". ${inOnboarding ? 'Please finish onboarding to view your collection.' : ''}",
+                      "dot".tr(args: [inOnboarding ? 'please_finish'.tr() : '']),
                 ),
               ]),
             ),
@@ -321,24 +320,24 @@ class UIHelper {
 
     showDialog(
         context,
-        "Generated!",
+        "generated".tr(),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('MULTI-CHAIN ACCOUNT GENERATED WITH:',
+            Text('multichain_generate'.tr(),
                 style: theme.primaryTextTheme.headline5),
             const SizedBox(height: 16),
-            Text('• Bitmark address', style: theme.primaryTextTheme.headline4),
+            Text("bitmark_address".tr(), style: theme.primaryTextTheme.headline4),
             const SizedBox(height: 16),
-            Text('• Ethereum address', style: theme.primaryTextTheme.headline4),
+            Text("ethereum_address".tr(), style: theme.primaryTextTheme.headline4),
             const SizedBox(height: 16),
-            Text('• Tezos address', style: theme.primaryTextTheme.headline4),
+            Text("tezos_address".tr(), style: theme.primaryTextTheme.headline4),
             const SizedBox(height: 40),
             Row(
               children: [
                 Expanded(
                   child: AuFilledButton(
-                    text: "CONTINUE",
+                    text: "continue".tr().toUpperCase(),
                     onPress: () => onContinue(),
                     color: theme.colorScheme.secondary,
                     textStyle: theme.textTheme.button,
@@ -357,24 +356,24 @@ class UIHelper {
 
     showDialog(
         context,
-        "Imported!",
+        "imported".tr(),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('MULTI-CHAIN ACCOUNT GENERATED WITH:',
+            Text('multichain_generate'.tr(),
                 style: theme.primaryTextTheme.headline5),
             const SizedBox(height: 16),
-            Text('• Bitmark address', style: theme.primaryTextTheme.headline4),
+            Text("bitmark_address".tr(), style: theme.primaryTextTheme.headline4),
             const SizedBox(height: 16),
-            Text('• Ethereum address', style: theme.primaryTextTheme.headline4),
+            Text("ethereum_address".tr(), style: theme.primaryTextTheme.headline4),
             const SizedBox(height: 16),
-            Text('• Tezos address', style: theme.primaryTextTheme.headline4),
+            Text("tezos_address".tr(), style: theme.primaryTextTheme.headline4),
             const SizedBox(height: 40),
             Row(
               children: [
                 Expanded(
                   child: AuFilledButton(
-                    text: "CONTINUE",
+                    text: "continue".tr().toUpperCase(),
                     onPress: () => onContinue(),
                     color: theme.colorScheme.secondary,
                     textStyle: theme.textTheme.button,
@@ -393,7 +392,7 @@ class UIHelper {
 
     showDialog(
         context,
-        isHidden ? "Artwork hidden" : "Artwork unhidden",
+        isHidden ? "art_hidden".tr() : "art_uhhidden".tr(),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -403,21 +402,21 @@ class UIHelper {
                       TextSpan(
                         style: theme.primaryTextTheme.bodyText1,
                         text:
-                            "This artwork will no longer appear in your collection. You can still find it in the ",
+                        "art_no_appear".tr(),
                       ),
                       TextSpan(
                         style: theme.primaryTextTheme.headline4,
-                        text: "Hidden artworks >",
+                        text: "hidden_art".tr(),
                       ),
                       TextSpan(
                         style: theme.primaryTextTheme.bodyText1,
                         text:
-                            " section of settings if you want to view it or unhide it.",
+                        "section_setting".tr(),
                       ),
                     ]),
                   )
                 : Text(
-                    "This artwork will now be visible in your collection.",
+                    "art_visible".tr(),
                     style: theme.primaryTextTheme.bodyText1,
                   ),
             const SizedBox(height: 40),
@@ -425,7 +424,7 @@ class UIHelper {
               children: [
                 Expanded(
                   child: AuFilledButton(
-                    text: "OK",
+                    text: "ok".tr(),
                     onPress: onOK,
                     color: theme.primaryColor,
                     textStyle: theme.primaryTextTheme.button,
@@ -444,12 +443,12 @@ class UIHelper {
 
     showDialog(
         context,
-        "Identity",
+        "identity".tr(),
         Flexible(
             child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('ALIAS', style: theme.primaryTextTheme.headline5),
+            Text('alias'.tr(), style: theme.primaryTextTheme.headline5),
             const SizedBox(height: 16),
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
               Expanded(
@@ -459,7 +458,7 @@ class UIHelper {
                 overflow: TextOverflow.ellipsis,
               )),
               GestureDetector(
-                child: Text("Share", style: theme.primaryTextTheme.headline4),
+                child: Text("share".tr(), style: theme.primaryTextTheme.headline4),
                 onTap: () => Share.share(address),
               )
             ]),
@@ -474,7 +473,7 @@ class UIHelper {
                 Navigator.of(context).pop();
               },
               child: Text(
-                "CLOSE",
+                "close".tr(),
                 style: theme.primaryTextTheme.button,
               ),
             ),
@@ -485,8 +484,8 @@ class UIHelper {
 
   static showAccountLinked(
       BuildContext context, Connection connection, String walletName) {
-    UIHelper.showInfoDialog(context, "Account linked",
-        "Autonomy has received autorization to link to your NFTs in $walletName.");
+    UIHelper.showInfoDialog(context, "account_linked".tr(),
+        "au_receive_auth_nft".tr(args: [walletName]));
 
     Future.delayed(const Duration(seconds: 3), () {
       UIHelper.hideInfoDialog(context);
@@ -508,8 +507,8 @@ class UIHelper {
         context,
         ErrorEvent(
             null,
-            "Already linked",
-            "You’ve already linked this account to Autonomy.",
+            "already_linked".tr(),
+            "al_you’ve_already".tr(),
             ErrorItemState.seeAccount), defaultAction: () {
       Navigator.of(context)
           .pushNamed(AppRouter.linkedAccountDetailsPage, arguments: connection);
@@ -518,7 +517,7 @@ class UIHelper {
 
   static showAbortedByUser(BuildContext context) {
     UIHelper.showInfoDialog(
-        context, "Aborted", "The action was aborted by the user.",
+        context, "aborted".tr(), "action_aborted".tr(),
         isDismissible: true, autoDismissAfter: 3);
   }
 
@@ -528,11 +527,11 @@ class UIHelper {
 
     return showDialog(
         context,
-        "Subscribe",
+        "h_subscribe".tr(),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('This feature requires subscription',
+            Text("require_subs".tr(),
                 style: theme.primaryTextTheme.bodyText1),
             const SizedBox(height: 40),
             UpgradeBoxView.getMoreAutonomyWidget(theme, feature),
@@ -543,7 +542,7 @@ class UIHelper {
                   child: TextButton(
                     onPressed: () => Navigator.pop(context),
                     child: Text(
-                      "CANCEL",
+                      "cancel".tr(),
                       style: theme.primaryTextTheme.button,
                     ),
                   ),
@@ -573,12 +572,11 @@ learnMoreAboutAutonomySecurityWidget(BuildContext context,
 }
 
 wantMoreSecurityWidget(BuildContext context, WalletApp walletApp) {
-  var introText = 'You can get all the';
+  var introText = 'you_can_get_all'.tr();
   if (walletApp == WalletApp.Kukai || walletApp == WalletApp.Temple) {
-    introText += ' Tezos';
+    introText += "_tezos".tr();
   }
-  introText +=
-      ' functionality of ${walletApp.rawValue} in a mobile app by importing your account to Autonomy. Tap to do this now.';
+  introText += "functionality".tr(args: [walletApp.rawValue]);
   final theme = Theme.of(context);
   return GestureDetector(
     onTap: () => Navigator.of(context).pushNamed(AppRouter.importAccountPage),
@@ -586,7 +584,7 @@ wantMoreSecurityWidget(BuildContext context, WalletApp walletApp) {
       padding: const EdgeInsets.all(10),
       color: AppColor.secondaryDimGreyBackground,
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text('Want more security and portability?',
+        Text("want_more_sec".tr(),
             style: theme.textTheme.atlasDimgreyBold14),
         const SizedBox(height: 5),
         Text(introText, style: theme.textTheme.atlasBlackNormal14),
@@ -599,7 +597,7 @@ wantMoreSecurityWidget(BuildContext context, WalletApp walletApp) {
             padding: EdgeInsets.zero,
             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
-          child: Text('Learn why browse-extension wallets are unsafe...',
+          child: Text("learn_ex_unsafe".tr(),
               style: theme.textTheme.linkStyle),
         ),
       ]),

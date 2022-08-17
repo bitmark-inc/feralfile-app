@@ -6,6 +6,7 @@
 //
 
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -164,17 +165,17 @@ const pageEdgeInsets =
 const pageEdgeInsetsWithSubmitButton = EdgeInsets.fromLTRB(16, 16, 16, 32);
 const pageEdgeInsetsNotBottom = EdgeInsets.fromLTRB(16, 16, 16, 0);
 
-const grantPermissions = [
-  'View account balance and NFTs',
-  'Request approval for transactions',
+var grantPermissions = [
+  "view_account".tr(),
+  'request_approval'.tr(),
 ];
 
 String polishSource(String source) {
   switch (source) {
     case 'feralfile':
-      return 'Feral File';
+      return 'feral_file'.tr();
     case 'ArtBlocks':
-      return 'Art Blocks';
+      return "art_blocks".tr();
     default:
       return source;
   }

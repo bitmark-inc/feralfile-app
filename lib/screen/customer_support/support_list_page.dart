@@ -17,6 +17,7 @@ import 'package:autonomy_flutter/util/rand.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -96,7 +97,7 @@ class _SupportListPageState extends State<SupportListPage>
         child: Container(
             padding: pageEdgeInsets.copyWith(bottom: 40),
             child: Text(
-              "Support history",
+              "support_history".tr(),
               style: theme.textTheme.headline1,
             )),
       ),
@@ -171,7 +172,7 @@ class _SupportListPageState extends State<SupportListPage>
           padding: const EdgeInsets.only(right: 14),
           child: Text(
             issue.status == "closed"
-                ? "Issue resolved.\nOur team thanks you for helping us improve Autonomy."
+                ? "issue_resolved".tr()//"Issue resolved.\nOur team thanks you for helping us improve Autonomy."
                 : getLastMessage(issue),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
@@ -227,9 +228,9 @@ class _SupportListPageState extends State<SupportListPage>
     final attachmentTitle =
         ReceiveAttachment.extractSizeAndRealTitle(attachment.title)[1];
     if (attachment.contentType.contains('image')) {
-      return 'Image sent: $attachmentTitle';
+      return "image_sent".tr(args: [attachmentTitle]);//'Image sent: $attachmentTitle';
     } else {
-      return 'File sent: $attachmentTitle';
+      return "file_sent".tr(args: [attachmentTitle]);//'File sent: $attachmentTitle';
     }
   }
 }

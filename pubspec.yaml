@@ -129,6 +129,7 @@ dependencies:
   autonomy_theme:
     git:
       url: https://github.com/bitmark-inc/autonomy-client-shared-theme.git
+  easy_localization: ^3.0.1
 
 dependency_overrides:
   # Error using when import photo_view from dependencies:
@@ -166,6 +167,7 @@ flutter:
     - .env
     - assets/erc721-abi.json
     - assets/images/
+    - assets/translations/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

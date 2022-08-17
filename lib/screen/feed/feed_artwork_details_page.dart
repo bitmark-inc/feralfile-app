@@ -18,6 +18,7 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/au_outlined_button.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -97,7 +98,7 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
         Scaffold(
           appBar: getBackAppBar(
             context,
-            backTitle: "DISCOVERY",
+            backTitle: "discovery".tr(),
             onBack: () => Navigator.of(context).pop(),
           ),
           body: BlocBuilder<FeedBloc, FeedState>(builder: (context, state) {
@@ -134,7 +135,7 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
                               style: theme.textTheme.atlasBlackBold12,
                               children: [
                                 TextSpan(
-                                  text: '${feedEvent.actionRepresentation} by ',
+                                  text: "_by".tr(args: [feedEvent.actionRepresentation]),
                                 ),
                                 TextSpan(
                                   text: followingName,
@@ -164,7 +165,7 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
                               text: TextSpan(
                                   style: theme.textTheme.headline3,
                                   children: [
-                                const TextSpan(text: "by "),
+                                TextSpan(text: "by".tr(args: [""])),
                                 if (token!.artistID != null) ...[
                                   TextSpan(
                                     text: artistName,
@@ -208,7 +209,7 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
                           width: 165,
                           height: 48,
                           child: AuOutlinedButton(
-                            text: "VIEW ARTWORK",
+                            text: "view_artwork".tr(),
                             onPress: () => Navigator.of(context).pop(),
                           ),
                         ),

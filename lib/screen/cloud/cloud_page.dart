@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -55,12 +56,13 @@ class CloudPage extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            isAvailable ? "Backed up" : "Sign in to iCloud",
+                            isAvailable ? "backed_up".tr() : "sign_in_to_icloud".tr(),
                             style: theme.textTheme.headline1,
                           ),
                           addTitleSpace(),
                           Text(
-                            "Autonomy will automatically back up all of your account information securely, including cryptographic material from accounts you manage as well as links to your accounts. If you ever lose your phone, you will be able to recover everything.",
+                            "autonomy_will_auto_bk".tr(),
+                            //"Autonomy will automatically back up all of your account information securely, including cryptographic material from accounts you manage as well as links to your accounts. If you ever lose your phone, you will be able to recover everything.",
                             style: theme.textTheme.bodyText1,
                           ),
                           if (isAvailable) ...[
@@ -111,7 +113,7 @@ class CloudPage extends StatelessWidget {
               TextButton(
                 onPressed: () => openAppSettings(),
                 child: Text(
-                  "OPEN ICLOUD SETTINGS",
+                  "open_icloud_setting".tr(),
                   style: theme.textTheme.button,
                 ),
               ),
@@ -119,7 +121,7 @@ class CloudPage extends StatelessWidget {
                 children: [
                   Expanded(
                     child: AuFilledButton(
-                      text: "CONTINUE WITHOUT ICLOUD".toUpperCase(),
+                      text: "continue_without_icloud".tr().toUpperCase(),
                       onPress: () => _continue(context),
                     ),
                   ),
@@ -137,7 +139,7 @@ class CloudPage extends StatelessWidget {
             children: [
               Expanded(
                 child: AuFilledButton(
-                  text: "OPEN ICLOUD SETTINGS".toUpperCase(),
+                  text: "open_icloud_setting".tr().toUpperCase(),
                   onPress: () => openAppSettings(),
                 ),
               ),
