@@ -72,11 +72,12 @@ jobs:
       - run: flutter pub cache repair
       - run: flutter pub get
       - run: flutter build apk --flavor inhouse
-      - name: App Center Distribute
-        uses: devussy/AppCenter-Distribute-Github-Action@v1.0.2
+      - name: upload artifact to App Center
+        uses: wzieba/AppCenter-Github-Action@v1
         with:
-          app: support-zzd0-28/Autonomy-Android-1
-          token: ${{secrets.APPCENTER_API_TOKEN}}
+          appName: support-zzd0-28/Autonomy-Android-1
+          token: ${{ secrets.APPCENTER_API_TOKEN }}
           group: Collaborators;Bitmark Internal Testers;Android Testers
           file: build/app/outputs/flutter-apk/app-inhouse-release.apk
-          silent: true
+          notifyTesters: false
+          debug: false
