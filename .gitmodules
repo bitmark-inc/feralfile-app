@@ -1,3 +1,4 @@
 [submodule "assets"]
 	path = assets
-	url = https://github.com/bitmark-inc/autonomy-client-assets.git
+	url = git@github.com:bitmark-inc/autonomy-client.git
+
