@@ -1,62 +1,43 @@
 name: Integration tests
-on: [workflow_dispatch]
-
+on: 
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+  push:
+    branches:
+      - develop
+      - change-yaml-4integration-test
 jobs:
   build:
-    runs-on: self-hosted
+    runs-on: [self-hosted, linux, ci-local-bmvn]
     strategy:
       matrix:
         api-level: [ 29 ]
         target: [ playstore ]
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-java@v2
-        with:
-          distribution: 'zulu'
-          java-version: '11'
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ' 2.10.3'
-          channel: stable
-      - name: Create env file
-        run: |
-          touch .env
-          echo INDEXER_MAINNET_API_URL=${{ secrets.INDEXER_MAINNET_API_URL }} >> .env
-          echo INDEXER_TESTNET_API_URL=${{ secrets.INDEXER_TESTNET_API_URL }} >> .env
-          echo WEB3_RPC_MAINNET_URL=${{ secrets.WEB3_RPC_MAINNET_URL }} >> .env
-          echo WEB3_RPC_TESTNET_URL=${{ secrets.WEB3_RPC_TESTNET_URL }} >> .env
-          echo TEZOS_NODE_CLIENT_MAINNET_URL=${{ secrets.TEZOS_NODE_CLIENT_MAINNET_URL }} >> .env
-          echo TEZOS_NODE_CLIENT_TESTNET_URL=${{ secrets.TEZOS_NODE_CLIENT_TESTNET_URL }} >> .env
-          echo BITMARK_API_MAINNET_URL=${{ secrets.BITMARK_API_MAINNET_URL }} >> .env
-          echo BITMARK_API_TESTNET_URL=${{ secrets.BITMARK_API_TESTNET_URL }} >> .env
-          echo FERAL_FILE_API_MAINNET_URL=${{ secrets.FERAL_FILE_API_MAINNET_URL }} >> .env
-          echo FERAL_FILE_API_TESTNET_URL=${{ secrets.FERAL_FILE_API_TESTNET_URL }} >> .env
-          echo EXTENSION_SUPPORT_MAINNET_URL=${{ secrets.EXTENSION_SUPPORT_MAINNET_URL }} >> .env
-          echo EXTENSION_SUPPORT_TESTNET_URL=${{ secrets.EXTENSION_SUPPORT_TESTNET_URL }} >> .env
-          echo CONNECT_WEBSOCKET_MAINNET_URL=${{ secrets.CONNECT_WEBSOCKET_MAINNET_URL }} >> .env
-          echo CONNECT_WEBSOCKET_TESTNET_URL=${{ secrets.CONNECT_WEBSOCKET_TESTNET_URL }} >> .env
-
-          echo AUTONOMY_AUTH_URL=${{ secrets.AUTONOMY_AUTH_URL }} >> .env
-          echo CUSTOMER_SUPPORT_URL=${{ secrets.CUSTOMER_SUPPORT_URL }} >> .env
-          echo FEED_URL=${{ secrets.FEED_URL }} >> .env
-          echo CURRENCY_EXCHANGE_URL=${{ secrets.CURRENCY_EXCHANGE_URL }} >> .env
-          echo AUTONOMY_PUBDOC_URL=${{ secrets.AUTONOMY_PUBDOC_URL }} >> .env
-
-          echo FERAL_FILE_AUTHORIZATION_PREFIX=${{ secrets.FERAL_FILE_AUTHORIZATION_PREFIX }} >> .env
-          echo SENTRY_DSN=${{ secrets.SENTRY_DSN }} >> .env
-          echo ONESIGNAL_APP_ID=${{ secrets.ONESIGNAL_APP_ID }} >> .env
-          echo AWS_IDENTITY_POOL_ID=${{ secrets.AWS_IDENTITY_POOL_ID }} >> .env
-
-          echo TEZOS_FAUCET_URL=${{ secrets.TEZOS_FAUCET_URL }} >> .env
-          echo TEZOS_FAUCET_AUTH_TOKEN=${{ secrets.TEZOS_FAUCET_AUTH_TOKEN }} >> .env
-          cat .env
-
+    steps:      
       # Run integration test
-      - name: Run Flutter Driver tests
-        uses: reactivecircus/android-emulator-runner@v2
+      - name: Run Flutter Driver tests for Suite "Create new account"
+        run: |
+          cd /media/bitmark/3406ce86-9243-41d7-aa8f-6f7ee167531b/autonomy-client
+          flutter test integration_test/tests/create_new_account_test.dart --flavor inhouse
+      - name: Run Flutter Driver tests for Suite "Send XTZ"
+        run: |
+          cd /media/bitmark/3406ce86-9243-41d7-aa8f-6f7ee167531b/autonomy-client
+          flutter test integration_test/tests/send_xtz_test.dart --flavor inhouse
+      - name: Run Flutter Driver tests for Suite "Check Artwork detail"
+        run: |
+          cd /media/bitmark/3406ce86-9243-41d7-aa8f-6f7ee167531b/autonomy-client
+          flutter test integration_test/tests/check_artwork_detail_test.dart --flavor inhouse
+      - name: Report Status
+        if: always()
+        uses: ravsamhq/notify-slack-action@v2
         with:
-          target: ${{ matrix.target }}
-          api-level: ${{ matrix.api-level }}
-          arch: x86_64
-          profile: Nexus 6
-          script: flutter test integration_test --flavor inhouse
+          status: ${{ job.status }}
+          notify_when: 'failure,success,warnings'
+          notification_title: Automation  - Integration test execution
+          message_format: "{emoji} *{workflow}* {status_message} in <{repo_url}|{repo}@{branch}> on commit <{commit_url}|{commit_sha}>"
+          footer: "<{run_url}|View Run>"
+          # mention_users: '@longvu'
+          mention_users_when: 'failure,warnings'      
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.WEBHOOK_LOCAL_BITMARKVN_CI_SLACK }}
