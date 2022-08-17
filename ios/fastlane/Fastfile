@@ -86,12 +86,12 @@ platform :ios do
 			app_identifier: app_identifier
 		)
 
-		sentry_upload_dsym(
-			auth_token: ENV["SENTRY_AUTH"],
-			org_slug: 'bitmark-inc',
-			project_slug: 'autonomy-client-flutter',
-			dsym_path: './ipas/Runner.app.dSYM.zip'
-		)
+# 		sentry_upload_dsym(
+# 			auth_token: ENV["SENTRY_AUTH"],
+# 			org_slug: 'bitmark-inc',
+# 			project_slug: 'autonomy-client-flutter',
+# 			dsym_path: './ipas/Runner.app.dSYM.zip'
+# 		)
 
 		sentry_finalize_release(
 			auth_token: ENV["SENTRY_AUTH"],
