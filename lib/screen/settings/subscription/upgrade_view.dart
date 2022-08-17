@@ -40,7 +40,7 @@ class UpgradesView extends StatelessWidget {
                 "More Autonomy",
                 style: theme.textTheme.headline1,
               ),
-              const SizedBox(height: 16.0),
+              const SizedBox(height: 24.0),
               _subscribeView(context, state),
             ],
           ));

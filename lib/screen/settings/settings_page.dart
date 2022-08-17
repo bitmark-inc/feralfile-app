@@ -153,7 +153,7 @@ class _SettingsPageState extends State<SettingsPage>
                   "Help us improve",
                   style: theme.textTheme.headline1,
                 ),
-                const SizedBox(height: 8.0),
+                const SizedBox(height: 16.0),
                 TappableForwardRow(
                     leftWidget: Text('Participate in bug bounty',
                         style: theme.textTheme.headline4),
