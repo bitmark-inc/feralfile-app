@@ -45,7 +45,7 @@ class PreferenceView extends StatelessWidget {
                   .add(PreferenceUpdateEvent(newState));
             },
           ),
-          const Divider(),
+          addDivider(),
           _preferenceItem(
             context,
             state.authMethodName,

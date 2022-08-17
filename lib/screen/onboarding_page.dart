@@ -63,9 +63,9 @@ class _OnboardingPageState extends State<OnboardingPage> {
             }
             await askForNotification();
             await injector<VersionService>().checkForUpdate();
-
-            await Future.delayed(SHORT_SHOW_DIALOG_DURATION,
-                () => showSurveysNotification(context));
+            // hide code show surveys issues/1459
+            // await Future.delayed(SHORT_SHOW_DIALOG_DURATION,
+            //     () => showSurveysNotification(context));
             break;
 
           default:

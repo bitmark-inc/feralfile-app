@@ -108,6 +108,13 @@ class CloudPage extends StatelessWidget {
         } else {
           return Column(
             children: [
+              TextButton(
+                onPressed: () => openAppSettings(),
+                child: Text(
+                  "OPEN ICLOUD SETTINGS",
+                  style: theme.textTheme.button,
+                ),
+              ),
               Row(
                 children: [
                   Expanded(
@@ -118,10 +125,6 @@ class CloudPage extends StatelessWidget {
                   ),
                 ],
               ),
-              TextButton(
-                  onPressed: () => openAppSettings(),
-                  child: Text("OPEN ICLOUD SETTINGS",
-                      style: theme.textTheme.button)),
             ],
           );
         }
