@@ -1,4 +1,9 @@
-
+//
+//  SPDX-License-Identifier: BSD-2-Clause-Patent
+//  Copyright © 2022 Bitmark. All rights reserved.
+//  Use of this source code is governed by the BSD-2-Clause Plus Patent License
+//  that can be found in the LICENSE file.
+//
 
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
@@ -8,6 +13,7 @@ import 'package:integration_test/integration_test.dart';
 import '../commons/test_util.dart';
 import '../pages/onBoarding_page.dart';
 import '../pages/setting_page.dart';
+import '../pages/static_test_page.dart';
 
 void main() async{
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -20,19 +26,15 @@ void main() async{
       await onboardingSteps(tester);
       await addDelay(3000);
 
-      final releaseNotes = find.text("Release notes");
+
       await settingScrollToFinder(tester, releaseNotes, Scrollable);
       await tester.pump();
       await tester.pump();
       await addDelay(5000);
+
       expect(releaseNotes, findsOneWidget);
 
-      Finder versionFinder = find.byKey(const Key("version"));
-      Text versionWidget = versionFinder.evaluate().single.widget as Text;
-      String versionFullStr = versionWidget.data??"";
-      print(versionFullStr);
-      int endIndex = versionFullStr.indexOf("(");
-      String? versionStr = versionFullStr.substring(8,endIndex);
+      String versionStr = getVersion(versionFinder); //this should return "_version_"
       print(versionStr);
 
       await tester.tap(releaseNotes);
@@ -45,17 +47,16 @@ void main() async{
       expect(find.text("What’s new?"), findsOneWidget);
       expect(find.text("CLOSE"),findsOneWidget);
 
-      Finder releaseNotesFinder = find.byType(Markdown);
-      Markdown releaseNotesMD = releaseNotesFinder.evaluate().single.widget as Markdown;
-      String releaseNotesStr = releaseNotesMD.data.substring(0,versionStr.length+2);
+
+      String releaseNotesStr = getStringFromMarkdown(mdObj, 0, versionStr.length+2); //this should return: "[_version_]"
 
       expect(releaseNotesStr=="[$versionStr]", isTrue);
     });
 
     testWidgets("EULA", (tester) async{
       await launchAutonomy(tester);
-      Finder eula = find.text("EULA");
       await settingScrollToFinder(tester, eula, Scrollable);
+
       expect(eula, findsOneWidget);
 
       await tester.tap(eula);
@@ -66,15 +67,14 @@ void main() async{
       await addDelay(5000);
 
       expect(backButton, findsOneWidget);
+      expect(getMarkdownData(mdGithub).contains("Autonomy End User License Agreement"), isTrue);
 
-      Markdown md = find.byKey(const Key("githubMarkdown")).evaluate().single.widget as Markdown;
-      expect(md.data.contains("Autonomy End User License Agreement"), isTrue);
     });
 
     testWidgets("Privacy Policy", (tester) async{
       await launchAutonomy(tester);
-      Finder privacyPolicy = find.text("Privacy Policy");
       await settingScrollToFinder(tester, privacyPolicy, Scrollable);
+
       expect(privacyPolicy, findsOneWidget);
 
       await tester.tap(privacyPolicy);
@@ -86,8 +86,7 @@ void main() async{
 
       expect(backButton, findsOneWidget);
 
-      Markdown md = find.byKey(const Key("githubMarkdown")).evaluate().single.widget as Markdown;
-      expect(md.data.contains("Autonomy Privacy Policy"), isTrue);
+      expect(getMarkdownData(mdGithub).contains("Autonomy Privacy Policy"), isTrue);
     });
   });
 }
