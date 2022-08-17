@@ -171,7 +171,7 @@ class _SettingsPageState extends State<SettingsPage>
                   "Data management",
                   style: theme.textTheme.headline1,
                 ),
-                const SizedBox(height: 24.0),
+                const SizedBox(height: 32.0),
                 TappableForwardRowWithContent(
                     leftWidget: Text(
                       'Rebuild metadata',
