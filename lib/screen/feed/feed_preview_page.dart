@@ -19,9 +19,9 @@ import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
-
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -29,7 +29,6 @@ import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:nft_rendering/nft_rendering.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:wakelock/wakelock.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 
 class FeedPreviewPage extends StatefulWidget {
   const FeedPreviewPage({Key? key}) : super(key: key);
@@ -131,16 +130,6 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
             latestEvent?.id != state.viewingFeedEvent?.id) {
           setMaxTimeToken();
         }
-
-        final neededIdentities = [
-          state.viewingToken?.artistName ?? '',
-          state.viewingFeedEvent?.recipient ?? ''
-        ];
-        neededIdentities.removeWhere((element) => element == '');
-
-        if (neededIdentities.isNotEmpty) {
-          context.read<IdentityBloc>().add(GetIdentityEvent(neededIdentities));
-        }
       }, builder: (context, state) {
         if (state.isFinishedOnBoarding() &&
             (state.appFeedData == null || state.viewingFeedEvent == null)) {
@@ -192,12 +181,6 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
 
   Widget _controlViewWhenNoAsset(FeedEvent event) {
     double safeAreaTop = MediaQuery.of(context).padding.top;
-
-    final identityState = context.watch<IdentityBloc>().state;
-    final followingName =
-        event.recipient.toIdentityOrMask(identityState.identityMap) ??
-            event.recipient;
-
     final theme = Theme.of(context);
     return Container(
       color: theme.colorScheme.primary,
@@ -215,13 +198,18 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Row(children: [
-                  Flexible(
-                    child: Text(
+                  Flexible(child: BlocBuilder<IdentityBloc, IdentityState>(
+                      builder: (context, identityState) {
+                    final followingName = event.recipient
+                            .toIdentityOrMask(identityState.identityMap) ??
+                        event.recipient;
+
+                    return Text(
                       followingName,
                       style: theme.textTheme.atlasWhiteBold12,
                       overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
+                    );
+                  })),
                   Text(" • ", style: theme.primaryTextTheme.headline5),
                   Text(getDateTimeRepresentation(event.timestamp.toLocal()),
                       style: theme.primaryTextTheme.headline5),
@@ -291,18 +279,17 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
   }
 
   Widget _controlView(FeedEvent event, AssetToken? asset) {
+    final neededIdentities = [asset?.artistName ?? '', event.recipient];
+    neededIdentities.removeWhere((element) => element == '');
+    if (neededIdentities.isNotEmpty) {
+      context.read<IdentityBloc>().add(GetIdentityEvent(neededIdentities));
+    }
+
     if (asset == null) {
       return _controlViewWhenNoAsset(event);
     }
 
     double safeAreaTop = MediaQuery.of(context).padding.top;
-
-    final identityState = context.watch<IdentityBloc>().state;
-    final followingName =
-        event.recipient.toIdentityOrMask(identityState.identityMap) ??
-            event.recipient;
-    final artistName =
-        asset.artistName?.toIdentityOrMask(identityState.identityMap);
     final theme = Theme.of(context);
     return Container(
       color: theme.colorScheme.primary,
@@ -318,45 +305,54 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
                 color: theme.colorScheme.secondary),
             const SizedBox(width: 13),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Row(children: [
-                    Flexible(
-                      child: Text(
-                        followingName,
-                        style: theme.textTheme.atlasWhiteBold12,
-                        overflow: TextOverflow.ellipsis,
+              child: BlocBuilder<IdentityBloc, IdentityState>(
+                  builder: (context, identityState) {
+                final followingName = event.recipient
+                        .toIdentityOrMask(identityState.identityMap) ??
+                    event.recipient;
+                final artistName = asset.artistName
+                    ?.toIdentityOrMask(identityState.identityMap);
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Row(children: [
+                      Flexible(
+                        child: Text(
+                          followingName,
+                          style: theme.textTheme.atlasWhiteBold12,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                    ),
-                    Text(" • ", style: theme.primaryTextTheme.headline5),
-                    Text(getDateTimeRepresentation(event.timestamp.toLocal()),
-                        style: theme.primaryTextTheme.headline5),
-                  ]),
-                  const SizedBox(height: 4),
-                  RichText(
-                      overflow: TextOverflow.ellipsis,
-                      text: TextSpan(
-                        style: theme.primaryTextTheme.headline5,
-                        children: <TextSpan>[
-                          TextSpan(
-                            text: '${event.actionRepresentation} ',
-                          ),
-                          TextSpan(
-                            text: asset.title.isEmpty ? 'nft' : asset.title,
-                            style: theme.textTheme.atlasWhiteItalic12,
-                          ),
-                          if (event.action == 'transfer' &&
-                              artistName != null) ...[
+                      Text(" • ", style: theme.primaryTextTheme.headline5),
+                      Text(getDateTimeRepresentation(event.timestamp.toLocal()),
+                          style: theme.primaryTextTheme.headline5),
+                    ]),
+                    const SizedBox(height: 4),
+                    RichText(
+                        overflow: TextOverflow.ellipsis,
+                        text: TextSpan(
+                          style: theme.primaryTextTheme.headline5,
+                          children: <TextSpan>[
                             TextSpan(
-                                text: ' by $artistName',
-                                style: theme.primaryTextTheme.headline5),
-                          ]
-                        ],
-                      )),
-                ],
-              ),
+                              text: '${event.actionRepresentation} ',
+                            ),
+                            TextSpan(
+                              text: asset.title.isEmpty ? 'nft' : asset.title,
+                              style: theme.textTheme.atlasWhiteItalic12,
+                            ),
+                            if (event.action == 'transfer' &&
+                                artistName != null) ...[
+                              TextSpan(
+                                  text: ' by $artistName',
+                                  style: theme.primaryTextTheme.headline5),
+                            ]
+                          ],
+                        )),
+                  ],
+                );
+              }),
             ),
             const SizedBox(),
             previewCloseIcon(context),
