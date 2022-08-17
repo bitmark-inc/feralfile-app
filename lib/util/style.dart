@@ -38,16 +38,17 @@ MarkdownStyleSheet markDownStyle(BuildContext context, Color textColor) {
   final bodyText2 = theme.textTheme.ibmGreyNormal16;
   return MarkdownStyleSheet(
     a: const TextStyle(
+      fontFamily: AppTheme.atlasGrotesk,
       color: AppColor.primaryBlack,
       decoration: TextDecoration.underline,
-      fontWeight: FontWeight.w600,
+      fontWeight: FontWeight.w500,
     ),
     p: theme.textTheme.bodyText1?.copyWith(color: textColor),
     pPadding: const EdgeInsets.only(bottom: 15),
     code: bodyText2.copyWith(backgroundColor: Colors.transparent),
     h1: theme.textTheme.headline1,
     h1Padding: const EdgeInsets.only(bottom: 40),
-    h2: theme.textTheme.headline2,
+    h2: theme.textTheme.headline4,
     h2Padding: EdgeInsets.zero,
     h3: theme.textTheme.headline3,
     h3Padding: EdgeInsets.zero,
