@@ -181,17 +181,17 @@ flutter:
   fonts:
     - family: AtlasGrotesk
       fonts:
-        - asset: fonts/AtlasGrotesk/AtlasGrotesk-Regular.otf
-        - asset: fonts/AtlasGrotesk/AtlasGrotesk-Light.otf
-        - asset: fonts/AtlasGrotesk/AtlasGrotesk-Medium.otf
-        - asset: fonts/AtlasGrotesk/AtlasGrotesk-Bold.otf
+        - asset: assets/fonts/AtlasGrotesk/AtlasGrotesk-Regular.otf
+        - asset: assets/fonts/AtlasGrotesk/AtlasGrotesk-Light.otf
+        - asset: assets/fonts/AtlasGrotesk/AtlasGrotesk-Medium.otf
+        - asset: assets/fonts/AtlasGrotesk/AtlasGrotesk-Bold.otf
           weight: 700
     - family: DomaineSansText
       fonts:
-        - asset: fonts/DomaineSansText/DomaineSansText-Regular.otf
+        - asset: assets/fonts/DomaineSansText/DomaineSansText-Regular.otf
     - family: IBMPlexMono
       fonts:
-        - asset: fonts/IBMPlexMono/IBMPlexMono-Regular.ttf
-        - asset: fonts/IBMPlexMono/IBMPlexMono-Bold.ttf
+        - asset: assets/fonts/IBMPlexMono/IBMPlexMono-Regular.ttf
+        - asset: assets/fonts/IBMPlexMono/IBMPlexMono-Bold.ttf
           weight: 700
-        - asset: fonts/IBMPlexMono/IBMPlexMono-SemiBold.ttf
+        - asset: assets/fonts/IBMPlexMono/IBMPlexMono-SemiBold.ttf
