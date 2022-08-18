@@ -156,7 +156,7 @@ class _SettingsPageState extends State<SettingsPage>
                   "help_us_improve".tr(),
                   style: theme.textTheme.headline1,
                 ),
-                const SizedBox(height: 8.0),
+                const SizedBox(height: 16.0),
                 TappableForwardRow(
                     leftWidget: Text('p_bug_bounty'.tr(),
                         style: theme.textTheme.headline4),
@@ -174,7 +174,7 @@ class _SettingsPageState extends State<SettingsPage>
                   "data_management".tr(),
                   style: theme.textTheme.headline1,
                 ),
-                const SizedBox(height: 24.0),
+                const SizedBox(height: 32.0),
                 TappableForwardRowWithContent(
                     leftWidget: Text(
                       'rebuild_metadata'.tr(),
