@@ -392,7 +392,7 @@ class UIHelper {
 
     showDialog(
         context,
-        isHidden ? "art_hidden".tr() : "art_uhhidden".tr(),
+        isHidden ? "art_hidden".tr() : "art_unhidden".tr(),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
