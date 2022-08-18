@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/model/tzkt_operation.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
@@ -57,23 +58,23 @@ class TezosTXDetailPage extends StatelessWidget {
                   children: [
                     if (tx.parameter != null) ...[
                       _transactionInfo(
-                          context, "Call", tx.parameter?.entrypoint),
-                      _transactionInfo(context, "Contract",
+                          context, "call".tr(), tx.parameter?.entrypoint),
+                      _transactionInfo(context, "contract".tr(),
                           tx.target?.alias ?? tx.target?.address)
                     ] else if (tx.type == "transaction") ...[
                       tx.sender?.address == currentAddress
-                          ? _transactionInfo(context, "To", tx.target?.address)
+                          ? _transactionInfo(context, "to".tr(), tx.target?.address)
                           : _transactionInfo(
-                              context, "From", tx.sender?.address),
+                              context, "from".tr(), tx.sender?.address),
                     ],
-                    _transactionInfo(context, "Status", _transactionStatus()),
-                    _transactionInfo(context, "Date",
+                    _transactionInfo(context, "status".tr(), _transactionStatus()),
+                    _transactionInfo(context, "date".tr(),
                         formatter.format(tx.timestamp.toLocal())),
                     if (tx.type == "transaction")
-                      _transactionInfo(context, "Amount", _transactionAmount()),
+                      _transactionInfo(context, "amount".tr(), _transactionAmount()),
                     if (tx.sender?.address == currentAddress) ...[
-                      _transactionInfo(context, "Gas fee", _gasFee()),
-                      _transactionInfo(context, "Total amount", _totalAmount()),
+                      _transactionInfo(context, "gas_fee2".tr(), _gasFee()),
+                      _transactionInfo(context, "total_amount".tr(), _totalAmount()),
                     ],
                     _viewOnTZKT(context),
                   ],
@@ -88,17 +89,17 @@ class TezosTXDetailPage extends StatelessWidget {
 
   String _transactionTitle() {
     if (tx.parameter != null) {
-      return "Smart contract interaction";
+      return "sc_interaction".tr();
     } else if (tx.type != "transaction") {
       return tx.type.capitalize();
     } else {
-      return tx.sender?.address == currentAddress ? "Sent XTZ" : "Received XTZ";
+      return tx.sender?.address == currentAddress ? "sent_xtz".tr() : "received_xtz".tr();
     }
   }
 
   String _transactionStatus() {
     if (tx.status == null) {
-      return "Pending....";
+      return "pending".tr();
     } else {
       return tx.status!.capitalize();
     }
@@ -158,7 +159,7 @@ class TezosTXDetailPage extends StatelessWidget {
                 color: theme.colorScheme.primary,
               ),
               children: <TextSpan>[
-                TextSpan(text: 'View on ', style: theme.textTheme.headline4),
+                TextSpan(text: 'view_on'.tr(), style: theme.textTheme.headline4),
                 TextSpan(
                     text: 'tzkt.io',
                     style: theme.textTheme.headline4

@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -115,7 +116,7 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "Address",
+          "address".tr(),
           style: theme.textTheme.headline1,
         ),
         const SizedBox(height: 24),
@@ -129,7 +130,7 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
                 TextButton(
                   onPressed: () => Share.share(address),
                   child: Text(
-                    "Share",
+                    "share".tr(),
                     style: theme.textTheme.atlasBlackBold12,
                   ),
                 )
@@ -156,7 +157,7 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
 
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Text(
-        "Connections",
+        "connections".tr(),
         style: theme.textTheme.headline1,
       ),
       const SizedBox(height: 24),
@@ -195,10 +196,11 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
           leftWidget: Row(children: [
             SvgPicture.asset("assets/images/iconQr.svg"),
             const SizedBox(width: 17.5),
-            Text('Add connection', style: theme.textTheme.headline4),
+            Text('add_connection'.tr(), style: theme.textTheme.headline4),
           ]),
           bottomWidget: Text(
-              "Connect this address to an external dapp or platform.",
+              "connect_dapp".tr(),
+              //"Connect this address to an external dapp or platform.",
               style: theme.textTheme.bodyText1),
           onTap: () {
             late ScannerItem scanItem;

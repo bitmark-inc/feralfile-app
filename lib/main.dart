@@ -32,9 +32,14 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 void main() async {
   await dotenv.load();
+
+  // feature/text_localization
+  WidgetsFlutterBinding.ensureInitialized();
+  await EasyLocalization.ensureInitialized();
 
   SentryFlutter.init((options) {
     options.dsn = Environment.sentryDSN;
@@ -92,7 +97,11 @@ _setupApp() async {
   await injector<AWSService>().initServices();
 
   BlocOverrides.runZoned(
-    () => runApp(const OverlaySupport.global(child: AutonomyApp())),
+    () => runApp(EasyLocalization(
+        supportedLocales: const [Locale('en','US')],
+        path: 'assets/translations',
+        fallbackLocale: const Locale('en','US'),
+        child: const OverlaySupport.global(child: AutonomyApp()))),
   );
 
   Sentry.configureScope((scope) async {
@@ -122,11 +131,11 @@ class AutonomyApp extends StatelessWidget {
       title: 'Autonomy',
       theme: AppTheme.lightTheme(),
       darkTheme: AppTheme.lightTheme(),
-      localizationsDelegates: const [
-        DefaultMaterialLocalizations.delegate,
-        DefaultCupertinoLocalizations.delegate,
-        DefaultWidgetsLocalizations.delegate,
-      ],
+
+      localizationsDelegates: context.localizationDelegates,
+      supportedLocales: context.supportedLocales,
+      locale: context.locale,
+
       debugShowCheckedModeBanner: false,
       navigatorKey: injector<NavigationService>().navigatorKey,
       navigatorObservers: [

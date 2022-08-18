@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/badge_view.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -144,7 +145,7 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
                 SvgPicture.asset('assets/images/nav-arrow-left.svg'),
                 const SizedBox(width: 7),
                 Text(
-                  "BACK",
+                  "back".tr(),
                   style: theme.textTheme.button,
                 ),
               ],

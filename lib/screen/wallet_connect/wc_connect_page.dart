@@ -29,6 +29,7 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -207,7 +208,7 @@ class _WCConnectPageState extends State<WCConnectPage>
         margin: pageEdgeInsetsWithSubmitButton,
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(
-            "Connect",
+            "connect".tr(),
             style: theme.textTheme.headline1,
           ),
           const SizedBox(height: 24.0),
@@ -307,7 +308,7 @@ class _WCConnectPageState extends State<WCConnectPage>
                 children: [
                   Text(peerMeta.name, style: theme.textTheme.headline4),
                   Text(
-                    "requests permission to:",
+                    "requests_permission_to".tr(),
                     style: theme.textTheme.bodyText1,
                   ),
                 ],
@@ -349,7 +350,7 @@ class _WCConnectPageState extends State<WCConnectPage>
                 children: [
                   Text(request.appName ?? "", style: theme.textTheme.headline4),
                   Text(
-                    "requests permission to:",
+                    "requests_permission_to".tr(),
                     style: theme.textTheme.bodyText1,
                   ),
                 ],
@@ -369,7 +370,7 @@ class _WCConnectPageState extends State<WCConnectPage>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "Select an account to grant access:",
+          "select_grand_access".tr(),//"Select an account to grant access:",
           style: theme.textTheme.headline4,
         ),
         const SizedBox(height: 16.0),
@@ -420,7 +421,7 @@ class _WCConnectPageState extends State<WCConnectPage>
           children: [
             Expanded(
               child: AuFilledButton(
-                text: "Connect".toUpperCase(),
+                text: "connect".tr().toUpperCase(),
                 onPress: () => withDebounce(() => _approve()),
               ),
             )
@@ -460,16 +461,19 @@ class _WCConnectPageState extends State<WCConnectPage>
               child: Column(
                 children: [
                   Text(
-                      'This service requires a full Autonomy account to connect to the dapp.',
+                      "require_full_account".tr(),
+                      //'This service requires a full Autonomy account to connect to the dapp.',
                       style: theme.textTheme.bodyText1),
                   const SizedBox(height: 24),
                   Text(
-                    'Would you like to generate a full Autonomy account?',
+                    "generate_full_account".tr(),
+                    //'Would you like to generate a full Autonomy account?',
                     style: theme.textTheme.headline4,
                   ),
                   const SizedBox(height: 24),
                   Text(
-                      'The newly generated account would also get an address for each of the chains that we support.',
+                      "newly_account_will".tr(),
+                      //'The newly generated account would also get an address for each of the chains that we support.',
                       style: theme.textTheme.bodyText1),
                 ],
               ),
@@ -479,7 +483,7 @@ class _WCConnectPageState extends State<WCConnectPage>
               children: [
                 Expanded(
                   child: AuFilledButton(
-                    text: "Generate".toUpperCase(),
+                    text: "generate".tr().toUpperCase(),
                     onPress: () {
                       context.read<PersonaBloc>().add(CreatePersonaEvent());
                     },

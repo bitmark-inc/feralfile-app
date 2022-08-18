@@ -22,6 +22,7 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:share/share.dart';
 import 'package:uuid/uuid.dart';
@@ -64,20 +65,23 @@ class _LinkTezosTemplePageState extends State<LinkTezosTemplePage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Linking to Temple",
+                      "linking_to_temple".tr(),
                       style: theme.textTheme.headline1,
                     ),
                     addTitleSpace(),
                     Text(
-                      "Since Temple only exists as a browser extension, you will need to follow these additional steps to link it to Autonomy: ",
+                      "ltt_since_temple_only".tr(),
+                      //"Since Temple only exists as a browser extension, you will need to follow these additional steps to link it to Autonomy: ",
                       style: theme.textTheme.bodyText1,
                     ),
                     const SizedBox(height: 20),
                     _stepWidget(context, '1',
-                        'Generate a link request and send it to the web browser where you are currently signed in to Temple.'),
+                        "ltt_generate_a_link".tr()),
+                        //'Generate a link request and send it to the web browser where you are currently signed in to Temple.'),
                     const SizedBox(height: 10),
                     _stepWidget(context, '2',
-                        'When prompted by Temple, approve Autonomy’s permissions requests. '),
+                        "ltt_when_prompted_by".tr()),
+                        //'When prompted by Temple, approve Autonomy’s permissions requests. '),
                     const SizedBox(height: 40),
                     Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -94,7 +98,7 @@ class _LinkTezosTemplePageState extends State<LinkTezosTemplePage> {
               children: [
                 Expanded(
                   child: AuFilledButton(
-                    text: "GENERATE LINK".toUpperCase(),
+                    text: "generate_link".tr().toUpperCase(),
                     onPress: () => _generateLinkAndListen(),
                   ),
                 ),
@@ -188,8 +192,9 @@ class _LinkTezosTemplePageState extends State<LinkTezosTemplePage> {
 
       log.info('[LinkTemple][done] _handlePostMessageOpenChannel');
       if (!mounted) return;
-      UIHelper.showInfoDialog(context, "Link requested",
-          "Autonomy has sent a request to ${peer.name} to link to your account. Please open the wallet and authorize the request.");
+      UIHelper.showInfoDialog(context, "link_requested".tr(),
+          "autonomy_has_sent".tr(args: [peer.name]));
+          //"Autonomy has sent a request to ${peer.name} to link to your account. Please open the wallet and authorize the request.");
     }
   }
 
@@ -219,8 +224,9 @@ class _LinkTezosTemplePageState extends State<LinkTezosTemplePage> {
 
         log.info('[LinkTemple][Done] _handleMessageResponse');
         if (!mounted) return;
-        UIHelper.showInfoDialog(context, "Account linked",
-            "Autonomy has received autorization to link to your NFTs in ${_peer!.name}.");
+        UIHelper.showInfoDialog(context, "account_linked".tr(),
+            "autonomy_has_received".tr(args: [_peer!.name]));
+            //"Autonomy has received autorization to link to your NFTs in ${_peer!.name}.");
 
         Future.delayed(SHOW_DIALOG_DURATION, () {
           UIHelper.hideInfoDialog(context);
@@ -236,7 +242,7 @@ class _LinkTezosTemplePageState extends State<LinkTezosTemplePage> {
         });
       } else {
         throw SystemException(
-            '[LinkTemple][error] _handleMessageResponse: unexpect param $_peer; $tzAddress; $response');
+            '[LinkTemple][error] _handleMessageResponse: unexpected param $_peer; $tzAddress; $response');
       }
     } on AbortedException catch (_) {
       UIHelper.hideInfoDialog(context);
@@ -250,8 +256,9 @@ class _LinkTezosTemplePageState extends State<LinkTezosTemplePage> {
           context,
           ErrorEvent(
               null,
-              "Already linked",
-              "You’ve already linked this account to Autonomy.",
+              "already_linked".tr(),
+              "al_you’ve_already".tr(),
+              //"You’ve already linked this account to Autonomy.",
               ErrorItemState.seeAccount), defaultAction: () {
         Navigator.of(context).pushNamed(AppRouter.linkedAccountDetailsPage,
             arguments: exception.connection);

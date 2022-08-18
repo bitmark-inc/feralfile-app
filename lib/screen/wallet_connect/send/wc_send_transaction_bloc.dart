@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/biometrics_util.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:local_auth/local_auth.dart';
 
@@ -45,7 +46,7 @@ class WCSendTransactionBloc
         final didAuthenticate =
         await localAuth.authenticate(
             localizedReason:
-            'Authentication for "Autonomy"');
+            "authen_for_autonomy".tr());
         if (!didAuthenticate) {
           final newState = WCSendTransactionState();
           newState.fee = state.fee;

@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -49,7 +50,7 @@ class _AccountsPreviewPageState extends State<AccountsPreviewPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Accounts",
+                      "accounts".tr(),
                       style: theme.textTheme.headline1,
                     ),
                     const SizedBox(height: 24),
@@ -64,7 +65,7 @@ class _AccountsPreviewPageState extends State<AccountsPreviewPage> {
                   children: [
                     Expanded(
                       child: AuFilledButton(
-                        text: "LINK ANOTHER ACCOUNT".toUpperCase(),
+                        text: "link_another_account".tr().toUpperCase(),
                         onPress: () {
                           Navigator.of(context)
                               .pushNamed(AppRouter.linkAccountpage);
@@ -75,7 +76,7 @@ class _AccountsPreviewPageState extends State<AccountsPreviewPage> {
                 ),
                 TextButton(
                   onPressed: () => doneOnboarding(context),
-                  child: Text("DONE", style: theme.textTheme.button),
+                  child: Text("done".tr(), style: theme.textTheme.button),
                 ),
               ],
             ),

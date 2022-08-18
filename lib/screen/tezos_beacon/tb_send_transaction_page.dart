@@ -20,6 +20,7 @@ import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:collection/collection.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:libauk_dart/libauk_dart.dart';
@@ -82,7 +83,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
       log.info(err);
       UIHelper.showInfoDialog(
         context,
-        "Estimation failed",
+        "estimation_failed".tr(),
         getTezosErrorMessage(err),
         isDismissible: true,
       );
@@ -122,22 +123,22 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                       children: [
                         const SizedBox(height: 8.0),
                         Text(
-                          "Confirm",
+                          "h_confirm".tr(),
                           style: theme.textTheme.headline1,
                         ),
                         const SizedBox(height: 40.0),
                         Text(
-                          "Asset",
+                          "asset".tr(),
                           style: theme.textTheme.headline4,
                         ),
                         const SizedBox(height: 16.0),
                         Text(
-                          "Tezos (XTZ)",
+                          "tezos_xtz".tr(),
                           style: theme.textTheme.bodyText2,
                         ),
                         const Divider(height: 32),
                         Text(
-                          "From",
+                          "from".tr(),
                           style: theme.textTheme.headline4,
                         ),
                         const SizedBox(height: 16.0),
@@ -147,7 +148,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                         ),
                         const Divider(height: 32),
                         Text(
-                          "Connection",
+                          "connection".tr(),
                           style: theme.textTheme.headline4,
                         ),
                         const SizedBox(height: 16.0),
@@ -160,7 +161,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              "Send",
+                              "send".tr(),
                               style: theme.textTheme.headline4,
                             ),
                             Text(
@@ -174,7 +175,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              "Gas fee",
+                              "gas_fee2".tr(),
                               style: theme.textTheme.headline4,
                             ),
                             Text(
@@ -188,7 +189,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              "Total Amount",
+                              "total_amount".tr(),
                               style: theme.textTheme.headline4,
                             ),
                             Text(
@@ -205,7 +206,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                   children: [
                     Expanded(
                       child: AuFilledButton(
-                        text: "Send".toUpperCase(),
+                        text: "sendH".tr().toUpperCase(),
                         onPress: (_currentWallet != null &&
                                 _fee != null &&
                                 !_isSending)
@@ -224,7 +225,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                                   final didAuthenticate =
                                       await localAuth.authenticate(
                                           localizedReason:
-                                              'Authentication for "Autonomy"');
+                                          "authen_for_autonomy".tr());
                                   if (!didAuthenticate) {
                                     setState(() {
                                       _isSending = false;
@@ -250,7 +251,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                                   if (!mounted) return;
                                   UIHelper.showInfoDialog(
                                     context,
-                                    "Operation failed",
+                                    "operation_failed".tr(),
                                     getTezosErrorMessage(err),
                                     isDismissible: true,
                                   );

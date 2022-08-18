@@ -18,6 +18,7 @@ import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -84,7 +85,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            "Send artwork",
+                            "send_artwork".tr(),
                             style: theme.textTheme.headline1,
                           ),
                           const SizedBox(height: 40.0),
@@ -92,7 +93,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                "Title",
+                                "title".tr(),
                                 style: theme.textTheme.headline4,
                               ),
                               Expanded(
@@ -109,7 +110,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                "Artist",
+                                "artist".tr(),
                                 style: theme.textTheme.headline4,
                               ),
                               Text(
@@ -123,7 +124,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                "Edition",
+                                "edition".tr(),
                                 style: theme.textTheme.headline4,
                               ),
                               Text(
@@ -134,8 +135,8 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                           ),
                           const SizedBox(height: 32.0),
                           AuTextField(
-                            title: "To",
-                            placeholder: "Paste or scan address",
+                            title: "to".tr(),
+                            placeholder: "paste_or_scan_address".tr(),
                             controller: _addressController,
                             suffix: IconButton(
                               icon: SvgPicture.asset(state.isScanQR
@@ -181,7 +182,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                     children: [
                       Expanded(
                         child: AuFilledButton(
-                          text: "REVIEW",
+                          text: "review".tr(),
                           onPress: state.isValid
                               ? () async {
                                   final txHash = await Navigator.of(context)
@@ -217,7 +218,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
     if (state.fee == null) return "";
     final fee = state.fee!;
 
-    String text = "Gas fee: ";
+    String text = "gas_fee".tr();
 
     switch (widget.payload.asset.blockchain) {
       case "ethereum":

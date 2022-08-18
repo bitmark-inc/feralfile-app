@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_det
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/view/au_outlined_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:libauk_dart/libauk_dart.dart';
@@ -107,7 +108,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                     children: [
                       Expanded(
                         child: AuOutlinedButton(
-                          text: "Send",
+                          text: "send".tr(),
                           onPress: () {
                             Navigator.of(context).pushNamed(SendCryptoPage.tag,
                                 arguments: SendData(widget.payload.wallet,
@@ -120,7 +121,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                       ),
                       Expanded(
                         child: AuOutlinedButton(
-                          text: "Receive",
+                          text: "receive".tr(),
                           onPress: () {
                             if (state.address.isNotEmpty) {
                               Navigator.of(context).pushNamed(ReceivePage.tag,

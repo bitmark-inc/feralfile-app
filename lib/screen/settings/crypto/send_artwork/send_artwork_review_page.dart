@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -68,7 +69,7 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "Confirmation",
+                          "confirmation".tr(),
                           style: theme.textTheme.headline1,
                         ),
                         const SizedBox(height: 40.0),
@@ -76,7 +77,7 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              "Title",
+                              "title".tr(),
                               style: theme.textTheme.headline4,
                             ),
                             Expanded(
@@ -93,7 +94,7 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              "Artist",
+                              "artist".tr(),
                               style: theme.textTheme.headline4,
                             ),
                             Text(
@@ -107,7 +108,7 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              "Edition",
+                              "edition".tr(),
                               style: theme.textTheme.headline4,
                             ),
                             Text(
@@ -118,7 +119,7 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                         ),
                         const SizedBox(height: 32.0),
                         Text(
-                          "To",
+                          "to".tr(),
                           style: theme.textTheme.headline4,
                         ),
                         const SizedBox(height: 16.0),
@@ -131,7 +132,7 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              "Gas fee",
+                              "gas_fee2".tr(),
                               style: theme.textTheme.headline4,
                             ),
                             Text(
@@ -151,7 +152,7 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                   children: [
                     Expanded(
                       child: AuFilledButton(
-                        text: "SEND",
+                        text: "sendH".tr(),
                         onPress: _isSending
                             ? null
                             : () async {

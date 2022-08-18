@@ -10,6 +10,7 @@ import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/global_receive/receive_detail_page.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -69,7 +70,7 @@ Widget accountWithConnectionItem(
                       Text(
                           connection.name.isNotEmpty
                               ? connection.name
-                              : "Unnamed",
+                              : "unnamed".tr(),
                           overflow: TextOverflow.ellipsis,
                           style: theme.textTheme.headline4),
                       _linkedBox(context),
@@ -180,13 +181,13 @@ Widget _blockchainLogo(String? blockchain) {
 String _blockchainName(String? blockchain) {
   switch (blockchain) {
     case "Bitmark":
-      return "BITMARK";
+      return "bitmark".tr();
     case "Ethereum":
     case "walletConnect":
-      return "ETHEREUM";
+      return "ethereum".tr();
     case "Tezos":
     case "walletBeacon":
-      return "TEZOS";
+      return "tezos".tr();
     default:
       return "";
   }
@@ -271,7 +272,7 @@ Widget _linkedBox(BuildContext context) {
       color: theme.colorScheme.surface,
     )),
     child: Text(
-      "LINKED",
+      "linked".tr(),
       style: theme.textTheme.ibmGreyNormal12,
     ),
   );

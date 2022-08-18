@@ -26,6 +26,7 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/au_outlined_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:html_unescape/html_unescape.dart';
@@ -125,7 +126,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
 
               var subTitle = "";
               if (artistName != null && artistName.isNotEmpty) {
-                subTitle = "by $artistName";
+                subTitle = "by".tr(args: [artistName]) ;
               }
               subTitle += getEditionSubTitle(asset);
 
@@ -176,7 +177,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                             width: 165,
                             height: 48,
                             child: AuOutlinedButton(
-                              text: "VIEW ARTWORK",
+                              text: "view_artwork".tr(),
                               onPress: () {
                                 if (injector<ConfigurationService>()
                                     .isImmediateInfoViewEnabled()) {
@@ -268,7 +269,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
       Column(
         children: [
           optionRow(
-            title: asset.isHidden() ? 'Unhide artwork' : 'Hide artwork',
+            title: asset.isHidden() ? 'unhide_aw'.tr() : 'hide_aw'.tr(),
             onTap: () async {
               final appDatabase = injector<AppDatabase>();
               if (asset.isHidden()) {
@@ -300,7 +301,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
               thickness: 1,
             ),
             optionRow(
-              title: "Send artwork",
+              title: "send_artwork".tr(),
               onTap: () async {
                 Navigator.of(context).popAndPushNamed(AppRouter.sendArtworkPage,
                     arguments: SendArtworkPayload(asset, ownerWallet));
@@ -312,7 +313,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
             TextButton(
               onPressed: () => Navigator.pop(context),
               child: Text(
-                "CANCEL",
+                "cancel".tr(),
                 style: theme.primaryTextTheme.caption,
               ),
             ),

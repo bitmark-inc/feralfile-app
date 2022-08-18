@@ -17,6 +17,7 @@ import 'package:autonomy_flutter/util/helpers.dart';
 
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -32,7 +33,7 @@ class VersionService {
 
   Future checkForUpdate() async {
     if (kDebugMode) return;
-    if (UIHelper.currentDialogTitle == "Update Required") return;
+    if (UIHelper.currentDialogTitle == "update_required".tr()) return;
 
     final versionInfo = await getVersionInfo();
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
@@ -124,18 +125,17 @@ class VersionService {
     final theme = Theme.of(context);
     await UIHelper.showDialog(
         context,
-        "Update Required",
+        "update_required".tr(),
         Column(children: [
           Text(
-              "There is a newer version available for download!"
-              " Please update the app to continue.",
+              "newer_version".tr(),
               style: theme.primaryTextTheme.bodyText1),
           const SizedBox(height: 35),
           Row(
             children: [
               Expanded(
                 child: AuFilledButton(
-                  text: "UPDATE",
+                  text: "update".tr(),
                   onPress: () {
                     final uri = Uri.tryParse(link);
                     if (uri != null) {
@@ -153,8 +153,8 @@ class VersionService {
 
   Future showReleaseNodeDialog(
       String releaseNotes, String currentVersion) async {
-    const screenKey =
-        "What’s new?"; // avoid showing multiple what's new screens
+    var screenKey =
+        "what_new".tr(); // avoid showing multiple what's new screens
     if (UIHelper.currentDialogTitle == screenKey) return;
 
     releaseNotes = "[$currentVersion]\n\n$releaseNotes";

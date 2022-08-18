@@ -17,6 +17,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/eula_privacy.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -86,7 +87,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Text(
-                        "AUTONOMY",
+                        "autonomy".tr(),
                         textAlign: TextAlign.center,
                         style: theme.textTheme.largeTitle,
                       ),
@@ -122,7 +123,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
           children: [
             Expanded(
               child: AuFilledButton(
-                text: "Start".toUpperCase(),
+                text: "start".tr().toUpperCase(),
                 onPress: () {
                   Navigator.of(context).pushNamed(AppRouter.beOwnGalleryPage);
                 },
@@ -135,7 +136,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
           children: [
             Expanded(
               child: AuFilledButton(
-                text: "Restore".toUpperCase(),
+                text: "restore".tr().toUpperCase(),
                 onPress: !state.isLoading
                     ? () {
                         context.read<RouterBloc>().add(

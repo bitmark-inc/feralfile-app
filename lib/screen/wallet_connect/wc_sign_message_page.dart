@@ -18,6 +18,7 @@ import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:libauk_dart/libauk_dart.dart';
@@ -63,12 +64,12 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
                   children: [
                     const SizedBox(height: 8.0),
                     Text(
-                      "Confirm",
+                      "h_confirm".tr(),
                       style: theme.textTheme.headline1,
                     ),
                     const SizedBox(height: 40.0),
                     Text(
-                      "Connection",
+                      "connection".tr(),
                       style: theme.textTheme.headline4,
                     ),
                     const SizedBox(height: 16.0),
@@ -78,7 +79,7 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
                     ),
                     const Divider(height: 32),
                     Text(
-                      "Message",
+                      "message".tr(),
                       style: theme.textTheme.headline4,
                     ),
                     const SizedBox(height: 16.0),
@@ -120,8 +121,9 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
             context,
             ErrorEvent(
                 null,
-                "Uh-oh!",
-                "To sign in with a Web3 wallet, you must first create a Feral File account then connect your wallet.",
+                "uh_oh".tr(),
+                "must_create_ff".tr(),
+                //"To sign in with a Web3 wallet, you must first create a Feral File account then connect your wallet.",
                 ErrorItemState.close), defaultAction: () {
           Navigator.of(context).popUntil((route) =>
               route.settings.name == AppRouter.settingsPage ||
@@ -134,7 +136,7 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
         children: [
           Expanded(
             child: AuFilledButton(
-              text: "Sign".toUpperCase(),
+              text: "sign".tr().toUpperCase(),
               onPress: () => withDebounce(() async {
                 final WalletStorage wallet =
                     LibAukDart.getWallet(widget.args.uuid);
@@ -148,21 +150,21 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
 
                 if (widget.args.peerMeta.url.contains("feralfile")) {
                   if (messageInUtf8.contains(
-                      'Feral File is requesting to connect your wallet address')) {
+                      "ff_request_connect".tr())) {
                     context.read<FeralfileBloc>().add(LinkFFWeb3AccountEvent(
                         widget.args.topic,
                         widget.args.peerMeta.url,
                         wallet,
                         true));
                   } else if (messageInUtf8.contains(
-                      'Feral File is requesting authorization to sign in')) {
+                      "ff_request_auth".tr())) {
                     context.read<FeralfileBloc>().add(LinkFFWeb3AccountEvent(
                         widget.args.topic,
                         widget.args.peerMeta.url,
                         wallet,
                         false));
                   } else if (messageInUtf8.contains(
-                      "Feral File is requesting authorization to disconnect your wallet from your Feral File account")) {
+                      "ff_request_auth_dis".tr())) {
                     final matched =
                         RegExp("Wallet address:\\n(0[xX][0-9a-fA-F]+)\\n")
                             .firstMatch(messageInUtf8);

@@ -30,6 +30,7 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:cast/cast.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -350,7 +351,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
           if (artistName != null) ...[
             const SizedBox(height: 4.0),
             Text(
-              "by $artistName",
+              "by".tr(args: [artistName]) ,
               overflow: TextOverflow.ellipsis,
               style: theme.primaryTextTheme.headline5,
             )
@@ -384,12 +385,13 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Text(
-              "Full screen",
+              "full_screen".tr(),
               style: theme.primaryTextTheme.headline1,
             ),
             const SizedBox(height: 40.0),
             Text(
-              "Shake your phone to exit fullscreen mode.",
+              "shake_exit".tr(),
+              //"Shake your phone to exit fullscreen mode.",
               style: theme.primaryTextTheme.bodyText1,
             ),
             const SizedBox(height: 40.0),
@@ -397,7 +399,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
               children: [
                 Expanded(
                   child: AuFilledButton(
-                    text: "OK",
+                    text: "ok".tr(),
                     color: theme.colorScheme.secondary,
                     textStyle: theme.textTheme.button,
                     onPress: () {
@@ -411,7 +413,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
             Center(
               child: GestureDetector(
                 child: Text(
-                  "DON’T SHOW AGAIN",
+                  "dont_show_again".tr(),
                   textAlign: TextAlign.center,
                   style: theme.primaryTextTheme.button,
                 ),
@@ -467,7 +469,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                 child: Padding(
                   padding: const EdgeInsets.only(left: 41, bottom: 5),
                   child: Text(
-                    "Airplay",
+                    "airplay".tr(),
                     style: theme.primaryTextTheme.headline4?.copyWith(
                         color: isSubscribed
                             ? theme.colorScheme.secondary
@@ -604,7 +606,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                         TextButton(
                           onPressed: () => Navigator.pop(context),
                           child: Text(
-                            "CANCEL",
+                            "cancel".tr(),
                             style: theme.primaryTextTheme.button,
                           ),
                         ),
@@ -620,7 +622,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                         TextButton(
                           onPressed: () => Navigator.pop(context),
                           child: Text(
-                            "CANCEL",
+                            "cancel".tr(),
                             style: theme.primaryTextTheme.button,
                           ),
                         ),

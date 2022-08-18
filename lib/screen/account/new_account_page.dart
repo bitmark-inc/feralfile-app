@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -41,7 +42,8 @@ class NewAccountPage extends StatelessWidget {
                 child: Column(
                   children: [
                     Text(
-                      "Do you have NFTs you want to view with Autonomy?",
+                      "do_you_have_nfts".tr(),
+                      //"Do you have NFTs you want to view with Autonomy?",
                       style: theme.textTheme.headline1,
                     ),
                     const SizedBox(height: 30),
@@ -49,8 +51,9 @@ class NewAccountPage extends StatelessWidget {
                       spacing: 16,
                       runSpacing: 16,
                       children: [
-                        _optionItem(context, "Yes",
-                            "I already have NFTs in other wallets that I want to view with Autonomy.",
+                        _optionItem(context, "yes".tr(),
+                            "ad_i_already_have".tr(),
+                            //"I already have NFTs in other wallets that I want to view with Autonomy.",
                             onTap: () {
                           Navigator.of(context)
                               .pushNamed(AppRouter.linkAccountpage);
@@ -93,8 +96,9 @@ class NewAccountPage extends StatelessWidget {
         }
       },
       builder: (context, state) {
-        return _optionItem(context, "No",
-            "Make a new account with addresses you can use to collect or receive NFTs on Ethereum, Feral File, and Tezos.",
+        return _optionItem(context, "no".tr(),
+            "ne_make_a_new_account".tr(),
+            //"Make a new account with addresses you can use to collect or receive NFTs on Ethereum, Feral File, and Tezos.",
             onTap: () {
           if (state.createAccountState == ActionState.loading) return;
           context.read<PersonaBloc>().add(CreatePersonaEvent());

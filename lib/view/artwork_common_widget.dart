@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -158,7 +159,7 @@ Widget brokenTokenWidget(BuildContext context, AssetToken token) {
   final theme = Theme.of(context);
   return Center(
     child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-      Text('IPFS file failed to load.',
+      Text("ipfs_failed".tr(),
           style: theme.textTheme.atlasGreyNormal12),
       TextButton(
         onPressed: () => showReportIssueDialog(context, token),
@@ -166,7 +167,7 @@ Widget brokenTokenWidget(BuildContext context, AssetToken token) {
             minimumSize: Size.zero,
             padding: const EdgeInsets.all(8),
             tapTargetSize: MaterialTapTargetSize.shrinkWrap),
-        child: Text('Report issue?',
+        child: Text('report_issue'.tr(),
             style: makeLinkStyle(theme.textTheme.atlasGreyNormal12)),
       ),
     ]),
@@ -176,7 +177,7 @@ Widget brokenTokenWidget(BuildContext context, AssetToken token) {
 void showReportIssueDialog(BuildContext context, AssetToken token) {
   UIHelper.showDialog(
     context,
-    "Report issue?",
+    'report_issue'.tr(),
     ReportRenderingIssueWidget(
       token: token,
       onReported: (githubURL) =>
@@ -189,13 +190,13 @@ void _showReportRenderingDialogSuccess(BuildContext context, String githubURL) {
   final theme = Theme.of(context);
   UIHelper.showDialog(
     context,
-    'Report received',
+    'report_received'.tr(),
     Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Thank you for reporting this NFT. Our team is looking into it.',
+          "thank_for_report".tr(),
           style: theme.textTheme.bodyText1,
         ),
         const SizedBox(height: 40),
@@ -204,7 +205,7 @@ void _showReportRenderingDialogSuccess(BuildContext context, String githubURL) {
             Expanded(
               child: AuFilledButton(
                 icon: SvgPicture.asset('assets/images/external_link.svg'),
-                text: "VIEW ISSUE STATUS",
+                text: "view_issue_status".tr(),
                 onPress: () {
                   final uri = Uri.tryParse(githubURL);
                   if (uri != null) {
@@ -223,7 +224,7 @@ void _showReportRenderingDialogSuccess(BuildContext context, String githubURL) {
           child: TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
-              'CLOSE',
+              'close'.tr(),
               style: theme.primaryTextTheme.button,
             ),
           ),
@@ -276,7 +277,7 @@ Widget debugInfoWidget(BuildContext context, AssetToken? token) {
           children: [
             addDivider(),
             Text(
-              "DEBUG INFO",
+              "debug_info".tr(),
               style: theme.textTheme.headline4,
             ),
             _buildInfo('IndexerID', token.id),
@@ -306,16 +307,16 @@ Widget artworkDetailsMetadataSection(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       Text(
-        "Metadata",
+        "metadata".tr(),
         style: theme.textTheme.headline2,
       ),
       const SizedBox(height: 16.0),
-      _rowItem(context, "Title", asset.title),
+      _rowItem(context, "title".tr(), asset.title),
       if (artistName != null) ...[
         const Divider(height: 32.0),
         _rowItem(
           context,
-          "Artist",
+          "artist".tr(),
           artistName,
           // some FF's artist set multiple links
           // Discussion thread: https://bitmark.slack.com/archives/C01EPPD07HU/p1648698027564299
@@ -327,16 +328,16 @@ Widget artworkDetailsMetadataSection(
           ? Column(
               children: [
                 const Divider(height: 32.0),
-                _rowItem(context, "Edition number", asset.edition.toString()),
+                _rowItem(context, "edition_number".tr(), asset.edition.toString()),
                 const Divider(height: 32.0),
-                _rowItem(context, "Edition size", asset.maxEdition.toString()),
+                _rowItem(context, "edition_size".tr(), asset.maxEdition.toString()),
               ],
             )
           : const SizedBox(),
       const Divider(height: 32.0),
       _rowItem(
         context,
-        "Token",
+        "token".tr(),
         polishSource(asset.source ?? ""),
         tapLink: asset.assetURL,
         forceSafariVC: false,
@@ -344,17 +345,17 @@ Widget artworkDetailsMetadataSection(
       const Divider(height: 32.0),
       _rowItem(
         context,
-        "Contract",
+        "contract".tr(),
         asset.blockchain.capitalize(),
         tapLink: asset.blockchainURL,
         forceSafariVC: false,
       ),
       const Divider(height: 32.0),
-      _rowItem(context, "Medium", asset.medium?.capitalize()),
+      _rowItem(context, "medium".tr(), asset.medium?.capitalize()),
       const Divider(height: 32.0),
       _rowItem(
           context,
-          "Date minted",
+          "date_minted".tr(),
           asset.mintedAt != null
               ? localTimeStringFromISO8601(asset.mintedAt!)
               : null),
@@ -362,7 +363,7 @@ Widget artworkDetailsMetadataSection(
           ? Column(
               children: [
                 const Divider(height: 32.0),
-                _rowItem(context, "Artwork data", asset.assetData)
+                _rowItem(context, "artwork_data".tr(), asset.assetData)
               ],
             )
           : const SizedBox(),
@@ -385,14 +386,14 @@ Widget artworkDetailsProvenanceSectionNotEmpty(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            "Provenance",
+            "provenance".tr(),
             style: theme.textTheme.headline2,
           ),
           const SizedBox(height: 23.0),
           ...provenances.map((el) {
             final identity = identityMap[el.owner];
             final identityTitle = el.owner.toIdentityOrMask(identityMap);
-            final youTitle = youAddresses.contains(el.owner) ? " (You)" : "";
+            final youTitle = youAddresses.contains(el.owner) ? "_you".tr() : "";
             final provenanceTitle = "${identityTitle ?? ''}$youTitle";
             return Column(
               children: [
@@ -421,12 +422,12 @@ Widget _artworkRightView(BuildContext context) {
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       Text(
-        "Rights",
+        "rights".tr(),
         style: theme.textTheme.headline2,
       ),
       const SizedBox(height: 16.0),
       Text(
-        "Feral File protects artist and collector rights.",
+        "ff_protect".tr(),
         style: theme.textTheme.bodyText1,
       ),
       const SizedBox(height: 18.0),
@@ -434,32 +435,32 @@ Widget _artworkRightView(BuildContext context) {
         style: theme.textButtonNoPadding,
         onPressed: () => launchUrl(
             Uri.parse("https://feralfile.com/docs/artist-collector-rights")),
-        child: Text('Learn more on the Artist + Collector Rights page...',
+        child: Text("learn_artist".tr(),
             style: theme.textTheme.linkStyle.copyWith(
               fontWeight: FontWeight.w500,
             )),
       ),
       const SizedBox(height: 23.0),
-      _artworkRightItem(context, "Download",
-          "As a collector, you have access to a permanent link where you can download the work’s original, full-resolution files and technical details."),
+      _artworkRightItem(context, "download".tr(),
+          "download_text".tr()),
       const Divider(height: 32.0),
-      _artworkRightItem(context, "Display",
-          "Using the artist’s installation guidelines, you have the right to display the work both privately and publicly."),
+      _artworkRightItem(context, "display".tr(),
+          "display_text".tr()),
       const Divider(height: 32.0),
-      _artworkRightItem(context, "Authenticate",
-          "You have the right to be assured of the work’s authenticity. Feral File guarantees the provenance of every edition using a public ledger recorded on the Bitmark blockchain."),
+      _artworkRightItem(context, "authenticate".tr(),
+          "authenticate_text".tr()),
       const Divider(height: 32.0),
-      _artworkRightItem(context, "Loan or lease",
-          "You may grant others the temporary right to display the work."),
+      _artworkRightItem(context, "loan_or_lease".tr(),
+          "loan_or_lease_text".tr()),
       const Divider(height: 32.0),
-      _artworkRightItem(context, "Resell or transfer",
-          "You are entitled to transfer your rights to the work to another collector or entity. Keep in mind that if you resell the work, the artist will earn 10% of the sale and Feral File will earn 5%."),
+      _artworkRightItem(context, "resell_or_transfer".tr(),
+          "resell_or_transfer_text".tr()),
       const Divider(height: 32.0),
-      _artworkRightItem(context, "Remain anonymous",
-          "While all sales are recorded publicly on the public blockchain, you can use an alias to keep your collection private."),
+      _artworkRightItem(context, "remain_anonymous".tr(),
+          "remain_anonymous_text".tr()),
       const Divider(height: 32.0),
-      _artworkRightItem(context, "Respect the artist’s rights",
-          "Feral File protects artists by forefronting their rights, just like we forefront your rights as a collector. Learn more on the Artist + Collector Rights page."),
+      _artworkRightItem(context, "respect_artist_right".tr(),
+          "respect_artist_right_text".tr()),
     ],
   );
 }
@@ -486,33 +487,33 @@ Widget _valueView(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       Text(
-        "Value",
+        "value".tr(),
         style: theme.textTheme.headline2,
       ),
       if (assetPrice != null) ...[
         const SizedBox(height: 16.0),
-        _rowItem(context, "Purchase price",
+        _rowItem(context, "purchase_price".tr(),
             "${assetPrice.purchasedPrice.toStringAsFixed(2)} ${assetPrice.currency.toUpperCase()}")
       ],
       if (assetPrice != null &&
           assetPrice.listingPrice > 0 &&
           assetPrice.onSale == true) ...[
         const Divider(height: 32.0),
-        _rowItem(context, "Listed for resale",
+        _rowItem(context, "list_resale".tr(),
             "${assetPrice.listingPrice.toStringAsFixed(2)} ${assetPrice.currency.toUpperCase()}"),
       ],
       if (assetPrice != null && assetPrice.minPrice != 0) ...[
         const Divider(height: 32.0),
-        _rowItem(context, "Estimated value\n(floor price)",
+        _rowItem(context, "esti_floor".tr(),
             "${assetPrice.minPrice.toStringAsFixed(2)} ${assetPrice.currency.toUpperCase()}"),
       ],
       if (changedPriceText.isNotEmpty) ...[
         const Divider(height: 32.0),
-        _rowItem(context, "Change (\$)", changedPriceText),
+        _rowItem(context, "change_usd".tr(), changedPriceText),
       ],
       if (roiText.isNotEmpty) ...[
         const Divider(height: 32.0),
-        _rowItem(context, "Return on investment (ROI)", roiText),
+        _rowItem(context, "roi".tr(), roiText),
       ],
     ],
   );

@@ -24,6 +24,7 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:collection/collection.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -76,7 +77,7 @@ class _LinkAccountPageState extends State<LinkAccountPage>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "Add account",
+                "add_account".tr(),
                 style: theme.textTheme.headline1,
               ),
               addTitleSpace(),
@@ -99,7 +100,7 @@ class _LinkAccountPageState extends State<LinkAccountPage>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "BITMARK",
+          "bitmark".tr(),
           style: theme.textTheme.headline4,
         ),
         TappableForwardRow(
@@ -107,7 +108,7 @@ class _LinkAccountPageState extends State<LinkAccountPage>
               children: [
                 SvgPicture.asset("assets/images/feralfileAppIcon.svg"),
                 const SizedBox(width: 16),
-                Text("Feral File", style: theme.textTheme.headline4),
+                Text("feral_file".tr(), style: theme.textTheme.headline4),
               ],
             ),
             onTap: () async {
@@ -139,7 +140,7 @@ class _LinkAccountPageState extends State<LinkAccountPage>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "ETHEREUM",
+          "ethereum".tr(),
           style: theme.textTheme.headline4,
         ),
         const SizedBox(
@@ -150,7 +151,7 @@ class _LinkAccountPageState extends State<LinkAccountPage>
             children: [
               Image.asset("assets/images/metamask-alternative.png"),
               const SizedBox(width: 16),
-              Text("MetaMask", style: theme.textTheme.headline4),
+              Text("metamask".tr(), style: theme.textTheme.headline4),
             ],
           ),
           onTap: () => Navigator.of(context).pushNamed(
@@ -164,7 +165,7 @@ class _LinkAccountPageState extends State<LinkAccountPage>
               children: [
                 Image.asset("assets/images/walletconnect-alternative.png"),
                 const SizedBox(width: 16),
-                Text("Other Ethereum wallets",
+                Text("other_ethereum_wallets".tr(),
                     style: theme.textTheme.headline4),
               ],
             ),
@@ -181,7 +182,7 @@ class _LinkAccountPageState extends State<LinkAccountPage>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "TEZOS",
+          "tezos".tr(),
           style: theme.textTheme.headline4,
         ),
         const SizedBox(
@@ -192,7 +193,7 @@ class _LinkAccountPageState extends State<LinkAccountPage>
               children: [
                 Image.asset("assets/images/kukai_wallet.png"),
                 const SizedBox(width: 16),
-                Text("Kukai", style: theme.textTheme.headline4),
+                Text("kukai".tr(), style: theme.textTheme.headline4),
               ],
             ),
             onTap: () => Navigator.of(context).pushNamed(
@@ -204,7 +205,7 @@ class _LinkAccountPageState extends State<LinkAccountPage>
               children: [
                 Image.asset("assets/images/temple_wallet.png"),
                 const SizedBox(width: 16),
-                Text("Temple", style: theme.textTheme.headline4),
+                Text("temple".tr(), style: theme.textTheme.headline4),
               ],
             ),
             onTap: () => Navigator.of(context).pushNamed(
@@ -217,7 +218,7 @@ class _LinkAccountPageState extends State<LinkAccountPage>
               children: [
                 Image.asset("assets/images/tezos_wallet.png"),
                 const SizedBox(width: 16),
-                Text("Other Tezos wallets", style: theme.textTheme.headline4),
+                Text("other_tezos_wallets".tr(), style: theme.textTheme.headline4),
               ],
             ),
             onTap: () async {
@@ -241,7 +242,7 @@ class _LinkAccountPageState extends State<LinkAccountPage>
               children: [
                 SvgPicture.asset("assets/images/iconLedger.svg"),
                 const SizedBox(width: 16),
-                Text("Ledger", style: theme.textTheme.headline4),
+                Text("ledger".tr(), style: theme.textTheme.headline4),
               ],
             ),
             onTap: () => Navigator.of(context).pushNamed(
@@ -332,7 +333,7 @@ class _LinkAccountPageState extends State<LinkAccountPage>
 
       final walletName =
           linkedAccount.wcConnectedSession?.sessionStore.remotePeerMeta.name ??
-              'your wallet';
+              'your_wallet'.tr();
 
       if (!mounted) return;
       UIHelper.showAccountLinked(context, linkedAccount, walletName);

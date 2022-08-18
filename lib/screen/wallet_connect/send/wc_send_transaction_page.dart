@@ -10,6 +10,7 @@ import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -77,22 +78,22 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                           children: [
                             const SizedBox(height: 8.0),
                             Text(
-                              "Confirm",
+                              "h_confirm".tr(),
                               style: theme.textTheme.headline1,
                             ),
                             const SizedBox(height: 40.0),
                             Text(
-                              "Asset",
+                              "asset".tr(),
                               style: theme.textTheme.headline4,
                             ),
                             const SizedBox(height: 16.0),
                             Text(
-                              "Ethereum (ETH)",
+                              "ethereum_eth".tr(),
                               style: theme.textTheme.bodyText2,
                             ),
                             const Divider(height: 32),
                             Text(
-                              "From",
+                              "from".tr(),
                               style: theme.textTheme.headline4,
                             ),
                             const SizedBox(height: 16.0),
@@ -102,7 +103,7 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                             ),
                             const Divider(height: 32),
                             Text(
-                              "Connection",
+                              "connection".tr(),
                               style: theme.textTheme.headline4,
                             ),
                             const SizedBox(height: 16.0),
@@ -115,7 +116,7 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  "Send",
+                                  "send".tr(),
                                   style: theme.textTheme.headline4,
                                 ),
                                 Text(
@@ -129,7 +130,7 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  "Gas fee",
+                                  "gas_fee2".tr(),
                                   style: theme.textTheme.headline4,
                                 ),
                                 Text(
@@ -143,7 +144,7 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  "Total Amount",
+                                  "total_amount".tr(),
                                   style: theme.textTheme.headline4,
                                 ),
                                 Text(
@@ -160,7 +161,7 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                       children: [
                         Expanded(
                           child: AuFilledButton(
-                            text: "Send".toUpperCase(),
+                            text: "send".tr().toUpperCase(),
                             onPress: (state.fee != null && !state.isSending)
                                 ? () async {
                                     final to = EthereumAddress.fromHex(
