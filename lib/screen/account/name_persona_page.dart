@@ -33,6 +33,14 @@ class NamePersonaPage extends StatefulWidget {
 class _NamePersonaPageState extends State<NamePersonaPage> {
   final TextEditingController _nameController = TextEditingController();
 
+
+  bool isSaveAliasDisable = true;
+  void saveAliasButtonChangedState (){
+    setState(() {
+      isSaveAliasDisable = !isSaveAliasDisable;
+    });
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -90,7 +98,14 @@ class _NamePersonaPageState extends State<NamePersonaPage> {
                       AuTextField(
                           title: "",
                           placeholder: "enter_alias".tr(),
-                          controller: _nameController),
+                          controller: _nameController,
+                          onChanged: (valueChanged){
+                            if((_nameController.text == "" && isSaveAliasDisable == false)||
+                                (_nameController.text != "" && isSaveAliasDisable == true)){
+                              saveAliasButtonChangedState();
+                            }
+                          }
+                      ),
                     ],
                   ),
                 ),
@@ -102,7 +117,7 @@ class _NamePersonaPageState extends State<NamePersonaPage> {
                       Expanded(
                         child: AuFilledButton(
                           text: "save_alias".tr().toUpperCase(),
-                          onPress: () {
+                          onPress: isSaveAliasDisable? null : () {
                             context
                                 .read<PersonaBloc>()
                                 .add(NamePersonaEvent(_nameController.text));
