@@ -14,7 +14,9 @@ jobs:
         api-level: [ 29 ]
         target: [ playstore ]
     steps:      
-      - uses: actions/checkout@v2
+      # Checkout code and get packages.
+      - name: Checkout code
+        uses: actions/checkout@v3
       # Run integration test
       - name: Run Flutter Driver tests for Suite "Create new account"
         run: |
