@@ -86,6 +86,8 @@ jobs:
 
       - name: Flutter doctor
         run: flutter doctor
+      - name: Submoudles update
+        run: git submodule update --init --recursive
 
       # Precache to fix iOS pod install issue
       - run: flutter precache --ios

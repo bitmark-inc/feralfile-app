@@ -34,6 +34,10 @@ jobs:
           echo "FLUTTER_VERSION_NAME=${{ github.event.inputs.version }}" >> $GITHUB_ENV
           echo "FLUTTER_VERSION_CODE=${{ github.event.inputs.build-number }}" >> $GITHUB_ENV
 
+      - uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: ${{ secrets.KEY_VAULT_DEPLOYMENT_KEY }}
+
       - name: Create env file
         run: |
           touch .env
@@ -69,6 +73,8 @@ jobs:
           echo APP_TESTNET_CONFIG=${{ github.event.inputs.testnet }} >> .env
           cat .env
 
+      - name: Submoudles update
+        run: git submodule update --init --recursive
       - run: flutter pub cache repair
       - run: flutter pub get
       - run: flutter build apk --flavor inhouse
