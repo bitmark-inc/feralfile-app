@@ -10,6 +10,7 @@ import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 
 import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:roundcheckbox/roundcheckbox.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -35,13 +36,13 @@ class _ReportRenderingIssueWidgetState
 
   @override
   Widget build(BuildContext context) {
-    const topics = [
-      'Playback',
-      'Thumbnail (collection)',
-      'Thumbnail (details page)',
-      'Rights',
-      'Metadata',
-      'Provenance'
+    var topics = [
+      "viewing".tr(),
+      'thumbnail_collection'.tr(),
+      "thumbnail_detail".tr(),
+      'rights'.tr(),
+      'metadata'.tr(),
+      'provenance'.tr()
     ];
     final theme = Theme.of(context);
 
@@ -51,7 +52,7 @@ class _ReportRenderingIssueWidgetState
         Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Select a TOPIC BELOW:'.toUpperCase(),
+            Text('select_topic_below'.tr().toUpperCase(),
                 style: theme.primaryTextTheme.headline5),
             const SizedBox(height: 16),
             ListView.builder(
@@ -99,7 +100,7 @@ class _ReportRenderingIssueWidgetState
               children: [
                 Expanded(
                   child: AuFilledButton(
-                    text: "REPORT ISSUE",
+                    text: "report_issue2".tr(),
                     onPress: () => _reportIssue(),
                     isProcessing: _isProcessing,
                     color: theme.colorScheme.secondary,
@@ -113,7 +114,7 @@ class _ReportRenderingIssueWidgetState
             TextButton(
               onPressed: () => Navigator.pop(context),
               child: Text(
-                "CANCEL",
+                "cancel".tr(),
                 style: theme.primaryTextTheme.button,
               ),
             ),

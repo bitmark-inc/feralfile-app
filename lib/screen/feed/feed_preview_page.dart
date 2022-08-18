@@ -476,8 +476,9 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
                     loadingIndicator(valueColor: theme.colorScheme.secondary)),
           ] else if (appFeedData.events.isEmpty) ...[
             Text(
-              "your_favourite_artist".tr(),
-              //'Your favorite artists haven’t created or collected anything new yet. Once they do, you can view it here.',
+              "discovery_keep_you_up".tr(),
+              //'Discovery keeps you up to date on what your favorite artists are creating and collecting.
+              // For now they haven’t created or collected anything new yet. Once they do, you can view it here. ',
               style: theme.primaryTextTheme.bodyText1,
             )
           ]

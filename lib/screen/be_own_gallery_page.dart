@@ -40,13 +40,12 @@ class BeOwnGalleryPage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "view_anytime".tr(),//"View your digital artwork collection anytime, anywhere.",
+                      "own_gallery_tt".tr(),
                       style: theme.textTheme.headline1,
                     ),
                     const SizedBox(height: 30),
                     Text(
-                      "at_home_vacation".tr(),
-                      //"At home, on vacation, on the train — never be without your digital art collection. Digital artworks you own as NFTs on Ethereum, Feral File, or Tezos will automatically appear in your Autonomy.",
+                      "own_gallery_body".tr(),
                       style: theme.textTheme.bodyText1,
                     ),
                     const SizedBox(height: 15),
