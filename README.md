@@ -21,9 +21,10 @@ Autonomy is the world’s first and only digital art wallet. It gives you one ea
 
 1. Install [Flutter](https://flutter.dev)
 2. Clone the repo
-3. Initialize the config file
+3. Initialize submodule by running; `git submodule update --init --recursive`
+4. Initialize the config file
 `cp .env.example .env`
-4. Run `flutter run`
+5. Run `flutter run`
 
 A few resources to get you started if this is your first Flutter project:
 
