@@ -1,12 +1,11 @@
 name: Integration tests
 on: 
   schedule:
-    - cron: '*/10 * * * *'
+    - cron: '0 0 * * *'
   workflow_dispatch:
   push:
     branches:
       - develop
-      - change-yaml-4integration-test
 jobs:
   build:
     runs-on: [self-hosted, linux, ci-local-bmvn]
@@ -15,6 +14,7 @@ jobs:
         api-level: [ 29 ]
         target: [ playstore ]
     steps:      
+      - uses: actions/checkout@v2
       # Run integration test
       - name: Run Flutter Driver tests for Suite "Create new account"
         run: |
