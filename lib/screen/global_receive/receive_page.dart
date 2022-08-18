@@ -51,7 +51,7 @@ class _GlobalReceivePageState extends State<GlobalReceivePage> {
             children: [
               const SizedBox(height: 16.0),
               Text(
-                "receive".tr(),
+                "select_address_tt".tr(),
                 style: theme.textTheme.headline1,
               ),
               const SizedBox(height: 40.0),
