@@ -37,7 +37,7 @@ jobs:
           notification_title: Automation  - Integration test execution
           message_format: "{emoji} *{workflow}* {status_message} in <{repo_url}|{repo}@{branch}> on commit <{commit_url}|{commit_sha}>"
           footer: "<{run_url}|View Run>"
-          # mention_users: '@longvu'
+          mention_users: 'U03NZ7JU8KC'
           mention_users_when: 'failure,warnings'      
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.WEBHOOK_LOCAL_BITMARKVN_CI_SLACK }}
