@@ -100,8 +100,8 @@ class _NamePersonaPageState extends State<NamePersonaPage> {
                           placeholder: "enter_alias".tr(),
                           controller: _nameController,
                           onChanged: (valueChanged){
-                            if((_nameController.text == "" && isSaveAliasDisable == false)||
-                                (_nameController.text != "" && isSaveAliasDisable == true)){
+                            if((_nameController.text.trim() == "" && isSaveAliasDisable == false)||
+                                (_nameController.text.trim() != "" && isSaveAliasDisable == true)){
                               saveAliasButtonChangedState();
                             }
                           }
@@ -120,7 +120,7 @@ class _NamePersonaPageState extends State<NamePersonaPage> {
                           onPress: isSaveAliasDisable? null : () {
                             context
                                 .read<PersonaBloc>()
-                                .add(NamePersonaEvent(_nameController.text));
+                                .add(NamePersonaEvent(_nameController.text.trim()));
                           },
                         ),
                       ),
