@@ -33,9 +33,9 @@ class NamePersonaPage extends StatefulWidget {
 class _NamePersonaPageState extends State<NamePersonaPage> {
   final TextEditingController _nameController = TextEditingController();
 
-
   bool isSavingAliasDisabled = true;
-  void saveAliasButtonChangedState (){
+
+  void saveAliasButtonChangedState() {
     setState(() {
       isSavingAliasDisabled = !isSavingAliasDisabled;
     });
@@ -74,8 +74,8 @@ class _NamePersonaPageState extends State<NamePersonaPage> {
           }
         },
         child: Container(
-          margin:
-              const EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
+          margin: const EdgeInsets.only(
+              top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -99,12 +99,12 @@ class _NamePersonaPageState extends State<NamePersonaPage> {
                           title: "",
                           placeholder: "enter_alias".tr(),
                           controller: _nameController,
-                          onChanged: (valueChanged){
-                            if(_nameController.text.trim().isEmpty != isSavingAliasDisabled){
+                          onChanged: (valueChanged) {
+                            if (_nameController.text.trim().isEmpty !=
+                                isSavingAliasDisabled) {
                               saveAliasButtonChangedState();
                             }
-                          }
-                      ),
+                          }),
                     ],
                   ),
                 ),
@@ -116,11 +116,13 @@ class _NamePersonaPageState extends State<NamePersonaPage> {
                       Expanded(
                         child: AuFilledButton(
                           text: "save_alias".tr().toUpperCase(),
-                          onPress: isSavingAliasDisabled? null : () {
-                            context
-                                .read<PersonaBloc>()
-                                .add(NamePersonaEvent(_nameController.text.trim()));
-                          },
+                          onPress: isSavingAliasDisabled
+                              ? null
+                              : () {
+                                  context.read<PersonaBloc>().add(
+                                      NamePersonaEvent(
+                                          _nameController.text.trim()));
+                                },
                         ),
                       ),
                     ],
