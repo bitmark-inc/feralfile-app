@@ -40,8 +40,8 @@ void doneOnboarding(BuildContext context) async {
       .pushNamedAndRemoveUntil(AppRouter.homePage, (route) => false);
 
   await askForNotification();
-  Future.delayed(
-      SHORT_SHOW_DIALOG_DURATION, () => showSurveysNotification(context));
+  // Future.delayed(
+  //     SHORT_SHOW_DIALOG_DURATION, () => showSurveysNotification(context));
 }
 
 Future askForNotification() async {
@@ -72,9 +72,7 @@ void showSurveysNotification(BuildContext context) {
   }
 
   showCustomNotifications(
-      context,
-      "take_survey".tr(),
-      const Key(Survey.onboarding),
+      context, "take_survey".tr(), const Key(Survey.onboarding),
       notificationOpenedHandler: () =>
           injector<NavigationService>().navigateTo(SurveyPage.tag));
 }
@@ -249,8 +247,8 @@ class UIHelper {
                 ),
                 TextSpan(
                   style: theme.primaryTextTheme.bodyText1,
-                  text:
-                      "dot".tr(args: [inOnboarding ? 'please_finish'.tr() : '']),
+                  text: "dot"
+                      .tr(args: [inOnboarding ? 'please_finish'.tr() : '']),
                 ),
               ]),
             ),
@@ -327,9 +325,11 @@ class UIHelper {
             Text('multichain_generate'.tr(),
                 style: theme.primaryTextTheme.headline5),
             const SizedBox(height: 16),
-            Text("bitmark_address".tr(), style: theme.primaryTextTheme.headline4),
+            Text("bitmark_address".tr(),
+                style: theme.primaryTextTheme.headline4),
             const SizedBox(height: 16),
-            Text("ethereum_address".tr(), style: theme.primaryTextTheme.headline4),
+            Text("ethereum_address".tr(),
+                style: theme.primaryTextTheme.headline4),
             const SizedBox(height: 16),
             Text("tezos_address".tr(), style: theme.primaryTextTheme.headline4),
             const SizedBox(height: 40),
@@ -363,9 +363,11 @@ class UIHelper {
             Text('multichain_generate'.tr(),
                 style: theme.primaryTextTheme.headline5),
             const SizedBox(height: 16),
-            Text("bitmark_address".tr(), style: theme.primaryTextTheme.headline4),
+            Text("bitmark_address".tr(),
+                style: theme.primaryTextTheme.headline4),
             const SizedBox(height: 16),
-            Text("ethereum_address".tr(), style: theme.primaryTextTheme.headline4),
+            Text("ethereum_address".tr(),
+                style: theme.primaryTextTheme.headline4),
             const SizedBox(height: 16),
             Text("tezos_address".tr(), style: theme.primaryTextTheme.headline4),
             const SizedBox(height: 40),
@@ -401,8 +403,7 @@ class UIHelper {
                     text: TextSpan(children: [
                       TextSpan(
                         style: theme.primaryTextTheme.bodyText1,
-                        text:
-                        "art_no_appear".tr(),
+                        text: "art_no_appear".tr(),
                       ),
                       TextSpan(
                         style: theme.primaryTextTheme.headline4,
@@ -410,8 +411,7 @@ class UIHelper {
                       ),
                       TextSpan(
                         style: theme.primaryTextTheme.bodyText1,
-                        text:
-                        "section_setting".tr(),
+                        text: "section_setting".tr(),
                       ),
                     ]),
                   )
@@ -458,7 +458,8 @@ class UIHelper {
                 overflow: TextOverflow.ellipsis,
               )),
               GestureDetector(
-                child: Text("share".tr(), style: theme.primaryTextTheme.headline4),
+                child:
+                    Text("share".tr(), style: theme.primaryTextTheme.headline4),
                 onTap: () => Share.share(address),
               )
             ]),
@@ -505,10 +506,7 @@ class UIHelper {
     UIHelper.hideInfoDialog(context);
     showErrorDiablog(
         context,
-        ErrorEvent(
-            null,
-            "already_linked".tr(),
-            "al_you’ve_already".tr(),
+        ErrorEvent(null, "already_linked".tr(), "al_you’ve_already".tr(),
             ErrorItemState.seeAccount), defaultAction: () {
       Navigator.of(context)
           .pushNamed(AppRouter.linkedAccountDetailsPage, arguments: connection);
@@ -516,8 +514,7 @@ class UIHelper {
   }
 
   static showAbortedByUser(BuildContext context) {
-    UIHelper.showInfoDialog(
-        context, "aborted".tr(), "action_aborted".tr(),
+    UIHelper.showInfoDialog(context, "aborted".tr(), "action_aborted".tr(),
         isDismissible: true, autoDismissAfter: 3);
   }
 
@@ -531,8 +528,7 @@ class UIHelper {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("require_subs".tr(),
-                style: theme.primaryTextTheme.bodyText1),
+            Text("require_subs".tr(), style: theme.primaryTextTheme.bodyText1),
             const SizedBox(height: 40),
             UpgradeBoxView.getMoreAutonomyWidget(theme, feature),
             const SizedBox(height: 24),
@@ -584,8 +580,7 @@ wantMoreSecurityWidget(BuildContext context, WalletApp walletApp) {
       padding: const EdgeInsets.all(10),
       color: AppColor.secondaryDimGreyBackground,
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text("want_more_sec".tr(),
-            style: theme.textTheme.atlasDimgreyBold14),
+        Text("want_more_sec".tr(), style: theme.textTheme.atlasDimgreyBold14),
         const SizedBox(height: 5),
         Text(introText, style: theme.textTheme.atlasBlackNormal14),
         const SizedBox(height: 10),
@@ -597,8 +592,7 @@ wantMoreSecurityWidget(BuildContext context, WalletApp walletApp) {
             padding: EdgeInsets.zero,
             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
-          child: Text("learn_ex_unsafe".tr(),
-              style: theme.textTheme.linkStyle),
+          child: Text("learn_ex_unsafe".tr(), style: theme.textTheme.linkStyle),
         ),
       ]),
     ),
