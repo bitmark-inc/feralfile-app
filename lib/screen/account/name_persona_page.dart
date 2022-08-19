@@ -34,10 +34,10 @@ class _NamePersonaPageState extends State<NamePersonaPage> {
   final TextEditingController _nameController = TextEditingController();
 
 
-  bool isSaveAliasDisable = true;
+  bool isSavingAliasDisabled = true;
   void saveAliasButtonChangedState (){
     setState(() {
-      isSaveAliasDisable = !isSaveAliasDisable;
+      isSavingAliasDisabled = !isSavingAliasDisabled;
     });
   }
 
@@ -100,8 +100,7 @@ class _NamePersonaPageState extends State<NamePersonaPage> {
                           placeholder: "enter_alias".tr(),
                           controller: _nameController,
                           onChanged: (valueChanged){
-                            if((_nameController.text.trim() == "" && isSaveAliasDisable == false)||
-                                (_nameController.text.trim() != "" && isSaveAliasDisable == true)){
+                            if(_nameController.text.trim().isEmpty != isSavingAliasDisabled){
                               saveAliasButtonChangedState();
                             }
                           }
@@ -117,7 +116,7 @@ class _NamePersonaPageState extends State<NamePersonaPage> {
                       Expanded(
                         child: AuFilledButton(
                           text: "save_alias".tr().toUpperCase(),
-                          onPress: isSaveAliasDisable? null : () {
+                          onPress: isSavingAliasDisabled? null : () {
                             context
                                 .read<PersonaBloc>()
                                 .add(NamePersonaEvent(_nameController.text.trim()));
