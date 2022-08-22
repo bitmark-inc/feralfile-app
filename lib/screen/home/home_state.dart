@@ -24,6 +24,8 @@ class HomeConnectTZEvent extends HomeEvent {
 
 class RefreshTokensEvent extends HomeEvent {}
 
+class CheckReviewAppEvent extends HomeEvent {}
+
 class SubRefreshTokensEvent extends HomeEvent {
   final ActionState state;
 

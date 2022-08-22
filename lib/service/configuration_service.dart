@@ -63,6 +63,10 @@ abstract class ConfigurationService {
   Future<String> getAccountHMACSecret();
   bool isFinishedFeedOnBoarding();
   Future<void> setFinishedFeedOnBoarding(bool value);
+  String? lastRemindReviewDate();
+  Future<void> setLastRemindReviewDate(String? value);
+  int? countOpenApp();
+  Future<void> setCountOpenApp(int? value);
 
   // ----- App Setting -----
   bool isDemoArtworksMode();
@@ -116,6 +120,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
       "latest_refresh_tokens_mainnet_1";
   static const String KEY_PREVIOUS_BUILD_NUMBER = "previous_build_number";
   static const String KEY_SHOW_TOKEN_DEBUG_INFO = "show_token_debug_info";
+  static const String LAST_REMIND_REVIEW = "last_remind_review";
+  static const String COUNT_OPEN_APP = "count_open_app";
 
   // Do at once
   static const String KEY_SENT_TEZOS_ARTWORK_METRIC =
@@ -484,5 +490,33 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   Future setSentTezosArtworkMetric(int hashedAddresses) {
     return _preferences.setInt(KEY_SENT_TEZOS_ARTWORK_METRIC, hashedAddresses);
+  }
+
+  @override
+  String? lastRemindReviewDate() {
+    return _preferences.getString(LAST_REMIND_REVIEW);
+  }
+
+  @override
+  Future<void> setLastRemindReviewDate(String? value) async {
+    if (value == null) {
+      await _preferences.remove(LAST_REMIND_REVIEW);
+      return;
+    }
+    await _preferences.setString(LAST_REMIND_REVIEW, value);
+  }
+
+  @override
+  int? countOpenApp() {
+    return _preferences.getInt(COUNT_OPEN_APP);
+  }
+
+  @override
+  Future<void> setCountOpenApp(int? value) async {
+    if (value == null) {
+      await _preferences.remove(COUNT_OPEN_APP);
+      return;
+    }
+    await _preferences.setInt(COUNT_OPEN_APP, value);
   }
 }
