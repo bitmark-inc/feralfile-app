@@ -15,9 +15,11 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:tezart/tezart.dart';
 import 'package:web3dart/web3dart.dart';
 
@@ -28,7 +30,6 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
   final AssetToken _asset;
   String? cachedAddress;
   BigInt? cachedBalance;
-  bool isEstimating = false;
 
   final _safeBuffer = BigInt.from(10);
 
@@ -71,6 +72,25 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
       emit(newState);
     });
 
+    on<QuantityUpdateEvent>((event, emit) async {
+      log.info("[SendArtworkBloc] QuantityUpdateEvent: ${event.quantity}");
+      final newState = state.clone();
+      newState.quantity = event.quantity;
+      newState.isQuantityError =
+          event.quantity <= 0 || event.quantity > event.maxQuantity;
+      newState.fee = null;
+      newState.isValid = _isValid(newState);
+      emit(newState);
+      if (cachedAddress != null && !newState.isQuantityError) {
+        add(AddressChangedEvent(cachedAddress!));
+      }
+    }, transformer: (events, mapper) {
+      return events
+          .debounceTime(const Duration(milliseconds: 300))
+          .distinct()
+          .switchMap(mapper);
+    });
+
     on<AddressChangedEvent>((event, emit) async {
       final newState = state.clone();
       newState.isScanQR = event.address.isEmpty;
@@ -84,8 +104,8 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
               newState.address = address.hexEip55;
               newState.isAddressError = false;
 
-              add(EstimateFeeEvent(
-                  address.hexEip55, _asset.contractAddress!, _asset.tokenId!));
+              add(EstimateFeeEvent(address.hexEip55, _asset.contractAddress!,
+                  _asset.tokenId!, state.quantity));
             } catch (err) {
               newState.isAddressError = true;
             }
@@ -95,7 +115,8 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
               newState.address = event.address;
               newState.isAddressError = false;
 
-              add(EstimateFeeEvent(event.address, _asset.contractAddress!, _asset.tokenId!));
+              add(EstimateFeeEvent(event.address, _asset.contractAddress!,
+                  _asset.tokenId!, state.quantity));
             } else {
               newState.isAddressError = true;
             }
@@ -110,10 +131,7 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
     });
 
     on<EstimateFeeEvent>((event, emit) async {
-      if (isEstimating) return;
-
-      isEstimating = true;
-      final newState = state.clone();
+      log.info("[SendArtworkBloc] Estimate fee: ${event.quantity}");
 
       BigInt? fee;
       switch (type) {
@@ -127,8 +145,11 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
           final from =
               EthereumAddress.fromHex(await state.wallet!.getETHAddress());
 
-          final data = await _ethereumService.getERC721TransferTransactionData(
-              contractAddress, from, to, event.tokenId);
+          final data = _asset.contractType == "erc1155"
+              ? await _ethereumService.getERC1155TransferTransactionData(
+                  contractAddress, from, to, event.tokenId, event.quantity)
+              : await _ethereumService.getERC721TransferTransactionData(
+                  contractAddress, from, to, event.tokenId);
 
           fee = await _ethereumService.estimateFee(
               wallet, contractAddress, EtherAmount.zero(), data);
@@ -138,7 +159,12 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
           if (wallet == null) return;
           final tezosWallet = await wallet.getTezosWallet();
           try {
-            final operation = await _tezosService.getFa2TransferOperation(event.contractAddress, tezosWallet.address, event.address, int.parse(event.tokenId));
+            final operation = await _tezosService.getFa2TransferOperation(
+                event.contractAddress,
+                tezosWallet.address,
+                event.address,
+                int.parse(event.tokenId),
+                event.quantity);
             final tezosFee = await _tezosService.estimateOperationFee(tezosWallet, [operation]);
             fee = BigInt.from(tezosFee);
           } on TezartNodeError catch (err) {
@@ -156,13 +182,20 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
           break;
       }
 
-      newState.fee = fee;
-      newState.balance = cachedBalance;
-      newState.address = cachedAddress;
-      newState.isValid = _isValid(newState);
-
-      isEstimating = false;
-      emit(newState);
+      if (state.quantity == event.quantity && state.address == event.address) {
+        final newState = state.clone();
+        newState.fee = fee;
+        newState.balance = cachedBalance;
+        newState.address = cachedAddress;
+        newState.quantity = event.quantity;
+        newState.isValid = _isValid(newState);
+        emit(newState);
+      }
+    }, transformer: (events, mapper) {
+      return events
+          .distinct()
+          .debounceTime(const Duration(milliseconds: 300))
+          .switchMap(mapper);
     });
   }
 
@@ -170,6 +203,7 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
     if (state.address == null) return false;
     if (state.balance == null) return false;
     if (state.fee == null) return false;
+    if (state.isQuantityError) return false;
 
     return state.fee! <= state.balance! - _safeBuffer;
   }

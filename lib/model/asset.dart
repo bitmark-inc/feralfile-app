@@ -18,12 +18,14 @@ class Asset {
     required this.id,
     required this.edition,
     required this.blockchain,
+    required this.fungible,
     required this.mintedAt,
     required this.contractType,
     required this.tokenId,
     required this.contractAddress,
     required this.blockchainURL,
     required this.owner,
+    required this.owners,
     required this.thumbnailID,
     required this.projectMetadata,
     required this.lastActivityTime,
@@ -33,12 +35,14 @@ class Asset {
   String id;
   int edition;
   String blockchain;
+  bool fungible;
   DateTime mintedAt;
   String contractType;
   String? tokenId;
   String? contractAddress;
   String? blockchainURL;
   String owner;
+  Map<String, int> owners; // Map from owner's address to number of owned tokens.
   String thumbnailID;
   ProjectMetadata projectMetadata;
   DateTime lastActivityTime;
@@ -74,16 +78,22 @@ class Asset {
       }
     }
 
+    final Map<String, int> owners = json["owners"]?.map<String, int>(
+            (key, value) => MapEntry(key as String, (value as int?) ?? 0)) ??
+        {};
+
     return Asset(
       id: json["indexID"],
       edition: json["edition"],
       blockchain: json["blockchain"],
+      fungible: json["fungible"] == true,
       mintedAt: DateTime.parse(json["mintedAt"]),
       contractType: json["contractType"],
       tokenId: json["id"],
       contractAddress: json["contractAddress"],
       blockchainURL: blockchainURL,
       owner: json["owner"],
+      owners: owners,
       thumbnailID: json["thumbnailID"],
       projectMetadata: ProjectMetadata.fromJsonModified(
           json["projectMetadata"], json["thumbnailID"]),

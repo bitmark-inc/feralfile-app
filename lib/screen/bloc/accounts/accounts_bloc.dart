@@ -322,11 +322,14 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
         addresses.removeWhere((e) => e == '');
       }
 
-      emit(state.setEvent(FetchAllAddressesSuccessEvent(addresses)));
+      final newState = state.copyWith(
+          addresses: addresses,
+          event: FetchAllAddressesSuccessEvent(addresses));
+      emit(newState);
 
       // reset the event after triggering
       await Future.delayed(const Duration(milliseconds: 500), () {
-        emit(state.setEvent(null));
+        emit(newState.setEvent(null));
       });
     });
   }

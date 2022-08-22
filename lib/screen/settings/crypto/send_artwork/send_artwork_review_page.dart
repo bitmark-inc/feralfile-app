@@ -104,19 +104,49 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                           ],
                         ),
                         const Divider(height: 32),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "edition".tr(),
-                              style: theme.textTheme.headline4,
-                            ),
-                            Text(
-                              "${asset.edition}/${asset.maxEdition}",
-                              style: theme.textTheme.bodyText2,
-                            ),
-                          ],
-                        ),
+                        if (widget.payload.asset.fungible == true) ...[
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "owned_tokens".tr(),
+                                style: theme.textTheme.headline4,
+                              ),
+                              Text(
+                                "${widget.payload.ownedTokens}",
+                                style: theme.textTheme.bodyText2,
+                              ),
+                            ],
+                          ),
+                          const Divider(height: 32),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "quantity_sent".tr(),
+                                style: theme.textTheme.headline4,
+                              ),
+                              Text(
+                                "${widget.payload.quantity}",
+                                style: theme.textTheme.bodyText2,
+                              ),
+                            ],
+                          ),
+                        ] else ...[
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "edition".tr(),
+                                style: theme.textTheme.headline4,
+                              ),
+                              Text(
+                                "${asset.edition}/${asset.maxEdition}",
+                                style: theme.textTheme.bodyText2,
+                              ),
+                            ],
+                          ),
+                        ],
                         const SizedBox(height: 32.0),
                         Text(
                           "to".tr(),
@@ -176,7 +206,11 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                                           .getETHAddress());
                                   final tokenId = asset.tokenId!;
 
-                                  final data = await ethereumService
+                                  final data = widget.payload.asset.contractType == "erc1155" ?
+                                  await ethereumService
+                                      .getERC1155TransferTransactionData(
+                                      contractAddress, from, to, tokenId, widget.payload.quantity)
+                                      : await ethereumService
                                       .getERC721TransferTransactionData(
                                           contractAddress, from, to, tokenId);
 
@@ -201,7 +235,8 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                                           widget.payload.asset.contractAddress!,
                                           tezosWallet.address,
                                           widget.payload.address,
-                                          int.parse(tokenId));
+                                          int.parse(tokenId),
+                                          widget.payload.quantity);
                                   final opHash = await tezosService
                                       .sendOperationTransaction(
                                           tezosWallet, [operation]);
@@ -236,7 +271,9 @@ class SendArtworkReviewPayload {
   final String address;
   final BigInt fee;
   final CurrencyExchangeRate exchangeRate;
+  final int ownedTokens;
+  final int quantity;
 
-  SendArtworkReviewPayload(
-      this.asset, this.wallet, this.address, this.fee, this.exchangeRate);
+  SendArtworkReviewPayload(this.asset, this.wallet, this.address, this.fee,
+      this.exchangeRate, this.ownedTokens, this.quantity);
 }

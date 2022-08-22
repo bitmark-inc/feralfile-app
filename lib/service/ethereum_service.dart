@@ -32,6 +32,13 @@ abstract class EthereumService {
       EthereumAddress from,
       EthereumAddress to,
       String tokenId);
+
+  Future<String?> getERC1155TransferTransactionData(
+      EthereumAddress contractAddress,
+      EthereumAddress from,
+      EthereumAddress to,
+      String tokenId,
+      int quantity);
 }
 
 class EthereumServiceImpl extends EthereumService {
@@ -127,6 +134,33 @@ class EthereumServiceImpl extends EthereumService {
       contract: contract,
       function: _transferFrom(),
       parameters: [from, to, BigInt.parse(tokenId, radix: 10)],
+      from: from,
+      gasPrice: gasPrice,
+      nonce: nonce,
+    );
+
+    return transaction.data != null ? bytesToHex(transaction.data!) : null;
+  }
+
+  @override
+  Future<String?> getERC1155TransferTransactionData(
+      EthereumAddress contractAddress,
+      EthereumAddress from,
+      EthereumAddress to,
+      String tokenId,
+      int quantity) async {
+    final contractJson = await rootBundle.loadString('assets/erc1155-abi.json');
+    final contract = DeployedContract(
+        ContractAbi.fromJson(contractJson, "ERC1155"), contractAddress);
+    ContractFunction _transferFrom() => contract.function("safeBatchTransferFrom");
+
+    final nonce = await _web3Client.getTransactionCount(from);
+    final gasPrice = await _web3Client.getGasPrice();
+
+    final transaction = Transaction.callContract(
+      contract: contract,
+      function: _transferFrom(),
+      parameters: [from, to, [BigInt.parse(tokenId, radix: 10)], [quantity], "0x0"],
       from: from,
       gasPrice: gasPrice,
       nonce: nonce,

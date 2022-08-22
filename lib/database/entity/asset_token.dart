@@ -5,6 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:convert';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/model/asset.dart';
@@ -23,6 +25,7 @@ class AssetToken {
   double? basePrice;
   String? baseCurrency;
   String blockchain;
+  bool? fungible;
   String? contractType;
   String? tokenId;
   String? contractAddress;
@@ -42,6 +45,7 @@ class AssetToken {
   String? galleryThumbnailURL;
   String title;
   String? ownerAddress;
+  Map<String, int> owners;
   DateTime lastActivityTime;
   int? hidden;
   @ignore
@@ -57,6 +61,7 @@ class AssetToken {
     required this.basePrice,
     required this.baseCurrency,
     required this.blockchain,
+    required this.fungible,
     required this.contractType,
     required this.tokenId,
     required this.contractAddress,
@@ -75,6 +80,7 @@ class AssetToken {
     required this.galleryThumbnailURL,
     required this.title,
     required this.ownerAddress,
+    required this.owners,
     required this.lastActivityTime,
     this.hidden,
     this.provenances,
@@ -90,6 +96,7 @@ class AssetToken {
         basePrice: asset.projectMetadata.latest.basePrice,
         baseCurrency: asset.projectMetadata.latest.baseCurrency,
         blockchain: asset.blockchain,
+        fungible: asset.fungible,
         contractType: asset.contractType,
         tokenId: asset.tokenId,
         contractAddress: asset.contractAddress,
@@ -108,6 +115,7 @@ class AssetToken {
         galleryThumbnailURL: asset.projectMetadata.latest.galleryThumbnailUrl,
         title: asset.projectMetadata.latest.title,
         ownerAddress: asset.owner,
+        owners: asset.owners,
         lastActivityTime: asset.lastActivityTime,
         provenances: asset.provenance,
       );
@@ -136,5 +144,27 @@ class AssetToken {
       }
     }
     return wallet;
+  }
+}
+
+class TokenOwnersConverter extends TypeConverter<Map<String, int>, String> {
+  @override
+  Map<String, int> decode(String? databaseValue) {
+    if (databaseValue?.isNotEmpty == true) {
+      return (json.decode(databaseValue!) as Map<String, dynamic>?)
+              ?.map((key, value) => MapEntry(key, (value as int?) ?? 0)) ??
+          {};
+    } else {
+      return {};
+    }
+  }
+
+  @override
+  String encode(Map<String, int>? value) {
+    if (value == null) {
+      return "{}";
+    } else {
+      return json.encode(value);
+    }
   }
 }

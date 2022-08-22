@@ -130,6 +130,7 @@ dependencies:
     git:
       url: https://github.com/bitmark-inc/autonomy-client-shared-theme.git
   easy_localization: ^3.0.1
+  rxdart: ^0.26.0
 
 dependency_overrides:
   # Error using when import photo_view from dependencies:
@@ -166,6 +167,7 @@ flutter:
   assets:
     - .env
     - assets/erc721-abi.json
+    - assets/erc1155-abi.json
     - assets/images/
     - assets/translations/
 
