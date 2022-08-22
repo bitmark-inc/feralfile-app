@@ -63,11 +63,45 @@ class AccessMethodPage extends StatelessWidget {
               style: theme.textTheme.bodyText1,
             ),
             if (walletApp == 'WalletApp.MetaMask') ...[
-              const SizedBox(height: 15),
+              const SizedBox(height: 8),
               Text(
-                "li_autonomy_currently_only".tr(),
-                //'Autonomy currently only links to wallets on the Ethereum Mainnet. Other networks like Polygon are not yet supported.',
-                style: theme.textTheme.atlasGreyNormal14,
+                'supported_networks'.tr(),
+                style: theme.textTheme.atlasBlackNormal14,
+              ),
+              const SizedBox(height: 3),
+              RichText(
+                text: TextSpan(
+                  text: ' •  ',
+                  style: theme.textTheme.atlasBlackNormal14,
+                  children: [
+                    TextSpan(text: 'ethereum_mainnet'.tr()),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                'unsupported_networks'.tr(),
+                style: theme.textTheme.atlasBlackNormal14,
+              ),
+              const SizedBox(height: 3),
+              RichText(
+                text: TextSpan(
+                  text: ' •  ',
+                  style: theme.textTheme.atlasBlackNormal14,
+                  children: [
+                    TextSpan(text: 'polygon'.tr()),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 3),
+              RichText(
+                text: TextSpan(
+                  text: ' •  ',
+                  style: theme.textTheme.atlasBlackNormal14,
+                  children: [
+                    TextSpan(text: 'binance_smart_chain'.tr()),
+                  ],
+                ),
               ),
             ],
           ],
@@ -99,8 +133,7 @@ class AccessMethodPage extends StatelessWidget {
       bottomWidget: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-              "im_view_and_control".tr(),
+          Text("im_view_and_control".tr(),
               //'View and control your NFTs, sign authorizations, and connect to other platforms with Autonomy.',
               style: theme.textTheme.bodyText1),
           const SizedBox(height: 16),
