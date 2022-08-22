@@ -7,6 +7,7 @@
 
 import 'dart:convert';
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/model/connection_supports.dart';
@@ -15,6 +16,7 @@ import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_
 import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
@@ -175,11 +177,12 @@ class WalletConnectService {
       onFailure: (error) {
         log.info("WC failed to connect: $error");
       },
-      onSessionRequest: (id, peerMeta) {
+      onSessionRequest: (id, peerMeta) async {
         currentPeerMeta = peerMeta;
         if (peerMeta.name == AUTONOMY_TV_PEER_NAME) {
+          final isSubscribed = await injector<IAPService>().isSubscribed();
           final jwt = _configurationService.getIAPJWT();
-          if (jwt != null && jwt.isValid(withSubscription: true)) {
+          if ((jwt != null && jwt.isValid(withSubscription: true)) || isSubscribed) {
             _navigationService.navigateTo(AppRouter.tvConnectPage,
                 arguments: WCConnectPageArgs(id, peerMeta));
           } else {

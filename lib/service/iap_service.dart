@@ -57,8 +57,6 @@ abstract class IAPService {
 
 class IAPServiceImpl implements IAPService {
 
-  static const _useServerVerify = false;
-
   final ConfigurationService _configurationService;
   final AuthService _authService;
 
@@ -221,7 +219,7 @@ class IAPServiceImpl implements IAPService {
           _receiptData = receiptData;
           final jwt = await _verifyPurchase(receiptData);
           log.info("[IAPService] verifying the receipt");
-          if (_useServerVerify && jwt != null && jwt.isValid(withSubscription: true)) {
+          if (jwt != null && jwt.isValid(withSubscription: true)) {
             purchases.value[purchaseDetails.productID] =
                 IAPProductStatus.completed;
             _configurationService.setIAPJWT(jwt);
@@ -262,6 +260,11 @@ class IAPServiceImpl implements IAPService {
   @override
   Future<bool> isSubscribed() async {
     if (await isAppCenterBuild()) {
+      return true;
+    }
+    final jwt = _configurationService.getIAPJWT();
+    final jwtValid = jwt != null && jwt.isValid(withSubscription: true);
+    if (jwtValid) {
       return true;
     }
     return purchases.value.values.any((status) {
