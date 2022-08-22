@@ -77,7 +77,6 @@ class HomeBloc extends AuBloc<HomeEvent, HomeState> {
     });
 
     on<CheckReviewAppEvent>((event, emit) async {
-      log.info('[CheckReviewAppEvent] addPeer ');
       try {
         final config = injector<ConfigurationService>();
         final lastRemind = config.lastRemindReviewDate();
