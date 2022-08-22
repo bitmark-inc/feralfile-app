@@ -46,7 +46,7 @@ class TezosTXRowView extends StatelessWidget {
               const SizedBox(width: 13),
               Text(_transactionTitle(), style: theme.textTheme.headline4),
               const Spacer(),
-              Text(_totalAmount(), style: theme.textTheme.caption)
+              Text("${_txAmountSign()} ${_totalAmount()}", style: theme.textTheme.caption)
             ],
           ),
           const SizedBox(height: 4),
@@ -57,7 +57,7 @@ class TezosTXRowView extends StatelessWidget {
               Text(_transactionStatus(), style: theme.textTheme.headline5),
               const Spacer(),
               Text(
-                "${tx.quote.usd.toStringAsPrecision(2)}  USD",
+                "${_txAmountSign()} ${tx.quote.usd.toStringAsPrecision(2)}  USD",
                 style: theme.textTheme.headline5,
               )
             ],
@@ -108,5 +108,9 @@ class TezosTXRowView extends StatelessWidget {
     } else {
       return ((tx.amount ?? 0) / _nanoTEZFactor).toStringAsPrecision(3);
     }
+  }
+
+  String _txAmountSign(){
+    return tx.target?.address == currentAddress ? "+" : "-";
   }
 }
