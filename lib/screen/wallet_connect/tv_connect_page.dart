@@ -8,11 +8,9 @@
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/debouce_util.dart';
@@ -112,7 +110,7 @@ class _TVConnectPageState extends State<TVConnectPage>
                         const SizedBox(width: 7),
                         Text(
                           "back".tr(),
-                          style: theme.textTheme.button,
+                          style: theme.primaryTextTheme.button,
                         ),
                       ],
                     ),
@@ -131,22 +129,22 @@ class _TVConnectPageState extends State<TVConnectPage>
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(
             "connect_au_viewer".tr(),
-            style: theme.textTheme.headline1,
+            style: theme.primaryTextTheme.headline1,
           ),
           const SizedBox(height: 24),
-          Text(
-              "set_up_gallery".tr(),
+          Text("set_up_gallery".tr(),
               //"Instantly set up your personal NFT art gallery on TVs and projectors anywhere you go.",
-              style: theme.textTheme.bodyText1),
+              style: theme.primaryTextTheme.bodyText1),
           Divider(
             height: 64,
             color: theme.colorScheme.secondary,
           ),
-          Text("viewer_request_to".tr(),//"Autonomy Viewer is requesting to: ",
-              style: theme.textTheme.bodyText1),
+          Text("viewer_request_to".tr(), //"Autonomy Viewer is requesting to: ",
+              style: theme.primaryTextTheme.bodyText1),
           const SizedBox(height: 8),
-          Text("view_collections".tr(),//"• View your Autonomy NFT collections",
-              style: theme.textTheme.bodyText1),
+          Text(
+              "view_collections".tr(), //"• View your Autonomy NFT collections",
+              style: theme.primaryTextTheme.bodyText1),
           const Expanded(child: SizedBox()),
           Row(
             children: [
