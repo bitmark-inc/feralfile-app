@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/gateway/feed_api.dart';
 import 'package:autonomy_flutter/gateway/indexer_api.dart';
 import 'package:autonomy_flutter/model/feed.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -160,7 +161,7 @@ class FeedServiceImpl extends FeedService {
     _fetchFeedsCompleters[uuid] = completer;
 
     log.info("[FeedFollowService] start FETCH_FEEDS");
-    final isTestnet = Environment.appTestnetConfig;
+    final isTestnet = await isAppCenterBuild();
     _sendPort!
         .send([FETCH_FEEDS, uuid, isTestnet, next?.serial, next?.timestamp]);
 
