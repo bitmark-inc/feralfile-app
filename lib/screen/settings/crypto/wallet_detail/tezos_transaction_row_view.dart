@@ -111,6 +111,7 @@ class TezosTXRowView extends StatelessWidget {
   }
 
   String _txAmountSign(){
+    if(tx.sender?.address == tx.target?.address) return "";
     return tx.target?.address == currentAddress ? "+" : "-";
   }
 }
