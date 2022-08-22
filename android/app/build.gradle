@@ -144,7 +144,6 @@ dependencies {
         exclude module: 'jetified-protobuf-java'
     }
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.1")
-    implementation 'io.github.novacrypto:Base58:2022.01.17@jar'
     implementation 'androidx.appcompat:appcompat:1.5.0'
     implementation 'com.google.android.material:material:1.6.1'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'

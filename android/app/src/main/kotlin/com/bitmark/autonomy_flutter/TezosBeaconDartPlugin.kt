@@ -17,7 +17,6 @@ import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.Result
-import io.github.novacrypto.base58.Base58
 import it.airgap.beaconsdk.blockchain.substrate.substrate
 import it.airgap.beaconsdk.blockchain.tezos.data.TezosAccount
 import it.airgap.beaconsdk.blockchain.tezos.data.TezosAppMetadata
@@ -611,7 +610,10 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
 
     private fun addPeer(link: String, result: Result) {
         FileLogger.log("TezosBeaconDartPlugin", "addPeer: $link")
-        val peer = extractPeer(link)
+        val peer = extractPeer(link) ?: run {
+            FileLogger.log("TezosBeaconDartPlugin", "addPeer: error invalid link")
+            return
+        }
         CoroutineScope(Dispatchers.IO).launch {
             beaconClient?.addPeers(peer)
             val jsonPeer = jsonKT.encodeToString(peer)
@@ -634,14 +636,13 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
         awaitingRequest = null
     }
 
-    private fun extractPeer(link: String): P2pPeer {
+    private fun extractPeer(link: String): P2pPeer? {
         val uri = Uri.parse(link)
-        val message = uri.getQueryParameter("data")
-        val messageData = Base58.base58Decode(message)
+        val message = uri.getQueryParameter("data") ?: return null
+        val messageData =
+            beaconSdk.dependencyRegistry.base58Check.decode(message).getOrNull() ?: return null
 
-        val json = messageData.toString(Charsets.UTF_8).substringAfter("{").substringBeforeLast("}")
-
-        return jsonKT.decodeFromString("{$json}")
+        return jsonKT.decodeFromString(messageData.toString(Charsets.UTF_8))
     }
 
     private suspend fun startOpenChannelListener() {
