@@ -86,7 +86,8 @@ class PreferencesBloc extends AuBloc<PreferenceEvent, PreferenceState> {
           if (event.newState.isNotificationEnabled == true) {
             registerPushNotifications(askPermission: true)
                 .then((value) => event.newState.isNotificationEnabled == value);
-          } else {
+          } else if (Platform.isIOS) {
+            // TODO: for iOS only, do not un-registry push, but silent the notification
             deregisterPushNotification();
           }
 
