@@ -94,14 +94,12 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                   color: hasError ? const Color(0xFFa1200a) : Colors.black),
               textAlignVertical: TextAlignVertical.center,
               keyboardType: TextInputType.number,
-              enabled: maxQuantity > 1,
               onChanged: (_) => _onQuantityUpdated(),
             ),
           ),
         ),
         IconButton(
-            onPressed: () =>
-                maxQuantity > 1 ? _updateQuantity(isIncrease: true) : null,
+            onPressed: () => _updateQuantity(isIncrease: true),
             icon: const Icon(
               Icons.add,
               color: Colors.black,
@@ -207,12 +205,9 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                                   "quantity_to_send".tr(),
                                   style: theme.textTheme.headline4,
                                 ),
-                                if (maxQuantity > 1) ...[
-                                  _quantityInputField(maxQuantity: maxQuantity,
-                                      hasError: state.isQuantityError)
-                                ] else ...[
-                                  const Text("1")
-                                ],
+                                _quantityInputField(
+                                    maxQuantity: maxQuantity,
+                                    hasError: state.isQuantityError),
                               ],
                             ),
                           ] else ...[
