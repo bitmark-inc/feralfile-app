@@ -6,12 +6,12 @@
 //
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:nft_collection/models/asset_token.dart';
 import 'package:roundcheckbox/roundcheckbox.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 

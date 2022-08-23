@@ -11,6 +11,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:nft_collection/nft_collection.dart';
 import 'package:share/share.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
@@ -322,7 +323,12 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
                   await injector<AccountService>()
                       .setHideLinkedAccountInGallery(
                           widget.connection.hiddenGalleryKey, value);
+                  final hiddenAddress =
+                      await injector<AccountService>().getHiddenAddresses();
                   setState(() {
+                    context
+                        .read<NftCollectionBloc>()
+                        .add(UpdateHiddenTokens(ownerAddresses: hiddenAddress));
                     isHideGalleryEnabled = value;
                   });
                 },

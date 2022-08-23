@@ -15,7 +15,6 @@ import 'package:autonomy_flutter/gateway/customer_support_api.dart';
 import 'package:autonomy_flutter/gateway/feed_api.dart';
 import 'package:autonomy_flutter/gateway/feralfile_api.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
-import 'package:autonomy_flutter/gateway/indexer_api.dart';
 import 'package:autonomy_flutter/gateway/pubdoc_api.dart';
 import 'package:autonomy_flutter/gateway/rendering_report_api.dart';
 import 'package:autonomy_flutter/gateway/tzkt_api.dart';
@@ -39,7 +38,6 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
-import 'package:autonomy_flutter/service/tokens_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_dapp_service/wallet_connect_dapp_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
@@ -52,6 +50,8 @@ import 'package:dio_smart_retry/dio_smart_retry.dart';
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart';
 import 'package:logging/logging.dart';
+import 'package:nft_collection/data/api/indexer_api.dart';
+import 'package:nft_collection/nft_collection.dart';
 import 'package:sentry_dio/sentry_dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tezart/tezart.dart';
@@ -179,12 +179,16 @@ Future<void> setup() async {
   injector.registerLazySingleton(
       () => AuthService(injector(), injector(), injector()));
   injector.registerLazySingleton(() => BackupService(injector()));
+
+  final nftBloc = await NftCollection.createBloc(
+      indexerUrl: Environment.indexerURL, logger: log);
+  injector.registerSingleton(nftBloc);
+  injector.registerSingleton(nftBloc.tokensService);
+
   injector
       .registerLazySingleton<SettingsDataService>(() => SettingsDataServiceImpl(
             injector(),
             injector(),
-            mainnetDB.assetDao,
-            testnetDB.assetDao,
             injector(),
           ));
   injector.registerLazySingleton<IAPService>(
@@ -232,20 +236,15 @@ Future<void> setup() async {
       () => TezosServiceImpl(injector()));
   injector.registerLazySingleton<AppDatabase>(() => mainnetDB);
 
-  injector.registerLazySingleton<TokensService>(() => TokensServiceImpl(
-        injector(),
-        injector<AppDatabase>().assetDao,
-        injector<AppDatabase>().provenanceDao,
-        injector(),
-      ));
   injector.registerLazySingleton<FeedService>(
-      () => FeedServiceImpl(injector<AppDatabase>().assetDao));
+      () => FeedServiceImpl());
 
   injector.registerLazySingleton<FeralFileService>(() => FeralFileServiceImpl(
         injector(),
         injector(),
         injector(),
       ));
+
   // Deeplink
   final deeplinkService = DeeplinkServiceImpl(
       injector(), injector(), injector(), injector(), injector());

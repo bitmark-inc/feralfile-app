@@ -10,10 +10,7 @@ import 'dart:isolate';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/dao/asset_token_dao.dart';
-import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/gateway/feed_api.dart';
-import 'package:autonomy_flutter/gateway/indexer_api.dart';
 import 'package:autonomy_flutter/model/feed.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -23,11 +20,13 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:nft_collection/data/api/indexer_api.dart';
+import 'package:nft_collection/models/asset_token.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:uuid/uuid.dart';
 
 abstract class FeedService {
-  Future refreshFollowings();
+  Future refreshFollowings(List<String> artistIds);
 
   Future<AppFeedData> fetchFeeds(FeedNext? next);
 
@@ -83,7 +82,6 @@ class AppFeedData {
 }
 
 class FeedServiceImpl extends FeedService {
-  final AssetTokenDao _assetDao;
 
   static const REFRESH_FOLLOWINGS = 'REFRESH_FOLLOWINGS';
   static const FETCH_FEEDS = 'FETCH_FEEDS';
@@ -94,8 +92,6 @@ class FeedServiceImpl extends FeedService {
   final Map<String, Completer<AppFeedData>> _fetchFeedsCompleters = {};
   final Map<String, Completer<List<AssetToken>>>
       _fetchTokensByIndexerIDCompleters = {};
-
-  FeedServiceImpl(this._assetDao);
 
   SendPort? _sendPort;
   ReceivePort? _receivePort;
@@ -134,14 +130,14 @@ class FeedServiceImpl extends FeedService {
   }
 
   @override
-  Future refreshFollowings() async {
+  Future refreshFollowings(List<String> artistIds) async {
     await startIsolateOrWait();
 
     final uuid = const Uuid().v4();
     final completer = Completer();
     _refreshFollowingsCompleters[uuid] = completer;
 
-    final followings = await _assetDao.findAllAssetArtistIDs();
+    final followings = artistIds;
     followings.removeWhere((element) => element == "");
     followings.remove("0x0000000000000000000000000000000000000000");
 

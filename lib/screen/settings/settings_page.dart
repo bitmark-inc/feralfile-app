@@ -20,7 +20,6 @@ import 'package:autonomy_flutter/screen/settings/subscription/upgrade_view.dart'
 import 'package:autonomy_flutter/service/cloud_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
-import 'package:autonomy_flutter/service/tokens_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
@@ -34,6 +33,7 @@ import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:nft_collection/nft_collection.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -142,7 +142,7 @@ class _SettingsPageState extends State<SettingsPage>
                 ),
                 const SizedBox(height: 40),
                 BlocProvider(
-                  create: (_) => PreferencesBloc(injector(), injector()),
+                  create: (_) => PreferencesBloc(injector()),
                   child: const PreferenceView(),
                 ),
                 const SizedBox(height: 40.0),
@@ -289,7 +289,9 @@ class _SettingsPageState extends State<SettingsPage>
       //"This action will safely clear local cache and\nre-download all artwork metadata. We recommend only doing this if instructed to do so by customer support to resolve a problem.",
       "rebuild".tr(),
       () async {
-        await injector<TokensService>().purgeCachedGallery();
+        await injector<NftCollectionBloc>()
+            .tokensService
+            .purgeCachedGallery();
         if (!mounted) return;
         Navigator.of(context).popUntil((route) =>
             route.settings.name == AppRouter.homePage ||

@@ -6,9 +6,9 @@
 //
 
 import 'package:autonomy_flutter/au_bloc.dart';
-import 'package:autonomy_flutter/database/dao/asset_token_dao.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:nft_collection/database/dao/asset_token_dao.dart';
 
 class ArtworkPreviewBloc
     extends AuBloc<ArtworkPreviewEvent, ArtworkPreviewState> {

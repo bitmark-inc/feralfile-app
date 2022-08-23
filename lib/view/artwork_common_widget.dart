@@ -1,8 +1,6 @@
 import 'dart:collection';
 
-import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/model/asset_price.dart';
-import 'package:autonomy_flutter/model/provenance.dart';
 import 'package:autonomy_flutter/screen/detail/report_rendering_issue/any_problem_nft_widget.dart';
 import 'package:autonomy_flutter/screen/detail/report_rendering_issue/report_rendering_issue_widget.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -23,6 +21,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:intl/intl.dart';
+import 'package:nft_collection/models/asset_token.dart';
+import 'package:nft_collection/models/provenance.dart';
 import 'package:nft_rendering/nft_rendering.dart';
 
 // ignore: depend_on_referenced_packages
@@ -38,17 +38,17 @@ String getEditionSubTitle(AssetToken token) {
 }
 
 Widget tokenThumbnailWidget(BuildContext context, AssetToken token) {
-  final ext = p.extension(token.thumbnailURL!);
+  final ext = p.extension(token.getThumbnailUrl() ?? "");
   final screenWidth = MediaQuery.of(context).size.width;
 
   return Hero(
     tag: token.id,
     child: ext == ".svg"
         ? Center(
-            child: SvgPicture.network(token.thumbnailURL!,
+            child: SvgPicture.network(token.getThumbnailUrl() ?? "",
                 placeholderBuilder: (context) => placeholder()))
         : CachedNetworkImage(
-            imageUrl: token.thumbnailURL!,
+            imageUrl: token.getThumbnailUrl() ?? "",
             width: double.infinity,
             memCacheWidth: (screenWidth * 3).floor(),
             maxWidthDiskCache: (screenWidth * 3).floor(),
@@ -67,17 +67,17 @@ Widget tokenThumbnailWidget(BuildContext context, AssetToken token) {
 
 Widget tokenGalleryThumbnailWidget(
     BuildContext context, AssetToken token, int cachedImageSize) {
-  final ext = p.extension(token.thumbnailURL!);
+  final ext = p.extension(token.getThumbnailUrl() ?? "");
 
   return Hero(
     tag: token.id,
     key: Key('Artwork_Thumbnail'),
     child: ext == ".svg"
-        ? SvgPicture.network(token.galleryThumbnailURL!,
+        ? SvgPicture.network(token.getGalleryThumbnailUrl()!,
             placeholderBuilder: (context) =>
                 Container(color: const Color.fromRGBO(227, 227, 227, 1)))
         : CachedNetworkImage(
-            imageUrl: token.galleryThumbnailURL!,
+            imageUrl: token.getGalleryThumbnailUrl()!,
             fit: BoxFit.cover,
             memCacheHeight: cachedImageSize,
             memCacheWidth: cachedImageSize,
@@ -125,7 +125,7 @@ INFTRenderingWidget buildRenderingWidget(
   String mimeType = "";
   switch (token.medium) {
     case "image":
-      final ext = p.extension(token.previewURL!);
+      final ext = p.extension(token.getPreviewUrl() ?? "");
       if (ext == ".svg") {
         mimeType = "svg";
       } else if (token.mimeType == 'image/gif') {
@@ -147,8 +147,8 @@ INFTRenderingWidget buildRenderingWidget(
   final renderingWidget = typesOfNFTRenderingWidget(mimeType);
 
   renderingWidget.setRenderWidgetBuilder(RenderingWidgetBuilder(
-    previewURL: token.previewURL,
-    thumbnailURL: token.thumbnailURL,
+    previewURL: token.getPreviewUrl(),
+    thumbnailURL: token.getThumbnailUrl(),
     loadingWidget: previewPlaceholder(context),
     errorWidget: brokenTokenWidget(context, token),
     cacheManager: injector<AUCacheManager>(),
@@ -284,9 +284,9 @@ Widget debugInfoWidget(BuildContext context, AssetToken? token) {
               style: theme.textTheme.headline4,
             ),
             _buildInfo('IndexerID', token.id),
-            _buildInfo('galleryThumbnailURL', token.galleryThumbnailURL ?? ''),
-            _buildInfo('thumbnailURL', token.thumbnailURL ?? ''),
-            _buildInfo('previewURL', token.previewURL ?? ''),
+            _buildInfo('galleryThumbnailURL', token.getGalleryThumbnailUrl() ?? ''),
+            _buildInfo('thumbnailURL', token.getThumbnailUrl() ?? ''),
+            _buildInfo('previewURL', token.getPreviewUrl() ?? ''),
             addDivider(),
           ],
         );
@@ -350,7 +350,7 @@ Widget artworkDetailsMetadataSection(
         context,
         "contract".tr(),
         asset.blockchain.capitalize(),
-        tapLink: asset.blockchainURL,
+        tapLink: asset.getBlockchainUrl(),
         forceSafariVC: false,
       ),
       const Divider(height: 32.0),

@@ -7,15 +7,12 @@
 
 import 'dart:async';
 
-import 'package:autonomy_flutter/database/dao/asset_token_dao.dart';
 import 'package:autonomy_flutter/database/dao/draft_customer_support_dao.dart';
 import 'package:autonomy_flutter/database/dao/identity_dao.dart';
-import 'package:autonomy_flutter/database/dao/provenance_dao.dart';
-import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
 import 'package:autonomy_flutter/database/entity/identity.dart';
-import 'package:autonomy_flutter/model/provenance.dart';
 import 'package:floor/floor.dart';
+import 'package:nft_collection/models/asset_token.dart';
 // ignore: depend_on_referenced_packages
 import 'package:sqflite/sqflite.dart' as sqflite;
 
@@ -24,16 +21,12 @@ part 'app_database.g.dart'; // the generated code will be there
 @TypeConverters([DateTimeConverter, TokenOwnersConverter])
 @Database(
     version: 14,
-    entities: [AssetToken, Identity, Provenance, DraftCustomerSupport])
+    entities: [Identity, DraftCustomerSupport])
 abstract class AppDatabase extends FloorDatabase {
-  AssetTokenDao get assetDao;
   IdentityDao get identityDao;
-  ProvenanceDao get provenanceDao;
   DraftCustomerSupportDao get draftCustomerSupportDao;
 
   Future<dynamic> removeAll() async {
-    await provenanceDao.removeAll();
-    await assetDao.removeAll();
     await identityDao.removeAll();
     await draftCustomerSupportDao.removeAll();
   }
@@ -110,7 +103,6 @@ final migrateV12ToV13 = Migration(12, 13, (database) async {
 });
 
 final migrateV13ToV14 = Migration(13, 14, (database) async {
-  await database.execute("""
-    ALTER TABLE AssetToken ADD COLUMN owners TEXT, fungible BOOLEAN;
-  """);
+  await database.execute("DROP TABLE IF EXISTS AssetToken;");
+  await database.execute("DROP TABLE IF EXISTS Provenance;");
 });

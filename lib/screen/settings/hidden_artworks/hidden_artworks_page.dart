@@ -6,15 +6,16 @@
 //
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_cached_manager.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:nft_collection/models/asset_token.dart';
 // ignore: depend_on_referenced_packages
 import 'package:path/path.dart' as p;
 
@@ -86,14 +87,14 @@ class _HiddenArtworksPageState extends State<HiddenArtworksPage> {
             delegate: SliverChildBuilderDelegate(
               (BuildContext context, int index) {
                 final asset = tokens[index];
-                final ext = p.extension(asset.galleryThumbnailURL!);
+                final ext = p.extension(asset.getGalleryThumbnailUrl()!);
                 return GestureDetector(
                   child: Hero(
                     tag: asset.id,
                     child: ext == ".svg"
-                        ? SvgPicture.network(asset.galleryThumbnailURL!)
+                        ? SvgPicture.network(asset.getGalleryThumbnailUrl()!)
                         : CachedNetworkImage(
-                            imageUrl: asset.galleryThumbnailURL!,
+                            imageUrl: asset.getGalleryThumbnailUrl()!,
                             fit: BoxFit.cover,
                             memCacheHeight: _cachedImageSize,
                             memCacheWidth: _cachedImageSize,

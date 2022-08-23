@@ -18,7 +18,6 @@ import 'package:autonomy_flutter/model/asset_price.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/tokens_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -26,6 +25,7 @@ import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
 import 'package:libauk_dart/libauk_dart.dart';
+import 'package:nft_collection/nft_collection.dart';
 
 // TODO:
 abstract class FeralFileService {
@@ -84,7 +84,8 @@ class FeralFileServiceImpl extends FeralFileService {
           (memoryValues.linkedFFConnections ?? []) + [connection];
     } else {
       await _cloudDB.connectionDao.insertConnection(connection);
-      injector<TokensService>()
+      injector<NftCollectionBloc>()
+          .tokensService
           .fetchTokensForAddresses(connection.accountNumbers);
     }
 

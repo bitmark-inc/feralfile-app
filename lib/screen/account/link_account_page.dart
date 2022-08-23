@@ -13,7 +13,6 @@ import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
-import 'package:autonomy_flutter/service/tokens_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_dapp_service/wallet_connect_dapp_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_dapp_service/wc_connected_session.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -27,6 +26,7 @@ import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:nft_collection/nft_collection.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 class LinkAccountPage extends StatefulWidget {
@@ -328,7 +328,7 @@ class _LinkAccountPageState extends State<LinkAccountPage>
           await injector<AccountService>().linkETHWallet(session);
 
       // SideEffect: pre-fetch tokens
-      injector<TokensService>()
+      injector<NftCollectionBloc>().tokensService
           .fetchTokensForAddresses(linkedAccount.accountNumbers);
 
       final walletName =
