@@ -20,15 +20,15 @@ jobs:
       # Run integration test
       - name: Run Flutter Driver tests for Suite "Create new account"
         run: |
-          cd /mnt/sda2/autonomy-client
+          cd /media/bitmark/3406ce86-9243-41d7-aa8f-6f7ee167531b/autonomy-client
           flutter test integration_test/tests/create_new_account_test.dart --flavor inhouse
       - name: Run Flutter Driver tests for Suite "Send XTZ"
         run: |
-          cd /mnt/sda2/autonomy-client
+          cd /media/bitmark/3406ce86-9243-41d7-aa8f-6f7ee167531b/autonomy-client
           flutter test integration_test/tests/send_xtz_test.dart --flavor inhouse
       - name: Run Flutter Driver tests for Suite "Check Artwork detail"
         run: |
-          cd /mnt/sda2/autonomy-client
+          cd /media/bitmark/3406ce86-9243-41d7-aa8f-6f7ee167531b/autonomy-client
           flutter test integration_test/tests/check_artwork_detail_test.dart --flavor inhouse
       - name: Report Status
         if: always()
