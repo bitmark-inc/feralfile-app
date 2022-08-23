@@ -43,6 +43,7 @@ Future<void> addANewAccount(
     if (continueWithouItbutton.evaluate().isNotEmpty) {
       await tester.tap(continueWithouItbutton);
       await tester.pump(Duration(seconds: 4));
+      await tester.pump(Duration(seconds: 4));
     }
   } else if (accountType == 'skip') {
     await tester.tap(newButton);
@@ -59,6 +60,7 @@ Future<void> addANewAccount(
 
     if (continueWithouItbutton.evaluate().isNotEmpty) {
       await tester.tap(continueWithouItbutton);
+      await tester.pump(Duration(seconds: 4));
       await tester.pump(Duration(seconds: 4));
     }
   }

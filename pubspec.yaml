@@ -155,6 +155,7 @@ dev_dependencies:
     sdk: flutter
   integration_test:
     sdk: flutter
+  appium_driver: ^0.5.2
   json_serializable: null
   mockito: null
   retrofit_generator: null

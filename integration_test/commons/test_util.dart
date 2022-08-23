@@ -7,9 +7,6 @@
 
 import 'dart:convert';
 import 'dart:math';
-import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 
 import '../../lib/main.dart' as app;
 
@@ -18,6 +15,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
+
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/widgets.dart';
 
 final Finder autonomyHeader = find.text('AUTONOMY');
 final Finder conflictDetectHeader = find.text('Conflict detected');
@@ -83,7 +83,12 @@ Future<void> handleConflictDetected(WidgetTester tester) async {
 }
 
 Future<void> launchAutonomy(WidgetTester tester) async {
-  await tester.pumpWidget(AutonomyApp());
+  // await tester.pumpWidget(AutonomyApp());
+  await tester.pumpWidget(EasyLocalization(
+      supportedLocales: const [Locale('en', 'US')],
+      path: 'assets/translations',
+      fallbackLocale: const Locale('en', 'US'),
+      child: const AutonomyApp()));
   await tester.pumpAndSettle(Duration(seconds: 7));
 }
 
