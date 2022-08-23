@@ -612,41 +612,43 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
 
             final theme = Theme.of(context);
 
-            return FutureBuilder<bool>(
-                builder: (context, snapshot) {
-                  if (snapshot.hasData && snapshot.data!) {
-                    return Column(
-                      children: [
-                        _castingListView(context, castDevices, true),
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: Text(
-                            "cancel".tr(),
-                            style: theme.primaryTextTheme.button,
+            return ValueListenableBuilder<Map<String, IAPProductStatus>>(
+              valueListenable: injector<IAPService>().purchases,
+              builder: (context, purchases, child) {
+                return FutureBuilder<bool>(
+                    builder: (context, subscriptionSnapshot) {
+                      final isSubscribed = subscriptionSnapshot.hasData &&
+                          subscriptionSnapshot.data == true;
+                      return Column(
+                        children: [
+                          if (!isSubscribed) ...[
+                            UpgradeBoxView.getMoreAutonomyWidget(
+                                theme, PremiumFeature.AutonomyTV,
+                                autoClose: false)
+                          ],
+                          if (!snapshot.hasData) ...[
+                            // Searching for cast devices.
+                            CircularProgressIndicator(
+                              color: theme.colorScheme.primary,
+                              backgroundColor: theme.colorScheme.surface,
+                              strokeWidth: 2.0,
+                            )
+                          ],
+                          _castingListView(context, castDevices, isSubscribed),
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: Text(
+                              "cancel".tr(),
+                              style: theme.primaryTextTheme.button,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 20),
-                      ],
-                    );
-                  } else {
-                    return Column(
-                      children: [
-                        UpgradeBoxView.getMoreAutonomyWidget(
-                            theme, PremiumFeature.AutonomyTV),
-                        _castingListView(context, castDevices, false),
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: Text(
-                            "cancel".tr(),
-                            style: theme.primaryTextTheme.button,
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                      ],
-                    );
-                  }
-                },
-                future: injector<IAPService>().isSubscribed());
+                          const SizedBox(height: 20),
+                        ],
+                      );
+                    },
+                    future: injector<IAPService>().isSubscribed());
+              },
+            );
           },
         ),
         isDismissible: true);
