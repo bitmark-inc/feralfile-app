@@ -351,7 +351,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
           if (artistName != null) ...[
             const SizedBox(height: 4.0),
             Text(
-              "by".tr(args: [artistName]) ,
+              "by".tr(args: [artistName]),
               overflow: TextOverflow.ellipsis,
               style: theme.primaryTextTheme.headline5,
             )
@@ -497,6 +497,20 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   Widget _castingListView(
       BuildContext context, List<AUCastDevice> devices, bool isSubscribed) {
     final theme = Theme.of(context);
+
+    if (devices.isEmpty) {
+      return SizedBox(
+        width: double.infinity,
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 42),
+          child: Text(
+            'no_device_detected'.tr(),
+            style: theme.textTheme.atlasSpanishGreyBold16,
+          ),
+        ),
+      );
+    }
+
     return ConstrainedBox(
         constraints: const BoxConstraints(
           minHeight: 35.0,
@@ -568,7 +582,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   Future<void> _showCastDialog(BuildContext context) {
     return UIHelper.showDialog(
         context,
-        "Select a device",
+        "select_a_device".tr(),
         FutureBuilder<List<CastDevice>>(
           future: _castDevicesFuture,
           builder: (context, snapshot) {
