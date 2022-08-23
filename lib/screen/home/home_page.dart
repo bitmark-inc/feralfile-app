@@ -69,6 +69,7 @@ class _HomePageState extends State<HomePage>
     _controller = ScrollController();
     context.read<HomeBloc>().add(RefreshTokensEvent());
     context.read<HomeBloc>().add(ReindexIndexerEvent());
+    context.read<HomeBloc>().add(CheckReviewAppEvent());
     OneSignal.shared
         .setNotificationWillShowInForegroundHandler(_shouldShowNotifications);
     injector<AuditService>().auditFirstLog();

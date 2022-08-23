@@ -131,6 +131,7 @@ dependencies:
       url: https://github.com/bitmark-inc/autonomy-client-shared-theme.git
   easy_localization: ^3.0.1
   rxdart: ^0.26.0
+  in_app_review: ^2.0.4
 
 dependency_overrides:
   # Error using when import photo_view from dependencies:

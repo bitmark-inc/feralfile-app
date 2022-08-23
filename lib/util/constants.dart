@@ -180,3 +180,8 @@ extension CryptoTypeHelpers on CryptoType {
     }
   }
 }
+
+class Constants {
+  static const minCountToReview = 10;
+  static const durationToReview = Duration(days: 30);
+}

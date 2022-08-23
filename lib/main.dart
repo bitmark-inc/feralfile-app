@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/aws_service.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/au_cached_manager.dart';
 import 'package:autonomy_flutter/util/device.dart';
@@ -95,12 +96,13 @@ void main() async {
 _setupApp() async {
   await setup();
   await injector<AWSService>().initServices();
-
+  final countOpenApp = injector<ConfigurationService>().countOpenApp() ?? 0;
+  injector<ConfigurationService>().setCountOpenApp(countOpenApp + 1);
   BlocOverrides.runZoned(
     () => runApp(EasyLocalization(
-        supportedLocales: const [Locale('en','US')],
+        supportedLocales: const [Locale('en', 'US')],
         path: 'assets/translations',
-        fallbackLocale: const Locale('en','US'),
+        fallbackLocale: const Locale('en', 'US'),
         child: const OverlaySupport.global(child: AutonomyApp()))),
   );
 
@@ -131,11 +133,9 @@ class AutonomyApp extends StatelessWidget {
       title: 'Autonomy',
       theme: AppTheme.lightTheme(),
       darkTheme: AppTheme.lightTheme(),
-
       localizationsDelegates: context.localizationDelegates,
       supportedLocales: context.supportedLocales,
       locale: context.locale,
-
       debugShowCheckedModeBanner: false,
       navigatorKey: injector<NavigationService>().navigatorKey,
       navigatorObservers: [

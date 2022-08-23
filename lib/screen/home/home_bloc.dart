@@ -25,6 +25,7 @@ import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:in_app_review/in_app_review.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 class HomeBloc extends AuBloc<HomeEvent, HomeState> {
@@ -73,6 +74,48 @@ class HomeBloc extends AuBloc<HomeEvent, HomeState> {
     on<HomeConnectTZEvent>((event, emit) {
       log.info('[HomeConnectTZEvent] addPeer ${event.uri}');
       _tezosBeaconService.addPeer(event.uri);
+    });
+
+    on<CheckReviewAppEvent>((event, emit) async {
+      try {
+        final config = injector<ConfigurationService>();
+        final lastRemind = config.lastRemindReviewDate();
+        final countOpenApp = config.countOpenApp() ?? 0;
+
+        if (lastRemind == null) {
+          config.setLastRemindReviewDate(DateTime.now().toIso8601String());
+          return;
+        }
+
+        final isRemind = DateTime.parse(lastRemind)
+            .add(Constants.durationToReview)
+            .isBefore(DateTime.now());
+
+        if (!isRemind) {
+          return;
+        }
+
+        if (countOpenApp < Constants.minCountToReview) {
+          config.setLastRemindReviewDate(DateTime.now().toIso8601String());
+          config.setCountOpenApp(0);
+          return;
+        }
+
+        final InAppReview inAppReview = InAppReview.instance;
+        final isAvailable = await inAppReview.isAvailable();
+
+        if (!isAvailable) {
+          return;
+        }
+
+        await Future.delayed(const Duration(seconds: 15), () {
+          inAppReview.requestReview();
+          config.setLastRemindReviewDate(DateTime.now().toIso8601String());
+          config.setCountOpenApp(0);
+        });
+      } catch (e) {
+        log.info(e);
+      }
     });
 
     on<SubRefreshTokensEvent>((event, emit) async {
