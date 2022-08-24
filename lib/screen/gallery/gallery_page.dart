@@ -105,8 +105,12 @@ class _GalleryPageState extends State<GalleryPage> {
   Widget _assetsWidget(List<AssetToken>? tokens, bool isLoading) {
     final theme = Theme.of(context);
 
-    const int cellPerRow = 3;
+    const int cellPerRowPhone = 3;
+    const int cellPerRowTablet = 6;
     const double cellSpacing = 3.0;
+    int cellPerRow =
+        ResponsiveLayout.isMobile ? cellPerRowPhone : cellPerRowTablet;
+
     final artistURL = widget.payload.artistURL;
 
     if (_cachedImageSize == 0) {
@@ -162,7 +166,7 @@ class _GalleryPageState extends State<GalleryPage> {
         ...[]
       else if (tokens.isEmpty) ...[
         SliverGrid(
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: cellPerRow,
             crossAxisSpacing: cellSpacing,
             mainAxisSpacing: cellSpacing,
@@ -176,7 +180,7 @@ class _GalleryPageState extends State<GalleryPage> {
         ),
       ] else ...[
         SliverGrid(
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: cellPerRow,
             crossAxisSpacing: cellSpacing,
             mainAxisSpacing: cellSpacing,
