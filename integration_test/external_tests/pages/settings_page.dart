@@ -17,6 +17,10 @@ AppiumBy addLinkLocator = AppiumBy.xpath(
 AppiumBy metaMaskButtonLocator = AppiumBy.accessibilityId("MetaMask");
 AppiumBy linkAccountLinkLocator = AppiumBy.xpath(
     "//android.widget.ImageView[contains(@content-desc,'View your NFTs without Autonomy accessing your private keys in MetaMask.')]");
+
+AppiumBy importAccountLinkLocator = AppiumBy.xpath(
+    "//android.widget.ImageView[contains(@content-desc,'Import')]");
+
 AppiumBy mobileLinkLocator =
     AppiumBy.accessibilityId("Mobile app on this device");
 AppiumBy metaMaskApproveButtonLocator = AppiumBy.xpath(
@@ -30,17 +34,17 @@ AppiumBy alreadyLinkedHeaderLocator =
 Future<void> addExistingMetaMaskAccount(
     AppiumWebDriver driver, String type, String metaMaskAlias) async {
   var addLink = await driver.findElement(addLinkLocator);
-  addLink.click();
+  await addLink.click();
   // sleep(Duration(seconds: 1));
   var metaMaskButton = await driver.findElement(metaMaskButtonLocator);
-  metaMaskButton.click();
+  await metaMaskButton.click();
 
   var linkAccountLink = await driver.findElement(linkAccountLinkLocator);
-  linkAccountLink.click();
+  await linkAccountLink.click();
 
   if (type == "app") {
     var mobileLink = await driver.findElement(mobileLinkLocator);
-    mobileLink.click();
+    await mobileLink.click();
 
     var metaMaskApproveButton =
         await driver.findElement(metaMaskApproveButtonLocator);
@@ -55,9 +59,29 @@ Future<void> addExistingMetaMaskAccount(
 
   sleep(Duration(seconds: 5));
   if (metaMaskAlias.isNotEmpty) {
-    typeAccountAlias(driver, metaMaskAlias);
+    await enterAccountAlias(driver, metaMaskAlias);
   } else {
     var skipButton = await driver.findElement(skipButtonLocator);
     await skipButton.click();
   }
+}
+
+Future<void> importAnAccountBySeeds(AppiumWebDriver driver, String accountType,
+    String seeds, String alias) async {
+  var addLink = await driver.findElement(addLinkLocator);
+  await addLink.click();
+  // sleep(Duration(seconds: 1));
+  var accountTypeButton =
+      await driver.findElement(AppiumBy.accessibilityId("$accountType"));
+  await accountTypeButton.click();
+
+  var importAccountLink = await driver.findElement(importAccountLinkLocator);
+  await importAccountLink.click();
+
+  await enterSeeds(driver, seeds);
+
+  await enterAccountAlias(driver, alias);
+
+  var continueButton = await driver.findElement(continueButtonLocator);
+  await continueButton.click();
 }
