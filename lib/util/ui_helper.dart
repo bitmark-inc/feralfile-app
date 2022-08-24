@@ -17,6 +17,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
@@ -111,6 +112,10 @@ class UIHelper {
         isDismissible: isDismissible,
         backgroundColor: Colors.transparent,
         enableDrag: false,
+        constraints: BoxConstraints(
+            maxWidth: ResponsiveLayout.isMobile
+                ? double.infinity
+                : Constants.maxWidthModalTablet),
         isScrollControlled: true,
         builder: (context) {
           return Container(
@@ -466,7 +471,9 @@ class UIHelper {
             const SizedBox(height: 16),
             Text(
               address,
-              style: theme.textTheme.ibmWhiteNormal14,
+              style: ResponsiveLayout.isMobile
+                  ? theme.textTheme.ibmWhiteNormal14
+                  : theme.textTheme.ibmWhiteNormal16,
             ),
             const SizedBox(height: 56),
             TextButton(
@@ -563,7 +570,12 @@ learnMoreAboutAutonomySecurityWidget(BuildContext context,
       padding: EdgeInsets.zero,
       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
     ),
-    child: Text(title, style: theme.textTheme.linkStyle),
+    child: Text(
+      title,
+      style: ResponsiveLayout.isMobile
+          ? theme.textTheme.linkStyle
+          : theme.textTheme.linkStyle16,
+    ),
   );
 }
 
@@ -580,9 +592,19 @@ wantMoreSecurityWidget(BuildContext context, WalletApp walletApp) {
       padding: const EdgeInsets.all(10),
       color: AppColor.secondaryDimGreyBackground,
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text("want_more_sec".tr(), style: theme.textTheme.atlasDimgreyBold14),
+        Text(
+          "want_more_sec".tr(),
+          style: ResponsiveLayout.isMobile
+              ? theme.textTheme.atlasDimgreyBold14
+              : theme.textTheme.atlasDimgreyBold16,
+        ),
         const SizedBox(height: 5),
-        Text(introText, style: theme.textTheme.atlasBlackNormal14),
+        Text(
+          introText,
+          style: ResponsiveLayout.isMobile
+              ? theme.textTheme.atlasBlackNormal14
+              : theme.textTheme.atlasBlackNormal16,
+        ),
         const SizedBox(height: 10),
         TextButton(
           onPressed: () =>

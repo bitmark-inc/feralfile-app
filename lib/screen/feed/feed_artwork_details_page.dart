@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/au_outlined_button.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -132,14 +133,19 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
                           children: [
                             RichText(
                                 text: TextSpan(
-                              style: theme.textTheme.atlasBlackBold12,
+                              style: ResponsiveLayout.isMobile
+                                  ? theme.textTheme.atlasBlackBold12
+                                  : theme.textTheme.atlasBlackBold14,
                               children: [
                                 TextSpan(
-                                  text: "_by".tr(args: [feedEvent.actionRepresentation]),
+                                  text: "_by".tr(
+                                      args: [feedEvent.actionRepresentation]),
                                 ),
                                 TextSpan(
                                   text: followingName,
-                                  style: theme.textTheme.atlasBlackBold12,
+                                  style: ResponsiveLayout.isMobile
+                                      ? theme.textTheme.atlasBlackBold12
+                                      : theme.textTheme.atlasBlackBold14,
                                   recognizer: TapGestureRecognizer()
                                     ..onTap = () => Navigator.of(context)
                                         .pushNamed(AppRouter.galleryPage,
@@ -150,8 +156,12 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
                                 )
                               ],
                             )),
-                            Text(getDateTimeRepresentation(feedEvent.timestamp),
-                                style: theme.textTheme.atlasBlackNormal12),
+                            Text(
+                              getDateTimeRepresentation(feedEvent.timestamp),
+                              style: ResponsiveLayout.isMobile
+                                  ? theme.textTheme.atlasBlackNormal12
+                                  : theme.textTheme.atlasBlackNormal14,
+                            ),
                           ],
                         ),
                         const SizedBox(height: 2.0),

@@ -37,6 +37,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/penrose_top_bar_view.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -95,7 +96,8 @@ class _HomePageState extends State<HomePage>
       final hiddenAddresses = value[2];
       final nftBloc = context.read<NftCollectionBloc>();
       nftBloc.add(UpdateHiddenTokens(ownerAddresses: hiddenAddresses));
-      nftBloc.add(RefreshTokenEvent(addresses: addresses, debugTokens: indexerIds));
+      nftBloc.add(
+          RefreshTokenEvent(addresses: addresses, debugTokens: indexerIds));
       nftBloc.add(RequestIndexEvent(addresses));
       context.read<HomeBloc>().add(CheckReviewAppEvent());
     });
@@ -230,14 +232,14 @@ class _HomePageState extends State<HomePage>
   Widget _loadingView(BuildContext context) {
     return Center(
         child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.fromLTRB(0, 72, 0, 48),
-              child: autonomyLogo,
-            ),
-            loadingIndicator(),
-          ],
-        ));
+      children: [
+        Container(
+          padding: const EdgeInsets.fromLTRB(0, 72, 0, 48),
+          child: autonomyLogo,
+        ),
+        loadingIndicator(),
+      ],
+    ));
   }
 
   Widget _emptyGallery(BuildContext context) {
@@ -282,8 +284,11 @@ class _HomePageState extends State<HomePage>
 
     final tokenIDs = tokens.map((element) => element.id).toList();
 
-    const int cellPerRow = 3;
+    const int cellPerRowPhone = 3;
+    const int cellPerRowTablet = 6;
     const double cellSpacing = 3.0;
+    int cellPerRow =
+        ResponsiveLayout.isMobile ? cellPerRowPhone : cellPerRowTablet;
 
     if (_cachedImageSize == 0) {
       final estimatedCellWidth =
@@ -299,7 +304,7 @@ class _HomePageState extends State<HomePage>
         child: autonomyLogo,
       )),
       SliverGrid(
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: cellPerRow,
           crossAxisSpacing: cellSpacing,
           mainAxisSpacing: cellSpacing,
@@ -448,7 +453,8 @@ class _HomePageState extends State<HomePage>
     Future.delayed(const Duration(milliseconds: 3500), () async {
       final addresses = await getAddresses();
       final manualTokenIds = await getManualTokenIds();
-      final hiddenAddress = await injector<AccountService>().getHiddenAddresses();
+      final hiddenAddress =
+          await injector<AccountService>().getHiddenAddresses();
       final nftBloc = context.read<NftCollectionBloc>();
       nftBloc.add(UpdateHiddenTokens(ownerAddresses: hiddenAddress));
       nftBloc.add(

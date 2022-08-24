@@ -12,12 +12,14 @@ import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dar
 import 'package:autonomy_flutter/screen/report/sentry_report.dart';
 import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/log.dart';
 
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -82,8 +84,8 @@ ErrorEvent? translateError(Object exception) {
       return dioErrorEvent;
     }
   } else if (exception is CameraException) {
-    return ErrorEvent(null, "enable_camera".tr(),
-        "qr_scan_require".tr(), ErrorItemState.camera);
+    return ErrorEvent(null, "enable_camera".tr(), "qr_scan_require".tr(),
+        ErrorItemState.camera);
   } else if (exception is PlatformException) {
     switch (exception.code) {
       case 'invalidDeeplink':
@@ -154,6 +156,10 @@ Future showErrorDialog(BuildContext context, String title, String description,
       context: context,
       enableDrag: false,
       backgroundColor: Colors.transparent,
+      constraints: BoxConstraints(
+          maxWidth: ResponsiveLayout.isMobile
+              ? double.infinity
+              : Constants.maxWidthModalTablet),
       builder: (context) {
         return Container(
           color: Colors.transparent,
@@ -262,8 +268,7 @@ void showErrorDialogFromException(Object exception,
     lastException = exception;
   } else if (context != null) {
     if (exception is AbortedException) {
-      UIHelper.showInfoDialog(
-          context, "aborted".tr(), "action_aborted".tr(),
+      UIHelper.showInfoDialog(context, "aborted".tr(), "action_aborted".tr(),
           isDismissible: true, autoDismissAfter: 3);
       return;
     } else if (exception is RequiredPremiumFeature) {
@@ -342,9 +347,10 @@ String getTezosErrorMessage(TezartNodeError err) {
   if (err.message.contains("empty_implicit_contract") ||
       err.message.contains("balance_too_low")) {
     message = "not_enough_tz".tr();
-        //"Transaction is likely to fail. Please make sure you have enough of Tezos balance to perform this action.";
+    //"Transaction is likely to fail. Please make sure you have enough of Tezos balance to perform this action.";
   } else if (err.message.contains("script_rejected")) {
-    message = "contract_malformed".tr();// "The operation failed. Contract malformed or deprecated.";
+    message = "contract_malformed"
+        .tr(); // "The operation failed. Contract malformed or deprecated.";
   } else {
     message = "operation_failed_with".tr(args: [err.message]);
   }

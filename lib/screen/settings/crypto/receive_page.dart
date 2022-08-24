@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -39,7 +40,9 @@ class ReceivePage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              payload.type == CryptoType.ETH ? "receive_eth".tr() : "receive_xtz".tr(),
+              payload.type == CryptoType.ETH
+                  ? "receive_eth".tr()
+                  : "receive_xtz".tr(),
               style: theme.textTheme.headline1,
             ),
             const SizedBox(height: 96),
@@ -60,7 +63,9 @@ class ReceivePage extends StatelessWidget {
                 children: [
                   Text(
                     "deposit_address".tr(),
-                    style: theme.textTheme.atlasGreyBold12,
+                    style: ResponsiveLayout.isMobile
+                        ? theme.textTheme.atlasGreyBold12
+                        : theme.textTheme.atlasGreyBold14,
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8),

@@ -22,6 +22,7 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
@@ -199,7 +200,9 @@ class _ScanQRPageState extends State<ScanQRPage> with RouteAware {
             const SizedBox(height: 24),
             Text(
               "apps".tr(),
-              style: theme.textTheme.atlasWhiteBold12,
+              style: ResponsiveLayout.isMobile
+                  ? theme.textTheme.atlasWhiteBold12
+                  : theme.textTheme.atlasWhiteBold14,
             ),
             Text(
               "such_as_openSea".tr(),
@@ -208,7 +211,9 @@ class _ScanQRPageState extends State<ScanQRPage> with RouteAware {
             const SizedBox(height: 8),
             Text(
               "wallets".tr(),
-              style: theme.textTheme.atlasWhiteBold12,
+              style: ResponsiveLayout.isMobile
+                  ? theme.textTheme.atlasWhiteBold12
+                  : theme.textTheme.atlasWhiteBold14,
             ),
             Text(
               'such_as_metamask'.tr(),
@@ -217,7 +222,9 @@ class _ScanQRPageState extends State<ScanQRPage> with RouteAware {
             const SizedBox(height: 8),
             Text(
               "h_autonomy".tr(),
-              style: theme.textTheme.atlasWhiteBold12,
+              style: ResponsiveLayout.isMobile
+                  ? theme.textTheme.atlasWhiteBold12
+                  : theme.textTheme.atlasWhiteBold14,
             ),
             Text(
               'on_tv_or_desktop'.tr(),

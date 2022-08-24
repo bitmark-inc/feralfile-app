@@ -22,6 +22,7 @@ import 'package:autonomy_flutter/util/style.dart';
 
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -209,7 +210,9 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
 
                     return Text(
                       followingName,
-                      style: theme.textTheme.atlasWhiteBold12,
+                      style: ResponsiveLayout.isMobile
+                          ? theme.textTheme.atlasWhiteBold12
+                          : theme.textTheme.atlasWhiteBold14,
                       overflow: TextOverflow.ellipsis,
                     );
                   })),
@@ -228,7 +231,9 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
                         ),
                         TextSpan(
                           text: 'nft_indexing'.tr(),
-                          style: theme.textTheme.atlasWhiteItalic12,
+                          style: ResponsiveLayout.isMobile
+                              ? theme.textTheme.atlasWhiteItalic12
+                              : theme.textTheme.atlasWhiteItalic14,
                         ),
                       ],
                     )),
@@ -262,7 +267,9 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
               children: [
                 Text(
                   "h_autonomy".tr(),
-                  style: theme.textTheme.atlasWhiteBold12,
+                  style: ResponsiveLayout.isMobile
+                      ? theme.textTheme.atlasWhiteBold12
+                      : theme.textTheme.atlasWhiteBold14,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),
@@ -324,7 +331,9 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
                       Flexible(
                         child: Text(
                           followingName,
-                          style: theme.textTheme.atlasWhiteBold12,
+                          style: ResponsiveLayout.isMobile
+                              ? theme.textTheme.atlasWhiteBold12
+                              : theme.textTheme.atlasWhiteBold14,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -343,7 +352,9 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
                             ),
                             TextSpan(
                               text: asset.title.isEmpty ? 'nft' : asset.title,
-                              style: theme.textTheme.atlasWhiteItalic12,
+                              style: ResponsiveLayout.isMobile
+                                  ? theme.textTheme.atlasWhiteItalic12
+                                  : theme.textTheme.atlasWhiteItalic14,
                             ),
                             if (event.action == 'transfer' &&
                                 artistName != null) ...[
@@ -392,15 +403,16 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
     switch (step) {
       case 1:
         assetPath = "assets/images/feed_onboarding_insight.png";
-        title =  "get_insights".tr();//"Get insights about the artwork";
+        title = "get_insights".tr(); //"Get insights about the artwork";
         break;
       case 2:
         assetPath = "assets/images/feed_onboarding_swipe.png";
-        title = "swipe_to".tr();// "Swipe to discover more artworks";
+        title = "swipe_to".tr(); // "Swipe to discover more artworks";
         break;
       default:
         assetPath = "assets/images/feed_onboarding.png";
-        title = "discover_what".tr();// "Discover what your collected artists mint or collect";
+        title = "discover_what"
+            .tr(); // "Discover what your collected artists mint or collect";
     }
 
     return Container(

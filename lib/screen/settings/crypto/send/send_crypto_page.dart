@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_state.d
 import 'package:autonomy_flutter/screen/settings/crypto/send_review_page.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
@@ -125,7 +126,9 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                       ? GestureDetector(
                           child: Text(
                             _maxAmountText(state),
-                            style: theme.textTheme.atlasGreyUnderline12,
+                            style: ResponsiveLayout.isMobile
+                                ? theme.textTheme.atlasGreyUnderline12
+                                : theme.textTheme.atlasGreyUnderline14,
                           ),
                           onTap: () {
                             String amountInStr = _maxAmount(state);

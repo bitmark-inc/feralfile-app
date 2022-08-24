@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -66,13 +67,17 @@ class AccessMethodPage extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 'supported_networks'.tr(),
-                style: theme.textTheme.atlasBlackNormal14,
+                style: ResponsiveLayout.isMobile
+                    ? theme.textTheme.atlasBlackNormal14
+                    : theme.textTheme.atlasBlackNormal16,
               ),
               const SizedBox(height: 3),
               RichText(
                 text: TextSpan(
                   text: ' •  ',
-                  style: theme.textTheme.atlasBlackNormal14,
+                  style: ResponsiveLayout.isMobile
+                      ? theme.textTheme.atlasBlackNormal14
+                      : theme.textTheme.atlasBlackNormal16,
                   children: [
                     TextSpan(text: 'ethereum_mainnet'.tr()),
                   ],
@@ -81,13 +86,17 @@ class AccessMethodPage extends StatelessWidget {
               const SizedBox(height: 3),
               Text(
                 'unsupported_networks'.tr(),
-                style: theme.textTheme.atlasBlackNormal14,
+                style: ResponsiveLayout.isMobile
+                    ? theme.textTheme.atlasBlackNormal14
+                    : theme.textTheme.atlasBlackNormal16,
               ),
               const SizedBox(height: 3),
               RichText(
                 text: TextSpan(
                   text: ' •  ',
-                  style: theme.textTheme.atlasBlackNormal14,
+                  style: ResponsiveLayout.isMobile
+                      ? theme.textTheme.atlasBlackNormal14
+                      : theme.textTheme.atlasBlackNormal16,
                   children: [
                     TextSpan(text: 'polygon'.tr()),
                   ],
@@ -97,7 +106,9 @@ class AccessMethodPage extends StatelessWidget {
               RichText(
                 text: TextSpan(
                   text: ' •  ',
-                  style: theme.textTheme.atlasBlackNormal14,
+                  style: ResponsiveLayout.isMobile
+                      ? theme.textTheme.atlasBlackNormal14
+                      : theme.textTheme.atlasBlackNormal16,
                   children: [
                     TextSpan(text: 'binance_smart_chain'.tr()),
                   ],

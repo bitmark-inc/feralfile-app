@@ -6,6 +6,7 @@
 //
 
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_state.dart';
@@ -51,7 +52,11 @@ class PreferenceView extends StatelessWidget {
           _preferenceItem(
             context,
             state.authMethodName,
-            "use_device_passcode".tr(args: [state.authMethodName != "device_passcode".tr() ? state.authMethodName : "device_passcode".tr()]),
+            "use_device_passcode".tr(args: [
+              state.authMethodName != "device_passcode".tr()
+                  ? state.authMethodName
+                  : "device_passcode".tr()
+            ]),
             //"Use ${state.authMethodName != 'Device Passcode' ? state.authMethodName : 'device passcode'} to unlock the app, transact, and authenticate.",
             state.isDevicePasscodeEnabled,
             (value) {
@@ -89,14 +94,19 @@ class PreferenceView extends StatelessWidget {
                 ),
                 const SizedBox(height: 10),
                 GestureDetector(
-                    child: Text("learn_anonymize".tr(),
-                        textAlign: TextAlign.left,
-                        style: theme.textTheme.linkStyle),
+                    child: Text(
+                      "learn_anonymize".tr(),
+                      textAlign: TextAlign.left,
+                      style: ResponsiveLayout.isMobile
+                          ? theme.textTheme.linkStyle
+                          : theme.textTheme.linkStyle16,
+                    ),
                     onTap: () => Navigator.of(context).pushNamed(
                           AppRouter.githubDocPage,
                           arguments: {
                             "document": "protect_your_usage_data.md",
-                            "title": "how_protect_data".tr()// "How we protect your usage data"
+                            "title": "how_protect_data"
+                                .tr() // "How we protect your usage data"
                           },
                         )),
               ],
@@ -115,7 +125,8 @@ class PreferenceView extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text("hidden_artworks".tr(), style: theme.textTheme.headline4),
+                      Text("hidden_artworks".tr(),
+                          style: theme.textTheme.headline4),
                       Icon(
                         Icons.navigate_next,
                         color: theme.colorScheme.primary,
