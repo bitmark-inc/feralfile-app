@@ -143,8 +143,8 @@ class TezosBeaconChannel {
                   final String destination = element["destination"] ?? "";
                   final String amount = element["amount"] ?? "0";
                   final String? entrypoint = element["entrypoint"];
-                  final dynamic parameters =
-                      json.decode(json.encode(element["parameters"]));
+                  final dynamic parameters = element["parameters"] != null ?
+                      json.decode(json.encode(element["parameters"])) : null;
 
                   final operation = TransactionOperation(
                       amount: int.parse(amount),
