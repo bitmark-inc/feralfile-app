@@ -7,6 +7,7 @@
 
 import 'package:autonomy_flutter/model/tzkt_operation.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -37,7 +38,9 @@ class TezosTXRowView extends StatelessWidget {
         children: [
           Text(
             formatter.format(tx.timestamp.toLocal()),
-            style: theme.textTheme.ibmBlackNormal14,
+            style: ResponsiveLayout.isMobile
+                ? theme.textTheme.ibmBlackNormal14
+                : theme.textTheme.ibmBlackNormal16,
           ),
           const SizedBox(height: 3),
           Row(
@@ -85,7 +88,9 @@ class TezosTXRowView extends StatelessWidget {
     } else if (tx.parameter != null) {
       return tx.parameter!.entrypoint.snakeToCapital();
     } else {
-      return tx.sender?.address == currentAddress ? "sent_xtz".tr() : "received_xtz".tr();
+      return tx.sender?.address == currentAddress
+          ? "sent_xtz".tr()
+          : "received_xtz".tr();
     }
   }
 

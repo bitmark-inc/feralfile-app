@@ -7,6 +7,7 @@
 
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -80,8 +81,13 @@ class _LinkBeaconConnectPageState extends State<LinkBeaconConnectPage> {
                     if (_copied) ...[
                       const SizedBox(height: 24),
                       Center(
-                          child: Text("copied".tr(),
-                              style: theme.textTheme.atlasBlackBold12)),
+                        child: Text(
+                          "copied".tr(),
+                          style: ResponsiveLayout.isMobile
+                              ? theme.textTheme.atlasBlackBold12
+                              : theme.textTheme.atlasBlackBold14,
+                        ),
+                      ),
                     ]
                   ],
                 ),

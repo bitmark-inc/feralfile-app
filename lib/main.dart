@@ -20,6 +20,7 @@ import 'package:autonomy_flutter/util/au_cached_manager.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:floor/floor.dart';
 import 'package:flutter/cupertino.dart';
@@ -98,6 +99,7 @@ _setupApp() async {
   await injector<AWSService>().initServices();
   final countOpenApp = injector<ConfigurationService>().countOpenApp() ?? 0;
   injector<ConfigurationService>().setCountOpenApp(countOpenApp + 1);
+
   BlocOverrides.runZoned(
     () => runApp(EasyLocalization(
         supportedLocales: const [Locale('en', 'US')],
@@ -126,25 +128,33 @@ Future<void> _deleteLocalDatabase() async {
 
 class AutonomyApp extends StatelessWidget {
   const AutonomyApp({Key? key}) : super(key: key);
+  static double maxWidth = 0;
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Autonomy',
-      theme: AppTheme.lightTheme(),
-      darkTheme: AppTheme.lightTheme(),
-      localizationsDelegates: context.localizationDelegates,
-      supportedLocales: context.supportedLocales,
-      locale: context.locale,
-      debugShowCheckedModeBanner: false,
-      navigatorKey: injector<NavigationService>().navigatorKey,
-      navigatorObservers: [
-        routeObserver,
-        SentryNavigatorObserver(),
-        HeroController()
-      ],
-      initialRoute: AppRouter.onboardingPage,
-      onGenerateRoute: AppRouter.onGenerateRoute,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        maxWidth = constraints.maxWidth;
+        return MaterialApp(
+          title: 'Autonomy',
+          theme: ResponsiveLayout.isMobile
+              ? AppTheme.lightTheme()
+              : AppTheme.tabletLightTheme(),
+          darkTheme: AppTheme.lightTheme(),
+          localizationsDelegates: context.localizationDelegates,
+          supportedLocales: context.supportedLocales,
+          locale: context.locale,
+          debugShowCheckedModeBanner: false,
+          navigatorKey: injector<NavigationService>().navigatorKey,
+          navigatorObservers: [
+            routeObserver,
+            SentryNavigatorObserver(),
+            HeroController()
+          ],
+          initialRoute: AppRouter.onboardingPage,
+          onGenerateRoute: AppRouter.onGenerateRoute,
+        );
+      },
     );
   }
 }

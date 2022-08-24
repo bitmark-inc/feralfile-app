@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/wallet_connect_dapp_service/wallet_connect_dapp_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -71,7 +72,8 @@ class _LinkWalletConnectPageState extends State<LinkWalletConnectPage> {
                     addTitleSpace(),
                     if (widget.unableOpenAppname.isNotEmpty) ...[
                       Text(
-                          'sctl_we_were_unable'.tr(args: ['widget.unableOpenAppname']),
+                          'sctl_we_were_unable'
+                              .tr(args: ['widget.unableOpenAppname']),
                           //"We were unable to open ${widget.unableOpenAppname} on this device.",
                           style: theme.textTheme.headline4),
                       const SizedBox(height: 24),
@@ -86,8 +88,12 @@ class _LinkWalletConnectPageState extends State<LinkWalletConnectPage> {
                     if (_copied) ...[
                       const SizedBox(height: 24),
                       Center(
-                          child: Text("copied".tr(),
-                              style: theme.textTheme.atlasBlackBold12)),
+                          child: Text(
+                        "copied".tr(),
+                        style: ResponsiveLayout.isMobile
+                            ? theme.textTheme.atlasBlackBold12
+                            : theme.textTheme.atlasBlackBold14,
+                      )),
                     ]
                   ],
                 ),

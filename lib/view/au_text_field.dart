@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:flutter/material.dart';
 
@@ -57,13 +58,17 @@ class AuTextField extends StatelessWidget {
                           if (title.isNotEmpty) ...[
                             Text(
                               title,
-                              style: theme.textTheme.atlasGreyBold12,
+                              style: ResponsiveLayout.isMobile
+                                  ? theme.textTheme.atlasGreyBold12
+                                  : theme.textTheme.atlasGreyBold14,
                             ),
                           ],
                           subTitleView != null
                               ? Text(
                                   " | ",
-                                  style: theme.textTheme.atlasGreyNormal12,
+                                  style: ResponsiveLayout.isMobile
+                                      ? theme.textTheme.atlasGreyNormal12
+                                      : theme.textTheme.atlasGreyNormal14,
                                 )
                               : const SizedBox(),
                           subTitleView ?? const SizedBox(),
@@ -95,7 +100,9 @@ class AuTextField extends StatelessWidget {
           border: InputBorder.none,
           hintText: placeholder,
           hintMaxLines: hintMaxLines,
-          hintStyle: theme.textTheme.atlasSpanishGreyNormal16,
+          hintStyle: ResponsiveLayout.isMobile
+              ? theme.textTheme.atlasSpanishGreyNormal16
+              : theme.textTheme.atlasSpanishGreyNormal20,
         ),
         keyboardType: keyboardType,
         style: theme.textTheme.subtitle1,

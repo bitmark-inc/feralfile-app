@@ -184,4 +184,8 @@ extension CryptoTypeHelpers on CryptoType {
 class Constants {
   static const minCountToReview = 10;
   static const durationToReview = Duration(days: 30);
+  // Responsive
+  static const kTabletBreakpoint = 480;
+  static const kDesktopBreakpoint = 1024;
+  static const maxWidthModalTablet = 387.0;
 }

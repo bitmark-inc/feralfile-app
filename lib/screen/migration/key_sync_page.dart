@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/screen/migration/key_sync_state.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -120,13 +121,18 @@ class KeySyncPage extends StatelessWidget {
                             children: [
                               Text(
                                 'how_it_work'.tr(),
-                                style: theme.textTheme.atlasDimgreyBold14,
+                                style: ResponsiveLayout.isMobile
+                                    ? theme.textTheme.atlasDimgreyBold14
+                                    : theme.textTheme.atlasDimgreyBold16,
                               ),
                               const SizedBox(height: 5),
                               Text(
                                 "data_contain".tr(),
-                                  //"All the data contained in the other keychain will be imported into the defined default one and converted into a full account. If you were using it as the main wallet, you will be able to continue to do so after the conversion. No keys are lost.",
-                                  style: theme.textTheme.atlasBlackNormal14),
+                                //"All the data contained in the other keychain will be imported into the defined default one and converted into a full account. If you were using it as the main wallet, you will be able to continue to do so after the conversion. No keys are lost.",
+                                style: ResponsiveLayout.isMobile
+                                    ? theme.textTheme.atlasBlackNormal14
+                                    : theme.textTheme.atlasBlackNormal16,
+                              ),
                               const SizedBox(height: 10),
                               TextButton(
                                 onPressed: () => Navigator.of(context)
@@ -137,8 +143,12 @@ class KeySyncPage extends StatelessWidget {
                                   tapTargetSize:
                                       MaterialTapTargetSize.shrinkWrap,
                                 ),
-                                child: Text("learn_security".tr(),
-                                    style: theme.textTheme.linkStyle),
+                                child: Text(
+                                  "learn_security".tr(),
+                                  style: ResponsiveLayout.isMobile
+                                      ? theme.textTheme.linkStyle
+                                      : theme.textTheme.linkStyle16,
+                                ),
                               ),
                             ],
                           ),

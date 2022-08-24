@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -112,6 +113,7 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
     final addressSource = widget.payload.type.source;
     final theme = Theme.of(context);
     final addressStyle = theme.textTheme.subtitle1;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -131,7 +133,9 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
                   onPressed: () => Share.share(address),
                   child: Text(
                     "share".tr(),
-                    style: theme.textTheme.atlasBlackBold12,
+                    style: ResponsiveLayout.isMobile
+                        ? theme.textTheme.atlasBlackBold12
+                        : theme.textTheme.atlasBlackBold14,
                   ),
                 )
               ],
@@ -198,8 +202,7 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
             const SizedBox(width: 17.5),
             Text('add_connection'.tr(), style: theme.textTheme.headline4),
           ]),
-          bottomWidget: Text(
-              "connect_dapp".tr(),
+          bottomWidget: Text("connect_dapp".tr(),
               //"Connect this address to an external dapp or platform.",
               style: theme.textTheme.bodyText1),
           onTap: () {

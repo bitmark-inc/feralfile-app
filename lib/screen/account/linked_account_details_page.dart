@@ -6,6 +6,7 @@
 //
 
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
@@ -270,7 +271,9 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
             style: const ButtonStyle(alignment: Alignment.centerRight),
             child: Text(
               "share".tr(),
-              style: theme.textTheme.atlasBlackBold12,
+              style: ResponsiveLayout.isMobile
+                  ? theme.textTheme.atlasBlackBold12
+                  : theme.textTheme.atlasBlackBold14,
             ),
           )
         ],
@@ -316,7 +319,8 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text("hide_from_collection".tr(), style: theme.textTheme.headline4),
+              Text("hide_from_collection".tr(),
+                  style: theme.textTheme.headline4),
               CupertinoSwitch(
                 value: isHideGalleryEnabled,
                 onChanged: (value) async {
@@ -338,7 +342,8 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
           ),
           const SizedBox(height: 14),
           Text(
-            "do_not_show_nft".tr(),//"Do not show this account's NFTs in the collection view."
+            "do_not_show_nft"
+                .tr(), //"Do not show this account's NFTs in the collection view."
             style: theme.textTheme.bodyText1,
           ),
         ],
@@ -355,13 +360,11 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
         Text("backup".tr(), style: theme.textTheme.headline1),
         const SizedBox(height: 24),
         if (_source == 'FeralFile') ...[
-          Text(
-              "ba_the_keys_for_thisFf".tr(),
+          Text("ba_the_keys_for_thisFf".tr(),
               //'The keys for this account are either automatically backed up by Feral File or managed by your web3 wallet (if you connected one).',
               style: theme.textTheme.bodyText1),
         ] else ...[
-          Text(
-              "ba_the_keys_for_thisFf".tr(args: [_source]),
+          Text("ba_the_keys_for_thisFf".tr(args: [_source]),
               //"The keys for this account are in $_source. You should manage your key backups there.",
               style: theme.textTheme.bodyText1),
         ],

@@ -21,6 +21,7 @@ import 'package:autonomy_flutter/service/cloud_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -180,8 +181,7 @@ class _SettingsPageState extends State<SettingsPage>
                       'rebuild_metadata'.tr(),
                       style: theme.textTheme.headline4,
                     ),
-                    bottomWidget: Text(
-                        'clear_cache'.tr(),
+                    bottomWidget: Text('clear_cache'.tr(),
                         style: theme.textTheme.bodyText1),
                     onTap: () => _showRebuildGalleryDialog()),
                 addDivider(),
@@ -190,8 +190,7 @@ class _SettingsPageState extends State<SettingsPage>
                       'forget_exist'.tr(),
                       style: theme.textTheme.headline4,
                     ),
-                    bottomWidget: Text(
-                        "erase_all".tr(),
+                    bottomWidget: Text("erase_all".tr(),
                         //'Erase all information about me and delete my keys from my cloud backup including the keys on this device.',
                         style: theme.textTheme.bodyText1),
                     onTap: () => _showForgetIExistDialog()),
@@ -200,7 +199,10 @@ class _SettingsPageState extends State<SettingsPage>
                   if (_packageInfo != null)
                     GestureDetector(
                         child: Text(
-                          "version_".tr(namedArgs: {"version":_packageInfo!.version,"buildNumber":_packageInfo!.buildNumber}),
+                          "version_".tr(namedArgs: {
+                            "version": _packageInfo!.version,
+                            "buildNumber": _packageInfo!.buildNumber
+                          }),
                           //"Version ${_packageInfo!.version}(${_packageInfo!.buildNumber})",
                           style: theme.textTheme.headline5,
                         ),
@@ -216,7 +218,9 @@ class _SettingsPageState extends State<SettingsPage>
                               await UIHelper.showInfoDialog(
                                   context,
                                   "demo_mode".tr(),
-                                  "demo_mode_en".tr(args: [newValue ? "enable".tr() : "disable".tr()]),
+                                  "demo_mode_en".tr(args: [
+                                    newValue ? "enable".tr() : "disable".tr()
+                                  ]),
                                   //"Demo mode ${newValue ? 'enabled' : 'disabled'}!",
                                   autoDismissAfter: 1);
                             }
@@ -228,8 +232,12 @@ class _SettingsPageState extends State<SettingsPage>
                   TextButton(
                       onPressed: () => injector<VersionService>()
                           .showReleaseNotes(onlyWhenUnread: false),
-                      child: Text("release_notes".tr(),
-                          style: theme.textTheme.linkStyle2)),
+                      child: Text(
+                        "release_notes".tr(),
+                        style: ResponsiveLayout.isMobile
+                            ? theme.textTheme.linkStyle2
+                            : theme.textTheme.linkStyle14,
+                      )),
                   const SizedBox(height: 10),
                   eulaAndPrivacyView(context),
                 ]),
@@ -289,9 +297,7 @@ class _SettingsPageState extends State<SettingsPage>
       //"This action will safely clear local cache and\nre-download all artwork metadata. We recommend only doing this if instructed to do so by customer support to resolve a problem.",
       "rebuild".tr(),
       () async {
-        await injector<NftCollectionBloc>()
-            .tokensService
-            .purgeCachedGallery();
+        await injector<NftCollectionBloc>().tokensService.purgeCachedGallery();
         if (!mounted) return;
         Navigator.of(context).popUntil((route) =>
             route.settings.name == AppRouter.homePage ||

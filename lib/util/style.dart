@@ -6,6 +6,7 @@
 //
 
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 
 import 'package:flutter/material.dart';
@@ -36,7 +37,9 @@ MarkdownStyleSheet markDownBlackStyle(BuildContext context) {
 
 MarkdownStyleSheet markDownStyle(BuildContext context, Color textColor) {
   final theme = Theme.of(context);
-  final bodyText2 = theme.textTheme.ibmGreyNormal16;
+  final bodyText2 = ResponsiveLayout.isMobile
+      ? theme.textTheme.ibmGreyNormal16
+      : theme.textTheme.ibmGreyNormal20;
   return MarkdownStyleSheet(
     a: const TextStyle(
       fontFamily: AppTheme.atlasGrotesk,

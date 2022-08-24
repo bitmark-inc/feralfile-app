@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -25,12 +26,14 @@ class BugBountyPage extends StatelessWidget {
     final theme = Theme.of(context);
 
     Map<String, String> guidelines = {
-      "critical".tr():
-      "guidelines_critical".tr(),//"Key leaks or invalid transactions resulting in asset loss: Up to \$5,000",
-      "high".tr(): "guidelines_high".tr(),// "Crashes or user data loss: \$100 - \$500",
-      "medium".tr():"guidelines_medium".tr(),
-          //"Incorrect flows or incompatibility with protocol or dapps: \$50 - \$100",
-      "low".tr(): "guidelines_low".tr(),// "UI typos, alignment errors: \$10 - \$50",
+      "critical".tr(): "guidelines_critical"
+          .tr(), //"Key leaks or invalid transactions resulting in asset loss: Up to \$5,000",
+      "high".tr():
+          "guidelines_high".tr(), // "Crashes or user data loss: \$100 - \$500",
+      "medium".tr(): "guidelines_medium".tr(),
+      //"Incorrect flows or incompatibility with protocol or dapps: \$50 - \$100",
+      "low".tr():
+          "guidelines_low".tr(), // "UI typos, alignment errors: \$10 - \$50",
     };
 
     return Scaffold(
@@ -62,22 +65,23 @@ class BugBountyPage extends StatelessWidget {
                       style: theme.textTheme.bodyText1,
                       children: <TextSpan>[
                     TextSpan(
-                      text:
-                          "only_accept_new_bug".tr(),
-                          //'We only accept new bug reports for our iPhone or Android Apps; please check our ',
+                      text: "only_accept_new_bug".tr(),
+                      //'We only accept new bug reports for our iPhone or Android Apps; please check our ',
                     ),
                     TextSpan(
-                        recognizer: TapGestureRecognizer()
-                          ..onTap = () => launchUrl(
-                                Uri.parse(KNOWN_BUGS_LINK),
-                                mode: LaunchMode.externalApplication,
-                              ),
-                        text: 'known_bugs'.tr(),
-                        style: theme.textTheme.linkStyle),
+                      recognizer: TapGestureRecognizer()
+                        ..onTap = () => launchUrl(
+                              Uri.parse(KNOWN_BUGS_LINK),
+                              mode: LaunchMode.externalApplication,
+                            ),
+                      text: 'known_bugs'.tr(),
+                      style: ResponsiveLayout.isMobile
+                          ? theme.textTheme.linkStyle
+                          : theme.textTheme.linkStyle16,
+                    ),
                     TextSpan(
-                      text:
-                          "not_reward_yet".tr(),
-                          //' before submitting. Bug reports for web applications or any other projects are out of scope and will not be considered for rewards.',
+                      text: "not_reward_yet".tr(),
+                      //' before submitting. Bug reports for web applications or any other projects are out of scope and will not be considered for rewards.',
                     ),
                   ])),
               const SizedBox(height: 32),
@@ -96,7 +100,9 @@ class BugBountyPage extends StatelessWidget {
                   children: [
                     Text(
                       'guidelines'.tr(),
-                      style: theme.textTheme.atlasDimgreyBold14,
+                      style: ResponsiveLayout.isMobile
+                          ? theme.textTheme.atlasDimgreyBold14
+                          : theme.textTheme.atlasDimgreyBold16,
                     ),
                     const SizedBox(height: 5),
                     ...guidelines.keys
@@ -116,13 +122,17 @@ class BugBountyPage extends StatelessWidget {
                                     children: <TextSpan>[
                                       TextSpan(
                                         text: e,
-                                        style:
-                                            theme.textTheme.atlasBlackNormal14,
+                                        style: ResponsiveLayout.isMobile
+                                            ? theme.textTheme.atlasBlackNormal14
+                                            : theme
+                                                .textTheme.atlasBlackNormal16,
                                       ),
                                       TextSpan(
                                         text: " – ${guidelines[e]!}",
-                                        style:
-                                            theme.textTheme.atlasBlackNormal14,
+                                        style: ResponsiveLayout.isMobile
+                                            ? theme.textTheme.atlasBlackNormal14
+                                            : theme
+                                                .textTheme.atlasBlackNormal16,
                                       ),
                                     ],
                                   ),
@@ -143,8 +153,7 @@ class BugBountyPage extends StatelessWidget {
               const SizedBox(height: 32),
               Text('disclosure_policy'.tr(), style: theme.textTheme.headline4),
               const SizedBox(height: 16),
-              Text(
-                "support_publication".tr(),
+              Text("support_publication".tr(),
                   //'We support the open publication of security research. We do ask that you give us a heads-up before any publication so we can do a final sync-up and check. ',
                   style: theme.textTheme.bodyText1),
               const SizedBox(height: 56),

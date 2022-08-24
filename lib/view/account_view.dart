@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/global_receive/receive_detail_page.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -154,7 +155,9 @@ Widget _blockchainAddressView(
         const SizedBox(width: 8),
         Text(
           account.accountNumber.mask(4),
-          style: theme.textTheme.ibmBlackNormal14,
+          style: ResponsiveLayout.isMobile
+              ? theme.textTheme.ibmBlackNormal14
+              : theme.textTheme.ibmBlackNormal16,
         ),
       ],
     ),
@@ -273,7 +276,9 @@ Widget _linkedBox(BuildContext context) {
     )),
     child: Text(
       "linked".tr(),
-      style: theme.textTheme.ibmGreyNormal12,
+      style: ResponsiveLayout.isMobile
+          ? theme.textTheme.ibmGreyNormal12
+          : theme.textTheme.ibmGreyNormal14,
     ),
   );
 }

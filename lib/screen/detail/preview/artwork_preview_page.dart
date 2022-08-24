@@ -29,6 +29,7 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:cast/cast.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -280,6 +281,10 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
               if (injector<ConfigurationService>().isFullscreenIntroEnabled()) {
                 showModalBottomSheet<void>(
                   context: context,
+                  constraints: BoxConstraints(
+                      maxWidth: ResponsiveLayout.isMobile
+                          ? double.infinity
+                          : Constants.maxWidthModalTablet),
                   builder: (BuildContext context) {
                     return _fullscreenIntroPopup();
                   },
@@ -347,7 +352,9 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
           Text(
             asset.title,
             overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.atlasWhiteBold12,
+            style: ResponsiveLayout.isMobile
+                ? theme.textTheme.atlasWhiteBold12
+                : theme.textTheme.atlasWhiteBold14,
           ),
           if (artistName != null) ...[
             const SizedBox(height: 4.0),
@@ -506,7 +513,9 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
           padding: const EdgeInsets.only(bottom: 42),
           child: Text(
             'no_device_detected'.tr(),
-            style: theme.textTheme.atlasSpanishGreyBold16,
+            style: ResponsiveLayout.isMobile
+                ? theme.textTheme.atlasSpanishGreyBold16
+                : theme.textTheme.atlasSpanishGreyBold20,
           ),
         ),
       );

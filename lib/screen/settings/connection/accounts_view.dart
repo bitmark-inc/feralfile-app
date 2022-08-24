@@ -11,12 +11,14 @@ import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 
 import 'package:autonomy_flutter/view/account_view.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
@@ -222,6 +224,11 @@ class _AccountsViewState extends State<AccountsView> {
         context: pageContext,
         enableDrag: false,
         backgroundColor: Colors.transparent,
+        constraints: BoxConstraints(
+          maxWidth: ResponsiveLayout.isMobile
+              ? double.infinity
+              : Constants.maxWidthModalTablet,
+        ),
         builder: (context) {
           return Container(
             color: Colors.transparent,
@@ -243,9 +250,8 @@ class _AccountsViewState extends State<AccountsView> {
                         style: theme.primaryTextTheme.bodyText1,
                         children: <TextSpan>[
                           TextSpan(
-                            text:
-                                "sure_delete_account".tr(),
-                                //'Are you sure you want to delete the account ',
+                            text: "sure_delete_account".tr(),
+                            //'Are you sure you want to delete the account ',
                           ),
                           TextSpan(
                               text: '“$accountName”',
@@ -255,10 +261,8 @@ class _AccountsViewState extends State<AccountsView> {
                             text: '?',
                           ),
                           if (account.persona != null) ...[
-                            TextSpan(
-                                text:
-                                    "not_back_up_yet".tr())
-                                    // If you haven’t backed up your recovery phrase, you will lose access to your funds.')
+                            TextSpan(text: "not_back_up_yet".tr())
+                            // If you haven’t backed up your recovery phrase, you will lose access to your funds.')
                           ]
                         ],
                       ),

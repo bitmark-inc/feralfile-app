@@ -6,12 +6,14 @@
 //
 
 import 'package:autonomy_flutter/screen/bloc/connections/connections_bloc.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
 
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -109,6 +111,10 @@ class ConnectionDetailsPage extends StatelessWidget {
         context: pageContext,
         enableDrag: false,
         backgroundColor: Colors.transparent,
+        constraints: BoxConstraints(
+            maxWidth: ResponsiveLayout.isMobile
+                ? double.infinity
+                : Constants.maxWidthModalTablet),
         builder: (context) {
           return Container(
             color: Colors.transparent,
