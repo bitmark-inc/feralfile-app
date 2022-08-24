@@ -210,7 +210,9 @@ class _HomePageState extends State<HomePage>
       );
     }, listener: (context, state) async {
       log.info("[NftCollectionBloc] State update $state");
-      _onTokensUpdate(state.tokens);
+      if (state.state == NftLoadingState.done) {
+        _onTokensUpdate(state.tokens);
+      }
     });
 
     return PrimaryScrollController(

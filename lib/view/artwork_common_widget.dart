@@ -87,7 +87,6 @@ Widget tokenGalleryThumbnailWidget(
             cacheManager: injector<AUCacheManager>(),
             placeholder: (context, index) =>
                 Container(color: const Color.fromRGBO(227, 227, 227, 1)),
-            placeholderFadeInDuration: const Duration(milliseconds: 300),
             errorWidget: (context, url, error) => Container(
                 color: const Color.fromRGBO(227, 227, 227, 1),
                 child: Center(
