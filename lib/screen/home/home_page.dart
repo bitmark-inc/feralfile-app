@@ -218,14 +218,16 @@ class _HomePageState extends State<HomePage>
     return PrimaryScrollController(
       controller: _controller,
       child: Scaffold(
-        body: Stack(
-          children: [
-            contentWidget,
-            PenroseTopBarView(
-              _controller,
-              PenroseTopBarViewStyle.main,
-            ),
-          ],
+        body: SafeArea(
+          child: Stack(
+            children: [
+              contentWidget,
+              PenroseTopBarView(
+                _controller,
+                PenroseTopBarViewStyle.main,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -236,7 +238,7 @@ class _HomePageState extends State<HomePage>
         child: Column(
       children: [
         Container(
-          padding: const EdgeInsets.fromLTRB(0, 72, 0, 48),
+          padding: const EdgeInsets.fromLTRB(0, 32, 0, 48),
           child: autonomyLogo,
         ),
         loadingIndicator(),
@@ -251,7 +253,7 @@ class _HomePageState extends State<HomePage>
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       children: [
         Container(
-          padding: const EdgeInsets.fromLTRB(0, 72, 0, 48),
+          padding: const EdgeInsets.fromLTRB(0, 32, 0, 48),
           child: autonomyLogo,
         ),
         Text(
@@ -302,7 +304,7 @@ class _HomePageState extends State<HomePage>
     sources = [
       SliverToBoxAdapter(
           child: Container(
-        padding: const EdgeInsets.fromLTRB(0, 72, 0, 48),
+        padding: const EdgeInsets.fromLTRB(0, 32, 0, 48),
         child: autonomyLogo,
       )),
       SliverGrid(

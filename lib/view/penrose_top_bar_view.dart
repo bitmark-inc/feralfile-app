@@ -29,7 +29,8 @@ class PenroseTopBarView extends StatefulWidget {
   final ScrollController scrollController;
   final PenroseTopBarViewStyle style;
 
-  const PenroseTopBarView(this.scrollController, this.style, {Key? key}) : super(key: key);
+  const PenroseTopBarView(this.scrollController, this.style, {Key? key})
+      : super(key: key);
 
   @override
   State<PenroseTopBarView> createState() => _PenroseTopBarViewState();
@@ -112,19 +113,19 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
       case PenroseTopBarViewStyle.main:
         return Container(
           alignment: Alignment.topCenter,
-          padding: const EdgeInsets.fromLTRB(7, 40, 2, 90),
+          padding: const EdgeInsets.fromLTRB(7, 0, 2, 90),
           child: _mainHeaderWidget(isInSettingsPage: false),
         );
       case PenroseTopBarViewStyle.settings:
         return Container(
           alignment: Alignment.topCenter,
-          padding: const EdgeInsets.fromLTRB(7, 40, 2, 90),
+          padding: const EdgeInsets.fromLTRB(7, 0, 2, 90),
           child: _mainHeaderWidget(isInSettingsPage: true),
         );
       case PenroseTopBarViewStyle.back:
         return Container(
           alignment: Alignment.topCenter,
-          padding: const EdgeInsets.fromLTRB(16, 52, 12, 90),
+          padding: const EdgeInsets.fromLTRB(16, 12, 12, 90),
           child: _backHeaderWidget(),
         );
     }
