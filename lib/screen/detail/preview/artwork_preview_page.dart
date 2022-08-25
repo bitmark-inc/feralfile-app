@@ -643,7 +643,11 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                               strokeWidth: 2.0,
                             )
                           ],
-                          _castingListView(context, castDevices, isSubscribed),
+                          Visibility(
+                            visible: snapshot.hasData,
+                            child: _castingListView(
+                                context, castDevices, isSubscribed),
+                          ),
                           TextButton(
                             onPressed: () => Navigator.pop(context),
                             child: Text(
