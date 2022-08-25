@@ -160,35 +160,37 @@ class UIHelper {
     await showDialog(
         context,
         title,
-        Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (description.isNotEmpty) ...[
-              Text(
-                description,
-                style: theme.primaryTextTheme.bodyText1,
-              ),
-            ],
-            const SizedBox(height: 40),
-            if (closeButton.isNotEmpty) ...[
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: Text(
-                        closeButton,
-                        style: theme.primaryTextTheme.button,
+        SizedBox(
+          width: double.infinity,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (description.isNotEmpty) ...[
+                Text(
+                  description,
+                  style: theme.primaryTextTheme.bodyText1,
+                ),
+              ],
+              const SizedBox(height: 40),
+              if (closeButton.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: Text(
+                          closeButton,
+                          style: theme.primaryTextTheme.button,
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 15),
-            ]
-          ],
+                  ],
+                ),
+                const SizedBox(height: 15),
+              ]
+            ],
+          ),
         ),
         isDismissible: isDismissible,
         feedback: feedback);
