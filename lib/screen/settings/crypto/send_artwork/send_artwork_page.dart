@@ -210,9 +210,12 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                                   "quantity_to_send".tr(),
                                   style: theme.textTheme.headline4,
                                 ),
-                                _quantityInputField(
-                                    maxQuantity: maxQuantity,
-                                    hasError: state.isQuantityError),
+                                Transform.translate(
+                                  offset: const Offset(16, 0),
+                                  child: _quantityInputField(
+                                      maxQuantity: maxQuantity,
+                                      hasError: state.isQuantityError),
+                                )
                               ],
                             ),
                           ] else ...[
@@ -274,12 +277,8 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                               children: [
                                 Text("gas_fee".tr(),
                                     style: theme.textTheme.headline5),
-                                const SizedBox(
-                                    width: 12,
-                                    height: 12,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2.0,
-                                    )),
+                                Text("calculating...".tr(),
+                                    style: theme.textTheme.headline5),
                               ],
                             ),
                           ),
