@@ -454,12 +454,21 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
       _missingToken = false;
     }
 
-    if (_renderingWidget == null ||
-        _renderingWidget!.previewURL != latestToken?.getPreviewUrl()) {
-      _renderingWidget = buildRenderingWidget(context, token);
-    }
-
-    return Container(child: _renderingWidget!.build(context));
+    return BlocProvider(
+      create: (_) => RetryCubit(),
+      child: BlocBuilder<RetryCubit, int>(builder: (context, attempt) {
+        if (attempt > 0) {
+          _renderingWidget?.dispose();
+          _renderingWidget = null;
+        }
+        if (_renderingWidget == null ||
+            _renderingWidget!.previewURL != token.getPreviewUrl()) {
+          _renderingWidget = buildRenderingWidget(context, token,
+              attempt: attempt > 0 ? attempt : null);
+        }
+        return Container(child: _renderingWidget!.build(context));
+      }),
+    );
   }
 
   Widget _emptyOrLoadingDiscoveryWidget(AppFeedData? appFeedData) {

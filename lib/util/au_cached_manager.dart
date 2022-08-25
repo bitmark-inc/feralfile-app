@@ -195,7 +195,9 @@ class AUCacheManager extends CacheManager with ImageCacheManager {
   void downloadCallback(
       String id, DownloadTaskStatus status, int progress) async {
     final fileDownloadInfo = _memCache[id];
-    if (fileDownloadInfo != null && status == DownloadTaskStatus.complete) {
+    if (fileDownloadInfo == null) return;
+
+    if (status == DownloadTaskStatus.complete) {
       final key = fileDownloadInfo.key ?? fileDownloadInfo.url;
 
       // If the file is already in Cloudflare image service, not resize
@@ -206,25 +208,37 @@ class AUCacheManager extends CacheManager with ImageCacheManager {
             relativePath: fileDownloadInfo.localOriginalFile,
             validTill: DateTime.now().add(const Duration(days: 30))));
       } else {
-        // Store the resized file
-        await FlutterImageCompress.compressAndGetFile(
-          savedDir + fileDownloadInfo.localOriginalFile,
-          savedDir + fileDownloadInfo.localCompressedFile,
-          minWidth: 400,
-          minHeight: 400,
-          quality: 90,
-        );
+        bool compressSucceed = true;
+        try {
+          // Store the resized file
+          await FlutterImageCompress.compressAndGetFile(
+            savedDir + fileDownloadInfo.localOriginalFile,
+            savedDir + fileDownloadInfo.localCompressedFile,
+            minWidth: 400,
+            minHeight: 400,
+            quality: 90,
+          );
+        } catch (e) {
+          cacheLogger.log(
+              'Compress image failed ${fileDownloadInfo.url} Error: $e',
+              CacheManagerLogLevel.debug);
+          compressSucceed = false;
+        }
 
         await store.putFile(CacheObject(fileDownloadInfo.url,
             key: key,
-            relativePath: fileDownloadInfo.localCompressedFile,
+            relativePath: compressSucceed
+                ? fileDownloadInfo.localCompressedFile
+                : fileDownloadInfo.localOriginalFile,
             validTill: DateTime.now().add(const Duration(days: 30))));
 
-        // delete the original file
-        cacheLogger.log(
-            'deleted ${savedDir + fileDownloadInfo.localOriginalFile}',
-            CacheManagerLogLevel.debug);
-        File(savedDir + fileDownloadInfo.localOriginalFile).delete();
+        if (compressSucceed) {
+          // delete the original file
+          cacheLogger.log(
+              'deleted ${savedDir + fileDownloadInfo.localOriginalFile}',
+              CacheManagerLogLevel.debug);
+          File(savedDir + fileDownloadInfo.localOriginalFile).delete();
+        }
       }
       final file = await store.getFile(key);
       if (file != null) {
@@ -233,6 +247,14 @@ class AUCacheManager extends CacheManager with ImageCacheManager {
 
       cacheLogger.log(
           'downloaded ${fileDownloadInfo.url}', CacheManagerLogLevel.debug);
+    } else if (status == DownloadTaskStatus.failed) {
+      cacheLogger.log('Download failed ${fileDownloadInfo.url}',
+          CacheManagerLogLevel.debug);
+      fileDownloadInfo.progress
+          .addError(Exception("Download failed ${fileDownloadInfo.url}"));
+      fileDownloadInfo.progress.close();
+      _memCache.remove(id);
+      _requestedUrls.remove(fileDownloadInfo.url);
     }
   }
 }

@@ -19,6 +19,7 @@ import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:nft_collection/models/asset_token.dart';
@@ -36,32 +37,59 @@ String getEditionSubTitle(AssetToken token) {
   return " (${token.edition}/${token.maxEdition})";
 }
 
-Widget tokenThumbnailWidget(BuildContext context, AssetToken token) {
-  final ext = p.extension(token.getThumbnailUrl() ?? "");
-  final screenWidth = MediaQuery.of(context).size.width;
+class TokenThumbnailWidget extends StatelessWidget {
+  final AssetToken token;
 
-  return Hero(
-    tag: token.id,
-    child: ext == ".svg"
-        ? Center(
-            child: SvgPicture.network(token.getThumbnailUrl() ?? "",
-                placeholderBuilder: (context) => placeholder()))
-        : CachedNetworkImage(
-            imageUrl: token.getThumbnailUrl() ?? "",
-            width: double.infinity,
-            memCacheWidth: (screenWidth * 3).floor(),
-            maxWidthDiskCache: (screenWidth * 3).floor(),
-            cacheManager: injector<AUCacheManager>(),
-            placeholder: (context, url) => placeholder(),
-            placeholderFadeInDuration: const Duration(milliseconds: 300),
-            fit: BoxFit.cover,
-            errorWidget: (context, url, error) => Container(
-              color: const Color.fromRGBO(227, 227, 227, 1),
-              padding: const EdgeInsets.symmetric(vertical: 133),
-              child: brokenTokenWidget(context, token),
-            ),
+  const TokenThumbnailWidget({Key? key, required this.token}) : super(key: key);
+
+  Widget _buildContent(
+      {required String ext,
+      required double screenWidth,
+      required int attempt}) {
+    return Hero(
+      tag: token.id,
+      child: ext == ".svg"
+          ? Center(
+          child: SvgPicture.network(token.getThumbnailUrl() ?? "",
+              placeholderBuilder: (context) => placeholder(context)))
+          : CachedNetworkImage(
+        imageUrl: attempt > 0
+                  ? "${token.getThumbnailUrl() ?? ''}?t=$attempt"
+                  : token.getThumbnailUrl() ?? "",
+        width: double.infinity,
+        memCacheWidth: (screenWidth * 3).floor(),
+        maxWidthDiskCache: (screenWidth * 3).floor(),
+        cacheManager: injector<AUCacheManager>(),
+        placeholder: (context, url) => placeholder(context),
+        placeholderFadeInDuration: const Duration(milliseconds: 300),
+        fit: BoxFit.cover,
+        errorWidget: (context, url, error) => AspectRatio(
+          aspectRatio: 1,
+          child: Container(
+            color: const Color.fromRGBO(227, 227, 227, 1),
+            padding: const EdgeInsets.symmetric(vertical: 133),
+            child: BrokenTokenWidget(token: token),
           ),
-  );
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ext = p.extension(token.getThumbnailUrl() ?? "");
+    final screenWidth = MediaQuery.of(context).size.width;
+    return BlocProvider(
+      create: (_) => RetryCubit(),
+      child: BlocBuilder<RetryCubit, int>(
+        builder: (context, state) => _buildContent(
+          ext: ext,
+          screenWidth: screenWidth,
+          attempt: state,
+        ),
+      ),
+    );
+  }
 }
 
 Widget tokenGalleryThumbnailWidget(
@@ -72,9 +100,11 @@ Widget tokenGalleryThumbnailWidget(
     tag: token.id,
     key: const Key('Artwork_Thumbnail'),
     child: ext == ".svg"
-        ? SvgPicture.network(token.getGalleryThumbnailUrl()!,
+        ? SvgPicture.network(
+            token.getGalleryThumbnailUrl()!,
             placeholderBuilder: (context) =>
-                Container(color: const Color.fromRGBO(227, 227, 227, 1)))
+                const GalleryThumbnailPlaceholder(),
+          )
         : CachedNetworkImage(
             imageUrl: token.getGalleryThumbnailUrl()!,
             fit: BoxFit.cover,
@@ -83,25 +113,69 @@ Widget tokenGalleryThumbnailWidget(
             maxWidthDiskCache: cachedImageSize,
             maxHeightDiskCache: cachedImageSize,
             cacheManager: injector<AUCacheManager>(),
-            placeholder: (context, index) =>
-                Container(color: const Color.fromRGBO(227, 227, 227, 1)),
+            placeholder: (context, index) => const GalleryThumbnailPlaceholder(),
             errorWidget: (context, url, error) => Container(
-                color: const Color.fromRGBO(227, 227, 227, 1),
-                child: Center(
-                  child: SvgPicture.asset(
-                    'assets/images/image_error.svg',
-                    width: 75,
-                    height: 75,
-                  ),
-                )),
+              padding: const EdgeInsets.all(15.0),
+              color: const Color.fromRGBO(227, 227, 227, 1),
+              child: Align(
+                alignment: AlignmentDirectional.bottomStart,
+                child: SvgPicture.asset(
+                  'assets/images/icon_exclamation.svg',
+                  width: 16,
+                  height: 16,
+                ),
+              ),
+            ),
           ),
   );
 }
 
-Widget placeholder() {
+class GalleryThumbnailPlaceholder extends StatelessWidget {
+  const GalleryThumbnailPlaceholder({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return AspectRatio(
+      aspectRatio: 1,
+      child: Container(
+        padding: const EdgeInsets.all(13),
+        color: const Color.fromRGBO(227, 227, 227, 1),
+        child: Align(
+          alignment: AlignmentDirectional.bottomStart,
+          child: loadingIndicator(
+            size: 13,
+            valueColor: theme.colorScheme.primary,
+            backgroundColor: theme.colorScheme.primary.withOpacity(0.5),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+Widget placeholder(BuildContext context) {
+  final theme = Theme.of(context);
   return AspectRatio(
     aspectRatio: 1,
-    child: Container(color: const Color.fromRGBO(227, 227, 227, 1)),
+    child: Container(
+      color: const Color.fromRGBO(227, 227, 227, 1),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            loadingIndicator(valueColor: theme.colorScheme.primary),
+            const SizedBox(height: 12,),
+            Text(
+              "loading...".tr(),
+              style: ResponsiveLayout.isMobile
+                  ? theme.textTheme.atlasGreyNormal12
+                  : theme.textTheme.atlasGreyNormal14,
+            ),
+          ],
+        ),
+      ),
+    ),
   );
 }
 
@@ -119,7 +193,7 @@ Widget reportNFTProblemContainer(
 }
 
 INFTRenderingWidget buildRenderingWidget(
-    BuildContext context, AssetToken token) {
+    BuildContext context, AssetToken token, {int? attempt}) {
   String mimeType = "";
   switch (token.medium) {
     case "image":
@@ -145,42 +219,74 @@ INFTRenderingWidget buildRenderingWidget(
   final renderingWidget = typesOfNFTRenderingWidget(mimeType);
 
   renderingWidget.setRenderWidgetBuilder(RenderingWidgetBuilder(
-    previewURL: token.getPreviewUrl(),
+    previewURL: attempt == null
+        ? token.getPreviewUrl()
+        : "${token.getPreviewUrl()}?t=$attempt",
     thumbnailURL: token.getThumbnailUrl(),
     loadingWidget: previewPlaceholder(context),
-    errorWidget: brokenTokenWidget(context, token),
+    errorWidget: BrokenTokenWidget(token: token),
     cacheManager: injector<AUCacheManager>(),
   ));
 
   return renderingWidget;
 }
 
-Widget brokenTokenWidget(BuildContext context, AssetToken token) {
-  injector<CustomerSupportService>().reportIPFSLoadingError(token);
-  final theme = Theme.of(context);
-  return Center(
-    child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-      Text(
-        "ipfs_failed".tr(),
-        style: ResponsiveLayout.isMobile
-            ? theme.textTheme.atlasGreyNormal12
-            : theme.textTheme.atlasGreyNormal14,
-      ),
-      TextButton(
-        onPressed: () => showReportIssueDialog(context, token),
-        style: TextButton.styleFrom(
-            minimumSize: Size.zero,
-            padding: const EdgeInsets.all(8),
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap),
-        child: Text('report_issue'.tr(),
-            style: makeLinkStyle(
-              ResponsiveLayout.isMobile
-                  ? theme.textTheme.atlasGreyNormal12
-                  : theme.textTheme.atlasGreyNormal14,
-            )),
-      ),
-    ]),
-  );
+class RetryCubit extends Cubit<int> {
+  RetryCubit() : super(0);
+
+  void refresh() {
+    emit(state + 1);
+  }
+}
+
+class BrokenTokenWidget extends StatefulWidget {
+  final AssetToken token;
+
+  const BrokenTokenWidget({Key? key, required this.token}) : super(key: key);
+
+  @override
+  State<StatefulWidget> createState() {
+    return _BrokenTokenWidgetState();
+  }
+}
+
+class _BrokenTokenWidgetState extends State<BrokenTokenWidget> {
+
+  @override
+  void initState() {
+    injector<CustomerSupportService>().reportIPFSLoadingError(widget.token);
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Center(
+      child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+        Text(
+          "unable_to_load_artwork_preview_from_ipfs".tr(),
+          style: ResponsiveLayout.isMobile
+              ? theme.textTheme.atlasGreyNormal12
+              : theme.textTheme.atlasGreyNormal14,
+        ),
+        TextButton(
+          onPressed: () => context
+              .read<RetryCubit>()
+              .refresh(),
+          style: TextButton.styleFrom(
+              minimumSize: Size.zero,
+              padding: const EdgeInsets.all(8),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+          child: Text("please_try_again".tr(),
+              style: makeLinkStyle(
+                ResponsiveLayout.isMobile
+                    ? theme.textTheme.atlasGreyNormal12
+                    : theme.textTheme.atlasGreyNormal14,
+              )),
+        ),
+      ]),
+    );
+  }
 }
 
 void showReportIssueDialog(BuildContext context, AssetToken token) {
@@ -249,7 +355,23 @@ void _showReportRenderingDialogSuccess(BuildContext context, String githubURL) {
 Widget previewPlaceholder(BuildContext context) {
   final theme = Theme.of(context);
   return Center(
-    child: loadingIndicator(valueColor: theme.colorScheme.secondary),
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        loadingIndicator(
+            valueColor: theme.colorScheme.secondary,
+            backgroundColor: theme.colorScheme.secondary.withOpacity(0.5)),
+        const SizedBox(
+          height: 13,
+        ),
+        Text(
+          "loading...".tr(),
+          style: ResponsiveLayout.isMobile
+              ? theme.textTheme.atlasGreyNormal12
+              : theme.textTheme.atlasGreyNormal14,
+        ),
+      ],
+    ),
   );
 }
 
