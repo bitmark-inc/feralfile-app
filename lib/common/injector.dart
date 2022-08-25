@@ -41,6 +41,7 @@ import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_dapp_service/wallet_connect_dapp_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
+import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/au_cached_manager.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
 import 'package:autonomy_flutter/util/isolated_util.dart';
@@ -71,26 +72,8 @@ Future<void> setup() async {
 
   final sharedPreferences = await SharedPreferences.getInstance();
 
-  final testnetDB = await $FloorAppDatabase
-      .databaseBuilder('app_database_mainnet.db')
-      .addMigrations([
-    migrateV1ToV2,
-    migrateV2ToV3,
-    migrateV3ToV4,
-    migrateV4ToV5,
-    migrateV5ToV6,
-    migrateV6ToV7,
-    migrateV7ToV8,
-    migrateV8ToV9,
-    migrateV9ToV10,
-    migrateV10ToV11,
-    migrateV11ToV12,
-    migrateV12ToV13,
-    migrateV13ToV14,
-  ]).build();
-
   final mainnetDB = await $FloorAppDatabase
-      .databaseBuilder('app_database_testnet.db')
+      .databaseBuilder('app_database.db')
       .addMigrations([
     migrateV1ToV2,
     migrateV2ToV3,
@@ -196,6 +179,8 @@ Future<void> setup() async {
 
   injector
       .registerLazySingleton(() => TezosBeaconService(injector(), injector()));
+  injector
+      .registerLazySingleton(() => Wc2Service(injector()));
   injector.registerLazySingleton<CurrencyExchangeApi>(
       () => CurrencyExchangeApi(dio, baseUrl: Environment.currencyExchangeURL));
   injector.registerLazySingleton<CurrencyService>(

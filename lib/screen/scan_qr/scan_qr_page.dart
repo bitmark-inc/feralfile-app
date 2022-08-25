@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
+import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -321,7 +322,8 @@ class _ScanQRPageState extends State<ScanQRPage> with RouteAware {
 
   void _handleWalletConnect(String code) {
     controller.dispose();
-    injector<WalletConnectService>().connect(code);
+    injector<Wc2Service>().connect(code);
+    // injector<WalletConnectService>().connect(code);
     Navigator.of(context).pop();
   }
 

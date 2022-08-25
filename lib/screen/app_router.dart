@@ -10,6 +10,8 @@ import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
+import 'package:autonomy_flutter/model/wc2_proposal.dart';
+import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/screen/account/access_method_page.dart';
 import 'package:autonomy_flutter/screen/account/accounts_preview_page.dart';
 import 'package:autonomy_flutter/screen/account/add_account_page.dart';
@@ -90,6 +92,8 @@ import 'package:autonomy_flutter/screen/unsafe_web_wallet_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_bloc.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/tv_connect_page.dart';
+import 'package:autonomy_flutter/screen/wallet_connect/v2/wc2_connect_page.dart';
+import 'package:autonomy_flutter/screen/wallet_connect/v2/wc2_permission_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_disconnect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
@@ -159,6 +163,8 @@ class AppRouter {
   static const githubDocPage = 'github_doc_page';
   static const sendArtworkPage = 'send_artwork_page';
   static const sendArtworkReviewPage = 'send_artwork_review_page';
+  static const wc2ConnectPage = 'wc2_connect_page';
+  static const wc2PermissionPage = 'wc2_permission_page';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final ethereumBloc = EthereumBloc(injector());
@@ -819,6 +825,42 @@ class AppRouter {
                   child: SendArtworkReviewPage(
                       payload: settings.arguments as SendArtworkReviewPayload),
                 ));
+
+      case wc2ConnectPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => MultiBlocProvider(
+                providers: [
+                  BlocProvider.value(value: accountsBloc),
+                  BlocProvider(
+                    create: (_) => PersonaBloc(
+                      injector<CloudDatabase>(),
+                      injector(),
+                      injector(),
+                      injector<AuditService>(),
+                    ),
+                  ),
+                ],
+                child: Wc2ConnectPage(
+                    proposal: settings.arguments as Wc2Proposal)));
+
+      case wc2PermissionPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => MultiBlocProvider(
+                providers: [
+                  BlocProvider.value(value: accountsBloc),
+                  BlocProvider(
+                    create: (_) => PersonaBloc(
+                      injector<CloudDatabase>(),
+                      injector(),
+                      injector(),
+                      injector<AuditService>(),
+                    ),
+                  ),
+                ],
+                child: Wc2RequestPage(
+                    request: settings.arguments as Wc2Request)));
       default:
         throw Exception('Invalid route: ${settings.name}');
     }

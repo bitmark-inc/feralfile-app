@@ -14,6 +14,9 @@ import KukaiCoreSwift
 import Combine
 import flutter_downloader
 import Sentry
+import WalletConnectSign
+import WalletConnectRelay
+import Starscream
 
 @UIApplicationMain
 @objc class AppDelegate: FlutterAppDelegate {
@@ -123,6 +126,38 @@ import Sentry
             }
         })
         beaconEventChannel.setStreamHandler(BeaconChannelHandler.shared)
+        
+
+        let metadata = AppMetadata(
+            name: "Example Wallet",
+            description: "wallet description",
+            url: "example.wallet",
+            icons: ["https://avatars.githubusercontent.com/u/37784886"])
+        Sign.configure(metadata: metadata, projectId: "8ba9ee138960775e5231b70cc5ef1c3a", socketFactory: SocketFactory())
+        try? Sign.instance.cleanup()
+
+        let wc2Channel = FlutterMethodChannel(name: "wallet_connect_v2",
+                                              binaryMessenger: controller.binaryMessenger)
+        let wc2EventChannel = FlutterEventChannel(name: "wallet_connect_v2/event", binaryMessenger: controller.binaryMessenger)
+
+        wc2Channel.setMethodCallHandler({(call: FlutterMethodCall, result: @escaping FlutterResult) -> Void in
+            switch call.method {
+            case "pairClient":
+                WC2ChannelHandler.shared.pairClient(call: call, result: result)
+            case "approve":
+                WC2ChannelHandler.shared.approve(call: call, result: result)
+            case "reject":
+                WC2ChannelHandler.shared.reject(call: call, result: result)
+            case "respondOnApprove":
+                WC2ChannelHandler.shared.respondOnApprove(call: call, result: result)
+            case "respondOnReject":
+                WC2ChannelHandler.shared.respondOnReject(call: call, result: result)
+            default:
+                result(FlutterMethodNotImplemented)
+            }
+        })
+        wc2EventChannel.setStreamHandler(WC2ChannelHandler.shared)
+
 
         let cloudEventChannel = FlutterEventChannel(name: "cloud/event", binaryMessenger: controller.binaryMessenger)
         cloudEventChannel.setStreamHandler(CloudChannelHandler.shared)
@@ -177,5 +212,13 @@ extension AppDelegate {
         } completion: { [weak self] _ in
             self?.authenticationVC.view.removeFromSuperview()
         }
+    }
+}
+
+extension WebSocket: WebSocketConnecting { }
+
+struct SocketFactory: WebSocketFactory {
+    func create(with url: URL) -> WebSocketConnecting {
+        return WebSocket(url: url)
     }
 }
