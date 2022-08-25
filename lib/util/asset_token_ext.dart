@@ -44,7 +44,7 @@ extension AssetTokenExtension on AssetToken {
       } else {
         address = (await persona.wallet().getTezosWallet()).address;
       }
-      if (address == ownerAddress) {
+      if (owners.containsKey(address)) {
         wallet = persona.wallet();
         break;
       }
