@@ -18,6 +18,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:tezart/tezart.dart';
@@ -78,6 +79,7 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
       newState.quantity = event.quantity;
       newState.isQuantityError =
           event.quantity <= 0 || event.quantity > event.maxQuantity;
+      newState.isEstimating = false;
       newState.fee = null;
       newState.isValid = _isValid(newState);
       emit(newState);
@@ -92,9 +94,12 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
     });
 
     on<AddressChangedEvent>((event, emit) async {
+      log.info("AddressChangedEvent: ${event.address}");
       final newState = state.clone();
       newState.isScanQR = event.address.isEmpty;
       newState.isAddressError = false;
+      newState.isEstimating = false;
+      newState.fee = null;
 
       if (event.address.isNotEmpty) {
         switch (type) {
@@ -124,14 +129,18 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
           default:
             break;
         }
+      } else {
+        newState.isAddressError = true;
+        newState.address = "";
       }
-
+      newState.isValid = _isValid(newState);
       cachedAddress = newState.address;
       emit(newState);
     });
 
     on<EstimateFeeEvent>((event, emit) async {
       log.info("[SendArtworkBloc] Estimate fee: ${event.quantity}");
+      emit(state.copyWith(isEstimating: true));
 
       BigInt? fee;
       switch (type) {
@@ -185,15 +194,14 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
       if (state.quantity == event.quantity && state.address == event.address) {
         final newState = state.clone();
         newState.fee = fee;
-        newState.balance = cachedBalance;
-        newState.address = cachedAddress;
-        newState.quantity = event.quantity;
+        newState.isEstimating = false;
         newState.isValid = _isValid(newState);
         emit(newState);
+      } else {
+        emit(state.copyWith(isEstimating: false));
       }
     }, transformer: (events, mapper) {
       return events
-          .distinct()
           .debounceTime(const Duration(milliseconds: 300))
           .switchMap(mapper);
     });

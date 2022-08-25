@@ -66,6 +66,11 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
   }
 
   void _onQuantityUpdated() {
+    if (_quantity < 1) {
+      _quantityController.text = "1";
+    } else if (_quantity > widget.payload.ownedQuantity) {
+      _quantityController.text = "${widget.payload.ownedQuantity}";
+    }
     context.read<SendArtworkBloc>().add(QuantityUpdateEvent(
         quantity: _quantity, maxQuantity: widget.payload.ownedQuantity));
   }
@@ -94,7 +99,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                   color: hasError ? const Color(0xFFa1200a) : Colors.black),
               textAlignVertical: TextAlignVertical.center,
               keyboardType: TextInputType.number,
-              onChanged: (_) => _onQuantityUpdated(),
+              onSubmitted: (value) => _onQuantityUpdated(),
             ),
           ),
         ),
@@ -263,6 +268,21 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                             },
                           ),
                           const SizedBox(height: 8.0),
+                          Visibility(
+                            visible: state.isEstimating,
+                            child: Row(
+                              children: [
+                                Text("gas_fee".tr(),
+                                    style: theme.textTheme.headline5),
+                                const SizedBox(
+                                    width: 12,
+                                    height: 12,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.0,
+                                    )),
+                              ],
+                            ),
+                          ),
                           Text(_gasFee(state),
                               key: feeWidgetKey,
                               style: theme.textTheme.headline5),

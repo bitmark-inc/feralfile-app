@@ -136,7 +136,7 @@ dependencies:
   nft_collection:
     git:
       url: https://github.com/autonomy-system/nft-collection
-      ref: 986480e50651140b04ec3753e22ef5a93e876ef8
+      ref: a8c6ed9b332d0321a4977f57b22de7b9769ec8d8
 
 dependency_overrides:
   # Error using when import photo_view from dependencies:

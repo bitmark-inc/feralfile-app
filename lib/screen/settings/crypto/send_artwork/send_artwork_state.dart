@@ -90,6 +90,7 @@ class SendArtworkState {
         this.isScanQR = true,
         this.isAddressError = false,
         this.isQuantityError = false,
+        this.isEstimating = false,
         this.isValid = false,
         this.fee,
         this.address,
@@ -102,6 +103,7 @@ class SendArtworkState {
     isScanQR: isScanQR,
     isAddressError: isAddressError,
     isQuantityError: isQuantityError,
+    isEstimating: isEstimating,
     isValid: isValid,
     fee: fee,
     address: address,
@@ -110,18 +112,48 @@ class SendArtworkState {
     quantity: quantity,
   );
 
-  SendArtworkState copyWith({int? quantity}) {
+  SendArtworkState copyWith({int? quantity, bool? isEstimating, BigInt? fee}) {
     return SendArtworkState(
         wallet: wallet,
         isScanQR: isScanQR,
         isAddressError: isAddressError,
         isQuantityError: isQuantityError,
+        isEstimating: isEstimating ?? this.isEstimating,
         isValid: isValid,
-        fee: fee,
+        fee: fee ?? this.fee,
         address: address,
         exchangeRate: exchangeRate,
         balance: balance,
         quantity: quantity ?? this.quantity
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is SendArtworkState &&
+          runtimeType == other.runtimeType &&
+          isScanQR == other.isScanQR &&
+          isAddressError == other.isAddressError &&
+          isQuantityError == other.isQuantityError &&
+          isValid == other.isValid &&
+          fee == other.fee &&
+          address == other.address &&
+          balance == other.balance &&
+          exchangeRate == other.exchangeRate &&
+          isEstimating == other.isEstimating &&
+          quantity == other.quantity;
+
+  @override
+  int get hashCode =>
+      isScanQR.hashCode ^
+      isAddressError.hashCode ^
+      isQuantityError.hashCode ^
+      isValid.hashCode ^
+      (fee?.hashCode ?? 0) ^
+      (address?.hashCode ?? 0) ^
+      balance.hashCode ^
+      exchangeRate.hashCode ^
+      isEstimating.hashCode ^
+      quantity.hashCode;
 }
