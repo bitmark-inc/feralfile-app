@@ -20,11 +20,12 @@ jobs:
           echo "FLUTTER_VERSION_CODE=10" >> $GITHUB_ENV
       - name: Submoudles update
         run: git submodule update --init --recursive
+
       - run: flutter pub cache repair
       - run: flutter pub get 
       # Build app
       - name: Build to flutter apk inhouse app
-      - run: flutter build apk --flavor inhouse
+        run: flutter build apk --flavor inhouse
       
       # Run integration test
       - name: Run Flutter Driver tests for Suite "Link account from MetaMask app"
