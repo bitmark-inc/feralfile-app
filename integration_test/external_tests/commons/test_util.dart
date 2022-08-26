@@ -10,12 +10,12 @@ import 'dart:math';
 import 'package:appium_driver/async_io.dart';
 
 AppiumBy settingButtonLocator = AppiumBy.accessibilityId("Settings");
-AppiumBy accountAliasLocator = AppiumBy.xpath(
-    "//android.widget.FrameLayout[@resource-id='android:id/content']//android.widget.EditText");
+AppiumBy accountAliasLocator =
+    AppiumBy.xpath("//android.widget.EditText[@text='Enter alias']");
 AppiumBy saveAliasButtonLocator = AppiumBy.accessibilityId("SAVE ALIAS");
 AppiumBy continueButtonLocator = AppiumBy.accessibilityId("CONTINUE");
 AppiumBy accountSeedsLocator = AppiumBy.xpath(
-    "//android.widget.FrameLayout[@resource-id='android:id/content']//android.widget.EditText");
+    "//android.widget.EditText[contains(@text,'Enter recovery phrase')]");
 
 AppiumBy confirmButtonLocator = AppiumBy.accessibilityId("CONFIRM");
 
