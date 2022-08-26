@@ -16,8 +16,8 @@ import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:url_launcher/url_launcher_string.dart';
 
 class LinkAppOptionsPage extends StatefulWidget {
   const LinkAppOptionsPage({Key? key}) : super(key: key);
@@ -103,12 +103,12 @@ class _LinkAppOptionsPageState extends State<LinkAppOptionsPage> {
       log.info(metamaskLink);
       try {
         if (Platform.isAndroid) {
-          _launchURL(urlAndroid);
+          await _launchURL(urlAndroid);
         } else {
-          _launchURL(metamaskLink);
+          await _launchURL(metamaskLink);
         }
       } catch (e) {
-        _launchURL(metamaskLink);
+        await _launchURL(metamaskLink);
       }
     };
 
@@ -129,13 +129,18 @@ class _LinkAppOptionsPageState extends State<LinkAppOptionsPage> {
     injector<WalletConnectDappService>().connect();
   }
 
-  void _launchURL(String url) async {
-    final uri = Uri.tryParse(url);
-    if (uri != null &&
-        !await launchUrl(uri, mode: LaunchMode.externalNonBrowserApplication)) {
-      _isPageInactive = true;
-      Navigator.of(context)
-          .pushNamed(AppRouter.linkWalletConnectPage, arguments: 'MetaMask');
+  Future<void> _launchURL(String url) async {
+    try {
+      final uri = Uri.tryParse(url);
+      if (uri != null &&
+          !await launchUrl(uri,
+              mode: LaunchMode.externalNonBrowserApplication)) {
+        _isPageInactive = true;
+        Navigator.of(context)
+            .pushNamed(AppRouter.linkWalletConnectPage, arguments: 'MetaMask');
+      }
+    } catch (e) {
+      throw Exception(e);
     }
   }
 }
