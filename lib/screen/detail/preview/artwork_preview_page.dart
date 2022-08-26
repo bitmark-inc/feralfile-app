@@ -21,6 +21,7 @@ import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/au_cached_manager.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -370,14 +371,23 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   }
 
   Widget _getArtworkView(AssetToken asset) {
-    if (_renderingWidget == null ||
-        _renderingWidget!.previewURL != asset.getPreviewUrl()) {
-      _renderingWidget = buildRenderingWidget(context, asset);
-    }
+    return BlocProvider(
+        create: (_) => RetryCubit(),
+        child: BlocBuilder<RetryCubit, int>(builder: (context, attempt) {
+          if (attempt > 0) {
+            _renderingWidget?.dispose();
+            _renderingWidget = null;
+          }
+          if (_renderingWidget == null ||
+              _renderingWidget!.previewURL != asset.getPreviewUrl()) {
+            _renderingWidget = buildRenderingWidget(context, asset,
+                attempt: attempt > 0 ? attempt : null);
+          }
 
-    return Container(
-      child: _renderingWidget?.build(context),
-    );
+          return Container(
+            child: _renderingWidget?.build(context),
+          );
+        }));
   }
 
   Widget _fullscreenIntroPopup() {

@@ -158,7 +158,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                     ],
                     const SizedBox(height: 16.0),
                     GestureDetector(
-                        child: tokenThumbnailWidget(context, asset),
+                        child: TokenThumbnailWidget(token: asset),
                         onTap: () {
                           if (injector<ConfigurationService>()
                               .isImmediateInfoViewEnabled()) {
