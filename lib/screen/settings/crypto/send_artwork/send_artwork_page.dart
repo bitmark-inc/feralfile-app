@@ -265,7 +265,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                                 }
                               },
                             ),
-                            onChanged: (value) {
+                            onSubmit: (value) {
                               context.read<SendArtworkBloc>().add(
                                   AddressChangedEvent(_addressController.text));
                             },
