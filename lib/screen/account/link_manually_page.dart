@@ -27,6 +27,7 @@ class LinkManuallyPage extends StatefulWidget {
 
 class _LinkManuallyPageState extends State<LinkManuallyPage> {
   final TextEditingController _addressController = TextEditingController();
+  bool _linkEnabled = false;
 
   String get title {
     switch (widget.type) {
@@ -82,6 +83,9 @@ class _LinkManuallyPageState extends State<LinkManuallyPage> {
                       title: "",
                       placeholder: "paste".tr(args: [widget.type]),
                       controller: _addressController,
+                      onChanged: (value) => setState(() {
+                        _linkEnabled = value.trim().isNotEmpty;
+                      }),
                     ),
                   ],
                 ),
@@ -92,6 +96,7 @@ class _LinkManuallyPageState extends State<LinkManuallyPage> {
                 Expanded(
                   child: AuFilledButton(
                     text: "link".tr().toUpperCase(),
+                    enabled: _linkEnabled,
                     onPress: () => _link(),
                   ),
                 ),
@@ -107,7 +112,7 @@ class _LinkManuallyPageState extends State<LinkManuallyPage> {
     switch (widget.type) {
       case 'address':
         await injector<AccountService>()
-            .linkManuallyAddress(_addressController.text);
+            .linkManuallyAddress(_addressController.text.trim());
         if (!mounted) return;
         UIHelper.showInfoDialog(
             context, 'account_linked'.tr(), 'autonomy_has_linked_your_address'.tr());
@@ -115,7 +120,7 @@ class _LinkManuallyPageState extends State<LinkManuallyPage> {
 
       case 'indexerTokenID':
         await injector<AccountService>()
-            .linkIndexerTokenID(_addressController.text);
+            .linkIndexerTokenID(_addressController.text.trim());
         if (!mounted) return;
         UIHelper.showInfoDialog(
             context, 'account_linked'.tr(), 'autonomy_has_linked_your_address'.tr());
