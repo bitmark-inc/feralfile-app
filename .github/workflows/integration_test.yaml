@@ -6,7 +6,6 @@ on:
   push:
     branches:
       - develop
-      - Auto-4-link-MetaMask-1451
 jobs:
   build:
     runs-on: [self-hosted, linux, ci-local-bmvn]
@@ -19,6 +18,45 @@ jobs:
         run: |
           echo "FLUTTER_VERSION_NAME=0.100.0" >> $GITHUB_ENV
           echo "FLUTTER_VERSION_CODE=10" >> $GITHUB_ENV
+      - name: Create env file
+        run: |
+          touch .env
+          echo INDEXER_MAINNET_API_URL=${{ secrets.INDEXER_MAINNET_API_URL }} >> .env
+          echo INDEXER_TESTNET_API_URL=${{ secrets.INDEXER_TESTNET_API_URL }} >> .env
+          echo WEB3_RPC_MAINNET_URL=${{ secrets.WEB3_RPC_MAINNET_URL }} >> .env
+          echo WEB3_RPC_TESTNET_URL=${{ secrets.WEB3_RPC_TESTNET_URL }} >> .env
+          echo TEZOS_NODE_CLIENT_MAINNET_URL=${{ secrets.TEZOS_NODE_CLIENT_MAINNET_URL }} >> .env
+          echo TEZOS_NODE_CLIENT_TESTNET_URL=${{ secrets.TEZOS_NODE_CLIENT_TESTNET_URL }} >> .env
+          echo BITMARK_API_MAINNET_URL=${{ secrets.BITMARK_API_MAINNET_URL }} >> .env
+          echo BITMARK_API_TESTNET_URL=${{ secrets.BITMARK_API_TESTNET_URL }} >> .env
+          echo FERAL_FILE_API_MAINNET_URL=${{ secrets.FERAL_FILE_API_MAINNET_URL }} >> .env
+          echo FERAL_FILE_API_TESTNET_URL=${{ secrets.FERAL_FILE_API_TESTNET_URL }} >> .env
+          echo EXTENSION_SUPPORT_MAINNET_URL=${{ secrets.EXTENSION_SUPPORT_MAINNET_URL }} >> .env
+          echo EXTENSION_SUPPORT_TESTNET_URL=${{ secrets.EXTENSION_SUPPORT_TESTNET_URL }} >> .env
+          echo CONNECT_WEBSOCKET_MAINNET_URL=${{ secrets.CONNECT_WEBSOCKET_MAINNET_URL }} >> .env
+          echo CONNECT_WEBSOCKET_TESTNET_URL=${{ secrets.CONNECT_WEBSOCKET_TESTNET_URL }} >> .env
+
+          echo AUTONOMY_AUTH_URL=${{ secrets.AUTONOMY_AUTH_DEV_URL }} >> .env
+          echo CUSTOMER_SUPPORT_URL=${{ secrets.CUSTOMER_SUPPORT_DEV_URL }} >> .env
+          echo CURRENCY_EXCHANGE_URL=${{ secrets.CURRENCY_EXCHANGE_URL }} >> .env
+          echo RENDERING_REPORT_URL=${{ secrets.RENDERING_REPORT_DEV_URL }} >> .env
+          echo FEED_URL=${{ secrets.FEED_DEV_URL }} >> .env
+          echo AUTONOMY_PUBDOC_URL=${{ secrets.AUTONOMY_PUBDOC_URL }} >> .env
+          echo AUTONOMY_IPFS_PREFIX=${{ secrets.AUTONOMY_IPFS_PREFIX_DEV }} >> .env
+
+          echo FERAL_FILE_AUTHORIZATION_PREFIX=${{ secrets.FERAL_FILE_AUTHORIZATION_PREFIX }} >> .env
+          echo SENTRY_DSN=${{ secrets.SENTRY_DSN }} >> .env
+          echo ONESIGNAL_APP_ID=${{ secrets.ONESIGNAL_APP_ID }} >> .env
+          echo AWS_IDENTITY_POOL_ID=${{ secrets.AWS_IDENTITY_POOL_ID }} >> .env
+          echo AUTONOMY_SHARD_SERVICE=${{ secrets.AUTONOMY_SHARD_SERVICE }} >> .env
+
+          echo APP_TESTNET_CONFIG=${{ github.event.inputs.testnet }} >> .env
+          echo TEZOS_FAUCET_URL=${{ secrets.TEZOS_FAUCET_URL }} >> .env
+          echo TEZOS_FAUCET_AUTH_TOKEN=${{ secrets.TEZOS_FAUCET_AUTH_TOKEN }} >> .env
+
+          cat .env
+
+
       - name: Submoudles update
         run: git submodule update --init --recursive
       - run: flutter pub cache repair
@@ -32,14 +70,7 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE
           flutter pub run test integration_test/external_tests/mobile_external_app/linkaccountbyMetamaskapp_test.dart
-      # - name: Run Flutter Driver tests for Suite "Send XTZ"
-      #   run: |
-      #     cd /media/bitmark/3406ce86-9243-41d7-aa8f-6f7ee167531b/autonomy-client
-      #     flutter test integration_test/tests/send_xtz_test.dart --flavor inhouse
-      # - name: Run Flutter Driver tests for Suite "Check Artwork detail"
-      #   run: |
-      #     cd /media/bitmark/3406ce86-9243-41d7-aa8f-6f7ee167531b/autonomy-client
-      #     flutter test integration_test/tests/check_artwork_detail_test.dart --flavor inhouse
+
       - name: Report Status
         if: always()
         uses: ravsamhq/notify-slack-action@v2
