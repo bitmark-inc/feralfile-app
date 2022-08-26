@@ -84,7 +84,9 @@ class _ScanQRPageState extends State<ScanQRPage> with RouteAware {
 
   @override
   Widget build(BuildContext context) {
-    final qrSize = MediaQuery.of(context).size.width - 130;
+    final size1 = MediaQuery.of(context).size.height / 2;
+    final size2 = MediaQuery.of(context).size.width - 130;
+    final qrSize = size1 < size2 ? size1 : size2;
 
     var cutPaddingTop = qrSize + 460 - MediaQuery.of(context).size.height;
     if (cutPaddingTop < 0) cutPaddingTop = 0;

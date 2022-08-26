@@ -570,6 +570,7 @@ Widget _artworkRightItem(BuildContext context, String name, String body) {
   final theme = Theme.of(context);
 
   return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       Row(
         children: [
