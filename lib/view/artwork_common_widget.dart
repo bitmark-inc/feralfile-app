@@ -1,6 +1,5 @@
 import 'dart:collection';
 
-import 'package:autonomy_flutter/model/asset_price.dart';
 import 'package:autonomy_flutter/screen/detail/report_rendering_issue/any_problem_nft_widget.dart';
 import 'package:autonomy_flutter/screen/detail/report_rendering_issue/report_rendering_issue_widget.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -14,6 +13,7 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -21,7 +21,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
-import 'package:intl/intl.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/provenance.dart';
 import 'package:nft_rendering/nft_rendering.dart';
@@ -29,7 +28,6 @@ import 'package:nft_rendering/nft_rendering.dart';
 // ignore: depend_on_referenced_packages
 import 'package:path/path.dart' as p;
 import 'package:url_launcher/url_launcher.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 
 import '../common/injector.dart';
 
@@ -72,7 +70,7 @@ Widget tokenGalleryThumbnailWidget(
 
   return Hero(
     tag: token.id,
-    key: Key('Artwork_Thumbnail'),
+    key: const Key('Artwork_Thumbnail'),
     child: ext == ".svg"
         ? SvgPicture.network(token.getGalleryThumbnailUrl()!,
             placeholderBuilder: (context) =>
@@ -333,7 +331,7 @@ Widget artworkDetailsMetadataSection(
           // some FF's artist set multiple links
           // Discussion thread: https://bitmark.slack.com/archives/C01EPPD07HU/p1648698027564299
           tapLink: asset.artistURL?.split(" & ").first,
-          forceSafariVC: false,
+          forceSafariVC: true,
         ),
       ],
       (asset.maxEdition ?? 0) > 0
@@ -354,7 +352,7 @@ Widget artworkDetailsMetadataSection(
         "token".tr(),
         polishSource(asset.source ?? ""),
         tapLink: asset.assetURL,
-        forceSafariVC: false,
+        forceSafariVC: true,
       ),
       const Divider(height: 32.0),
       _rowItem(
@@ -362,7 +360,7 @@ Widget artworkDetailsMetadataSection(
         "contract".tr(),
         asset.blockchain.capitalize(),
         tapLink: asset.getBlockchainUrl(),
-        forceSafariVC: false,
+        forceSafariVC: true,
       ),
       const Divider(height: 32.0),
       _rowItem(context, "medium".tr(), asset.medium?.capitalize()),
@@ -411,10 +409,10 @@ Widget tokenOwnership(
       ),
       const SizedBox(height: 16.0),
       _rowItem(context, "total_token_supply".tr(), "${asset.maxEdition}",
-          tapLink: asset.tokenURL),
+          tapLink: asset.tokenURL, forceSafariVC: true),
       const Divider(height: 32.0),
       _rowItem(context, "tokens_you_own".tr(), "$ownedTokens",
-          tapLink: asset.tokenURL),
+          tapLink: asset.tokenURL, forceSafariVC: true),
       const Divider(height: 32.0),
       _rowItem(context, "your_share_of_total".tr(), "$sharedPctText%"),
     ],
@@ -448,13 +446,17 @@ Widget artworkDetailsProvenanceSectionNotEmpty(
             return Column(
               children: [
                 _rowItem(
-                    context, provenanceTitle, localTimeString(el.timestamp),
-                    subTitle: el.blockchain.toUpperCase(),
-                    tapLink: el.txURL,
-                    onNameTap: () => identity != null
-                        ? UIHelper.showIdentityDetailDialog(context,
-                            name: identity, address: el.owner)
-                        : null),
+                  context,
+                  provenanceTitle,
+                  localTimeString(el.timestamp),
+                  subTitle: el.blockchain.toUpperCase(),
+                  tapLink: el.txURL,
+                  onNameTap: () => identity != null
+                      ? UIHelper.showIdentityDetailDialog(context,
+                          name: identity, address: el.owner)
+                      : null,
+                  forceSafariVC: true,
+                ),
                 const Divider(height: 32.0),
               ],
             );
@@ -508,60 +510,6 @@ Widget _artworkRightView(BuildContext context) {
       const Divider(height: 32.0),
       _artworkRightItem(context, "respect_artist_right".tr(),
           "respect_artist_right_text".tr()),
-    ],
-  );
-}
-
-Widget _valueView(
-    BuildContext context, AssetToken asset, AssetPrice? assetPrice) {
-  var changedPriceText = "";
-  var roiText = "";
-  if (assetPrice != null && assetPrice.minPrice != 0) {
-    final changedPrice = assetPrice.minPrice - assetPrice.purchasedPrice;
-    changedPriceText =
-        "${changedPrice >= 0 ? "+" : ""}${changedPrice.toStringAsFixed(2)} ${assetPrice.currency.toUpperCase()}";
-
-    if (assetPrice.purchasedPrice == 0) {
-      roiText = "+100%";
-    } else {
-      final roi = (changedPrice / assetPrice.purchasedPrice) * 100;
-      roiText = "${roi >= 0 ? "+" : ""}${roi.toStringAsFixed(2)}%";
-    }
-  }
-  final theme = Theme.of(context);
-
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        "value".tr(),
-        style: theme.textTheme.headline2,
-      ),
-      if (assetPrice != null) ...[
-        const SizedBox(height: 16.0),
-        _rowItem(context, "purchase_price".tr(),
-            "${assetPrice.purchasedPrice.toStringAsFixed(2)} ${assetPrice.currency.toUpperCase()}")
-      ],
-      if (assetPrice != null &&
-          assetPrice.listingPrice > 0 &&
-          assetPrice.onSale == true) ...[
-        const Divider(height: 32.0),
-        _rowItem(context, "list_resale".tr(),
-            "${assetPrice.listingPrice.toStringAsFixed(2)} ${assetPrice.currency.toUpperCase()}"),
-      ],
-      if (assetPrice != null && assetPrice.minPrice != 0) ...[
-        const Divider(height: 32.0),
-        _rowItem(context, "esti_floor".tr(),
-            "${assetPrice.minPrice.toStringAsFixed(2)} ${assetPrice.currency.toUpperCase()}"),
-      ],
-      if (changedPriceText.isNotEmpty) ...[
-        const Divider(height: 32.0),
-        _rowItem(context, "change_usd".tr(), changedPriceText),
-      ],
-      if (roiText.isNotEmpty) ...[
-        const Divider(height: 32.0),
-        _rowItem(context, "roi".tr(), roiText),
-      ],
     ],
   );
 }
