@@ -101,13 +101,13 @@ class _LinkAppOptionsPageState extends State<LinkAppOptionsPage> {
       final urlAndroid = "metamask://wc?uri=$uri";
 
       log.info(metamaskLink);
-      try {
-        if (Platform.isAndroid) {
+      if (Platform.isAndroid) {
+        try {
           await _launchURL(urlAndroid);
-        } else {
+        } catch (e) {
           await _launchURL(metamaskLink);
         }
-      } catch (e) {
+      } else {
         await _launchURL(metamaskLink);
       }
     };
