@@ -30,7 +30,7 @@ jobs:
       # Run integration test
       - name: Run Flutter Driver tests for Suite "Link account from MetaMask app"
         run: |
-          cd /media/bitmark/3406ce86-9243-41d7-aa8f-6f7ee167531b/autonomy-client
+          cd ${{ GITHUB_WORKSPACE }}
           flutter pub run test integration_test/external_tests/mobile_external_app/linkaccountbyMetamaskapp_test.dart
       # - name: Run Flutter Driver tests for Suite "Send XTZ"
       #   run: |
