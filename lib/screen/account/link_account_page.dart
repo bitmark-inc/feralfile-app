@@ -125,7 +125,7 @@ class _LinkAccountPageState extends State<LinkAccountPage>
               final url =
                   '${Environment.feralFileAPIURL}/exhibitions?callbackUrl=autonomy%3A%2F%2F&wc=$wcURI';
 
-              await launchUrlString(url, mode: LaunchMode.externalApplication);
+              await launchUrlString(url, mode: LaunchMode.inAppWebView);
 
               if (!mounted) return;
               UIHelper.showLinkRequestedDialog(context);
