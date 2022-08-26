@@ -70,7 +70,8 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE
           flutter pub run test integration_test/external_tests/mobile_external_app/linkaccountbyMetamaskapp_test.dart
-
+          flutter pub run test integration_test/external_tests/tests/import_fullaccount_kukai_temple_test.dart
+          
       - name: Report Status
         if: always()
         uses: ravsamhq/notify-slack-action@v2
