@@ -16,6 +16,7 @@ AppiumBy noLinkLocator = AppiumBy.xpath(
 
 AppiumBy skipButtonLocator = AppiumBy.accessibilityId("SKIP");
 AppiumBy notNowButtonLocator = AppiumBy.accessibilityId("NOT NOW");
+
 AppiumBy continueWithouItbuttonLocation = AppiumBy.xpath(
     "//android.widget.Button[@content-desc='CONTINUE WITHOUT IT']");
 

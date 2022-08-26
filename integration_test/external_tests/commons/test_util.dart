@@ -13,6 +13,11 @@ AppiumBy settingButtonLocator = AppiumBy.accessibilityId("Settings");
 AppiumBy accountAliasLocator = AppiumBy.xpath(
     "//android.widget.FrameLayout[@resource-id='android:id/content']//android.widget.EditText");
 AppiumBy saveAliasButtonLocator = AppiumBy.accessibilityId("SAVE ALIAS");
+AppiumBy continueButtonLocator = AppiumBy.accessibilityId("CONTINUE");
+AppiumBy accountSeedsLocator = AppiumBy.xpath(
+    "//android.widget.FrameLayout[@resource-id='android:id/content']//android.widget.EditText");
+
+AppiumBy confirmButtonLocator = AppiumBy.accessibilityId("CONFIRM");
 
 Future<void> selectSubSettingMenu(AppiumWebDriver driver, String menu) async {
   String sub_menu = await menu;
@@ -23,15 +28,15 @@ Future<void> selectSubSettingMenu(AppiumWebDriver driver, String menu) async {
 
     if (sub_menu == "Settings") {
       var settingButton = await driver.findElement(settingButtonLocator);
-      settingButton.click();
+      await settingButton.click();
     } else {
       var subButton =
           await driver.findElement(AppiumBy.accessibilityId(sub_menu));
-      subButton.click();
+      await subButton.click();
     }
   }
   var lastButton = await driver.findElement(AppiumBy.accessibilityId(menu));
-  lastButton.click();
+  await lastButton.click();
 }
 
 Future<String> genTestDataRandom(String baseString) async {
@@ -40,11 +45,20 @@ Future<String> genTestDataRandom(String baseString) async {
   return baseString;
 }
 
-Future<void> typeAccountAlias(AppiumWebDriver driver, String alias) async {
+Future<void> enterAccountAlias(AppiumWebDriver driver, String alias) async {
   var accountAliasTxt = await driver.findElement(accountAliasLocator);
   await accountAliasTxt.click();
   await accountAliasTxt.sendKeys(alias);
 
   var saveAliasButton = await driver.findElement(saveAliasButtonLocator);
-  saveAliasButton.click();
+  await saveAliasButton.click();
+}
+
+Future<void> enterSeeds(AppiumWebDriver driver, String seeds) async {
+  var accountSeedsTxt = await driver.findElement(accountSeedsLocator);
+  await accountSeedsTxt.click();
+  await accountSeedsTxt.sendKeys(seeds);
+
+  var confirmButton = await driver.findElement(confirmButtonLocator);
+  await confirmButton.click();
 }

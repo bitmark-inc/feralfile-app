@@ -19,7 +19,7 @@ void main() {
   late AppiumWebDriver driver;
   // late AppiumWebDriver driver1;
   final dir = Directory.current;
-  group("Create a new link account", () {
+  group("Create a new full account", () {
     setUpAll(() async {
       driver = await createDriver(
           uri: Uri.parse(APPIUM_SERVER_URL),
@@ -32,7 +32,7 @@ void main() {
       await driver.quit();
     });
 
-    test('by MetaMask app', () async {
+    test('connect to server', () async {
       await driver.app.activate(METAMASK_APPPACKAGE);
 
       await driver.app.activate(AUTONOMY_APPPACKAGE);

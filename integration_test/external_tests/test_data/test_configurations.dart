@@ -10,8 +10,8 @@ const CHROME_MOBILE_BROWSER_PROFILE = {
 };
 Map<String, String> AUTONOMY_PROFILE(String currentDir) => {
       'platformName': "Android",
-      'platformVersion': "12",
-      'deviceName': 'Galaxy A52s 5G',
+      'platformVersion': "11",
+      'deviceName': 'Redmi Note 11S',
       'app':
           "${currentDir}/build/app/outputs/flutter-apk/app-inhouse-release.apk",
       'appPackage': "com.bitmark.autonomy_client.inhouse",
