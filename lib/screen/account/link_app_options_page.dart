@@ -130,17 +130,12 @@ class _LinkAppOptionsPageState extends State<LinkAppOptionsPage> {
   }
 
   Future<void> _launchURL(String url) async {
-    try {
-      final uri = Uri.tryParse(url);
-      if (uri != null &&
-          !await launchUrl(uri,
-              mode: LaunchMode.externalNonBrowserApplication)) {
-        _isPageInactive = true;
-        Navigator.of(context)
-            .pushNamed(AppRouter.linkWalletConnectPage, arguments: 'MetaMask');
-      }
-    } catch (e) {
-      throw Exception(e);
+    final uri = Uri.tryParse(url);
+    if (uri != null &&
+        !await launchUrl(uri, mode: LaunchMode.externalNonBrowserApplication)) {
+      _isPageInactive = true;
+      Navigator.of(context)
+          .pushNamed(AppRouter.linkWalletConnectPage, arguments: 'MetaMask');
     }
   }
 }
