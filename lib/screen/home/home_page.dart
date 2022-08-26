@@ -200,7 +200,6 @@ class _HomePageState extends State<HomePage>
       return NftCollectionGrid(
         state: state.state,
         tokens: state.tokens
-            .where((value) => value.source != 'feralfile')
             .where((element) => !hiddenTokens.contains(element.id))
             .toList(),
         loadingIndicatorBuilder: _loadingView,
