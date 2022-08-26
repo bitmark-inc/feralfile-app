@@ -19,6 +19,7 @@ class AuTextField extends StatelessWidget {
   final Widget? suffix;
   final TextInputType keyboardType;
   final ValueChanged<String>? onChanged;
+  final ValueChanged<String>? onSubmit;
   final int? maxLines;
   final int? hintMaxLines;
 
@@ -34,7 +35,8 @@ class AuTextField extends StatelessWidget {
       this.subTitleView,
       this.suffix,
       this.keyboardType = TextInputType.text,
-      this.onChanged})
+      this.onChanged,
+      this.onSubmit})
       : super(key: key);
 
   @override
@@ -108,7 +110,7 @@ class AuTextField extends StatelessWidget {
         style: theme.textTheme.subtitle1,
         controller: controller,
         onChanged: onChanged,
-        onSubmitted: onChanged,
+        onSubmitted: onSubmit ?? onChanged,
       ),
     );
   }

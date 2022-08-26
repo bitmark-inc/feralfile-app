@@ -177,28 +177,30 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
             final tezosFee = await _tezosService.estimateOperationFee(tezosWallet, [operation]);
             fee = BigInt.from(tezosFee);
           } on TezartNodeError catch (err) {
-            UIHelper.showInfoDialog(
-              injector<NavigationService>().navigatorKey.currentContext!,
-              "estimation_failed".tr(),
-              getTezosErrorMessage(err),
-              isDismissible: true,
-            );
+            if (!emit.isDone) {
+              UIHelper.showInfoDialog(
+                injector<NavigationService>().navigatorKey.currentContext!,
+                "estimation_failed".tr(),
+                getTezosErrorMessage(err),
+                isDismissible: true,
+              );
+            }
           } catch (err) {
-            showErrorDialogFromException(err);
+            if (!emit.isDone) {
+              showErrorDialogFromException(err);
+            }
           }
           break;
         default:
           break;
       }
 
-      if (state.quantity == event.quantity && state.address == event.address) {
+      if (!emit.isDone) {
         final newState = state.clone();
         newState.fee = fee;
         newState.isEstimating = false;
         newState.isValid = _isValid(newState);
         emit(newState);
-      } else {
-        emit(state.copyWith(isEstimating: false));
       }
     }, transformer: (events, mapper) {
       return events
