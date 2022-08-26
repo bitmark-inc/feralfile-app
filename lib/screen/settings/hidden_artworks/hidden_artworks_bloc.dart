@@ -21,7 +21,6 @@ class HiddenArtworksBloc extends AuBloc<HiddenArtworksEvent, List<AssetToken>> {
           configurationService.getTempStorageHiddenTokenIDs();
       final assets = await assetTokenDao.findAllAssetTokens();
       assets.removeWhere((element) => !hiddenArtworks.contains(element.id));
-      assets.removeWhere((element) => element.source == 'feralfile');
       emit(assets);
     });
   }
