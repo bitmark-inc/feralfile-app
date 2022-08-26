@@ -145,7 +145,8 @@ class UpgradesView extends StatelessWidget {
   }
 
   static showSubscriptionDialog(BuildContext context, String? price,
-      PremiumFeature? feature, Function()? onPressSubscribe) {
+      PremiumFeature? feature, Function()? onPressSubscribe,
+      {Function? onCancel}) {
     final theme = Theme.of(context);
 
     UIHelper.showDialog(
@@ -184,7 +185,10 @@ class UpgradesView extends StatelessWidget {
             textStyle: theme.textTheme.button,
           ),
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () {
+              onCancel?.call();
+              Navigator.of(context).pop();
+            },
             child: Text(
               "not_now".tr(),
               style: theme.primaryTextTheme.button,

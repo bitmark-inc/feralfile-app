@@ -644,17 +644,29 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                                   autoClose: false)
                             ],
                             if (!snapshot.hasData) ...[
-                              // Searching for cast devices.
-                              CircularProgressIndicator(
-                                color: theme.colorScheme.primary,
-                                backgroundColor: theme.colorScheme.surface,
-                                strokeWidth: 2.0,
-                              )
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 18,
+                                ),
+                                child: SizedBox(
+                                  width: double.infinity,
+                                  child: Text(
+                                    "searching_for_devices".tr(),
+                                    style: ResponsiveLayout.isMobile
+                                        ? theme.textTheme.atlasSpanishGreyBold16
+                                        : theme
+                                            .textTheme.atlasSpanishGreyBold20,
+                                  ),
+                                ),
+                              ),
                             ],
                             Visibility(
                               visible: snapshot.hasData,
                               child: _castingListView(
                                   context, castDevices, isSubscribed),
+                            ),
+                            const SizedBox(
+                              height: 24,
                             ),
                             TextButton(
                               onPressed: () => Navigator.pop(context),
