@@ -517,16 +517,13 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     final theme = Theme.of(context);
 
     if (devices.isEmpty) {
-      return SizedBox(
-        width: double.infinity,
-        child: Padding(
-          padding: const EdgeInsets.only(bottom: 42),
-          child: Text(
-            'no_device_detected'.tr(),
-            style: ResponsiveLayout.isMobile
-                ? theme.textTheme.atlasSpanishGreyBold16
-                : theme.textTheme.atlasSpanishGreyBold20,
-          ),
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 42),
+        child: Text(
+          'no_device_detected'.tr(),
+          style: ResponsiveLayout.isMobile
+              ? theme.textTheme.atlasSpanishGreyBold16
+              : theme.textTheme.atlasSpanishGreyBold20,
         ),
       );
     }
@@ -638,35 +635,38 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                     builder: (context, subscriptionSnapshot) {
                       final isSubscribed = subscriptionSnapshot.hasData &&
                           subscriptionSnapshot.data == true;
-                      return Column(
-                        children: [
-                          if (!isSubscribed) ...[
-                            UpgradeBoxView.getMoreAutonomyWidget(
-                                theme, PremiumFeature.AutonomyTV,
-                                autoClose: false)
-                          ],
-                          if (!snapshot.hasData) ...[
-                            // Searching for cast devices.
-                            CircularProgressIndicator(
-                              color: theme.colorScheme.primary,
-                              backgroundColor: theme.colorScheme.surface,
-                              strokeWidth: 2.0,
-                            )
-                          ],
-                          Visibility(
-                            visible: snapshot.hasData,
-                            child: _castingListView(
-                                context, castDevices, isSubscribed),
-                          ),
-                          TextButton(
-                            onPressed: () => Navigator.pop(context),
-                            child: Text(
-                              "cancel".tr(),
-                              style: theme.primaryTextTheme.button,
+                      return SizedBox(
+                        width: double.infinity,
+                        child: Column(
+                          children: [
+                            if (!isSubscribed) ...[
+                              UpgradeBoxView.getMoreAutonomyWidget(
+                                  theme, PremiumFeature.AutonomyTV,
+                                  autoClose: false)
+                            ],
+                            if (!snapshot.hasData) ...[
+                              // Searching for cast devices.
+                              CircularProgressIndicator(
+                                color: theme.colorScheme.primary,
+                                backgroundColor: theme.colorScheme.surface,
+                                strokeWidth: 2.0,
+                              )
+                            ],
+                            Visibility(
+                              visible: snapshot.hasData,
+                              child: _castingListView(
+                                  context, castDevices, isSubscribed),
                             ),
-                          ),
-                          const SizedBox(height: 20),
-                        ],
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: Text(
+                                "cancel".tr(),
+                                style: theme.primaryTextTheme.button,
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                          ],
+                        ),
                       );
                     },
                     future: injector<IAPService>().isSubscribed());
