@@ -80,6 +80,11 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
   }
 
   _scrollListener() {
+    if (widget.scrollController.positions.isEmpty) {
+      // ScrollController not attached to any scroll views.
+      return;
+    }
+
     if (widget.scrollController.offset > 80) {
       if (Platform.isIOS) {
         SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
