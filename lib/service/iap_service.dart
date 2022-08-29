@@ -115,9 +115,6 @@ class IAPServiceImpl implements IAPService {
 
     await _cleanupPendingTransactions();
 
-    // Restore previous purchase
-    await restore();
-
     ProductDetailsResponse productDetailResponse =
         await _inAppPurchase.queryProductDetails(productIds.toSet());
     if (productDetailResponse.error != null) {
@@ -220,37 +217,36 @@ class IAPServiceImpl implements IAPService {
           final jwt = await _verifyPurchase(receiptData);
           log.info("[IAPService] verifying the receipt");
           if (jwt != null && jwt.isValid(withSubscription: true)) {
-            purchases.value[purchaseDetails.productID] =
-                IAPProductStatus.completed;
             _configurationService.setIAPJWT(jwt);
             log.info("[IAPService] the receipt is valid");
-          } else {
-            final product = products.value[purchaseDetails.productID];
-            if (product != null) {
-              final validator = PurchaseValidatorFactory.createPurchaseValidator(
-                  product: product, purchase: purchaseDetails);
-              final trialExpireDate = await validator.getTrialExpireDate();
-              if (trialExpireDate != null) {
-                log.info("[IAPService] the receipt is trial");
-                purchases.value[purchaseDetails.productID] =
-                    IAPProductStatus.trial;
-                trialExpireDates.value[purchaseDetails.productID] =
-                    trialExpireDate;
-              } else if (await validator.isValid()) {
-                log.info("[IAPService] the receipt is valid");
-                purchases.value[purchaseDetails.productID] =
-                    IAPProductStatus.completed;
-              }
+          }
+          final product = products.value[purchaseDetails.productID];
+          if (product != null) {
+            final validator = PurchaseValidatorFactory.createPurchaseValidator(
+                product: product, purchase: purchaseDetails);
+            final trialExpireDate = await validator.getTrialExpireDate();
+            if (trialExpireDate != null) {
+              log.info("[IAPService] the receipt is trial");
+              purchases.value[purchaseDetails.productID] =
+                  IAPProductStatus.trial;
+              trialExpireDates.value[purchaseDetails.productID] =
+                  trialExpireDate;
+              purchases.notifyListeners();
+              return;
+            } else if (await validator.isValid()) {
+              log.info("[IAPService] the receipt is valid");
+              purchases.value[purchaseDetails.productID] =
+                  IAPProductStatus.completed;
               purchases.notifyListeners();
               return;
             }
-            log.info("[IAPService] the receipt is invalid");
-            purchases.value[purchaseDetails.productID] =
-                IAPProductStatus.expired;
-            _configurationService.setIAPJWT(null);
-            _cleanupPendingTransactions();
-            return;
           }
+          log.info("[IAPService] the receipt is invalid");
+          purchases.value[purchaseDetails.productID] = IAPProductStatus.expired;
+          purchases.notifyListeners();
+          _configurationService.setIAPJWT(null);
+          _cleanupPendingTransactions();
+          return;
         }
       }
       purchases.notifyListeners();

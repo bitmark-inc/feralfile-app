@@ -98,6 +98,9 @@ class Environment {
   static String get autonomyIpfsPrefix =>
       dotenv.env['AUTONOMY_IPFS_PREFIX'] ?? '';
 
+  static String get appStoreSharedSecret =>
+      dotenv.env['APPSTORE_SHARED_SECRET'] ?? '';
+
   static bool get appTestnetConfig =>
       dotenv.env['APP_TESTNET_CONFIG']?.toUpperCase() == "TRUE";
 }
