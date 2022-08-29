@@ -9,15 +9,15 @@ import 'dart:math';
 
 import 'package:appium_driver/async_io.dart';
 
-AppiumBy settingButtonLocator = AppiumBy.accessibilityId("Settings");
+AppiumBy settingButtonLocator = const AppiumBy.accessibilityId("Settings");
 AppiumBy accountAliasLocator =
-    AppiumBy.xpath("//android.widget.EditText[@text='Enter alias']");
-AppiumBy saveAliasButtonLocator = AppiumBy.accessibilityId("SAVE ALIAS");
-AppiumBy continueButtonLocator = AppiumBy.accessibilityId("CONTINUE");
-AppiumBy accountSeedsLocator = AppiumBy.xpath(
+    const AppiumBy.xpath("//android.widget.EditText[@text='Enter alias']");
+AppiumBy saveAliasButtonLocator = const AppiumBy.accessibilityId("SAVE ALIAS");
+AppiumBy continueButtonLocator = const AppiumBy.accessibilityId("CONTINUE");
+AppiumBy accountSeedsLocator = const AppiumBy.xpath(
     "//android.widget.EditText[contains(@text,'Enter recovery phrase')]");
 
-AppiumBy confirmButtonLocator = AppiumBy.accessibilityId("CONFIRM");
+AppiumBy confirmButtonLocator = const AppiumBy.accessibilityId("CONFIRM");
 
 Future<void> selectSubSettingMenu(AppiumWebDriver driver, String menu) async {
   String sub_menu = await menu;
