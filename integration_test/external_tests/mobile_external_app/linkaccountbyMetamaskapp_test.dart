@@ -19,22 +19,23 @@ void main() {
   late AppiumWebDriver driver;
   // late AppiumWebDriver driver1;
   final dir = Directory.current;
-  group("Create a new full account", () {
+  group("Link account by", () {
     setUpAll(() async {
       driver = await createDriver(
           uri: Uri.parse(APPIUM_SERVER_URL),
           desired: AUTONOMY_PROFILE(dir.path));
 
-      await driver.timeouts.setImplicitTimeout(Duration(seconds: 30));
+      await driver.timeouts.setImplicitTimeout(const Duration(seconds: 30));
     });
 
     tearDownAll(() async {
+      await driver.app.remove(AUTONOMY_APPPACKAGE);
       await driver.quit();
     });
 
-    test('connect to server', () async {
+    test('Metamask', () async {
       await driver.app.activate(METAMASK_APPPACKAGE);
-
+      sleep(const Duration(seconds: 15));
       await driver.app.activate(AUTONOMY_APPPACKAGE);
 
       await onBoardingSteps(driver);

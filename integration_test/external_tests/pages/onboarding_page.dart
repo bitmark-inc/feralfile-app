@@ -9,44 +9,52 @@ import 'dart:io';
 
 import 'package:appium_driver/async_io.dart';
 
-AppiumBy startButtonLocator = AppiumBy.accessibilityId("START");
-AppiumBy continueButtonLocator = AppiumBy.accessibilityId("CONTINUE");
-AppiumBy noLinkLocator = AppiumBy.xpath(
+AppiumBy startButtonLocator = const AppiumBy.accessibilityId("START");
+AppiumBy continueButtonLocator = const AppiumBy.accessibilityId("CONTINUE");
+AppiumBy noLinkLocator = const AppiumBy.xpath(
     "//android.widget.ImageView[contains(@content-desc,'Make a new account with addresses you can use')]");
 
-AppiumBy skipButtonLocator = AppiumBy.accessibilityId("SKIP");
-AppiumBy notNowButtonLocator = AppiumBy.accessibilityId("NOT NOW");
+AppiumBy skipButtonLocator = const AppiumBy.accessibilityId("SKIP");
+AppiumBy notNowButtonLocator = const AppiumBy.accessibilityId("NOT NOW");
 
-AppiumBy continueWithouItbuttonLocation = AppiumBy.xpath(
+AppiumBy continueWithouItbuttonLocation = const AppiumBy.xpath(
     "//android.widget.Button[@content-desc='CONTINUE WITHOUT IT']");
+AppiumBy restoreButtonLocator = const AppiumBy.accessibilityId("RESTORE");
 
 Future<void> onBoardingSteps(AppiumWebDriver driver) async {
-  var startButton = await driver.findElement(startButtonLocator);
-  await startButton.click();
+  int isStartButtonExist = await driver.findElements(startButtonLocator).length;
+  if (isStartButtonExist == 1) {
+    var startButton = await driver.findElement(startButtonLocator);
+    await startButton.click();
 
-  var continueButton = await driver.findElement(continueButtonLocator);
-  await continueButton.click();
+    var continueButton = await driver.findElement(continueButtonLocator);
+    await continueButton.click();
 
-  var noLink = await driver.findElement(noLinkLocator);
-  await noLink.click();
+    var noLink = await driver.findElement(noLinkLocator);
+    await noLink.click();
 
-  continueButton = await driver.findElement(continueButtonLocator);
-  await continueButton.click();
-
-  var skipButton = await driver.findElement(skipButtonLocator);
-  await skipButton.click();
-
-  sleep(Duration(seconds: 2));
-  int isContinueWithoutButtonExist =
-      await driver.findElements(continueWithouItbuttonLocation).length;
-  if (isContinueWithoutButtonExist == 1) {
-    var continueWithoutItButton =
-        await driver.findElement(continueWithouItbuttonLocation);
-    await continueWithoutItButton.click();
-  } else {
     continueButton = await driver.findElement(continueButtonLocator);
     await continueButton.click();
+
+    var skipButton = await driver.findElement(skipButtonLocator);
+    await skipButton.click();
+
+    sleep(const Duration(seconds: 2));
+    int isContinueWithoutButtonExist =
+        await driver.findElements(continueWithouItbuttonLocation).length;
+    if (isContinueWithoutButtonExist == 1) {
+      var continueWithoutItButton =
+          await driver.findElement(continueWithouItbuttonLocation);
+      await continueWithoutItButton.click();
+    } else {
+      continueButton = await driver.findElement(continueButtonLocator);
+      await continueButton.click();
+    }
+  } else {
+    var restoreButton = await driver.findElement(restoreButtonLocator);
+    await restoreButton.click();
   }
+
   var notNowButton = await driver.findElement(notNowButtonLocator);
   await notNowButton.click();
 

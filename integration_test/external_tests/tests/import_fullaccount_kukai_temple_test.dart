@@ -26,18 +26,15 @@ void main() {
           uri: Uri.parse(APPIUM_SERVER_URL),
           desired: AUTONOMY_PROFILE(dir.path));
 
-      await driver.timeouts.setImplicitTimeout(Duration(seconds: 30));
+      await driver.timeouts.setImplicitTimeout(const Duration(seconds: 30));
     });
 
     tearDown(() async {
+      await driver.app.remove(AUTONOMY_APPPACKAGE);
       await driver.quit();
     });
 
     test('MetaMask', () async {
-      // await driver.app.activate(METAMASK_APPPACKAGE);
-
-      // await driver.app.activate(AUTONOMY_APPPACKAGE);
-
       await onBoardingSteps(driver);
 
       await selectSubSettingMenu(driver, "Settings->+ Account");
@@ -56,10 +53,6 @@ void main() {
     });
 
     test('Temple', () async {
-      // await driver.app.activate(METAMASK_APPPACKAGE);
-
-      // await driver.app.activate(AUTONOMY_APPPACKAGE);
-
       await onBoardingSteps(driver);
 
       await selectSubSettingMenu(driver, "Settings->+ Account");
@@ -78,10 +71,6 @@ void main() {
     });
 
     test('Kukai', () async {
-      // await driver.app.activate(METAMASK_APPPACKAGE);
-
-      // await driver.app.activate(AUTONOMY_APPPACKAGE);
-
       await onBoardingSteps(driver);
 
       await selectSubSettingMenu(driver, "Settings->+ Account");

@@ -1,5 +1,3 @@
-import 'dart:io';
-
 const APPIUM_SERVER_URL = 'http://0.0.0.0:4723/wd/hub/';
 const CHROME_MOBILE_BROWSER_PROFILE = {
   'platformName': 'android',

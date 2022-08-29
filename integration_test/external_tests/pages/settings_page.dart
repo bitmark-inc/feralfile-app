@@ -12,24 +12,24 @@ import 'package:test/expect.dart';
 
 import '../commons/test_util.dart';
 
-AppiumBy addLinkLocator = AppiumBy.xpath(
+AppiumBy addLinkLocator = const AppiumBy.xpath(
     "//android.widget.ImageView[contains(@content-desc,'I already have NFTs in other wallets')]");
-AppiumBy metaMaskButtonLocator = AppiumBy.accessibilityId("MetaMask");
-AppiumBy linkAccountLinkLocator = AppiumBy.xpath(
+AppiumBy metaMaskButtonLocator = const AppiumBy.accessibilityId("MetaMask");
+AppiumBy linkAccountLinkLocator = const AppiumBy.xpath(
     "//android.widget.ImageView[contains(@content-desc,'View your NFTs without Autonomy accessing your private keys in MetaMask.')]");
 
-AppiumBy importAccountLinkLocator = AppiumBy.xpath(
+AppiumBy importAccountLinkLocator = const AppiumBy.xpath(
     "//android.widget.ImageView[contains(@content-desc,'Import')]");
 
 AppiumBy mobileLinkLocator =
-    AppiumBy.accessibilityId("Mobile app on this device");
-AppiumBy metaMaskApproveButtonLocator = AppiumBy.xpath(
+    const AppiumBy.accessibilityId("Mobile app on this device");
+AppiumBy metaMaskApproveButtonLocator = const AppiumBy.xpath(
     "//android.view.ViewGroup[contains(@resource-id,'connect-approve-button')]");
 AppiumBy accountLinkedHeaderLocator =
-    AppiumBy.accessibilityId("Account linked");
-AppiumBy skipButtonLocator = AppiumBy.accessibilityId("SKIP");
+    const AppiumBy.accessibilityId("Account linked");
+AppiumBy skipButtonLocator = const AppiumBy.accessibilityId("SKIP");
 AppiumBy alreadyLinkedHeaderLocator =
-    AppiumBy.accessibilityId("Already linked");
+    const AppiumBy.accessibilityId("Already linked");
 
 Future<void> addExistingMetaMaskAccount(
     AppiumWebDriver driver, String type, String metaMaskAlias) async {
@@ -57,7 +57,7 @@ Future<void> addExistingMetaMaskAccount(
       await driver.findElements(accountLinkedHeaderLocator).length;
   expect(accountLinked, 1);
 
-  sleep(Duration(seconds: 5));
+  sleep(const Duration(seconds: 5));
   if (metaMaskAlias.isNotEmpty) {
     await enterAccountAlias(driver, metaMaskAlias);
   } else {
