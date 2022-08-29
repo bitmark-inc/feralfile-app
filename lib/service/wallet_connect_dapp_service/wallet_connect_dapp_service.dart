@@ -23,7 +23,7 @@ import 'package:web3dart/web3dart.dart';
 class WalletConnectDappService {
   late WCClient _wcClient;
   late WCSession _wcSession;
-  late WCSessionStore _wcSessionStore;
+  WCSessionStore? _wcSessionStore;
   ValueNotifier<String?> wcURI = ValueNotifier(null);
   late WCPeerMeta _dappPeerMeta;
   ValueNotifier<bool> isConnected = ValueNotifier(false);
@@ -53,7 +53,7 @@ class WalletConnectDappService {
       url: 'https://autonomy.io',
       description:
           'Autonomy is the home for all your NFT art and other collectibles —'
-              ' a seamless, customizable way to enjoy your collection.',
+          ' a seamless, customizable way to enjoy your collection.',
       icons: [],
     );
 
@@ -118,10 +118,11 @@ class WalletConnectDappService {
 
   _onSessionUpdate(id, updatedSession) {
     log.info("WC onSessionUpdate");
+    if (_wcSessionStore == null) return;
     _configurationService.setWCDappSession(null);
     _configurationService.setWCDappAccounts(null);
     final connectedSession = WCConnectedSession(
-        sessionStore: _wcSessionStore, accounts: updatedSession.accounts);
+        sessionStore: _wcSessionStore!, accounts: updatedSession.accounts);
     remotePeerAccount.value = connectedSession;
   }
 
@@ -154,8 +155,8 @@ class WalletConnectDappService {
         accounts = response.accounts;
       }
 
-      final connectedSession =
-          WCConnectedSession(sessionStore: _wcSessionStore, accounts: accounts);
+      final connectedSession = WCConnectedSession(
+          sessionStore: _wcSessionStore!, accounts: accounts);
 
       remotePeerAccount.value = connectedSession;
     }
