@@ -17,8 +17,8 @@ import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
+import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/foundation.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:tezart/tezart.dart';
@@ -105,7 +105,7 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
         switch (type) {
           case CryptoType.ETH:
             try {
-              final address = EthereumAddress.fromHex(event.address);
+              final address = EthereumAddress.fromHex(event.address, enforceEip55: true);
               newState.address = address.hexEip55;
               newState.isAddressError = false;
 
@@ -116,7 +116,7 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
             }
             break;
           case CryptoType.XTZ:
-            if (event.address.startsWith("tz")) {
+            if (event.address.isValidTezosAddress) {
               newState.address = event.address;
               newState.isAddressError = false;
 

@@ -238,6 +238,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                             title: "to".tr(),
                             placeholder: "paste_or_scan_address".tr(),
                             controller: _addressController,
+                            isError: state.isAddressError,
                             suffix: IconButton(
                               icon: SvgPicture.asset(state.isScanQR
                                   ? "assets/images/iconQr.svg"

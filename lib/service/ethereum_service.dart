@@ -160,7 +160,13 @@ class EthereumServiceImpl extends EthereumService {
     final transaction = Transaction.callContract(
       contract: contract,
       function: _transferFrom(),
-      parameters: [from, to, [BigInt.parse(tokenId, radix: 10)], [quantity], "0x0"],
+      parameters: [
+        from,
+        to,
+        [BigInt.parse(tokenId, radix: 10)],
+        [BigInt.from(quantity)],
+        Uint8List.fromList([0]),
+      ],
       from: from,
       gasPrice: gasPrice,
       nonce: nonce,
