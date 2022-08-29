@@ -38,33 +38,33 @@ MarkdownStyleSheet markDownBlackStyle(BuildContext context) {
 MarkdownStyleSheet markDownStyle(BuildContext context, Color textColor) {
   final theme = Theme.of(context);
   final bodyText2 = ResponsiveLayout.isMobile
-      ? theme.textTheme.ibmGreyNormal16
-      : theme.textTheme.ibmGreyNormal20;
+      ? theme.textTheme.ibmGreyNormal16.copyWith(color: textColor)
+      : theme.textTheme.ibmGreyNormal20.copyWith(color: textColor);
   return MarkdownStyleSheet(
-    a: const TextStyle(
+    a: TextStyle(
       fontFamily: AppTheme.atlasGrotesk,
-      color: AppColor.primaryBlack,
+      color: textColor,
       decoration: TextDecoration.underline,
       fontWeight: FontWeight.w500,
     ),
     p: theme.textTheme.bodyText1?.copyWith(color: textColor),
     pPadding: const EdgeInsets.only(bottom: 15),
     code: bodyText2.copyWith(backgroundColor: Colors.transparent),
-    h1: theme.textTheme.headline1,
+    h1: theme.textTheme.headline1?.copyWith(color: textColor),
     h1Padding: const EdgeInsets.only(bottom: 40),
-    h2: theme.textTheme.headline4,
+    h2: theme.textTheme.headline4?.copyWith(color: textColor),
     h2Padding: EdgeInsets.zero,
-    h3: theme.textTheme.headline3,
+    h3: theme.textTheme.headline3?.copyWith(color: textColor),
     h3Padding: EdgeInsets.zero,
-    h4: theme.textTheme.headline4,
+    h4: theme.textTheme.headline4?.copyWith(color: textColor),
     h4Padding: EdgeInsets.zero,
-    h5: theme.textTheme.subtitle2,
+    h5: theme.textTheme.subtitle2?.copyWith(color: textColor),
     h5Padding: EdgeInsets.zero,
-    h6: theme.textTheme.headline6,
+    h6: theme.textTheme.headline6?.copyWith(color: textColor),
     h6Padding: EdgeInsets.zero,
-    em: const TextStyle(fontStyle: FontStyle.italic),
-    strong: const TextStyle(fontWeight: FontWeight.bold),
-    del: const TextStyle(decoration: TextDecoration.lineThrough),
+    em: TextStyle(fontStyle: FontStyle.italic, color: textColor),
+    strong: TextStyle(fontWeight: FontWeight.bold, color: textColor),
+    del: TextStyle(decoration: TextDecoration.lineThrough, color: textColor),
     blockquote: bodyText2,
     img: bodyText2,
     checkbox: bodyText2.copyWith(color: theme.colorScheme.secondary),
