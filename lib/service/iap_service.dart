@@ -13,7 +13,6 @@ import 'dart:io';
 import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/purchase_validator.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter/foundation.dart';
@@ -115,9 +114,6 @@ class IAPServiceImpl implements IAPService {
 
     await _cleanupPendingTransactions();
 
-    // Restore previous purchase
-    await restore();
-
     ProductDetailsResponse productDetailResponse =
         await _inAppPurchase.queryProductDetails(productIds.toSet());
     if (productDetailResponse.error != null) {
@@ -218,37 +214,29 @@ class IAPServiceImpl implements IAPService {
 
           _receiptData = receiptData;
           final jwt = await _verifyPurchase(receiptData);
+          final subscriptionStatus = jwt?.getSubscriptionStatus();
+          log.info("[IAPService] subscription: $subscriptionStatus");
           log.info("[IAPService] verifying the receipt");
-          if (jwt != null && jwt.isValid(withSubscription: true)) {
-            purchases.value[purchaseDetails.productID] =
-                IAPProductStatus.completed;
+          if (subscriptionStatus?.isPremium == true) {
             _configurationService.setIAPJWT(jwt);
-            log.info("[IAPService] the receipt is valid");
-          } else {
-            final product = products.value[purchaseDetails.productID];
-            if (product != null) {
-              final validator = PurchaseValidatorFactory.createPurchaseValidator(
-                  product: product, purchase: purchaseDetails);
-              final trialExpireDate = await validator.getTrialExpireDate();
-              if (trialExpireDate != null) {
-                log.info("[IAPService] the receipt is trial");
-                purchases.value[purchaseDetails.productID] =
-                    IAPProductStatus.trial;
-                trialExpireDates.value[purchaseDetails.productID] =
-                    trialExpireDate;
-              } else if (await validator.isValid()) {
-                log.info("[IAPService] the receipt is valid");
-                purchases.value[purchaseDetails.productID] =
-                    IAPProductStatus.completed;
-              }
-              purchases.notifyListeners();
-              return;
+            final status = subscriptionStatus!;
+            if (status.isTrial == true) {
+              purchases.value[purchaseDetails.productID] =
+                  IAPProductStatus.trial;
+              trialExpireDates.value[purchaseDetails.productID] =
+                  status.expireDate;
+            } else {
+              purchases.value[purchaseDetails.productID] =
+                  IAPProductStatus.completed;
             }
+            purchases.notifyListeners();
+          } else {
             log.info("[IAPService] the receipt is invalid");
             purchases.value[purchaseDetails.productID] =
                 IAPProductStatus.expired;
             _configurationService.setIAPJWT(null);
             _cleanupPendingTransactions();
+            purchases.notifyListeners();
             return;
           }
         }
@@ -259,18 +247,9 @@ class IAPServiceImpl implements IAPService {
 
   @override
   Future<bool> isSubscribed() async {
-    if (await isAppCenterBuild()) {
-      return true;
-    }
     final jwt = _configurationService.getIAPJWT();
-    final jwtValid = jwt != null && jwt.isValid(withSubscription: true);
-    if (jwtValid) {
-      return true;
-    }
-    return purchases.value.values.any((status) {
-      return status == IAPProductStatus.completed ||
-          status == IAPProductStatus.trial;
-    });
+    return (jwt != null && jwt.isValid(withSubscription: true)) ||
+        await isAppCenterBuild();
   }
 
   Future _cleanupPendingTransactions() async {
