@@ -6,25 +6,34 @@
 //
 
 import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/connections/connections_bloc.dart';
+import 'package:autonomy_flutter/screen/bloc/ethereum/ethereum_bloc.dart';
+import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
+import 'package:autonomy_flutter/screen/global_receive/receive_detail_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
+import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/string_ext.dart';
+import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
+import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:share/share.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:libauk_dart/libauk_dart.dart';
+
+import '../../view/responsive.dart';
 
 class PersonaConnectionsPage extends StatefulWidget {
   final PersonaConnectionsPayload payload;
+
   const PersonaConnectionsPage({Key? key, required this.payload})
       : super(key: key);
 
@@ -34,6 +43,30 @@ class PersonaConnectionsPage extends StatefulWidget {
 
 class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
     with RouteAware, WidgetsBindingObserver {
+
+  @override
+  void initState() {
+    super.initState();
+    final personUUID = widget.payload.personaUUID;
+    context.read<AccountsBloc>().add(
+        FindAccount(personUUID, widget.payload.address, widget.payload.type));
+    switch (widget.payload.type) {
+      case CryptoType.ETH:
+        context.read<EthereumBloc>().add(GetEthereumAddressEvent(personUUID));
+        context
+            .read<EthereumBloc>()
+            .add(GetEthereumBalanceWithUUIDEvent(personUUID));
+        break;
+      case CryptoType.XTZ:
+        context.read<TezosBloc>().add(GetTezosBalanceWithUUIDEvent(personUUID));
+        context.read<TezosBloc>().add(GetTezosAddressEvent(personUUID));
+        break;
+      case CryptoType.BITMARK:
+        // do nothing
+        break;
+    }
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -77,7 +110,7 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
     return Scaffold(
       appBar: getBackAppBar(
         context,
-        title: widget.payload.address.mask(4),
+        title: widget.payload.type.source.toUpperCase(),
         onBack: () {
           Navigator.of(context).pop();
         },
@@ -109,7 +142,6 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
 
   Widget _addressSection() {
     var address = widget.payload.address;
-    final addressSource = widget.payload.type.source;
     final theme = Theme.of(context);
     final addressStyle = theme.textTheme.subtitle1;
 
@@ -127,31 +159,106 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(addressSource, style: theme.textTheme.headline4),
-                TextButton(
-                  onPressed: () => Share.share(address),
-                  child: Text(
-                    "share".tr(),
-                    style: ResponsiveLayout.isMobile
-                        ? theme.textTheme.atlasBlackBold12
-                        : theme.textTheme.atlasBlackBold14,
-                  ),
-                )
+                Text("receive".tr(), style: theme.textTheme.headline4),
+                BlocBuilder<AccountsBloc, AccountsState>(
+                    builder: (context, state) {
+                  final account = state.accounts?[0];
+                  return Container(
+                    alignment: Alignment.center,
+                    child: IconButton(
+                      onPressed: () {
+                        if (account != null) {
+                          Navigator.of(context).pushNamed(
+                              GlobalReceiveDetailPage.tag,
+                              arguments: account);
+                        }
+                      },
+                      icon: SvgPicture.asset("assets/images/iconQr.svg"),
+                    ),
+                  );
+                }),
               ],
             ),
             Row(
               children: [
                 Expanded(
-                  child: Text(
-                    address,
-                    style: addressStyle,
+                  child: GestureDetector(
+                    onTap: () async {
+                      showInfoNotification(const Key("address"), "copied_to_clipboard".tr());
+                      Clipboard.setData(ClipboardData(text: widget.payload.address));
+                    },
+                    child: Text(
+                      address,
+                      style: addressStyle,
+                    ),
                   ),
                 ),
               ],
             ),
+            addDivider(),
+            if (widget.payload.type == CryptoType.ETH) ...[
+              BlocBuilder<EthereumBloc, EthereumState>(
+                  builder: (context, state) {
+                final ethAddress =
+                    state.personaAddresses?[widget.payload.personaUUID];
+                final ethBalance = state.ethBalances[ethAddress];
+                final balance = ethBalance == null
+                    ? "-- ETH"
+                    : "${EthAmountFormatter(ethBalance.getInWei).format()} ETH";
+                return _historyRow(balance: balance);
+              })
+            ] else if (widget.payload.type == CryptoType.XTZ) ...[
+              BlocBuilder<TezosBloc, TezosState>(builder: (context, state) {
+                final tezosAddress =
+                    state.personaAddresses?[widget.payload.personaUUID];
+                final xtzBalance = state.balances[tezosAddress];
+                final balance = xtzBalance == null
+                    ? "-- XTZ"
+                    : "${XtzAmountFormatter(xtzBalance).format()} XTZ";
+                return _historyRow(balance: balance);
+              })
+            ],
           ],
         ),
       ],
+    );
+  }
+
+
+  Widget _historyRow({String balance = ""}) {
+    final theme = Theme.of(context);
+    final addressStyle = theme.textTheme.subtitle1;
+
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Row(
+                  children: [
+                    Text("history".tr(), style: theme.textTheme.headline4),
+                    const Expanded(child: SizedBox()),
+                    Text(balance, style: addressStyle),
+                  ],
+                ),
+              ),
+              SvgPicture.asset('assets/images/iconForward.svg'),
+            ],
+          ),
+          const SizedBox(height: 16),
+        ],
+      ),
+      onTap: () {
+        Navigator.of(context).pushNamed(
+          AppRouter.walletDetailsPage,
+          arguments: WalletDetailsPayload(
+              type: widget.payload.type,
+              wallet: LibAukDart.getWallet(widget.payload.personaUUID)),
+        );
+      },
     );
   }
 

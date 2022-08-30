@@ -38,6 +38,7 @@ import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/router/router_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
+import 'package:autonomy_flutter/screen/bloc/tzkt_transaction/tzkt_transaction_bloc.dart';
 import 'package:autonomy_flutter/screen/bug_bounty_page.dart';
 import 'package:autonomy_flutter/screen/cloud/cloud_android_page.dart';
 import 'package:autonomy_flutter/screen/cloud/cloud_page.dart';
@@ -475,14 +476,21 @@ class AppRouter {
       case personaConnectionsPage:
         return CupertinoPageRoute(
             settings: settings,
-            builder: (context) => BlocProvider(
-                create: (_) => ConnectionsBloc(
-                      injector<CloudDatabase>(),
-                      injector(),
-                      injector(),
-                    ),
-                child: PersonaConnectionsPage(
-                    payload: settings.arguments as PersonaConnectionsPayload)));
+            builder: (context) => MultiBlocProvider(
+                    providers: [
+                      BlocProvider.value(value: accountsBloc),
+                      BlocProvider.value(value: ethereumBloc),
+                      BlocProvider.value(value: tezosBloc),
+                      BlocProvider.value(
+                          value: ConnectionsBloc(
+                        injector<CloudDatabase>(),
+                        injector(),
+                        injector(),
+                      ))
+                    ],
+                    child: PersonaConnectionsPage(
+                        payload:
+                            settings.arguments as PersonaConnectionsPayload)));
 
       case connectionDetailsPage:
         return CupertinoPageRoute(
@@ -511,9 +519,16 @@ class AppRouter {
       case walletDetailsPage:
         return CupertinoPageRoute(
             settings: settings,
-            builder: (context) => BlocProvider(
-                  create: (_) =>
-                      WalletDetailBloc(injector(), injector(), injector()),
+            builder: (context) => MultiBlocProvider(
+                  //BlocProvider(
+                  //create: (_) =>
+                  //WalletDetailBloc(injector(), injector(), injector()),
+                  providers: [
+                    BlocProvider(
+                        create: (_) => WalletDetailBloc(
+                            injector(), injector(), injector())),
+                    BlocProvider(create:(_) => TZKTTransactionBloc())
+                  ],
                   child: WalletDetailPage(
                       payload: settings.arguments as WalletDetailsPayload),
                 ));

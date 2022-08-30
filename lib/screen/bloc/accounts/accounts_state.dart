@@ -38,6 +38,14 @@ class NameLinkedAccountEvent extends AccountsEvent {
 
 class FetchAllAddressesEvent extends AccountsEvent {}
 
+class FindAccount extends AccountsEvent {
+  final String personaUUID;
+  final String address;
+  final CryptoType type;
+
+  FindAccount(this.personaUUID, this.address, this.type);
+}
+
 class Account {
   String key;
   Persona? persona;
@@ -121,3 +129,5 @@ class FetchAllAddressesSuccessEvent extends AccountBlocStateEvent {
 
   FetchAllAddressesSuccessEvent(this.addresses);
 }
+
+
