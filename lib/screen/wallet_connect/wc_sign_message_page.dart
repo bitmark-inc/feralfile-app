@@ -15,7 +15,6 @@ import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/debouce_util.dart';
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -24,6 +23,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:wallet_connect/models/wc_peer_meta.dart';
 import 'package:web3dart/crypto.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 
 class WCSignMessagePage extends StatefulWidget {
   static const String tag = 'wc_sign_message';
@@ -53,7 +53,7 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
         },
       ),
       body: Container(
-        margin: pageEdgeInsetsWithSubmitButton,
+        margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -149,22 +149,20 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
                 if (!mounted) return;
 
                 if (widget.args.peerMeta.url.contains("feralfile")) {
-                  if (messageInUtf8.contains(
-                      "ff_request_connect".tr())) {
+                  if (messageInUtf8.contains("ff_request_connect".tr())) {
                     context.read<FeralfileBloc>().add(LinkFFWeb3AccountEvent(
                         widget.args.topic,
                         widget.args.peerMeta.url,
                         wallet,
                         true));
-                  } else if (messageInUtf8.contains(
-                      "ff_request_auth".tr())) {
+                  } else if (messageInUtf8.contains("ff_request_auth".tr())) {
                     context.read<FeralfileBloc>().add(LinkFFWeb3AccountEvent(
                         widget.args.topic,
                         widget.args.peerMeta.url,
                         wallet,
                         false));
-                  } else if (messageInUtf8.contains(
-                      "ff_request_auth_dis".tr())) {
+                  } else if (messageInUtf8
+                      .contains("ff_request_auth_dis".tr())) {
                     final matched =
                         RegExp("Wallet address:\\n(0[xX][0-9a-fA-F]+)\\n")
                             .firstMatch(messageInUtf8);

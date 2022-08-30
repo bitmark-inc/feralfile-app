@@ -17,6 +17,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 
 class CloudPage extends StatelessWidget {
   final String section;
@@ -46,7 +47,7 @@ class CloudPage extends StatelessWidget {
         valueListenable: injector<CloudService>().isAvailableNotifier,
         builder: (BuildContext context, bool isAvailable, Widget? child) {
           return Container(
-            margin: pageEdgeInsetsWithSubmitButton,
+            margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -56,7 +57,9 @@ class CloudPage extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            isAvailable ? "backed_up".tr() : "sign_in_to_icloud".tr(),
+                            isAvailable
+                                ? "backed_up".tr()
+                                : "sign_in_to_icloud".tr(),
                             style: theme.textTheme.headline1,
                           ),
                           addTitleSpace(),

@@ -12,7 +12,6 @@ import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:intl/intl.dart';
 
 const _nanoTEZFactor = 1000000;
 
@@ -49,7 +48,8 @@ class TezosTXRowView extends StatelessWidget {
               const SizedBox(width: 13),
               Text(_transactionTitle(), style: theme.textTheme.headline4),
               const Spacer(),
-              Text("${_txAmountSign()} ${_totalAmount()}", style: theme.textTheme.caption)
+              Text("${_txAmountSign()} ${_totalAmount()}",
+                  style: theme.textTheme.caption)
             ],
           ),
           const SizedBox(height: 4),
@@ -115,8 +115,8 @@ class TezosTXRowView extends StatelessWidget {
     }
   }
 
-  String _txAmountSign(){
-    if(tx.sender?.address == tx.target?.address) return "";
+  String _txAmountSign() {
+    if (tx.sender?.address == tx.target?.address) return "";
     return tx.target?.address == currentAddress ? "+" : "-";
   }
 }

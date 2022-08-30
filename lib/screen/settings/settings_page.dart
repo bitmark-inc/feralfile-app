@@ -7,7 +7,6 @@
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/connection/accounts_view.dart';
@@ -98,7 +97,7 @@ class _SettingsPageState extends State<SettingsPage>
           child: Stack(
             children: [
               SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 15),
+                padding: ResponsiveLayout.pageEdgeInsets,
                 controller: _controller,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

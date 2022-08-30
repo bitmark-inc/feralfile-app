@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 
 class UnsafeWebWalletPage extends StatelessWidget {
   const UnsafeWebWalletPage({Key? key}) : super(key: key);
@@ -23,7 +24,7 @@ class UnsafeWebWalletPage extends StatelessWidget {
         onBack: () => Navigator.of(context).pop(),
       ),
       body: Container(
-        margin: pageEdgeInsets,
+        margin: ResponsiveLayout.pageEdgeInsets,
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -50,90 +51,77 @@ class UnsafeWebWalletPage extends StatelessWidget {
         style: theme.textTheme.bodyText1,
         children: <TextSpan>[
           TextSpan(
-            text:
-                "web_wallet".tr(),
+            text: "web_wallet".tr(),
           ),
           TextSpan(
-              text:
-                  "browser_ext_focus".tr(),
-              style: TextStyle(fontWeight: FontWeight.bold)),
+              text: "browser_ext_focus".tr(),
+              style: const TextStyle(fontWeight: FontWeight.bold)),
           TextSpan(
-            text:
-                "general_focus".tr(),
+            text: "general_focus".tr(),
           ),
           TextSpan(
               text: "browser_creep".tr(),
-              style: TextStyle(fontWeight: FontWeight.bold)),
+              style: const TextStyle(fontWeight: FontWeight.bold)),
           TextSpan(
-            text:
-                "similarly_attention".tr(),
+            text: "similarly_attention".tr(),
           ),
           TextSpan(
               text: 'airdrop_scam'.tr(),
-              style: TextStyle(
+              style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 decoration: TextDecoration.underline,
               )),
           TextSpan(
               text: "browser_sandbox".tr(),
-              style: TextStyle(fontWeight: FontWeight.bold)),
+              style: const TextStyle(fontWeight: FontWeight.bold)),
           TextSpan(
-            text:
-                "poor_sandboxing".tr(),
+            text: "poor_sandboxing".tr(),
           ),
           TextSpan(
-              text:
-              "browser_expose".tr(),
-              style: TextStyle(fontWeight: FontWeight.bold)),
+              text: "browser_expose".tr(),
+              style: const TextStyle(fontWeight: FontWeight.bold)),
           TextSpan(
-            text:
-                "security_flaws".tr(),
+            text: "security_flaws".tr(),
           ),
           TextSpan(
               text: "ext_safe".tr(),
-              style: TextStyle(fontWeight: FontWeight.bold)),
+              style: const TextStyle(fontWeight: FontWeight.bold)),
           TextSpan(
-            text:
-                "however_javascript".tr(),
+            text: "however_javascript".tr(),
           ),
           TextSpan(
               text: "browser_collect".tr(),
-              style: TextStyle(fontWeight: FontWeight.bold)),
+              style: const TextStyle(fontWeight: FontWeight.bold)),
           TextSpan(
-            text:
-                "flaws_poor".tr(),
+            text: "flaws_poor".tr(),
           ),
           TextSpan(
               text: "browser_limit".tr(),
-              style: TextStyle(fontWeight: FontWeight.bold)),
+              style: const TextStyle(fontWeight: FontWeight.bold)),
           TextSpan(
-            text:
-                "browser_are_not_built_for".tr(),
+            text: "browser_are_not_built_for".tr(),
           ),
           TextSpan(
               text: "browser_malicious".tr(),
-              style: TextStyle(fontWeight: FontWeight.bold)),
+              style: const TextStyle(fontWeight: FontWeight.bold)),
           TextSpan(
-            text:
-                "though_there_are".tr(),
+            text: "though_there_are".tr(),
           ),
           TextSpan(
               text: '49_browser_extensions'.tr(),
-              style: TextStyle(
+              style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 decoration: TextDecoration.underline,
               )),
           TextSpan(text: 'steal_crypto'.tr()),
           TextSpan(
               text: "browser_become_mal".tr(),
-              style: TextStyle(fontWeight: FontWeight.bold)),
+              style: const TextStyle(fontWeight: FontWeight.bold)),
           TextSpan(
-            text:
-                "users_feel_safe".tr(),
+            text: "users_feel_safe".tr(),
           ),
           TextSpan(
-            text:
-                "app_safer".tr(),
+            text: "app_safer".tr(),
           ),
         ],
       ),

@@ -42,7 +42,7 @@ class BugBountyPage extends StatelessWidget {
         onBack: () => Navigator.of(context).pop(),
       ),
       body: Container(
-        margin: pageEdgeInsetsNotBottom,
+        margin: ResponsiveLayout.pageEdgeInsetsNotBottom,
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

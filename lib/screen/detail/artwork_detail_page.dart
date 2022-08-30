@@ -25,6 +25,7 @@ import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/au_outlined_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -129,7 +130,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
 
               var subTitle = "";
               if (artistName != null && artistName.isNotEmpty) {
-                subTitle = "by".tr(args: [artistName]) ;
+                subTitle = "by".tr(args: [artistName]);
               }
               subTitle += getEditionSubTitle(asset);
 
@@ -140,7 +141,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                   children: [
                     const SizedBox(height: 16.0),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      padding: ResponsiveLayout.getPadding,
                       child: Text(
                         asset.title,
                         style: theme.textTheme.headline1,
@@ -149,7 +150,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                     const SizedBox(height: 8.0),
                     if (subTitle.isNotEmpty) ...[
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        padding: ResponsiveLayout.getPadding,
                         child: Text(
                           subTitle,
                           style: theme.textTheme.headline3,
@@ -172,7 +173,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                     debugInfoWidget(context, currentAsset),
                     const SizedBox(height: 16.0),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      padding: ResponsiveLayout.getPadding,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -293,8 +294,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
             title: isHidden ? 'unhide_aw'.tr() : 'hide_aw'.tr(),
             onTap: () async {
               await injector<ConfigurationService>()
-                  .updateTempStorageHiddenTokenIDs(
-                      [asset.id], !isHidden);
+                  .updateTempStorageHiddenTokenIDs([asset.id], !isHidden);
               injector<SettingsDataService>().backup();
 
               if (!mounted) return;

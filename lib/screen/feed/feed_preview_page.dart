@@ -476,7 +476,8 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
     final theme = Theme.of(context);
 
     return Padding(
-      padding: pageEdgeInsets.copyWith(top: safeAreaTop + 6, right: 15),
+      padding: ResponsiveLayout.pageEdgeInsets
+          .copyWith(top: safeAreaTop + 6, right: 15),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

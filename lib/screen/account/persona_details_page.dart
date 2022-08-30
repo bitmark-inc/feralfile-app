@@ -29,6 +29,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:nft_collection/nft_collection.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 
 class PersonaDetailsPage extends StatefulWidget {
   final Persona persona;
@@ -96,7 +97,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
         onBack: () => Navigator.of(context).pop(),
       ),
       body: Container(
-        margin: pageEdgeInsets,
+        margin: ResponsiveLayout.pageEdgeInsets,
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -281,7 +282,8 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('hide_from_collection'.tr(), style: theme.textTheme.headline4),
+              Text('hide_from_collection'.tr(),
+                  style: theme.textTheme.headline4),
               CupertinoSwitch(
                 value: isHideGalleryEnabled,
                 onChanged: (value) async {

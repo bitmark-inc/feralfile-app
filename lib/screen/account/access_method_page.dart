@@ -30,7 +30,7 @@ class AccessMethodPage extends StatelessWidget {
         },
       ),
       body: Container(
-        margin: pageEdgeInsets,
+        margin: ResponsiveLayout.pageEdgeInsets,
         child: Column(children: [
           Expanded(
               child: SingleChildScrollView(

@@ -124,7 +124,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
             Expanded(
               child: AuFilledButton(
                 text: "start".tr().toUpperCase(),
-                key:Key("start_button"),
+                key: const Key("start_button"),
                 onPress: () {
                   Navigator.of(context).pushNamed(AppRouter.beOwnGalleryPage);
                 },
@@ -138,7 +138,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
             Expanded(
               child: AuFilledButton(
                 text: "restore".tr().toUpperCase(),
-                key:Key("restore_button"),
+                key: const Key("restore_button"),
                 onPress: !state.isLoading
                     ? () {
                         context.read<RouterBloc>().add(

@@ -12,7 +12,6 @@ import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:intl/intl.dart';
 import 'package:share/share.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -63,18 +62,22 @@ class TezosTXDetailPage extends StatelessWidget {
                           tx.target?.alias ?? tx.target?.address)
                     ] else if (tx.type == "transaction") ...[
                       tx.sender?.address == currentAddress
-                          ? _transactionInfo(context, "to".tr(), tx.target?.address)
+                          ? _transactionInfo(
+                              context, "to".tr(), tx.target?.address)
                           : _transactionInfo(
                               context, "from".tr(), tx.sender?.address),
                     ],
-                    _transactionInfo(context, "status".tr(), _transactionStatus()),
+                    _transactionInfo(
+                        context, "status".tr(), _transactionStatus()),
                     _transactionInfo(context, "date".tr(),
                         formatter.format(tx.timestamp.toLocal())),
                     if (tx.type == "transaction")
-                      _transactionInfo(context, "amount".tr(), _transactionAmount()),
+                      _transactionInfo(
+                          context, "amount".tr(), _transactionAmount()),
                     if (tx.sender?.address == currentAddress) ...[
                       _transactionInfo(context, "gas_fee2".tr(), _gasFee()),
-                      _transactionInfo(context, "total_amount".tr(), _totalAmount()),
+                      _transactionInfo(
+                          context, "total_amount".tr(), _totalAmount()),
                     ],
                     _viewOnTZKT(context),
                   ],
@@ -93,7 +96,9 @@ class TezosTXDetailPage extends StatelessWidget {
     } else if (tx.type != "transaction") {
       return tx.type.capitalize();
     } else {
-      return tx.sender?.address == currentAddress ? "sent_xtz".tr() : "received_xtz".tr();
+      return tx.sender?.address == currentAddress
+          ? "sent_xtz".tr()
+          : "received_xtz".tr();
     }
   }
 
@@ -159,7 +164,8 @@ class TezosTXDetailPage extends StatelessWidget {
                 color: theme.colorScheme.primary,
               ),
               children: <TextSpan>[
-                TextSpan(text: 'view_on'.tr(), style: theme.textTheme.headline4),
+                TextSpan(
+                    text: 'view_on'.tr(), style: theme.textTheme.headline4),
                 TextSpan(
                     text: 'tzkt.io',
                     style: theme.textTheme.headline4
