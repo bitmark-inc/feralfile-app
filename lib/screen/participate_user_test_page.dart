@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 
 import '../util/constants.dart';
 
@@ -27,7 +28,7 @@ class ParticipateUserTestPage extends StatelessWidget {
           onBack: () => Navigator.of(context).pop(),
         ),
         body: Container(
-          margin: pageEdgeInsetsWithSubmitButton,
+          margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Expanded(
@@ -50,11 +51,16 @@ What to expect:
                       style: theme.textTheme.bodyText1,
                     ),
                     ...[
-                      "user_test_will_1".tr(),//'The user test will be conducted via Zoom.',
-                      "user_test_will_2".tr(),//'You should have a good Internet connection in a quiet area.',
-                      "user_test_will_3".tr(),//'You will be asked questions in English or French.',
-                      "user_test_will_4".tr(),//'You should already have NFTs on Ethereum, Tezos, or Bitmark chains.',
-                      "user_test_will_5".tr(),//'We may ask you to install a development build on your device.',
+                      "user_test_will_1"
+                          .tr(), //'The user test will be conducted via Zoom.',
+                      "user_test_will_2"
+                          .tr(), //'You should have a good Internet connection in a quiet area.',
+                      "user_test_will_3"
+                          .tr(), //'You will be asked questions in English or French.',
+                      "user_test_will_4"
+                          .tr(), //'You should already have NFTs on Ethereum, Tezos, or Bitmark chains.',
+                      "user_test_will_5"
+                          .tr(), //'We may ask you to install a development build on your device.',
                     ]
                         .map((e) => Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,

@@ -21,7 +21,6 @@ import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
-import 'package:autonomy_flutter/util/au_cached_manager.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -394,7 +393,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     final theme = Theme.of(context);
     return Container(
       height: 300,
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      padding: ResponsiveLayout.getPadding,
       color: theme.colorScheme.primary,
       child: Center(
         child: Column(

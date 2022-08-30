@@ -13,7 +13,6 @@ import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/biometrics_util.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
@@ -26,6 +25,7 @@ import 'package:flutter/material.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:tezart/tezart.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 
 class TBSendTransactionPage extends StatefulWidget {
   static const String tag = 'tb_send_transaction';
@@ -112,7 +112,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
       body: Stack(
         children: [
           Container(
-            margin: pageEdgeInsetsWithSubmitButton,
+            margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -225,7 +225,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                                   final didAuthenticate =
                                       await localAuth.authenticate(
                                           localizedReason:
-                                          "authen_for_autonomy".tr());
+                                              "authen_for_autonomy".tr());
                                   if (!didAuthenticate) {
                                     setState(() {
                                       _isSending = false;
@@ -235,11 +235,9 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                                 }
 
                                 try {
-                                  final txHash =
-                                      await injector<TezosService>()
-                                          .sendOperationTransaction(
-                                              _currentWallet!,
-                                              widget.request.operations!);
+                                  final txHash = await injector<TezosService>()
+                                      .sendOperationTransaction(_currentWallet!,
+                                          widget.request.operations!);
 
                                   injector<TezosBeaconService>()
                                       .operationResponse(
@@ -272,7 +270,9 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
               ],
             ),
           ),
-          _isSending ? const Center(child: CupertinoActivityIndicator()) : const SizedBox(),
+          _isSending
+              ? const Center(child: CupertinoActivityIndicator())
+              : const SizedBox(),
         ],
       ),
     );

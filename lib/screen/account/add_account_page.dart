@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
@@ -42,8 +43,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
         },
       ),
       body: Container(
-        margin: const EdgeInsets.only(
-            top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
+        margin: ResponsiveLayout.pageEdgeInsets,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -81,10 +81,9 @@ class _AddAccountPageState extends State<AddAccountPage> {
               children: [
                 addDivider(),
                 TappableForwardRowWithContent(
-                  leftWidget:
-                      Text('debug_address'.tr(), style: theme.textTheme.headline4),
-                  bottomWidget: Text(
-                      "da_manually_input_an".tr(),
+                  leftWidget: Text('debug_address'.tr(),
+                      style: theme.textTheme.headline4),
+                  bottomWidget: Text("da_manually_input_an".tr(),
                       //'Manually input an address for debugging purposes.',
                       style: theme.textTheme.bodyText1),
                   onTap: () => Navigator.of(context)
@@ -126,10 +125,9 @@ class _AddAccountPageState extends State<AddAccountPage> {
       children: [
         addDivider(),
         TappableForwardRowWithContent(
-          leftWidget:
-              Text("debug_indexer_tokenId".tr(), style: theme.textTheme.headline4),
-          bottomWidget: Text(
-              "dit_manually_input_an".tr(),
+          leftWidget: Text("debug_indexer_tokenId".tr(),
+              style: theme.textTheme.headline4),
+          bottomWidget: Text("dit_manually_input_an".tr(),
               //'Manually input an indexer tokenID for debugging purposes',
               style: theme.textTheme.bodyText1),
           onTap: () => Navigator.of(context)
@@ -149,8 +147,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
     final theme = Theme.of(context);
     return TappableForwardRowWithContent(
       leftWidget: Text('add'.tr(), style: theme.textTheme.headline4),
-      bottomWidget: Text(
-          "ad_i_already_have".tr(),
+      bottomWidget: Text("ad_i_already_have".tr(),
           //'I already have NFTs in other wallets that I want to view with Autonomy.',
           style: theme.textTheme.bodyText1),
       onTap: () => Navigator.of(context).pushNamed(AppRouter.linkAccountpage),
@@ -181,8 +178,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
       builder: (context, state) {
         return TappableForwardRowWithContent(
           leftWidget: Text('new'.tr(), style: theme.textTheme.headline4),
-          bottomWidget: Text(
-              "ne_make_a_new_account".tr(),
+          bottomWidget: Text("ne_make_a_new_account".tr(),
               //'Make a new account with addresses you can use to collect or receive NFTs on Ethereum, Feral File, and Tezos. ',
               style: theme.textTheme.bodyText1),
           onTap: () {

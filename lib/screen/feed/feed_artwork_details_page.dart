@@ -124,7 +124,7 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    padding: ResponsiveLayout.getPadding,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -209,7 +209,7 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
                     onTap: () => Navigator.of(context).pop(),
                   ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    padding: ResponsiveLayout.getPadding,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [

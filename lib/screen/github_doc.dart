@@ -17,6 +17,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:url_launcher/url_launcher_string.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 
 class GithubDocPage extends StatefulWidget {
   final Map<String, String> payload;
@@ -53,7 +54,7 @@ class _GithubDocPageState extends State<GithubDocPage> {
         onBack: () => Navigator.of(context).pop(),
       ),
       body: Container(
-        margin: pageEdgeInsets,
+        margin: ResponsiveLayout.pageEdgeInsets,
         child: FutureBuilder<Response<String>>(
           builder: (context, snapshot) => CustomScrollView(
             slivers: [

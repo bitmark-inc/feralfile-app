@@ -41,4 +41,34 @@ class ResponsiveLayout extends StatelessWidget {
               : desktop ?? tablet ?? mobile,
     );
   }
+
+  static EdgeInsets get getPadding => isMobile
+      ? Constants.paddingMobile
+      : isTablet
+          ? Constants.paddingTablet
+          : Constants.paddingTabletLandScape;
+  static double get padding => isMobile
+      ? 14
+      : isTablet
+          ? 20
+          : 30;
+
+  static EdgeInsets get pageEdgeInsets => EdgeInsets.only(
+        top: padding,
+        left: padding,
+        right: padding,
+        bottom: 20.0,
+      );
+  static EdgeInsets get pageEdgeInsetsWithSubmitButton => EdgeInsets.fromLTRB(
+        padding,
+        padding,
+        padding,
+        32,
+      );
+  static EdgeInsets get pageEdgeInsetsNotBottom => EdgeInsets.fromLTRB(
+        padding,
+        padding,
+        padding,
+        0,
+      );
 }

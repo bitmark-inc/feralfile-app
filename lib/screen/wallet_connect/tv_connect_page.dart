@@ -14,7 +14,7 @@ import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/debouce_util.dart';
-import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -125,7 +125,7 @@ class _TVConnectPageState extends State<TVConnectPage>
         elevation: 0,
       ),
       body: Container(
-        margin: pageEdgeInsetsWithSubmitButton,
+        margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(
             "connect_au_viewer".tr(),

@@ -206,13 +206,22 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                                           .getETHAddress());
                                   final tokenId = asset.tokenId!;
 
-                                  final data = widget.payload.asset.contractType == "erc1155" ?
-                                  await ethereumService
-                                      .getERC1155TransferTransactionData(
-                                      contractAddress, from, to, tokenId, widget.payload.quantity)
+                                  final data = widget
+                                              .payload.asset.contractType ==
+                                          "erc1155"
+                                      ? await ethereumService
+                                          .getERC1155TransferTransactionData(
+                                              contractAddress,
+                                              from,
+                                              to,
+                                              tokenId,
+                                              widget.payload.quantity)
                                       : await ethereumService
-                                      .getERC721TransferTransactionData(
-                                          contractAddress, from, to, tokenId);
+                                          .getERC721TransferTransactionData(
+                                              contractAddress,
+                                              from,
+                                              to,
+                                              tokenId);
 
                                   final txHash =
                                       await ethereumService.sendTransaction(

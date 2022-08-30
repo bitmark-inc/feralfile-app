@@ -9,12 +9,10 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/screen/connection/persona_connections_page.dart';
 import 'package:autonomy_flutter/service/aws_service.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
@@ -34,6 +32,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:wallet_connect/models/wc_peer_meta.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 
 /*
  Because WalletConnect & TezosBeacon are using same logic:
@@ -153,8 +152,8 @@ class _WCConnectPageState extends State<WCConnectPage>
 
     if (beaconRequest != null) {
       final tezosWallet = await selectedPersona!.wallet().getTezosWallet();
-      final publicKey = await injector<TezosService>()
-          .getPublicKey(tezosWallet);
+      final publicKey =
+          await injector<TezosService>().getPublicKey(tezosWallet);
       await injector<TezosBeaconService>().permissionResponse(
         selectedPersona!.uuid,
         beaconRequest.id,
@@ -205,7 +204,7 @@ class _WCConnectPageState extends State<WCConnectPage>
         onBack: () => _reject(),
       ),
       body: Container(
-        margin: pageEdgeInsetsWithSubmitButton,
+        margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(
             "connect".tr(),
@@ -370,7 +369,7 @@ class _WCConnectPageState extends State<WCConnectPage>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "select_grand_access".tr(),//"Select an account to grant access:",
+          "select_grand_access".tr(), //"Select an account to grant access:",
           style: theme.textTheme.headline4,
         ),
         const SizedBox(height: 16.0),
@@ -460,8 +459,7 @@ class _WCConnectPageState extends State<WCConnectPage>
             Expanded(
               child: Column(
                 children: [
-                  Text(
-                      "require_full_account".tr(),
+                  Text("require_full_account".tr(),
                       //'This service requires a full Autonomy account to connect to the dapp.',
                       style: theme.textTheme.bodyText1),
                   const SizedBox(height: 24),
@@ -471,8 +469,7 @@ class _WCConnectPageState extends State<WCConnectPage>
                     style: theme.textTheme.headline4,
                   ),
                   const SizedBox(height: 24),
-                  Text(
-                      "newly_account_will".tr(),
+                  Text("newly_account_will".tr(),
                       //'The newly generated account would also get an address for each of the chains that we support.',
                       style: theme.textTheme.bodyText1),
                 ],

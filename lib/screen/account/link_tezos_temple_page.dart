@@ -27,6 +27,7 @@ import 'package:nft_collection/services/tokens_service.dart';
 import 'package:share/share.dart';
 import 'package:uuid/uuid.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 
 class LinkTezosTemplePage extends StatefulWidget {
   const LinkTezosTemplePage({Key? key}) : super(key: key);
@@ -56,7 +57,7 @@ class _LinkTezosTemplePageState extends State<LinkTezosTemplePage> {
           onBack: () => Navigator.of(context).pop(),
         ),
         body: Container(
-          margin: pageEdgeInsetsWithSubmitButton,
+          margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Expanded(
@@ -75,13 +76,11 @@ class _LinkTezosTemplePageState extends State<LinkTezosTemplePage> {
                       style: theme.textTheme.bodyText1,
                     ),
                     const SizedBox(height: 20),
-                    _stepWidget(context, '1',
-                        "ltt_generate_a_link".tr()),
-                        //'Generate a link request and send it to the web browser where you are currently signed in to Temple.'),
+                    _stepWidget(context, '1', "ltt_generate_a_link".tr()),
+                    //'Generate a link request and send it to the web browser where you are currently signed in to Temple.'),
                     const SizedBox(height: 10),
-                    _stepWidget(context, '2',
-                        "ltt_when_prompted_by".tr()),
-                        //'When prompted by Temple, approve Autonomy’s permissions requests. '),
+                    _stepWidget(context, '2', "ltt_when_prompted_by".tr()),
+                    //'When prompted by Temple, approve Autonomy’s permissions requests. '),
                     const SizedBox(height: 40),
                     Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -194,7 +193,7 @@ class _LinkTezosTemplePageState extends State<LinkTezosTemplePage> {
       if (!mounted) return;
       UIHelper.showInfoDialog(context, "link_requested".tr(),
           "autonomy_has_sent".tr(args: [peer.name]));
-          //"Autonomy has sent a request to ${peer.name} to link to your account. Please open the wallet and authorize the request.");
+      //"Autonomy has sent a request to ${peer.name} to link to your account. Please open the wallet and authorize the request.");
     }
   }
 
@@ -226,7 +225,7 @@ class _LinkTezosTemplePageState extends State<LinkTezosTemplePage> {
         if (!mounted) return;
         UIHelper.showInfoDialog(context, "account_linked".tr(),
             "autonomy_has_received".tr(args: [_peer!.name]));
-            //"Autonomy has received autorization to link to your NFTs in ${_peer!.name}.");
+        //"Autonomy has received autorization to link to your NFTs in ${_peer!.name}.");
 
         Future.delayed(SHOW_DIALOG_DURATION, () {
           UIHelper.hideInfoDialog(context);

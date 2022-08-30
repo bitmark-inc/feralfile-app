@@ -144,7 +144,7 @@ class _SendReviewPageState extends State<SendReviewPage> {
                                   final didAuthenticate =
                                       await localAuth.authenticate(
                                           localizedReason:
-                                          "authen_for_autonomy".tr());
+                                              "authen_for_autonomy".tr());
                                   if (!didAuthenticate) {
                                     setState(() {
                                       _isSending = false;

@@ -37,7 +37,8 @@ class SendArtworkPage extends StatefulWidget {
 
 class _SendArtworkPageState extends State<SendArtworkPage> {
   final TextEditingController _addressController = TextEditingController();
-  final TextEditingController _quantityController = TextEditingController(text: "1");
+  final TextEditingController _quantityController =
+      TextEditingController(text: "1");
   final feeWidgetKey = GlobalKey();
 
   @override

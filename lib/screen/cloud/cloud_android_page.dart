@@ -17,6 +17,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:open_settings/open_settings.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 
 class CloudAndroidPage extends StatefulWidget {
   final bool? isEncryptionAvailable;
@@ -96,7 +97,7 @@ class _CloudAndroidPageState extends State<CloudAndroidPage>
   Widget _contentWidget(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
-      margin: pageEdgeInsetsWithSubmitButton,
+      margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -127,8 +128,10 @@ class _CloudAndroidPageState extends State<CloudAndroidPage>
                       const SizedBox(height: 16),
                       Text(
                         isEncryptionAvailable == false
-                            ? "automatic_google_cloud_bks".tr() //"Automatic Google cloud backups are enabled, but you are not using end-to-end encryption. We recommend enabling it so we can securely back up your account."
-                            : "google_cloud_backup_is".tr(),//"Google cloud backup is currently turned off on your device. If your device supports it, we recommend you enable it so we can safely back up your account.",
+                            ? "automatic_google_cloud_bks"
+                                .tr() //"Automatic Google cloud backups are enabled, but you are not using end-to-end encryption. We recommend enabling it so we can securely back up your account."
+                            : "google_cloud_backup_is"
+                                .tr(), //"Google cloud backup is currently turned off on your device. If your device supports it, we recommend you enable it so we can safely back up your account.",
                         style: theme.textTheme.headline4,
                       ),
                       const SizedBox(height: 40),
@@ -177,8 +180,8 @@ class _CloudAndroidPageState extends State<CloudAndroidPage>
           ),
           TextButton(
               onPressed: () => _continue(context),
-              child:
-                  Text("continue_without_it".tr(), style: theme.textTheme.button)),
+              child: Text("continue_without_it".tr(),
+                  style: theme.textTheme.button)),
         ],
       );
     }

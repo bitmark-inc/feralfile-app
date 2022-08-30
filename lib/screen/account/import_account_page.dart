@@ -19,6 +19,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:nft_collection/services/tokens_service.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 
 class ImportAccountPage extends StatefulWidget {
   const ImportAccountPage({Key? key}) : super(key: key);
@@ -44,7 +45,7 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
         },
       ),
       body: Container(
-        margin: pageEdgeInsetsWithSubmitButton,
+        margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -75,9 +76,8 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
                         children: [
                           AuTextField(
                             title: "",
-                            placeholder:
-                                "enter_recovery_phrase".tr(),
-                                //"Enter recovery phrase with each word separated by a space",
+                            placeholder: "enter_recovery_phrase".tr(),
+                            //"Enter recovery phrase with each word separated by a space",
                             keyboardType: TextInputType.multiline,
                             expanded: true,
                             maxLines: null,

@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 
 class AutonomySecurityPage extends StatelessWidget {
   const AutonomySecurityPage({Key? key}) : super(key: key);
@@ -49,7 +50,7 @@ Of course all security ultimately rests on the code, and whether it makes the pr
         onBack: () => Navigator.of(context).pop(),
       ),
       body: Container(
-        margin: pageEdgeInsets,
+        margin: ResponsiveLayout.pageEdgeInsets,
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
