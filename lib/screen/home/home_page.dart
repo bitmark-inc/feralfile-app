@@ -249,7 +249,7 @@ class _HomePageState extends State<HomePage>
     final theme = Theme.of(context);
 
     return ListView(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      padding: ResponsiveLayout.getPadding,
       children: [
         Container(
           padding: const EdgeInsets.fromLTRB(0, 32, 0, 48),

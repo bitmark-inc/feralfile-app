@@ -189,7 +189,7 @@ class Constants {
   static const kTabletBreakpoint = 480;
   static const kDesktopBreakpoint = 1025;
   static const maxWidthModalTablet = 387.0;
-  static const paddingMobile = EdgeInsets.symmetric(horizontal: 16);
+  static const paddingMobile = EdgeInsets.symmetric(horizontal: 14);
   static const paddingTablet = EdgeInsets.symmetric(horizontal: 20);
   static const paddingTabletLandScape = EdgeInsets.symmetric(horizontal: 32);
 }

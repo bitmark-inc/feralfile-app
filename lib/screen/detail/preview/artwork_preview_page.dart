@@ -393,7 +393,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     final theme = Theme.of(context);
     return Container(
       height: 300,
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      padding: ResponsiveLayout.getPadding,
       color: theme.colorScheme.primary,
       child: Center(
         child: Column(
