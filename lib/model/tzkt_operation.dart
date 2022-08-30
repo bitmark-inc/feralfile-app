@@ -14,7 +14,7 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'tzkt_operation.g.dart';
 
-abstract class TZKTTransactionIF {
+abstract class TZKTTransactionInterface {
   TZKTTokenTransfer? tokenTransfer;
 
   DateTime getTimeStamp();
@@ -29,7 +29,7 @@ abstract class TZKTTransactionIF {
 
   String transactionTitle(String? currentAddress);
 
-  String transactionTitle2(String? currentAddress);
+  String transactionTitleDetail(String? currentAddress);
 
   Widget transactionImage(String? currentAddress);
 
@@ -39,7 +39,7 @@ abstract class TZKTTransactionIF {
 }
 
 @JsonSerializable()
-class TZKTOperation implements TZKTTransactionIF {
+class TZKTOperation implements TZKTTransactionInterface {
   static const _nanoTEZFactor = 1000000;
 
   String type;
@@ -184,7 +184,7 @@ class TZKTOperation implements TZKTTransactionIF {
   }
 
   @override
-  String transactionTitle2(String? currentAddress) {
+  String transactionTitleDetail(String? currentAddress) {
     if (isSendNFT(currentAddress)) return "sent_nft".tr();
     if (isReceiveNFT(currentAddress)) return "received_nft".tr();
     if (parameter != null) {
@@ -204,7 +204,7 @@ class TZKTOperation implements TZKTTransactionIF {
   }
 }
 
-class TZKTTokenTransfer implements TZKTTransactionIF {
+class TZKTTokenTransfer implements TZKTTransactionInterface {
   int id;
   int level;
   DateTime timestamp;
@@ -284,7 +284,7 @@ class TZKTTokenTransfer implements TZKTTransactionIF {
   }
 
   @override
-  String transactionTitle2(String? currentAddress) {
+  String transactionTitleDetail(String? currentAddress) {
     return transactionTitle(currentAddress);
   }
 

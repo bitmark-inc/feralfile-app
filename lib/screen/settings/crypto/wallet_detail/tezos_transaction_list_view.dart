@@ -27,10 +27,10 @@ class TezosTXListView extends StatefulWidget {
 }
 
 class _TezosTXListViewState extends State<TezosTXListView> {
-  static const _pageSize = 40;
+  static const _pageSize = 10;
   late final tzktBloc;
 
-  final PagingController<int, TZKTTransactionIF> _pagingController =
+  final PagingController<int, TZKTTransactionInterface> _pagingController =
       PagingController(firstPageKey: 0, invisibleItemsThreshold: 10);
 
   @override
@@ -90,7 +90,7 @@ class _TezosTXListViewState extends State<TezosTXListView> {
                   PagedSliverList.separated(
                     pagingController: _pagingController,
                     builderDelegate:
-                        PagedChildBuilderDelegate<TZKTTransactionIF>(
+                        PagedChildBuilderDelegate<TZKTTransactionInterface>(
                       animateTransitions: true,
                       newPageErrorIndicatorBuilder: (context) {
                         return Container(

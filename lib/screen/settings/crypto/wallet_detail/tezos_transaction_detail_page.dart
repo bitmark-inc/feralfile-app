@@ -18,7 +18,7 @@ const _nanoTEZFactor = 1000000;
 
 class TezosTXDetailPage extends StatelessWidget {
   final String currentAddress;
-  final TZKTTransactionIF tx;
+  final TZKTTransactionInterface tx;
 
   const TezosTXDetailPage({
     Key? key,
@@ -49,7 +49,7 @@ class TezosTXDetailPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(tx.transactionTitle2(currentAddress),
+            Text(tx.transactionTitleDetail(currentAddress),
                 style: theme.textTheme.headline1),
             const SizedBox(height: 27),
             if (tx.isSendNFT(currentAddress) ||
@@ -71,7 +71,7 @@ class TezosTXDetailPage extends StatelessWidget {
   }
 
   Widget listViewNFT(
-      BuildContext context, TZKTTransactionIF tx, DateFormat formatter) {
+      BuildContext context, TZKTTransactionInterface tx, DateFormat formatter) {
     TZKTTokenTransfer? tx_;
     bool hasFee = true;
     String amount = "";
@@ -107,7 +107,7 @@ class TezosTXDetailPage extends StatelessWidget {
   }
 
   Widget listViewNonNFT(
-      BuildContext context, TZKTTransactionIF tx, DateFormat formatter) {
+      BuildContext context, TZKTTransactionInterface tx, DateFormat formatter) {
     TZKTOperation? tx_;
     if (tx is TZKTOperation) {
       tx_ = tx;

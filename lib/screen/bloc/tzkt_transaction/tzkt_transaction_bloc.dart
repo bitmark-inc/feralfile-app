@@ -8,10 +8,8 @@ class TZKTTransactionBloc
     extends AuBloc<TZKTTransactionEvent, TZKTTransactionState> {
   List<TZKTTokenTransfer>? tokenItems;
   List<TZKTTokenTransfer>? newTokenItems;
-  //**********************************************************************
 
-  TZKTTransactionBloc()
-      : super(TZKTTransactionState(newItems: [])) {
+  TZKTTransactionBloc() : super(TZKTTransactionState(newItems: [])) {
     on<GetPageNewItems>((event, emit) async {
       final newOperationItems = await injector<TZKTApi>().getOperations(
         event.address,
@@ -22,75 +20,46 @@ class TZKTTransactionBloc
       );
       tokenItems ??= await injector<TZKTApi>().getTokenTransfer(
         anyOf: event.address,
-        //limit: _pageSize,
-        //lastId: pageKey > 0 ? pageKey : null,
       );
       newTokenItems ??= tokenItems;
       DateTime lastOperationDatetime = newOperationItems.last.timestamp;
       List<TZKTTokenTransfer>? addTokenItems =
-      _getTokenAfter(newTokenItems, lastOperationDatetime);
+          _getTokenAfter(newTokenItems, lastOperationDatetime);
       newTokenItems = _getTokenBefore(newTokenItems, lastOperationDatetime);
       final newItems = mergeOperation(addTokenItems, newOperationItems);
 
       bool isLastPage = newOperationItems.length < event.pageSize;
-      emit(TZKTTransactionState(newItems: newItems, isLastPage: isLastPage ));
+      emit(TZKTTransactionState(newItems: newItems, isLastPage: isLastPage));
     });
   }
 
-  //**********************************************************************
-
-  List<TZKTTransactionIF> mergeOperation(
-      List<TZKTTokenTransfer>? token, List<TZKTOperation> operation) {
-    List<TZKTTransactionIF> tx = [];
+  List<TZKTTransactionInterface> mergeOperation(
+      List<TZKTTokenTransfer>? tokens, List<TZKTOperation> operation) {
+    List<TZKTOperation> tx = operation;
     int tokenIndex = 0;
-    int operationIndex = 0;
-    int tokenLen = token == null ? 0 : token.length;
-    //int totalLen = token.length + operation.length;
-    while (tokenIndex < tokenLen && operationIndex < operation.length) {
-      if (operationIndex >= operation.length) {
-        tx.add(token![tokenIndex]);
-        tokenIndex++;
-      } else if (tokenIndex >= tokenLen) {
-        tx.add(operation[operationIndex]);
-        operationIndex++;
+    for (int i = 0; i < tx.length; i++) {
+      if (tokens?.isEmpty == true) return tx;
+      int tokenNo = findTokenByTxId(tokenIndex, tx[i].getID(), tokens!);
+      if (tokenNo > -1) {
+        tx[i].tokenTransfer = tokens[tokenNo];
+        tokenIndex = tokenNo;
+        tokens.removeAt(tokenNo);
       } else {
-        if (token![tokenIndex].id > operation[operationIndex].id) {
-          tx.add(token[tokenIndex]);
-          tokenIndex++;
-        } else {
-          tx.add(operation[operationIndex]);
-          operationIndex++;
-        }
+        tokenIndex = tokenNo + 1;
       }
     }
-
-    return removePairedToken(tx);
+    List<TZKTTransactionInterface> tx_ = List<TZKTTransactionInterface>.from(tx)..addAll(tokens!);
+    tx_.sort((a, b) => b.getID().compareTo(a.getID()));
+    return tx_;
   }
 
-  //if found tokenTransfer tx[i].transactionID equal operation tx[j].id, set  tx[j].tokenTransfer = tx[i] and remove tx[i]
-  List<TZKTTransactionIF> removePairedToken(List<TZKTTransactionIF> tx) {
-    int i = 0;
-    while (i < tx.length - 1) {
-      if (tx[i] is TZKTTokenTransfer) {
-        TZKTTokenTransfer tempT = tx[i] as TZKTTokenTransfer;
-        if (tempT.transactionId != null) {
-          for (int j = i + 1; j < tx.length; j++) {
-            if (tx[j] is TZKTOperation) {
-              TZKTOperation tempO = tx[j] as TZKTOperation;
-              if (tempT.transactionId == tempO.id) {
-                tempO.tokenTransfer = tempT;
-                tx.removeAt(i);
-                break;
-              } else if (tempT.transactionId! < tempO.id) {
-                break;
-              }
-            }
-          }
-        }
-      }
-      i++;
+  int findTokenByTxId(int from, int id, List<TZKTTokenTransfer> tokens) {
+    for (int i = from; i < tokens.length; i++){
+      if (tokens[i].transactionId == null ) return -1;
+      if (tokens[i].transactionId == id) return i;
+      if (tokens[i].transactionId! < id) return -1;
     }
-    return tx;
+    return -1;
   }
 
   List<TZKTTokenTransfer> _getTokenBefore(

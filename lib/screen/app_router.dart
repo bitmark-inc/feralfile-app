@@ -520,9 +520,6 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => MultiBlocProvider(
-                  //BlocProvider(
-                  //create: (_) =>
-                  //WalletDetailBloc(injector(), injector(), injector()),
                   providers: [
                     BlocProvider(
                         create: (_) => WalletDetailBloc(

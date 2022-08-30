@@ -336,38 +336,17 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
     on<FindAccount>((event, emit) async {
       final persona = await _cloudDB.personaDao.findById(event.personaUUID);
       List<Account> accounts = [];
-      if(persona!= null){
+      if (persona != null) {
         accounts.add(Account(
-        key: persona.uuid,
-        persona: persona,
-        name: persona.name,
-        blockchain: event.type.source,
-        accountNumber: event.address,
-        createdAt: persona.createdAt));
-      }
-      emit(AccountsState(accounts: accounts));
-
-      /*
-      final bitmarkAddress = await persona.wallet().getBitmarkAddress();
-        final ethAddress = await persona.wallet().getETHEip55Address();
-        final xtzAddress = (await persona.wallet().getTezosWallet()).address;
-        var name = await persona.wallet().getName();
-
-        if (name.isEmpty) {
-          name = persona.name;
-        }
-
-        final bitmarkAccount = Account(
             key: persona.uuid,
             persona: persona,
-            name: name,
-            blockchain: "Bitmark",
-            accountNumber: bitmarkAddress,
-            createdAt: persona.createdAt);
-
-       */
+            name: persona.name,
+            blockchain: event.type.source,
+            accountNumber: event.address,
+            createdAt: persona.createdAt));
+      }
+      emit(AccountsState(accounts: accounts));
     });
-
   }
 
   Future<Connection?> getExistingAccount(String accountNumber) async {

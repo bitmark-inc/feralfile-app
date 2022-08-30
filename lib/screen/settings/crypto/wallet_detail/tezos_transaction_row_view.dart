@@ -15,7 +15,7 @@ import 'package:intl/intl.dart';
 const _nanoTEZFactor = 1000000;
 
 class TezosTXRowView extends StatelessWidget {
-  final TZKTTransactionIF tx;
+  final TZKTTransactionInterface tx;
   final String? currentAddress;
 
   const TezosTXRowView({

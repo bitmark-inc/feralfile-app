@@ -1,10 +1,9 @@
 import 'package:autonomy_flutter/model/tzkt_operation.dart';
 
 class TZKTTransactionState {
-  //List<TZKTTokenTransfer>? tokenItems;
-  List<TZKTTransactionIF> newItems;
-  //List<TZKTOperation>? operationItem;
+  List<TZKTTransactionInterface> newItems;
   bool? isLastPage;
+
   TZKTTransactionState({required this.newItems, this.isLastPage});
 }
 
@@ -16,5 +15,9 @@ class GetPageNewItems extends TZKTTransactionEvent {
   String address;
   String initiator;
 
-  GetPageNewItems({required this.address, required this.initiator, required this.pageSize, required this.pageKey});
+  GetPageNewItems(
+      {required this.address,
+      required this.initiator,
+      required this.pageSize,
+      required this.pageKey});
 }
