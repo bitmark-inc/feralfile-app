@@ -78,6 +78,7 @@ dependencies:
   infinite_scroll_pagination: ^3.2.0
   intl: ^0.17.0
   jiffy: ^5.0.0
+  flutter_keyboard_visibility: ^5.3.0
   libauk_dart:
     git:
       url: https://github.com/autonomy-system/libauk-dart.git

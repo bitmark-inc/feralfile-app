@@ -20,6 +20,7 @@ import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/models/asset_token.dart';
@@ -40,6 +41,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
   final TextEditingController _quantityController =
       TextEditingController(text: "1");
   final feeWidgetKey = GlobalKey();
+  final _reviewButtonVisible = ValueNotifier(!KeyboardVisibilityController().isVisible);
 
   @override
   void initState() {
@@ -53,6 +55,11 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
           .read<IdentityBloc>()
           .add(GetIdentityEvent([widget.payload.asset.artistName!]));
     }
+
+    KeyboardVisibilityController().onChange.listen((keyboardVisible) async {
+      await Future.delayed(Duration(milliseconds: keyboardVisible ? 0 : 150),
+          () => _reviewButtonVisible.value = !keyboardVisible);
+    });
   }
 
   int get _quantity {
@@ -203,7 +210,10 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                                 ),
                               ],
                             ),
-                            const Divider(height: 32),
+                            const SizedBox(
+                              height: 8.0,
+                            ),
+                            const Divider(),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
@@ -234,7 +244,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                               ],
                             ),
                           ],
-                          const SizedBox(height: 32.0),
+                          const SizedBox(height: 8.0),
                           AuTextField(
                             title: "to".tr(),
                             placeholder: "paste_or_scan_address".tr(),
@@ -251,12 +261,13 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                                       .read<SendArtworkBloc>()
                                       .add(AddressChangedEvent(""));
                                 } else {
-                                  dynamic address = await Navigator.of(context)
-                                      .pushNamed(ScanQRPage.tag,
-                                          arguments:
-                                              asset.blockchain == "ethereum"
-                                                  ? ScannerItem.ETH_ADDRESS
-                                                  : ScannerItem.XTZ_ADDRESS);
+                                  dynamic address =
+                                  await Navigator.of(context).pushNamed(
+                                      ScanQRPage.tag,
+                                      arguments:
+                                      asset.blockchain == "ethereum"
+                                          ? ScannerItem.ETH_ADDRESS
+                                          : ScannerItem.XTZ_ADDRESS);
                                   if (address != null && address is String) {
                                     _addressController.text = address;
                                     if (!mounted) return;
@@ -269,7 +280,8 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                             ),
                             onSubmit: (value) {
                               context.read<SendArtworkBloc>().add(
-                                  AddressChangedEvent(_addressController.text));
+                                  AddressChangedEvent(
+                                      _addressController.text));
                             },
                           ),
                           const SizedBox(height: 8.0),
@@ -287,39 +299,19 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                           Text(_gasFee(state),
                               key: feeWidgetKey,
                               style: theme.textTheme.headline5),
-                          const SizedBox(height: 24.0),
+                          const SizedBox(height: 16.0),
                         ],
                       ),
                     ),
                   ),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: AuFilledButton(
-                          text: "review".tr(),
-                          onPress: state.isValid
-                              ? () async {
-                                  final txHash = await Navigator.of(context)
-                                      .pushNamed(
-                                          AppRouter.sendArtworkReviewPage,
-                                          arguments: SendArtworkReviewPayload(
-                                              asset,
-                                              widget.payload.wallet,
-                                              state.address!,
-                                              state.fee!,
-                                              state.exchangeRate,
-                                              widget.payload.ownedQuantity,
-                                              state.quantity));
-                                  if (txHash != null && txHash is String) {
-                                    if (!mounted) return;
-                                    Navigator.of(context).pop();
-                                  }
-                                }
-                              : null,
-                        ),
-                      ),
-                    ],
-                  ),
+                  ValueListenableBuilder<bool>(
+                      valueListenable: _reviewButtonVisible,
+                      builder: (context, visible, child) {
+                        return Visibility(
+                          visible: visible,
+                          child: _reviewButton(asset, state),
+                        );
+                      }),
                   const SizedBox(height: 16.0),
                 ],
               ),
@@ -327,6 +319,36 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
           }),
         ],
       ),
+    );
+  }
+
+  Widget _reviewButton(AssetToken asset, SendArtworkState state) {
+    return Row(
+      children: [
+        Expanded(
+          child: AuFilledButton(
+            text: "review".tr(),
+            onPress: state.isValid
+                ? () async {
+                    final txHash = await Navigator.of(context).pushNamed(
+                        AppRouter.sendArtworkReviewPage,
+                        arguments: SendArtworkReviewPayload(
+                            asset,
+                            widget.payload.wallet,
+                            state.address!,
+                            state.fee!,
+                            state.exchangeRate,
+                            widget.payload.ownedQuantity,
+                            state.quantity));
+                    if (txHash != null && txHash is String) {
+                      if (!mounted) return;
+                      Navigator.of(context).pop();
+                    }
+                  }
+                : null,
+          ),
+        ),
+      ],
     );
   }
 
