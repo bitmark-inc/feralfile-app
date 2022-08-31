@@ -435,8 +435,8 @@ class UIHelper {
                   child: AuFilledButton(
                     text: "ok".tr(),
                     onPress: onOK,
-                    color: theme.primaryColor,
-                    textStyle: theme.primaryTextTheme.button,
+                    color: theme.colorScheme.secondary,
+                    textStyle: theme.textTheme.button,
                   ),
                 ),
               ],
