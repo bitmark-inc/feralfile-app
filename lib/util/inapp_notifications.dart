@@ -77,6 +77,17 @@ void showNotifications(BuildContext context, OSNotification notification,
   Vibrate.feedback(FeedbackType.warning);
 }
 
+void showInfoNotification(Key key, String info){
+  showSimpleNotification(
+      _SimpleNotificationToast(key: key,notification: info,),
+      background: Colors.transparent,
+      duration: const Duration(seconds: 3),
+      elevation: 0,
+      slideDismissDirection: DismissDirection.up);
+
+  Vibrate.feedback(FeedbackType.light);
+}
+
 void showCustomNotifications(BuildContext context, String notification, Key key,
     {Function()? notificationOpenedHandler}) {
   showSimpleNotification(

@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/badge_view.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -163,6 +164,7 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
   }
 
   Widget _mainHeaderWidget({required bool isInSettingsPage}) {
+    final theme = Theme.of(context);
     return Row(
       children: [
         Container(
@@ -178,6 +180,17 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
           ),
         ),
         _discovery(),
+        const Spacer(),
+        Visibility(
+          visible: isInSettingsPage,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(0, 0, 0, 10),
+            child: Text(
+              "settings".tr().toUpperCase(),
+              style: theme.textTheme.button,
+            ),
+          ),
+        ),
         const Spacer(),
         _customerSupportIconWidget(),
         Container(
