@@ -38,7 +38,7 @@ class TZKTTransactionBloc
             newTokenItems!.sublist(0, tokenNum + 1);
         newItems = mergeOperation(addTokenItems, newOperationItems);
 
-        newTokenItems =  newTokenItems?.sublist(tokenNum+1);
+        newTokenItems = newTokenItems?.sublist(tokenNum + 1);
       }
 
       bool isLastPage = newOperationItems.length < event.pageSize;
@@ -50,9 +50,9 @@ class TZKTTransactionBloc
   List<TZKTTransactionInterface> mergeOperation(
       List<TZKTTokenTransfer> tokens, List<TZKTOperation> operations) {
     for (var op in operations) {
-      if (tokens.isEmpty == true) return operations;
-      final token =
-          tokens.firstWhereOrNull((element) => element.transactionId == op.getID());
+      if (tokens.isEmpty) return operations;
+      final token = tokens
+          .firstWhereOrNull((element) => element.transactionId == op.getID());
       op.tokenTransfer = token;
       tokens.remove(token);
     }

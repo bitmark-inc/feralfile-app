@@ -27,7 +27,7 @@ class TezosTXListView extends StatefulWidget {
 }
 
 class _TezosTXListViewState extends State<TezosTXListView> {
-  static const _pageSize = 10;
+  static const _pageSize = 40;
   late final TZKTTransactionBloc tzktBloc;
 
   final PagingController<int, TZKTTransactionInterface> _pagingController =

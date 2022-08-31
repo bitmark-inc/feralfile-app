@@ -103,12 +103,6 @@ class _SettingsPageState extends State<SettingsPage>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 68,),
-                    /*Center(
-                      child: Container(
-                        padding: const EdgeInsets.fromLTRB(0, 32, 0, 45),
-                        child: autonomyLogo,
-                      ),
-                    ),*/
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [

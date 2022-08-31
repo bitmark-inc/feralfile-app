@@ -184,7 +184,7 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
         Visibility(
           visible: isInSettingsPage,
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(0,0,0,10),
+            padding: const EdgeInsets.fromLTRB(0, 0, 0, 10),
             child: Text(
               "settings".tr().toUpperCase(),
               style: theme.textTheme.button,
