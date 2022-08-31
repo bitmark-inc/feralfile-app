@@ -13,9 +13,11 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:open_settings/open_settings.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 
 class CloudAndroidPage extends StatefulWidget {
   final bool? isEncryptionAvailable;
@@ -95,7 +97,7 @@ class _CloudAndroidPageState extends State<CloudAndroidPage>
   Widget _contentWidget(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
-      margin: pageEdgeInsetsWithSubmitButton,
+      margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -106,15 +108,16 @@ class _CloudAndroidPageState extends State<CloudAndroidPage>
                   children: [
                     Text(
                       isEncryptionAvailable == true
-                          ? "Backed up"
+                          ? "backed_up".tr()
                           : isEncryptionAvailable == false
-                              ? "Enable backup encryption "
-                              : "Google cloud backup unavailable",
+                              ? "enable_backup_encryption".tr()
+                              : "google_cld_bk_unavailable".tr(),
                       style: theme.textTheme.headline1,
                     ),
                     addTitleSpace(),
                     Text(
-                      "Autonomy will automatically back up all of your account information securely, including cryptographic material from accounts you manage as well as links to your accounts. If you ever lose your phone, you will be able to recover everything.",
+                      "autonomy_will_auto_bk".tr(),
+                      //"Autonomy will automatically back up all of your account information securely, including cryptographic material from accounts you manage as well as links to your accounts. If you ever lose your phone, you will be able to recover everything.",
                       style: theme.textTheme.bodyText1,
                     ),
                     if (isEncryptionAvailable == true) ...[
@@ -125,8 +128,10 @@ class _CloudAndroidPageState extends State<CloudAndroidPage>
                       const SizedBox(height: 16),
                       Text(
                         isEncryptionAvailable == false
-                            ? "Automatic Google cloud backups are enabled, but you are not using end-to-end encryption. We recommend enabling it so we can securely back up your account."
-                            : "Google cloud backup is currently turned off on your device. If your device supports it, we recommend you enable it so we can safely back up your account.",
+                            ? "automatic_google_cloud_bks"
+                                .tr() //"Automatic Google cloud backups are enabled, but you are not using end-to-end encryption. We recommend enabling it so we can securely back up your account."
+                            : "google_cloud_backup_is"
+                                .tr(), //"Google cloud backup is currently turned off on your device. If your device supports it, we recommend you enable it so we can safely back up your account.",
                         style: theme.textTheme.headline4,
                       ),
                       const SizedBox(height: 40),
@@ -152,7 +157,7 @@ class _CloudAndroidPageState extends State<CloudAndroidPage>
         children: [
           Expanded(
             child: AuFilledButton(
-              text: "CONTINUE".toUpperCase(),
+              text: "continue".tr().toUpperCase(),
               onPress: () => _continue(context),
             ),
           ),
@@ -165,7 +170,7 @@ class _CloudAndroidPageState extends State<CloudAndroidPage>
             children: [
               Expanded(
                 child: AuFilledButton(
-                  text: "OPEN DEVICE SETTINGS".toUpperCase(),
+                  text: "open_device_setting".tr().toUpperCase(),
                   onPress: () => isEncryptionAvailable == false
                       ? OpenSettings.openBiometricEnrollSetting()
                       : OpenSettings.openAddAccountSetting(),
@@ -175,8 +180,8 @@ class _CloudAndroidPageState extends State<CloudAndroidPage>
           ),
           TextButton(
               onPressed: () => _continue(context),
-              child:
-                  Text("CONTINUE WITHOUT IT", style: theme.textTheme.button)),
+              child: Text("continue_without_it".tr(),
+                  style: theme.textTheme.button)),
         ],
       );
     }

@@ -5,8 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:nft_collection/models/asset_token.dart';
 
 abstract class HomeEvent {}
 
@@ -22,15 +22,7 @@ class HomeConnectTZEvent extends HomeEvent {
   HomeConnectTZEvent(this.uri);
 }
 
-class RefreshTokensEvent extends HomeEvent {}
-
-class SubRefreshTokensEvent extends HomeEvent {
-  final ActionState state;
-
-  SubRefreshTokensEvent(this.state);
-}
-
-class ReindexIndexerEvent extends HomeEvent {}
+class CheckReviewAppEvent extends HomeEvent {}
 
 class HomeState {
   List<AssetToken>? tokens;

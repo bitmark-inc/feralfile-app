@@ -2,6 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	</array>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
@@ -67,20 +71,27 @@
 	<string>Scan for your Ledger hardware wallets.</string>
 	<key>NSBluetoothPeripheralUsageDescription</key>
 	<string>Scan for your Ledger hardware wallets.</string>
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>  
-	<string>Scan for your Ledger hardware wallets.</string>  
-	<key>NSLocationAlwaysUsageDescription</key>  
-	<string>Scan for your Ledger hardware wallets.</string>  
-	<key>NSLocationWhenInUseUsageDescription</key>  
-	<string>Scan for your Ledger hardware wallets.</string>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_googlecast._tcp</string>
+		<string>_YOUR_APP_ID._googlecast._tcp</string>
+	</array>
 	<key>NSCameraUsageDescription</key>
 	<string>QR code scanning requires camera access.</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Allow Autonomy to use Face ID to authenticate.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>${PRODUCT_NAME} uses the local network to discover Cast-enabled devices on your WiFi network.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Scan for your Ledger hardware wallets.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Scan for your Ledger hardware wallets.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Scan for your Ledger hardware wallets.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Viewing artwork with microphone enable.</string>
-    <key>NSPhotoLibraryUsageDescription</key>
-    <string>This app requires access to the photo library.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app requires access to the photo library.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>
@@ -98,7 +109,6 @@
 		<string>UIInterfaceOrientationPortrait</string>
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
-		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 	</array>
 	<key>UISupportedInterfaceOrientations~ipad</key>
 	<array>
@@ -111,16 +121,5 @@
 	<string>Light</string>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
-	<key>NSBonjourServices</key>
-	<array>
-		<string>_googlecast._tcp</string>
-		<string>_YOUR_APP_ID._googlecast._tcp</string>
-	</array>
-	<key>NSLocalNetworkUsageDescription</key>
-	<string>${PRODUCT_NAME} uses the local network to discover Cast-enabled devices on your WiFi network.</string>
-	<key>BGTaskSchedulerPermittedIdentifiers</key>
-	<array>
-		<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
-	</array>
 </dict>
 </plist>

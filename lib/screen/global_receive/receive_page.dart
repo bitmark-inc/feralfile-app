@@ -9,6 +9,8 @@ import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/account_view.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -44,18 +46,19 @@ class _GlobalReceivePageState extends State<GlobalReceivePage> {
         }
 
         return SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          padding: ResponsiveLayout.getPadding,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 16.0),
               Text(
-                "Receive",
+                "select_address_tt".tr(),
                 style: theme.textTheme.headline1,
               ),
               const SizedBox(height: 40.0),
               Text(
-                "Select an address on the appropriate blockchain where you want to receive your NFT or cryptocurrency:",
+                "select_address".tr(),
+                //"Select an address on the appropriate blockchain where you want to receive your NFT or cryptocurrency:",
                 style: theme.textTheme.bodyText1,
               ),
               const SizedBox(height: 24),

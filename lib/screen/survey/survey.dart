@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -51,8 +52,8 @@ class _SurveyPageState extends State<SurveyPage> {
           children: [
             Text(
               _currentPage == 0
-                  ? "How did you hear about Autonomy? "
-                  : "Which NFT marketplace? ",
+                  ? "how_did_hear".tr()//"How did you hear about Autonomy? "
+                  : "which_nft".tr(), //"Which NFT marketplace? ",
               style: theme.textTheme.headline1,
             ),
             const SizedBox(height: 40.0),
@@ -68,7 +69,7 @@ class _SurveyPageState extends State<SurveyPage> {
               ],
             )),
             AuFilledButton(
-                text: "Continue",
+                text: "continue".tr(),
                 enabled: _surveyAnswer != null && _surveyAnswer!.isNotEmpty,
                 onPress: () {
                   const onboardingSurveyKey = "onboarding_survey";
@@ -89,11 +90,11 @@ class _SurveyPageState extends State<SurveyPage> {
   }
 
   Widget _page1(BuildContext context) {
-    const surveyItems = [
-      "Word of mouth",
-      "Feral File Discord",
-      "Feral File newsletter",
-      "NFT marketplace"
+    var surveyItems = [
+      "word_mouth".tr(),
+      "ff_discord".tr(),
+      "ff_news".tr(),
+      "nft_mp".tr()
     ];
 
     return SurveyQuestionarePage(
@@ -119,13 +120,13 @@ class _SurveyPageState extends State<SurveyPage> {
   }
 
   Widget _page2(BuildContext context) {
-    const surveyItems = [
-      "OpenSea",
-      "objkt.com",
-      "fxhash",
+    var surveyItems = [
+      "openSea".tr(),
+      "objkt_com".tr(),
+      "fxhash".tr(),
     ];
 
-    const marketplacePrefix = "marketplace: ";
+    var marketplacePrefix = "marketplace".tr();
 
     return SurveyQuestionarePage(
       questionItems: surveyItems,
@@ -239,7 +240,7 @@ class _SurveyQuestionarePageState extends State<SurveyQuestionarePage> {
                       decoration: InputDecoration(
                         isDense: true,
                         border: InputBorder.none,
-                        hintText: "Other",
+                        hintText: "other".tr(),
                         hintMaxLines: 1,
                         hintStyle: theme.textTheme.headline4?.copyWith(
                             color: selection == widget.questionItems.length

@@ -12,8 +12,10 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:share/share.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 
 class LinkTezosKukaiPage extends StatelessWidget {
   const LinkTezosKukaiPage({Key? key}) : super(key: key);
@@ -29,7 +31,7 @@ class LinkTezosKukaiPage extends StatelessWidget {
           onBack: () => Navigator.of(context).pop(),
         ),
         body: Container(
-          margin: pageEdgeInsetsWithSubmitButton,
+          margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Expanded(
@@ -38,20 +40,21 @@ class LinkTezosKukaiPage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Linking to Kukai",
+                      "linking_to_kukai".tr(),
                       style: theme.textTheme.headline1,
                     ),
                     addTitleSpace(),
                     Text(
-                      "Since Kukai only exists as a web wallet, you will need to follow these additional steps to link it to Autonomy: ",
+                      "ltk_since_kukai_only".tr(),
+                      //"Since Kukai only exists as a web wallet, you will need to follow these additional steps to link it to Autonomy: ",
                       style: theme.textTheme.bodyText1,
                     ),
                     const SizedBox(height: 20),
-                    _stepWidget(context, '1',
-                        'Generate a link request and send it to the web browser where you are currently signed in to Kukai.'),
+                    _stepWidget(context, '1', "ltk_generate_a_link".tr()),
+                    //'Generate a link request and send it to the web browser where you are currently signed in to Kukai.'),
                     const SizedBox(height: 10),
-                    _stepWidget(context, '2',
-                        'When prompted by Kukai, approve Autonomy’s permissions requests. '),
+                    _stepWidget(context, '2', "ltk_when_prompted_by".tr()),
+                    //'When prompted by Kukai, approve Autonomy’s permissions requests. '),
                     const SizedBox(height: 40),
                     Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -68,7 +71,7 @@ class LinkTezosKukaiPage extends StatelessWidget {
               children: [
                 Expanded(
                   child: AuFilledButton(
-                    text: "GENERATE LINK".toUpperCase(),
+                    text: "generate_link".tr().toUpperCase(),
                     onPress: () async {
                       final uri = await tezosBeaconService.getConnectionURI();
                       Share.share("https://wallet.kukai.app/tezos$uri");

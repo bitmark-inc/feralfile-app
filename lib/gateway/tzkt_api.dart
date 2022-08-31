@@ -25,4 +25,12 @@ abstract class TZKTApi {
     @Query("lastId") int? lastId,
     @Query("initiator.ne") String? initiator,
   });
+
+  @GET("/v1/tokens/transfers")
+  Future<List<TZKTTokenTransfer>> getTokenTransfer({
+        @Query("anyof.from.to") String? anyOf,
+        @Query("sort.desc") String sort = "id",
+        @Query("limit") int? limit,
+        @Query("lastId") int? lastId,
+      });
 }

@@ -14,6 +14,8 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -48,8 +50,7 @@ class _NameLinkedAccountPageState extends State<NameLinkedAccountPage> {
         onBack: null,
       ),
       body: Container(
-        margin:
-            const EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
+        margin: ResponsiveLayout.pageEdgeInsets,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -59,18 +60,19 @@ class _NameLinkedAccountPageState extends State<NameLinkedAccountPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Account alias",
+                      "account_alias".tr(),
                       style: theme.textTheme.headline1,
                     ),
                     addTitleSpace(),
                     Text(
-                      "You can add an optional alias for this account to help you recognize it. This alias will only be visible to you in Autonomy.",
+                      "aa_you_can_add".tr(),
+                      //"You can add an optional alias for this account to help you recognize it. This alias will only be visible to you in Autonomy.",
                       style: theme.textTheme.bodyText1,
                     ),
                     const SizedBox(height: 40),
                     AuTextField(
                         title: "",
-                        placeholder: "Enter alias",
+                        placeholder: "enter_alias".tr(),
                         controller: _nameController),
                   ],
                 ),
@@ -82,7 +84,7 @@ class _NameLinkedAccountPageState extends State<NameLinkedAccountPage> {
                   children: [
                     Expanded(
                       child: AuFilledButton(
-                        text: "SAVE ALIAS".toUpperCase(),
+                        text: "save_alias".tr().toUpperCase(),
                         onPress: () {
                           context.read<AccountsBloc>().add(
                               NameLinkedAccountEvent(
@@ -97,7 +99,7 @@ class _NameLinkedAccountPageState extends State<NameLinkedAccountPage> {
                     onPressed: () {
                       _doneNaming();
                     },
-                    child: Text("SKIP", style: theme.textTheme.button)),
+                    child: Text("skip".tr(), style: theme.textTheme.button)),
               ],
             ),
           ],

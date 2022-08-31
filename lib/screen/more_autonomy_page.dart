@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -45,20 +46,21 @@ class MoreAutonomyPage extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text("More Autonomy", style: theme.textTheme.headline1),
+                Text("more_autonomy".tr(), style: theme.textTheme.headline1),
                 const SizedBox(height: 40),
-                Text('Upgrading gives you:', style: theme.textTheme.bodyText1),
+                Text('upgrading_gives_you'.tr(), style: theme.textTheme.bodyText1),
                 SvgPicture.asset(
                   'assets/images/premium_comparation_light.svg',
                   height: 320,
                 ),
                 const SizedBox(height: 16),
-                Text("*Google TV app plus AirPlay & Chromecast streaming",
+                Text("gg_tv_app".tr(),
                     style: theme.textTheme.headline5),
                 const Expanded(child: SizedBox()),
                 AuFilledButton(
                   text:
-                      "SUBSCRIBE FOR A 30-DAY FREE TRIAL\n(THEN ${state.productDetails?.price ?? "US\$4.99"}/MONTH)",
+                      "sub_then_price".tr(args: [state.productDetails?.price ?? "4.99usd".tr()]),
+                      //"SUBSCRIBE FOR A 30-DAY FREE TRIAL\n(THEN ${state.productDetails?.price ?? "US\$4.99"}/MONTH)",
                   textAlign: TextAlign.center,
                   onPress: state.status == IAPProductStatus.loading ||
                           state.status == IAPProductStatus.pending
@@ -73,7 +75,7 @@ class MoreAutonomyPage extends StatelessWidget {
                 TextButton(
                   onPressed: () => newAccountPageOrSkipInCondition(context),
                   child: Text(
-                    "NOT NOW",
+                    "not_now".tr(),
                     style: theme.textTheme.button,
                   ),
                 ),

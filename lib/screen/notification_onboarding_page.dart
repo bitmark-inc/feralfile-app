@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/util/notification_util.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_svg/svg.dart';
@@ -43,17 +44,20 @@ class NotificationOnboardingPage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Notifications",
+                      "notifications".tr(),
                       style: theme.textTheme.headline1,
                     ),
                     const SizedBox(height: 30),
                     Markdown(
-                      data: '''
+                      data:
+                      "grant_permission_when".tr(),
+                      /*'''
 **Grant Autonomy permission to notify you when:** 
 * An NFT is added to your collection or someone sends you an NFT
 * You receive a signing requests from a dapp or service (coming soon)
 * You receive a customer support message 
 ''',
+                       */
                       softLineBreak: true,
                       padding: const EdgeInsets.only(bottom: 50),
                       shrinkWrap: true,
@@ -74,7 +78,7 @@ class NotificationOnboardingPage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 AuFilledButton(
-                  text: "ENABLE NOTIFICATIONS".toUpperCase(),
+                  text: "enable_noti".tr().toUpperCase(),
                   onPress: () async {
                     if (Platform.isIOS &&
                         !await OneSignal.shared
@@ -92,7 +96,7 @@ class NotificationOnboardingPage extends StatelessWidget {
                     Navigator.of(context).pop();
                   },
                   child: Text(
-                    "NOT NOW",
+                    "not_now".tr(),
                     style: theme.textTheme.button,
                   ),
                 )

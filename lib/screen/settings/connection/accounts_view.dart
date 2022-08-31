@@ -11,13 +11,16 @@ import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 
 import 'package:autonomy_flutter/view/account_view.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -221,6 +224,11 @@ class _AccountsViewState extends State<AccountsView> {
         context: pageContext,
         enableDrag: false,
         backgroundColor: Colors.transparent,
+        constraints: BoxConstraints(
+          maxWidth: ResponsiveLayout.isMobile
+              ? double.infinity
+              : Constants.maxWidthModalTablet,
+        ),
         builder: (context) {
           return Container(
             color: Colors.transparent,
@@ -234,16 +242,16 @@ class _AccountsViewState extends State<AccountsView> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Delete account',
+                    Text('delete_account'.tr(),
                         style: theme.primaryTextTheme.headline1),
                     const SizedBox(height: 40),
                     RichText(
                       text: TextSpan(
                         style: theme.primaryTextTheme.bodyText1,
                         children: <TextSpan>[
-                          const TextSpan(
-                            text:
-                                'Are you sure you want to delete the account ',
+                          TextSpan(
+                            text: "sure_delete_account".tr(),
+                            //'Are you sure you want to delete the account ',
                           ),
                           TextSpan(
                               text: '“$accountName”',
@@ -253,9 +261,8 @@ class _AccountsViewState extends State<AccountsView> {
                             text: '?',
                           ),
                           if (account.persona != null) ...[
-                            const TextSpan(
-                                text:
-                                    ' If you haven’t backed up your recovery phrase, you will lose access to your funds.')
+                            TextSpan(text: "not_back_up_yet".tr())
+                            // If you haven’t backed up your recovery phrase, you will lose access to your funds.')
                           ]
                         ],
                       ),
@@ -265,7 +272,7 @@ class _AccountsViewState extends State<AccountsView> {
                       children: [
                         Expanded(
                           child: AuFilledButton(
-                            text: "DELETE",
+                            text: "delete".tr(),
                             onPress: () {
                               Navigator.of(context).pop();
                               _deleteAccount(pageContext, account);
@@ -279,7 +286,7 @@ class _AccountsViewState extends State<AccountsView> {
                     Align(
                       child: TextButton(
                         onPressed: () => Navigator.of(context).pop(),
-                        child: Text("CANCEL",
+                        child: Text("cancel".tr(),
                             style: theme.primaryTextTheme.button),
                       ),
                     )

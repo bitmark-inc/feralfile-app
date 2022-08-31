@@ -9,8 +9,10 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 class AccessMethodPage extends StatelessWidget {
@@ -28,14 +30,14 @@ class AccessMethodPage extends StatelessWidget {
         },
       ),
       body: Container(
-        margin: pageEdgeInsets,
+        margin: ResponsiveLayout.pageEdgeInsets,
         child: Column(children: [
           Expanded(
               child: SingleChildScrollView(
             child:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(
-                "Access method",
+                "access_method".tr(),
                 style: theme.textTheme.headline1,
               ),
               addTitleSpace(),
@@ -52,19 +54,65 @@ class AccessMethodPage extends StatelessWidget {
   Widget _linkAccount(BuildContext context) {
     final theme = Theme.of(context);
     return TappableForwardRowWithContent(
-        leftWidget: Text('Link', style: theme.textTheme.headline4),
+        leftWidget: Text('link'.tr(), style: theme.textTheme.headline4),
         bottomWidget: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'View your NFTs without Autonomy accessing your private keys in ${walletApp.split('.').last}.',
+              //'View your NFTs without Autonomy accessing your private keys in ${walletApp.split('.').last}.',
+              "li_view_your_nfts".tr(args: [walletApp.split('.').last]),
               style: theme.textTheme.bodyText1,
             ),
             if (walletApp == 'WalletApp.MetaMask') ...[
-              const SizedBox(height: 15),
+              const SizedBox(height: 8),
               Text(
-                'Autonomy currently only links to wallets on the Ethereum Mainnet. Other networks like Polygon are not yet supported.',
-                style: theme.textTheme.atlasGreyNormal14,
+                'supported_networks'.tr(),
+                style: ResponsiveLayout.isMobile
+                    ? theme.textTheme.atlasBlackNormal14
+                    : theme.textTheme.atlasBlackNormal16,
+              ),
+              const SizedBox(height: 3),
+              RichText(
+                text: TextSpan(
+                  text: ' •  ',
+                  style: ResponsiveLayout.isMobile
+                      ? theme.textTheme.atlasBlackNormal14
+                      : theme.textTheme.atlasBlackNormal16,
+                  children: [
+                    TextSpan(text: 'ethereum_mainnet'.tr()),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                'unsupported_networks'.tr(),
+                style: ResponsiveLayout.isMobile
+                    ? theme.textTheme.atlasBlackNormal14
+                    : theme.textTheme.atlasBlackNormal16,
+              ),
+              const SizedBox(height: 3),
+              RichText(
+                text: TextSpan(
+                  text: ' •  ',
+                  style: ResponsiveLayout.isMobile
+                      ? theme.textTheme.atlasBlackNormal14
+                      : theme.textTheme.atlasBlackNormal16,
+                  children: [
+                    TextSpan(text: 'polygon'.tr()),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 3),
+              RichText(
+                text: TextSpan(
+                  text: ' •  ',
+                  style: ResponsiveLayout.isMobile
+                      ? theme.textTheme.atlasBlackNormal14
+                      : theme.textTheme.atlasBlackNormal16,
+                  children: [
+                    TextSpan(text: 'binance_smart_chain'.tr()),
+                  ],
+                ),
               ),
             ],
           ],
@@ -92,12 +140,12 @@ class AccessMethodPage extends StatelessWidget {
   Widget _importAccount(BuildContext context) {
     final theme = Theme.of(context);
     return TappableForwardRowWithContent(
-      leftWidget: Text('Import', style: theme.textTheme.headline4),
+      leftWidget: Text('import'.tr(), style: theme.textTheme.headline4),
       bottomWidget: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-              'View and control your NFTs, sign authorizations, and connect to other platforms with Autonomy.',
+          Text("im_view_and_control".tr(),
+              //'View and control your NFTs, sign authorizations, and connect to other platforms with Autonomy.',
               style: theme.textTheme.bodyText1),
           const SizedBox(height: 16),
           learnMoreAboutAutonomySecurityWidget(context),

@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:wallet_connect/wallet_connect.dart';
 
@@ -56,7 +57,7 @@ class _WCDisconnectPageState extends State<WCDisconnectPage> {
             ),
             const SizedBox(height: 40.0),
             Text(
-              "Public address",
+              "public_address".tr(),
               style: theme.textTheme.headline4,
             ),
             const SizedBox(height: 16.0),
@@ -69,7 +70,7 @@ class _WCDisconnectPageState extends State<WCDisconnectPage> {
               children: [
                 Expanded(
                   child: AuFilledButton(
-                    text: "Disconnect".toUpperCase(),
+                    text: "disconnect".tr().toUpperCase(),
                     onPress: () async {
                       if (widget.client.remotePeerMeta != null) {
                         injector<WalletConnectService>()

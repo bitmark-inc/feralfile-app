@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/receive_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/tezos_transaction_list_view.dart';
@@ -13,6 +14,7 @@ import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_det
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/view/au_outlined_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:libauk_dart/libauk_dart.dart';
@@ -27,7 +29,28 @@ class WalletDetailPage extends StatefulWidget {
   State<WalletDetailPage> createState() => _WalletDetailPageState();
 }
 
-class _WalletDetailPageState extends State<WalletDetailPage> {
+class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
+  @override
+  void didChangeDependencies() {
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+    super.didChangeDependencies();
+  }
+
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  @override
+  void didPopNext() {
+    final cryptoType = widget.payload.type;
+    final wallet = widget.payload.wallet;
+    context
+        .read<WalletDetailBloc>()
+        .add(WalletDetailBalanceEvent(cryptoType, wallet));
+  }
+
   @override
   Widget build(BuildContext context) {
     context.read<WalletDetailBloc>().add(
@@ -85,7 +108,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> {
                     children: [
                       Expanded(
                         child: AuOutlinedButton(
-                          text: "Send",
+                          text: "send".tr(),
                           onPress: () {
                             Navigator.of(context).pushNamed(SendCryptoPage.tag,
                                 arguments: SendData(widget.payload.wallet,
@@ -98,7 +121,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> {
                       ),
                       Expanded(
                         child: AuOutlinedButton(
-                          text: "Receive",
+                          text: "receive".tr(),
                           onPress: () {
                             if (state.address.isNotEmpty) {
                               Navigator.of(context).pushNamed(ReceivePage.tag,

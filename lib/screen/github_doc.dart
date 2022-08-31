@@ -11,11 +11,13 @@ import 'package:autonomy_flutter/util/dio_interceptors.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:url_launcher/url_launcher_string.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 
 class GithubDocPage extends StatefulWidget {
   final Map<String, String> payload;
@@ -53,7 +55,7 @@ class _GithubDocPageState extends State<GithubDocPage> {
         onBack: () => Navigator.of(context).pop(),
       ),
       body: Container(
-        margin: pageEdgeInsets,
+        margin: ResponsiveLayout.pageEdgeInsets,
         child: FutureBuilder<Response<String>>(
           builder: (context, snapshot) => CustomScrollView(
             slivers: [
@@ -107,7 +109,7 @@ class _GithubDocPageState extends State<GithubDocPage> {
       return SliverFillRemaining(
           child: Center(
               child: Text(
-        "Error when loading the content",
+        "error_loading_content".tr(),
         style: theme.textTheme.headline4,
       )));
     } else {

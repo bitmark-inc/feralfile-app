@@ -1,12 +1,10 @@
 import 'dart:collection';
 
-import 'package:autonomy_flutter/database/entity/asset_token.dart';
-import 'package:autonomy_flutter/model/asset_price.dart';
-import 'package:autonomy_flutter/model/provenance.dart';
 import 'package:autonomy_flutter/screen/detail/report_rendering_issue/any_problem_nft_widget.dart';
 import 'package:autonomy_flutter/screen/detail/report_rendering_issue/report_rendering_issue_widget.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_cached_manager.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
@@ -14,17 +12,23 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:collection/collection.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
+import 'package:nft_collection/models/asset_token.dart';
+import 'package:nft_collection/models/provenance.dart';
 import 'package:nft_rendering/nft_rendering.dart';
 
 // ignore: depend_on_referenced_packages
 import 'package:path/path.dart' as p;
 import 'package:url_launcher/url_launcher.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 
 import '../common/injector.dart';
 
@@ -33,73 +37,145 @@ String getEditionSubTitle(AssetToken token) {
   return " (${token.edition}/${token.maxEdition})";
 }
 
-Widget tokenThumbnailWidget(BuildContext context, AssetToken token) {
-  final ext = p.extension(token.thumbnailURL!);
-  final screenWidth = MediaQuery.of(context).size.width;
+class TokenThumbnailWidget extends StatelessWidget {
+  final AssetToken token;
 
-  return Hero(
-    tag: token.id,
-    child: ext == ".svg"
-        ? Center(
-            child: SvgPicture.network(token.thumbnailURL!,
-                placeholderBuilder: (context) => placeholder()))
-        : CachedNetworkImage(
-            imageUrl: token.thumbnailURL!,
-            width: double.infinity,
-            memCacheWidth: (screenWidth * 3).floor(),
-            maxWidthDiskCache: (screenWidth * 3).floor(),
-            cacheManager: injector<AUCacheManager>(),
-            placeholder: (context, url) => placeholder(),
-            placeholderFadeInDuration: const Duration(milliseconds: 300),
-            fit: BoxFit.cover,
-            errorWidget: (context, url, error) => Container(
-              color: const Color.fromRGBO(227, 227, 227, 1),
-              padding: const EdgeInsets.symmetric(vertical: 133),
-              child: brokenTokenWidget(context, token),
-            ),
+  const TokenThumbnailWidget({Key? key, required this.token}) : super(key: key);
+
+  Widget _buildContent(
+      {required String ext,
+      required double screenWidth,
+      required int attempt}) {
+    return Hero(
+      tag: token.id,
+      child: ext == ".svg"
+          ? Center(
+          child: SvgPicture.network(token.getThumbnailUrl() ?? "",
+              placeholderBuilder: (context) => placeholder(context)))
+          : CachedNetworkImage(
+        imageUrl: attempt > 0
+                  ? "${token.getThumbnailUrl() ?? ''}?t=$attempt"
+                  : token.getThumbnailUrl() ?? "",
+        width: double.infinity,
+        memCacheWidth: (screenWidth * 3).floor(),
+        maxWidthDiskCache: (screenWidth * 3).floor(),
+        cacheManager: injector<AUCacheManager>(),
+        placeholder: (context, url) => placeholder(context),
+        placeholderFadeInDuration: const Duration(milliseconds: 300),
+        fit: BoxFit.cover,
+        errorWidget: (context, url, error) => AspectRatio(
+          aspectRatio: 1,
+          child: Container(
+            color: const Color.fromRGBO(227, 227, 227, 1),
+            padding: const EdgeInsets.symmetric(vertical: 133),
+            child: BrokenTokenWidget(token: token),
           ),
-  );
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ext = p.extension(token.getThumbnailUrl() ?? "");
+    final screenWidth = MediaQuery.of(context).size.width;
+    return BlocProvider(
+      create: (_) => RetryCubit(),
+      child: BlocBuilder<RetryCubit, int>(
+        builder: (context, state) => _buildContent(
+          ext: ext,
+          screenWidth: screenWidth,
+          attempt: state,
+        ),
+      ),
+    );
+  }
 }
 
 Widget tokenGalleryThumbnailWidget(
     BuildContext context, AssetToken token, int cachedImageSize) {
-  final ext = p.extension(token.thumbnailURL!);
+  final ext = p.extension(token.getThumbnailUrl() ?? "");
 
   return Hero(
     tag: token.id,
-    key: Key('Artwork_Thumbnail'),
+    key: const Key('Artwork_Thumbnail'),
     child: ext == ".svg"
-        ? SvgPicture.network(token.galleryThumbnailURL!,
+        ? SvgPicture.network(
+            token.getGalleryThumbnailUrl()!,
             placeholderBuilder: (context) =>
-                Container(color: const Color.fromRGBO(227, 227, 227, 1)))
+                const GalleryThumbnailPlaceholder(),
+          )
         : CachedNetworkImage(
-            imageUrl: token.galleryThumbnailURL!,
+            imageUrl: token.getGalleryThumbnailUrl()!,
             fit: BoxFit.cover,
             memCacheHeight: cachedImageSize,
             memCacheWidth: cachedImageSize,
             maxWidthDiskCache: cachedImageSize,
             maxHeightDiskCache: cachedImageSize,
             cacheManager: injector<AUCacheManager>(),
-            placeholder: (context, index) =>
-                Container(color: const Color.fromRGBO(227, 227, 227, 1)),
-            placeholderFadeInDuration: const Duration(milliseconds: 300),
+            placeholder: (context, index) => const GalleryThumbnailPlaceholder(),
             errorWidget: (context, url, error) => Container(
-                color: const Color.fromRGBO(227, 227, 227, 1),
-                child: Center(
-                  child: SvgPicture.asset(
-                    'assets/images/image_error.svg',
-                    width: 75,
-                    height: 75,
-                  ),
-                )),
+              padding: const EdgeInsets.all(15.0),
+              color: const Color.fromRGBO(227, 227, 227, 1),
+              child: Align(
+                alignment: AlignmentDirectional.bottomStart,
+                child: SvgPicture.asset(
+                  'assets/images/icon_exclamation.svg',
+                  width: 16,
+                  height: 16,
+                ),
+              ),
+            ),
           ),
   );
 }
 
-Widget placeholder() {
+class GalleryThumbnailPlaceholder extends StatelessWidget {
+  const GalleryThumbnailPlaceholder({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return AspectRatio(
+      aspectRatio: 1,
+      child: Container(
+        padding: const EdgeInsets.all(13),
+        color: const Color.fromRGBO(227, 227, 227, 1),
+        child: Align(
+          alignment: AlignmentDirectional.bottomStart,
+          child: loadingIndicator(
+            size: 13,
+            valueColor: theme.colorScheme.primary,
+            backgroundColor: theme.colorScheme.primary.withOpacity(0.5),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+Widget placeholder(BuildContext context) {
+  final theme = Theme.of(context);
   return AspectRatio(
     aspectRatio: 1,
-    child: Container(color: const Color.fromRGBO(227, 227, 227, 1)),
+    child: Container(
+      color: const Color.fromRGBO(227, 227, 227, 1),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            loadingIndicator(valueColor: theme.colorScheme.primary),
+            const SizedBox(height: 12,),
+            Text(
+              "loading...".tr(),
+              style: ResponsiveLayout.isMobile
+                  ? theme.textTheme.atlasGreyNormal12
+                  : theme.textTheme.atlasGreyNormal14,
+            ),
+          ],
+        ),
+      ),
+    ),
   );
 }
 
@@ -117,11 +193,11 @@ Widget reportNFTProblemContainer(
 }
 
 INFTRenderingWidget buildRenderingWidget(
-    BuildContext context, AssetToken token) {
+    BuildContext context, AssetToken token, {int? attempt}) {
   String mimeType = "";
   switch (token.medium) {
     case "image":
-      final ext = p.extension(token.previewURL!);
+      final ext = p.extension(token.getPreviewUrl() ?? "");
       if (ext == ".svg") {
         mimeType = "svg";
       } else if (token.mimeType == 'image/gif') {
@@ -143,40 +219,80 @@ INFTRenderingWidget buildRenderingWidget(
   final renderingWidget = typesOfNFTRenderingWidget(mimeType);
 
   renderingWidget.setRenderWidgetBuilder(RenderingWidgetBuilder(
-    previewURL: token.previewURL,
-    thumbnailURL: token.thumbnailURL,
+    previewURL: attempt == null
+        ? token.getPreviewUrl()
+        : "${token.getPreviewUrl()}?t=$attempt",
+    thumbnailURL: token.getThumbnailUrl(),
     loadingWidget: previewPlaceholder(context),
-    errorWidget: brokenTokenWidget(context, token),
+    errorWidget: BrokenTokenWidget(token: token),
     cacheManager: injector<AUCacheManager>(),
   ));
 
   return renderingWidget;
 }
 
-Widget brokenTokenWidget(BuildContext context, AssetToken token) {
-  injector<CustomerSupportService>().reportIPFSLoadingError(token);
-  final theme = Theme.of(context);
-  return Center(
-    child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-      Text('IPFS file failed to load.',
-          style: theme.textTheme.atlasGreyNormal12),
-      TextButton(
-        onPressed: () => showReportIssueDialog(context, token),
-        style: TextButton.styleFrom(
-            minimumSize: Size.zero,
-            padding: const EdgeInsets.all(8),
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap),
-        child: Text('Report issue?',
-            style: makeLinkStyle(theme.textTheme.atlasGreyNormal12)),
-      ),
-    ]),
-  );
+class RetryCubit extends Cubit<int> {
+  RetryCubit() : super(0);
+
+  void refresh() {
+    emit(state + 1);
+  }
+}
+
+class BrokenTokenWidget extends StatefulWidget {
+  final AssetToken token;
+
+  const BrokenTokenWidget({Key? key, required this.token}) : super(key: key);
+
+  @override
+  State<StatefulWidget> createState() {
+    return _BrokenTokenWidgetState();
+  }
+}
+
+class _BrokenTokenWidgetState extends State<BrokenTokenWidget> {
+
+  @override
+  void initState() {
+    injector<CustomerSupportService>().reportIPFSLoadingError(widget.token);
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Center(
+      child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+        Text(
+          "unable_to_load_artwork_preview_from_ipfs".tr(),
+          style: ResponsiveLayout.isMobile
+              ? theme.textTheme.atlasGreyNormal12
+              : theme.textTheme.atlasGreyNormal14,
+        ),
+        TextButton(
+          onPressed: () => context
+              .read<RetryCubit>()
+              .refresh(),
+          style: TextButton.styleFrom(
+              minimumSize: Size.zero,
+              padding: const EdgeInsets.all(8),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+          child: Text("please_try_again".tr(),
+              style: makeLinkStyle(
+                ResponsiveLayout.isMobile
+                    ? theme.textTheme.atlasGreyNormal12
+                    : theme.textTheme.atlasGreyNormal14,
+              )),
+        ),
+      ]),
+    );
+  }
 }
 
 void showReportIssueDialog(BuildContext context, AssetToken token) {
   UIHelper.showDialog(
     context,
-    "Report issue?",
+    'report_issue'.tr(),
     ReportRenderingIssueWidget(
       token: token,
       onReported: (githubURL) =>
@@ -189,13 +305,13 @@ void _showReportRenderingDialogSuccess(BuildContext context, String githubURL) {
   final theme = Theme.of(context);
   UIHelper.showDialog(
     context,
-    'Report received',
+    'report_received'.tr(),
     Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Thank you for reporting this NFT. Our team is looking into it.',
+          "thank_for_report".tr(),
           style: theme.textTheme.bodyText1,
         ),
         const SizedBox(height: 40),
@@ -204,7 +320,7 @@ void _showReportRenderingDialogSuccess(BuildContext context, String githubURL) {
             Expanded(
               child: AuFilledButton(
                 icon: SvgPicture.asset('assets/images/external_link.svg'),
-                text: "VIEW ISSUE STATUS",
+                text: "view_issue_status".tr(),
                 onPress: () {
                   final uri = Uri.tryParse(githubURL);
                   if (uri != null) {
@@ -223,7 +339,7 @@ void _showReportRenderingDialogSuccess(BuildContext context, String githubURL) {
           child: TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
-              'CLOSE',
+              'close'.tr(),
               style: theme.primaryTextTheme.button,
             ),
           ),
@@ -239,7 +355,23 @@ void _showReportRenderingDialogSuccess(BuildContext context, String githubURL) {
 Widget previewPlaceholder(BuildContext context) {
   final theme = Theme.of(context);
   return Center(
-    child: loadingIndicator(valueColor: theme.colorScheme.secondary),
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        loadingIndicator(
+            valueColor: theme.colorScheme.secondary,
+            backgroundColor: theme.colorScheme.secondary.withOpacity(0.5)),
+        const SizedBox(
+          height: 13,
+        ),
+        Text(
+          "loading...".tr(),
+          style: ResponsiveLayout.isMobile
+              ? theme.textTheme.atlasGreyNormal12
+              : theme.textTheme.atlasGreyNormal14,
+        ),
+      ],
+    ),
   );
 }
 
@@ -276,13 +408,14 @@ Widget debugInfoWidget(BuildContext context, AssetToken? token) {
           children: [
             addDivider(),
             Text(
-              "DEBUG INFO",
+              "debug_info".tr(),
               style: theme.textTheme.headline4,
             ),
             _buildInfo('IndexerID', token.id),
-            _buildInfo('galleryThumbnailURL', token.galleryThumbnailURL ?? ''),
-            _buildInfo('thumbnailURL', token.thumbnailURL ?? ''),
-            _buildInfo('previewURL', token.previewURL ?? ''),
+            _buildInfo(
+                'galleryThumbnailURL', token.getGalleryThumbnailUrl() ?? ''),
+            _buildInfo('thumbnailURL', token.getThumbnailUrl() ?? ''),
+            _buildInfo('previewURL', token.getPreviewUrl() ?? ''),
             addDivider(),
           ],
         );
@@ -298,19 +431,6 @@ Widget artworkDetailsRightSection(BuildContext context, AssetToken token) {
       : const SizedBox();
 }
 
-Widget artworkDetailsValueSection(
-    BuildContext context, AssetToken token, AssetPrice? assetPrice) {
-  return assetPrice != null
-      ? Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 40.0),
-            _valueView(context, token, assetPrice),
-          ],
-        )
-      : const SizedBox();
-}
-
 Widget artworkDetailsMetadataSection(
     BuildContext context, AssetToken asset, String? artistName) {
   final theme = Theme.of(context);
@@ -319,55 +439,57 @@ Widget artworkDetailsMetadataSection(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       Text(
-        "Metadata",
+        "metadata".tr(),
         style: theme.textTheme.headline2,
       ),
       const SizedBox(height: 16.0),
-      _rowItem(context, "Title", asset.title),
+      _rowItem(context, "title".tr(), asset.title),
       if (artistName != null) ...[
         const Divider(height: 32.0),
         _rowItem(
           context,
-          "Artist",
+          "artist".tr(),
           artistName,
           // some FF's artist set multiple links
           // Discussion thread: https://bitmark.slack.com/archives/C01EPPD07HU/p1648698027564299
           tapLink: asset.artistURL?.split(" & ").first,
-          forceSafariVC: false,
+          forceSafariVC: true,
         ),
       ],
       (asset.maxEdition ?? 0) > 0
           ? Column(
               children: [
                 const Divider(height: 32.0),
-                _rowItem(context, "Edition number", asset.edition.toString()),
+                _rowItem(
+                    context, "edition_number".tr(), asset.edition.toString()),
                 const Divider(height: 32.0),
-                _rowItem(context, "Edition size", asset.maxEdition.toString()),
+                _rowItem(
+                    context, "edition_size".tr(), asset.maxEdition.toString()),
               ],
             )
           : const SizedBox(),
       const Divider(height: 32.0),
       _rowItem(
         context,
-        "Token",
+        "token".tr(),
         polishSource(asset.source ?? ""),
         tapLink: asset.assetURL,
-        forceSafariVC: false,
+        forceSafariVC: true,
       ),
       const Divider(height: 32.0),
       _rowItem(
         context,
-        "Contract",
+        "contract".tr(),
         asset.blockchain.capitalize(),
-        tapLink: asset.blockchainURL,
-        forceSafariVC: false,
+        tapLink: asset.getBlockchainUrl(),
+        forceSafariVC: true,
       ),
       const Divider(height: 32.0),
-      _rowItem(context, "Medium", asset.medium?.capitalize()),
+      _rowItem(context, "medium".tr(), asset.medium?.capitalize()),
       const Divider(height: 32.0),
       _rowItem(
           context,
-          "Date minted",
+          "date_minted".tr(),
           asset.mintedAt != null
               ? localTimeStringFromISO8601(asset.mintedAt!)
               : null),
@@ -375,10 +497,46 @@ Widget artworkDetailsMetadataSection(
           ? Column(
               children: [
                 const Divider(height: 32.0),
-                _rowItem(context, "Artwork data", asset.assetData)
+                _rowItem(context, "artwork_data".tr(), asset.assetData)
               ],
             )
           : const SizedBox(),
+    ],
+  );
+}
+
+Widget tokenOwnership(
+    BuildContext context, AssetToken asset, List<String> addresses) {
+  final theme = Theme.of(context);
+
+  int ownedTokens = addresses.map((address) => asset.owners[address] ?? 0).sum;
+  if (ownedTokens == 0) {
+    ownedTokens = addresses.contains(asset.ownerAddress) ? 1 : 0;
+  }
+  final sharedPercentage = ownedTokens / (asset.maxEdition ?? 1) * 100;
+  final nf = NumberFormat("###.##");
+  final sharedPctText = nf.format(sharedPercentage);
+
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        "token_ownership".tr(),
+        style: theme.textTheme.headline2,
+      ),
+      const SizedBox(height: 23.0),
+      Text(
+        "how_many_shares_you_own".tr(),
+        style: theme.textTheme.bodyText1,
+      ),
+      const SizedBox(height: 16.0),
+      _rowItem(context, "total_token_supply".tr(), "${asset.maxEdition}",
+          tapLink: asset.tokenURL, forceSafariVC: true),
+      const Divider(height: 32.0),
+      _rowItem(context, "tokens_you_own".tr(), "$ownedTokens",
+          tapLink: asset.tokenURL, forceSafariVC: true),
+      const Divider(height: 32.0),
+      _rowItem(context, "your_share_of_total".tr(), "$sharedPctText%"),
     ],
   );
 }
@@ -398,25 +556,29 @@ Widget artworkDetailsProvenanceSectionNotEmpty(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            "Provenance",
+            "provenance".tr(),
             style: theme.textTheme.headline2,
           ),
           const SizedBox(height: 23.0),
           ...provenances.map((el) {
             final identity = identityMap[el.owner];
             final identityTitle = el.owner.toIdentityOrMask(identityMap);
-            final youTitle = youAddresses.contains(el.owner) ? " (You)" : "";
+            final youTitle = youAddresses.contains(el.owner) ? "_you".tr() : "";
             final provenanceTitle = "${identityTitle ?? ''}$youTitle";
             return Column(
               children: [
                 _rowItem(
-                    context, provenanceTitle, localTimeString(el.timestamp),
-                    subTitle: el.blockchain.toUpperCase(),
-                    tapLink: el.txURL,
-                    onNameTap: () => identity != null
-                        ? UIHelper.showIdentityDetailDialog(context,
-                            name: identity, address: el.owner)
-                        : null),
+                  context,
+                  provenanceTitle,
+                  localTimeString(el.timestamp),
+                  subTitle: el.blockchain.toUpperCase(),
+                  tapLink: el.txURL,
+                  onNameTap: () => identity != null
+                      ? UIHelper.showIdentityDetailDialog(context,
+                          name: identity, address: el.owner)
+                      : null,
+                  forceSafariVC: true,
+                ),
                 const Divider(height: 32.0),
               ],
             );
@@ -434,12 +596,12 @@ Widget _artworkRightView(BuildContext context) {
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       Text(
-        "Rights",
+        "rights".tr(),
         style: theme.textTheme.headline2,
       ),
       const SizedBox(height: 16.0),
       Text(
-        "Feral File protects artist and collector rights.",
+        "ff_protect".tr(),
         style: theme.textTheme.bodyText1,
       ),
       const SizedBox(height: 18.0),
@@ -447,86 +609,29 @@ Widget _artworkRightView(BuildContext context) {
         style: theme.textButtonNoPadding,
         onPressed: () => launchUrl(
             Uri.parse("https://feralfile.com/docs/artist-collector-rights")),
-        child: Text('Learn more on the Artist + Collector Rights page...',
+        child: Text("learn_artist".tr(),
             style: theme.textTheme.linkStyle.copyWith(
               fontWeight: FontWeight.w500,
             )),
       ),
       const SizedBox(height: 23.0),
-      _artworkRightItem(context, "Download",
-          "As a collector, you have access to a permanent link where you can download the work’s original, full-resolution files and technical details."),
+      _artworkRightItem(context, "download".tr(), "download_text".tr()),
       const Divider(height: 32.0),
-      _artworkRightItem(context, "Display",
-          "Using the artist’s installation guidelines, you have the right to display the work both privately and publicly."),
+      _artworkRightItem(context, "display".tr(), "display_text".tr()),
       const Divider(height: 32.0),
-      _artworkRightItem(context, "Authenticate",
-          "You have the right to be assured of the work’s authenticity. Feral File guarantees the provenance of every edition using a public ledger recorded on the Bitmark blockchain."),
+      _artworkRightItem(context, "authenticate".tr(), "authenticate_text".tr()),
       const Divider(height: 32.0),
-      _artworkRightItem(context, "Loan or lease",
-          "You may grant others the temporary right to display the work."),
+      _artworkRightItem(
+          context, "loan_or_lease".tr(), "loan_or_lease_text".tr()),
       const Divider(height: 32.0),
-      _artworkRightItem(context, "Resell or transfer",
-          "You are entitled to transfer your rights to the work to another collector or entity. Keep in mind that if you resell the work, the artist will earn 10% of the sale and Feral File will earn 5%."),
+      _artworkRightItem(
+          context, "resell_or_transfer".tr(), "resell_or_transfer_text".tr()),
       const Divider(height: 32.0),
-      _artworkRightItem(context, "Remain anonymous",
-          "While all sales are recorded publicly on the public blockchain, you can use an alias to keep your collection private."),
+      _artworkRightItem(
+          context, "remain_anonymous".tr(), "remain_anonymous_text".tr()),
       const Divider(height: 32.0),
-      _artworkRightItem(context, "Respect the artist’s rights",
-          "Feral File protects artists by forefronting their rights, just like we forefront your rights as a collector. Learn more on the Artist + Collector Rights page."),
-    ],
-  );
-}
-
-Widget _valueView(
-    BuildContext context, AssetToken asset, AssetPrice? assetPrice) {
-  var changedPriceText = "";
-  var roiText = "";
-  if (assetPrice != null && assetPrice.minPrice != 0) {
-    final changedPrice = assetPrice.minPrice - assetPrice.purchasedPrice;
-    changedPriceText =
-        "${changedPrice >= 0 ? "+" : ""}${changedPrice.toStringAsFixed(2)} ${assetPrice.currency.toUpperCase()}";
-
-    if (assetPrice.purchasedPrice == 0) {
-      roiText = "+100%";
-    } else {
-      final roi = (changedPrice / assetPrice.purchasedPrice) * 100;
-      roiText = "${roi >= 0 ? "+" : ""}${roi.toStringAsFixed(2)}%";
-    }
-  }
-  final theme = Theme.of(context);
-
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        "Value",
-        style: theme.textTheme.headline2,
-      ),
-      if (assetPrice != null) ...[
-        const SizedBox(height: 16.0),
-        _rowItem(context, "Purchase price",
-            "${assetPrice.purchasedPrice.toStringAsFixed(2)} ${assetPrice.currency.toUpperCase()}")
-      ],
-      if (assetPrice != null &&
-          assetPrice.listingPrice > 0 &&
-          assetPrice.onSale == true) ...[
-        const Divider(height: 32.0),
-        _rowItem(context, "Listed for resale",
-            "${assetPrice.listingPrice.toStringAsFixed(2)} ${assetPrice.currency.toUpperCase()}"),
-      ],
-      if (assetPrice != null && assetPrice.minPrice != 0) ...[
-        const Divider(height: 32.0),
-        _rowItem(context, "Estimated value\n(floor price)",
-            "${assetPrice.minPrice.toStringAsFixed(2)} ${assetPrice.currency.toUpperCase()}"),
-      ],
-      if (changedPriceText.isNotEmpty) ...[
-        const Divider(height: 32.0),
-        _rowItem(context, "Change (\$)", changedPriceText),
-      ],
-      if (roiText.isNotEmpty) ...[
-        const Divider(height: 32.0),
-        _rowItem(context, "Return on investment (ROI)", roiText),
-      ],
+      _artworkRightItem(context, "respect_artist_right".tr(),
+          "respect_artist_right_text".tr()),
     ],
   );
 }
@@ -535,6 +640,7 @@ Widget _artworkRightItem(BuildContext context, String name, String body) {
   final theme = Theme.of(context);
 
   return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       Row(
         children: [
@@ -572,38 +678,45 @@ Widget _rowItem(BuildContext context, String name, String? value,
   return Row(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      Expanded(
-        flex: 2,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            GestureDetector(
-              onTap: onNameTap,
-              child: Text(name, style: theme.textTheme.headline4),
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          GestureDetector(
+            onTap: onNameTap,
+            child: Text(name, style: theme.textTheme.headline4),
+          ),
+          if (subTitle != null) ...[
+            const SizedBox(height: 2),
+            Text(
+              subTitle,
+              style: ResponsiveLayout.isMobile
+                  ? theme.textTheme.atlasBlackBold12
+                  : theme.textTheme.atlasBlackBold14,
             ),
-            if (subTitle != null) ...[
-              const SizedBox(height: 2),
-              Text(subTitle, style: theme.textTheme.atlasBlackBold12),
-            ]
-          ],
-        ),
+          ]
+        ],
       ),
       Expanded(
-        flex: 3,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             Expanded(
-                child: GestureDetector(
-              onTap: onValueTap,
-              child: Text(
-                value ?? "",
-                textAlign: TextAlign.end,
-                style: onValueTap != null
-                    ? theme.textTheme.subtitle1
-                    : theme.textTheme.ibmGreyMediumNormal16,
+              child: GestureDetector(
+                onTap: onValueTap,
+                child: Text(
+                  value ?? '',
+                  textAlign: TextAlign.end,
+                  maxLines: 2,
+                  softWrap: true,
+                  overflow: TextOverflow.ellipsis,
+                  style: onValueTap != null
+                      ? theme.textTheme.subtitle1
+                      : ResponsiveLayout.isMobile
+                          ? theme.textTheme.ibmGreyMediumNormal16
+                          : theme.textTheme.ibmGreyMediumNormal20,
+                ),
               ),
-            )),
+            ),
             if (onValueTap != null) ...[
               const SizedBox(width: 8.0),
               SvgPicture.asset('assets/images/iconForward.svg'),

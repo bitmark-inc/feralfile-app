@@ -5,6 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:io';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/wallet_connect_dapp_service/wallet_connect_dapp_service.dart';
@@ -12,8 +14,10 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 
 class LinkAppOptionsPage extends StatefulWidget {
   const LinkAppOptionsPage({Key? key}) : super(key: key);
@@ -41,14 +45,14 @@ class _LinkAppOptionsPageState extends State<LinkAppOptionsPage> {
         onBack: () => Navigator.of(context).pop(),
       ),
       body: Container(
-        margin: pageEdgeInsets,
+        margin: ResponsiveLayout.pageEdgeInsets,
         child: Column(children: [
           Expanded(
               child: SingleChildScrollView(
             child:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(
-                "Where are you using MetaMask?",
+                "where_are_you_using_metamask".tr(),
                 style: theme.textTheme.headline1,
               ),
               addTitleSpace(),
@@ -66,8 +70,8 @@ class _LinkAppOptionsPageState extends State<LinkAppOptionsPage> {
   Widget _mobileAppOnThisDeviceOptionWidget(BuildContext context) {
     final theme = Theme.of(context);
     return TappableForwardRow(
-      leftWidget:
-          Text('Mobile app on this device', style: theme.textTheme.headline4),
+      leftWidget: Text('mobile_app_on_this_device'.tr(),
+          style: theme.textTheme.headline4),
       onTap: () => _linkMetamask(),
     );
   }
@@ -75,7 +79,8 @@ class _LinkAppOptionsPageState extends State<LinkAppOptionsPage> {
   Widget _browserExtensionOptionWidget(BuildContext context) {
     final theme = Theme.of(context);
     return TappableForwardRow(
-      leftWidget: Text('Browser extension', style: theme.textTheme.headline4),
+      leftWidget:
+          Text('browser_extension'.tr(), style: theme.textTheme.headline4),
       onTap: () => Navigator.of(context).pushNamed(AppRouter.linkMetamaskPage),
     );
   }
@@ -83,7 +88,7 @@ class _LinkAppOptionsPageState extends State<LinkAppOptionsPage> {
   void _registerMetaMaskURIListener() {
     if (_wcURIListener != null) return;
 
-    _wcURIListener = () {
+    _wcURIListener = () async {
       log.info("_wcURIListener Get Notifier");
       if (_isPageInactive) return;
       final uri = injector<WalletConnectDappService>().wcURI.value;
@@ -92,8 +97,19 @@ class _LinkAppOptionsPageState extends State<LinkAppOptionsPage> {
       if (uri == null) return;
       final metamaskLink =
           "https://metamask.app.link/wc?uri=${Uri.encodeComponent(uri)}";
+
+      final urlAndroid = "metamask://wc?uri=$uri";
+
       log.info(metamaskLink);
-      _launchURL(metamaskLink);
+      if (Platform.isAndroid) {
+        try {
+          await _launchURL(urlAndroid);
+        } catch (e) {
+          await _launchURL(metamaskLink);
+        }
+      } else {
+        await _launchURL(metamaskLink);
+      }
     };
 
     injector<WalletConnectDappService>().wcURI.addListener(_wcURIListener!);
@@ -113,7 +129,7 @@ class _LinkAppOptionsPageState extends State<LinkAppOptionsPage> {
     injector<WalletConnectDappService>().connect();
   }
 
-  void _launchURL(String url) async {
+  Future<void> _launchURL(String url) async {
     final uri = Uri.tryParse(url);
     if (uri != null &&
         !await launchUrl(uri, mode: LaunchMode.externalNonBrowserApplication)) {

@@ -1,13 +1,15 @@
 import 'dart:async';
 
-import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/screen/gallery/gallery_bloc.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/penrose_top_bar_view.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
+import 'package:nft_collection/models/asset_token.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 
@@ -75,26 +77,29 @@ class _GalleryPageState extends State<GalleryPage> {
     return PrimaryScrollController(
       controller: _scrollController,
       child: Scaffold(
-        body: Stack(
-          children: [
-            BlocConsumer<GalleryBloc, GalleryState>(listener: (context, state) {
-              final tokens = state.tokens;
-              if (tokens == null) return;
+        body: SafeArea(
+          child: Stack(
+            children: [
+              BlocConsumer<GalleryBloc, GalleryState>(
+                  listener: (context, state) {
+                final tokens = state.tokens;
+                if (tokens == null) return;
 
-              _latestTokensLength = tokens.length;
-              _isLastPage = state.isLastPage;
+                _latestTokensLength = tokens.length;
+                _isLastPage = state.isLastPage;
 
-              if (tokens.isNotEmpty) {
-                _timer?.cancel();
-                if (_latestTokensLength == 0) {
-                  Vibrate.feedback(FeedbackType.light);
+                if (tokens.isNotEmpty) {
+                  _timer?.cancel();
+                  if (_latestTokensLength == 0) {
+                    Vibrate.feedback(FeedbackType.light);
+                  }
                 }
-              }
-            }, builder: (context, state) {
-              return _assetsWidget(state.tokens, state.isLoading);
-            }),
-            PenroseTopBarView(_scrollController, PenroseTopBarViewStyle.back),
-          ],
+              }, builder: (context, state) {
+                return _assetsWidget(state.tokens, state.isLoading);
+              }),
+              PenroseTopBarView(_scrollController, PenroseTopBarViewStyle.back),
+            ],
+          ),
         ),
       ),
     );
@@ -103,8 +108,12 @@ class _GalleryPageState extends State<GalleryPage> {
   Widget _assetsWidget(List<AssetToken>? tokens, bool isLoading) {
     final theme = Theme.of(context);
 
-    const int cellPerRow = 3;
+    const int cellPerRowPhone = 3;
+    const int cellPerRowTablet = 6;
     const double cellSpacing = 3.0;
+    int cellPerRow =
+        ResponsiveLayout.isMobile ? cellPerRowPhone : cellPerRowTablet;
+
     final artistURL = widget.payload.artistURL;
 
     if (_cachedImageSize == 0) {
@@ -117,7 +126,7 @@ class _GalleryPageState extends State<GalleryPage> {
     sources = [
       SliverToBoxAdapter(
           child: Container(
-        padding: const EdgeInsets.fromLTRB(0, 72, 0, 48),
+        padding: const EdgeInsets.fromLTRB(0, 32, 0, 48),
         child: autonomyLogo,
       )),
       SliverToBoxAdapter(
@@ -145,7 +154,12 @@ class _GalleryPageState extends State<GalleryPage> {
                 ),
               ),
               if (tokens != null && tokens.isEmpty) ...[
-                Text('indexing...', style: theme.textTheme.atlasBlackBold12),
+                Text(
+                  'indexing'.tr(),
+                  style: ResponsiveLayout.isMobile
+                      ? theme.textTheme.atlasBlackBold12
+                      : theme.textTheme.atlasBlackBold14,
+                ),
               ]
             ],
           ),
@@ -155,21 +169,21 @@ class _GalleryPageState extends State<GalleryPage> {
         ...[]
       else if (tokens.isEmpty) ...[
         SliverGrid(
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: cellPerRow,
             crossAxisSpacing: cellSpacing,
             mainAxisSpacing: cellSpacing,
           ),
           delegate: SliverChildBuilderDelegate(
             (BuildContext context, int index) {
-              return placeholder();
+              return placeholder(context);
             },
             childCount: 15,
           ),
         ),
       ] else ...[
         SliverGrid(
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: cellPerRow,
             crossAxisSpacing: cellSpacing,
             mainAxisSpacing: cellSpacing,

@@ -1,9 +1,9 @@
 import 'package:autonomy_flutter/au_bloc.dart';
-import 'package:autonomy_flutter/database/entity/asset_token.dart';
-import 'package:autonomy_flutter/gateway/indexer_api.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
+import 'package:nft_collection/data/api/indexer_api.dart';
+import 'package:nft_collection/models/asset_token.dart';
 
 part 'gallery_state.dart';
 

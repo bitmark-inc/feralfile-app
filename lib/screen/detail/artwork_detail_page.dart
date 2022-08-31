@@ -9,10 +9,6 @@ import 'dart:collection';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/common/network_config_injector.dart';
-import 'package:autonomy_flutter/database/app_database.dart';
-import 'package:autonomy_flutter/database/entity/asset_token.dart';
-import 'package:autonomy_flutter/model/provenance.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
@@ -22,14 +18,21 @@ import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwor
 import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/au_outlined_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:html_unescape/html_unescape.dart';
+import 'package:nft_collection/models/asset_token.dart';
+import 'package:nft_collection/models/provenance.dart';
+import 'package:nft_collection/nft_collection.dart';
 
 class ArtworkDetailPage extends StatefulWidget {
   final ArtworkDetailPayload payload;
@@ -56,6 +59,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     context.read<ArtworkDetailBloc>().add(ArtworkDetailGetInfoEvent(
         widget.payload.ids[widget.payload.currentIndex]));
     context.read<AccountsBloc>().add(FetchAllAddressesEvent());
+    context.read<AccountsBloc>().add(GetAccountsEvent());
   }
 
   _scrollListener() {
@@ -126,7 +130,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
 
               var subTitle = "";
               if (artistName != null && artistName.isNotEmpty) {
-                subTitle = "by $artistName";
+                subTitle = "by".tr(args: [artistName]);
               }
               subTitle += getEditionSubTitle(asset);
 
@@ -137,7 +141,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                   children: [
                     const SizedBox(height: 16.0),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      padding: ResponsiveLayout.getPadding,
                       child: Text(
                         asset.title,
                         style: theme.textTheme.headline1,
@@ -146,7 +150,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                     const SizedBox(height: 8.0),
                     if (subTitle.isNotEmpty) ...[
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        padding: ResponsiveLayout.getPadding,
                         child: Text(
                           subTitle,
                           style: theme.textTheme.headline3,
@@ -155,7 +159,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                     ],
                     const SizedBox(height: 16.0),
                     GestureDetector(
-                        child: tokenThumbnailWidget(context, asset),
+                        child: TokenThumbnailWidget(token: asset),
                         onTap: () {
                           if (injector<ConfigurationService>()
                               .isImmediateInfoViewEnabled()) {
@@ -169,7 +173,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                     debugInfoWidget(context, currentAsset),
                     const SizedBox(height: 16.0),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      padding: ResponsiveLayout.getPadding,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -177,7 +181,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                             width: 165,
                             height: 48,
                             child: AuOutlinedButton(
-                              text: "VIEW ARTWORK",
+                              text: "view_artwork".tr(),
                               onPress: () {
                                 if (injector<ConfigurationService>()
                                     .isImmediateInfoViewEnabled()) {
@@ -196,14 +200,23 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                             style: theme.textTheme.bodyText1,
                           ),
                           artworkDetailsRightSection(context, asset),
-                          artworkDetailsValueSection(
-                              context, asset, state.assetPrice),
                           const SizedBox(height: 40.0),
                           artworkDetailsMetadataSection(
                               context, asset, artistName),
-                          state.provenances.isNotEmpty
-                              ? _provenanceView(context, state.provenances)
-                              : const SizedBox(),
+                          if (asset.fungible == true) ...[
+                            const SizedBox(height: 40.0),
+                            BlocBuilder<AccountsBloc, AccountsState>(
+                              builder: (context, state) {
+                                final addresses = state.addresses;
+                                return tokenOwnership(
+                                    context, asset, addresses);
+                              },
+                            ),
+                          ] else ...[
+                            state.provenances.isNotEmpty
+                                ? _provenanceView(context, state.provenances)
+                                : const SizedBox()
+                          ],
                           const SizedBox(height: 80.0),
                         ],
                       ),
@@ -243,6 +256,12 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     );
   }
 
+  bool _isHidden(AssetToken token) {
+    return injector<ConfigurationService>()
+        .getTempStorageHiddenTokenIDs()
+        .contains(token.id);
+  }
+
   Future _showArtworkOptionsDialog(AssetToken asset) async {
     final theme = Theme.of(context);
 
@@ -265,31 +284,24 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     final ownerWallet = await asset.getOwnerWallet();
 
     if (!mounted) return;
+    final isHidden = _isHidden(asset);
     UIHelper.showDialog(
       context,
       "Options",
       Column(
         children: [
           optionRow(
-            title: asset.isHidden() ? 'Unhide artwork' : 'Hide artwork',
+            title: isHidden ? 'unhide_aw'.tr() : 'hide_aw'.tr(),
             onTap: () async {
-              final appDatabase =
-                  injector<NetworkConfigInjector>().I<AppDatabase>();
-              if (asset.isHidden()) {
-                asset.hidden = null;
-              } else {
-                asset.hidden = 1;
-              }
-              await appDatabase.assetDao.updateAsset(asset);
               await injector<ConfigurationService>()
-                  .updateTempStorageHiddenTokenIDs(
-                      [asset.id], asset.hidden == 1);
+                  .updateTempStorageHiddenTokenIDs([asset.id], !isHidden);
               injector<SettingsDataService>().backup();
 
               if (!mounted) return;
 
+              context.read<NftCollectionBloc>().add(RefreshNftCollection());
               Navigator.of(context).pop();
-              UIHelper.showHideArtworkResultDialog(context, asset.isHidden(),
+              UIHelper.showHideArtworkResultDialog(context, !isHidden,
                   onOK: () {
                 Navigator.of(context).popUntil((route) =>
                     route.settings.name == AppRouter.homePage ||
@@ -304,10 +316,11 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
               thickness: 1,
             ),
             optionRow(
-              title: "Send artwork",
+              title: "send_artwork".tr(),
               onTap: () async {
                 Navigator.of(context).popAndPushNamed(AppRouter.sendArtworkPage,
-                    arguments: SendArtworkPayload(asset, ownerWallet));
+                    arguments: SendArtworkPayload(asset, ownerWallet,
+                        await ownerWallet.getOwnedQuantity(asset)));
               },
             ),
             const SizedBox(
@@ -316,7 +329,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
             TextButton(
               onPressed: () => Navigator.pop(context),
               child: Text(
-                "CANCEL",
+                "cancel".tr(),
                 style: theme.primaryTextTheme.caption,
               ),
             ),

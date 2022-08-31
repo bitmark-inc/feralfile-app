@@ -14,11 +14,13 @@ import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_state.d
 import 'package:autonomy_flutter/screen/settings/crypto/send_review_page.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -71,13 +73,13 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "Send ${type == CryptoType.ETH ? "ETH" : "XTZ"}",
+                  type == CryptoType.ETH ? "send_eth".tr() : "send_xtz".tr(),
                   style: theme.textTheme.headline1,
                 ),
                 const SizedBox(height: 40.0),
                 AuTextField(
-                  title: "To",
-                  placeholder: "Paste or scan address",
+                  title: "to".tr(),
+                  placeholder: "paste_or_scan_address".tr(),
                   isError: state.isAddressError,
                   controller: _addressController,
                   suffix: IconButton(
@@ -114,7 +116,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                 ),
                 const SizedBox(height: 16.0),
                 AuTextField(
-                  title: "Send",
+                  title: "send".tr(),
                   placeholder: "0",
                   isError: state.isAmountError,
                   controller: _amountController,
@@ -124,7 +126,9 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                       ? GestureDetector(
                           child: Text(
                             _maxAmountText(state),
-                            style: theme.textTheme.atlasGreyUnderline12,
+                            style: ResponsiveLayout.isMobile
+                                ? theme.textTheme.atlasGreyUnderline12
+                                : theme.textTheme.atlasGreyUnderline14,
                           ),
                           onTap: () {
                             String amountInStr = _maxAmount(state);
@@ -183,7 +187,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                   children: [
                     Expanded(
                       child: AuFilledButton(
-                        text: "Review",
+                        text: "review".tr(),
                         onPress: state.isValid
                             ? () async {
                                 final payload = SendCryptoPayload(
@@ -218,7 +222,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
     if (state.maxAllow == null) return "";
     final max = state.maxAllow!;
 
-    String text = "Max: ";
+    String text = "max".tr();
 
     switch (widget.data.type) {
       case CryptoType.ETH:
@@ -259,7 +263,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
     if (state.fee == null) return "";
     final fee = state.fee!;
 
-    String text = "Gas fee: ";
+    String text = "gas_fee";
 
     switch (widget.data.type) {
       case CryptoType.ETH:

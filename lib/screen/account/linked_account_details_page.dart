@@ -6,13 +6,18 @@
 //
 
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/inapp_notifications.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:collection/collection.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_vibrate/flutter_vibrate.dart';
+import 'package:nft_collection/nft_collection.dart';
 import 'package:share/share.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/screen/bloc/feralfile/feralfile_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
@@ -82,7 +87,7 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
 
       case "walletBeacon":
         _source = widget.connection.walletBeaconConnection?.peer.name ??
-            "Tezos Wallet";
+            "tezos_wallet".tr();
         contextedAddresses.add(ContextedAddress(CryptoType.XTZ, address));
         fetchXtzBalance(address);
         break;
@@ -90,7 +95,7 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
       case "walletConnect":
         _source = widget.connection.wcConnectedSession?.sessionStore
                 .remotePeerMeta.name ??
-            "Ethereum Wallet";
+            "ethereum_wallet".tr();
         contextedAddresses.add(ContextedAddress(CryptoType.ETH, address));
         fetchETHBalance(address);
         break;
@@ -129,18 +134,14 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
   }
 
   Future fetchXtzBalance(String address) async {
-    int balance = await injector<NetworkConfigInjector>()
-        .I<TezosService>()
-        .getBalance(address);
+    int balance = await injector<TezosService>().getBalance(address);
     setState(() {
       _balances[address] = "${XtzAmountFormatter(balance).format()} XTZ";
     });
   }
 
   Future fetchETHBalance(String address) async {
-    final balance = await injector<NetworkConfigInjector>()
-        .I<EthereumService>()
-        .getBalance(address);
+    final balance = await injector<EthereumService>().getBalance(address);
     setState(() {
       _balances[address] =
           "${EthAmountFormatter(balance.getInWei).format()} ETH";
@@ -175,14 +176,12 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
         onBack: () => Navigator.of(context).pop(),
       ),
       body: Container(
-        margin: pageEdgeInsets,
+        margin: ResponsiveLayout.pageEdgeInsets,
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _addressesSection(),
-              const SizedBox(height: 40),
-              _cryptoSection(),
               const SizedBox(height: 40),
               _preferencesSection(),
               const SizedBox(height: 40),
@@ -202,18 +201,21 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
       children: [
         Text(
           contextedAddresses.length > 1
-              ? "Linked addresses"
-              : "Linked adddress",
+              ? "linked_addresses".tr()
+              : "linked_address".tr(),
           style: theme.textTheme.headline1,
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 24),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ...contextedAddresses.map(
               (e) => Column(
                 children: [
-                  _addressRow(e.cryptoType, address: e.address),
+                  _addressRow(e.cryptoType,
+                      address: e.address,
+                      balanceString:
+                          _balances[e.address] ?? '-- ${e.cryptoType.code}'),
                   const SizedBox(height: 15),
                   addOnlyDivider(),
                 ],
@@ -225,65 +227,32 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
     );
   }
 
-  Widget _cryptoSection() {
+  Widget _addressRow(CryptoType type,
+      {required String address, required balanceString}) {
     final theme = Theme.of(context);
-    if (contextedAddresses.isEmpty) return const SizedBox();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          "Crypto",
-          style: theme.textTheme.headline1,
-        ),
-        const SizedBox(height: 24),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ...contextedAddresses.map(
-              (e) {
-                return Column(
-                  children: [
-                    _balanceRow(e.cryptoType,
-                        balanceString:
-                            _balances[e.address] ?? '-- ${e.cryptoType.code}'),
-                    if (e != contextedAddresses.last) ...[
-                      addDivider(),
-                    ]
-                  ],
-                );
-              },
-            )
-          ],
-        ),
-        const SizedBox(height: 16),
-      ],
-    );
-  }
-
-  Widget _addressRow(CryptoType type, {required String address}) {
-    final theme = Theme.of(context);
+    final balanceStyle = theme.textTheme.subtitle1;
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Text(type.source, style: theme.textTheme.headline4),
-          TextButton(
-            onPressed: () => Share.share(address),
-            style: const ButtonStyle(alignment: Alignment.centerRight),
-            child: Text(
-              "Share",
-              style: theme.textTheme.atlasBlackBold12,
-            ),
-          )
+          Text(balanceString, style: balanceStyle),
         ],
       ),
+      const SizedBox(height: 16),
       Row(
         children: [
           Expanded(
-            child: Text(
-              address,
-              style: theme.textTheme.subtitle1,
+            child: GestureDetector(
+              onTap: () async {
+                showInfoNotification(const Key("address"), "copied_to_clipboard".tr());
+                Clipboard.setData(ClipboardData(text: address));
+              },
+              child: Text(
+                address,
+                style: theme.textTheme.subtitle1,
+              ),
             ),
           ),
         ],
@@ -291,23 +260,11 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
     ]);
   }
 
-  Widget _balanceRow(CryptoType type, {required String balanceString}) {
-    final theme = Theme.of(context);
-    final balanceStyle = theme.textTheme.subtitle1;
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(type.fullCode, style: theme.textTheme.headline4),
-        Text(balanceString, style: balanceStyle),
-      ],
-    );
-  }
-
   Widget _preferencesSection() {
     final theme = Theme.of(context);
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Text(
-        "Preferences",
+        "preferences".tr(),
         style: theme.textTheme.headline1,
       ),
       const SizedBox(
@@ -319,14 +276,20 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Hide from collection', style: theme.textTheme.headline4),
+              Text("hide_from_collection".tr(),
+                  style: theme.textTheme.headline4),
               CupertinoSwitch(
                 value: isHideGalleryEnabled,
                 onChanged: (value) async {
                   await injector<AccountService>()
                       .setHideLinkedAccountInGallery(
                           widget.connection.hiddenGalleryKey, value);
+                  final hiddenAddress =
+                      await injector<AccountService>().getHiddenAddresses();
                   setState(() {
+                    context
+                        .read<NftCollectionBloc>()
+                        .add(UpdateHiddenTokens(ownerAddresses: hiddenAddress));
                     isHideGalleryEnabled = value;
                   });
                 },
@@ -336,7 +299,8 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
           ),
           const SizedBox(height: 14),
           Text(
-            "Do not show this account's NFTs in the collection view.",
+            "do_not_show_nft".tr(),
+            //"Do not show this account's NFTs in the collection view."
             style: theme.textTheme.bodyText1,
           ),
         ],
@@ -350,15 +314,15 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text("Backup", style: theme.textTheme.headline1),
+        Text("backup".tr(), style: theme.textTheme.headline1),
         const SizedBox(height: 24),
         if (_source == 'FeralFile') ...[
-          Text(
-              'The keys for this account are either automically backed up by Feral File or managed by your web3 wallet (if you connected one).',
+          Text("ba_the_keys_for_thisFf".tr(),
+              //'The keys for this account are either automatically backed up by Feral File or managed by your web3 wallet (if you connected one).',
               style: theme.textTheme.bodyText1),
         ] else ...[
-          Text(
-              "The keys for this account are in $_source. You should manage your key backups there.",
+          Text("ba_the_keys_for_thisFf".tr(args: [_source]),
+              //"The keys for this account are in $_source. You should manage your key backups there.",
               style: theme.textTheme.bodyText1),
         ],
       ],

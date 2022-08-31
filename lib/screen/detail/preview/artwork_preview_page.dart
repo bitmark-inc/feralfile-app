@@ -9,7 +9,6 @@ import 'dart:io';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
@@ -21,6 +20,7 @@ import 'package:autonomy_flutter/screen/settings/subscription/upgrade_box_view.d
 import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -29,13 +29,16 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:cast/cast.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_to_airplay/airplay_route_picker_view.dart';
 import 'package:mime/mime.dart';
+import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_rendering/nft_rendering.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shake/shake.dart';
@@ -278,6 +281,10 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
               if (injector<ConfigurationService>().isFullscreenIntroEnabled()) {
                 showModalBottomSheet<void>(
                   context: context,
+                  constraints: BoxConstraints(
+                      maxWidth: ResponsiveLayout.isMobile
+                          ? double.infinity
+                          : Constants.maxWidthModalTablet),
                   builder: (BuildContext context) {
                     return _fullscreenIntroPopup();
                   },
@@ -345,12 +352,14 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
           Text(
             asset.title,
             overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.atlasWhiteBold12,
+            style: ResponsiveLayout.isMobile
+                ? theme.textTheme.atlasWhiteBold12
+                : theme.textTheme.atlasWhiteBold14,
           ),
           if (artistName != null) ...[
             const SizedBox(height: 4.0),
             Text(
-              "by $artistName",
+              "by".tr(args: [artistName]),
               overflow: TextOverflow.ellipsis,
               style: theme.primaryTextTheme.headline5,
             )
@@ -361,21 +370,30 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   }
 
   Widget _getArtworkView(AssetToken asset) {
-    if (_renderingWidget == null ||
-        _renderingWidget!.previewURL != asset.previewURL) {
-      _renderingWidget = buildRenderingWidget(context, asset);
-    }
+    return BlocProvider(
+        create: (_) => RetryCubit(),
+        child: BlocBuilder<RetryCubit, int>(builder: (context, attempt) {
+          if (attempt > 0) {
+            _renderingWidget?.dispose();
+            _renderingWidget = null;
+          }
+          if (_renderingWidget == null ||
+              _renderingWidget!.previewURL != asset.getPreviewUrl()) {
+            _renderingWidget = buildRenderingWidget(context, asset,
+                attempt: attempt > 0 ? attempt : null);
+          }
 
-    return Container(
-      child: _renderingWidget?.build(context),
-    );
+          return Container(
+            child: _renderingWidget?.build(context),
+          );
+        }));
   }
 
   Widget _fullscreenIntroPopup() {
     final theme = Theme.of(context);
     return Container(
       height: 300,
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      padding: ResponsiveLayout.getPadding,
       color: theme.colorScheme.primary,
       child: Center(
         child: Column(
@@ -384,12 +402,13 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Text(
-              "Full screen",
+              "full_screen".tr(),
               style: theme.primaryTextTheme.headline1,
             ),
             const SizedBox(height: 40.0),
             Text(
-              "Shake your phone to exit fullscreen mode.",
+              "shake_exit".tr(),
+              //"Shake your phone to exit fullscreen mode.",
               style: theme.primaryTextTheme.bodyText1,
             ),
             const SizedBox(height: 40.0),
@@ -397,7 +416,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
               children: [
                 Expanded(
                   child: AuFilledButton(
-                    text: "OK",
+                    text: "ok".tr(),
                     color: theme.colorScheme.secondary,
                     textStyle: theme.textTheme.button,
                     onPress: () {
@@ -411,7 +430,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
             Center(
               child: GestureDetector(
                 child: Text(
-                  "DON’T SHOW AGAIN",
+                  "dont_show_again".tr(),
                   textAlign: TextAlign.center,
                   style: theme.primaryTextTheme.button,
                 ),
@@ -467,7 +486,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                 child: Padding(
                   padding: const EdgeInsets.only(left: 41, bottom: 5),
                   child: Text(
-                    "Airplay",
+                    "airplay".tr(),
                     style: theme.primaryTextTheme.headline4?.copyWith(
                         color: isSubscribed
                             ? theme.colorScheme.secondary
@@ -495,6 +514,19 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   Widget _castingListView(
       BuildContext context, List<AUCastDevice> devices, bool isSubscribed) {
     final theme = Theme.of(context);
+
+    if (devices.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 42),
+        child: Text(
+          'no_device_detected'.tr(),
+          style: ResponsiveLayout.isMobile
+              ? theme.textTheme.atlasSpanishGreyBold16
+              : theme.textTheme.atlasSpanishGreyBold20,
+        ),
+      );
+    }
+
     return ConstrainedBox(
         constraints: const BoxConstraints(
           minHeight: 35.0,
@@ -566,7 +598,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   Future<void> _showCastDialog(BuildContext context) {
     return UIHelper.showDialog(
         context,
-        "Select a device",
+        "select_a_device".tr(),
         FutureBuilder<List<CastDevice>>(
           future: _castDevicesFuture,
           builder: (context, snapshot) {
@@ -595,41 +627,62 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
 
             final theme = Theme.of(context);
 
-            return FutureBuilder<bool>(
-                builder: (context, snapshot) {
-                  if (snapshot.hasData && snapshot.data!) {
-                    return Column(
-                      children: [
-                        _castingListView(context, castDevices, true),
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: Text(
-                            "CANCEL",
-                            style: theme.primaryTextTheme.button,
-                          ),
+            return ValueListenableBuilder<Map<String, IAPProductStatus>>(
+              valueListenable: injector<IAPService>().purchases,
+              builder: (context, purchases, child) {
+                return FutureBuilder<bool>(
+                    builder: (context, subscriptionSnapshot) {
+                      final isSubscribed = subscriptionSnapshot.hasData &&
+                          subscriptionSnapshot.data == true;
+                      return SizedBox(
+                        width: double.infinity,
+                        child: Column(
+                          children: [
+                            if (!isSubscribed) ...[
+                              UpgradeBoxView.getMoreAutonomyWidget(
+                                  theme, PremiumFeature.AutonomyTV,
+                                  autoClose: false)
+                            ],
+                            if (!snapshot.hasData) ...[
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 18,
+                                ),
+                                child: SizedBox(
+                                  width: double.infinity,
+                                  child: Text(
+                                    "searching_for_devices".tr(),
+                                    style: ResponsiveLayout.isMobile
+                                        ? theme.textTheme.atlasSpanishGreyBold16
+                                        : theme
+                                            .textTheme.atlasSpanishGreyBold20,
+                                  ),
+                                ),
+                              ),
+                            ],
+                            Visibility(
+                              visible: snapshot.hasData,
+                              child: _castingListView(
+                                  context, castDevices, isSubscribed),
+                            ),
+                            const SizedBox(
+                              height: 24,
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: Text(
+                                "cancel".tr(),
+                                style: theme.primaryTextTheme.button,
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                          ],
                         ),
-                        const SizedBox(height: 20),
-                      ],
-                    );
-                  } else {
-                    return Column(
-                      children: [
-                        UpgradeBoxView.getMoreAutonomyWidget(
-                            theme, PremiumFeature.AutonomyTV),
-                        _castingListView(context, castDevices, false),
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: Text(
-                            "CANCEL",
-                            style: theme.primaryTextTheme.button,
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                      ],
-                    );
-                  }
-                },
-                future: injector<IAPService>().isSubscribed());
+                      );
+                    },
+                    future: injector<IAPService>().isSubscribed());
+              },
+            );
           },
         ),
         isDismissible: true);
@@ -648,7 +701,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
       log.info("[Chromecast] device status: ${state.name}");
       if (state == CastSessionState.connected) {
         log.info(
-            "[Chromecast] send cast message with url: ${asset!.previewURL!}");
+            "[Chromecast] send cast message with url: ${asset!.getPreviewUrl()}");
         _sendMessagePlayVideo(session);
       }
     });
@@ -664,8 +717,8 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   void _sendMessagePlayVideo(CastSession session) {
     var message = {
       // Here you can plug an URL to any mp4, webm, mp3 or jpg file with the proper contentType.
-      'contentId': asset!.previewURL!,
-      'contentType': asset?.mimeType ?? lookupMimeType(asset!.previewURL!),
+      'contentId': asset!.getPreviewUrl()!,
+      'contentType': asset?.mimeType ?? lookupMimeType(asset!.getPreviewUrl()!),
       'streamType': 'BUFFERED',
       // or LIVE
 
@@ -675,8 +728,8 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
         'metadataType': 0,
         'title': asset!.title,
         'images': [
-          {'url': asset?.thumbnailURL ?? ''},
-          {'url': asset!.previewURL!},
+          {'url': asset?.getThumbnailUrl() ?? ''},
+          {'url': asset!.getPreviewUrl()},
         ]
       }
     };

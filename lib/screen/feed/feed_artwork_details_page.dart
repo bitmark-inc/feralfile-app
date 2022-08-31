@@ -7,9 +7,7 @@
 
 import 'dart:collection';
 
-import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/model/feed.dart';
-import 'package:autonomy_flutter/model/provenance.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/feed/feed_bloc.dart';
@@ -18,6 +16,8 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/au_outlined_button.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -26,6 +26,8 @@ import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:nft_collection/models/asset_token.dart';
+import 'package:nft_collection/models/provenance.dart';
 
 class FeedArtworkDetailsPage extends StatefulWidget {
   const FeedArtworkDetailsPage({Key? key}) : super(key: key);
@@ -97,7 +99,7 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
         Scaffold(
           appBar: getBackAppBar(
             context,
-            backTitle: "DISCOVERY",
+            backTitle: "discovery".tr(),
             onBack: () => Navigator.of(context).pop(),
           ),
           body: BlocBuilder<FeedBloc, FeedState>(builder: (context, state) {
@@ -122,7 +124,7 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    padding: ResponsiveLayout.getPadding,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -131,14 +133,19 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
                           children: [
                             RichText(
                                 text: TextSpan(
-                              style: theme.textTheme.atlasBlackBold12,
+                              style: ResponsiveLayout.isMobile
+                                  ? theme.textTheme.atlasBlackBold12
+                                  : theme.textTheme.atlasBlackBold14,
                               children: [
                                 TextSpan(
-                                  text: '${feedEvent.actionRepresentation} by ',
+                                  text: "_by".tr(
+                                      args: [feedEvent.actionRepresentation]),
                                 ),
                                 TextSpan(
                                   text: followingName,
-                                  style: theme.textTheme.atlasBlackBold12,
+                                  style: ResponsiveLayout.isMobile
+                                      ? theme.textTheme.atlasBlackBold12
+                                      : theme.textTheme.atlasBlackBold14,
                                   recognizer: TapGestureRecognizer()
                                     ..onTap = () => Navigator.of(context)
                                         .pushNamed(AppRouter.galleryPage,
@@ -149,8 +156,12 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
                                 )
                               ],
                             )),
-                            Text(getDateTimeRepresentation(feedEvent.timestamp),
-                                style: theme.textTheme.atlasBlackNormal12),
+                            Text(
+                              getDateTimeRepresentation(feedEvent.timestamp),
+                              style: ResponsiveLayout.isMobile
+                                  ? theme.textTheme.atlasBlackNormal12
+                                  : theme.textTheme.atlasBlackNormal14,
+                            ),
                           ],
                         ),
                         const SizedBox(height: 2.0),
@@ -164,7 +175,7 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
                               text: TextSpan(
                                   style: theme.textTheme.headline3,
                                   children: [
-                                const TextSpan(text: "by "),
+                                TextSpan(text: "by".tr(args: [""])),
                                 if (token!.artistID != null) ...[
                                   TextSpan(
                                     text: artistName,
@@ -194,11 +205,11 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
                     ),
                   ),
                   GestureDetector(
-                    child: tokenThumbnailWidget(context, token!),
+                    child: TokenThumbnailWidget(token: token!),
                     onTap: () => Navigator.of(context).pop(),
                   ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    padding: ResponsiveLayout.getPadding,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -208,7 +219,7 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
                           width: 165,
                           height: 48,
                           child: AuOutlinedButton(
-                            text: "VIEW ARTWORK",
+                            text: "view_artwork".tr(),
                             onPress: () => Navigator.of(context).pop(),
                           ),
                         ),

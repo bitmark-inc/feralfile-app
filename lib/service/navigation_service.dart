@@ -28,11 +28,18 @@ class NavigationService {
       return null;
     }
 
+    if (navigatorKey.currentState?.mounted != true ||
+        navigatorKey.currentContext == null) {
+      return null;
+    }
+
     return navigatorKey.currentState
         ?.pushNamed(routeName, arguments: arguments);
   }
 
   void showFFAccountLinked(String alias, {bool inOnboarding = false}) {
+    log.info("NavigationService.showFFAccountLinked: $alias");
+
     if (navigatorKey.currentState?.mounted == true &&
         navigatorKey.currentContext != null) {
       UIHelper.showFFAccountLinked(navigatorKey.currentContext!, alias,
@@ -45,6 +52,8 @@ class NavigationService {
     Function()? defaultAction,
     Function()? cancelAction,
   }) {
+    log.info("NavigationService.showErrorDialog");
+
     if (navigatorKey.currentState?.mounted == true &&
         navigatorKey.currentContext != null) {
       showErrorDiablog(

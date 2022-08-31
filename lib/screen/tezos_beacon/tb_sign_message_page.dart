@@ -8,19 +8,19 @@
 import 'dart:convert';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/debouce_util.dart';
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:collection/collection.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:web3dart/crypto.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 
 class TBSignMessagePage extends StatefulWidget {
   static const String tag = 'tb_sign_message';
@@ -68,7 +68,6 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
     final message = hexToBytes(widget.request.payload!);
     final messageInUtf8 = utf8.decode(message, allowMalformed: true);
 
-    final networkInjector = injector<NetworkConfigInjector>();
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -80,7 +79,7 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
         },
       ),
       body: Container(
-        margin: pageEdgeInsetsWithSubmitButton,
+        margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -91,12 +90,12 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
                   children: [
                     const SizedBox(height: 8.0),
                     Text(
-                      "Confirm",
+                      "h_confirm".tr(),
                       style: theme.textTheme.headline1,
                     ),
                     const SizedBox(height: 40.0),
                     Text(
-                      "Connection",
+                      "connection".tr(),
                       style: theme.textTheme.headline4,
                     ),
                     const SizedBox(height: 16.0),
@@ -106,7 +105,7 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
                     ),
                     const Divider(height: 32),
                     Text(
-                      "Message",
+                      "message".tr(),
                       style: theme.textTheme.headline4,
                     ),
                     const SizedBox(height: 16.0),
@@ -122,13 +121,12 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
               children: [
                 Expanded(
                   child: AuFilledButton(
-                    text: "Sign".toUpperCase(),
+                    text: "sign".tr().toUpperCase(),
                     onPress: _currentPersona != null
                         ? () => withDebounce(() async {
                               final wallet =
                                   await _currentPersona!.getTezosWallet();
-                              final signature = await networkInjector
-                                  .I<TezosService>()
+                              final signature = await injector<TezosService>()
                                   .signMessage(wallet, message);
                               injector<TezosBeaconService>()
                                   .signResponse(widget.request.id, signature);

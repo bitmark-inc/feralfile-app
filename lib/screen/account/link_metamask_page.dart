@@ -10,7 +10,6 @@ import 'dart:convert';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -18,10 +17,12 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:share/share.dart';
 import 'package:uuid/uuid.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 
 class LinkMetamaskPage extends StatefulWidget {
   const LinkMetamaskPage({Key? key}) : super(key: key);
@@ -49,7 +50,7 @@ class _LinkMetamaskPageState extends State<LinkMetamaskPage> {
           onBack: () => Navigator.of(context).pop(),
         ),
         body: Container(
-          margin: pageEdgeInsetsWithSubmitButton,
+          margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Expanded(
@@ -58,20 +59,21 @@ class _LinkMetamaskPageState extends State<LinkMetamaskPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Link to extension",
+                      "link_to_extension".tr(),
                       style: theme.textTheme.headline1,
                     ),
                     addTitleSpace(),
                     Text(
-                      "To link your MetaMask browser extension to Autonomy:",
+                      "lte_to_link_your".tr(),
+                      //"To link your MetaMask browser extension to Autonomy:",
                       style: theme.textTheme.bodyText1,
                     ),
                     const SizedBox(height: 20),
-                    _stepWidget('1',
-                        'Generate a link request and send it to the web browser where you are currently signed in to MetaMask.'),
+                    _stepWidget('1', "lte_generate_a_link".tr()),
+                    //'Generate a link request and send it to the web browser where you are currently signed in to MetaMask.'),
                     const SizedBox(height: 10),
-                    _stepWidget('2',
-                        'When prompted by MetaMask, approve Autonomy’s permissions requests.'),
+                    _stepWidget('2', "lte_when_prompted_by".tr()),
+                    //'When prompted by MetaMask, approve Autonomy’s permissions requests.'),
                     const SizedBox(height: 40),
                     Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -88,7 +90,7 @@ class _LinkMetamaskPageState extends State<LinkMetamaskPage> {
               children: [
                 Expanded(
                   child: AuFilledButton(
-                    text: "GENERATE LINK".toUpperCase(),
+                    text: "generate_link".tr().toUpperCase(),
                     onPress: () => _generateLinkAndListen(),
                   ),
                 ),
@@ -131,11 +133,12 @@ class _LinkMetamaskPageState extends State<LinkMetamaskPage> {
 
     final sessionID = const Uuid().v4();
 
-    final network = injector<ConfigurationService>().getNetwork();
-    final link = "${Environment.networkedExtensionSupportURL(network)}/metamask-wallet?session_id=$sessionID";
+    final link =
+        "${Environment.extensionSupportURL}/metamask-wallet?session_id=$sessionID";
 
     _websocketChannel = WebSocketChannel.connect(
-      Uri.parse('${Environment.networkedWebsocketURL(network)}/init?session_id=$sessionID'),
+      Uri.parse(
+          '${Environment.connectWebsocketURL}/init?session_id=$sessionID'),
     );
 
     if (_websocketChannel == null) return;

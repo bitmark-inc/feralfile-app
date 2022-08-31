@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 const INDEXER_TOKENS_MAXIMUM = 50;
@@ -179,4 +180,16 @@ extension CryptoTypeHelpers on CryptoType {
         return "Bitmark";
     }
   }
+}
+
+class Constants {
+  static const minCountToReview = 10;
+  static const durationToReview = Duration(days: 30);
+  // Responsive
+  static const kTabletBreakpoint = 480;
+  static const kDesktopBreakpoint = 1025;
+  static const maxWidthModalTablet = 387.0;
+  static const paddingMobile = EdgeInsets.symmetric(horizontal: 14);
+  static const paddingTablet = EdgeInsets.symmetric(horizontal: 20);
+  static const paddingTabletLandScape = EdgeInsets.symmetric(horizontal: 32);
 }

@@ -11,6 +11,8 @@ import 'package:autonomy_flutter/screen/migration/key_sync_state.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -39,7 +41,7 @@ class KeySyncPage extends StatelessWidget {
             },
           ),
           body: Container(
-            margin: pageEdgeInsets,
+            margin: ResponsiveLayout.pageEdgeInsets,
             child: Column(
               children: [
                 Expanded(
@@ -48,23 +50,25 @@ class KeySyncPage extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "Conflict detected",
+                          "conflict_detected".tr(),
                           style: theme.textTheme.headline1,
                         ),
                         const SizedBox(height: 40),
                         Text(
-                          "We have detected a conflict of keychains.",
+                          "conflict_keychains".tr(),
+                          //"We have detected a conflict of keychains.",
                           style: theme.textTheme.headline4,
                         ),
                         Text(
-                          "This might occur if you have signed in to a different cloud on this device. You are required to define a default keychain for identification before continuing with other actions inside the app:",
+                          "this_might_occur".tr(),
+                          //"This might occur if you have signed in to a different cloud on this device. You are required to define a default keychain for identification before continuing with other actions inside the app:",
                           style: theme.textTheme.bodyText1,
                         ),
                         const SizedBox(height: 20),
                         ListTile(
                           contentPadding: EdgeInsets.zero,
                           title: Text(
-                            "Device keychain",
+                            "device_keychain".tr(),
                             style: theme.textTheme.headline4,
                           ),
                           trailing: Transform.scale(
@@ -88,7 +92,7 @@ class KeySyncPage extends StatelessWidget {
                         ListTile(
                           contentPadding: EdgeInsets.zero,
                           title: Text(
-                            'Cloud keychain',
+                            'cloud_keychain'.tr(),
                             style: theme.textTheme.headline4,
                           ),
                           trailing: Transform.scale(
@@ -116,13 +120,19 @@ class KeySyncPage extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'How does it work?',
-                                style: theme.textTheme.atlasDimgreyBold14,
+                                'how_it_work'.tr(),
+                                style: ResponsiveLayout.isMobile
+                                    ? theme.textTheme.atlasDimgreyBold14
+                                    : theme.textTheme.atlasDimgreyBold16,
                               ),
                               const SizedBox(height: 5),
                               Text(
-                                  "All the data contained in the other keychain will be imported into the defined default one and converted into a full account. If you were using it as the main wallet, you will be able to continue to do so after the conversion. No keys are lost.",
-                                  style: theme.textTheme.atlasBlackNormal14),
+                                "data_contain".tr(),
+                                //"All the data contained in the other keychain will be imported into the defined default one and converted into a full account. If you were using it as the main wallet, you will be able to continue to do so after the conversion. No keys are lost.",
+                                style: ResponsiveLayout.isMobile
+                                    ? theme.textTheme.atlasBlackNormal14
+                                    : theme.textTheme.atlasBlackNormal16,
+                              ),
                               const SizedBox(height: 10),
                               TextButton(
                                 onPressed: () => Navigator.of(context)
@@ -133,8 +143,12 @@ class KeySyncPage extends StatelessWidget {
                                   tapTargetSize:
                                       MaterialTapTargetSize.shrinkWrap,
                                 ),
-                                child: Text('Learn about Autonomy security...',
-                                    style: theme.textTheme.linkStyle),
+                                child: Text(
+                                  "learn_security".tr(),
+                                  style: ResponsiveLayout.isMobile
+                                      ? theme.textTheme.linkStyle
+                                      : theme.textTheme.linkStyle16,
+                                ),
                               ),
                             ],
                           ),

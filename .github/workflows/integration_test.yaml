@@ -1,23 +1,23 @@
 name: Integration tests
-on: [workflow_dispatch]
-
+on: 
+  schedule:
+    - cron: '0 17 * * *'
+  workflow_dispatch:
+  push:
+    branches:
+      - develop
 jobs:
   build:
-    runs-on: self-hosted
-    strategy:
-      matrix:
-        api-level: [ 29 ]
-        target: [ playstore ]
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-java@v2
-        with:
-          distribution: 'zulu'
-          java-version: '11'
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ' 2.10.3'
-          channel: stable
+    runs-on: [self-hosted, linux, ci-local-bmvn]
+    steps:      
+      # Checkout code and get packages.
+      - name: Checkout code
+        uses: actions/checkout@v3
+      # Set build number
+      - name: Set env
+        run: |
+          echo "FLUTTER_VERSION_NAME=0.100.0" >> $GITHUB_ENV
+          echo "FLUTTER_VERSION_CODE=10" >> $GITHUB_ENV
       - name: Create env file
         run: |
           touch .env
@@ -36,27 +36,54 @@ jobs:
           echo CONNECT_WEBSOCKET_MAINNET_URL=${{ secrets.CONNECT_WEBSOCKET_MAINNET_URL }} >> .env
           echo CONNECT_WEBSOCKET_TESTNET_URL=${{ secrets.CONNECT_WEBSOCKET_TESTNET_URL }} >> .env
 
-          echo AUTONOMY_AUTH_URL=${{ secrets.AUTONOMY_AUTH_URL }} >> .env
-          echo CUSTOMER_SUPPORT_URL=${{ secrets.CUSTOMER_SUPPORT_URL }} >> .env
-          echo FEED_URL=${{ secrets.FEED_URL }} >> .env
+          echo AUTONOMY_AUTH_URL=${{ secrets.AUTONOMY_AUTH_DEV_URL }} >> .env
+          echo CUSTOMER_SUPPORT_URL=${{ secrets.CUSTOMER_SUPPORT_DEV_URL }} >> .env
           echo CURRENCY_EXCHANGE_URL=${{ secrets.CURRENCY_EXCHANGE_URL }} >> .env
+          echo RENDERING_REPORT_URL=${{ secrets.RENDERING_REPORT_DEV_URL }} >> .env
+          echo FEED_URL=${{ secrets.FEED_DEV_URL }} >> .env
           echo AUTONOMY_PUBDOC_URL=${{ secrets.AUTONOMY_PUBDOC_URL }} >> .env
+          echo AUTONOMY_IPFS_PREFIX=${{ secrets.AUTONOMY_IPFS_PREFIX_DEV }} >> .env
 
           echo FERAL_FILE_AUTHORIZATION_PREFIX=${{ secrets.FERAL_FILE_AUTHORIZATION_PREFIX }} >> .env
           echo SENTRY_DSN=${{ secrets.SENTRY_DSN }} >> .env
           echo ONESIGNAL_APP_ID=${{ secrets.ONESIGNAL_APP_ID }} >> .env
           echo AWS_IDENTITY_POOL_ID=${{ secrets.AWS_IDENTITY_POOL_ID }} >> .env
+          echo AUTONOMY_SHARD_SERVICE=${{ secrets.AUTONOMY_SHARD_SERVICE }} >> .env
 
+          echo APP_TESTNET_CONFIG=${{ github.event.inputs.testnet }} >> .env
           echo TEZOS_FAUCET_URL=${{ secrets.TEZOS_FAUCET_URL }} >> .env
           echo TEZOS_FAUCET_AUTH_TOKEN=${{ secrets.TEZOS_FAUCET_AUTH_TOKEN }} >> .env
+
           cat .env
 
+
+      - name: Submoudles update
+        run: git submodule update --init --recursive
+      - run: flutter pub cache repair
+      - run: flutter pub get 
+      # Build app
+      - name: Build to flutter apk inhouse app
+        run: flutter build apk --flavor inhouse
+      
       # Run integration test
-      - name: Run Flutter Driver tests
-        uses: reactivecircus/android-emulator-runner@v2
+      - name: Run Flutter Driver tests for Suite "Link account from MetaMask app"
+        run: |
+          cd $GITHUB_WORKSPACE
+          flutter pub run test integration_test/external_tests/mobile_external_app/linkaccountbyMetamaskapp_test.dart
+      - name: Run Flutter Driver tests for Suite "Import accounts from seeds"
+        run: |
+          cd $GITHUB_WORKSPACE          
+          flutter pub run test integration_test/external_tests/tests/import_fullaccount_kukai_temple_test.dart
+      - name: Report Status
+        if: always()
+        uses: ravsamhq/notify-slack-action@v2
         with:
-          target: ${{ matrix.target }}
-          api-level: ${{ matrix.api-level }}
-          arch: x86_64
-          profile: Nexus 6
-          script: flutter test integration_test --flavor inhouse
+          status: ${{ job.status }}
+          notify_when: 'failure,success,warnings'
+          notification_title: Automation  - Integration test execution
+          message_format: "{emoji} *{workflow}* {status_message} in <{repo_url}|{repo}@{branch}> on commit <{commit_url}|{commit_sha}>"
+          footer: "<{run_url}|View Run>"
+          mention_users: 'U03NZ7JU8KC'
+          mention_users_when: 'failure,warnings'      
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.WEBHOOK_LOCAL_BITMARKVN_CI_SLACK }}

@@ -10,8 +10,7 @@
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:autonomy_flutter/model/network.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:tezart/src/crypto/crypto.dart' as crypto;
@@ -36,12 +35,11 @@ abstract class TezosService {
   Future<String> signMessage(TezosWallet wallet, Uint8List message);
 
   Future<Operation> getFa2TransferOperation(
-      String contract, String from, String to, int tokenId);
+      String contract, String from, String to, int tokenId, int quantity);
 }
 
 class TezosServiceImpl extends TezosService {
   final TezartClient _tezartClient;
-  final ConfigurationService _configurationService;
 
   late final backupTezartClients = [
     TezartClient("https://mainnet.api.tez.ie"),
@@ -51,7 +49,7 @@ class TezosServiceImpl extends TezosService {
     TezartClient("https://mainnet.tezos.marigold.dev"),
   ];
 
-  TezosServiceImpl(this._tezartClient, this._configurationService);
+  TezosServiceImpl(this._tezartClient);
 
   @override
   Future<String> getPublicKey(TezosWallet wallet) async {
@@ -169,8 +167,8 @@ class TezosServiceImpl extends TezosService {
   }
 
   @override
-  Future<Operation> getFa2TransferOperation(
-      String contract, String from, String to, int tokenId) async {
+  Future<Operation> getFa2TransferOperation(String contract, String from,
+      String to, int tokenId, int quantity) async {
     final params = [
       {
         "prim": "Pair",
@@ -184,7 +182,7 @@ class TezosServiceImpl extends TezosService {
                   "prim": "Pair",
                   "args": [
                     {"int": "$tokenId"},
-                    {"int": "1"}
+                    {"int": "$quantity"}
                   ]
                 }
               ],
@@ -217,7 +215,7 @@ class TezosServiceImpl extends TezosService {
     try {
       return await func(_tezartClient);
     } on TezartNodeError catch (_) {
-      if (_configurationService.getNetwork() == Network.TESTNET) {
+      if (Environment.appTestnetConfig) {
         rethrow;
       }
 

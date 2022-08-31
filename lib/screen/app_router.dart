@@ -6,7 +6,6 @@
 //
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
@@ -39,6 +38,7 @@ import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/router/router_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
+import 'package:autonomy_flutter/screen/bloc/tzkt_transaction/tzkt_transaction_bloc.dart';
 import 'package:autonomy_flutter/screen/bug_bounty_page.dart';
 import 'package:autonomy_flutter/screen/cloud/cloud_android_page.dart';
 import 'package:autonomy_flutter/screen/cloud/cloud_page.dart';
@@ -81,8 +81,6 @@ import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_det
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
 import 'package:autonomy_flutter/screen/settings/hidden_artworks/hidden_artworks_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/hidden_artworks/hidden_artworks_page.dart';
-import 'package:autonomy_flutter/screen/settings/networks/select_network_bloc.dart';
-import 'package:autonomy_flutter/screen/settings/networks/select_network_page.dart';
 import 'package:autonomy_flutter/screen/settings/settings_page.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/screen/survey/survey.dart';
@@ -97,9 +95,11 @@ import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_disconnect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:nft_collection/nft_collection.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:wallet_connect/wallet_connect.dart';
 
@@ -162,12 +162,11 @@ class AppRouter {
   static const sendArtworkReviewPage = 'send_artwork_review_page';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
-    final networkInjector = injector<NetworkConfigInjector>();
-
-    final ethereumBloc = EthereumBloc(injector(), networkInjector.I());
-    final tezosBloc = TezosBloc(injector(), networkInjector.I());
+    final ethereumBloc = EthereumBloc(injector());
+    final tezosBloc = TezosBloc(injector());
     final accountsBloc = AccountsBloc(injector(), injector<CloudDatabase>(),
         injector(), injector<AuditService>(), injector());
+    final nftCollectionBloc = injector<NftCollectionBloc>();
 
     switch (settings.name) {
       case onboardingPage:
@@ -193,16 +192,10 @@ class AppRouter {
                         create: (_) => HomeBloc(
                               injector(),
                               injector(),
-                              injector(),
-                              networkInjector,
-                              injector<CloudDatabase>(),
-                              injector(),
-                              injector(),
                             )),
                     BlocProvider(
-                        create: (_) => IdentityBloc(
-                            networkInjector.I<AppDatabase>(),
-                            networkInjector.I())),
+                        create: (_) => IdentityBloc(injector(), injector())),
+                    BlocProvider.value(value: nftCollectionBloc),
                   ],
                   child: const HomePage(),
                 ),
@@ -217,16 +210,10 @@ class AppRouter {
                         create: (_) => HomeBloc(
                               injector(),
                               injector(),
-                              injector(),
-                              networkInjector,
-                              injector<CloudDatabase>(),
-                              injector(),
-                              injector(),
                             )),
                     BlocProvider(
-                        create: (_) => IdentityBloc(
-                            networkInjector.I<AppDatabase>(),
-                            networkInjector.I())),
+                        create: (_) => IdentityBloc(injector(), injector())),
+                    BlocProvider.value(value: nftCollectionBloc),
                   ],
                   child: const HomePage(),
                 ));
@@ -278,8 +265,7 @@ class AppRouter {
             settings: settings,
             builder: (context) => MultiBlocProvider(providers: [
                   BlocProvider.value(value: accountsBloc),
-                  BlocProvider(
-                      create: (_) => FeralfileBloc.create()),
+                  BlocProvider(create: (_) => FeralfileBloc.create()),
                 ], child: const LinkAccountPage()));
 
       case accountsPreviewPage:
@@ -322,11 +308,13 @@ class AppRouter {
 
       case linkTezosKukaiPage:
         return CupertinoPageRoute(
-            settings: settings, builder: (context) => const LinkTezosKukaiPage());
+            settings: settings,
+            builder: (context) => const LinkTezosKukaiPage());
 
       case linkTezosTemplePage:
         return CupertinoPageRoute(
-            settings: settings, builder: (context) => const LinkTezosTemplePage());
+            settings: settings,
+            builder: (context) => const LinkTezosTemplePage());
 
       case linkBeaconConnectPage:
         return CupertinoPageRoute(
@@ -373,7 +361,8 @@ class AppRouter {
 
       case importAccountPage:
         return CupertinoPageRoute(
-            settings: settings, builder: (context) => const ImportAccountPage());
+            settings: settings,
+            builder: (context) => const ImportAccountPage());
 
       case wcConnectPage:
         final argument = settings.arguments;
@@ -440,7 +429,7 @@ class AppRouter {
           settings: settings,
           builder: (context) => BlocProvider(
             create: (_) => WCSendTransactionBloc(
-                injector(), networkInjector.I(), injector(), injector()),
+                injector(), injector(), injector(), injector()),
             child: WCSendTransactionPage(
                 args: settings.arguments as WCSendTransactionPageArgs),
           ),
@@ -478,6 +467,7 @@ class AppRouter {
                     providers: [
                       BlocProvider.value(value: ethereumBloc),
                       BlocProvider.value(value: tezosBloc),
+                      BlocProvider.value(value: nftCollectionBloc),
                     ],
                     child: PersonaDetailsPage(
                       persona: settings.arguments as Persona,
@@ -486,14 +476,21 @@ class AppRouter {
       case personaConnectionsPage:
         return CupertinoPageRoute(
             settings: settings,
-            builder: (context) => BlocProvider(
-                create: (_) => ConnectionsBloc(
-                      injector<CloudDatabase>(),
-                      injector(),
-                      injector(),
-                    ),
-                child: PersonaConnectionsPage(
-                    payload: settings.arguments as PersonaConnectionsPayload)));
+            builder: (context) => MultiBlocProvider(
+                    providers: [
+                      BlocProvider.value(value: accountsBloc),
+                      BlocProvider.value(value: ethereumBloc),
+                      BlocProvider.value(value: tezosBloc),
+                      BlocProvider.value(
+                          value: ConnectionsBloc(
+                        injector<CloudDatabase>(),
+                        injector(),
+                        injector(),
+                      ))
+                    ],
+                    child: PersonaConnectionsPage(
+                        payload:
+                            settings.arguments as PersonaConnectionsPayload)));
 
       case connectionDetailsPage:
         return CupertinoPageRoute(
@@ -511,18 +508,24 @@ class AppRouter {
       case linkedAccountDetailsPage:
         return CupertinoPageRoute(
             settings: settings,
-            builder: (context) => BlocProvider(
-                  create: (_) => FeralfileBloc.create(),
-                  child: LinkedAccountDetailsPage(
-                      connection: settings.arguments as Connection),
-                ));
+            builder: (context) => MultiBlocProvider(
+                    providers: [
+                      BlocProvider(create: (_) => FeralfileBloc.create()),
+                      BlocProvider.value(value: nftCollectionBloc),
+                    ],
+                    child: LinkedAccountDetailsPage(
+                        connection: settings.arguments as Connection)));
 
       case walletDetailsPage:
         return CupertinoPageRoute(
             settings: settings,
-            builder: (context) => BlocProvider(
-                  create: (_) => WalletDetailBloc(
-                      networkInjector.I(), networkInjector.I(), injector()),
+            builder: (context) => MultiBlocProvider(
+                  providers: [
+                    BlocProvider(
+                        create: (_) => WalletDetailBloc(
+                            injector(), injector(), injector())),
+                    BlocProvider(create:(_) => TZKTTransactionBloc())
+                  ],
                   child: WalletDetailPage(
                       payload: settings.arguments as WalletDetailsPayload),
                 ));
@@ -535,11 +538,8 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider(
-                  create: (_) => SendCryptoBloc(
-                      networkInjector.I(),
-                      networkInjector.I(),
-                      injector(),
-                      (settings.arguments as SendData).type),
+                  create: (_) => SendCryptoBloc(injector(), injector(),
+                      injector(), (settings.arguments as SendData).type),
                   child: SendCryptoPage(data: settings.arguments as SendData),
                 ));
       case SendReviewPage.tag:
@@ -558,10 +558,10 @@ class AppRouter {
               providers: [
                 BlocProvider(
                     create: (_) => ArtworkPreviewBloc(
-                        networkInjector.I<AppDatabase>().assetDao, injector())),
+                        nftCollectionBloc.database.assetDao, injector())),
                 BlocProvider(
-                    create: (_) => IdentityBloc(
-                        networkInjector.I<AppDatabase>(), networkInjector.I())),
+                    create: (_) =>
+                        IdentityBloc(injector<AppDatabase>(), injector())),
               ],
               child: ArtworkPreviewPage(
                 payload: settings.arguments as ArtworkDetailPayload,
@@ -578,8 +578,8 @@ class AppRouter {
               providers: [
                 BlocProvider(create: (_) => FeedBloc(injector(), injector())),
                 BlocProvider(
-                    create: (_) => IdentityBloc(
-                        networkInjector.I<AppDatabase>(), networkInjector.I())),
+                    create: (_) =>
+                        IdentityBloc(injector<AppDatabase>(), injector())),
               ],
               child: const FeedPreviewPage(),
             ));
@@ -594,8 +594,8 @@ class AppRouter {
               BlocProvider.value(value: accountsBloc),
               BlocProvider.value(value: settings.arguments as FeedBloc),
               BlocProvider(
-                  create: (_) => IdentityBloc(
-                      networkInjector.I<AppDatabase>(), networkInjector.I())),
+                  create: (_) =>
+                      IdentityBloc(injector<AppDatabase>(), injector())),
             ], child: const FeedArtworkDetailsPage()));
 
       case galleryPage:
@@ -605,24 +605,15 @@ class AppRouter {
                     providers: [
                       BlocProvider(
                           create: (_) => GalleryBloc(
-                                networkInjector.I(),
+                                injector(),
                               )),
                       BlocProvider(
-                          create: (_) => IdentityBloc(
-                              networkInjector.I<AppDatabase>(),
-                              networkInjector.I())),
+                          create: (_) => IdentityBloc(injector(), injector())),
                     ],
                     child: GalleryPage(
                       payload: settings.arguments as GalleryPagePayload,
                     )));
 
-      case SelectNetworkPage.tag:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => BlocProvider(
-                  create: (_) => SelectNetworkBloc(injector()),
-                  child: const SelectNetworkPage(),
-                ));
       case artworkDetailsPage:
         return PageTransition(
             type: PageTransitionType.fade,
@@ -633,15 +624,14 @@ class AppRouter {
                 providers: [
                   BlocProvider.value(value: accountsBloc),
                   BlocProvider(
-                      create: (_) => IdentityBloc(
-                          networkInjector.I<AppDatabase>(),
-                          networkInjector.I())),
+                      create: (_) => IdentityBloc(injector(), injector())),
                   BlocProvider(
                       create: (_) => ArtworkDetailBloc(
                             injector(),
-                            networkInjector.I<AppDatabase>().assetDao,
-                            networkInjector.I<AppDatabase>().provenanceDao,
+                            nftCollectionBloc.database.assetDao,
+                            nftCollectionBloc.database.provenanceDao,
                           )),
+                  BlocProvider.value(value: nftCollectionBloc),
                 ],
                 child: ArtworkDetailPage(
                     payload: settings.arguments as ArtworkDetailPayload)));
@@ -705,11 +695,13 @@ class AppRouter {
 
       case autonomySecurityPage:
         return CupertinoPageRoute(
-            settings: settings, builder: (context) => const AutonomySecurityPage());
+            settings: settings,
+            builder: (context) => const AutonomySecurityPage());
 
       case unsafeWebWalletPage:
         return CupertinoPageRoute(
-            settings: settings, builder: (context) => const UnsafeWebWalletPage());
+            settings: settings,
+            builder: (context) => const UnsafeWebWalletPage());
 
       case releaseNotesPage:
         return PageTransition(
@@ -756,7 +748,9 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider(
-                  create: (_) => HiddenArtworksBloc(networkInjector.I()),
+                  create: (_) => HiddenArtworksBloc(
+                      injector<ConfigurationService>(),
+                      injector<NftCollectionBloc>().database.assetDao),
                   child: const HiddenArtworksPage(),
                 ));
 
@@ -767,7 +761,8 @@ class AppRouter {
             builder: (context) => const SurveyPage());
       case SurveyThankyouPage.tag:
         return CupertinoPageRoute(
-            settings: settings, builder: (context) => const SurveyThankyouPage());
+            settings: settings,
+            builder: (context) => const SurveyThankyouPage());
 
       case githubDocPage:
         return CupertinoPageRoute(
@@ -811,27 +806,31 @@ class AppRouter {
       case sendArtworkPage:
         return CupertinoPageRoute(
           settings: settings,
-          builder: (context) => MultiBlocProvider(providers: [
-            BlocProvider(
-                create: (_) => SendArtworkBloc(
-                    networkInjector.I(),
-                    networkInjector.I(),
-                    injector(),
-                    (settings.arguments as SendArtworkPayload).asset)),
-            BlocProvider(
-                create: (_) => IdentityBloc(
-                    networkInjector.I<AppDatabase>(), networkInjector.I())),
-          ], child: SendArtworkPage(payload: settings.arguments as SendArtworkPayload)),
+          builder: (context) => MultiBlocProvider(
+              providers: [
+                BlocProvider(
+                    create: (_) => SendArtworkBloc(
+                        injector(),
+                        injector(),
+                        injector(),
+                        (settings.arguments as SendArtworkPayload).asset)),
+                BlocProvider(
+                    create: (_) =>
+                        IdentityBloc(injector<AppDatabase>(), injector())),
+              ],
+              child: SendArtworkPage(
+                  payload: settings.arguments as SendArtworkPayload)),
         );
 
       case sendArtworkReviewPage:
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider(
-              create: (_) => IdentityBloc(
-                  networkInjector.I<AppDatabase>(), networkInjector.I()),
-              child: SendArtworkReviewPage(payload: settings.arguments as SendArtworkReviewPayload),
-            ));
+                  create: (_) =>
+                      IdentityBloc(injector<AppDatabase>(), injector()),
+                  child: SendArtworkReviewPage(
+                      payload: settings.arguments as SendArtworkReviewPayload),
+                ));
       default:
         throw Exception('Invalid route: ${settings.name}');
     }

@@ -11,6 +11,8 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -23,13 +25,15 @@ class BugBountyPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    const Map<String, String> guidelines = {
-      "Critical":
-          "Key leaks or invalid transactions resulting in asset loss: Up to \$5,000",
-      "High": "Crashes or user data loss: \$100 - \$500",
-      "Medium":
-          "Incorrect flows or incompatibility with protocol or dapps: \$50 - \$100",
-      "Low": "UI typos, alignment errors: \$10 - \$50",
+    Map<String, String> guidelines = {
+      "critical".tr(): "guidelines_critical"
+          .tr(), //"Key leaks or invalid transactions resulting in asset loss: Up to \$5,000",
+      "high".tr():
+          "guidelines_high".tr(), // "Crashes or user data loss: \$100 - \$500",
+      "medium".tr(): "guidelines_medium".tr(),
+      //"Incorrect flows or incompatibility with protocol or dapps: \$50 - \$100",
+      "low".tr():
+          "guidelines_low".tr(), // "UI typos, alignment errors: \$10 - \$50",
     };
 
     return Scaffold(
@@ -38,48 +42,53 @@ class BugBountyPage extends StatelessWidget {
         onBack: () => Navigator.of(context).pop(),
       ),
       body: Container(
-        margin: pageEdgeInsetsNotBottom,
+        margin: ResponsiveLayout.pageEdgeInsetsNotBottom,
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "Bug bounty",
+                "bug_bounty".tr(),
                 style: theme.textTheme.headline1,
               ),
               addTitleSpace(),
               Text(
-                "We greatly value feedback from our customers and the work done by security researchers in improving the usability and security of Autonomy. We are committed to quickly verify, reproduce, and respond to legitimate reported interface issues and vulnerabilities. ",
+                "we_value_feedback".tr(),
+                //"We greatly value feedback from our customers and the work done by security researchers in improving the usability and security of Autonomy. We are committed to quickly verify, reproduce, and respond to legitimate reported interface issues and vulnerabilities. ",
                 style: theme.textTheme.bodyText1,
               ),
               const SizedBox(height: 32),
-              Text('Scope', style: theme.textTheme.headline4),
+              Text('Scope'.tr(), style: theme.textTheme.headline4),
               const SizedBox(height: 16),
               RichText(
                   text: TextSpan(
                       style: theme.textTheme.bodyText1,
                       children: <TextSpan>[
-                    const TextSpan(
-                      text:
-                          'We only accept new bug reports for our iPhone or Android Apps; please check our ',
+                    TextSpan(
+                      text: "only_accept_new_bug".tr(),
+                      //'We only accept new bug reports for our iPhone or Android Apps; please check our ',
                     ),
                     TextSpan(
-                        recognizer: TapGestureRecognizer()
-                          ..onTap = () => launchUrl(
-                                Uri.parse(KNOWN_BUGS_LINK),
-                                mode: LaunchMode.externalApplication,
-                              ),
-                        text: 'Known Bugs',
-                        style: theme.textTheme.linkStyle),
-                    const TextSpan(
-                      text:
-                          ' before submitting. Bug reports for web applications or any other projects are out of scope and will not be considered for rewards.',
+                      recognizer: TapGestureRecognizer()
+                        ..onTap = () => launchUrl(
+                              Uri.parse(KNOWN_BUGS_LINK),
+                              mode: LaunchMode.externalApplication,
+                            ),
+                      text: 'known_bugs'.tr(),
+                      style: ResponsiveLayout.isMobile
+                          ? theme.textTheme.linkStyle
+                          : theme.textTheme.linkStyle16,
+                    ),
+                    TextSpan(
+                      text: "not_reward_yet".tr(),
+                      //' before submitting. Bug reports for web applications or any other projects are out of scope and will not be considered for rewards.',
                     ),
                   ])),
               const SizedBox(height: 32),
-              Text('Rewards', style: theme.textTheme.headline4),
+              Text('rewards'.tr(), style: theme.textTheme.headline4),
               Text(
-                'We pay rewards ranging from \$10 to \$5,000, administered according to the following guidelines:',
+                "reward_ranging".tr(),
+                //'We pay rewards ranging from \$10 to \$5,000, administered according to the following guidelines:',
                 style: theme.textTheme.bodyText1,
               ),
               const SizedBox(height: 16),
@@ -90,8 +99,10 @@ class BugBountyPage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Guidelines',
-                      style: theme.textTheme.atlasDimgreyBold14,
+                      'guidelines'.tr(),
+                      style: ResponsiveLayout.isMobile
+                          ? theme.textTheme.atlasDimgreyBold14
+                          : theme.textTheme.atlasDimgreyBold16,
                     ),
                     const SizedBox(height: 5),
                     ...guidelines.keys
@@ -111,13 +122,17 @@ class BugBountyPage extends StatelessWidget {
                                     children: <TextSpan>[
                                       TextSpan(
                                         text: e,
-                                        style:
-                                            theme.textTheme.atlasBlackNormal14,
+                                        style: ResponsiveLayout.isMobile
+                                            ? theme.textTheme.atlasBlackNormal14
+                                            : theme
+                                                .textTheme.atlasBlackNormal16,
                                       ),
                                       TextSpan(
                                         text: " – ${guidelines[e]!}",
-                                        style:
-                                            theme.textTheme.atlasBlackNormal14,
+                                        style: ResponsiveLayout.isMobile
+                                            ? theme.textTheme.atlasBlackNormal14
+                                            : theme
+                                                .textTheme.atlasBlackNormal16,
                                       ),
                                     ],
                                   ),
@@ -132,18 +147,18 @@ class BugBountyPage extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               Text(
-                'Rewards will be paid out in USDC into Feral File accounts.',
+                'rewards_in_usdc'.tr(),
                 style: theme.textTheme.bodyText1,
               ),
               const SizedBox(height: 32),
-              Text('Disclosure policy', style: theme.textTheme.headline4),
+              Text('disclosure_policy'.tr(), style: theme.textTheme.headline4),
               const SizedBox(height: 16),
-              Text(
-                  'We support the open publication of security research. We do ask that you give us a heads-up before any publication so we can do a final sync-up and check. ',
+              Text("support_publication".tr(),
+                  //'We support the open publication of security research. We do ask that you give us a heads-up before any publication so we can do a final sync-up and check. ',
                   style: theme.textTheme.bodyText1),
               const SizedBox(height: 56),
               AuFilledButton(
-                text: "REPORT A BUG".toUpperCase(),
+                text: "report_a_bug".tr().toUpperCase(),
                 onPress: () => Navigator.of(context).pushNamed(
                     AppRouter.supportThreadPage,
                     arguments:

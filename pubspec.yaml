@@ -49,7 +49,10 @@ dependencies:
   flutter_chat_types: ^3.3.1
   flutter_chat_ui: ^1.6.4
   flutter_dotenv: ^5.0.2
-  flutter_downloader: ^1.8.0
+  flutter_downloader:
+    git:
+      url: https://github.com/autonomy-system/flutter_downloader
+      ref: 0b047c6fc539df5e00be03a87ce598e4ef71005f
   flutter_email_sender: ^5.1.0
   flutter_fgbg: ^0.2.0
   flutter_image_compress: ^1.1.0
@@ -75,6 +78,7 @@ dependencies:
   infinite_scroll_pagination: ^3.2.0
   intl: ^0.17.0
   jiffy: ^5.0.0
+  flutter_keyboard_visibility: ^5.3.0
   libauk_dart:
     git:
       url: https://github.com/autonomy-system/libauk-dart.git
@@ -93,7 +97,7 @@ dependencies:
   package_info_plus: ^1.4.0
   page_transition: ^2.0.5
   path_provider: ^2.0.9
-  permission_handler: ^9.2.0
+  permission_handler: ^10.0.0
   qr_code_scanner: ^1.0.0
   qr_flutter: ^4.0.0
   retrofit: null
@@ -126,6 +130,15 @@ dependencies:
   autonomy_theme:
     git:
       url: https://github.com/bitmark-inc/autonomy-client-shared-theme.git
+      ref: 1.0.0
+
+  easy_localization: ^3.0.1
+  rxdart: ^0.26.0
+  in_app_review: ^2.0.4
+  nft_collection:
+    git:
+      url: https://github.com/autonomy-system/nft-collection
+      ref: ab54b120776fbafff901d4c79faea30428e9f98e
 
 dependency_overrides:
   # Error using when import photo_view from dependencies:
@@ -144,6 +157,7 @@ dev_dependencies:
     sdk: flutter
   integration_test:
     sdk: flutter
+  appium_driver: ^0.5.2
   json_serializable: null
   mockito: null
   retrofit_generator: null
@@ -162,7 +176,9 @@ flutter:
   assets:
     - .env
     - assets/erc721-abi.json
+    - assets/erc1155-abi.json
     - assets/images/
+    - assets/translations/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.
@@ -176,16 +192,17 @@ flutter:
   fonts:
     - family: AtlasGrotesk
       fonts:
-        - asset: fonts/AtlasGrotesk/AtlasGrotesk-Regular.otf
-        - asset: fonts/AtlasGrotesk/AtlasGrotesk-Light.otf
-        - asset: fonts/AtlasGrotesk/AtlasGrotesk-Bold.otf
+        - asset: assets/fonts/AtlasGrotesk/AtlasGrotesk-Regular.otf
+        - asset: assets/fonts/AtlasGrotesk/AtlasGrotesk-Light.otf
+        - asset: assets/fonts/AtlasGrotesk/AtlasGrotesk-Medium.otf
+        - asset: assets/fonts/AtlasGrotesk/AtlasGrotesk-Bold.otf
           weight: 700
     - family: DomaineSansText
       fonts:
-        - asset: fonts/DomaineSansText/DomaineSansText-Regular.otf
+        - asset: assets/fonts/DomaineSansText/DomaineSansText-Regular.otf
     - family: IBMPlexMono
       fonts:
-        - asset: fonts/IBMPlexMono/IBMPlexMono-Regular.ttf
-        - asset: fonts/IBMPlexMono/IBMPlexMono-Bold.ttf
+        - asset: assets/fonts/IBMPlexMono/IBMPlexMono-Regular.ttf
+        - asset: assets/fonts/IBMPlexMono/IBMPlexMono-Bold.ttf
           weight: 700
-        - asset: fonts/IBMPlexMono/IBMPlexMono-SemiBold.ttf
+        - asset: assets/fonts/IBMPlexMono/IBMPlexMono-SemiBold.ttf

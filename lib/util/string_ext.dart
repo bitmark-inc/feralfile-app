@@ -15,6 +15,9 @@ extension StringExtension on String {
   }
 
   String mask(int number) {
+    if (isEmpty) {
+      return "[]";
+    }
     return "[${substring(0, number)}...${substring(length - number, length)}]";
   }
 

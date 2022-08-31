@@ -5,10 +5,11 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:nft_collection/models/asset_token.dart';
 
 class AnyProblemNFTWidget extends StatelessWidget {
   final AssetToken asset;
@@ -27,7 +28,7 @@ class AnyProblemNFTWidget extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('ANY PROBLEMS WITH THIS NFT?',
+            Text("problem_nft".tr(),
                 style: theme.primaryTextTheme.button),
             const SizedBox(
               width: 4,

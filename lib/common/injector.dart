@@ -9,9 +9,11 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/gateway/autonomy_api.dart';
+import 'package:autonomy_flutter/gateway/bitmark_api.dart';
 import 'package:autonomy_flutter/gateway/currency_exchange_api.dart';
 import 'package:autonomy_flutter/gateway/customer_support_api.dart';
 import 'package:autonomy_flutter/gateway/feed_api.dart';
+import 'package:autonomy_flutter/gateway/feralfile_api.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/gateway/pubdoc_api.dart';
 import 'package:autonomy_flutter/gateway/rendering_report_api.dart';
@@ -27,6 +29,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/currency_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
+import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
@@ -34,7 +37,7 @@ import 'package:autonomy_flutter/service/ledger_hardware/ledger_hardware_service
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
-import 'package:autonomy_flutter/service/tokens_service.dart';
+import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_dapp_service/wallet_connect_dapp_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
@@ -47,10 +50,12 @@ import 'package:dio_smart_retry/dio_smart_retry.dart';
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart';
 import 'package:logging/logging.dart';
+import 'package:nft_collection/data/api/indexer_api.dart';
+import 'package:nft_collection/nft_collection.dart';
 import 'package:sentry_dio/sentry_dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import 'network_config_injector.dart';
+import 'package:tezart/tezart.dart';
+import 'package:web3dart/web3dart.dart';
 
 final injector = GetIt.instance;
 final testnetInjector = GetIt.asNewInstance();
@@ -81,6 +86,7 @@ Future<void> setup() async {
     migrateV10ToV11,
     migrateV11ToV12,
     migrateV12ToV13,
+    migrateV13ToV14,
   ]).build();
 
   final mainnetDB = await $FloorAppDatabase
@@ -98,6 +104,7 @@ Future<void> setup() async {
     migrateV10ToV11,
     migrateV11ToV12,
     migrateV12ToV13,
+    migrateV13ToV14,
   ]).build();
 
   final cloudDB = await $FloorCloudDatabase
@@ -172,12 +179,16 @@ Future<void> setup() async {
   injector.registerLazySingleton(
       () => AuthService(injector(), injector(), injector()));
   injector.registerLazySingleton(() => BackupService(injector()));
+
+  final nftBloc = await NftCollection.createBloc(
+      indexerUrl: Environment.indexerURL, logger: log);
+  injector.registerSingleton(nftBloc);
+  injector.registerSingleton(nftBloc.tokensService);
+
   injector
       .registerLazySingleton<SettingsDataService>(() => SettingsDataServiceImpl(
             injector(),
             injector(),
-            mainnetDB.assetDao,
-            testnetDB.assetDao,
             injector(),
           ));
   injector.registerLazySingleton<IAPService>(
@@ -209,15 +220,27 @@ Future<void> setup() async {
   injector.registerLazySingleton(() => cloudService);
 
   injector.registerLazySingleton(
-      () => NetworkConfigInjector(injector(), dio, testnetDB, mainnetDB));
+      () => Web3Client(Environment.web3RpcURL, injector()));
+  injector.registerLazySingleton(
+      () => TezartClient(Environment.tezosNodeClientURL));
+  injector.registerLazySingleton<FeralFileApi>(
+      () => FeralFileApi(dio, baseUrl: Environment.feralFileAPIURL));
+  injector.registerLazySingleton<BitmarkApi>(
+      () => BitmarkApi(dio, baseUrl: Environment.bitmarkAPIURL));
+  injector.registerLazySingleton<IndexerApi>(
+      () => IndexerApi(dio, baseUrl: Environment.indexerURL));
 
-  injector.registerLazySingleton<TokensService>(
-      () => TokensServiceImpl(injector<NetworkConfigInjector>(), injector()));
+  injector.registerLazySingleton<EthereumService>(
+      () => EthereumServiceImpl(injector()));
+  injector.registerLazySingleton<TezosService>(
+      () => TezosServiceImpl(injector()));
+  injector.registerLazySingleton<AppDatabase>(() => mainnetDB);
+
   injector.registerLazySingleton<FeedService>(
-      () => FeedServiceImpl(injector<NetworkConfigInjector>(), injector()));
+      () => FeedServiceImpl());
 
   injector.registerLazySingleton<FeralFileService>(() => FeralFileServiceImpl(
-        injector<NetworkConfigInjector>(),
+        injector(),
         injector(),
         injector(),
       ));

@@ -14,6 +14,8 @@ import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/badge_view.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -28,7 +30,8 @@ class PenroseTopBarView extends StatefulWidget {
   final ScrollController scrollController;
   final PenroseTopBarViewStyle style;
 
-  const PenroseTopBarView(this.scrollController, this.style, {Key? key}) : super(key: key);
+  const PenroseTopBarView(this.scrollController, this.style, {Key? key})
+      : super(key: key);
 
   @override
   State<PenroseTopBarView> createState() => _PenroseTopBarViewState();
@@ -78,6 +81,11 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
   }
 
   _scrollListener() {
+    if (widget.scrollController.positions.isEmpty) {
+      // ScrollController not attached to any scroll views.
+      return;
+    }
+
     if (widget.scrollController.offset > 80) {
       if (Platform.isIOS) {
         SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
@@ -111,19 +119,19 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
       case PenroseTopBarViewStyle.main:
         return Container(
           alignment: Alignment.topCenter,
-          padding: const EdgeInsets.fromLTRB(7, 40, 2, 90),
+          padding: const EdgeInsets.fromLTRB(7, 0, 2, 90),
           child: _mainHeaderWidget(isInSettingsPage: false),
         );
       case PenroseTopBarViewStyle.settings:
         return Container(
           alignment: Alignment.topCenter,
-          padding: const EdgeInsets.fromLTRB(7, 40, 2, 90),
+          padding: const EdgeInsets.fromLTRB(7, 0, 2, 90),
           child: _mainHeaderWidget(isInSettingsPage: true),
         );
       case PenroseTopBarViewStyle.back:
         return Container(
           alignment: Alignment.topCenter,
-          padding: const EdgeInsets.fromLTRB(16, 52, 12, 90),
+          padding: const EdgeInsets.fromLTRB(16, 12, 12, 90),
           child: _backHeaderWidget(),
         );
     }
@@ -144,7 +152,7 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
                 SvgPicture.asset('assets/images/nav-arrow-left.svg'),
                 const SizedBox(width: 7),
                 Text(
-                  "BACK",
+                  "back".tr(),
                   style: theme.textTheme.button,
                 ),
               ],
@@ -156,6 +164,7 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
   }
 
   Widget _mainHeaderWidget({required bool isInSettingsPage}) {
+    final theme = Theme.of(context);
     return Row(
       children: [
         Container(
@@ -171,6 +180,17 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
           ),
         ),
         _discovery(),
+        const Spacer(),
+        Visibility(
+          visible: isInSettingsPage,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(0, 0, 0, 10),
+            child: Text(
+              "settings".tr().toUpperCase(),
+              style: theme.textTheme.button,
+            ),
+          ),
+        ),
         const Spacer(),
         _customerSupportIconWidget(),
         Container(

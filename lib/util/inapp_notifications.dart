@@ -16,41 +16,52 @@ import 'package:overlay_support/src/overlay_state_finder.dart';
 
 Widget _notificationToast(BuildContext context, OSNotification notification,
     {Function(OSNotification notification)? notificationOpenedHandler}) {
-  return _simpleNotificationToast(
-      context, notification.body ?? "", Key(notification.notificationId),
+  return _SimpleNotificationToast(
+      notification: notification.body ?? "",
+      key: Key(notification.notificationId),
       notificationOpenedHandler: () {
-    if (notificationOpenedHandler != null) {
-      notificationOpenedHandler(notification);
-    }
-  });
+        if (notificationOpenedHandler != null) {
+          notificationOpenedHandler(notification);
+        }
+      });
 }
 
-Widget _simpleNotificationToast(
-    BuildContext context, String notification, Key key,
-    {Function()? notificationOpenedHandler}) {
-  final theme = Theme.of(context);
-  return ClipPath(
+class _SimpleNotificationToast extends StatelessWidget {
+  const _SimpleNotificationToast(
+      {required Key key,
+      required this.notification,
+      this.notificationOpenedHandler})
+      : super(key: key);
+  final String notification;
+  final Function()? notificationOpenedHandler;
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return ClipPath(
       clipper: AutonomyButtonClipper(),
       child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 68),
-          child: GestureDetector(
-              onTap: () {
-                hideOverlay(key);
-                if (notificationOpenedHandler != null) {
-                  notificationOpenedHandler();
-                }
-              },
-              child: Container(
-                color: theme.colorScheme.primary.withOpacity(0.8),
-                padding:
-                    const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-                child: Center(
-                    child: Text(
-                  notification,
-                  textAlign: TextAlign.center,
-                  style: theme.primaryTextTheme.button,
-                )),
-              ))));
+        constraints: const BoxConstraints(minHeight: 68),
+        child: GestureDetector(
+          onTap: () {
+            hideOverlay(key!);
+            if (notificationOpenedHandler != null) {
+              notificationOpenedHandler?.call();
+            }
+          },
+          child: Container(
+            color: theme.colorScheme.primary.withOpacity(0.8),
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+            child: Center(
+                child: Text(
+              notification,
+              textAlign: TextAlign.center,
+              style: theme.primaryTextTheme.button,
+            )),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 void showNotifications(BuildContext context, OSNotification notification,
@@ -66,10 +77,23 @@ void showNotifications(BuildContext context, OSNotification notification,
   Vibrate.feedback(FeedbackType.warning);
 }
 
+void showInfoNotification(Key key, String info){
+  showSimpleNotification(
+      _SimpleNotificationToast(key: key,notification: info,),
+      background: Colors.transparent,
+      duration: const Duration(seconds: 3),
+      elevation: 0,
+      slideDismissDirection: DismissDirection.up);
+
+  Vibrate.feedback(FeedbackType.light);
+}
+
 void showCustomNotifications(BuildContext context, String notification, Key key,
     {Function()? notificationOpenedHandler}) {
   showSimpleNotification(
-      _simpleNotificationToast(context, notification, key,
+      _SimpleNotificationToast(
+          notification: notification,
+          key: key,
           notificationOpenedHandler: notificationOpenedHandler),
       background: Colors.transparent,
       elevation: 0,

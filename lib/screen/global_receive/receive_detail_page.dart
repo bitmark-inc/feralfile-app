@@ -10,7 +10,9 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/account_view.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
@@ -53,12 +55,12 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
       body: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         Expanded(
             child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          padding: ResponsiveLayout.getPadding,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                "Receive",
+                "receive".tr(),
                 style: theme.textTheme.headline1,
               ),
               addTitleSpace(),
@@ -89,9 +91,11 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Text(
-                            "Account address",
+                            "account_address".tr(),
                             textAlign: TextAlign.left,
-                            style: theme.textTheme.atlasGreyBold12,
+                            style: ResponsiveLayout.isMobile
+                                ? theme.textTheme.atlasGreyBold12
+                                : theme.textTheme.atlasGreyBold14,
                           ),
                           const SizedBox(height: 4.0),
                           Padding(
@@ -110,13 +114,19 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
                   child: Container(
                       alignment: Alignment.center,
                       child: _copied
-                          ? Text("Copied",
-                              style: theme.textTheme.atlasBlackBold12)
+                          ? Text(
+                              "copied".tr(),
+                              style: ResponsiveLayout.isMobile
+                                  ? theme.textTheme.atlasBlackBold12
+                                  : theme.textTheme.atlasBlackBold14,
+                            )
                           : const SizedBox())),
               const SizedBox(height: 4),
               Text(
                 _blockchainWarningText(_account.blockchain),
-                style: theme.textTheme.atlasGreyNormal12,
+                style: ResponsiveLayout.isMobile
+                    ? theme.textTheme.atlasGreyNormal12
+                    : theme.textTheme.atlasGreyNormal14,
               ),
             ],
           ),
@@ -125,9 +135,9 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
           padding: EdgeInsets.symmetric(
               horizontal: 16.0, vertical: safeAreaBottom > 0 ? 40 : 16),
           child: AuFilledButton(
-              text: "SHARE",
+              text: "share".tr(),
               onPress: () => Share.share(_account.accountNumber,
-                  subject: "My account number")),
+                  subject: "my_account_number".tr())),
         ),
       ]),
     );
@@ -145,24 +155,27 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
 String _blockchainNFTText(String? blockchain) {
   switch (blockchain) {
     case "Bitmark":
-      return "BITMARK NFT";
+      return "bitmark_nft".tr();
     case "Ethereum":
-      return "ETHEREUM NFT or ETH";
+      return "nft_or_eth".tr();
     case "Tezos":
-      return "TEZOS NFT or XTZ";
+      return "nft_or_xtz".tr();
     default:
-      return "Unknown";
+      return "unknown".tr();
   }
 }
 
 String _blockchainWarningText(String? blockchain) {
   switch (blockchain) {
     case "Bitmark":
-      return "Send only Bitmark NFTs to this address. Do not send cryptocurrencies. Sending cryptocurrencies or non-Bitmark NFTs may result in their permanent loss.";
+      return "bitmark_send_only"
+          .tr(); // "Send only Bitmark NFTs to this address. Do not send cryptocurrencies. Sending cryptocurrencies or non-Bitmark NFTs may result in their permanent loss.";
     case "Ethereum":
-      return "Send only Ether (ETH) cryptocurrency and Ethereum NFTs to this address. Do not send anything from an alternate chain such as USD Tether or Binance Smart Chain. Sending non-Ethereum cryptocurrencies or tokens may result in their permanent loss.";
+      return "eth_send_only"
+          .tr(); // "Send only Ether (ETH) cryptocurrency and Ethereum NFTs to this address. Do not send anything from an alternate chain such as USD Tether or Binance Smart Chain. Sending non-Ethereum cryptocurrencies or tokens may result in their permanent loss.";
     case "Tezos":
-      return "Send only Tezos (XTZ) cryptocurrency and Tezos NFTs (FA2 standard) to this address. Sending other cryptocurrencies or tokens may result in their permanent loss.";
+      return "xtz_send_only"
+          .tr(); // "Send only Tezos (XTZ) cryptocurrency and Tezos NFTs (FA2 standard) to this address. Sending other cryptocurrencies or tokens may result in their permanent loss.";
     default:
       return "";
   }

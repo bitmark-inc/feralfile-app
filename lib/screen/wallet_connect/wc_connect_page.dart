@@ -5,16 +5,14 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/screen/connection/persona_connections_page.dart';
 import 'package:autonomy_flutter/service/aws_service.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
@@ -29,10 +27,12 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:wallet_connect/models/wc_peer_meta.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 
 /*
  Because WalletConnect & TezosBeacon are using same logic:
@@ -112,14 +112,10 @@ class _WCConnectPageState extends State<WCConnectPage>
     late CryptoType payloadType;
 
     if (wcConnectArgs != null) {
-      final address = await injector<NetworkConfigInjector>()
-          .I<EthereumService>()
+      final address = await injector<EthereumService>()
           .getETHAddress(selectedPersona!.wallet());
 
-      final chainId =
-          injector<ConfigurationService>().getNetwork() == Network.MAINNET
-              ? 1
-              : 4;
+      final chainId = Environment.appTestnetConfig ? 4 : 1;
 
       final approvedAddresses = [address];
       log.info(
@@ -156,9 +152,8 @@ class _WCConnectPageState extends State<WCConnectPage>
 
     if (beaconRequest != null) {
       final tezosWallet = await selectedPersona!.wallet().getTezosWallet();
-      final publicKey = await injector<NetworkConfigInjector>()
-          .I<TezosService>()
-          .getPublicKey(tezosWallet);
+      final publicKey =
+          await injector<TezosService>().getPublicKey(tezosWallet);
       await injector<TezosBeaconService>().permissionResponse(
         selectedPersona!.uuid,
         beaconRequest.id,
@@ -209,10 +204,10 @@ class _WCConnectPageState extends State<WCConnectPage>
         onBack: () => _reject(),
       ),
       body: Container(
-        margin: pageEdgeInsetsWithSubmitButton,
+        margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(
-            "Connect",
+            "connect".tr(),
             style: theme.textTheme.headline1,
           ),
           const SizedBox(height: 24.0),
@@ -312,7 +307,7 @@ class _WCConnectPageState extends State<WCConnectPage>
                 children: [
                   Text(peerMeta.name, style: theme.textTheme.headline4),
                   Text(
-                    "requests permission to:",
+                    "requests_permission_to".tr(),
                     style: theme.textTheme.bodyText1,
                   ),
                 ],
@@ -354,7 +349,7 @@ class _WCConnectPageState extends State<WCConnectPage>
                 children: [
                   Text(request.appName ?? "", style: theme.textTheme.headline4),
                   Text(
-                    "requests permission to:",
+                    "requests_permission_to".tr(),
                     style: theme.textTheme.bodyText1,
                   ),
                 ],
@@ -374,7 +369,7 @@ class _WCConnectPageState extends State<WCConnectPage>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "Select an account to grant access:",
+          "select_grand_access".tr(), //"Select an account to grant access:",
           style: theme.textTheme.headline4,
         ),
         const SizedBox(height: 16.0),
@@ -425,7 +420,7 @@ class _WCConnectPageState extends State<WCConnectPage>
           children: [
             Expanded(
               child: AuFilledButton(
-                text: "Connect".toUpperCase(),
+                text: "connect".tr().toUpperCase(),
                 onPress: () => withDebounce(() => _approve()),
               ),
             )
@@ -464,17 +459,18 @@ class _WCConnectPageState extends State<WCConnectPage>
             Expanded(
               child: Column(
                 children: [
-                  Text(
-                      'This service requires a full Autonomy account to connect to the dapp.',
+                  Text("require_full_account".tr(),
+                      //'This service requires a full Autonomy account to connect to the dapp.',
                       style: theme.textTheme.bodyText1),
                   const SizedBox(height: 24),
                   Text(
-                    'Would you like to generate a full Autonomy account?',
+                    "generate_full_account".tr(),
+                    //'Would you like to generate a full Autonomy account?',
                     style: theme.textTheme.headline4,
                   ),
                   const SizedBox(height: 24),
-                  Text(
-                      'The newly generated account would also get an address for each of the chains that we support.',
+                  Text("newly_account_will".tr(),
+                      //'The newly generated account would also get an address for each of the chains that we support.',
                       style: theme.textTheme.bodyText1),
                 ],
               ),
@@ -484,7 +480,7 @@ class _WCConnectPageState extends State<WCConnectPage>
               children: [
                 Expanded(
                   child: AuFilledButton(
-                    text: "Generate".toUpperCase(),
+                    text: "generate".tr().toUpperCase(),
                     onPress: () {
                       context.read<PersonaBloc>().add(CreatePersonaEvent());
                     },

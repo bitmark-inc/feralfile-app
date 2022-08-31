@@ -6,16 +6,16 @@
 //
 
 import 'package:autonomy_flutter/model/tzkt_operation.dart';
-import 'package:autonomy_flutter/util/string_ext.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
 
 const _nanoTEZFactor = 1000000;
 
 class TezosTXRowView extends StatelessWidget {
-  final TZKTOperation tx;
+  final TZKTTransactionInterface tx;
   final String? currentAddress;
 
   const TezosTXRowView({
@@ -27,25 +27,30 @@ class TezosTXRowView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
     final DateFormat formatter = DateFormat('MMM d hh:mm');
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            formatter.format(tx.timestamp.toLocal()),
-            style: theme.textTheme.ibmBlackNormal14,
+            formatter.format(tx.getTimeStamp()),
+            style: ResponsiveLayout.isMobile
+                ? theme.textTheme.ibmBlackNormal14
+                : theme.textTheme.ibmBlackNormal16,
           ),
           const SizedBox(height: 3),
           Row(
             children: [
-              _transactionImage(),
+              tx.transactionImage(currentAddress),
               const SizedBox(width: 13),
-              Text(_transactionTitle(), style: theme.textTheme.headline4),
+              Text(tx.transactionTitle(currentAddress),
+                  style: theme.textTheme.headline4),
               const Spacer(),
-              Text(_totalAmount(), style: theme.textTheme.caption)
+              Text(
+                  "${tx.txAmountSign(currentAddress)}${tx.totalAmount(currentAddress)}",
+                  style: theme.textTheme.caption),
             ],
           ),
           const SizedBox(height: 4),
@@ -53,10 +58,12 @@ class TezosTXRowView extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(width: 43),
-              Text(_transactionStatus(), style: theme.textTheme.headline5),
+              Text(tx.transactionStatus(), style: theme.textTheme.headline5),
               const Spacer(),
               Text(
-                "${tx.quote.usd.toStringAsPrecision(2)}  USD",
+                tx is! TZKTTokenTransfer
+                    ? "${tx.txAmountSign(currentAddress)}${((tx as TZKTOperation).quote.usd * (tx as TZKTOperation).getTotalAmount(currentAddress) / _nanoTEZFactor).toStringAsPrecision(2)}  USD"
+                    : "",
                 style: theme.textTheme.headline5,
               )
             ],
@@ -64,48 +71,5 @@ class TezosTXRowView extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  Widget _transactionImage() {
-    if (tx.parameter != null ||
-        tx.type == "reveal" ||
-        tx.type == "origination") {
-      return SvgPicture.asset("assets/images/tezos_tx_smartcontract.svg");
-    } else {
-      return SvgPicture.asset(tx.sender?.address == currentAddress
-          ? "assets/images/tezos_tx_sent.svg"
-          : "assets/images/tezos_tx_received.svg");
-    }
-  }
-
-  String _transactionTitle() {
-    if (tx.type != "transaction") {
-      return tx.type.capitalize();
-    } else if (tx.parameter != null) {
-      return tx.parameter!.entrypoint.snakeToCapital();
-    } else {
-      return tx.sender?.address == currentAddress ? "Sent XTZ" : "Received XTZ";
-    }
-  }
-
-  String _transactionStatus() {
-    if (tx.status == null) {
-      return "Pending....";
-    } else {
-      return tx.status!.capitalize();
-    }
-  }
-
-  String _totalAmount() {
-    if (tx.sender?.address == currentAddress) {
-      return (((tx.amount ?? 0) +
-                  tx.bakerFee +
-                  (tx.storageFee ?? 0) +
-                  (tx.allocationFee ?? 0)) /
-              _nanoTEZFactor)
-          .toStringAsPrecision(3);
-    } else {
-      return ((tx.amount ?? 0) / _nanoTEZFactor).toStringAsPrecision(3);
-    }
   }
 }

@@ -7,6 +7,8 @@
 
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 class RecoveryPhrasePage extends StatelessWidget {
@@ -27,8 +29,7 @@ class RecoveryPhrasePage extends StatelessWidget {
         },
       ),
       body: Container(
-        margin: const EdgeInsets.only(
-            top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
+        margin: ResponsiveLayout.pageEdgeInsets,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -38,24 +39,25 @@ class RecoveryPhrasePage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Your recovery phrase",
+                      "your_recovery_phrase".tr(),
                       style: theme.textTheme.headline1,
                     ),
                     addTitleSpace(),
                     RichText(
                       text: TextSpan(
                         style: theme.textTheme.bodyText1,
-                        children: const <TextSpan>[
+                        children: <TextSpan>[
                           TextSpan(
-                            text:
-                                'We’ve safely and securely backed up your recovery phrase to your',
+                            text: 'yrp_we’ve_safely'.tr(),
+                            //'We’ve safely and securely backed up your recovery phrase to your',
                           ),
                           TextSpan(
-                              text: ' iCloud Keychain',
-                              style: TextStyle(fontWeight: FontWeight.bold)),
+                              text: 'icloud_keychain'.tr(),
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold)),
                           TextSpan(
-                            text:
-                                '. You may also back it up to use it in another BIP-39 standard wallet:',
+                            text: 'yrp_you_may_also'.tr(),
+                            //'. You may also back it up to use it in another BIP-39 standard wallet:',
                           ),
                         ],
                       ),

@@ -9,7 +9,6 @@ import 'dart:async';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/feed.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -17,15 +16,19 @@ import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/feed/feed_bloc.dart';
 import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
+import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_rendering/nft_rendering.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:wakelock/wakelock.dart';
@@ -131,16 +134,6 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
             latestEvent?.id != state.viewingFeedEvent?.id) {
           setMaxTimeToken();
         }
-
-        final neededIdentities = [
-          state.viewingToken?.artistName ?? '',
-          state.viewingFeedEvent?.recipient ?? ''
-        ];
-        neededIdentities.removeWhere((element) => element == '');
-
-        if (neededIdentities.isNotEmpty) {
-          context.read<IdentityBloc>().add(GetIdentityEvent(neededIdentities));
-        }
       }, builder: (context, state) {
         if (state.isFinishedOnBoarding() &&
             (state.appFeedData == null || state.viewingFeedEvent == null)) {
@@ -192,12 +185,6 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
 
   Widget _controlViewWhenNoAsset(FeedEvent event) {
     double safeAreaTop = MediaQuery.of(context).padding.top;
-
-    final identityState = context.watch<IdentityBloc>().state;
-    final followingName =
-        event.recipient.toIdentityOrMask(identityState.identityMap) ??
-            event.recipient;
-
     final theme = Theme.of(context);
     return Container(
       color: theme.colorScheme.primary,
@@ -215,13 +202,20 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Row(children: [
-                  Flexible(
-                    child: Text(
+                  Flexible(child: BlocBuilder<IdentityBloc, IdentityState>(
+                      builder: (context, identityState) {
+                    final followingName = event.recipient
+                            .toIdentityOrMask(identityState.identityMap) ??
+                        event.recipient;
+
+                    return Text(
                       followingName,
-                      style: theme.textTheme.atlasWhiteBold12,
+                      style: ResponsiveLayout.isMobile
+                          ? theme.textTheme.atlasWhiteBold12
+                          : theme.textTheme.atlasWhiteBold14,
                       overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
+                    );
+                  })),
                   Text(" • ", style: theme.primaryTextTheme.headline5),
                   Text(getDateTimeRepresentation(event.timestamp.toLocal()),
                       style: theme.primaryTextTheme.headline5),
@@ -236,8 +230,10 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
                           text: '${event.actionRepresentation} ',
                         ),
                         TextSpan(
-                          text: 'nft currently indexing...',
-                          style: theme.textTheme.atlasWhiteItalic12,
+                          text: 'nft_indexing'.tr(),
+                          style: ResponsiveLayout.isMobile
+                              ? theme.textTheme.atlasWhiteItalic12
+                              : theme.textTheme.atlasWhiteItalic14,
                         ),
                       ],
                     )),
@@ -270,13 +266,15 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  "Autonomy",
-                  style: theme.textTheme.atlasWhiteBold12,
+                  "h_autonomy".tr(),
+                  style: ResponsiveLayout.isMobile
+                      ? theme.textTheme.atlasWhiteBold12
+                      : theme.textTheme.atlasWhiteBold14,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  "introducing Discovery",
+                  "introducing_discovery".tr(),
                   style: theme.primaryTextTheme.headline5,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -291,18 +289,17 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
   }
 
   Widget _controlView(FeedEvent event, AssetToken? asset) {
+    final neededIdentities = [asset?.artistName ?? '', event.recipient];
+    neededIdentities.removeWhere((element) => element == '');
+    if (neededIdentities.isNotEmpty) {
+      context.read<IdentityBloc>().add(GetIdentityEvent(neededIdentities));
+    }
+
     if (asset == null) {
       return _controlViewWhenNoAsset(event);
     }
 
     double safeAreaTop = MediaQuery.of(context).padding.top;
-
-    final identityState = context.watch<IdentityBloc>().state;
-    final followingName =
-        event.recipient.toIdentityOrMask(identityState.identityMap) ??
-            event.recipient;
-    final artistName =
-        asset.artistName?.toIdentityOrMask(identityState.identityMap);
     final theme = Theme.of(context);
     return Container(
       color: theme.colorScheme.primary,
@@ -318,45 +315,58 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
                 color: theme.colorScheme.secondary),
             const SizedBox(width: 13),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Row(children: [
-                    Flexible(
-                      child: Text(
-                        followingName,
-                        style: theme.textTheme.atlasWhiteBold12,
-                        overflow: TextOverflow.ellipsis,
+              child: BlocBuilder<IdentityBloc, IdentityState>(
+                  builder: (context, identityState) {
+                final followingName = event.recipient
+                        .toIdentityOrMask(identityState.identityMap) ??
+                    event.recipient;
+                final artistName = asset.artistName
+                    ?.toIdentityOrMask(identityState.identityMap);
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Row(children: [
+                      Flexible(
+                        child: Text(
+                          followingName,
+                          style: ResponsiveLayout.isMobile
+                              ? theme.textTheme.atlasWhiteBold12
+                              : theme.textTheme.atlasWhiteBold14,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                    ),
-                    Text(" • ", style: theme.primaryTextTheme.headline5),
-                    Text(getDateTimeRepresentation(event.timestamp.toLocal()),
-                        style: theme.primaryTextTheme.headline5),
-                  ]),
-                  const SizedBox(height: 4),
-                  RichText(
-                      overflow: TextOverflow.ellipsis,
-                      text: TextSpan(
-                        style: theme.primaryTextTheme.headline5,
-                        children: <TextSpan>[
-                          TextSpan(
-                            text: '${event.actionRepresentation} ',
-                          ),
-                          TextSpan(
-                            text: asset.title.isEmpty ? 'nft' : asset.title,
-                            style: theme.textTheme.atlasWhiteItalic12,
-                          ),
-                          if (event.action == 'transfer' &&
-                              artistName != null) ...[
+                      Text(" • ", style: theme.primaryTextTheme.headline5),
+                      Text(getDateTimeRepresentation(event.timestamp.toLocal()),
+                          style: theme.primaryTextTheme.headline5),
+                    ]),
+                    const SizedBox(height: 4),
+                    RichText(
+                        overflow: TextOverflow.ellipsis,
+                        text: TextSpan(
+                          style: theme.primaryTextTheme.headline5,
+                          children: <TextSpan>[
                             TextSpan(
-                                text: ' by $artistName',
-                                style: theme.primaryTextTheme.headline5),
-                          ]
-                        ],
-                      )),
-                ],
-              ),
+                              text: '${event.actionRepresentation} ',
+                            ),
+                            TextSpan(
+                              text: asset.title.isEmpty ? 'nft' : asset.title,
+                              style: ResponsiveLayout.isMobile
+                                  ? theme.textTheme.atlasWhiteItalic12
+                                  : theme.textTheme.atlasWhiteItalic14,
+                            ),
+                            if (event.action == 'transfer' &&
+                                artistName != null) ...[
+                              TextSpan(
+                                  text: 'by'.tr(args: [artistName]),
+                                  style: theme.primaryTextTheme.headline5),
+                            ]
+                          ],
+                        )),
+                  ],
+                );
+              }),
             ),
             const SizedBox(),
             previewCloseIcon(context),
@@ -393,15 +403,16 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
     switch (step) {
       case 1:
         assetPath = "assets/images/feed_onboarding_insight.png";
-        title = "Get insights about the artwork";
+        title = "get_insights".tr(); //"Get insights about the artwork";
         break;
       case 2:
         assetPath = "assets/images/feed_onboarding_swipe.png";
-        title = "Swipe to discover more artworks";
+        title = "swipe_to".tr(); // "Swipe to discover more artworks";
         break;
       default:
         assetPath = "assets/images/feed_onboarding.png";
-        title = "Discover what your collected artists mint or collect";
+        title = "discover_what"
+            .tr(); // "Discover what your collected artists mint or collect";
     }
 
     return Container(
@@ -443,12 +454,21 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
       _missingToken = false;
     }
 
-    if (_renderingWidget == null ||
-        _renderingWidget!.previewURL != latestToken?.previewURL) {
-      _renderingWidget = buildRenderingWidget(context, token);
-    }
-
-    return Container(child: _renderingWidget!.build(context));
+    return BlocProvider(
+      create: (_) => RetryCubit(),
+      child: BlocBuilder<RetryCubit, int>(builder: (context, attempt) {
+        if (attempt > 0) {
+          _renderingWidget?.dispose();
+          _renderingWidget = null;
+        }
+        if (_renderingWidget == null ||
+            _renderingWidget!.previewURL != token.getPreviewUrl()) {
+          _renderingWidget = buildRenderingWidget(context, token,
+              attempt: attempt > 0 ? attempt : null);
+        }
+        return Container(child: _renderingWidget!.build(context));
+      }),
+    );
   }
 
   Widget _emptyOrLoadingDiscoveryWidget(AppFeedData? appFeedData) {
@@ -456,7 +476,8 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
     final theme = Theme.of(context);
 
     return Padding(
-      padding: pageEdgeInsets.copyWith(top: safeAreaTop + 6, right: 15),
+      padding: ResponsiveLayout.pageEdgeInsets
+          .copyWith(top: safeAreaTop + 6, right: 15),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -468,7 +489,7 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
           ),
           const SizedBox(height: 24),
           Text(
-            "Discovery",
+            "h_discovery".tr(),
             style: theme.primaryTextTheme.headline1,
           ),
           const SizedBox(height: 48),
@@ -478,7 +499,9 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
                     loadingIndicator(valueColor: theme.colorScheme.secondary)),
           ] else if (appFeedData.events.isEmpty) ...[
             Text(
-              'Your favorite artists haven’t created or collected anything new yet. Once they do, you can view it here.',
+              "discovery_keep_you_up".tr(),
+              //'Discovery keeps you up to date on what your favorite artists are creating and collecting.
+              // For now they haven’t created or collected anything new yet. Once they do, you can view it here. ',
               style: theme.primaryTextTheme.bodyText1,
             )
           ]

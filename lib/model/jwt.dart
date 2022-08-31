@@ -34,6 +34,33 @@ class JWT {
 
     return value > 0;
   }
+
+  SubscriptionStatus getSubscriptionStatus() {
+    final claim = parseJwt(jwtToken);
+    final plan = claim['plan'] as String;
+    final isTrial = (claim['trial'] as bool?) == true;
+    final exp = (claim['exp'] ?? 0) as int;
+    final expDate = DateTime.fromMillisecondsSinceEpoch(exp * 1000);
+    return SubscriptionStatus(
+        plan: plan, isTrial: isTrial, expireDate: expDate);
+  }
+}
+
+class SubscriptionStatus {
+  final String plan;
+  final bool isTrial;
+  final DateTime expireDate;
+
+  SubscriptionStatus(
+      {required this.plan, required this.isTrial, required this.expireDate});
+
+  bool get isPremium =>
+      plan == "autonomy-premium" && expireDate.isAfter(DateTime.now());
+
+  @override
+  String toString() {
+    return 'SubscriptionStatus{plan: $plan, isTrial: $isTrial, expireDate: $expireDate}';
+  }
 }
 
 class OnesignalIdentityHash {

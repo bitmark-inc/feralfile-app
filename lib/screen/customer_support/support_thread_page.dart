@@ -10,7 +10,9 @@ import 'dart:convert';
 import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:bubble/bubble.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
@@ -172,22 +174,22 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     final theme = Theme.of(context);
     UIHelper.showDialog(
       context,
-      "Attach crash log?",
+      "attach_crash_log".tr(),
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-              "Would you like to attach a crash log with your support request? The crash log is anonymous and will help our engineers identify the issue.",
+          Text("ask_attach_crash".tr(),
+              //"Would you like to attach a crash log with your support request? The crash log is anonymous and will help our engineers identify the issue.",
               style: theme.primaryTextTheme.bodyText1),
           const SizedBox(height: 40),
           AuFilledButton(
-            text: "ATTACH CRASH LOG",
+            text: "attach_crash_logH".tr(),
             color: theme.colorScheme.secondary,
             textStyle: theme.textTheme.button,
             onPress: () => onConfirm(true),
           ),
           AuFilledButton(
-            text: "CONTINUE WITHOUT CRASH LOG",
+            text: "conti_no_crash_log".tr(),
             textStyle: theme.primaryTextTheme.button,
             onPress: () => onConfirm(false),
           ),
@@ -218,8 +220,8 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
         body: Container(
             margin: EdgeInsets.zero,
             child: Chat(
-              l10n: const ChatL10nEn(
-                inputPlaceholder: 'Write a message',
+              l10n: ChatL10nEn(
+                inputPlaceholder: "write_message".tr(),
               ),
               bubbleBuilder: _bubbleBuilder,
               theme: _chatTheme,
@@ -280,9 +282,13 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
           color: AppColor.chatSecondaryColor,
           child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
             Text(
-                "Issue resolved.\nOur team thanks you for helping us improve Autonomy.",
-                textAlign: TextAlign.center,
-                style: theme.textTheme.atlasWhiteBold14),
+              "issue_resolved".tr(),
+              //"Issue resolved.\nOur team thanks you for helping us improve Autonomy.",
+              textAlign: TextAlign.center,
+              style: ResponsiveLayout.isMobile
+                  ? theme.textTheme.atlasWhiteBold14
+                  : theme.textTheme.atlasWhiteBold16,
+            ),
             const SizedBox(height: 24),
             TextButton(
               onPressed: () {
@@ -292,8 +298,11 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
               },
               style: theme.textButtonNoPadding,
               child: Text(
-                "Still experiencing the same problem?",
-                style: theme.textTheme.whitelinkStyle,
+                "still_problem".tr(),
+                //"Still experiencing the same problem?",
+                style: ResponsiveLayout.isMobile
+                    ? theme.textTheme.whitelinkStyle
+                    : theme.textTheme.whitelinkStyle16,
               ),
             ),
           ]),
@@ -438,7 +447,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
 
     UIHelper.showDialog(
       context,
-      "Attach file",
+      "attach_file".tr(),
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -450,7 +459,8 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
             },
             child: Align(
               alignment: Alignment.centerLeft,
-              child: Text('Photo', style: theme.primaryTextTheme.headline4),
+              child:
+                  Text('photo'.tr(), style: theme.primaryTextTheme.headline4),
             ),
           ),
           addDialogDivider(),
@@ -461,14 +471,15 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
             },
             child: Align(
               alignment: Alignment.centerLeft,
-              child: Text('Debug log', style: theme.primaryTextTheme.headline4),
+              child: Text('debug_log'.tr(),
+                  style: theme.primaryTextTheme.headline4),
             ),
           ),
           const SizedBox(height: 40),
           Align(
             child: TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: Text("CANCEL", style: theme.primaryTextTheme.button),
+              child: Text("cancel".tr(), style: theme.primaryTextTheme.button),
             ),
           ),
           const SizedBox(height: 15),
@@ -613,21 +624,29 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       emptyChatPlaceholderTextStyle: theme.textTheme.headline4!
           .copyWith(color: AppColor.secondarySpanishGrey),
       dateDividerMargin: const EdgeInsets.symmetric(vertical: 12),
-      dateDividerTextStyle: theme.textTheme.dateDividerTextStyle,
+      dateDividerTextStyle: ResponsiveLayout.isMobile
+          ? theme.textTheme.dateDividerTextStyle
+          : theme.textTheme.dateDividerTextStyle14,
       primaryColor: Colors.transparent,
-      sentMessageBodyTextStyle: theme.textTheme.sentMessageBodyTextStyle,
+      sentMessageBodyTextStyle: ResponsiveLayout.isMobile
+          ? theme.textTheme.sentMessageBodyTextStyle
+          : theme.textTheme.sentMessageBodyTextStyle16,
       secondaryColor: AppColor.chatSecondaryColor,
-      receivedMessageBodyTextStyle:
-          theme.textTheme.receivedMessageBodyTextStyle,
+      receivedMessageBodyTextStyle: ResponsiveLayout.isMobile
+          ? theme.textTheme.receivedMessageBodyTextStyle
+          : theme.textTheme.receivedMessageBodyTextStyle16,
       receivedMessageDocumentIconColor: theme.colorScheme.secondary,
       sentMessageDocumentIconColor: theme.colorScheme.secondary,
       documentIcon: Image.asset(
         "assets/images/chatFileIcon.png",
         width: 20,
       ),
-      sentMessageCaptionTextStyle: theme.textTheme.sentMessageCaptionTextStyle,
-      receivedMessageCaptionTextStyle:
-          theme.textTheme.receivedMessageCaptionTextStyle,
+      sentMessageCaptionTextStyle: ResponsiveLayout.isMobile
+          ? theme.textTheme.sentMessageCaptionTextStyle
+          : theme.textTheme.sentMessageCaptionTextStyle16,
+      receivedMessageCaptionTextStyle: ResponsiveLayout.isMobile
+          ? theme.textTheme.receivedMessageCaptionTextStyle
+          : theme.textTheme.receivedMessageCaptionTextStyle16,
       sendingIcon: Container(
         width: 16,
         height: 12,

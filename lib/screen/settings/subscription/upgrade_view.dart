@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -37,10 +38,10 @@ class UpgradesView extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "More Autonomy",
+                "more_autonomy".tr(),
                 style: theme.textTheme.headline1,
               ),
-              const SizedBox(height: 16.0),
+              const SizedBox(height: 24.0),
               _subscribeView(context, state),
             ],
           ));
@@ -49,9 +50,9 @@ class UpgradesView extends StatelessWidget {
 
   static String get _subscriptionsManagementLocation {
     if (Platform.isIOS) {
-      return "Settings > Apple ID > Subscriptions.";
+      return "set_apl_sub".tr();//"Settings > Apple ID > Subscriptions.";
     } else if (Platform.isAndroid) {
-      return "Play Store -> Payments & subscriptions -> Subscriptions.";
+      return "pla_pay_sub".tr();//"Play Store -> Payments & subscriptions -> Subscriptions.";
     } else {
       return "";
     }
@@ -65,10 +66,11 @@ class UpgradesView extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("Subscribed", style: theme.textTheme.headline4),
+            Text("subscribed".tr(), style: theme.textTheme.headline4),
             const SizedBox(height: 16.0),
             Text(
-                "Thank you for your support. Manage your subscription in $_subscriptionsManagementLocation",
+                "thank_support".tr(args: [_subscriptionsManagementLocation]),
+                //"Thank you for your support. Manage your subscription in $_subscriptionsManagementLocation",
                 style: theme.textTheme.bodyText1),
           ],
         );
@@ -78,11 +80,13 @@ class UpgradesView extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("Subscribed (30-day free trial)",
+            Text(
+                "sub_30_days".tr(),//"Subscribed (30-day free trial)",
                 style: theme.textTheme.headline4),
             const SizedBox(height: 16.0),
             Text(
-                "You will be charged ${state.productDetails?.price ?? "US\$4.99"}/month starting $trialExpireDate. To cancel your subscription, go to $_subscriptionsManagementLocation",
+                "you_will_be_charged".tr(namedArgs: {"price":state.productDetails?.price ?? "4.99usd".tr(),"date":trialExpireDate,"location":_subscriptionsManagementLocation}),
+                //"You will be charged ${state.productDetails?.price ?? "US\$4.99"}/month starting $trialExpireDate. To cancel your subscription, go to $_subscriptionsManagementLocation",
                 style: theme.textTheme.bodyText1),
           ],
         );
@@ -103,14 +107,15 @@ class UpgradesView extends StatelessWidget {
           child: Column(
             children: [
               Row(children: [
-                Text("Subscribe", style: theme.textTheme.headline4),
+                Text("h_subscribe".tr(), style: theme.textTheme.headline4),
                 const Spacer(),
                 SvgPicture.asset('assets/images/iconForward.svg'),
               ]),
               const SizedBox(height: 16.0),
               ...[
-                "View your collection on TV and projectors.",
-                "Priority support."
+                "view_collection_tv".tr(),
+                //"View your collection on TV and projectors.",
+                "priority_support".tr()
               ]
                   .map((item) => Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -132,18 +137,21 @@ class UpgradesView extends StatelessWidget {
           ),
         );
       case IAPProductStatus.error:
-        return Text("Error when loading your subscription.",
+        return Text(
+            "error_loading_sub".tr(),
+            //"Error when loading your subscription.",
             style: theme.textTheme.headline4);
     }
   }
 
   static showSubscriptionDialog(BuildContext context, String? price,
-      PremiumFeature? feature, Function()? onPressSubscribe) {
+      PremiumFeature? feature, Function()? onPressSubscribe,
+      {Function? onCancel}) {
     final theme = Theme.of(context);
 
     UIHelper.showDialog(
       context,
-      "More Autonomy",
+      "more_autonomy".tr(),
       Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -153,18 +161,21 @@ class UpgradesView extends StatelessWidget {
                 style: theme.primaryTextTheme.bodyText1),
             const SizedBox(height: 16),
           ],
-          Text('Upgrading gives you:', style: theme.primaryTextTheme.bodyText1),
+          Text('upgrading_gives_you'.tr(), style: theme.primaryTextTheme.bodyText1),
           SvgPicture.asset(
             'assets/images/premium_comparation.svg',
             height: 320,
           ),
           const SizedBox(height: 16),
-          Text("*Google TV app plus AirPlay & Chromecast streaming",
+          Text(
+            "gg_tv_app".tr(),
+              //"*Google TV app plus AirPlay & Chromecast streaming",
               style: theme.primaryTextTheme.headline5),
           const SizedBox(height: 40),
           AuFilledButton(
             text:
-                "SUBSCRIBE FOR A 30-DAY FREE TRIAL\n(THEN ${price ?? "4.99"}/MONTH)",
+                "sub_then_price".tr(args: [price ?? "4.99usd".tr()]),
+                //"SUBSCRIBE FOR A 30-DAY FREE TRIAL\n(THEN ${price ?? "4.99"}/MONTH)",
             textAlign: TextAlign.center,
             onPress: () {
               if (onPressSubscribe != null) onPressSubscribe();
@@ -174,9 +185,12 @@ class UpgradesView extends StatelessWidget {
             textStyle: theme.textTheme.button,
           ),
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () {
+              onCancel?.call();
+              Navigator.of(context).pop();
+            },
             child: Text(
-              "NOT NOW",
+              "not_now".tr(),
               style: theme.primaryTextTheme.button,
             ),
           ),

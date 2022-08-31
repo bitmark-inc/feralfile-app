@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:flutter/material.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 
@@ -26,7 +27,9 @@ class BadgeView extends StatelessWidget {
         child: Text(
           '$number',
           textAlign: TextAlign.center,
-          style: theme.textTheme.atlasWhiteBold12,
+          style: ResponsiveLayout.isMobile
+              ? theme.textTheme.atlasWhiteBold12
+              : theme.textTheme.atlasWhiteBold14,
         ));
   }
 }

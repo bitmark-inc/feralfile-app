@@ -8,7 +8,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/gateway/rendering_report_api.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -17,6 +16,7 @@ import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import 'package:nft_collection/models/asset_token.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:autonomy_flutter/database/dao/draft_customer_support_dao.dart';

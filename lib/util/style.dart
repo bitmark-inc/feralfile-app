@@ -6,6 +6,8 @@
 //
 
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -35,31 +37,38 @@ MarkdownStyleSheet markDownBlackStyle(BuildContext context) {
 
 MarkdownStyleSheet markDownStyle(BuildContext context, Color textColor) {
   final theme = Theme.of(context);
-  final bodyText2 = theme.textTheme.ibmGreyNormal16;
+  final bodyText2 = ResponsiveLayout.isMobile
+      ? theme.textTheme.ibmGreyNormal16.copyWith(color: textColor)
+      : theme.textTheme.ibmGreyNormal20.copyWith(color: textColor);
   return MarkdownStyleSheet(
-    a: const TextStyle(
-      color: AppColor.primaryBlack,
+    a: TextStyle(
+      fontFamily: AppTheme.atlasGrotesk,
+      color: Colors.transparent,
+      fontWeight: FontWeight.w500,
+      shadows: [Shadow(color: textColor, offset: const Offset(0, -1))],
       decoration: TextDecoration.underline,
-      fontWeight: FontWeight.w600,
+      decorationStyle: TextDecorationStyle.solid,
+      decorationColor: textColor,
+      decorationThickness: 1,
     ),
-    p: bodyText2.copyWith(color: textColor),
+    p: theme.textTheme.bodyText1?.copyWith(color: textColor),
     pPadding: const EdgeInsets.only(bottom: 15),
     code: bodyText2.copyWith(backgroundColor: Colors.transparent),
-    h1: theme.textTheme.headline1,
+    h1: theme.textTheme.headline1?.copyWith(color: textColor),
     h1Padding: const EdgeInsets.only(bottom: 40),
-    h2: theme.textTheme.headline2,
+    h2: theme.textTheme.headline4?.copyWith(color: textColor),
     h2Padding: EdgeInsets.zero,
-    h3: theme.textTheme.headline3,
+    h3: theme.textTheme.headline3?.copyWith(color: textColor),
     h3Padding: EdgeInsets.zero,
-    h4: theme.textTheme.headline4,
+    h4: theme.textTheme.headline4?.copyWith(color: textColor),
     h4Padding: EdgeInsets.zero,
-    h5: theme.textTheme.subtitle2,
+    h5: theme.textTheme.subtitle2?.copyWith(color: textColor),
     h5Padding: EdgeInsets.zero,
-    h6: theme.textTheme.headline6,
+    h6: theme.textTheme.headline6?.copyWith(color: textColor),
     h6Padding: EdgeInsets.zero,
-    em: const TextStyle(fontStyle: FontStyle.italic),
-    strong: const TextStyle(fontWeight: FontWeight.bold),
-    del: const TextStyle(decoration: TextDecoration.lineThrough),
+    em: TextStyle(fontStyle: FontStyle.italic, color: textColor),
+    strong: TextStyle(fontWeight: FontWeight.bold, color: textColor),
+    del: TextStyle(decoration: TextDecoration.lineThrough, color: textColor),
     blockquote: bodyText2,
     img: bodyText2,
     checkbox: bodyText2.copyWith(color: theme.colorScheme.secondary),
@@ -158,22 +167,17 @@ Widget closeIcon({Color color = Colors.black}) {
   );
 }
 
-const pageEdgeInsets =
-    EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0, bottom: 20.0);
-const pageEdgeInsetsWithSubmitButton = EdgeInsets.fromLTRB(16, 16, 16, 32);
-const pageEdgeInsetsNotBottom = EdgeInsets.fromLTRB(16, 16, 16, 0);
-
-const grantPermissions = [
-  'View account balance and NFTs',
-  'Request approval for transactions',
+var grantPermissions = [
+  "view_account".tr(),
+  'request_approval'.tr(),
 ];
 
 String polishSource(String source) {
   switch (source) {
     case 'feralfile':
-      return 'Feral File';
+      return 'feral_file'.tr();
     case 'ArtBlocks':
-      return 'Art Blocks';
+      return "art_blocks".tr();
     default:
       return source;
   }
