@@ -108,39 +108,39 @@ class UIHelper {
     }
 
     await showModalBottomSheet<dynamic>(
-        context: context,
-        isDismissible: isDismissible,
-        backgroundColor: Colors.transparent,
-        enableDrag: false,
-        constraints: BoxConstraints(
-            maxWidth: ResponsiveLayout.isMobile
-                ? double.infinity
-                : Constants.maxWidthModalTablet),
-        isScrollControlled: true,
-        builder: (context) {
-          return Container(
-            color: Colors.transparent,
-            child: ClipPath(
-              clipper: AutonomyTopRightRectangleClipper(),
-              child: Container(
-                color: theme.colorScheme.primary,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 32),
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(title, style: theme.primaryTextTheme.headline1),
-                      const SizedBox(height: 40),
-                      content,
-                    ],
-                  ),
+      context: context,
+      isDismissible: isDismissible,
+      backgroundColor: Colors.transparent,
+      enableDrag: false,
+      constraints: BoxConstraints(
+          maxWidth: ResponsiveLayout.isMobile
+              ? double.infinity
+              : Constants.maxWidthModalTablet),
+      isScrollControlled: true,
+      builder: (context) {
+        return Container(
+          color: Colors.transparent,
+          child: ClipPath(
+            clipper: AutonomyTopRightRectangleClipper(),
+            child: Container(
+              color: theme.colorScheme.primary,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 32),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: theme.primaryTextTheme.headline1),
+                    const SizedBox(height: 40),
+                    content,
+                  ],
                 ),
               ),
             ),
-          );
-        });
+          ),
+        );
+      },
+    );
   }
 
   static Future<void> showInfoDialog(
@@ -158,42 +158,43 @@ class UIHelper {
     }
 
     await showDialog(
-        context,
-        title,
-        SizedBox(
-          width: double.infinity,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (description.isNotEmpty) ...[
-                Text(
-                  description,
-                  style: theme.primaryTextTheme.bodyText1,
-                ),
-              ],
-              const SizedBox(height: 40),
-              if (closeButton.isNotEmpty) ...[
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: Text(
-                          closeButton,
-                          style: theme.primaryTextTheme.button,
-                        ),
+      context,
+      title,
+      SizedBox(
+        width: double.infinity,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (description.isNotEmpty) ...[
+              Text(
+                description,
+                style: theme.primaryTextTheme.bodyText1,
+              ),
+            ],
+            const SizedBox(height: 40),
+            if (closeButton.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text(
+                        closeButton,
+                        style: theme.primaryTextTheme.button,
                       ),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 15),
-              ]
-            ],
-          ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 15),
+            ]
+          ],
         ),
-        isDismissible: isDismissible,
-        feedback: feedback);
+      ),
+      isDismissible: isDismissible,
+      feedback: feedback,
+    );
   }
 
   static hideInfoDialog(BuildContext context) {
@@ -206,31 +207,32 @@ class UIHelper {
   static Future<void> showLinkRequestedDialog(BuildContext context) {
     final theme = Theme.of(context);
     return showDialog(
-        context,
-        'link_requested'.tr(),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            RichText(
-              text: TextSpan(children: [
-                TextSpan(
-                  style: theme.primaryTextTheme.bodyText1,
-                  text: "au_sent_survey".tr(),
-                ),
-                TextSpan(
-                  style: theme.primaryTextTheme.headline4,
-                  text: "feral_file".tr(),
-                ),
-                TextSpan(
-                  style: theme.primaryTextTheme.bodyText1,
-                  text: "in_your_mobile".tr(),
-                ),
-              ]),
-            ),
-            const SizedBox(height: 67),
-          ],
-        ),
-        isDismissible: true);
+      context,
+      'link_requested'.tr(),
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          RichText(
+            text: TextSpan(children: [
+              TextSpan(
+                style: theme.primaryTextTheme.bodyText1,
+                text: "au_sent_survey".tr(),
+              ),
+              TextSpan(
+                style: theme.primaryTextTheme.headline4,
+                text: "feral_file".tr(),
+              ),
+              TextSpan(
+                style: theme.primaryTextTheme.bodyText1,
+                text: "in_your_mobile".tr(),
+              ),
+            ]),
+          ),
+          const SizedBox(height: 67),
+        ],
+      ),
+      isDismissible: true,
+    );
   }
 
   static Future showFFAccountLinked(BuildContext context, String alias,
