@@ -152,6 +152,7 @@ class _SettingsPageState extends State<SettingsPage>
                       "help_us_improve".tr(),
                       style: theme.textTheme.headline1,
                     ),
+
                     const SizedBox(height: 16.0),
                     TappableForwardRow(
                         leftWidget: Text('p_bug_bounty'.tr(),
@@ -175,6 +176,7 @@ class _SettingsPageState extends State<SettingsPage>
                         leftWidget: Text(
                           'rebuild_metadata'.tr(),
                           style: theme.textTheme.headline4,
+
                         ),
                         bottomWidget: Text('clear_cache'.tr(),
                             style: theme.textTheme.bodyText1),
@@ -198,6 +200,7 @@ class _SettingsPageState extends State<SettingsPage>
                                 "version": _packageInfo!.version,
                                 "buildNumber": _packageInfo!.buildNumber
                               }),
+                              key: const Key("version"),
                               //"Version ${_packageInfo!.version}(${_packageInfo!.buildNumber})",
                               style: theme.textTheme.headline5,
                             ),

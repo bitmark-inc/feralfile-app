@@ -234,6 +234,7 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
           final unreadIssues = numberOfIssuesInfo?[1] ?? 0;
           return GestureDetector(
             behavior: HitTestBehavior.translucent,
+            key: const Key("customerSupport"),
             child: Container(
               padding: const EdgeInsets.fromLTRB(20, 10, 0, 20),
               child: Stack(
