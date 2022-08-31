@@ -2,6 +2,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_view.dart';
+import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -61,7 +62,7 @@ class _SubscribeViewState extends State<_SubscribeView> {
     final theme = Theme.of(context);
     context.read<UpgradesBloc>().add(UpgradeQueryInfoEvent());
     return BlocBuilder<UpgradesBloc, UpgradeState>(builder: (context, state) {
-      if (_loading) {
+      if (_loading || state.status == IAPProductStatus.pending) {
         _loading = false;
         return loadingIndicator(
             size: 20,
