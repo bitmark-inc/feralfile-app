@@ -120,10 +120,7 @@ class TezosBeaconService implements BeaconHandler {
     if (alreadyLinkedAccount != null) {
       _navigationService.hideInfoDialog();
       _navigationService.showErrorDialog(
-          ErrorEvent(
-              null,
-              "already_linked".tr(),
-              "al_you’ve_already".tr(),
+          ErrorEvent(null, "already_linked".tr(), "al_you’ve_already".tr(),
               ErrorItemState.seeAccount), defaultAction: () {
         _navigationService.navigateTo(AppRouter.linkedAccountDetailsPage,
             arguments: alreadyLinkedAccount);
@@ -156,11 +153,13 @@ class TezosBeaconService implements BeaconHandler {
   void onRequestedPermission(Peer peer) {
     log.info("TezosBeaconService: ${peer.toJson()}");
     UIHelper.showInfoDialog(
-        _navigationService.navigatorKey.currentContext!,
-        "link_requested".tr(),
-        "autonomy_has_sent".tr(args: [peer.name]));
-        //"Autonomy has sent a request to ${peer.name} to link to your account."
-         //   " Please open the wallet and authorize the request. ");
+      _navigationService.navigatorKey.currentContext!,
+      "link_requested".tr(),
+      "autonomy_has_sent".tr(args: [peer.name]),
+      isDismissible: true,
+    );
+    //"Autonomy has sent a request to ${peer.name} to link to your account."
+    //   " Please open the wallet and authorize the request. ");
   }
 
   Future<Connection> onPostMessageLinked(

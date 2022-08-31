@@ -43,9 +43,13 @@ MarkdownStyleSheet markDownStyle(BuildContext context, Color textColor) {
   return MarkdownStyleSheet(
     a: TextStyle(
       fontFamily: AppTheme.atlasGrotesk,
-      color: textColor,
-      decoration: TextDecoration.underline,
+      color: Colors.transparent,
       fontWeight: FontWeight.w500,
+      shadows: [Shadow(color: textColor, offset: const Offset(0, -1))],
+      decoration: TextDecoration.underline,
+      decorationStyle: TextDecorationStyle.solid,
+      decorationColor: textColor,
+      decorationThickness: 1,
     ),
     p: theme.textTheme.bodyText1?.copyWith(color: textColor),
     pPadding: const EdgeInsets.only(bottom: 15),
