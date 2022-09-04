@@ -46,6 +46,7 @@ dependencies:
     git:
       url: https://github.com/autonomy-system/flutter_blue.git
       ref: 4f1f28c7bab5596afa6fa175f81c3a953f7c993f
+  flutter_cache_manager: ^3.3.0
   flutter_chat_types: ^3.3.1
   flutter_chat_ui: ^1.6.4
   flutter_dotenv: ^5.0.2
@@ -138,7 +139,7 @@ dependencies:
   nft_collection:
     git:
       url: https://github.com/autonomy-system/nft-collection
-      ref: ab54b120776fbafff901d4c79faea30428e9f98e
+      ref: c8821b68f597ce711e7430ae79da1219dad635b8
 
 dependency_overrides:
   # Error using when import photo_view from dependencies:
