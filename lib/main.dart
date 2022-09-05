@@ -16,7 +16,7 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
-import 'package:autonomy_flutter/util/au_cached_manager.dart';
+import 'package:autonomy_flutter/util/au_file_service.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -58,7 +58,7 @@ void main() async {
     await FlutterDownloader.initialize();
     await Hive.initFlutter();
     FlutterDownloader.registerCallback(downloadCallback);
-    AUCacheManager().setup();
+    await AuFileService().setup();
 
     OneSignal.shared.setLogLevel(OSLogLevel.error, OSLogLevel.none);
     OneSignal.shared.setAppId(Environment.onesignalAppID);

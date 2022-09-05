@@ -10,12 +10,12 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
-import 'package:autonomy_flutter/util/au_cached_manager.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:nft_collection/models/asset_token.dart';
 
@@ -105,7 +105,7 @@ class _HiddenArtworksPageState extends State<HiddenArtworksPage> {
                             fit: BoxFit.cover,
                             memCacheHeight: _cachedImageSize,
                             memCacheWidth: _cachedImageSize,
-                            cacheManager: injector<AUCacheManager>(),
+                            cacheManager: injector<CacheManager>(),
                             placeholder: (context, index) => Container(
                                 color: const Color.fromRGBO(227, 227, 227, 1)),
                             placeholderFadeInDuration:
