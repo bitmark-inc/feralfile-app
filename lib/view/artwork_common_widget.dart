@@ -6,7 +6,6 @@ import 'package:autonomy_flutter/screen/detail/report_rendering_issue/report_ren
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
-import 'package:autonomy_flutter/util/au_cached_manager.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -22,6 +21,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_svg/parser.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
@@ -74,7 +74,7 @@ class TokenThumbnailWidget extends StatelessWidget {
         width: double.infinity,
         memCacheWidth: (screenWidth * 3).floor(),
         maxWidthDiskCache: (screenWidth * 3).floor(),
-        cacheManager: injector<AUCacheManager>(),
+        cacheManager: injector<CacheManager>(),
         placeholder: (context, url) => placeholder(context),
         placeholderFadeInDuration: const Duration(milliseconds: 300),
         fit: BoxFit.cover,
@@ -158,12 +158,13 @@ Widget tokenGalleryThumbnailWidget(
             placeholderBuilder: (_) => const GalleryThumbnailPlaceholder())
         : CachedNetworkImage(
             imageUrl: token.getGalleryThumbnailUrl()!,
+            fadeInDuration: Duration.zero,
             fit: BoxFit.cover,
             memCacheHeight: cachedImageSize,
             memCacheWidth: cachedImageSize,
             maxWidthDiskCache: cachedImageSize,
             maxHeightDiskCache: cachedImageSize,
-            cacheManager: injector<AUCacheManager>(),
+            cacheManager: injector<CacheManager>(),
             placeholder: (context, index) => const GalleryThumbnailPlaceholder(),
             errorWidget: (context, url, error) =>
               const GalleryThumbnailErrorWidget(),
@@ -286,7 +287,7 @@ INFTRenderingWidget buildRenderingWidget(
     thumbnailURL: token.getThumbnailUrl(),
     loadingWidget: previewPlaceholder(context),
     errorWidget: BrokenTokenWidget(token: token),
-    cacheManager: injector<AUCacheManager>(),
+    cacheManager: injector<CacheManager>(),
   ));
 
   return renderingWidget;

@@ -41,12 +41,13 @@ import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_dapp_service/wallet_connect_dapp_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
-import 'package:autonomy_flutter/util/au_cached_manager.dart';
+import 'package:autonomy_flutter/util/au_file_service.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
 import 'package:autonomy_flutter/util/isolated_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:dio/dio.dart';
 import 'package:dio_smart_retry/dio_smart_retry.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart';
 import 'package:logging/logging.dart';
@@ -156,7 +157,7 @@ Future<void> setup() async {
 
   injector.registerLazySingleton(
       () => WalletConnectService(injector(), injector(), injector()));
-  injector.registerLazySingleton(() => AUCacheManager());
+  injector.registerLazySingleton<CacheManager>(() => AUImageCacheManage());
   injector.registerLazySingleton(() => WalletConnectDappService(injector()));
   injector.registerLazySingleton<AccountService>(() => AccountServiceImpl(
         cloudDB,
@@ -181,7 +182,10 @@ Future<void> setup() async {
   injector.registerLazySingleton(() => BackupService(injector()));
 
   final nftBloc = await NftCollection.createBloc(
-      indexerUrl: Environment.indexerURL, logger: log);
+    indexerUrl: Environment.indexerURL,
+    logger: log,
+    apiLogger: apiLog,
+  );
   injector.registerSingleton(nftBloc);
   injector.registerSingleton(nftBloc.tokensService);
 
