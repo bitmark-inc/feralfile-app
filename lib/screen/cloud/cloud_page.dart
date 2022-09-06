@@ -113,22 +113,16 @@ class CloudPage extends StatelessWidget {
         } else {
           return Column(
             children: [
+              AuFilledButton(
+                onPress: () => openAppSettings(),
+                text: "open_icloud_setting".tr(),
+              ),
               TextButton(
-                onPressed: () => openAppSettings(),
                 child: Text(
-                  "open_icloud_setting".tr(),
+                  "continue_without_icloud".tr().toUpperCase(),
                   style: theme.textTheme.button,
                 ),
-              ),
-              Row(
-                children: [
-                  Expanded(
-                    child: AuFilledButton(
-                      text: "continue_without_icloud".tr().toUpperCase(),
-                      onPress: () => _continue(context),
-                    ),
-                  ),
-                ],
+                onPressed: () => _continue(context),
               ),
             ],
           );
