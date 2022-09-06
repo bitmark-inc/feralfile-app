@@ -58,13 +58,10 @@ void main() {
     });
 
     test("EULA", () async {
-      // Open App at Home Page
       await onBoardingSteps(driver);
 
-      // GO to Settings Page
       await selectSubSettingMenu(driver, "Settings");
 
-      // Scroll Down
       await scrollSettingPage(driver);
 
       await selectSubSettingMenu(driver, "EULA");
@@ -75,24 +72,8 @@ void main() {
 
       expect(hasLicense, 1);
 
-      //var backBtn = await driver.findElement(
-      //    AppiumBy.accessibilityId("BACK"));
-      //String attr = await backBtn.attributes["content-desc"];
-      //await backBtn.click();
-      //print("Clicked");
-
-      /*
-      var selector = 'new UiSelector().className("android.widget.ImageView").index(0)';
-      var backBtnUIAutomator = 'UiCollection($selector).click()';
-      var finder = await AppiumBy.uiautomator(backBtnUIAutomator);
-      var c = await driver.findElement(finder);
-      print(await c.attributes['content-desc']);
-      c.click();
-
-       */
       await driver.back();
 
-      //await selectSubSettingMenu(driver, "Privacy Policy");
       var hasEULA = await driver.findElements(
               AppiumBy.accessibilityId("EULA")).length;
       expect(hasEULA, 1);
