@@ -3,8 +3,8 @@ on:
   schedule:
     - cron: '0 17 * * *'
   workflow_dispatch:
-  push:
-    branches:
+  # push:
+  #   branches:
       # - develop
 jobs:
   build:
@@ -80,7 +80,7 @@ jobs:
         with:
           status: ${{ job.status }}
           notify_when: 'failure,success,warnings'
-          notification_title: Automation  - Integration test execution
+          notification_title: Auto test execution-"{emoji} *{workflow}* {status_message} in <{repo_url}|{repo}@{branch}> on commit <{commit_url}|{commit_sha}>"
           message_format: "{emoji} *{workflow}* {status_message} in <{repo_url}|{repo}@{branch}> on commit <{commit_url}|{commit_sha}>"
           footer: "<{run_url}|View Run>"
           mention_users: 'U03NZ7JU8KC'
