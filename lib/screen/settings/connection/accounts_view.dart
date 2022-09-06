@@ -176,39 +176,42 @@ class _AccountsViewState extends State<AccountsView> {
   Widget _editAccountItem(Account account) {
     final theme = Theme.of(context);
 
-    return Row(
-      children: [
-        accountLogo(account),
-        const SizedBox(width: 16),
-        Expanded(
-          child: TextField(
-            autofocus: true,
-            decoration: const InputDecoration(
-              isDense: true,
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.zero,
-            ),
-            style: theme.textTheme.headline4,
-            controller: _nameController,
-            onSubmitted: (String value) async {
-              final persona = account.persona;
-              final connection = account.connections?.first;
-              if (persona != null) {
-                await injector<AccountService>().namePersona(persona, value);
-              } else if (connection != null) {
-                await injector<AccountService>()
-                    .nameLinkedAccount(connection, value);
-              }
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: Row(
+        children: [
+          accountLogo(account),
+          const SizedBox(width: 16),
+          Expanded(
+            child: TextField(
+              autofocus: true,
+              decoration: const InputDecoration(
+                isDense: true,
+                border: InputBorder.none,
+                contentPadding: EdgeInsets.zero,
+              ),
+              style: theme.textTheme.headline4,
+              controller: _nameController,
+              onSubmitted: (String value) async {
+                final persona = account.persona;
+                final connection = account.connections?.first;
+                if (persona != null) {
+                  await injector<AccountService>().namePersona(persona, value);
+                } else if (connection != null) {
+                  await injector<AccountService>()
+                      .nameLinkedAccount(connection, value);
+                }
 
-              setState(() {
-                _editingAccountKey = null;
-              });
-              if (!mounted) return;
-              context.read<AccountsBloc>().add(GetAccountsEvent());
-            },
+                setState(() {
+                  _editingAccountKey = null;
+                });
+                if (!mounted) return;
+                context.read<AccountsBloc>().add(GetAccountsEvent());
+              },
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
