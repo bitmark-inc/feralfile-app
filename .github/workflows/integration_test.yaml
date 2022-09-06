@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - develop
+      # - develop
 jobs:
   build:
     runs-on: [self-hosted, linux, ci-local-bmvn]
