@@ -84,100 +84,15 @@ Future<void> enterSeeds(AppiumWebDriver driver, String seeds) async {
   await confirmButton.click();
 }
 
-Future<bool> findArtwork(AppiumWebDriver driver, String artworkName) async {
-  int i = 2;
-  int hasArtwork = await driver
-      .findElements(AppiumBy.xpath(
-          "//android.widget.ScrollView/android.widget.ImageView[$i]"))
-      .length;
-
-  while (hasArtwork == 1) {
-    sleep(const Duration(seconds: 2));
-    var artworkIcon = await driver.findElement(AppiumBy.xpath(
-        "//android.widget.ScrollView/android.widget.ImageView[$i]"));
-    await artworkIcon.click();
-    i++;
-    int isCorrectArtwork = await driver
-        .findElements(AppiumBy.xpath(
-            "//android.widget.ImageView[contains(@content-desc,'$artworkName')]"))
-        .length;
-
-    if (isCorrectArtwork == 1) {
-      return true;
-    } else {
-      var closeArtworkButton =
-          await driver.findElement(closeArtworkButtonLocator);
-      await closeArtworkButton.click();
-    }
-  }
-  return false;
-}
-
-Future<void> sendAwrtwork(AppiumWebDriver driver, String artworkName,
-    String toAddress, int amount) async {
-  bool isArtworkFound = await findArtwork(driver, artworkName);
-
-  var artworkTitle = await driver.findElement(AppiumBy.xpath(
-      "//android.widget.ImageView[contains(@content-desc,'$artworkName')]"));
-  await artworkTitle.click();
-
-  var dotIcon = await driver.findElement(dotIconLocator);
-  await dotIcon.click();
-  var sendArtworkButton = await driver.findElement(sendArtworkButtonLocator);
-  await sendArtworkButton.click();
-
-  var reviewButton = await driver.findElement(reviewButtonLocator);
-  String statusReviewButton = await reviewButton.attributes["clickable"];
-
-  expect(statusReviewButton, "false");
-
-  var quantityTxt = await driver.findElement(quantityTxtLocator);
-  await quantityTxt.click();
-  await quantityTxt.clear();
-  await Future.delayed(const Duration(seconds: 1));
-  await quantityTxt.sendKeys(amount.toString());
-
-  var toTxt = await driver.findElement(toTxtLocator);
-  await toTxt.click();
-  await toTxt.sendKeys(toAddress);
-
-  await driver.device.pressKeycode(66);
-
-  await Future.delayed(const Duration(seconds: 5));
-  int isFeeCalculated =
-      await driver.findElements(isFeeCalculatedLocator).length;
-
-  expect(isFeeCalculated, 1);
-
-  var reviewButton1 = await driver.findElement(reviewButtonLocator);
-  statusReviewButton = await reviewButton1.attributes["clickable"];
-  expect(statusReviewButton, "true");
-
-  await reviewButton1.click();
-
-  var sendButton = await driver.findElement(sendButtonLocator);
-  await sendButton.click();
-}
-
-Future<void> wait4TezBlockchainConfirmation(AppiumWebDriver driver) async {
-  await Future.delayed(const Duration(seconds: 40));
-  await driver.device.getDisplayDensity();
-  await Future.delayed(const Duration(seconds: 40));
-  await driver.device.getDisplayDensity();
-  await Future.delayed(const Duration(seconds: 30));
-}
-
 Future<void> scroll(driver, scrollUIAutomator) async {
   var finder = await AppiumBy.uiautomator(scrollUIAutomator);
   await driver.findElement(finder);
 }
 
-Future<void> scrollUntil(AppiumWebDriver driver, String decs) async {
-  var subSelector = 'new UiSelector().descriptionContains("$decs")';
-  var scrollViewSeletor =
-      'new UiSelector().className("android.widget.ScrollView")';
-  var scrollUIAutomator =
-      await 'new UiScrollable($scrollViewSeletor).setSwipeDeadZonePercentage(0.4).scrollIntoView($subSelector)';
+Future<void> scrollSettingPage(driver) async {
+  var scrollUIAutomator = await 'new UiScrollable(new UiSelector().className("android.widget.ScrollView")).scrollForward()';
+  await scroll(driver, scrollUIAutomator);
+  scrollUIAutomator = await 'new UiScrollable(new UiSelector().className("android.widget.ScrollView")).scrollToEnd(10)';
   await scroll(driver, scrollUIAutomator);
 }
 

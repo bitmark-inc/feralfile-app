@@ -37,7 +37,7 @@ void main() {
 
         await selectSubSettingMenu(driver, "Settings");
 
-        await scrollUntil(driver, "Version");
+      await scrollSettingPage(driver);
 
         var versionEle = await driver.findElement(AppiumBy.xpath(
             "//android.view.View[contains(@content-desc,'Version')]"));
@@ -61,6 +61,47 @@ void main() {
       }
     });
 
+    test("EULA", () async {
+      // Open App at Home Page
+      await onBoardingSteps(driver);
+
+      // GO to Settings Page
+      await selectSubSettingMenu(driver, "Settings");
+
+      // Scroll Down
+      await scrollSettingPage(driver);
+
+      await selectSubSettingMenu(driver, "EULA");
+
+      int hasLicense = await driver.findElements(AppiumBy.xpath(
+        "//android.view.View[@content-desc='Autonomy End User License Agreement']"
+      )).length;
+
+      expect(hasLicense, 1);
+
+      //var backBtn = await driver.findElement(
+      //    AppiumBy.accessibilityId("BACK"));
+      //String attr = await backBtn.attributes["content-desc"];
+      //await backBtn.click();
+      //print("Clicked");
+
+      /*
+      var selector = 'new UiSelector().className("android.widget.ImageView").index(0)';
+      var backBtnUIAutomator = 'UiCollection($selector).click()';
+      var finder = await AppiumBy.uiautomator(backBtnUIAutomator);
+      var c = await driver.findElement(finder);
+      print(await c.attributes['content-desc']);
+      c.click();
+
+       */
+      await driver.back();
+
+      //await selectSubSettingMenu(driver, "Privacy Policy");
+      var hasEULA = await driver.findElements(
+              AppiumBy.accessibilityId("EULA")).length;
+      expect(hasEULA, 1);
+    });
+
     test("Privacy Policy", () async {
       try {
         // Open App at Home Page
@@ -68,7 +109,8 @@ void main() {
 
         await selectSubSettingMenu(driver, "Settings");
 
-        await scrollUntil(driver, "Privacy Policy");
+
+      await scrollSettingPage(driver);
 
         await selectSubSettingMenu(driver, "Privacy Policy");
 
@@ -89,5 +131,8 @@ void main() {
         await captureScreen(driver);
       }
     });
+
+
+
   }, timeout: Timeout.none);
 }
