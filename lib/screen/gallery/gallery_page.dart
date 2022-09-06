@@ -77,29 +77,26 @@ class _GalleryPageState extends State<GalleryPage> {
     return PrimaryScrollController(
       controller: _scrollController,
       child: Scaffold(
-        body: SafeArea(
-          child: Stack(
-            children: [
-              BlocConsumer<GalleryBloc, GalleryState>(
-                  listener: (context, state) {
-                final tokens = state.tokens;
-                if (tokens == null) return;
+        body: Stack(
+          children: [
+            BlocConsumer<GalleryBloc, GalleryState>(listener: (context, state) {
+              final tokens = state.tokens;
+              if (tokens == null) return;
 
-                _latestTokensLength = tokens.length;
-                _isLastPage = state.isLastPage;
+              _latestTokensLength = tokens.length;
+              _isLastPage = state.isLastPage;
 
-                if (tokens.isNotEmpty) {
-                  _timer?.cancel();
-                  if (_latestTokensLength == 0) {
-                    Vibrate.feedback(FeedbackType.light);
-                  }
+              if (tokens.isNotEmpty) {
+                _timer?.cancel();
+                if (_latestTokensLength == 0) {
+                  Vibrate.feedback(FeedbackType.light);
                 }
-              }, builder: (context, state) {
-                return _assetsWidget(state.tokens, state.isLoading);
-              }),
-              PenroseTopBarView(_scrollController, PenroseTopBarViewStyle.back),
-            ],
-          ),
+              }
+            }, builder: (context, state) {
+              return _assetsWidget(state.tokens, state.isLoading);
+            }),
+            PenroseTopBarView(_scrollController, PenroseTopBarViewStyle.back),
+          ],
         ),
       ),
     );
@@ -126,7 +123,7 @@ class _GalleryPageState extends State<GalleryPage> {
     sources = [
       SliverToBoxAdapter(
           child: Container(
-        padding: const EdgeInsets.fromLTRB(0, 32, 0, 48),
+        padding: const EdgeInsets.fromLTRB(0, 72, 0, 48),
         child: autonomyLogo,
       )),
       SliverToBoxAdapter(

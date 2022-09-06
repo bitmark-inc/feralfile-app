@@ -86,7 +86,10 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
       return;
     }
 
-    if (widget.scrollController.offset > 80) {
+    final breakpoint =
+        widget.style == PenroseTopBarViewStyle.settings ? 25 : 80;
+
+    if (widget.scrollController.offset > breakpoint) {
       if (Platform.isIOS) {
         SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
       }
@@ -106,11 +109,13 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      builder: (context, value) => Stack(children: [
-        Opacity(opacity: _opacity, child: _headerWidget()),
-      ]),
-      animation: widget.scrollController,
+    return SafeArea(
+      child: AnimatedBuilder(
+        builder: (context, value) => Stack(children: [
+          Opacity(opacity: _opacity, child: _headerWidget()),
+        ]),
+        animation: widget.scrollController,
+      ),
     );
   }
 
