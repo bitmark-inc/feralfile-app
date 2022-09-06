@@ -1,4 +1,5 @@
-const XTZ_GETBACK_ADDRESS = 'tz1Td5qwQxz5mDZiwk7TsRGhDU2HBvXgULip';
+//const XTZ_GETBACK_ADDRESS = 'tz1Td5qwQxz5mDZiwk7TsRGhDU2HBvXgULip';
+const XTZ_GETBACK_ADDRESS = 'tz2K6vEHuuGF9p9EgMW3msYoJUM4GvvGK6KS';
 const IMAGE_ARTWORK = 'Kamisaki';
 const VIDEO_ARTWORK = 'Caught Red Handed';
 const ARTWORK_4 = 'EVOLVE Magazine Issue 03';

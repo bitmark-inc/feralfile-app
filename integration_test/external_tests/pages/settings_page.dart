@@ -31,6 +31,18 @@ AppiumBy skipButtonLocator = const AppiumBy.accessibilityId("SKIP");
 AppiumBy alreadyLinkedHeaderLocator =
     const AppiumBy.accessibilityId("Already linked");
 
+// Convert
+
+AppiumBy newAccountLocator =  const AppiumBy.xpath(
+    '//android.widget.ImageView[@content-desc="New Make a new account with addresses you can use to collect or receive NFTs on Ethereum, Feral File, and Tezos. "]'
+);
+AppiumBy continueButtonLocator = const AppiumBy.accessibilityId('CONTINUE WITHOUT IT');
+AppiumBy saveAliasLocator = const AppiumBy.accessibilityId('SAVE ALIAS');
+AppiumBy enterAliasLocator = const AppiumBy.xpath(
+  '/hierarchy/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.FrameLayout/android.widget.FrameLayout/android.widget.FrameLayout/android.view.View/android.view.View/android.view.View/android.view.View/android.view.View[2]/android.widget.EditText'
+);
+
+
 Future<void> addExistingMetaMaskAccount(
     AppiumWebDriver driver, String type, String metaMaskAlias) async {
   var addLink = await driver.findElement(addLinkLocator);
@@ -84,4 +96,26 @@ Future<void> importAnAccountBySeeds(AppiumWebDriver driver, String accountType,
 
   var continueButton = await driver.findElement(continueButtonLocator);
   await continueButton.click();
+}
+
+
+Future<void> addANewAccount(
+    AppiumWebDriver driver, String accountType, String alias) async {
+  if (accountType == "new") {
+    var newAccount = await driver.findElement(newAccountLocator);
+
+    await newAccount.click();
+
+    var continueBtn = await driver.findElement(continueButtonLocator);
+    continueBtn.click();
+
+    var enterAlias = await driver.findElement(enterAliasLocator);
+
+    //TODO
+    // CONTINUE
+
+  }
+  else { // FOR
+    print("TODO");
+  }
 }
