@@ -27,7 +27,7 @@ class TezosTXRowView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final DateFormat formatter = DateFormat('MMM d hh:mm');
+    final DateFormat formatter = DateFormat('yyyy-MM-dd hh:mm:ss');
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 18),
