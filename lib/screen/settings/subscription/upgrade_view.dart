@@ -115,7 +115,6 @@ class UpgradesView extends StatelessWidget {
               ...[
                 "view_collection_tv".tr(),
                 //"View your collection on TV and projectors.",
-                "priority_support".tr()
               ]
                   .map((item) => Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
