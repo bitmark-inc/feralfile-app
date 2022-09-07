@@ -8,7 +8,6 @@ import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
-import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -23,7 +22,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:flutter_svg/parser.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/provenance.dart';
@@ -32,7 +30,6 @@ import 'package:nft_rendering/nft_rendering.dart';
 // ignore: depend_on_referenced_packages
 import 'package:path/path.dart' as p;
 import 'package:url_launcher/url_launcher.dart';
-import 'package:http/http.dart' as http;
 
 import '../common/injector.dart';
 
@@ -62,9 +59,11 @@ class TokenThumbnailWidget extends StatelessWidget {
       tag: token.id,
       child: ext == ".svg"
           ? Center(
-              child: SvgArtwork(
+              child: SvgImage(
                 url: thumbnailUrl,
-                placeholderBuilder: (context) => placeholder(context),
+                fallbackToWebView: true,
+                loadingWidgetBuilder: (context) => placeholder(context),
+                errorWidgetBuilder: (_) => const GalleryThumbnailErrorWidget(),
               ),
             )
           : CachedNetworkImage(
@@ -107,39 +106,6 @@ class TokenThumbnailWidget extends StatelessWidget {
   }
 }
 
-class SvgArtwork extends StatelessWidget {
-  final String url;
-  final WidgetBuilder placeholderBuilder;
-
-  const SvgArtwork(
-      {Key? key, required this.url, required this.placeholderBuilder})
-      : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<String>(future: Future<String>(() async {
-      final resp = await http.get(Uri.parse(url));
-      await SvgParser().parse(resp.body);
-      return resp.body;
-    }), builder: (context, data) {
-      if (data.error != null) {
-        log.info("Not supported SVG artwork $url");
-        return const AspectRatio(
-          aspectRatio: 1,
-          child: GalleryThumbnailErrorWidget(),
-        );
-      } else if (data.hasData) {
-        return SvgPicture.string(
-          data.data ?? "",
-          placeholderBuilder: placeholderBuilder,
-        );
-      } else {
-        return placeholderBuilder(context);
-      }
-    });
-  }
-}
-
 Widget tokenGalleryThumbnailWidget(
     BuildContext context, AssetToken token, int cachedImageSize) {
   final thumbnailUrl = token.getGalleryThumbnailUrl();
@@ -153,9 +119,11 @@ Widget tokenGalleryThumbnailWidget(
     tag: token.id,
     key: const Key('Artwork_Thumbnail'),
     child: ext == ".svg"
-        ? SvgArtwork(
+        ? SvgImage(
             url: thumbnailUrl,
-            placeholderBuilder: (_) => const GalleryThumbnailPlaceholder())
+            loadingWidgetBuilder: (_) => const GalleryThumbnailPlaceholder(),
+            errorWidgetBuilder: (_) => const GalleryThumbnailErrorWidget(),
+          )
         : CachedNetworkImage(
             imageUrl: token.getGalleryThumbnailUrl()!,
             fadeInDuration: Duration.zero,
