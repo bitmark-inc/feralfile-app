@@ -98,6 +98,9 @@ class Environment {
   static String get autonomyIpfsPrefix =>
       dotenv.env['AUTONOMY_IPFS_PREFIX'] ?? '';
 
+  static int? get pendingTokenExpireMs =>
+      int.tryParse(dotenv.env['PENDING_TOKEN_EXPIRE_MS'] ?? "");
+
   static bool get appTestnetConfig =>
       dotenv.env['APP_TESTNET_CONFIG']?.toUpperCase() == "TRUE";
 }

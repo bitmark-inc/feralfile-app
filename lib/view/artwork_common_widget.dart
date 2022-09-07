@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:autonomy_flutter/view/jumping_dot.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -37,6 +38,31 @@ import '../common/injector.dart';
 String getEditionSubTitle(AssetToken token) {
   if (token.edition == 0) return "";
   return " (${token.edition}/${token.maxEdition})";
+}
+
+class PendingTokenWidget extends StatelessWidget {
+  const PendingTokenWidget({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipPath(
+      clipper: AutonomyTopRightRectangleClipper(),
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 12.8,
+          vertical: 19.26,
+        ),
+        color: AppColor.secondaryDimGreyBackground,
+        child: const Align(
+          alignment: Alignment.bottomLeft,
+          child: JumpingDots(
+            color: AppColor.secondaryDimGrey,
+            radius: 3.2,
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class TokenThumbnailWidget extends StatelessWidget {

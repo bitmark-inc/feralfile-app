@@ -35,6 +35,7 @@ import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/ledger_hardware/ledger_hardware_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/service/pending_token_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
@@ -181,10 +182,14 @@ Future<void> setup() async {
       () => AuthService(injector(), injector(), injector()));
   injector.registerLazySingleton(() => BackupService(injector()));
 
+  final pendingTokenExpireMs = Environment.pendingTokenExpireMs;
   final nftBloc = await NftCollection.createBloc(
     indexerUrl: Environment.indexerURL,
     logger: log,
     apiLogger: apiLog,
+    pendingTokenExpire: pendingTokenExpireMs != null
+        ? Duration(milliseconds: pendingTokenExpireMs)
+        : null,
   );
   injector.registerSingleton(nftBloc);
   injector.registerSingleton(nftBloc.tokensService);
@@ -251,6 +256,13 @@ Future<void> setup() async {
 
   injector.registerLazySingleton<DeeplinkService>(() => DeeplinkServiceImpl(
       injector(), injector(), injector(), injector(), injector()));
+
+  injector.registerLazySingleton<PendingTokenService>(() => PendingTokenService(
+        injector(),
+        injector(),
+        injector(),
+        nftBloc.database.assetDao,
+      ));
 }
 
 parseJson(String text) {
