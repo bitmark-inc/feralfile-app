@@ -90,7 +90,7 @@ class TezosServiceImpl extends TezosService {
       await operationList.estimate();
 
       return operationList.operations
-          .map((e) => e.fee)
+          .map((e) => e.totalFee)
           .reduce((value, element) => value + element);
     });
   }
@@ -135,7 +135,7 @@ class TezosServiceImpl extends TezosService {
       await operation.estimate();
 
       return operation.operations
-          .map((e) => e.fee)
+          .map((e) => e.totalFee)
           .reduce((value, element) => value + element);
     });
   }
