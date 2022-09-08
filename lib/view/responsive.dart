@@ -7,6 +7,7 @@
 
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/view/user_agent_utils.dart';
 import 'package:flutter/material.dart';
 
 class ResponsiveLayout extends StatelessWidget {
@@ -22,14 +23,17 @@ class ResponsiveLayout extends StatelessWidget {
   }) : super(key: key);
 
   static bool get isMobile =>
-      AutonomyApp.maxWidth < Constants.kTabletBreakpoint;
+      AutonomyApp.maxWidth < Constants.kTabletBreakpoint ||
+      DeviceInfo.instance.isPhone;
 
   static bool get isTablet =>
       AutonomyApp.maxWidth < Constants.kDesktopBreakpoint &&
-      AutonomyApp.maxWidth >= Constants.kTabletBreakpoint;
+      AutonomyApp.maxWidth >= Constants.kTabletBreakpoint &&
+      !DeviceInfo.instance.isPhone;
 
   static bool get isDesktop =>
-      AutonomyApp.maxWidth >= Constants.kDesktopBreakpoint;
+      AutonomyApp.maxWidth >= Constants.kDesktopBreakpoint &&
+      !DeviceInfo.instance.isPhone;
 
   @override
   Widget build(BuildContext context) {
