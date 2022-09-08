@@ -63,7 +63,7 @@ void main() async {
       // send back
       await gotoTransactionPage(driver, ALIAS_ACCOUNT);
       await sendTezos(driver, XTZ_GETBACK_ADDRESS);
-      await timeDelay(20);
+      await timeDelay(30);
 
       //Assert Back to Transactions Page
       int hasSendButton = await driver.findElements(AppiumBy.accessibilityId("SEND")).length;
