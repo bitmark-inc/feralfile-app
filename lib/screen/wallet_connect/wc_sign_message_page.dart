@@ -102,9 +102,12 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
       BuildContext pageContext, Uint8List message, String messageInUtf8) {
     return BlocConsumer<FeralfileBloc, FeralFileState>(
         listener: (context, state) {
-      final event = state.event;
-      if (event == null) return;
+      if (state.event != null) {
+        Navigator.of(context).pop();
+      }
 
+      /***
+       * Temporary ignore checking state with FF, will remove in the future
       if (event is LinkAccountSuccess) {
         Navigator.of(context).pop();
         return;
@@ -131,6 +134,7 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
               route.settings.name == AppRouter.homePageNoTransition);
         });
       }
+       */
     }, builder: (context, state) {
       return Row(
         children: [

@@ -263,7 +263,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
     if (state.fee == null) return "";
     final fee = state.fee!;
 
-    String text = "gas_fee";
+    String text = "gas_fee".tr();
 
     switch (widget.data.type) {
       case CryptoType.ETH:
