@@ -97,25 +97,3 @@ Future<void> importAnAccountBySeeds(AppiumWebDriver driver, String accountType,
   var continueButton = await driver.findElement(continueButtonLocator);
   await continueButton.click();
 }
-
-
-Future<void> addANewAccount(
-    AppiumWebDriver driver, String accountType, String alias) async {
-  if (accountType == "new") {
-    var newAccount = await driver.findElement(newAccountLocator);
-
-    await newAccount.click();
-
-    var continueBtn = await driver.findElement(continueButtonLocator);
-    continueBtn.click();
-
-    var enterAlias = await driver.findElement(enterAliasLocator);
-
-    //TODO
-    // CONTINUE
-
-  }
-  else { // FOR
-    print("TODO");
-  }
-}

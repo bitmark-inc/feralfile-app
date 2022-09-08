@@ -7,12 +7,12 @@
 
 import 'dart:io';
 import 'dart:math';
+import 'dart:convert';
 
 import 'package:appium_driver/async_io.dart';
-import 'package:test/test.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:http/http.dart' as http;
 
-import 'dart:convert';
 
 AppiumBy settingButtonLocator = const AppiumBy.accessibilityId("Settings");
 AppiumBy accountAliasLocator =
@@ -96,17 +96,76 @@ Future<void> scrollSettingPage(driver) async {
   await scroll(driver, scrollUIAutomator);
 }
 
-Future<void> captureScreen(AppiumWebDriver driver) async {
-  var screenshot = await driver.captureScreenshotAsBase64();
+Future<void> depositTezos(String address) async {
+  final faucetUrl = dotenv.env['TEZOS_FAUCET_URL'] ?? '';
+  //final faucetUrl = TEZOS_FAUCET_URL ?? "";
+  final token = dotenv.env['TEZOS_FAUCET_AUTH_TOKEN'] ?? '';
+  //final token = TEZOS_FAUCET_AUTH_TOKEN ?? "";
 
-  final decodedBytes = base64Decode(screenshot.replaceAll(RegExp(r'\s+'), ''));
+  await http.post(
+    Uri.parse(faucetUrl),
+    body: json.encode({"address": address}),
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Basic $token",
+    },
+  );
+}
 
-  final DateTime now = DateTime.now();
-  final DateFormat formatter = DateFormat('MMddyyyy');
-  final String formattedFolder = formatter.format(now);
+Future<AppiumWebElement> getElementByContentDesc(AppiumWebDriver driver, String contain) async {
+  AppiumBy locator = AppiumBy.xpath(
+      '//*[contains(@content-desc,"$contain")]');
+  var element = driver.findElements(locator).first;
+  return element;
+}
 
-  final filename = DateTime.now().microsecondsSinceEpoch;
-  var file = await File("/tmp/AUResult/$formattedFolder/$filename.png")
-      .create(recursive: true);
-  file.writeAsBytesSync(decodedBytes);
+Future<void> goBack(AppiumWebDriver driver, int step) async {
+  for (int i = 0; i < step; i++) {
+    await driver.back();
+  }
+}
+
+Future<void> gotoTransactionPage(AppiumWebDriver driver, String alias) async {
+  //From Setting Page
+  AppiumWebElement toAccount = await driver.findElement(AppiumBy.accessibilityId('$alias'));
+  await toAccount.click();
+
+  AppiumBy tezos_XTZLocator = AppiumBy.xpath(
+      '//android.widget.ImageView[contains(@content-desc,"Tezos")]');
+  AppiumWebElement tezos_XTZ = await driver.findElements(tezos_XTZLocator).first;
+  await tezos_XTZ.click();
+
+  AppiumBy historyButtonLocator = AppiumBy.xpath(
+      '//android.widget.ImageView[contains(@content-desc, "History")]');
+  var historyButton = await driver.findElement(historyButtonLocator);
+  historyButton.click();
+}
+
+/*
+  From: Setting Page
+  To: Setting Page
+ */
+RegExp XTZExp = RegExp(r'[0-9]+.[0-9]*');
+RegExp TEZOS_ADRESS_EXP = RegExp(r'tz.*');
+Future<String> getTezosAddress(AppiumWebDriver driver, String alias) async {
+  AppiumWebElement toAccount = await driver.findElement(AppiumBy.accessibilityId('$alias'));
+  await toAccount.click();
+
+  AppiumBy tezozAddressLocator = AppiumBy.xpath(
+      '//android.widget.ImageView[contains(@content-desc, "Tezos")]');
+
+  var tezozAddress = await driver.findElements(tezozAddressLocator).first;
+  String decs = await tezozAddress.attributes['content-desc'];
+  String? address = TEZOS_ADRESS_EXP.stringMatch(decs);
+
+  await goBack(driver, 1);
+  return address as String;
+}
+
+Future<void> timeDelay(int second) async {
+  Duration dur = Duration(seconds: 1);
+  for (int i = 0; i < second; i++){
+    print(i);
+    await Future.delayed(dur);
+  }
 }

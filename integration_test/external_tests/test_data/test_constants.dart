@@ -1,5 +1,5 @@
-//const XTZ_GETBACK_ADDRESS = 'tz1Td5qwQxz5mDZiwk7TsRGhDU2HBvXgULip';
-const XTZ_GETBACK_ADDRESS = 'tz2K6vEHuuGF9p9EgMW3msYoJUM4GvvGK6KS';
+const XTZ_GETBACK_ADDRESS = 'tz1Td5qwQxz5mDZiwk7TsRGhDU2HBvXgULip';
+//const XTZ_GETBACK_ADDRESS = 'tz2K6vEHuuGF9p9EgMW3msYoJUM4GvvGK6KS';
 const IMAGE_ARTWORK = 'Kamisaki';
 const VIDEO_ARTWORK = 'Caught Red Handed';
 const ARTWORK_4 = 'EVOLVE Magazine Issue 03';
@@ -36,19 +36,9 @@ const SEED_TO_RESTORE_KUKAI =
 const SEED_TO_RESTORE_TEMPLE =
     'hidden laundry process risk unveil merge pyramid arrange hollow jeans motion scrap';
 
-const LIST_OF_EXCHANGES = [
-  {"exchangeName": 'objkt.com', "linkedExchangeName": 'objkt.com'},
-  {'exchangeName': 'fxhash.xyz', 'linkedExchangeName': 'fxhash'},
-  {'exchangeName': 'hicetnunc.cc', 'linkedExchangeName': 'hicetnunc.xyz'},
-  {'exchangeName': 'teia.art', 'linkedExchangeName': 'teia.art'},
-  {'exchangeName': 'versum.xyz', 'linkedExchangeName': 'versum'},
-  {'exchangeName': 'akaswap.com', 'linkedExchangeName': 'akaswap'},
-  {'exchangeName': 'typed.art', 'linkedExchangeName': 'typed.art'},
-  {'exchangeName': 'feralfile.staging.bitmark.com/exhibitions', 'linkedExchangeName':'Feral File'},
-];
-
-const TEZ_SOURCE_ADDRESS = "tz1SidNQb9XcwP7L3MzCZD9JHmWw2ebDzgyX";
-const TEZ_TARGET_ADDRESS = "tz1LVCTxttjxVPmZEfBatmXk8uT5S9CKmMUr";
-const TEZ_SEND_ARTWORK_NAME = "Cay luoi ho cua Long";
-const URL_BALANCE_SOURCE_ACCOUNT =
-    "https://api.tzkt.io/v1/tokens/balances?account=$TEZ_SOURCE_ADDRESS&token.metadata.artifactUri.null=false&sort.desc=balance&limit=1";
+const ALIAS_ACCOUNT = "ACOUNT_A";
+const ALIAS_ANOTHER_ACCOUNT = "ACOUNT_B";
+const SEED_TO_RESTORE_ACCOUNT =
+    "real cat erase wrong shine example pen science barrel shed gentle tilt";
+const SEED_TO_RESTORE_ANOTHER_ACCOUNT =
+    "pair copper together wife riot lawn extend rebuild universe brain local easy";
