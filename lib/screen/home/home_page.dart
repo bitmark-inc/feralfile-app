@@ -192,6 +192,7 @@ class _HomePageState extends State<HomePage>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final contentWidget =
         BlocConsumer<NftCollectionBloc, NftCollectionBlocState>(
             builder: (context, state) {
@@ -217,6 +218,7 @@ class _HomePageState extends State<HomePage>
     return PrimaryScrollController(
       controller: _controller,
       child: Scaffold(
+        backgroundColor: theme.backgroundColor,
         body: Stack(
           children: [
             contentWidget,

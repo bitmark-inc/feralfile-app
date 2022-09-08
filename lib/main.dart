@@ -21,6 +21,7 @@ import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_flutter/view/user_agent_utils.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:floor/floor.dart';
 import 'package:flutter/material.dart';
@@ -96,6 +97,8 @@ void main() async {
 _setupApp() async {
   await setup();
   await injector<AWSService>().initServices();
+  await DeviceInfo.instance.init();
+
   final countOpenApp = injector<ConfigurationService>().countOpenApp() ?? 0;
   injector<ConfigurationService>().setCountOpenApp(countOpenApp + 1);
 
