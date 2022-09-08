@@ -3,7 +3,7 @@
 *.log
 *.pyc
 *.swp
-*.lock
+Podfile.lock
 *.resolved
 .DS_Store
 .atom/
