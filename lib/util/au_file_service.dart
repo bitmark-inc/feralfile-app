@@ -4,9 +4,11 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:ui';
 
+import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/mime_type.dart';
+import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
@@ -128,7 +130,7 @@ class AuFileService extends FileService {
               compressedFile,
               minWidth: 400,
               minHeight: 400,
-              quality: 80,
+              quality: 90,
             );
             if (await File(compressedFile).exists()) {
               await File(originalFile).delete();
@@ -165,17 +167,25 @@ class AuFileService extends FileService {
     var info =
         _taskId2Info.values.firstWhereOrNull((element) => element.url == url);
     if (info == null) {
-      final ext = await getFileExtension(url);
-      final fileName = "${md5.convert(utf8.encode(url))}.$ext";
+      final fileInfo = await getFileInfo(url);
+      String? fallbackUrl;
+      if (fileInfo.size <= 0 &&
+          url.startsWith(Environment.autonomyIpfsPrefix)) {
+        fallbackUrl = url.replacePrefix(
+          Environment.autonomyIpfsPrefix,
+          DEFAULT_IPFS_PREFIX,
+        );
+      }
+      final fileName = "${md5.convert(utf8.encode(url))}.${fileInfo.extension}";
       final taskId = await FlutterDownloader.enqueue(
-        url: url,
+        url: fallbackUrl ?? url,
         headers: headers,
         savedDir: _saveDir,
         fileName: fileName,
         showNotification: false,
         openFileFromNotification: false,
       );
-      info = Info(url, ext, taskId ?? "", fileName, Completer());
+      info = Info(url, fileInfo.extension, taskId ?? "", fileName, Completer());
       _taskId2Info[taskId ?? ""] = info;
     }
     return info.task.future;
