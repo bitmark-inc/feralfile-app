@@ -97,3 +97,22 @@ Future<void> importAnAccountBySeeds(AppiumWebDriver driver, String accountType,
   var continueButton = await driver.findElement(continueButtonLocator);
   await continueButton.click();
 }
+
+RegExp XTZExp = RegExp(r'[0-9]+.[0-9]*');
+Future<double> getTezosBalance(AppiumWebDriver driver, String alias) async {
+
+  AppiumWebElement toAccount = await driver.findElement(AppiumBy.accessibilityId('$alias'));
+  await toAccount.click();
+  await timeDelay(3); // wait for loading
+
+  AppiumBy tezozAddressLocator = AppiumBy.xpath(
+      '//android.widget.ImageView[contains(@content-desc, "Tezos")]');
+
+  var tezozAddress = await driver.findElements(tezozAddressLocator).first;
+  String decs = await tezozAddress.attributes['content-desc'];
+  String? address = XTZExp.stringMatch(decs);
+  double balance = double.parse(address as String ?? '0.0');
+  await goBack(driver, 1);
+  return balance;
+
+}

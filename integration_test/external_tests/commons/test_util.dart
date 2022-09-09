@@ -9,8 +9,8 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:convert';
 
-import 'package:appium_driver/async_io.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:appium_driver/async_io.dart';
 import 'package:http/http.dart' as http;
 
 
@@ -98,9 +98,10 @@ Future<void> scrollSettingPage(driver) async {
 
 Future<void> depositTezos(String address) async {
   final faucetUrl = dotenv.env['TEZOS_FAUCET_URL'] ?? '';
-  //final faucetUrl = TEZOS_FAUCET_URL ?? "";
   final token = dotenv.env['TEZOS_FAUCET_AUTH_TOKEN'] ?? '';
-  //final token = TEZOS_FAUCET_AUTH_TOKEN ?? "";
+
+  //final faucetUrl = TEZOS_FAUCET_URL;
+  //final token = TEZOS_FAUCET_AUTH_TOKEN;
 
   await http.post(
     Uri.parse(faucetUrl),
@@ -115,7 +116,7 @@ Future<void> depositTezos(String address) async {
 Future<AppiumWebElement> getElementByContentDesc(AppiumWebDriver driver, String contain) async {
   AppiumBy locator = AppiumBy.xpath(
       '//*[contains(@content-desc,"$contain")]');
-  var element = driver.findElements(locator).first;
+  var element = driver.findElements(locator).elementAt(0);
   return element;
 }
 
@@ -141,13 +142,9 @@ Future<void> gotoTransactionPage(AppiumWebDriver driver, String alias) async {
   historyButton.click();
 }
 
-/*
-  From: Setting Page
-  To: Setting Page
- */
-RegExp XTZExp = RegExp(r'[0-9]+.[0-9]*');
 RegExp TEZOS_ADRESS_EXP = RegExp(r'tz.*');
 Future<String> getTezosAddress(AppiumWebDriver driver, String alias) async {
+  await timeDelay(1);
   AppiumWebElement toAccount = await driver.findElement(AppiumBy.accessibilityId('$alias'));
   await toAccount.click();
 
@@ -165,7 +162,7 @@ Future<String> getTezosAddress(AppiumWebDriver driver, String alias) async {
 Future<void> timeDelay(int second) async {
   Duration dur = Duration(seconds: 1);
   for (int i = 0; i < second; i++){
-    print(i);
     await Future.delayed(dur);
   }
 }
+

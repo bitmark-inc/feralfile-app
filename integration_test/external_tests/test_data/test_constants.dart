@@ -42,3 +42,6 @@ const SEED_TO_RESTORE_ACCOUNT =
     "real cat erase wrong shine example pen science barrel shed gentle tilt";
 const SEED_TO_RESTORE_ANOTHER_ACCOUNT =
     "pair copper together wife riot lawn extend rebuild universe brain local easy";
+
+const DEPOSIT_AMOUNT = 0.1;
+const EPS = 1e6;
