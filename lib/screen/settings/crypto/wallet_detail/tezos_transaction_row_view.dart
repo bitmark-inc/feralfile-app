@@ -27,7 +27,10 @@ class TezosTXRowView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final DateFormat formatter = DateFormat('MMM d hh:mm');
+    final DateFormat formatter;
+    formatter = DateTime.now().year == tx.getTimeStamp().year
+        ? DateFormat('MMM-dd hh:mm')
+        : DateFormat('yyyy-MMM-dd hh:mm');
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 18),
@@ -35,7 +38,7 @@ class TezosTXRowView extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            formatter.format(tx.getTimeStamp()),
+            formatter.format(tx.getTimeStamp()).toUpperCase(),
             style: ResponsiveLayout.isMobile
                 ? theme.textTheme.ibmBlackNormal14
                 : theme.textTheme.ibmBlackNormal16,

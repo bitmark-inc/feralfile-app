@@ -223,6 +223,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
               l10n: ChatL10nEn(
                 inputPlaceholder: "write_message".tr(),
               ),
+              customDateHeaderText: getChatDateTimeRepresentation,
               bubbleBuilder: _bubbleBuilder,
               theme: _chatTheme,
               customMessageBuilder: _customMessageBuilder,
@@ -244,6 +245,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
                   _status == 'closed' ? const SizedBox(height: 40) : null,
             )));
   }
+
 
   Widget _bubbleBuilder(
     Widget child, {

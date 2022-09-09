@@ -7,10 +7,10 @@
 
 import 'package:intl/intl.dart';
 
-final DateFormat _localtimeFormatter = DateFormat('yyyy-MM-dd\nhh:mm:ss');
+final DateFormat _localtimeFormatter = DateFormat('yyyy-MMM-dd hh:mm');
 
 String localTimeString(DateTime date) {
-  return _localtimeFormatter.format(date.toLocal());
+  return _localtimeFormatter.format(date.toLocal()).toUpperCase();
 }
 
 String localTimeStringFromISO8601(String str) {

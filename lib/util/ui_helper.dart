@@ -679,29 +679,17 @@ String getDateTimeRepresentation(DateTime dateTime) {
 
 // From chat_ui/util
 String getVerboseDateTimeRepresentation(
-  DateTime dateTime, {
-  DateFormat? dateFormat,
-  String? dateLocale,
-  DateFormat? timeFormat,
-}) {
-  final formattedDate = dateFormat != null
-      ? dateFormat.format(dateTime)
-      : DateFormat.MMMd(dateLocale).format(dateTime);
-  final formattedTime = timeFormat != null
-      ? timeFormat.format(dateTime)
-      : DateFormat.Hm(dateLocale).format(dateTime);
-  final localDateTime = dateTime.toLocal();
-  final now = DateTime.now();
+  DateTime dateTime) {
+  final DateTime now = DateTime.now();
+  if (DateUtils.isSameDay(dateTime, now)) return DateFormat('hh:mm').format(dateTime);
+  if (dateTime.year == now.year) return DateFormat('MMM-dd').format(dateTime).toUpperCase();
+  return DateFormat('yyyy-MMM-dd hh:mm').format(dateTime).toUpperCase();
+}
 
-  if (localDateTime.day == now.day &&
-      localDateTime.month == now.month &&
-      localDateTime.year == now.year) {
-    return formattedTime;
-  }
-
-  if (Jiffy(localDateTime).week == Jiffy(now).week) {
-    return Jiffy(localDateTime).format("EE");
-  }
-
-  return '$formattedDate, $formattedTime';
+String getChatDateTimeRepresentation(
+    DateTime dateTime) {
+  final DateTime now = DateTime.now();
+  if (DateUtils.isSameDay(dateTime, now)) return DateFormat('hh:mm').format(dateTime);
+  if (dateTime.year == now.year) return DateFormat('MMM-dd hh:mm').format(dateTime.toLocal()).toUpperCase();
+  return DateFormat('yyyy-MMM-dd hh:mm').format(dateTime.toLocal()).toUpperCase();
 }

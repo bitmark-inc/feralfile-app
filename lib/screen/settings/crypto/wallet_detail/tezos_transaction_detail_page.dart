@@ -36,7 +36,7 @@ class TezosTXDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final DateFormat formatter = DateFormat('yyyy-MM-dd hh:mm');
+    final DateFormat formatter = DateFormat('yyyy-MMM-dd hh:mm');
 
     return Scaffold(
       appBar: getBackAppBar(context, onBack: () => Navigator.of(context).pop()),
@@ -92,7 +92,7 @@ class TezosTXDetailPage extends StatelessWidget {
               tx_.token?.contract?.alias ?? tx_.token?.contract?.address),
           _transactionInfo(context, "status".tr(), tx_.transactionStatus()),
           _transactionInfo(
-              context, "date".tr(), formatter.format(tx_.getTimeStamp())),
+              context, "date".tr(), formatter.format(tx_.getTimeStamp()).toUpperCase()),
           _transactionInfo(context, "token_id".tr(), tx_.token?.tokenId),
           _transactionInfo(context, "token_amount".tr(), tx_.amount),
           if (hasFee) ...[
@@ -128,7 +128,7 @@ class TezosTXDetailPage extends StatelessWidget {
           ],
           _transactionInfo(context, "status".tr(), tx.transactionStatus()),
           _transactionInfo(
-              context, "date".tr(), formatter.format(tx.getTimeStamp())),
+              context, "date".tr(), formatter.format(tx.getTimeStamp()).toUpperCase()),
           if (tx_.type == "transaction")
             _transactionInfo(context, "amount".tr(), _transactionAmount(tx_)),
           if (tx_.sender?.address == currentAddress) ...[
