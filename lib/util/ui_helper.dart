@@ -17,10 +17,10 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -29,7 +29,6 @@ import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:jiffy/jiffy.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:share/share.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 
 enum ActionState { notRequested, loading, error, done }
 
@@ -680,14 +679,24 @@ String getDateTimeRepresentation(DateTime dateTime) {
 // From chat_ui/util
 String getVerboseDateTimeRepresentation(DateTime dateTime) {
   final DateTime now = DateTime.now();
-  if (DateUtils.isSameDay(dateTime, now)) return DateFormat('hh:mm').format(dateTime);
-  if (dateTime.year == now.year) return DateFormat('MMM-dd').format(dateTime).toUpperCase();
+  if (DateUtils.isSameDay(dateTime, now)) {
+    return DateFormat('hh:mm').format(dateTime);
+  }
+  if (dateTime.year == now.year) {
+    return DateFormat('MMM-dd').format(dateTime).toUpperCase();
+  }
   return DateFormat('yyyy-MMM-dd hh:mm').format(dateTime).toUpperCase();
 }
 
 String getChatDateTimeRepresentation(DateTime dateTime) {
   final DateTime now = DateTime.now();
-  if (DateUtils.isSameDay(dateTime, now)) return DateFormat('hh:mm').format(dateTime);
-  if (dateTime.year == now.year) return DateFormat('MMM-dd hh:mm').format(dateTime.toLocal()).toUpperCase();
-  return DateFormat('yyyy-MMM-dd hh:mm').format(dateTime.toLocal()).toUpperCase();
+  if (DateUtils.isSameDay(dateTime, now)) {
+    return DateFormat('hh:mm').format(dateTime);
+  }
+  if (dateTime.year == now.year) {
+    return DateFormat('MMM-dd hh:mm').format(dateTime.toLocal()).toUpperCase();
+  }
+  return DateFormat('yyyy-MMM-dd hh:mm')
+      .format(dateTime.toLocal())
+      .toUpperCase();
 }
