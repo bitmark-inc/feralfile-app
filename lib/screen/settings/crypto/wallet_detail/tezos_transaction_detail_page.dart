@@ -6,6 +6,7 @@
 //
 
 import 'package:autonomy_flutter/model/tzkt_operation.dart';
+import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -36,7 +37,7 @@ class TezosTXDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final DateFormat formatter = DateFormat('yyyy-MM-dd hh:mm');
+    final DateFormat formatter = dateFormatterYMDHM;
 
     return Scaffold(
       appBar: getBackAppBar(context, onBack: () => Navigator.of(context).pop()),
@@ -92,7 +93,7 @@ class TezosTXDetailPage extends StatelessWidget {
               tx_.token?.contract?.alias ?? tx_.token?.contract?.address),
           _transactionInfo(context, "status".tr(), tx_.transactionStatus()),
           _transactionInfo(
-              context, "date".tr(), formatter.format(tx_.getTimeStamp())),
+              context, "date".tr(), formatter.format(tx_.getTimeStamp()).toUpperCase()),
           _transactionInfo(context, "token_id".tr(), tx_.token?.tokenId),
           _transactionInfo(context, "token_amount".tr(), tx_.amount),
           if (hasFee) ...[
@@ -128,7 +129,7 @@ class TezosTXDetailPage extends StatelessWidget {
           ],
           _transactionInfo(context, "status".tr(), tx.transactionStatus()),
           _transactionInfo(
-              context, "date".tr(), formatter.format(tx.getTimeStamp())),
+              context, "date".tr(), formatter.format(tx.getTimeStamp()).toUpperCase()),
           if (tx_.type == "transaction")
             _transactionInfo(context, "amount".tr(), _transactionAmount(tx_)),
           if (tx_.sender?.address == currentAddress) ...[

@@ -17,10 +17,10 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -677,31 +677,4 @@ String getDateTimeRepresentation(DateTime dateTime) {
   return Jiffy(dateTime).fromNow();
 }
 
-// From chat_ui/util
-String getVerboseDateTimeRepresentation(
-  DateTime dateTime, {
-  DateFormat? dateFormat,
-  String? dateLocale,
-  DateFormat? timeFormat,
-}) {
-  final formattedDate = dateFormat != null
-      ? dateFormat.format(dateTime)
-      : DateFormat.MMMd(dateLocale).format(dateTime);
-  final formattedTime = timeFormat != null
-      ? timeFormat.format(dateTime)
-      : DateFormat.Hm(dateLocale).format(dateTime);
-  final localDateTime = dateTime.toLocal();
-  final now = DateTime.now();
 
-  if (localDateTime.day == now.day &&
-      localDateTime.month == now.month &&
-      localDateTime.year == now.year) {
-    return formattedTime;
-  }
-
-  if (Jiffy(localDateTime).week == Jiffy(now).week) {
-    return Jiffy(localDateTime).format("EE");
-  }
-
-  return '$formattedDate, $formattedTime';
-}

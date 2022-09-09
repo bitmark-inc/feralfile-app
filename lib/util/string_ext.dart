@@ -30,7 +30,7 @@ extension StringExtension on String {
     if (isEmpty) return null;
     final identity = identityMap?[this];
     return (identity != null && identity.isNotEmpty)
-        ? identity
+        ? (identity.length < 14 ? identity : "${identity.substring(0,12)}...")
         : maskIfNeeded();
   }
 
