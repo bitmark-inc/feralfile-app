@@ -244,7 +244,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                               ],
                             ),
                           ],
-                          const SizedBox(height: 8.0),
+                          const SizedBox(height: 16.0),
                           AuTextField(
                             title: "to".tr(),
                             placeholder: "paste_or_scan_address".tr(),
