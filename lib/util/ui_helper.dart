@@ -26,9 +26,10 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
-import 'package:intl/intl.dart';
 import 'package:jiffy/jiffy.dart';
+import 'package:nft_collection/models/asset_token.dart';
 import 'package:share/share.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 
 enum ActionState { notRequested, loading, error, done }
 
@@ -229,6 +230,53 @@ class UIHelper {
             ]),
           ),
           const SizedBox(height: 67),
+        ],
+      ),
+      isDismissible: true,
+    );
+  }
+
+  static Future<void> showUnavailableCastDialog({
+    required BuildContext context,
+    Function()? dontShowAgain,
+    AssetToken? assetToken,
+  }) {
+    final theme = Theme.of(context);
+    final isPDFArtwork = assetToken?.mimeType == 'application/pdf';
+    return showDialog(
+      context,
+      'unavailable_cast'.tr(),
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                Icons.cast,
+                color: theme.disableColor,
+              ),
+              const SizedBox(
+                width: 17,
+              ),
+              Expanded(
+                child: Text(
+                  isPDFArtwork
+                      ? 'unavailable_cast_pdf_des'.tr()
+                      : 'unavailable_cast_interactive_des'.tr(),
+                  style: theme.textTheme.atlasDimgreyBold16,
+                ),
+              )
+            ],
+          ),
+          const SizedBox(height: 40),
+          AuFilledButton(
+            text: 'ok'.tr(),
+            onPress: () => Navigator.pop(context),
+            textStyle: theme.textTheme.button,
+            color: theme.colorScheme.secondary,
+          ),
+          const SizedBox(height: 10),
         ],
       ),
       isDismissible: true,
