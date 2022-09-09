@@ -187,6 +187,16 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   }
 
   Future<void> onCastTap(AssetToken? asset) async {
+    final canCast = asset?.medium == "video" ||
+        asset?.medium == "image" ||
+        asset?.mimeType?.startsWith("audio/") == true;
+
+    if (!canCast) {
+      return UIHelper.showUnavailableCastDialog(
+        context: context,
+        assetToken: asset,
+      );
+    }
     return UIHelper.showDialog(
       context,
       "select_a_device".tr(),
@@ -645,12 +655,7 @@ class CastButton extends StatelessWidget {
         assetToken?.mimeType?.startsWith("audio/") == true;
 
     return InkWell(
-      onTap: () => canCast
-          ? onCastTap
-          : UIHelper.showUnavailableCastDialog(
-              context: context,
-              assetToken: assetToken,
-            ),
+      onTap: onCastTap,
       child: SvgPicture.asset(
         'assets/images/chromecast.svg',
         color: canCast ? theme.colorScheme.secondary : theme.disableColor,
