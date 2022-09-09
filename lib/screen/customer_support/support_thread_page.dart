@@ -246,7 +246,6 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
             )));
   }
 
-
   Widget _bubbleBuilder(
     Widget child, {
     required message,
