@@ -676,27 +676,4 @@ String getDateTimeRepresentation(DateTime dateTime) {
   return Jiffy(dateTime).fromNow();
 }
 
-// From chat_ui/util
-String getVerboseDateTimeRepresentation(DateTime dateTime) {
-  final DateTime now = DateTime.now();
-  if (DateUtils.isSameDay(dateTime, now)) {
-    return DateFormat('hh:mm').format(dateTime);
-  }
-  if (dateTime.year == now.year) {
-    return DateFormat('MMM-dd').format(dateTime).toUpperCase();
-  }
-  return DateFormat('yyyy-MMM-dd hh:mm').format(dateTime).toUpperCase();
-}
 
-String getChatDateTimeRepresentation(DateTime dateTime) {
-  final DateTime now = DateTime.now();
-  if (DateUtils.isSameDay(dateTime, now)) {
-    return DateFormat('hh:mm').format(dateTime);
-  }
-  if (dateTime.year == now.year) {
-    return DateFormat('MMM-dd hh:mm').format(dateTime.toLocal()).toUpperCase();
-  }
-  return DateFormat('yyyy-MMM-dd hh:mm')
-      .format(dateTime.toLocal())
-      .toUpperCase();
-}

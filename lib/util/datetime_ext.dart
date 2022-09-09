@@ -5,15 +5,45 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-final DateFormat _localtimeFormatter = DateFormat('yyyy-MMM-dd hh:mm');
+final DateFormat dateFormatterYMDHM = DateFormat('yyyy-MMM-dd hh:mm');
+final DateFormat dateFormatterMDHM = DateFormat('MMM-dd hh:mm');
+final DateFormat timeFormatterHM = DateFormat('hh:mm');
+final DateFormat dateFormatterMD = DateFormat('MMM-dd');
+final DateFormat dateFormatterYMD = DateFormat('yyyy-MMM-dd');
 
 String localTimeString(DateTime date) {
-  return _localtimeFormatter.format(date.toLocal()).toUpperCase();
+  return dateFormatterYMDHM.format(date.toLocal()).toUpperCase();
 }
 
 String localTimeStringFromISO8601(String str) {
   final date = DateTime.parse(str);
   return localTimeString(date);
+}
+
+// From chat_ui/util
+String getVerboseDateTimeRepresentation(DateTime dateTime) {
+  final DateTime now = DateTime.now();
+  if (DateUtils.isSameDay(dateTime, now)) {
+    return timeFormatterHM.format(dateTime);
+  }
+  if (dateTime.year == now.year) {
+    return dateFormatterMD.format(dateTime).toUpperCase();
+  }
+  return dateFormatterYMDHM.format(dateTime).toUpperCase();
+}
+
+String getChatDateTimeRepresentation(DateTime dateTime) {
+  final DateTime now = DateTime.now();
+  if (DateUtils.isSameDay(dateTime, now)) {
+    return timeFormatterHM.format(dateTime);
+  }
+  if (dateTime.year == now.year) {
+    return dateFormatterMDHM.format(dateTime.toLocal()).toUpperCase();
+  }
+  return dateFormatterYMDHM
+      .format(dateTime.toLocal())
+      .toUpperCase();
 }

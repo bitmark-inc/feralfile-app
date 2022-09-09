@@ -11,6 +11,7 @@ import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:autonomy_flutter/util/datetime_ext.dart';
 
 const _nanoTEZFactor = 1000000;
 
@@ -29,8 +30,8 @@ class TezosTXRowView extends StatelessWidget {
     final theme = Theme.of(context);
     final DateFormat formatter;
     formatter = DateTime.now().year == tx.getTimeStamp().year
-        ? DateFormat('MMM-dd hh:mm')
-        : DateFormat('yyyy-MMM-dd hh:mm');
+        ? dateFormatterMDHM
+        : dateFormatterYMDHM;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 18),

@@ -6,6 +6,7 @@
 //
 
 import 'package:autonomy_flutter/model/tzkt_operation.dart';
+import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -36,7 +37,7 @@ class TezosTXDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final DateFormat formatter = DateFormat('yyyy-MMM-dd hh:mm');
+    final DateFormat formatter = dateFormatterYMDHM;
 
     return Scaffold(
       appBar: getBackAppBar(context, onBack: () => Navigator.of(context).pop()),
