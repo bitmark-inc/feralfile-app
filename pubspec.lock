@@ -1151,8 +1151,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "59865fa9de1687b825f1226f2c4e1279768e41ed"
-      resolved-ref: "59865fa9de1687b825f1226f2c4e1279768e41ed"
+      ref: "83560078985c8879877f88061c67a8efb8707de9"
+      resolved-ref: "83560078985c8879877f88061c67a8efb8707de9"
       url: "https://github.com/autonomy-system/nft-collection"
     source: git
     version: "0.0.1"
@@ -1160,8 +1160,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "v1.0.6"
-      resolved-ref: fd962c94cf49ec2b047b5ef7331e365778b9b6bb
+      ref: "v1.0.7"
+      resolved-ref: ef67d7b13f91d35d07a2bdaca7f1aa8202ee7099
       url: "https://github.com/autonomy-system/nft-rendering.git"
     source: git
     version: "0.0.1"
