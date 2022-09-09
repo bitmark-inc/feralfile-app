@@ -460,16 +460,23 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   }
 
   Widget _castButton(BuildContext context) {
-    if (asset?.medium == "video" ||
+    final theme = Theme.of(context);
+    final canCast = asset?.medium == "video" ||
         asset?.medium == "image" ||
-        asset?.mimeType?.startsWith("audio/") == true) {
-      return InkWell(
-        onTap: () => _showCastDialog(context),
-        child: SvgPicture.asset('assets/images/chromecast.svg'),
-      );
-    } else {
-      return const SizedBox();
-    }
+        asset?.mimeType?.startsWith("audio/") == true;
+
+    return InkWell(
+      onTap: () => canCast
+          ? _showCastDialog(context)
+          : UIHelper.showUnavailableCastDialog(
+              context: context,
+              assetToken: asset,
+            ),
+      child: SvgPicture.asset(
+        'assets/images/chromecast.svg',
+        color: canCast ? theme.colorScheme.secondary : theme.disableColor,
+      ),
+    );
   }
 
   Widget _airplayItem(BuildContext context, bool isSubscribed) {
