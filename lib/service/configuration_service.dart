@@ -452,7 +452,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
   @override
   Future<void> setFinishedFeedOnBoarding(bool value) async {
-    await _preferences.setBool(KEY_FINISHED_FEED_ONBOARDING, true);
+    await _preferences.setBool(KEY_FINISHED_FEED_ONBOARDING, value);
   }
 
   @override

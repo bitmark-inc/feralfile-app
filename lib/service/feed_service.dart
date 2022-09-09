@@ -82,7 +82,6 @@ class AppFeedData {
 }
 
 class FeedServiceImpl extends FeedService {
-
   static const REFRESH_FOLLOWINGS = 'REFRESH_FOLLOWINGS';
   static const FETCH_FEEDS = 'FETCH_FEEDS';
   static const FETCH_TOKENS_BY_INDEXIDS = 'FETCH_TOKENS_BY_INDEXIDS';
@@ -342,7 +341,7 @@ class FeedServiceImpl extends FeedService {
           .map((e) => AssetToken.fromAsset(e))
           .toList();
 
-      final next = feedData.events.length < 50 ? null : feedData.next;
+      final next = feedData.events.length < count ? null : feedData.next;
 
       // Get missing tokens
       final eventsWithMissingToken = feedData.events.where(

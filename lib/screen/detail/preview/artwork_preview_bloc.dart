@@ -19,11 +19,15 @@ class ArtworkPreviewBloc
   final ConfigurationService _configurationService;
 
   ArtworkPreviewBloc(this._assetTokenDao, this._configurationService)
-      : super(ArtworkPreviewState()) {
+      : super(ArtworkPreviewLoadingState()) {
     on<ArtworkPreviewGetAssetTokenEvent>((event, emit) async {
       final asset = await _assetTokenDao.findAssetTokenById(event.id);
-      emit(ArtworkPreviewState(asset: asset));
-
+      if (state is ArtworkPreviewLoadedState) {
+        final currentState = state as ArtworkPreviewLoadedState;
+        emit(currentState.copyWith(asset: asset));
+      } else {
+        emit(ArtworkPreviewLoadedState(asset: asset));
+      }
       // change ipfs if the cloud_flare ipfs has not worked
       try {
         if (asset?.previewURL != null) {
@@ -32,11 +36,18 @@ class ArtworkPreviewBloc
             asset.previewURL = asset.previewURL!.replaceRange(
                 0, Environment.autonomyIpfsPrefix.length, DEFAULT_IPFS_PREFIX);
             await _assetTokenDao.insertAsset(asset);
-            emit(ArtworkPreviewState(asset: asset));
+            emit(ArtworkPreviewLoadedState(asset: asset));
           }
         }
       } catch (_) {
         // ignore this error
+      }
+    });
+
+    on<ChangeFullScreen>((event, emit) async {
+      if (state is ArtworkPreviewLoadedState) {
+        final currentState = state as ArtworkPreviewLoadedState;
+        emit(currentState.copyWith(isFullScreen: event.isFullscreen));
       }
     });
   }
