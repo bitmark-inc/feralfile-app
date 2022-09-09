@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/feed/feed_bloc.dart';
 import 'package:autonomy_flutter/service/aws_service.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -28,6 +29,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
+import 'package:get_it/get_it.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_rendering/nft_rendering.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -44,28 +46,36 @@ class FeedPreviewPage extends StatefulWidget {
 class _FeedPreviewPageState extends State<FeedPreviewPage>
     with RouteAware, AfterLayoutMixin<FeedPreviewPage>, WidgetsBindingObserver {
   String? swipeDirection;
-  INFTRenderingWidget? _renderingWidget;
   Timer? _timer;
   Timer? _maxTimeTokenTimer;
-  bool _missingToken = false;
-  AssetToken? latestToken;
-  FeedEvent? latestEvent;
+
+  final _configurationService = GetIt.I.get<ConfigurationService>();
+
+  final _controller = PageController();
+
+  late FeedBloc _bloc;
 
   @override
   void initState() {
     super.initState();
-
-    context.read<FeedBloc>().add(GetFeedsEvent());
+    _bloc = context.read<FeedBloc>();
+    if (_configurationService.isFinishedFeedOnBoarding()) {
+      _bloc.add(GetFeedsEvent());
+      setMaxTimeToken();
+    }
 
     _timer = Timer.periodic(const Duration(seconds: 10), (timer) {
-      context.read<FeedBloc>().add(RetryMissingTokenInFeedsEvent());
+      _bloc.add(RetryMissingTokenInFeedsEvent());
     });
   }
 
   void setMaxTimeToken() {
     _maxTimeTokenTimer?.cancel();
     _maxTimeTokenTimer = Timer(const Duration(seconds: 10), () {
-      context.read<FeedBloc>().add(MoveToNextFeedEvent());
+      _controller.nextPage(
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeIn,
+      );
     });
   }
 
@@ -87,8 +97,13 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
   void didPopNext() {
     Wakelock.enable();
 
-    _renderingWidget?.didPopNext();
     setMaxTimeToken();
+    super.didPopNext();
+  }
+
+  @override
+  void didPushNext() {
+    _maxTimeTokenTimer?.cancel();
     super.didPopNext();
   }
 
@@ -97,26 +112,11 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
     Wakelock.disable();
     routeObserver.unsubscribe(this);
     WidgetsBinding.instance.removeObserver(this);
-    _renderingWidget?.dispose();
     Sentry.getSpan()?.finish(status: const SpanStatus.ok());
     _timer?.cancel();
     _maxTimeTokenTimer?.cancel();
+    _controller.dispose();
     super.dispose();
-  }
-
-  void _disposeCurrentDisplay() {
-    _renderingWidget?.dispose();
-  }
-
-  Future<bool> _clearPrevious() async {
-    _renderingWidget?.clearPrevious();
-    return true;
-  }
-
-  @override
-  void didChangeMetrics() {
-    super.didChangeMetrics();
-    _updateWebviewSize();
   }
 
   @override
@@ -124,62 +124,73 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
     final theme = Theme.of(context);
     return Scaffold(
       backgroundColor: theme.colorScheme.primary,
-      body: BlocConsumer<FeedBloc, FeedState>(listener: (context, state) {
-        if (state.isFinishedOnBoarding()) {
-          setMaxTimeToken();
-          return;
-        }
+      body: BlocConsumer<FeedBloc, FeedState>(
+          listener: (context, state) {},
+          builder: (context, state) {
+            if (state.isFinishedOnBoarding() &&
+                ((state.feedTokens?.isEmpty ?? true) ||
+                    (state.feedEvents?.isEmpty ?? true))) {
+              return _emptyOrLoadingDiscoveryWidget(state.appFeedData);
+            }
 
-        if (state.viewingFeedEvent?.id != null &&
-            latestEvent?.id != state.viewingFeedEvent?.id) {
-          setMaxTimeToken();
-        }
-      }, builder: (context, state) {
-        if (state.isFinishedOnBoarding() &&
-            (state.appFeedData == null || state.viewingFeedEvent == null)) {
-          return _emptyOrLoadingDiscoveryWidget(state.appFeedData);
-        }
+            final feedTokens = state.feedTokens;
+            final currentIndex = state.viewingIndex ?? 0;
 
-        latestToken = state.viewingToken;
-        latestEvent = state.viewingFeedEvent;
-
-        return Column(
-          children: [
-            Expanded(
-              child: Stack(
+            if (!state.isFinishedOnBoarding()) {
+              return Column(
                 children: [
-                  GestureDetector(
-                    behavior: HitTestBehavior.translucent,
-                    onHorizontalDragEnd: (dragEndDetails) {
-                      if (dragEndDetails.primaryVelocity! < -300) {
-                        _disposeCurrentDisplay();
-                        context.read<FeedBloc>().add(MoveToNextFeedEvent());
-                      } else if (dragEndDetails.primaryVelocity! > 300) {
-                        _disposeCurrentDisplay();
-                        context.read<FeedBloc>().add(MoveToPreviousFeedEvent());
-                      }
-                    },
-                    child: Container(
-                      color: theme.colorScheme.primary,
-                      child: Center(
-                          child: state.isFinishedOnBoarding()
-                              ? _getArtworkPreviewView(state.viewingToken)
-                              : _getOnBoardingView(state.onBoardingStep)),
+                  Expanded(
+                    child: Stack(
+                      children: [
+                        PageView.builder(
+                          onPageChanged: (value) {
+                            _bloc.add(ChangeOnBoardingEvent(index: value));
+                            setMaxTimeToken();
+                          },
+                          itemCount: 4,
+                          itemBuilder: (context, index) => Center(
+                            child: _getOnBoardingView(index),
+                          ),
+                        ),
+                        Align(
+                          alignment: Alignment.topCenter,
+                          child: _controlViewOnBoarding(),
+                        ),
+                      ],
                     ),
                   ),
-                  Align(
-                    alignment: Alignment.topCenter,
-                    child: state.isFinishedOnBoarding()
-                        ? _controlView(
-                            state.viewingFeedEvent!, state.viewingToken)
-                        : _controlViewOnBoarding(),
-                  ),
                 ],
-              ),
-            ),
-          ],
-        );
-      }),
+              );
+            }
+            return Column(
+              children: [
+                Expanded(
+                  child: Stack(
+                    children: [
+                      PageView.builder(
+                        controller: _controller,
+                        onPageChanged: (value) {
+                          _bloc.add(ChangePageEvent(index: value));
+                          setMaxTimeToken();
+                        },
+                        itemCount: feedTokens?.length,
+                        itemBuilder: (context, index) => Center(
+                            child: FeedArtwork(
+                                assetToken: state.feedTokens![index])),
+                      ),
+                      Align(
+                        alignment: Alignment.topCenter,
+                        child: _controlView(
+                          state.feedEvents![currentIndex],
+                          state.feedTokens![currentIndex],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          }),
     );
   }
 
@@ -379,19 +390,11 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
   Future _moveToInfo(AssetToken asset) async {
     _maxTimeTokenTimer?.cancel();
     Wakelock.disable();
-    _clearPrevious();
 
     Navigator.of(context).pushNamed(
       AppRouter.feedArtworkDetailsPage,
       arguments: context.read<FeedBloc>(),
     );
-  }
-
-  _updateWebviewSize() {
-    if (_renderingWidget != null &&
-        _renderingWidget is WebviewNFTRenderingWidget) {
-      (_renderingWidget as WebviewNFTRenderingWidget).updateWebviewSize();
-    }
   }
 
   Widget _getOnBoardingView(int step) {
@@ -409,10 +412,13 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
         assetPath = "assets/images/feed_onboarding_swipe.png";
         title = "swipe_to".tr(); // "Swipe to discover more artworks";
         break;
-      default:
+      case 0:
         assetPath = "assets/images/feed_onboarding.png";
         title = "discover_what"
             .tr(); // "Discover what your collected artists mint or collect";
+        break;
+      default:
+        return Container();
     }
 
     return Container(
@@ -434,40 +440,6 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
           ),
         ],
       ),
-    );
-  }
-
-  Widget _getArtworkPreviewView(AssetToken? token) {
-    if (token == null) {
-      _missingToken = true;
-      final screenWidth = MediaQuery.of(context).size.width;
-      final screenHeight = MediaQuery.of(context).size.height;
-      return Container(
-        color: AppColor.secondarySpanishGrey,
-        width: screenWidth,
-        height: screenHeight * 0.55,
-      );
-    }
-
-    if (_missingToken) {
-      Vibrate.feedback(FeedbackType.light);
-      _missingToken = false;
-    }
-
-    return BlocProvider(
-      create: (_) => RetryCubit(),
-      child: BlocBuilder<RetryCubit, int>(builder: (context, attempt) {
-        if (attempt > 0) {
-          _renderingWidget?.dispose();
-          _renderingWidget = null;
-        }
-        if (_renderingWidget == null ||
-            _renderingWidget!.previewURL != token.getPreviewUrl()) {
-          _renderingWidget = buildRenderingWidget(context, token,
-              attempt: attempt > 0 ? attempt : null);
-        }
-        return Container(child: _renderingWidget!.build(context));
-      }),
     );
   }
 
@@ -507,6 +479,102 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
           ]
         ],
       ),
+    );
+  }
+}
+
+class FeedArtwork extends StatefulWidget {
+  final AssetToken? assetToken;
+  const FeedArtwork({Key? key, this.assetToken}) : super(key: key);
+
+  @override
+  State<FeedArtwork> createState() => _FeedArtworkState();
+}
+
+class _FeedArtworkState extends State<FeedArtwork>
+    with RouteAware, WidgetsBindingObserver {
+  bool _missingToken = false;
+  INFTRenderingWidget? _renderingWidget;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    if (widget.assetToken == null) {
+      _missingToken = true;
+    }
+    WidgetsBinding.instance.addObserver(this);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _renderingWidget?.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+    super.didChangeDependencies();
+  }
+
+  @override
+  void didPopNext() {
+    _renderingWidget?.didPopNext();
+    super.didPopNext();
+  }
+
+  @override
+  void didPushNext() {
+    _renderingWidget?.clearPrevious();
+    super.didPushNext();
+  }
+
+  @override
+  void didChangeMetrics() {
+    super.didChangeMetrics();
+    _updateWebviewSize();
+  }
+
+  _updateWebviewSize() {
+    if (_renderingWidget != null &&
+        _renderingWidget is WebviewNFTRenderingWidget) {
+      (_renderingWidget as WebviewNFTRenderingWidget).updateWebviewSize();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.assetToken == null) {
+      final screenWidth = MediaQuery.of(context).size.width;
+      final screenHeight = MediaQuery.of(context).size.height;
+      return Container(
+        color: AppColor.secondarySpanishGrey,
+        width: screenWidth,
+        height: screenHeight * 0.55,
+      );
+    }
+
+    if (_missingToken) {
+      Vibrate.feedback(FeedbackType.light);
+      _missingToken = false;
+    }
+
+    return BlocProvider(
+      create: (_) => RetryCubit(),
+      child: BlocBuilder<RetryCubit, int>(builder: (context, attempt) {
+        if (attempt > 0) {
+          _renderingWidget?.dispose();
+          _renderingWidget = null;
+        }
+        if (_renderingWidget == null ||
+            _renderingWidget!.previewURL !=
+                widget.assetToken?.getPreviewUrl()) {
+          _renderingWidget = buildRenderingWidget(context, widget.assetToken!,
+              attempt: attempt > 0 ? attempt : null);
+        }
+        return Container(child: _renderingWidget!.build(context));
+      }),
     );
   }
 }

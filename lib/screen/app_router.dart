@@ -524,7 +524,7 @@ class AppRouter {
                     BlocProvider(
                         create: (_) => WalletDetailBloc(
                             injector(), injector(), injector())),
-                    BlocProvider(create:(_) => TZKTTransactionBloc())
+                    BlocProvider(create: (_) => TZKTTransactionBloc())
                   ],
                   child: WalletDetailPage(
                       payload: settings.arguments as WalletDetailsPayload),

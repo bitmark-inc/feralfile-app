@@ -26,10 +26,10 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
+import 'package:intl/intl.dart';
 import 'package:jiffy/jiffy.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:share/share.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 
 enum ActionState { notRequested, loading, error, done }
 

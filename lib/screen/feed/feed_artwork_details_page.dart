@@ -78,9 +78,13 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
 
   void fetchIdentities() {
     final state = context.read<FeedBloc>().state;
+    final currentIndex = state.viewingIndex ?? 0;
+    final currentToken = state.feedTokens?[currentIndex];
+    final currentFeedEvent = state.feedEvents?[currentIndex];
+
     final neededIdentities = [
-      state.viewingToken?.artistName ?? '',
-      state.viewingFeedEvent?.recipient ?? ''
+      currentToken?.artistName ?? '',
+      currentFeedEvent?.recipient ?? ''
     ];
     neededIdentities.removeWhere((element) => element == '');
 
@@ -103,12 +107,15 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
             onBack: () => Navigator.of(context).pop(),
           ),
           body: BlocBuilder<FeedBloc, FeedState>(builder: (context, state) {
-            if (state.viewingFeedEvent == null || state.viewingToken == null) {
+            final currentIndex = state.viewingIndex ?? 0;
+            final currentToken = state.feedTokens?[currentIndex];
+            final currentFeedEvent = state.feedEvents?[currentIndex];
+            if (currentFeedEvent == null || currentToken == null) {
               return const SizedBox();
             }
 
-            feedEvent = state.viewingFeedEvent!;
-            token = state.viewingToken!;
+            feedEvent = currentFeedEvent;
+            token = currentToken;
 
             final identityState = context.watch<IdentityBloc>().state;
             final followingName = feedEvent.recipient
