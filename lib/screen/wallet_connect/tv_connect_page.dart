@@ -133,17 +133,16 @@ class _TVConnectPageState extends State<TVConnectPage>
           ),
           const SizedBox(height: 24),
           Text("set_up_gallery".tr(),
-              //"Instantly set up your personal NFT art gallery on TVs and projectors anywhere you go.",
               style: theme.primaryTextTheme.bodyText1),
           Divider(
             height: 64,
             color: theme.colorScheme.secondary,
           ),
-          Text("viewer_request_to".tr(), //"Autonomy Viewer is requesting to: ",
+          Text("viewer_request_to".tr(),
               style: theme.primaryTextTheme.bodyText1),
           const SizedBox(height: 8),
           Text(
-              "view_collections".tr(), //"• View your Autonomy NFT collections",
+              "view_collections".tr(),
               style: theme.primaryTextTheme.bodyText1),
           const Expanded(child: SizedBox()),
           Row(
