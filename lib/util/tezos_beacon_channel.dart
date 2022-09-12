@@ -108,7 +108,7 @@ class TezosBeaconChannel {
             case "signPayload":
               final String? payload = params["payload"];
               final String? sourceAddress = params["sourceAddress"];
-              request.payload = payload;
+              request.payload = payload?.substring(12);
               request.sourceAddress = sourceAddress;
               break;
             case "operation":
