@@ -31,6 +31,10 @@ import Branch
         
         authenticationVC.authenticationCallback = self.authenticationCompleted
         
+        #if INHOUSE
+        Branch.setUseTestBranchKey(true)
+        #endif
+        
         let controller : FlutterViewController = window?.rootViewController as! FlutterViewController
         let branchEventChannel = FlutterEventChannel(name: "branch.io/event", binaryMessenger: controller.binaryMessenger)
         branchEventChannel.setStreamHandler(BranchChannelHandler.shared);

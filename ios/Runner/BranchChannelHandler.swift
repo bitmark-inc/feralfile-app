@@ -18,10 +18,12 @@ class BranchChannelHandler: NSObject {
 extension BranchChannelHandler: FlutterStreamHandler {
     func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
         branchInstance.initSession { (params, error) in
-            events([
-                "eventName": "observeDeeplinkParams",
-                "params": params as? Any
-            ])
+            if let params = params {
+                events([
+                    "eventName": "observeDeeplinkParams",
+                    "params": params
+                ])
+            }
        }
         return nil
     }

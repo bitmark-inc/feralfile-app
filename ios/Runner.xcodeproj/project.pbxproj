@@ -43,6 +43,7 @@
 		63FC852328CED9A80050C9C6 /* Branch in Frameworks */ = {isa = PBXBuildFile; productRef = 63FC852228CED9A80050C9C6 /* Branch */; };
 		63FC852528CED9B00050C9C6 /* Branch in Frameworks */ = {isa = PBXBuildFile; productRef = 63FC852428CED9B00050C9C6 /* Branch */; };
 		63FC852728CEE6E80050C9C6 /* BranchChannelHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63FC852628CEE6E80050C9C6 /* BranchChannelHandler.swift */; };
+		63FC852828CF1B1F0050C9C6 /* BranchChannelHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63FC852628CEE6E80050C9C6 /* BranchChannelHandler.swift */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
 		764F859927D7348000B67672 /* BeaconConnectService+PostMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764F859827D7348000B67672 /* BeaconConnectService+PostMessage.swift */; };
 		764F859B27D810EB00B67672 /* Result+Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764F859A27D810EB00B67672 /* Result+Helpers.swift */; };
@@ -870,6 +871,7 @@
 				76F3289A27D1EC1C00C3B9FA /* LibAukChannelHandler.swift in Sources */,
 				63A61E1C27EAD383005684DD /* Logger.swift in Sources */,
 				76F328B527D1EEAE00C3B9FA /* Constant.swift in Sources */,
+				63FC852828CF1B1F0050C9C6 /* BranchChannelHandler.swift in Sources */,
 				76F3289B27D1EC1C00C3B9FA /* SystemChannelHandler.swift in Sources */,
 				76F3289C27D1EC1C00C3B9FA /* GeneratedPluginRegistrant.m in Sources */,
 				764F859C27D810EB00B67672 /* Result+Helpers.swift in Sources */,
