@@ -67,25 +67,25 @@ class TokenThumbnailWidget extends StatelessWidget {
               ),
             )
           : CachedNetworkImage(
-        imageUrl: attempt > 0
+              imageUrl: attempt > 0
                   ? "${token.getThumbnailUrl() ?? ''}?t=$attempt"
                   : token.getThumbnailUrl() ?? "",
-        width: double.infinity,
-        memCacheWidth: (screenWidth * 3).floor(),
-        maxWidthDiskCache: (screenWidth * 3).floor(),
-        cacheManager: injector<CacheManager>(),
-        placeholder: (context, url) => placeholder(context),
-        placeholderFadeInDuration: const Duration(milliseconds: 300),
-        fit: BoxFit.cover,
-        errorWidget: (context, url, error) => AspectRatio(
-          aspectRatio: 1,
-          child: Container(
-            color: const Color.fromRGBO(227, 227, 227, 1),
-            padding: const EdgeInsets.symmetric(vertical: 133),
-            child: BrokenTokenWidget(token: token),
-          ),
-        ),
-      ),
+              width: double.infinity,
+              memCacheWidth: (screenWidth * 3).floor(),
+              maxWidthDiskCache: (screenWidth * 3).floor(),
+              cacheManager: injector<CacheManager>(),
+              placeholder: (context, url) => placeholder(context),
+              placeholderFadeInDuration: const Duration(milliseconds: 300),
+              fit: BoxFit.cover,
+              errorWidget: (context, url, error) => AspectRatio(
+                aspectRatio: 1,
+                child: Container(
+                  color: const Color.fromRGBO(227, 227, 227, 1),
+                  padding: const EdgeInsets.symmetric(vertical: 133),
+                  child: BrokenTokenWidget(token: token),
+                ),
+              ),
+            ),
     );
   }
 
@@ -133,9 +133,10 @@ Widget tokenGalleryThumbnailWidget(
             maxWidthDiskCache: cachedImageSize,
             maxHeightDiskCache: cachedImageSize,
             cacheManager: injector<CacheManager>(),
-            placeholder: (context, index) => const GalleryThumbnailPlaceholder(),
+            placeholder: (context, index) =>
+                const GalleryThumbnailPlaceholder(),
             errorWidget: (context, url, error) =>
-              const GalleryThumbnailErrorWidget(),
+                const GalleryThumbnailErrorWidget(),
           ),
   );
 }
@@ -195,7 +196,9 @@ Widget placeholder(BuildContext context) {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             loadingIndicator(valueColor: theme.colorScheme.primary),
-            const SizedBox(height: 12,),
+            const SizedBox(
+              height: 12,
+            ),
             Text(
               "loading...".tr(),
               style: ResponsiveLayout.isMobile
@@ -222,8 +225,8 @@ Widget reportNFTProblemContainer(
   );
 }
 
-INFTRenderingWidget buildRenderingWidget(
-    BuildContext context, AssetToken token, {int? attempt}) {
+INFTRenderingWidget buildRenderingWidget(BuildContext context, AssetToken token,
+    {int? attempt}) {
   String mimeType = "";
   switch (token.medium) {
     case "image":
@@ -281,7 +284,6 @@ class BrokenTokenWidget extends StatefulWidget {
 }
 
 class _BrokenTokenWidgetState extends State<BrokenTokenWidget> {
-
   @override
   void initState() {
     injector<CustomerSupportService>().reportIPFSLoadingError(widget.token);
@@ -300,9 +302,7 @@ class _BrokenTokenWidgetState extends State<BrokenTokenWidget> {
               : theme.textTheme.atlasGreyNormal14,
         ),
         TextButton(
-          onPressed: () => context
-              .read<RetryCubit>()
-              .refresh(),
+          onPressed: () => context.read<RetryCubit>().refresh(),
           style: TextButton.styleFrom(
               minimumSize: Size.zero,
               padding: const EdgeInsets.all(8),
@@ -608,6 +608,25 @@ Widget artworkDetailsProvenanceSectionNotEmpty(
                           name: identity, address: el.owner)
                       : null,
                   forceSafariVC: true,
+                  title: Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          identityTitle ?? '',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.headline4,
+                        ),
+                      ),
+                      Visibility(
+                        visible: youAddresses.contains(el.owner),
+                        child: Text(
+                          "_you".tr(),
+                          style: theme.textTheme.headline4,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 const Divider(height: 32.0),
               ],
@@ -690,12 +709,17 @@ Widget _artworkRightItem(BuildContext context, String name, String body) {
   );
 }
 
-Widget _rowItem(BuildContext context, String name, String? value,
-    {String? subTitle,
-    Function()? onNameTap,
-    String? tapLink,
-    bool? forceSafariVC,
-    Function()? onValueTap}) {
+Widget _rowItem(
+  BuildContext context,
+  String name,
+  String? value, {
+  String? subTitle,
+  Function()? onNameTap,
+  String? tapLink,
+  bool? forceSafariVC,
+  Function()? onValueTap,
+  Widget? title,
+}) {
   if (onValueTap == null && tapLink != null) {
     final uri = Uri.parse(tapLink);
     onValueTap = () => launchUrl(uri,
@@ -707,26 +731,29 @@ Widget _rowItem(BuildContext context, String name, String? value,
 
   return Row(
     crossAxisAlignment: CrossAxisAlignment.start,
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
     children: [
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          GestureDetector(
-            onTap: onNameTap,
-            child: Text(name, style: theme.textTheme.headline4),
-          ),
-          if (subTitle != null) ...[
-            const SizedBox(height: 2),
-            Text(
-              subTitle,
-              style: ResponsiveLayout.isMobile
-                  ? theme.textTheme.atlasBlackBold12
-                  : theme.textTheme.atlasBlackBold14,
+      Flexible(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            GestureDetector(
+              onTap: onNameTap,
+              child: title ?? Text(name, style: theme.textTheme.headline4),
             ),
-          ]
-        ],
+            if (subTitle != null) ...[
+              const SizedBox(height: 2),
+              Text(
+                subTitle,
+                style: ResponsiveLayout.isMobile
+                    ? theme.textTheme.atlasBlackBold12
+                    : theme.textTheme.atlasBlackBold14,
+              ),
+            ]
+          ],
+        ),
       ),
-      Expanded(
+      Flexible(
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
