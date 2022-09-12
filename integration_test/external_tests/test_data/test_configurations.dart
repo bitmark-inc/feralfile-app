@@ -1,8 +1,8 @@
 const APPIUM_SERVER_URL = 'http://0.0.0.0:4723/wd/hub/';
 const CHROME_MOBILE_BROWSER_PROFILE = {
   'platformName': 'android',
-  'platformVersion': '11',
-  'deviceName': 'Redmi Note 11S',
+  'platformVersion': '12',
+  'deviceName': "Galaxy A52s 5G",
   'browserName': 'Chrome',
   'automationName': 'UIAutomator2',
 };
@@ -39,3 +39,4 @@ const METAMASK_PROFILE = {
 
 const METAMASK_APPPACKAGE = "io.metamask";
 const AUTONOMY_APPPACKAGE = "com.bitmark.autonomy_client.inhouse";
+const CHROME_APPPACKAGE = "com.android.chrome";

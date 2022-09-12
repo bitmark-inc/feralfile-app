@@ -33,3 +33,13 @@ const SEED_TO_RESTORE_KUKAI =
     'boring unveil betray damage idea educate entry cruise elevator hair cabin scatter royal alpha bicycle trade bonus stock just youth effort skate flash remember';
 const SEED_TO_RESTORE_TEMPLE =
     'hidden laundry process risk unveil merge pyramid arrange hollow jeans motion scrap';
+
+const LIST_OF_EXCHANGES = [
+  {"exchangeName": 'objkt.com', "linkedExchangeName": 'objkt.com'},
+  {'exchangeName': 'fxhash.xyz', 'linkedExchangeName': 'fxhash'},
+  {'exchangeName': 'hicetnunc.cc', 'linkedExchangeName': 'hicetnunc.xyz'},
+  {'exchangeName': 'teia.art', 'linkedExchangeName': 'teia.art'},
+  {'exchangeName': 'versum.xyz', 'linkedExchangeName': 'versum'},
+  {'exchangeName': 'akaswap.com', 'linkedExchangeName': 'akaswap'},
+  {'exchangeName': 'typed.art', 'linkedExchangeName': 'typed.art'},
+];
