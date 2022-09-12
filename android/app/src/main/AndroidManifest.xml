@@ -10,6 +10,13 @@
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
     <uses-permission android:name="android.permission.WRITE_SETTINGS" />
 
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.SEND" />
+            <data android:mimeType="text/plain" />
+        </intent>
+    </queries>
+
     <application
         android:name=".app.AutonomyApp"
         android:icon="${appIcon}"
@@ -19,6 +26,17 @@
         <meta-data
             android:name="com.onesignal.NotificationServiceExtension"
             android:value="com.bitmark.autonomy_flutter.service.NotificationServiceExtension" />
+
+        <!-- Branch init -->
+        <meta-data
+            android:name="io.branch.sdk.BranchKey"
+            android:value="${branchKey}" />
+        <meta-data
+            android:name="io.branch.sdk.BranchKey.test"
+            android:value="${branchKeyTest}" />
+        <meta-data
+            android:name="io.branch.sdk.TestMode"
+            android:value="${branchTestMode}" />
 
         <activity
             android:name=".AuthenticatorActivity"
