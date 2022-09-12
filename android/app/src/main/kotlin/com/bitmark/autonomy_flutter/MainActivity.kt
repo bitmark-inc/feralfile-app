@@ -14,7 +14,6 @@ import android.content.SharedPreferences
 import android.util.Log
 import androidx.annotation.NonNull
 import androidx.biometric.BiometricManager
-import io.branch.referral.Branch
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -26,8 +25,6 @@ class MainActivity : FlutterFragmentActivity() {
     }
 
     var flutterSharedPreferences: SharedPreferences? = null
-
-    private lateinit var branchIOPlugin: BranchIOPlugin
 
     override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -44,7 +41,6 @@ class MainActivity : FlutterFragmentActivity() {
             }
         }
 
-        branchIOPlugin = BranchIOPlugin(flutterEngine)
         BackupDartPlugin().createChannels(flutterEngine, applicationContext)
         TezosBeaconDartPlugin().createChannels(flutterEngine)
     }
@@ -54,16 +50,6 @@ class MainActivity : FlutterFragmentActivity() {
             BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE
         )
         return sharedPreferences.getString("persona_uuids", "") ?: ""
-    }
-
-    override fun onNewIntent(intent: Intent) {
-        super.onNewIntent(intent)
-        branchIOPlugin.reInitSession(this, intent)
-    }
-
-    override fun onStart() {
-        super.onStart()
-        branchIOPlugin.initSession(this, intent)
     }
 
     override fun onResume() {

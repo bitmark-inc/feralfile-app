@@ -12,20 +12,20 @@ import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
-import 'package:autonomy_flutter/util/branch_channel.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_branch_sdk/flutter_branch_sdk.dart';
 import 'package:uni_links/uni_links.dart';
 
 abstract class DeeplinkService {
   Future setup();
 }
 
-class DeeplinkServiceImpl extends DeeplinkService implements BranchHandler {
+class DeeplinkServiceImpl extends DeeplinkService {
   final ConfigurationService _configurationService;
   final WalletConnectService _walletConnectService;
   final TezosBeaconService _tezosBeaconService;
@@ -42,7 +42,22 @@ class DeeplinkServiceImpl extends DeeplinkService implements BranchHandler {
 
   @override
   Future setup() async {
-    BranchChannel(handler: this);
+    FlutterBranchSdk.initSession().listen((data) {
+      log.info("[DeeplinkService] _handleFeralFileDeeplink with Branch");
+
+      if (data["+clicked_branch_link"] == true) {
+        final source = data["source"];
+        if (source == "FeralFile") {
+          final String? tokenId = data["token_id"];
+          if (tokenId != null) {
+            _linkFeralFileToken(tokenId);
+          }
+        }
+      }
+    }, onError: (error) {
+      log.warning('[DeeplinkService] InitBranchSession error: ${error.toString()}');
+    });
+
     try {
       final initialLink = await getInitialLink();
       _handleDeeplink(initialLink);
@@ -131,54 +146,30 @@ class DeeplinkServiceImpl extends DeeplinkService implements BranchHandler {
     log.info("[DeeplinkService] _handleFeralFileDeeplink");
 
     if (link.startsWith(FF_TOKEN_DEEPLINK_PREFIX)) {
-      final doneOnboarding = _configurationService.isDoneOnboarding();
-
-      final connection = await _feralFileService.linkFF(
-        link.replacePrefix(FF_TOKEN_DEEPLINK_PREFIX, ""),
-        delayLink: !doneOnboarding,
-      );
-
-      if (doneOnboarding) {
-        _navigationService.showFFAccountLinked(connection.name);
-
-        await Future.delayed(SHORT_SHOW_DIALOG_DURATION, () {
-          _navigationService.popUntilHomeOrSettings();
-        });
-      } else {
-        _navigationService.showFFAccountLinked(connection.name,
-            inOnboarding: true);
-      }
-
+      _linkFeralFileToken(link.replacePrefix(FF_TOKEN_DEEPLINK_PREFIX, ""));
       return true;
     }
 
     return false;
   }
 
-  @override
-  void observeDeeplinkParams(params) async {
-    final source = params["source"];
-    if (source == "FeralFile") {
-      final String? tokenId = params["token_id"];
-      if (tokenId == null) return;
+  Future<void> _linkFeralFileToken(String tokenId) async {
+    final doneOnboarding = _configurationService.isDoneOnboarding();
 
-      final doneOnboarding = _configurationService.isDoneOnboarding();
+    final connection = await _feralFileService.linkFF(
+      tokenId,
+      delayLink: !doneOnboarding,
+    );
 
-      final connection = await _feralFileService.linkFF(
-        tokenId,
-        delayLink: !doneOnboarding,
-      );
+    if (doneOnboarding) {
+      _navigationService.showFFAccountLinked(connection.name);
 
-      if (doneOnboarding) {
-        _navigationService.showFFAccountLinked(connection.name);
-
-        await Future.delayed(SHORT_SHOW_DIALOG_DURATION, () {
-          _navigationService.popUntilHomeOrSettings();
-        });
-      } else {
-        _navigationService.showFFAccountLinked(connection.name,
-            inOnboarding: true);
-      }
+      await Future.delayed(SHORT_SHOW_DIALOG_DURATION, () {
+        _navigationService.popUntilHomeOrSettings();
+      });
+    } else {
+      _navigationService.showFFAccountLinked(connection.name,
+          inOnboarding: true);
     }
   }
 }

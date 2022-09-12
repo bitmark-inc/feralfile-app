@@ -14,7 +14,6 @@ import KukaiCoreSwift
 import Combine
 import flutter_downloader
 import Sentry
-import Branch
 
 @UIApplicationMain
 @objc class AppDelegate: FlutterAppDelegate {
@@ -31,15 +30,7 @@ import Branch
         
         authenticationVC.authenticationCallback = self.authenticationCompleted
         
-        #if INHOUSE
-        Branch.setUseTestBranchKey(true)
-        #endif
-        
         let controller : FlutterViewController = window?.rootViewController as! FlutterViewController
-        let branchEventChannel = FlutterEventChannel(name: "branch.io/event", binaryMessenger: controller.binaryMessenger)
-        branchEventChannel.setStreamHandler(BranchChannelHandler.shared);
-
-        
         let libaukChannel = FlutterMethodChannel(name: "libauk_dart",
                                                  binaryMessenger: controller.binaryMessenger)
         libaukChannel.setMethodCallHandler({(call: FlutterMethodCall, result: @escaping FlutterResult) -> Void in
@@ -151,22 +142,6 @@ import Branch
         }
         
         return super.application(application, didFinishLaunchingWithOptions: launchOptions)
-    }
-    
-    override func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
-        Branch.getInstance().application(app, open: url, options: options)
-        return true
-    }
-
-    override func application(_ application: UIApplication, continue userActivity: NSUserActivity, restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void) -> Bool {
-      // handler for Universal Links
-        Branch.getInstance().continue(userActivity)
-        return true
-    }
-
-    override func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable : Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
-      // handler for Push Notifications
-      Branch.getInstance().handlePushNotification(userInfo)
     }
     
     override func applicationWillEnterForeground(_ application: UIApplication) {

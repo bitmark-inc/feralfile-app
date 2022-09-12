@@ -140,6 +140,7 @@ dependencies:
     git:
       url: https://github.com/autonomy-system/nft-collection
       ref: 83560078985c8879877f88061c67a8efb8707de9
+  flutter_branch_sdk: ^6.1.0
 
 dependency_overrides:
   # Error using when import photo_view from dependencies:

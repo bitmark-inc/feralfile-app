@@ -249,10 +249,8 @@ Future<void> setup() async {
         injector(),
       ));
 
-  // Deeplink
-  final deeplinkService = DeeplinkServiceImpl(
-      injector(), injector(), injector(), injector(), injector());
-  await deeplinkService.setup();
+  injector.registerLazySingleton<DeeplinkService>(() => DeeplinkServiceImpl(
+      injector(), injector(), injector(), injector(), injector()));
 }
 
 parseJson(String text) {
