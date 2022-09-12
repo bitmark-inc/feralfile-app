@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
+import 'package:autonomy_flutter/util/branch_channel.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -24,7 +25,7 @@ abstract class DeeplinkService {
   Future setup();
 }
 
-class DeeplinkServiceImpl extends DeeplinkService {
+class DeeplinkServiceImpl extends DeeplinkService implements BranchHandler {
   final ConfigurationService _configurationService;
   final WalletConnectService _walletConnectService;
   final TezosBeaconService _tezosBeaconService;
@@ -41,6 +42,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
 
   @override
   Future setup() async {
+    BranchChannel(handler: this);
     try {
       final initialLink = await getInitialLink();
       _handleDeeplink(initialLink);
@@ -151,5 +153,10 @@ class DeeplinkServiceImpl extends DeeplinkService {
     }
 
     return false;
+  }
+
+  @override
+  void observeDeeplinkParams(params) {
+    // TODO: implement observeDeeplinkParams
   }
 }

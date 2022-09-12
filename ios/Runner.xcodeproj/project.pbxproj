@@ -40,6 +40,9 @@
 		63F1664F27B2509F00451AAA /* BeaconCore in Frameworks */ = {isa = PBXBuildFile; productRef = 63F1664E27B2509F00451AAA /* BeaconCore */; };
 		63F1665127B2509F00451AAA /* BeaconTransportP2PMatrix in Frameworks */ = {isa = PBXBuildFile; productRef = 63F1665027B2509F00451AAA /* BeaconTransportP2PMatrix */; };
 		63F1665327B250D600451AAA /* BeaconConnectService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63F1665227B250D600451AAA /* BeaconConnectService.swift */; };
+		63FC852328CED9A80050C9C6 /* Branch in Frameworks */ = {isa = PBXBuildFile; productRef = 63FC852228CED9A80050C9C6 /* Branch */; };
+		63FC852528CED9B00050C9C6 /* Branch in Frameworks */ = {isa = PBXBuildFile; productRef = 63FC852428CED9B00050C9C6 /* Branch */; };
+		63FC852728CEE6E80050C9C6 /* BranchChannelHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63FC852628CEE6E80050C9C6 /* BranchChannelHandler.swift */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
 		764F859927D7348000B67672 /* BeaconConnectService+PostMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764F859827D7348000B67672 /* BeaconConnectService+PostMessage.swift */; };
 		764F859B27D810EB00B67672 /* Result+Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764F859A27D810EB00B67672 /* Result+Helpers.swift */; };
@@ -182,6 +185,7 @@
 		63A61E1A27EAD2B3005684DD /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 		63BF0E5F27B0270E00E8B299 /* Runner.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Runner.entitlements; sourceTree = "<group>"; };
 		63F1665227B250D600451AAA /* BeaconConnectService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeaconConnectService.swift; sourceTree = "<group>"; };
+		63FC852628CEE6E80050C9C6 /* BranchChannelHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BranchChannelHandler.swift; sourceTree = "<group>"; };
 		6C01A6A5A05E130639BC8BD1 /* Pods-Runner Inhouse.profile-prd.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner Inhouse.profile-prd.xcconfig"; path = "Target Support Files/Pods-Runner Inhouse/Pods-Runner Inhouse.profile-prd.xcconfig"; sourceTree = "<group>"; };
 		6F7D874ED7E495AB6FAA1943 /* Pods-Runner Inhouse.release-prd.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner Inhouse.release-prd.xcconfig"; path = "Target Support Files/Pods-Runner Inhouse/Pods-Runner Inhouse.release-prd.xcconfig"; sourceTree = "<group>"; };
 		733483628E58793BFABC2E80 /* Pods-Runner Inhouse.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner Inhouse.profile.xcconfig"; path = "Target Support Files/Pods-Runner Inhouse/Pods-Runner Inhouse.profile.xcconfig"; sourceTree = "<group>"; };
@@ -265,6 +269,7 @@
 				76F328A127D1EC1C00C3B9FA /* BeaconTransportP2PMatrix in Frameworks */,
 				76F328A227D1EC1C00C3B9FA /* BeaconClientWallet in Frameworks */,
 				76F328A327D1EC1C00C3B9FA /* BeaconCore in Frameworks */,
+				63FC852528CED9B00050C9C6 /* Branch in Frameworks */,
 				0EDFF85CFE28DAB66E69D254 /* Pods_Runner_Inhouse.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -273,6 +278,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				63FC852328CED9A80050C9C6 /* Branch in Frameworks */,
 				76F3288827CE585F00C3B9FA /* CloudKit.framework in Frameworks */,
 				63F1664B27B2509F00451AAA /* BeaconBlockchainTezos in Frameworks */,
 				63CED4A827AE9DFC00699ED5 /* LibAuk in Frameworks */,
@@ -431,6 +437,7 @@
 				1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */,
 				74858FAE1ED2DC5600515810 /* AppDelegate.swift */,
 				768E7EE827C770D000585D12 /* SystemChannelHandler.swift */,
+				63FC852628CEE6E80050C9C6 /* BranchChannelHandler.swift */,
 				63F1665227B250D600451AAA /* BeaconConnectService.swift */,
 				632FC2F527B4F51E00336DCE /* BeaconConnectService+Helpers.swift */,
 				6399594127B2C2FA002653E7 /* BeaconChannelHandler.swift */,
@@ -515,6 +522,7 @@
 				76F3289027D1EC1C00C3B9FA /* BeaconTransportP2PMatrix */,
 				76AA1D4C280787D800E21A83 /* BeaconBlockchainSubstrate */,
 				766DF4632849FCEF00731ADE /* Logging */,
+				63FC852428CED9B00050C9C6 /* Branch */,
 			);
 			productName = Runner;
 			productReference = 76F328B127D1EC1C00C3B9FA /* Runner Inhouse.app */;
@@ -548,6 +556,7 @@
 				63F1665027B2509F00451AAA /* BeaconTransportP2PMatrix */,
 				76AA1D4A2806E79000E21A83 /* BeaconBlockchainSubstrate */,
 				766DF4612849FCD700731ADE /* Logging */,
+				63FC852228CED9A80050C9C6 /* Branch */,
 			);
 			productName = Runner;
 			productReference = 97C146EE1CF9000F007C117D /* Runner.app */;
@@ -588,6 +597,7 @@
 				63CED4A627AE9DFC00699ED5 /* XCRemoteSwiftPackageReference "libauk-swift" */,
 				63F1664927B2509F00451AAA /* XCRemoteSwiftPackageReference "beacon-ios-sdk" */,
 				766DF4602849FCD700731ADE /* XCRemoteSwiftPackageReference "swift-log" */,
+				63FC852128CED4FC0050C9C6 /* XCRemoteSwiftPackageReference "ios-branch-sdk-spm" */,
 			);
 			productRefGroup = 97C146EF1CF9000F007C117D /* Products */;
 			projectDirPath = "";
@@ -884,6 +894,7 @@
 				6399594427B2C36B002653E7 /* LibAukChannelHandler.swift in Sources */,
 				63A61E1B27EAD2B3005684DD /* Logger.swift in Sources */,
 				764F859B27D810EB00B67672 /* Result+Helpers.swift in Sources */,
+				63FC852728CEE6E80050C9C6 /* BranchChannelHandler.swift in Sources */,
 				76F328B427D1EEAA00C3B9FA /* Constant.swift in Sources */,
 				768E7EE927C770D000585D12 /* SystemChannelHandler.swift in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
@@ -1958,7 +1969,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		63CED4A627AE9DFC00699ED5 /* XCRemoteSwiftPackageReference "libauk-swift.git" */ = {
+		63CED4A627AE9DFC00699ED5 /* XCRemoteSwiftPackageReference "libauk-swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/bitmark-inc/libauk-swift.git";
 			requirement = {
@@ -1974,6 +1985,14 @@
 				revision = 7f4fd325e488fcc6e0aea570ed73cdf3f1313e2b;
 			};
 		};
+		63FC852128CED4FC0050C9C6 /* XCRemoteSwiftPackageReference "ios-branch-sdk-spm" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/BranchMetrics/ios-branch-sdk-spm";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
+			};
+		};
 		766DF4602849FCD700731ADE /* XCRemoteSwiftPackageReference "swift-log" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/apple/swift-log.git";
@@ -1982,7 +2001,7 @@
 				kind = branch;
 			};
 		};
-		76F3288B27D1EC1C00C3B9FA /* XCRemoteSwiftPackageReference "libauk-swift.git" */ = {
+		76F3288B27D1EC1C00C3B9FA /* XCRemoteSwiftPackageReference "libauk-swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/bitmark-inc/libauk-swift.git";
 			requirement = {
@@ -2003,7 +2022,7 @@
 /* Begin XCSwiftPackageProductDependency section */
 		63CED4A727AE9DFC00699ED5 /* LibAuk */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 63CED4A627AE9DFC00699ED5 /* XCRemoteSwiftPackageReference "libauk-swift.git" */;
+			package = 63CED4A627AE9DFC00699ED5 /* XCRemoteSwiftPackageReference "libauk-swift" */;
 			productName = LibAuk;
 		};
 		63F1664A27B2509F00451AAA /* BeaconBlockchainTezos */ = {
@@ -2025,6 +2044,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 63F1664927B2509F00451AAA /* XCRemoteSwiftPackageReference "beacon-ios-sdk" */;
 			productName = BeaconTransportP2PMatrix;
+		};
+		63FC852228CED9A80050C9C6 /* Branch */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 63FC852128CED4FC0050C9C6 /* XCRemoteSwiftPackageReference "ios-branch-sdk-spm" */;
+			productName = Branch;
+		};
+		63FC852428CED9B00050C9C6 /* Branch */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 63FC852128CED4FC0050C9C6 /* XCRemoteSwiftPackageReference "ios-branch-sdk-spm" */;
+			productName = Branch;
 		};
 		766DF4612849FCD700731ADE /* Logging */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -2048,7 +2077,7 @@
 		};
 		76F3288A27D1EC1C00C3B9FA /* LibAuk */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 76F3288B27D1EC1C00C3B9FA /* XCRemoteSwiftPackageReference "libauk-swift.git" */;
+			package = 76F3288B27D1EC1C00C3B9FA /* XCRemoteSwiftPackageReference "libauk-swift" */;
 			productName = LibAuk;
 		};
 		76F3288C27D1EC1C00C3B9FA /* BeaconBlockchainTezos */ = {
