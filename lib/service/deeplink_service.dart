@@ -156,7 +156,29 @@ class DeeplinkServiceImpl extends DeeplinkService implements BranchHandler {
   }
 
   @override
-  void observeDeeplinkParams(params) {
-    // TODO: implement observeDeeplinkParams
+  void observeDeeplinkParams(params) async {
+    final source = params["source"];
+    if (source == "FeralFile") {
+      final String? tokenId = params["token_id"];
+      if (tokenId == null) return;
+
+      final doneOnboarding = _configurationService.isDoneOnboarding();
+
+      final connection = await _feralFileService.linkFF(
+        tokenId,
+        delayLink: !doneOnboarding,
+      );
+
+      if (doneOnboarding) {
+        _navigationService.showFFAccountLinked(connection.name);
+
+        await Future.delayed(SHORT_SHOW_DIALOG_DURATION, () {
+          _navigationService.popUntilHomeOrSettings();
+        });
+      } else {
+        _navigationService.showFFAccountLinked(connection.name,
+            inOnboarding: true);
+      }
+    }
   }
 }
