@@ -566,10 +566,11 @@ class ControlView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final identityState = context.watch<IdentityBloc>().state;
-    final artistName =
-        assetToken?.artistName?.toIdentityOrMask(identityState.identityMap);
+    final identityBloc = context.read<IdentityBloc>();
     double safeAreaTop = MediaQuery.of(context).padding.top;
+    final neededIdentities = [
+      assetToken?.artistName ?? '',
+    ];
 
     return Container(
       color: theme.colorScheme.primary,
@@ -601,14 +602,27 @@ class ControlView extends StatelessWidget {
                               ? theme.textTheme.atlasWhiteBold12
                               : theme.textTheme.atlasWhiteBold14,
                         ),
-                        if (artistName != null) ...[
-                          const SizedBox(height: 4.0),
-                          Text(
-                            "by".tr(args: [artistName]),
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.primaryTextTheme.headline5,
-                          )
-                        ]
+                        BlocBuilder<IdentityBloc, IdentityState>(
+                          bloc: identityBloc
+                            ..add(GetIdentityEvent(neededIdentities)),
+                          builder: (context, state) {
+                            final artistName = assetToken?.artistName
+                                ?.toIdentityOrMask(state.identityMap);
+                            if (artistName != null) {
+                              return Row(
+                                children: [
+                                  const SizedBox(height: 4.0),
+                                  Text(
+                                    "by".tr(args: [artistName]),
+                                    overflow: TextOverflow.ellipsis,
+                                    style: theme.primaryTextTheme.headline5,
+                                  )
+                                ],
+                              );
+                            }
+                            return const SizedBox();
+                          },
+                        ),
                       ],
                     ),
                   ),
