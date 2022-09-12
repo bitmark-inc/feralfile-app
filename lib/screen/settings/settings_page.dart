@@ -119,8 +119,9 @@ class _SettingsPageState extends State<SettingsPage>
                       ),
                       const SizedBox(height: 16),
                       AccountsView(
-                          key: ValueKey(_forceAccountsViewRedraw),
-                          isInSettingsPage: true),
+                        key: ValueKey(_forceAccountsViewRedraw),
+                        isInSettingsPage: true,
+                      ),
                     ],
                   ),
                   Row(

@@ -145,10 +145,9 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
               ? "-- ETH"
               : "${EthAmountFormatter(ethBalance.getInWei).format()} ETH";
           return _addressRow(
-            address: state.personaAddresses?[uuid] ?? "",
-            type: CryptoType.ETH,
-            balance: balance
-          );
+              address: state.personaAddresses?[uuid] ?? "",
+              type: CryptoType.ETH,
+              balance: balance);
         }),
         addDivider(),
         BlocBuilder<TezosBloc, TezosState>(builder: (context, state) {
@@ -167,7 +166,10 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
     );
   }
 
-  Widget _addressRow({required String address, required CryptoType type, String balance = ""}) {
+  Widget _addressRow(
+      {required String address,
+      required CryptoType type,
+      String balance = ""}) {
     final theme = Theme.of(context);
     final addressStyle = theme.textTheme.subtitle1;
 
@@ -216,7 +218,6 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
       },
     );
   }
-
 
   Widget _preferencesSection() {
     final theme = Theme.of(context);

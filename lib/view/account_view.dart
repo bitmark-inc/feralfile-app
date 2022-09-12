@@ -5,9 +5,11 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/global_receive/receive_detail_page.dart';
+import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
@@ -100,37 +102,67 @@ Widget accountItem(BuildContext context, Account account,
   final theme = Theme.of(context);
   final persona = account.persona;
   if (persona != null) {
+    final isHideGalleryEnabled =
+        injector<AccountService>().isPersonaHiddenInGallery(persona.uuid);
     return TappableForwardRow(
-        leftWidget: Row(
-          children: [
-            accountLogo(account),
-            const SizedBox(width: 16),
-            Text(
-                account.name.isNotEmpty
-                    ? account.name.maskIfNeeded()
-                    : account.accountNumber.mask(4),
-                style: theme.textTheme.headline4),
-          ],
+      leftWidget: Row(
+        children: [
+          accountLogo(account),
+          const SizedBox(width: 16),
+          Text(
+            account.name.isNotEmpty
+                ? account.name.maskIfNeeded()
+                : account.accountNumber.mask(4),
+            style: theme.textTheme.headline4,
+          ),
+        ],
+      ),
+      rightWidget: Visibility(
+        visible: isHideGalleryEnabled,
+        child: Icon(
+          Icons.visibility_off_outlined,
+          color: theme.colorScheme.surface,
         ),
-        onTap: onPersonaTap);
+      ),
+      onTap: onPersonaTap,
+    );
   }
 
   final connection = account.connections?.first;
+
   if (connection != null) {
+    final isHideGalleryEnabled = injector<AccountService>()
+        .isLinkedAccountHiddenInGallery(connection.hiddenGalleryKey);
     return TappableForwardRow(
-        leftWidget: Row(
-          children: [
-            accountLogo(account),
-            const SizedBox(width: 16),
-            Text(
-                connection.name.isNotEmpty
-                    ? connection.name.maskIfNeeded()
-                    : connection.accountNumber.mask(4),
-                style: theme.textTheme.headline4),
-          ],
-        ),
-        rightWidget: _linkedBox(context),
-        onTap: onConnectionTap);
+      leftWidget: Row(
+        children: [
+          accountLogo(account),
+          const SizedBox(width: 16),
+          Text(
+            connection.name.isNotEmpty
+                ? connection.name.maskIfNeeded()
+                : connection.accountNumber.mask(4),
+            style: theme.textTheme.headline4,
+          ),
+        ],
+      ),
+      rightWidget: Row(
+        children: [
+          Visibility(
+            visible: isHideGalleryEnabled,
+            child: Icon(
+              Icons.visibility_off_outlined,
+              color: theme.colorScheme.surface,
+            ),
+          ),
+          const SizedBox(
+            width: 10,
+          ),
+          _linkedBox(context),
+        ],
+      ),
+      onTap: onConnectionTap,
+    );
   }
 
   return const SizedBox();
