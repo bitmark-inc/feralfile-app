@@ -20,7 +20,7 @@ extension BranchChannelHandler: FlutterStreamHandler {
         branchInstance.initSession { (params, error) in
             events([
                 "eventName": "observeDeeplinkParams",
-                "params": params as Any
+                "params": params as? Any
             ])
        }
         return nil
