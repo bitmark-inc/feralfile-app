@@ -6,6 +6,7 @@
 //
 
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
@@ -15,12 +16,12 @@ import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:web3dart/crypto.dart';
-import 'package:autonomy_flutter/view/responsive.dart';
 
 class TBSignMessagePage extends StatefulWidget {
   static const String tag = 'tb_sign_message';
@@ -66,7 +67,11 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
   @override
   Widget build(BuildContext context) {
     final message = hexToBytes(widget.request.payload!);
-    final messageInUtf8 = utf8.decode(message, allowMalformed: true);
+    final Uint8List viewMessage = message.length > 6 &&
+            message.sublist(0, 2).equals(Uint8List.fromList([5, 1]))
+        ? message.sublist(6)
+        : message;
+    final messageInUtf8 = utf8.decode(viewMessage, allowMalformed: true);
 
     final theme = Theme.of(context);
 
