@@ -25,11 +25,13 @@ class BadgeView extends StatelessWidget {
             border: Border.all(color: theme.colorScheme.secondary)),
         alignment: Alignment.center,
         child: Text(
-          '$number',
+          number > 9 ? '9+' : '$number',
           textAlign: TextAlign.center,
-          style: ResponsiveLayout.isMobile
-              ? theme.textTheme.atlasWhiteBold12
-              : theme.textTheme.atlasWhiteBold14,
+          style: theme.textTheme.atlasWhite.copyWith(
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+            height: 1.33,
+          ),
         ));
   }
 }

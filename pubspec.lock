@@ -68,8 +68,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "1.0.0"
-      resolved-ref: "42f6d217fcddf4cfdef0e8b029b62044a6df8de7"
+      ref: "1.0.1"
+      resolved-ref: "1ca380384738a1c12424f88036c2472f43acdf7b"
       url: "https://github.com/bitmark-inc/autonomy-client-shared-theme.git"
     source: git
     version: "0.0.1+20"
@@ -1158,8 +1158,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "8742e39c930b2d612bfb80afda81fc682a81dd99"
-      resolved-ref: "8742e39c930b2d612bfb80afda81fc682a81dd99"
+      ref: "4c8880ca160883101dce907b53d689f145cbc497"
+      resolved-ref: "4c8880ca160883101dce907b53d689f145cbc497"
       url: "https://github.com/autonomy-system/nft-collection"
     source: git
     version: "0.0.1"

@@ -405,6 +405,10 @@ class _HomePageState extends State<HomePage>
               RefreshTokenEvent(addresses: addresses, debugTokens: indexerIds));
         });
         break;
+      case "artwork_created":
+      case "artwork_received":
+        injector<FeedService>().checkNewFeeds();
+        break;
     }
 
     showNotifications(context, event.notification,
@@ -439,6 +443,16 @@ class _HomePageState extends State<HomePage>
                 route.settings.name == AppRouter.homePageNoTransition),
             arguments:
                 DetailIssuePayload(reportIssueType: "", issueID: issueID));
+        break;
+
+      case "artwork_created":
+      case "artwork_received":
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          AppRouter.feedPreviewPage,
+          ((route) =>
+              route.settings.name == AppRouter.homePage ||
+              route.settings.name == AppRouter.homePageNoTransition),
+        );
         break;
       default:
         log.warning("unhandled notification type: $notificationType");
@@ -480,7 +494,11 @@ class _HomePageState extends State<HomePage>
     final jwtToken =
         (await injector<AuthService>().getAuthToken(forceRefresh: true))
             .jwtToken;
-    injector<FeedService>().refreshJWTToken(jwtToken);
+
+    final feedService = injector<FeedService>();
+    feedService
+        .refreshJWTToken(jwtToken)
+        .then((value) => feedService.checkNewFeeds());
 
     injector<CustomerSupportService>().getIssues();
     injector<CustomerSupportService>().processMessages();

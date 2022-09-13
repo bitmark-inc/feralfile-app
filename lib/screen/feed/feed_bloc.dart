@@ -41,6 +41,12 @@ class FeedBloc extends AuBloc<FeedBlocEvent, FeedState> {
             .map((e) => appFeedData.findTokenRelatedTo(e))
             .toList();
 
+        if (state.appFeedData == null) {
+          _configurationService
+              .setLastTimeOpenFeed(DateTime.now().millisecondsSinceEpoch);
+          _feedService.unviewedCount.value = 0;
+        }
+
         emit(
           state.copyWith(
             appFeedData: appFeedData,
