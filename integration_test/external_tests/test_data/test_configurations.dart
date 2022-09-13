@@ -8,10 +8,11 @@ Map<String, String> CHROME_MOBILE_BROWSER_PROFILE(String currentDir) => {
       'chromedriverExecutableDir':
           '${currentDir}/integration_test/external_tests/resources/chromedriver',
     };
+
 Map<String, String> AUTONOMY_PROFILE(String currentDir) => {
       'platformName': "Android",
       'platformVersion': "12",
-      'deviceName': 'Galaxy A52s 5G',
+      'deviceName': 'Galaxy S10+',
       'app':
           "${currentDir}/build/app/outputs/flutter-apk/app-inhouse-release.apk",
       'appPackage': "com.bitmark.autonomy_client.inhouse",

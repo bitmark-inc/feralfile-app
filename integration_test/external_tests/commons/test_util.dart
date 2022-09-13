@@ -169,9 +169,9 @@ Future<void> scroll(driver, scrollUIAutomator) async {
   await driver.findElement(finder);
 }
 
-Future<void> scrollSettingPage(driver) async {
-  var scrollUIAutomator = await 'new UiScrollable(new UiSelector().className("android.widget.ScrollView")).scrollForward()';
-  await scroll(driver, scrollUIAutomator);
-  scrollUIAutomator = await 'new UiScrollable(new UiSelector().className("android.widget.ScrollView")).scrollToEnd(10)';
+Future<void> scrollUntil(AppiumWebDriver driver, String decs) async {
+  var subSelector = 'new UiSelector().descriptionContains("$decs")';
+  var scrollViewSeletor = 'new UiSelector().className("android.widget.ScrollView")';
+  var scrollUIAutomator = await 'new UiScrollable($scrollViewSeletor).setSwipeDeadZonePercentage(0.4).scrollIntoView($subSelector)';
   await scroll(driver, scrollUIAutomator);
 }

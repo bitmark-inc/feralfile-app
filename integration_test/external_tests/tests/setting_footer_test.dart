@@ -29,7 +29,7 @@ void main() {
     });
 
     tearDown(() async {
-      await driver.app.remove(AUTONOMY_APPPACKAGE);
+      //await driver.app.remove(AUTONOMY_APPPACKAGE);
       await driver.quit();
     });
 
@@ -38,7 +38,7 @@ void main() {
 
       await selectSubSettingMenu(driver, "Settings");
 
-      await scrollSettingPage(driver);
+      await scrollUntil(driver, "Version");
 
       var versionEle = await driver.findElement(AppiumBy.xpath(
           "//android.view.View[contains(@content-desc,'Version')]"));
@@ -62,7 +62,7 @@ void main() {
 
       await selectSubSettingMenu(driver, "Settings");
 
-      await scrollSettingPage(driver);
+      await scrollUntil(driver, "EULA");
 
       await selectSubSettingMenu(driver, "EULA");
 
@@ -85,7 +85,7 @@ void main() {
 
       await selectSubSettingMenu(driver, "Settings");
 
-      await scrollSettingPage(driver);
+      await scrollUntil(driver, "Privacy Policy");
 
       await selectSubSettingMenu(driver, "Privacy Policy");
 
