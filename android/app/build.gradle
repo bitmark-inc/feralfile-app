@@ -49,17 +49,17 @@ if (flutterVersionName == null) {
     flutterVersionName = '1.0'
 }
 
-def branchKey = localProperties["branch.key"] ?: environment["branch.key"]
+def branchKey = localProperties["branch.key"] ?: environment["BRANCH_KEY"]
 if (branchKey == null) {
     throw new GradleException("Branch key not found.")
 }
 
-def branchKeyTest = localProperties["branch.keyTest"] ?: environment["branch.keyTest"]
+def branchKeyTest = localProperties["branch.keyTest"] ?: environment["BRANCH_KEY_TEST"]
 if (branchKeyTest == null) {
     throw new GradleException("Branch test key not found.")
 }
 
-def branchTestMode = localProperties["branch.testMode"] ?: environment["branch.testMode"] ?: false
+def branchTestMode = localProperties["branch.testMode"] ?: environment["BRANCH_IS_TEST"] ?: false
 
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
