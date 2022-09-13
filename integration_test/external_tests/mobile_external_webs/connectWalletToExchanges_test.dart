@@ -25,8 +25,8 @@ void main() {
     setUp(() async {
       driver = await createDriver(
           uri: Uri.parse(APPIUM_SERVER_URL),
-          desired: CHROME_MOBILE_BROWSER_PROFILE);
-      // desired: AUTONOMY_PROFILE(dir.path));
+          desired: CHROME_MOBILE_BROWSER_PROFILE(dir.path));
+
       await driver.timeouts.setPageLoadTimeout(Duration(seconds: 20));
 
       // sleep(Duration(seconds: 5));
@@ -40,12 +40,9 @@ void main() {
     });
 
     tearDown(() async {
-      // await driver.app.remove(AUTONOMY_APPPACKAGE);
       await driver.app.remove(AUTONOMY_APPPACKAGE);
 
       driver.app.reset();
-      // await driver.app.activate(CHROME_APPPACKAGE);
-      // sleep(Duration(seconds: 1));
 
       await driver.quit();
     });
