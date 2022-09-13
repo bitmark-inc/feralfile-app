@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -40,8 +41,13 @@ String getEditionSubTitle(AssetToken token) {
 
 class TokenThumbnailWidget extends StatelessWidget {
   final AssetToken token;
+  final Function? onHideArtwork;
 
-  const TokenThumbnailWidget({Key? key, required this.token}) : super(key: key);
+  const TokenThumbnailWidget({
+    Key? key,
+    required this.token,
+    this.onHideArtwork,
+  }) : super(key: key);
 
   Widget _buildContent(
       {required String ext,
@@ -51,7 +57,7 @@ class TokenThumbnailWidget extends StatelessWidget {
     if (thumbnailUrl == null || thumbnailUrl.isEmpty) {
       return const AspectRatio(
         aspectRatio: 1,
-        child: GalleryThumbnailErrorWidget(),
+        child: GalleryNoThumbnailWidget(),
       );
     }
 
@@ -64,6 +70,9 @@ class TokenThumbnailWidget extends StatelessWidget {
                 fallbackToWebView: true,
                 loadingWidgetBuilder: (context) => placeholder(context),
                 errorWidgetBuilder: (_) => const GalleryThumbnailErrorWidget(),
+                unsupportWidgetBuilder: (context) => GalleryUnSupportWidget(
+                  onHideArtwork: () => onHideArtwork?.call(),
+                ),
               ),
             )
           : CachedNetworkImage(
@@ -110,7 +119,7 @@ Widget tokenGalleryThumbnailWidget(
     BuildContext context, AssetToken token, int cachedImageSize) {
   final thumbnailUrl = token.getGalleryThumbnailUrl();
   if (thumbnailUrl == null || thumbnailUrl.isEmpty) {
-    return const GalleryThumbnailErrorWidget();
+    return const GalleryNoThumbnailWidget();
   }
 
   final ext = p.extension(thumbnailUrl);
@@ -123,9 +132,11 @@ Widget tokenGalleryThumbnailWidget(
             url: thumbnailUrl,
             loadingWidgetBuilder: (_) => const GalleryThumbnailPlaceholder(),
             errorWidgetBuilder: (_) => const GalleryThumbnailErrorWidget(),
+            unsupportWidgetBuilder: (context) =>
+                const GalleryUnSupportThumbnailWidget(),
           )
         : CachedNetworkImage(
-            imageUrl: token.getGalleryThumbnailUrl()!,
+            imageUrl: thumbnailUrl,
             fadeInDuration: Duration.zero,
             fit: BoxFit.cover,
             memCacheHeight: cachedImageSize,
@@ -141,21 +152,128 @@ Widget tokenGalleryThumbnailWidget(
   );
 }
 
+class GalleryUnSupportWidget extends StatelessWidget {
+  final String type;
+  final Function()? onHideArtwork;
+
+  const GalleryUnSupportWidget(
+      {Key? key, this.type = '.svg', this.onHideArtwork})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final size = MediaQuery.of(context).size;
+    return ClipPath(
+      clipper: AutonomyTopRightRectangleClipper(),
+      child: Container(
+        width: size.width,
+        height: size.width,
+        padding: const EdgeInsets.all(13),
+        color: const Color.fromRGBO(227, 227, 227, 1),
+        child: Stack(
+          children: [
+            Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'unsupported_token'.tr(),
+                    style: theme.textTheme.atlasGreyNormal14,
+                  ),
+                  Visibility(
+                    visible: onHideArtwork != null,
+                    child: GestureDetector(
+                      onTap: onHideArtwork,
+                      child: Text(
+                        'hide_it_from_collection'.tr(),
+                        style: theme.textTheme.atlasGreyNormal14.copyWith(
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Align(
+              alignment: AlignmentDirectional.bottomStart,
+              child: Text(
+                type.toUpperCase(),
+                style: theme.textTheme.ibmGreyNormal12,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class GalleryUnSupportThumbnailWidget extends StatelessWidget {
+  final String type;
+  const GalleryUnSupportThumbnailWidget({Key? key, this.type = '.svg'})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final size = MediaQuery.of(context).size;
+    return ClipPath(
+      clipper: AutonomyTopRightRectangleClipper(),
+      child: Container(
+        width: size.width,
+        height: size.width,
+        padding: const EdgeInsets.all(13),
+        color: const Color.fromRGBO(227, 227, 227, 1),
+        child: Align(
+          alignment: AlignmentDirectional.bottomStart,
+          child: Text(
+            type.toUpperCase(),
+            style: theme.textTheme.ibmGreyNormal12,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class GalleryThumbnailErrorWidget extends StatelessWidget {
   const GalleryThumbnailErrorWidget({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(15.0),
-      color: const Color.fromRGBO(227, 227, 227, 1),
-      child: Align(
-        alignment: AlignmentDirectional.bottomStart,
-        child: SvgPicture.asset(
-          'assets/images/icon_exclamation.svg',
-          width: 16,
-          height: 16,
+    final theme = Theme.of(context);
+    return ClipPath(
+      clipper: AutonomyTopRightRectangleClipper(),
+      child: Container(
+        padding: const EdgeInsets.all(13.0),
+        color: const Color.fromRGBO(227, 227, 227, 1),
+        child: Align(
+          alignment: AlignmentDirectional.bottomStart,
+          child: Text(
+            'IPFS!',
+            style: theme.textTheme.ibmGreyNormal12,
+          ),
         ),
+      ),
+    );
+  }
+}
+
+class GalleryNoThumbnailWidget extends StatelessWidget {
+  const GalleryNoThumbnailWidget({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    return ClipPath(
+      clipper: AutonomyTopRightRectangleClipper(),
+      child: Container(
+        padding: const EdgeInsets.all(15.0),
+        height: size.width,
+        width: size.width,
+        color: Colors.black,
       ),
     );
   }
@@ -169,15 +287,18 @@ class GalleryThumbnailPlaceholder extends StatelessWidget {
     final theme = Theme.of(context);
     return AspectRatio(
       aspectRatio: 1,
-      child: Container(
-        padding: const EdgeInsets.all(13),
-        color: const Color.fromRGBO(227, 227, 227, 1),
-        child: Align(
-          alignment: AlignmentDirectional.bottomStart,
-          child: loadingIndicator(
-            size: 13,
-            valueColor: theme.colorScheme.primary,
-            backgroundColor: theme.colorScheme.primary.withOpacity(0.5),
+      child: ClipPath(
+        clipper: AutonomyTopRightRectangleClipper(),
+        child: Container(
+          padding: const EdgeInsets.all(13),
+          color: const Color.fromRGBO(227, 227, 227, 1),
+          child: Align(
+            alignment: AlignmentDirectional.bottomStart,
+            child: loadingIndicator(
+              size: 13,
+              valueColor: theme.colorScheme.primary,
+              backgroundColor: theme.colorScheme.primary.withOpacity(0.5),
+            ),
           ),
         ),
       ),
