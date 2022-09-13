@@ -61,7 +61,6 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
     _bloc = context.read<FeedBloc>();
     if (_configurationService.isFinishedFeedOnBoarding()) {
       _bloc.add(GetFeedsEvent());
-      setMaxTimeToken();
     }
 
     _timer = Timer.periodic(const Duration(seconds: 10), (timer) {
@@ -145,7 +144,6 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
                         PageView.builder(
                           onPageChanged: (value) {
                             _bloc.add(ChangeOnBoardingEvent(index: value));
-                            setMaxTimeToken();
                           },
                           itemCount: 4,
                           itemBuilder: (context, index) => Center(
@@ -171,12 +169,14 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
                         controller: _controller,
                         onPageChanged: (value) {
                           _bloc.add(ChangePageEvent(index: value));
-                          setMaxTimeToken();
                         },
                         itemCount: feedTokens?.length,
                         itemBuilder: (context, index) => Center(
-                            child: FeedArtwork(
-                                assetToken: state.feedTokens![index])),
+                          child: FeedArtwork(
+                            assetToken: state.feedTokens![index],
+                            onInit: setMaxTimeToken,
+                          ),
+                        ),
                       ),
                       Align(
                         alignment: Alignment.topCenter,
@@ -485,7 +485,8 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
 
 class FeedArtwork extends StatefulWidget {
   final AssetToken? assetToken;
-  const FeedArtwork({Key? key, this.assetToken}) : super(key: key);
+  final Function? onInit;
+  const FeedArtwork({Key? key, this.assetToken, this.onInit}) : super(key: key);
 
   @override
   State<FeedArtwork> createState() => _FeedArtworkState();
@@ -502,6 +503,7 @@ class _FeedArtworkState extends State<FeedArtwork>
     if (widget.assetToken == null) {
       _missingToken = true;
     }
+    widget.onInit?.call();
     WidgetsBinding.instance.addObserver(this);
     super.initState();
   }
