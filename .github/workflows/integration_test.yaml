@@ -18,6 +18,8 @@ jobs:
         run: |
           echo "FLUTTER_VERSION_NAME=0.100.0" >> $GITHUB_ENV
           echo "FLUTTER_VERSION_CODE=10" >> $GITHUB_ENV
+          echo "BRANCH_KEY=${{ secrets.BRANCH_KEY }}" >> $GITHUB_ENV
+          echo "BRANCH_KEY_TEST=${{ secrets.BRANCH_KEY_TEST }}" >> $GITHUB_ENV
       - name: Create env file
         run: |
           touch .env

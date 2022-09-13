@@ -33,6 +33,8 @@ jobs:
         run: |
           echo "FLUTTER_VERSION_NAME=${{ github.event.inputs.version }}" >> $GITHUB_ENV
           echo "FLUTTER_VERSION_CODE=${{ github.event.inputs.build-number }}" >> $GITHUB_ENV
+          echo "BRANCH_KEY=${{ secrets.BRANCH_KEY }}" >> $GITHUB_ENV
+          echo "BRANCH_KEY_TEST=${{ secrets.BRANCH_KEY_TEST }}" >> $GITHUB_ENV
 
       - uses: webfactory/ssh-agent@v0.5.4
         with:
