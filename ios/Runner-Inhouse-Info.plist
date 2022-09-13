@@ -4,6 +4,7 @@
 <dict>
     <key>branch_universal_link_domains</key>
     <array>
+        <string>link.autonomy.io</string>
         <string>autonomy-app.app.link</string>
         <string>>autonomy-app-alternate.app.link</string>
         <string>>autonomy-app.test.app.link</string>

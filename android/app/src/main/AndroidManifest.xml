@@ -138,6 +138,24 @@
 
                 <data android:scheme="autonomy-tezos" />
             </intent-filter>
+
+            <!-- Branch App Links -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="link.autonomy.io" />
+                <data android:scheme="https" android:host="autonomy-app.app.link" />
+                <data android:scheme="https" android:host="autonomy-app-alternate.app.link" />
+            </intent-filter>
+
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="autonomy-app.test.app.link" />
+                <data android:scheme="https" android:host="autonomy-app-alternate.test.app.link" />
+            </intent-filter>
         </activity>
         <!--
  Don't delete the meta-data below.
