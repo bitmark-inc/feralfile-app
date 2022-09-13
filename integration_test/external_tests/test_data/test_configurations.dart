@@ -1,11 +1,13 @@
 const APPIUM_SERVER_URL = 'http://0.0.0.0:4723/wd/hub/';
-const CHROME_MOBILE_BROWSER_PROFILE = {
-  'platformName': 'android',
-  'platformVersion': '12',
-  'deviceName': "Galaxy A52s 5G",
-  'browserName': 'Chrome',
-  'automationName': 'UIAutomator2',
-};
+Map<String, String> CHROME_MOBILE_BROWSER_PROFILE(String currentDir) => {
+      'platformName': 'android',
+      'platformVersion': '12',
+      'deviceName': "Galaxy A52s 5G",
+      'browserName': 'Chrome',
+      'automationName': 'UIAutomator2',
+      'chromedriverExecutableDir':
+          '${currentDir}/integration_test/external_tests/resources/chromedriver',
+    };
 Map<String, String> AUTONOMY_PROFILE(String currentDir) => {
       'platformName': "Android",
       'platformVersion': "12",
