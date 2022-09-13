@@ -212,7 +212,9 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
                     ),
                   ),
                   GestureDetector(
-                    child: TokenThumbnailWidget(token: token!),
+                    child: TokenThumbnailWidget(
+                      token: token!,
+                    ),
                     onTap: () => Navigator.of(context).pop(),
                   ),
                   Padding(

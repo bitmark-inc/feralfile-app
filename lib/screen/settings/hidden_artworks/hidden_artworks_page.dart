@@ -10,6 +10,7 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -18,6 +19,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:nft_collection/models/asset_token.dart';
+import 'package:nft_rendering/nft_rendering.dart';
 
 // ignore: depend_on_referenced_packages
 import 'package:path/path.dart' as p;
@@ -99,26 +101,28 @@ class _HiddenArtworksPageState extends State<HiddenArtworksPage> {
                   child: Hero(
                     tag: asset.id,
                     child: ext == ".svg"
-                        ? SvgPicture.network(asset.getGalleryThumbnailUrl()!)
+                        ? SvgImage(
+                            url: asset.getGalleryThumbnailUrl()!,
+                            loadingWidgetBuilder: (_) =>
+                                const GalleryThumbnailPlaceholder(),
+                            errorWidgetBuilder: (_) =>
+                                const GalleryThumbnailErrorWidget(),
+                            unsupportWidgetBuilder: (context) =>
+                                const GalleryUnSupportThumbnailWidget(),
+                          )
                         : CachedNetworkImage(
                             imageUrl: asset.getGalleryThumbnailUrl()!,
                             fit: BoxFit.cover,
                             memCacheHeight: _cachedImageSize,
                             memCacheWidth: _cachedImageSize,
                             cacheManager: injector<CacheManager>(),
-                            placeholder: (context, index) => Container(
-                                color: const Color.fromRGBO(227, 227, 227, 1)),
-                            placeholderFadeInDuration:
-                                const Duration(milliseconds: 300),
-                            errorWidget: (context, url, error) => Container(
-                                color: const Color.fromRGBO(227, 227, 227, 1),
-                                child: Center(
-                                  child: SvgPicture.asset(
-                                    'assets/images/image_error.svg',
-                                    width: 75,
-                                    height: 75,
-                                  ),
-                                )),
+                            placeholder: (context, index) =>
+                                const GalleryThumbnailPlaceholder(),
+                            errorWidget: (context, url, error) =>
+                                const GalleryThumbnailErrorWidget(),
+                            placeholderFadeInDuration: const Duration(
+                              milliseconds: 300,
+                            ),
                           ),
                   ),
                   onTap: () {
