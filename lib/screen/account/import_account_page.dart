@@ -8,17 +8,18 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/tokens_service.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/theme_manager.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:nft_collection/services/tokens_service.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 
 class ImportAccountPage extends StatefulWidget {
   const ImportAccountPage({Key? key}) : super(key: key);
@@ -28,13 +29,14 @@ class ImportAccountPage extends StatefulWidget {
 }
 
 class _ImportAccountPageState extends State<ImportAccountPage> {
-  TextEditingController _phraseTextController = TextEditingController();
+  final TextEditingController _phraseTextController = TextEditingController();
   bool _isSubmissionEnabled = false;
 
   bool isError = false;
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: getBackAppBar(
         context,
@@ -43,7 +45,7 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
         },
       ),
       body: Container(
-        margin: pageEdgeInsetsWithSubmitButton,
+        margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -53,28 +55,29 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Import account",
-                      style: appTextTheme.headline1,
+                      "import_account".tr(),
+                      style: theme.textTheme.headline1,
                     ),
                     addTitleSpace(),
                     Text(
-                      "Importing your account will also add support for all chains featured in Autonomy. We will automatically back up your account in your iCloud Keychain.",
-                      style: appTextTheme.bodyText1,
+                      "ia_importing_your_account".tr(),
+                      //"Importing your account will also add support for all chains featured in Autonomy. We will automatically back up your account in your iCloud Keychain.",
+                      style: theme.textTheme.bodyText1,
                     ),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
                     learnMoreAboutAutonomySecurityWidget(
                       context,
-                      title: 'Learn why this is safe...',
+                      title: 'learn_why_this_is_safe...'.tr(),
                     ),
-                    SizedBox(height: 40),
-                    Container(
+                    const SizedBox(height: 40),
+                    SizedBox(
                       height: 120,
                       child: Column(
                         children: [
                           AuTextField(
                             title: "",
-                            placeholder:
-                                "Enter recovery phrase with each word separated by a space",
+                            placeholder: "enter_recovery_phrase".tr(),
+                            //"Enter recovery phrase with each word separated by a space",
                             keyboardType: TextInputType.multiline,
                             expanded: true,
                             maxLines: null,
@@ -93,7 +96,7 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
                         ],
                       ),
                     ),
-                    SizedBox(),
+                    const SizedBox(),
                   ],
                 ),
               ),
@@ -103,7 +106,7 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
                 Expanded(
                   child: AuFilledButton(
                     enabled: _isSubmissionEnabled,
-                    text: "CONFIRM".toUpperCase(),
+                    text: "confirm".tr().toUpperCase(),
                     onPress: () {
                       if (_isSubmissionEnabled) _import();
                     },
@@ -132,6 +135,8 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
         (await persona.wallet().getBitmarkAddress()),
       ]);
 
+      if (!mounted) return;
+
       Navigator.of(context)
           .popAndPushNamed(AppRouter.namePersonaPage, arguments: persona.uuid);
     } on AccountImportedException catch (e) {
@@ -139,8 +144,9 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
           context,
           ErrorEvent(
               null,
-              "Already Imported",
-              "You’ve already imported this account to Autonomy.",
+              "already_imported".tr(),
+              "ai_you’ve_already".tr(),
+              //"You’ve already imported this account to Autonomy.",
               ErrorItemState.seeAccount), defaultAction: () {
         Navigator.of(context).pushNamed(
           AppRouter.personaDetailsPage,

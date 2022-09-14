@@ -7,17 +7,21 @@
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 
 class BeOwnGalleryPage extends StatelessWidget {
+  const BeOwnGalleryPage({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: getBackAppBar(
         context,
@@ -26,7 +30,7 @@ class BeOwnGalleryPage extends StatelessWidget {
         },
       ),
       body: Container(
-        margin: pageEdgeInsetsWithSubmitButton,
+        margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -36,18 +40,19 @@ class BeOwnGalleryPage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "View your digital artwork collection anytime, anywhere.",
-                      style: appTextTheme.headline1,
+                      "own_gallery_tt".tr(),
+                      style: theme.textTheme.headline1,
                     ),
-                    SizedBox(height: 30),
+                    const SizedBox(height: 30),
                     Text(
-                      "At home, on vacation, on the train — never be without your digital art collection. Digital artworks you own as NFTs on Ethereum, Feral File, or Tezos will automatically appear in your Autonomy.",
-                      style: appTextTheme.bodyText1,
+                      "own_gallery_body".tr(),
+                      style: theme.textTheme.bodyText1,
                     ),
-                    SizedBox(height: 15),
+                    const SizedBox(height: 15),
                     Text(
-                      "It is not possible to purchase NFTs in this app.",
-                      style: appTextTheme.headline4,
+                      "not_purchase".tr(),
+                      //"It is not possible to purchase NFTs in this app.",
+                      style: theme.textTheme.headline4,
                     ),
                   ],
                 ),
@@ -57,7 +62,7 @@ class BeOwnGalleryPage extends StatelessWidget {
               children: [
                 Expanded(
                   child: AuFilledButton(
-                    text: "CONTINUE".toUpperCase(),
+                    text: "continue".tr().toUpperCase(),
                     onPress: () async {
                       if (await injector<IAPService>().isSubscribed()) {
                         await newAccountPageOrSkipInCondition(context);

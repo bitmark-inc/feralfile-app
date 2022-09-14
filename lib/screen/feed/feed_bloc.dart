@@ -6,43 +6,71 @@
 //
 
 import 'package:autonomy_flutter/au_bloc.dart';
-import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/model/feed.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:collection/collection.dart';
+import 'package:nft_collection/models/asset_token.dart';
 
 part 'feed_state.dart';
 
 class FeedBloc extends AuBloc<FeedBlocEvent, FeedState> {
-  FeedService _feedService;
+  final FeedService _feedService;
+  final ConfigurationService _configurationService;
 
-  FeedBloc(this._feedService) : super(FeedState()) {
-    on<GetFeedsEvent>((event, emit) async {
-      log.info('[FeedBloc][Start] GetFeedsEvent');
-      if (state.appFeedData != null && state.appFeedData?.next == null) {
-        log.info('[FeedBloc] break; no more feeds');
+  FeedBloc(this._feedService, this._configurationService)
+      : super(FeedState(
+          onBoardingStep:
+              _configurationService.isFinishedFeedOnBoarding() ? -1 : 0,
+        )) {
+    on<GetFeedsEvent>(
+      (event, emit) async {
+        if (state.appFeedData != null && state.appFeedData?.next == null) {
+          log.info('[FeedBloc] break; no more feeds');
+          return;
+        }
+
+        final newAppFeedData =
+            await _feedService.fetchFeeds(state.appFeedData?.next);
+
+        final appFeedData =
+            state.appFeedData?.insert(newAppFeedData) ?? newAppFeedData;
+
+        final List<AssetToken?> feedTokens = appFeedData.events
+            .map((e) => appFeedData.findTokenRelatedTo(e))
+            .toList();
+
+        emit(
+          state.copyWith(
+            appFeedData: appFeedData,
+            feedTokens: feedTokens,
+            viewingIndex: state.viewingIndex ?? 0,
+            feedEvents: appFeedData.events,
+          ),
+        );
+      },
+    );
+
+    on<ChangePageEvent>((event, emit) async {
+      emit(state.copyWith(viewingIndex: event.index));
+      if (event.index + 2 == state.feedEvents?.length) {
+        add(GetFeedsEvent());
+      }
+    });
+
+    on<ChangeOnBoardingEvent>((event, emit) async {
+      if (event.index >= 0 && event.index < 2) {
+        emit(state.copyWith(onBoardingStep: event.index));
         return;
       }
-
-      final newAppFeedData =
-          await _feedService.fetchFeeds(state.appFeedData?.next);
-
-      FeedEvent? feedEvent =
-          state.viewingFeedEvent ?? newAppFeedData.events.firstOrNull;
-      AssetToken? token;
-
-      if (feedEvent != null) {
-        token = newAppFeedData.findTokenRelatedTo(feedEvent);
+      if (event.index == 2) {
+        _configurationService.setFinishedFeedOnBoarding(true);
+        return;
       }
-
-      emit(state.copyWith(
-        appFeedData:
-            state.appFeedData?.insert(newAppFeedData) ?? newAppFeedData,
-        viewingFeedEvent: feedEvent,
-        viewingToken: token,
-        viewingIndex: state.viewingIndex ?? (feedEvent == null ? null : 0),
-      ));
+      emit(state.copyWith(onBoardingStep: -1));
+      add(GetFeedsEvent());
+      return;
     });
 
     on<RetryMissingTokenInFeedsEvent>((event, emit) async {
@@ -61,62 +89,17 @@ class FeedBloc extends AuBloc<FeedBlocEvent, FeedState> {
       final insertedAppFeedData = state.appFeedData!.insertTokens(tokens);
 
       // Reload viewingToken if empty
-      var viewingToken = state.viewingToken;
-      if (viewingToken == null) {
-        viewingToken = insertedAppFeedData.tokens.firstWhereOrNull(
-            (element) => element.id == state.viewingFeedEvent?.indexerID);
-      }
+      final currentIndex = state.viewingIndex ?? 0;
+      var viewingToken = state.feedTokens?[currentIndex];
+      viewingToken ??= insertedAppFeedData.tokens.firstWhereOrNull(
+          (element) => element.id == state.feedEvents?[currentIndex].indexerID);
 
-      emit(state.copyWith(
-        appFeedData: insertedAppFeedData,
-        viewingToken: viewingToken,
-      ));
-    });
-
-    on<MoveToNextFeedEvent>((event, emit) async {
-      final appFeedData = state.appFeedData;
-      if (appFeedData == null) return;
-      final newIndex = (state.viewingIndex ?? -1) + 1;
-
-      if (newIndex >= appFeedData.events.length) return;
-
-      log.info('[FeedBloc][Start] MoveToNextFeedEvent $newIndex');
-
-      final feedEvent = appFeedData.events[newIndex];
-      AssetToken? token = appFeedData.findTokenRelatedTo(feedEvent);
-
-      final newState = state.copyWith(
-          viewingFeedEvent: feedEvent,
-          viewingToken: token,
-          viewingIndex: newIndex);
-      newState.viewingToken = token;
-
-      emit(newState);
-
-      if (newIndex >= appFeedData.events.length - 3) {
-        add(GetFeedsEvent());
-      }
-    });
-
-    on<MoveToPreviousFeedEvent>((event, emit) async {
-      final appFeedData = state.appFeedData;
-      if (appFeedData == null || state.viewingIndex == null) return;
-      final newIndex = state.viewingIndex! - 1;
-
-      if (newIndex < 0) return;
-
-      log.info('[FeedBloc][Start] MoveToPreviousFeedEvent $newIndex');
-
-      final feedEvent = appFeedData.events[newIndex];
-      AssetToken? token = appFeedData.findTokenRelatedTo(feedEvent);
-
-      final newState = state.copyWith(
-          viewingFeedEvent: feedEvent,
-          viewingToken: token,
-          viewingIndex: newIndex);
-      newState.viewingToken = token;
-
-      emit(newState);
+      emit(
+        state.copyWith(
+          appFeedData: insertedAppFeedData,
+          onBoardingStep: state.onBoardingStep,
+        ),
+      );
     });
   }
 }

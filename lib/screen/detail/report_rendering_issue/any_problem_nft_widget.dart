@@ -5,37 +5,36 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:nft_collection/models/asset_token.dart';
 
 class AnyProblemNFTWidget extends StatelessWidget {
   final AssetToken asset;
-  final ThemeData theme;
 
-  const AnyProblemNFTWidget(
-      {Key? key, required this.asset, required this.theme})
-      : super(key: key);
+  const AnyProblemNFTWidget({Key? key, required this.asset}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return GestureDetector(
       onTap: () => showReportIssueDialog(context, asset),
       child: Container(
         alignment: Alignment.bottomCenter,
-        padding: EdgeInsets.fromLTRB(0, 18, 0, 24),
-        color: theme.backgroundColor,
+        padding: const EdgeInsets.fromLTRB(0, 18, 0, 24),
+        color: theme.colorScheme.primary,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('ANY PROBLEMS WITH THIS NFT?',
-                style: theme.textTheme.bodyText1),
-            SizedBox(
+            Text("problem_nft".tr(),
+                style: theme.primaryTextTheme.button),
+            const SizedBox(
               width: 4,
             ),
             SvgPicture.asset("assets/images/iconSharpFeedback.svg",
-                color: theme.textTheme.bodyText1?.color),
+                color: theme.colorScheme.secondary),
           ],
         ),
       ),

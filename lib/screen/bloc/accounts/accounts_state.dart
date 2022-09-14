@@ -38,6 +38,14 @@ class NameLinkedAccountEvent extends AccountsEvent {
 
 class FetchAllAddressesEvent extends AccountsEvent {}
 
+class FindAccount extends AccountsEvent {
+  final String personaUUID;
+  final String address;
+  final CryptoType type;
+
+  FindAccount(this.personaUUID, this.address, this.type);
+}
+
 class Account {
   String key;
   Persona? persona;
@@ -67,32 +75,36 @@ class CategorizedAccounts {
 }
 
 class AccountsState {
+  List<String> addresses;
   List<Account>? accounts;
   List<CategorizedAccounts>? categorizedAccounts;
-  Network? network;
   AccountBlocStateEvent? event;
 
   AccountsState(
-      {this.accounts, this.categorizedAccounts, this.network, this.event});
+      {this.addresses = const [],
+      this.accounts,
+      this.categorizedAccounts,
+      this.event});
 
   AccountsState copyWith(
-      {List<Account>? accounts,
+      {List<String>? addresses,
+      List<Account>? accounts,
       List<CategorizedAccounts>? categorizedAccounts,
       Network? network,
       AccountBlocStateEvent? event}) {
     return AccountsState(
+      addresses: addresses ?? this.addresses,
       accounts: accounts ?? this.accounts,
       categorizedAccounts: categorizedAccounts ?? this.categorizedAccounts,
-      network: network ?? this.network,
       event: event ?? this.event,
     );
   }
 
   AccountsState setEvent(AccountBlocStateEvent? event) {
     return AccountsState(
-      accounts: this.accounts,
-      network: this.network,
-      categorizedAccounts: this.categorizedAccounts,
+      addresses: addresses,
+      accounts: accounts,
+      categorizedAccounts: categorizedAccounts,
       event: event,
     );
   }
@@ -117,3 +129,5 @@ class FetchAllAddressesSuccessEvent extends AccountBlocStateEvent {
 
   FetchAllAddressesSuccessEvent(this.addresses);
 }
+
+

@@ -18,23 +18,24 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/theme_manager.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
-import 'package:intl/intl.dart';
 import 'package:jiffy/jiffy.dart';
+import 'package:nft_collection/models/asset_token.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 
 enum ActionState { notRequested, loading, error, done }
 
-const SHOW_DIALOG_DURATION = const Duration(seconds: 2);
-const SHORT_SHOW_DIALOG_DURATION = const Duration(seconds: 1);
+const SHOW_DIALOG_DURATION = Duration(seconds: 2);
+const SHORT_SHOW_DIALOG_DURATION = Duration(seconds: 1);
 
 void doneOnboarding(BuildContext context) async {
   injector<ConfigurationService>().setDoneOnboarding(true);
@@ -42,7 +43,8 @@ void doneOnboarding(BuildContext context) async {
       .pushNamedAndRemoveUntil(AppRouter.homePage, (route) => false);
 
   await askForNotification();
-  Future.delayed(SHORT_SHOW_DIALOG_DURATION, showSurveysNotification);
+  // Future.delayed(
+  //     SHORT_SHOW_DIALOG_DURATION, () => showSurveysNotification(context));
 }
 
 void doneOnboardingRestore(BuildContext context) async {
@@ -63,7 +65,7 @@ Future askForNotification() async {
     return;
   }
 
-  await Future<dynamic>.delayed(Duration(seconds: 1), () async {
+  await Future<dynamic>.delayed(const Duration(seconds: 1), () async {
     final context = injector<NavigationService>().navigatorKey.currentContext;
     if (context == null) return null;
 
@@ -73,7 +75,7 @@ Future askForNotification() async {
   });
 }
 
-void showSurveysNotification() {
+void showSurveysNotification(BuildContext context) {
   if (!injector<ConfigurationService>().isDoneOnboarding()) {
     // If the onboarding is not finished, skip this time.
     return;
@@ -85,8 +87,7 @@ void showSurveysNotification() {
   }
 
   showCustomNotifications(
-      "Take a one-question survey and be entered to win a Feral File artwork.",
-      Key(Survey.onboarding),
+      context, "take_survey".tr(), const Key(Survey.onboarding),
       notificationOpenedHandler: () =>
           injector<NavigationService>().navigateTo(SurveyPage.tag));
 }
@@ -95,7 +96,7 @@ Future newAccountPageOrSkipInCondition(BuildContext context) async {
   if (memoryValues.linkedFFConnections?.isNotEmpty ?? false) {
     doneOnboarding(context);
   } else {
-    await Navigator.of(context).pushNamed(AppRouter.newAccountPage);
+    Navigator.of(context).pushNamed(AppRouter.newAccountPage);
   }
 }
 
@@ -111,7 +112,7 @@ class UIHelper {
       FeedbackType? feedback = FeedbackType.selection}) async {
     log.info("[UIHelper] showInfoDialog: $title");
     currentDialogTitle = title;
-    final theme = AuThemeManager.get(AppTheme.sheetTheme);
+    final theme = Theme.of(context);
 
     if (autoDismissAfter > 0) {
       Future.delayed(
@@ -123,74 +124,78 @@ class UIHelper {
     }
 
     await showModalBottomSheet<dynamic>(
-        context: context,
-        isDismissible: isDismissible,
-        backgroundColor: Colors.transparent,
-        enableDrag: false,
-        isScrollControlled: true,
-        builder: (context) {
-          return Container(
-            color: Colors.transparent,
-            child: ClipPath(
-              clipper: AutonomyTopRightRectangleClipper(),
-              child: Container(
-                color: theme.backgroundColor,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 32),
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(title, style: theme.textTheme.headline1),
-                      SizedBox(height: 40),
-                      content,
-                      if (submitButton != null) ...[
-                        SizedBox(height: 40),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: submitButton.copyWith(
-                                color: theme.primaryColor,
-                                textStyle: submitButton.textStyle ??
-                                    TextStyle(
-                                        color: theme.backgroundColor,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w700,
-                                        fontFamily: "IBMPlexMono"),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                      if (closeButton.isNotEmpty) ...[
-                        SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: TextButton(
-                                onPressed: () => Navigator.pop(context),
-                                child: Text(
-                                  closeButton,
-                                  style: TextStyle(
-                                      color: Colors.white,
+      context: context,
+      isDismissible: isDismissible,
+      backgroundColor: Colors.transparent,
+      enableDrag: false,
+      constraints: BoxConstraints(
+          maxWidth: ResponsiveLayout.isMobile
+              ? double.infinity
+              : Constants.maxWidthModalTablet),
+      isScrollControlled: true,
+      builder: (context) {
+        return Container(
+          color: Colors.transparent,
+          child: ClipPath(
+            clipper: AutonomyTopRightRectangleClipper(),
+            child: Container(
+              color: theme.colorScheme.primary,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 32),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: theme.primaryTextTheme.headline1),
+                    const SizedBox(height: 40),
+                    content,
+                    if (submitButton != null) ...[
+                      const SizedBox(height: 40),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: submitButton.copyWith(
+                              color: theme.primaryColor,
+                              textStyle: submitButton.textStyle ??
+                                  TextStyle(
+                                      color: theme.backgroundColor,
                                       fontSize: 14,
                                       fontWeight: FontWeight.w700,
                                       fontFamily: "IBMPlexMono"),
-                                ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                    if (closeButton.isNotEmpty) ...[
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: Text(
+                                closeButton,
+                                style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                    fontFamily: "IBMPlexMono"),
                               ),
                             ),
-                          ],
-                        ),
-                      ],
-                      SizedBox(height: 15),
+                          ),
+                        ],
+                      ),
                     ],
-                  ),
+                    const SizedBox(height: 15),
+                  ],
                 ),
               ),
             ),
-          );
-        });
+          ),
+        );
+      },
+    );
   }
 
   static Future<void> showInfoDialog(
@@ -200,7 +205,7 @@ class UIHelper {
       String closeButton = "",
       FeedbackType? feedback = FeedbackType.selection}) async {
     log.info("[UIHelper] showInfoDialog: $title, $description");
-    final theme = AuThemeManager.get(AppTheme.sheetTheme);
+    final theme = Theme.of(context);
 
     if (autoDismissAfter > 0) {
       Future.delayed(
@@ -208,21 +213,22 @@ class UIHelper {
     }
 
     await showDialog(
-        context,
-        title,
-        Column(
-          mainAxisSize: MainAxisSize.min,
+      context,
+      title,
+      SizedBox(
+        width: double.infinity,
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (description.isNotEmpty) ...[
               Text(
                 description,
-                style: theme.textTheme.bodyText1,
+                style: theme.primaryTextTheme.bodyText1,
               ),
             ],
-            SizedBox(height: 40),
+            const SizedBox(height: 40),
             if (closeButton.isNotEmpty) ...[
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               Row(
                 children: [
                   Expanded(
@@ -230,22 +236,20 @@ class UIHelper {
                       onPressed: () => Navigator.pop(context),
                       child: Text(
                         closeButton,
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            fontFamily: "IBMPlexMono"),
+                        style: theme.primaryTextTheme.button,
                       ),
                     ),
                   ),
                 ],
               ),
-              SizedBox(height: 15),
+              const SizedBox(height: 15),
             ]
           ],
         ),
-        isDismissible: isDismissible,
-        feedback: feedback);
+      ),
+      isDismissible: isDismissible,
+      feedback: feedback,
+    );
   }
 
   static hideInfoDialog(BuildContext context) {
@@ -256,74 +260,110 @@ class UIHelper {
   }
 
   static Future<void> showLinkRequestedDialog(BuildContext context) {
-    final theme = AuThemeManager.get(AppTheme.sheetTheme);
+    final theme = Theme.of(context);
     return showDialog(
-        context,
-        'Link requested',
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            RichText(
-              text: TextSpan(children: [
-                TextSpan(
-                  style: theme.textTheme.bodyText1,
-                  text: "Autonomy has sent a request to ",
+      context,
+      'link_requested'.tr(),
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          RichText(
+            text: TextSpan(children: [
+              TextSpan(
+                style: theme.primaryTextTheme.bodyText1,
+                text: "au_sent_survey".tr(),
+              ),
+              TextSpan(
+                style: theme.primaryTextTheme.headline4,
+                text: "feral_file".tr(),
+              ),
+              TextSpan(
+                style: theme.primaryTextTheme.bodyText1,
+                text: "in_your_mobile".tr(),
+              ),
+            ]),
+          ),
+          const SizedBox(height: 67),
+        ],
+      ),
+      isDismissible: true,
+    );
+  }
+
+  static Future<void> showUnavailableCastDialog({
+    required BuildContext context,
+    Function()? dontShowAgain,
+    AssetToken? assetToken,
+  }) {
+    final theme = Theme.of(context);
+    final isPDFArtwork = assetToken?.mimeType == 'application/pdf';
+    return showDialog(
+      context,
+      'unavailable_cast'.tr(),
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                Icons.cast,
+                color: theme.disableColor,
+              ),
+              const SizedBox(
+                width: 17,
+              ),
+              Expanded(
+                child: Text(
+                  isPDFArtwork
+                      ? 'unavailable_cast_pdf_des'.tr()
+                      : 'unavailable_cast_interactive_des'.tr(),
+                  style: theme.textTheme.atlasDimgreyBold16,
                 ),
-                TextSpan(
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontFamily: "AtlasGrotesk-Light",
-                      fontWeight: FontWeight.w700,
-                      height: 1.377),
-                  text: "Feral File",
-                ),
-                TextSpan(
-                  style: theme.textTheme.bodyText1,
-                  text:
-                      " in your mobile browser to link to your account. Please make sure you are signed in and authorize the request.",
-                ),
-              ]),
-            ),
-            SizedBox(height: 67),
-          ],
-        ),
-        isDismissible: true);
+              )
+            ],
+          ),
+          const SizedBox(height: 40),
+          AuFilledButton(
+            text: 'ok'.tr(),
+            onPress: () => Navigator.pop(context),
+            textStyle: theme.textTheme.button,
+            color: theme.colorScheme.secondary,
+          ),
+          const SizedBox(height: 10),
+        ],
+      ),
+      isDismissible: true,
+    );
   }
 
   static Future showFFAccountLinked(BuildContext context, String alias,
       {bool inOnboarding = false}) {
-    final theme = AuThemeManager.get(AppTheme.sheetTheme);
+    final theme = Theme.of(context);
     return showDialog(
         context,
-        'Account linked',
+        'account_linked'.tr(),
         Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             RichText(
               text: TextSpan(children: [
                 TextSpan(
-                  style: theme.textTheme.bodyText1,
-                  text:
-                      "Autonomy has received authorization to link to your Feral File account ",
+                  style: theme.primaryTextTheme.bodyText1,
+                  text: "au_receive_auth".tr(),
                 ),
                 TextSpan(
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontFamily: "AtlasGrotesk-Light",
-                      fontWeight: FontWeight.w700,
-                      height: 1.377),
+                  style: theme.primaryTextTheme.headline4,
                   text: alias,
                 ),
                 TextSpan(
-                  style: theme.textTheme.bodyText1,
-                  text:
-                      ". ${inOnboarding ? 'Please finish onboarding to view your collection.' : ''}",
+                  style: theme.primaryTextTheme.bodyText1,
+                  text: "dot"
+                      .tr(args: [inOnboarding ? 'please_finish'.tr() : '']),
                 ),
               ]),
             ),
-            SizedBox(height: 67),
+            const SizedBox(height: 67),
           ],
         ),
         isDismissible: true,
@@ -338,7 +378,7 @@ class UIHelper {
             connection.wcConnection?.sessionStore.remotePeerMeta;
         final appIcons = remotePeerMeta?.icons ?? [];
         if (appIcons.isEmpty) {
-          return Container(
+          return SizedBox(
               width: size,
               height: size,
               child:
@@ -348,7 +388,7 @@ class UIHelper {
             imageUrl: appIcons.first,
             width: size,
             height: size,
-            errorWidget: (context, url, error) => Container(
+            errorWidget: (context, url, error) => SizedBox(
               width: size,
               height: size,
               child: Image.asset("assets/images/walletconnect-alternative.png"),
@@ -378,100 +418,94 @@ class UIHelper {
         }
 
       default:
-        return SizedBox();
+        return const SizedBox();
     }
   }
 
   // MARK: - Persona
   static showGeneratedPersonaDialog(BuildContext context,
       {required Function() onContinue}) {
-    final theme = AuThemeManager.get(AppTheme.sheetTheme);
+    final theme = Theme.of(context);
 
     showDialog(
         context,
-        "Generated!",
+        "generated".tr(),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('MULTI-CHAIN ACCOUNT GENERATED WITH:',
-                style: theme.textTheme.headline5),
-            SizedBox(height: 16),
-            Text('• Bitmark address', style: theme.textTheme.headline4),
-            SizedBox(height: 16),
-            Text('• Ethereum address', style: theme.textTheme.headline4),
-            SizedBox(height: 16),
-            Text('• Tezos address', style: theme.textTheme.headline4),
-            SizedBox(height: 40),
+            Text('multichain_generate'.tr(),
+                style: theme.primaryTextTheme.headline5),
+            const SizedBox(height: 16),
+            Text("bitmark_address".tr(),
+                style: theme.primaryTextTheme.headline4),
+            const SizedBox(height: 16),
+            Text("ethereum_address".tr(),
+                style: theme.primaryTextTheme.headline4),
+            const SizedBox(height: 16),
+            Text("tezos_address".tr(), style: theme.primaryTextTheme.headline4),
+            const SizedBox(height: 40),
             Row(
               children: [
                 Expanded(
                   child: AuFilledButton(
-                    text: "CONTINUE",
+                    text: "continue".tr().toUpperCase(),
                     onPress: () => onContinue(),
-                    color: theme.primaryColor,
-                    textStyle: TextStyle(
-                        color: theme.backgroundColor,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        fontFamily: "IBMPlexMono"),
+                    color: theme.colorScheme.secondary,
+                    textStyle: theme.textTheme.button,
                   ),
                 ),
               ],
             ),
-            SizedBox(height: 15),
+            const SizedBox(height: 15),
           ],
-        ),
-        isDismissible: false);
+        ));
   }
 
   static showImportedPersonaDialog(BuildContext context,
       {required Function() onContinue}) {
-    final theme = AuThemeManager.get(AppTheme.sheetTheme);
+    final theme = Theme.of(context);
 
     showDialog(
         context,
-        "Imported!",
+        "imported".tr(),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('MULTI-CHAIN ACCOUNT GENERATED WITH:',
-                style: theme.textTheme.headline5),
-            SizedBox(height: 16),
-            Text('• Bitmark address', style: theme.textTheme.headline4),
-            SizedBox(height: 16),
-            Text('• Ethereum address', style: theme.textTheme.headline4),
-            SizedBox(height: 16),
-            Text('• Tezos address', style: theme.textTheme.headline4),
-            SizedBox(height: 40),
+            Text('multichain_generate'.tr(),
+                style: theme.primaryTextTheme.headline5),
+            const SizedBox(height: 16),
+            Text("bitmark_address".tr(),
+                style: theme.primaryTextTheme.headline4),
+            const SizedBox(height: 16),
+            Text("ethereum_address".tr(),
+                style: theme.primaryTextTheme.headline4),
+            const SizedBox(height: 16),
+            Text("tezos_address".tr(), style: theme.primaryTextTheme.headline4),
+            const SizedBox(height: 40),
             Row(
               children: [
                 Expanded(
                   child: AuFilledButton(
-                    text: "CONTINUE",
+                    text: "continue".tr().toUpperCase(),
                     onPress: () => onContinue(),
-                    color: theme.primaryColor,
-                    textStyle: TextStyle(
-                        color: theme.backgroundColor,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        fontFamily: "IBMPlexMono"),
+                    color: theme.colorScheme.secondary,
+                    textStyle: theme.textTheme.button,
                   ),
                 ),
               ],
             ),
-            SizedBox(height: 15),
+            const SizedBox(height: 15),
           ],
-        ),
-        isDismissible: false);
+        ));
   }
 
   static showHideArtworkResultDialog(BuildContext context, bool isHidden,
       {required Function() onOK}) {
-    final theme = AuThemeManager.get(AppTheme.sheetTheme);
+    final theme = Theme.of(context);
 
     showDialog(
         context,
-        isHidden ? "Artwork hidden" : "Artwork unhidden",
+        isHidden ? "art_hidden".tr() : "art_unhidden".tr(),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -479,112 +513,95 @@ class UIHelper {
                 ? RichText(
                     text: TextSpan(children: [
                       TextSpan(
-                        style: theme.textTheme.bodyText1,
-                        text:
-                            "This artwork will no longer appear in your collection. You can still find it in the ",
+                        style: theme.primaryTextTheme.bodyText1,
+                        text: "art_no_appear".tr(),
                       ),
                       TextSpan(
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontFamily: "AtlasGrotesk-Light",
-                            fontWeight: FontWeight.w700,
-                            height: 1.377),
-                        text: "Hidden artworks >",
+                        style: theme.primaryTextTheme.headline4,
+                        text: "hidden_art".tr(),
                       ),
                       TextSpan(
-                        style: theme.textTheme.bodyText1,
-                        text:
-                            " section of settings if you want to view it or unhide it.",
+                        style: theme.primaryTextTheme.bodyText1,
+                        text: "section_setting".tr(),
                       ),
                     ]),
                   )
                 : Text(
-                    "This artwork will now be visible in your collection.",
-                    style: theme.textTheme.bodyText1,
+                    "art_visible".tr(),
+                    style: theme.primaryTextTheme.bodyText1,
                   ),
-            SizedBox(height: 40),
+            const SizedBox(height: 40),
             Row(
               children: [
                 Expanded(
                   child: AuFilledButton(
-                    text: "OK",
+                    text: "ok".tr(),
                     onPress: onOK,
-                    color: theme.primaryColor,
-                    textStyle: TextStyle(
-                        color: theme.backgroundColor,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        fontFamily: "IBMPlexMono"),
+                    color: theme.colorScheme.secondary,
+                    textStyle: theme.textTheme.button,
                   ),
                 ),
               ],
             ),
-            SizedBox(height: 15),
+            const SizedBox(height: 15),
           ],
         ));
   }
 
   static showIdentityDetailDialog(BuildContext context,
       {required String name, required String address}) {
-    final theme = AuThemeManager.get(AppTheme.sheetTheme);
+    final theme = Theme.of(context);
 
     showDialog(
         context,
-        "Identity",
+        "identity".tr(),
         Flexible(
             child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('ALIAS', style: theme.textTheme.headline5),
-            SizedBox(height: 16),
+            Text('alias'.tr(), style: theme.primaryTextTheme.headline5),
+            const SizedBox(height: 16),
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
               Expanded(
                   child: Text(
                 name,
-                style: theme.textTheme.headline4,
+                style: theme.primaryTextTheme.headline4,
                 overflow: TextOverflow.ellipsis,
               )),
               GestureDetector(
-                child: Text("Share", style: theme.textTheme.headline4),
+                child:
+                    Text("share".tr(), style: theme.primaryTextTheme.headline4),
                 onTap: () => Share.share(address),
               )
             ]),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Text(
               address,
-              style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w400,
-                  fontFamily: "IBMPlexMono"),
+              style: ResponsiveLayout.isMobile
+                  ? theme.textTheme.ibmWhiteNormal14
+                  : theme.textTheme.ibmWhiteNormal16,
             ),
-            SizedBox(height: 56),
+            const SizedBox(height: 56),
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
               child: Text(
-                "CLOSE",
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    fontFamily: "IBMPlexMono"),
+                "close".tr(),
+                style: theme.primaryTextTheme.button,
               ),
             ),
-            SizedBox(height: 15),
+            const SizedBox(height: 15),
           ],
-        )),
-        isDismissible: false);
+        )));
   }
 
   static showAccountLinked(
       BuildContext context, Connection connection, String walletName) {
-    UIHelper.showInfoDialog(context, "Account linked",
-        "Autonomy has received autorization to link to your NFTs in $walletName.");
+    UIHelper.showInfoDialog(context, "account_linked".tr(),
+        "au_receive_auth_nft".tr(args: [walletName]));
 
-    Future.delayed(Duration(seconds: 3), () {
+    Future.delayed(const Duration(seconds: 3), () {
       UIHelper.hideInfoDialog(context);
 
       if (injector<ConfigurationService>().isDoneOnboarding()) {
@@ -602,10 +619,7 @@ class UIHelper {
     UIHelper.hideInfoDialog(context);
     showErrorDiablog(
         context,
-        ErrorEvent(
-            null,
-            "Already linked",
-            "You’ve already linked this account to Autonomy.",
+        ErrorEvent(null, "already_linked".tr(), "al_you’ve_already".tr(),
             ErrorItemState.seeAccount), defaultAction: () {
       Navigator.of(context)
           .pushNamed(AppRouter.linkedAccountDetailsPage, arguments: connection);
@@ -613,44 +627,38 @@ class UIHelper {
   }
 
   static showAbortedByUser(BuildContext context) {
-    UIHelper.showInfoDialog(
-        context, "Aborted", "The action was aborted by the user.",
+    UIHelper.showInfoDialog(context, "aborted".tr(), "action_aborted".tr(),
         isDismissible: true, autoDismissAfter: 3);
   }
 
   static Future showFeatureRequiresSubscriptionDialog(
       BuildContext context, PremiumFeature feature) {
-    final theme = AuThemeManager.get(AppTheme.sheetTheme);
+    final theme = Theme.of(context);
 
     return showDialog(
         context,
-        "Subscribe",
+        "h_subscribe".tr(),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('This feature requires subscription',
-                style: theme.textTheme.bodyText1),
-            SizedBox(height: 40),
+            Text("require_subs".tr(), style: theme.primaryTextTheme.bodyText1),
+            const SizedBox(height: 40),
             UpgradeBoxView.getMoreAutonomyWidget(theme, feature),
-            SizedBox(height: 24),
+            const SizedBox(height: 24),
             Row(
               children: [
                 Expanded(
                   child: TextButton(
                     onPressed: () => Navigator.pop(context),
                     child: Text(
-                      "CANCEL",
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          fontFamily: "IBMPlexMono"),
+                      "cancel".tr(),
+                      style: theme.primaryTextTheme.button,
                     ),
                   ),
                 ),
               ],
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
           ],
         ),
         isDismissible: true);
@@ -659,55 +667,62 @@ class UIHelper {
 
 learnMoreAboutAutonomySecurityWidget(BuildContext context,
     {String title = 'Learn more about Autonomy security ...'}) {
+  final theme = Theme.of(context);
   return TextButton(
-      onPressed: () =>
-          Navigator.of(context).pushNamed(AppRouter.autonomySecurityPage),
-      child: Text(title, style: linkStyle),
-      style: TextButton.styleFrom(
-        minimumSize: Size.zero,
-        padding: EdgeInsets.zero,
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      ));
+    onPressed: () =>
+        Navigator.of(context).pushNamed(AppRouter.autonomySecurityPage),
+    style: TextButton.styleFrom(
+      minimumSize: Size.zero,
+      padding: EdgeInsets.zero,
+      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    ),
+    child: Text(
+      title,
+      style: ResponsiveLayout.isMobile
+          ? theme.textTheme.linkStyle
+          : theme.textTheme.linkStyle16,
+    ),
+  );
 }
 
 wantMoreSecurityWidget(BuildContext context, WalletApp walletApp) {
-  var introText = 'You can get all the';
+  var introText = 'you_can_get_all'.tr();
   if (walletApp == WalletApp.Kukai || walletApp == WalletApp.Temple) {
-    introText += ' Tezos';
+    introText += "_tezos".tr();
   }
-  introText +=
-      ' functionality of ${walletApp.rawValue} in a mobile app by importing your account to Autonomy. Tap to do this now.';
-
+  introText += "functionality".tr(args: [walletApp.rawValue]);
+  final theme = Theme.of(context);
   return GestureDetector(
     onTap: () => Navigator.of(context).pushNamed(AppRouter.importAccountPage),
     child: Container(
-      padding: EdgeInsets.all(10),
-      color: AppColorTheme.secondaryDimGreyBackground,
-      child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Want more security and portability?',
-                style: TextStyle(
-                    color: AppColorTheme.secondaryDimGrey,
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    fontFamily: "AtlasGrotesk",
-                    height: 1.377)),
-            SizedBox(height: 5),
-            Text(introText, style: bodySmall),
-            SizedBox(height: 10),
-            TextButton(
-                onPressed: () => Navigator.of(context)
-                    .pushNamed(AppRouter.unsafeWebWalletPage),
-                child: Text('Learn why browse-extension wallets are unsafe...',
-                    style: linkStyle),
-                style: TextButton.styleFrom(
-                  minimumSize: Size.zero,
-                  padding: EdgeInsets.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                )),
-          ]),
+      padding: const EdgeInsets.all(10),
+      color: AppColor.secondaryDimGreyBackground,
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(
+          "want_more_sec".tr(),
+          style: ResponsiveLayout.isMobile
+              ? theme.textTheme.atlasDimgreyBold14
+              : theme.textTheme.atlasDimgreyBold16,
+        ),
+        const SizedBox(height: 5),
+        Text(
+          introText,
+          style: ResponsiveLayout.isMobile
+              ? theme.textTheme.atlasBlackNormal14
+              : theme.textTheme.atlasBlackNormal16,
+        ),
+        const SizedBox(height: 10),
+        TextButton(
+          onPressed: () =>
+              Navigator.of(context).pushNamed(AppRouter.unsafeWebWalletPage),
+          style: TextButton.styleFrom(
+            minimumSize: Size.zero,
+            padding: EdgeInsets.zero,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+          child: Text("learn_ex_unsafe".tr(), style: theme.textTheme.linkStyle),
+        ),
+      ]),
     ),
   );
 }
@@ -716,31 +731,4 @@ String getDateTimeRepresentation(DateTime dateTime) {
   return Jiffy(dateTime).fromNow();
 }
 
-// From chat_ui/util
-String getVerboseDateTimeRepresentation(
-  DateTime dateTime, {
-  DateFormat? dateFormat,
-  String? dateLocale,
-  DateFormat? timeFormat,
-}) {
-  final formattedDate = dateFormat != null
-      ? dateFormat.format(dateTime)
-      : DateFormat.MMMd(dateLocale).format(dateTime);
-  final formattedTime = timeFormat != null
-      ? timeFormat.format(dateTime)
-      : DateFormat.Hm(dateLocale).format(dateTime);
-  final localDateTime = dateTime.toLocal();
-  final now = DateTime.now();
 
-  if (localDateTime.day == now.day &&
-      localDateTime.month == now.month &&
-      localDateTime.year == now.year) {
-    return formattedTime;
-  }
-
-  if (Jiffy(localDateTime).week == Jiffy(now).week) {
-    return Jiffy(localDateTime).format("EE");
-  }
-
-  return '$formattedDate, $formattedTime';
-}

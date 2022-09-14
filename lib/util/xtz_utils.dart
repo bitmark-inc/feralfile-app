@@ -7,6 +7,10 @@
 
 import 'dart:typed_data';
 
+// ignore: implementation_imports
+import 'package:crypto/crypto.dart';
+import 'package:fast_base58/fast_base58.dart';
+import 'package:flutter/foundation.dart';
 import 'package:tezart/src/crypto/crypto.dart' as crypto;
 
 class XtzAmountFormatter {
@@ -36,4 +40,18 @@ String xtzAddress(List<int> publicKey) => crypto.catchUnhandledErrors(() {
 List<int> _compressPublicKey(List<int> publicKey) {
   publicKey[0] = 0x00;
   return publicKey;
+}
+
+extension TezosExtension on String {
+  bool get isValidTezosAddress {
+    final decoded = Base58Decode(this);
+    if (decoded.length < 4) {
+      return false;
+    }
+    final checksum = sha256
+        .convert(sha256.convert(decoded.sublist(0, decoded.length - 4)).bytes)
+        .bytes
+        .sublist(0, 4);
+    return listEquals(checksum, decoded.sublist(decoded.length - 4));
+  }
 }

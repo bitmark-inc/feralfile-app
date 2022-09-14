@@ -5,7 +5,10 @@
 //  that can be found in the LICENSE file.
 //
 
+// ignore_for_file: depend_on_referenced_packages
+
 import 'dart:async';
+import 'dart:io';
 
 import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
@@ -13,8 +16,6 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter/foundation.dart';
-
-import 'dart:io';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:in_app_purchase_storekit/in_app_purchase_storekit.dart';
 import 'package:in_app_purchase_storekit/store_kit_wrappers.dart';
@@ -33,41 +34,58 @@ enum IAPProductStatus {
   pending,
   expired,
   error,
+  trial,
   completed,
 }
 
 abstract class IAPService {
   late ValueNotifier<Map<String, ProductDetails>> products;
   late ValueNotifier<Map<String, IAPProductStatus>> purchases;
+  late ValueNotifier<Map<String, DateTime>> trialExpireDates;
 
   Future<void> setup();
+
   Future<void> purchase(ProductDetails product);
+
   Future<void> restore();
+
   Future<bool> renewJWT();
+
   Future<bool> isSubscribed();
 }
 
 class IAPServiceImpl implements IAPService {
-  ConfigurationService _configurationService;
-  AuthService _authService;
+
+  final ConfigurationService _configurationService;
+  final AuthService _authService;
+
   final InAppPurchase _inAppPurchase = InAppPurchase.instance;
   late StreamSubscription<List<PurchaseDetails>> _subscription;
 
+  @override
   ValueNotifier<Map<String, ProductDetails>> products = ValueNotifier({});
+  @override
   ValueNotifier<Map<String, IAPProductStatus>> purchases = ValueNotifier({});
+  @override
+  ValueNotifier<Map<String, DateTime>> trialExpireDates = ValueNotifier({});
 
   IAPServiceImpl(this._configurationService, this._authService) {
     setup();
   }
+
   String? _receiptData;
   bool _isSetup = false;
 
+  @override
   Future<void> setup() async {
     if (_isSetup) {
       return;
     }
 
     _isSetup = true;
+
+    // Waiting for IAP available
+    await _inAppPurchase.isAvailable();
 
     final jwt = _configurationService.getIAPJWT();
     if (jwt != null && jwt.isValid(withSubscription: true)) {}
@@ -82,7 +100,7 @@ class IAPServiceImpl implements IAPService {
       log.severe(error);
     });
 
-    final productIds;
+    final List<String> productIds;
 
     if (Platform.isIOS) {
       productIds = _kAppleProductIds;
@@ -102,10 +120,12 @@ class IAPServiceImpl implements IAPService {
       return;
     }
 
-    products.value = Map.fromIterable(productDetailResponse.productDetails,
-        key: (e) => e.id, value: (e) => e);
+    products.value = {
+      for (var e in productDetailResponse.productDetails) e.id: e
+    };
   }
 
+  @override
   Future<bool> renewJWT() async {
     final receiptData = _configurationService.getIAPReceipt();
     if (receiptData == null) {
@@ -122,11 +142,11 @@ class IAPServiceImpl implements IAPService {
     return true;
   }
 
+  @override
   Future<void> purchase(ProductDetails product) async {
     if (await _inAppPurchase.isAvailable() == false) return;
     final purchaseParam = PurchaseParam(
       productDetails: product,
-      applicationUserName: null,
     );
 
     log.info("[IAPService] purchase: ${product.id}");
@@ -137,10 +157,10 @@ class IAPServiceImpl implements IAPService {
     await _inAppPurchase.buyNonConsumable(purchaseParam: purchaseParam);
   }
 
+  @override
   Future<void> restore() async {
     log.info("[IAPService] restore purchases");
     if (await _inAppPurchase.isAvailable() == false ||
-        kDebugMode ||
         await isAppCenterBuild()) return;
     await _inAppPurchase.restorePurchases();
   }
@@ -167,9 +187,17 @@ class IAPServiceImpl implements IAPService {
 
     purchaseDetailsList.forEach((PurchaseDetails purchaseDetails) async {
       log.info(
-          "[IAPService] purchase: ${purchaseDetails.productID}, status: ${purchaseDetails.status.name}");
+          "[IAPService] purchase: ${purchaseDetails.productID},"
+              " status: ${purchaseDetails.status.name}");
+
+      if (purchaseDetails.pendingCompletePurchase) {
+        await _inAppPurchase.completePurchase(purchaseDetails);
+      }
+
       if (purchaseDetails.status == PurchaseStatus.pending) {
         purchases.value[purchaseDetails.productID] = IAPProductStatus.pending;
+      } else if (purchaseDetails.status == PurchaseStatus.canceled) {
+        purchases.value[purchaseDetails.productID] = IAPProductStatus.notPurchased;
       } else {
         if (purchaseDetails.status == PurchaseStatus.error) {
           purchases.value[purchaseDetails.productID] = IAPProductStatus.error;
@@ -186,29 +214,38 @@ class IAPServiceImpl implements IAPService {
 
           _receiptData = receiptData;
           final jwt = await _verifyPurchase(receiptData);
+          final subscriptionStatus = jwt?.getSubscriptionStatus();
+          log.info("[IAPService] subscription: $subscriptionStatus");
           log.info("[IAPService] verifying the receipt");
-          if (jwt != null && jwt.isValid(withSubscription: true)) {
-            purchases.value[purchaseDetails.productID] =
-                IAPProductStatus.completed;
+          if (subscriptionStatus?.isPremium == true) {
             _configurationService.setIAPJWT(jwt);
-            log.info("[IAPService] the receipt is valid");
+            final status = subscriptionStatus!;
+            if (status.isTrial == true) {
+              purchases.value[purchaseDetails.productID] =
+                  IAPProductStatus.trial;
+              trialExpireDates.value[purchaseDetails.productID] =
+                  status.expireDate;
+            } else {
+              purchases.value[purchaseDetails.productID] =
+                  IAPProductStatus.completed;
+            }
+            purchases.notifyListeners();
           } else {
             log.info("[IAPService] the receipt is invalid");
             purchases.value[purchaseDetails.productID] =
                 IAPProductStatus.expired;
             _configurationService.setIAPJWT(null);
             _cleanupPendingTransactions();
+            purchases.notifyListeners();
             return;
           }
-        }
-        if (purchaseDetails.pendingCompletePurchase) {
-          await _inAppPurchase.completePurchase(purchaseDetails);
         }
       }
       purchases.notifyListeners();
     });
   }
 
+  @override
   Future<bool> isSubscribed() async {
     final jwt = _configurationService.getIAPJWT();
     return (jwt != null && jwt.isValid(withSubscription: true)) ||
@@ -221,14 +258,14 @@ class IAPServiceImpl implements IAPService {
       log.info(
           "[IAPService] cleaning up pending transactions: ${transactions.length}");
 
-      if (transactions.length > 0) {
-        transactions.forEach((transaction) {
+      if (transactions.isNotEmpty) {
+        for (var transaction in transactions) {
           log.info(
               "[IAPService] cleaning up transaction: ${transaction.toString()}");
           SKPaymentQueueWrapper().finishTransaction(transaction);
-        });
+        }
 
-        await Future.delayed(Duration(seconds: 3));
+        await Future.delayed(const Duration(seconds: 3));
         log.info("[IAPService] finish cleaning up");
       }
     }

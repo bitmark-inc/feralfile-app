@@ -14,7 +14,9 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 
 class LinkManuallyPage extends StatefulWidget {
   final String type;
@@ -25,14 +27,15 @@ class LinkManuallyPage extends StatefulWidget {
 }
 
 class _LinkManuallyPageState extends State<LinkManuallyPage> {
-  TextEditingController _addressController = TextEditingController();
+  final TextEditingController _addressController = TextEditingController();
+  bool _linkEnabled = false;
 
   String get title {
     switch (widget.type) {
       case 'address':
-        return 'Link Address';
+        return 'link_address'.tr();
       case 'indexerTokenID':
-        return 'Indexer TokenID';
+        return 'indexer_tokenId'.tr();
       default:
         return '';
     }
@@ -41,9 +44,11 @@ class _LinkManuallyPageState extends State<LinkManuallyPage> {
   String get description {
     switch (widget.type) {
       case 'address':
-        return 'To manually input an address (Debug only).';
+        return 'to_manually_input_a'
+            .tr(); //"To manually input an address (Debug only)."
       case 'indexerTokenID':
-        return 'To manually input an indexer TokenID (Debug only).';
+        return 'to_manually_input_ti'
+            .tr(); //"To manually input an indexer TokenID (Debug only)."
       default:
         return '';
     }
@@ -51,13 +56,14 @@ class _LinkManuallyPageState extends State<LinkManuallyPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: getBackAppBar(
         context,
         onBack: () => Navigator.of(context).pop(),
       ),
       body: Container(
-        margin: pageEdgeInsetsWithSubmitButton,
+        margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -68,18 +74,21 @@ class _LinkManuallyPageState extends State<LinkManuallyPage> {
                   children: [
                     Text(
                       title,
-                      style: appTextTheme.headline1,
+                      style: theme.textTheme.headline1,
                     ),
                     addTitleSpace(),
                     Text(
                       description,
-                      style: appTextTheme.bodyText1,
+                      style: theme.textTheme.bodyText1,
                     ),
-                    SizedBox(height: 40),
+                    const SizedBox(height: 40),
                     AuTextField(
                       title: "",
-                      placeholder: "Paste ${widget.type}",
+                      placeholder: "paste".tr(args: [widget.type]),
                       controller: _addressController,
+                      onChanged: (value) => setState(() {
+                        _linkEnabled = value.trim().isNotEmpty;
+                      }),
                     ),
                   ],
                 ),
@@ -89,7 +98,8 @@ class _LinkManuallyPageState extends State<LinkManuallyPage> {
               children: [
                 Expanded(
                   child: AuFilledButton(
-                    text: "LINK".toUpperCase(),
+                    text: "link".tr().toUpperCase(),
+                    enabled: _linkEnabled,
                     onPress: () => _link(),
                   ),
                 ),
@@ -105,16 +115,18 @@ class _LinkManuallyPageState extends State<LinkManuallyPage> {
     switch (widget.type) {
       case 'address':
         await injector<AccountService>()
-            .linkManuallyAddress(_addressController.text);
-        UIHelper.showInfoDialog(
-            context, 'Account linked', 'Autonomy has linked your address.');
+            .linkManuallyAddress(_addressController.text.trim());
+        if (!mounted) return;
+        UIHelper.showInfoDialog(context, 'account_linked'.tr(),
+            'autonomy_has_linked_your_address'.tr());
         break;
 
       case 'indexerTokenID':
         await injector<AccountService>()
-            .linkIndexerTokenID(_addressController.text);
-        UIHelper.showInfoDialog(
-            context, 'Account linked', 'Autonomy has linked your address.');
+            .linkIndexerTokenID(_addressController.text.trim());
+        if (!mounted) return;
+        UIHelper.showInfoDialog(context, 'account_linked'.tr(),
+            'autonomy_has_linked_your_address'.tr());
         break;
 
       default:

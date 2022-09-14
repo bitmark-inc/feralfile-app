@@ -18,10 +18,10 @@ import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 part 'persona_state.dart';
 
 class PersonaBloc extends AuBloc<PersonaEvent, PersonaState> {
-  CloudDatabase _cloudDB;
-  AccountService _accountService;
-  AuditService _auditService;
-  ConfigurationService _configurationService;
+  final CloudDatabase _cloudDB;
+  final AccountService _accountService;
+  final AuditService _auditService;
+  final ConfigurationService _configurationService;
 
   PersonaBloc(this._cloudDB, this._accountService, this._configurationService,
       this._auditService)
@@ -41,26 +41,26 @@ class PersonaBloc extends AuBloc<PersonaEvent, PersonaState> {
             createAccountState: ActionState.done, persona: persona));
       }
 
-      await Future.delayed(Duration(microseconds: 500), () {
+      await Future.delayed(const Duration(microseconds: 500), () {
         emit(state.copyWith(createAccountState: ActionState.notRequested));
       });
     });
 
     on<GetListPersonaEvent>((event, emit) async {
       final personas = await _cloudDB.personaDao.getPersonas();
-      List<Persona> _namedPersonas = [];
+      List<Persona> namedPersonas = [];
 
       for (var persona in personas) {
         if (persona.name.isEmpty) {
           final address = await persona.wallet().getETHEip55Address();
-          _namedPersonas.add(persona.copyWith(name: address.mask(4)));
+          namedPersonas.add(persona.copyWith(name: address.mask(4)));
         } else {
-          _namedPersonas.add(persona);
+          namedPersonas.add(persona);
         }
       }
 
-      _namedPersonas.sort((a, b) => a.createdAt.compareTo(b.createdAt));
-      emit(state.copyWith(personas: _namedPersonas));
+      namedPersonas.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+      emit(state.copyWith(personas: namedPersonas));
     });
 
     on<GetInfoPersonaEvent>((event, emit) async {

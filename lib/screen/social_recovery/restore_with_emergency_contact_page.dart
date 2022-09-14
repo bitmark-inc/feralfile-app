@@ -35,6 +35,7 @@ class _RestoreWithEmergencyContactPageState
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: getCloseAppBar(
         context,
@@ -44,7 +45,7 @@ class _RestoreWithEmergencyContactPageState
         },
       ),
       body: Container(
-        margin: pageEdgeInsetsWithSubmitButton,
+        margin: EdgeInsets.all(0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -55,12 +56,12 @@ class _RestoreWithEmergencyContactPageState
                     children: [
                       Text(
                         "Get ShardDeck from Emergency Contact",
-                        style: appTextTheme.headline1,
+                        style: theme.textTheme.headline1,
                       ),
                       addTitleSpace(),
                       Text(
                         "some description about Emergency Contact",
-                        style: appTextTheme.bodyText1,
+                        style: theme.textTheme.bodyText1,
                       ),
                       SizedBox(height: 40),
                       Container(

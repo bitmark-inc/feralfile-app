@@ -128,7 +128,7 @@ class Message {
   String get filteredMessage {
     if (message.isEmpty || message == EMPTY_ISSUE_MESSAGE) return "";
     return message
-        .replaceAll(new RegExp(r"\[MUTED\](.|\n)*\[/MUTED\]"), '')
+        .replaceAll(RegExp(r"\[MUTED\](.|\n)*\[/MUTED\]"), '')
         .replaceAll(RegExp(r"^(\n)*"), "");
   }
 

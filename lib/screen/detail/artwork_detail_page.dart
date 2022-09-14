@@ -7,30 +7,32 @@
 
 import 'dart:collection';
 
+import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/common/network_config_injector.dart';
-import 'package:autonomy_flutter/database/app_database.dart';
-import 'package:autonomy_flutter/database/entity/asset_token.dart';
-import 'package:autonomy_flutter/model/provenance.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_page.dart';
+import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
-import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/theme_manager.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/au_outlined_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:html_unescape/html_unescape.dart';
-import 'package:path/path.dart' as p;
+import 'package:nft_collection/models/asset_token.dart';
+import 'package:nft_collection/models/provenance.dart';
+import 'package:nft_collection/nft_collection.dart';
 
 class ArtworkDetailPage extends StatefulWidget {
   final ArtworkDetailPayload payload;
@@ -41,7 +43,8 @@ class ArtworkDetailPage extends StatefulWidget {
   State<ArtworkDetailPage> createState() => _ArtworkDetailPageState();
 }
 
-class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
+class _ArtworkDetailPageState extends State<ArtworkDetailPage>
+    with AfterLayoutMixin<ArtworkDetailPage> {
   late ScrollController _scrollController;
   bool _showArtwortReportProblemContainer = true;
   HashSet<String> _accountNumberHash = HashSet.identity();
@@ -56,6 +59,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
     context.read<ArtworkDetailBloc>().add(ArtworkDetailGetInfoEvent(
         widget.payload.ids[widget.payload.currentIndex]));
     context.read<AccountsBloc>().add(FetchAllAddressesEvent());
+    context.read<AccountsBloc>().add(GetAccountsEvent());
   }
 
   _scrollListener() {
@@ -84,11 +88,17 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
   }
 
   @override
+  void afterFirstLayout(BuildContext context) {
+    injector<AWSService>().storeEventWithDeviceData("view_artwork_detail",
+        data: {"id": widget.payload.ids[widget.payload.currentIndex]});
+  }
+
+  @override
   Widget build(BuildContext context) {
     final unescape = HtmlUnescape();
+    final theme = Theme.of(context);
 
     return Stack(
-      fit: StackFit.loose,
       children: [
         Scaffold(
           appBar: getBackAppBar(context,
@@ -120,86 +130,107 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
 
               var subTitle = "";
               if (artistName != null && artistName.isNotEmpty) {
-                subTitle = "by $artistName";
+                subTitle = "by".tr(args: [artistName]);
               }
               subTitle += getEditionSubTitle(asset);
 
-              return Container(
-                child: SingleChildScrollView(
-                  controller: _scrollController,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(height: 16.0),
+              return SingleChildScrollView(
+                controller: _scrollController,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 16.0),
+                    Padding(
+                      padding: ResponsiveLayout.getPadding,
+                      child: Text(
+                        asset.title,
+                        style: theme.textTheme.headline1,
+                      ),
+                    ),
+                    const SizedBox(height: 8.0),
+                    if (subTitle.isNotEmpty) ...[
                       Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16.0),
+                        padding: ResponsiveLayout.getPadding,
                         child: Text(
-                          asset.title,
-                          style: appTextTheme.headline1,
+                          subTitle,
+                          style: theme.textTheme.headline3,
                         ),
                       ),
-                      SizedBox(height: 8.0),
-                      if (subTitle.isNotEmpty) ...[
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 16.0),
-                          child: Text(
-                            subTitle,
-                            style: appTextTheme.headline3,
-                          ),
+                    ],
+                    const SizedBox(height: 16.0),
+                    GestureDetector(
+                        child: TokenThumbnailWidget(
+                          token: asset,
+                          onHideArtwork: () {
+                            _showArtworkOptionsDialog(asset);
+                          },
                         ),
-                      ],
-                      SizedBox(height: 16.0),
-                      GestureDetector(
-                          child: tokenThumbnailWidget(context, asset),
-                          onTap: () {
-                            if (injector<ConfigurationService>()
-                                .isImmediateInfoViewEnabled()) {
-                              Navigator.of(context).pushNamed(
-                                  AppRouter.artworkPreviewPage,
-                                  arguments: widget.payload);
-                            } else {
-                              Navigator.of(context).pop();
-                            }
-                          }),
-                      debugInfoWidget(currentAsset),
-                      SizedBox(height: 16.0),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              width: 165,
-                              height: 48,
-                              child: AuOutlinedButton(
-                                text: "VIEW ARTWORK",
-                                onPress: () => Navigator.of(context).pop(),
-                              ),
+                        onTap: () {
+                          if (injector<ConfigurationService>()
+                              .isImmediateInfoViewEnabled()) {
+                            Navigator.of(context).pushNamed(
+                                AppRouter.artworkPreviewPage,
+                                arguments: widget.payload);
+                          } else {
+                            Navigator.of(context).pop();
+                          }
+                        }),
+                    debugInfoWidget(context, currentAsset),
+                    const SizedBox(height: 16.0),
+                    Padding(
+                      padding: ResponsiveLayout.getPadding,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(
+                            width: 165,
+                            height: 48,
+                            child: AuOutlinedButton(
+                              text: "view_artwork".tr(),
+                              onPress: () {
+                                if (injector<ConfigurationService>()
+                                    .isImmediateInfoViewEnabled()) {
+                                  Navigator.of(context).pushNamed(
+                                      AppRouter.artworkPreviewPage,
+                                      arguments: widget.payload);
+                                } else {
+                                  Navigator.of(context).pop();
+                                }
+                              },
                             ),
-                            SizedBox(height: 40.0),
-                            Text(
-                              unescape.convert(asset.desc ?? ""),
-                              style: appTextTheme.bodyText1,
+                          ),
+                          const SizedBox(height: 40.0),
+                          Text(
+                            unescape.convert(asset.desc ?? ""),
+                            style: theme.textTheme.bodyText1,
+                          ),
+                          artworkDetailsRightSection(context, asset),
+                          const SizedBox(height: 40.0),
+                          artworkDetailsMetadataSection(
+                              context, asset, artistName),
+                          if (asset.fungible == true) ...[
+                            const SizedBox(height: 40.0),
+                            BlocBuilder<AccountsBloc, AccountsState>(
+                              builder: (context, state) {
+                                final addresses = state.addresses;
+                                return tokenOwnership(
+                                    context, asset, addresses);
+                              },
                             ),
-                            artworkDetailsRightSection(context, asset),
-                            artworkDetailsValueSection(
-                                context, asset, state.assetPrice),
-                            SizedBox(height: 40.0),
-                            artworkDetailsMetadataSection(
-                                context, asset, artistName),
+                          ] else ...[
                             state.provenances.isNotEmpty
                                 ? _provenanceView(context, state.provenances)
-                                : SizedBox(),
-                            SizedBox(height: 80.0),
+                                : const SizedBox()
                           ],
-                        ),
-                      )
-                    ],
-                  ),
+                          const SizedBox(height: 80.0),
+                        ],
+                      ),
+                    )
+                  ],
                 ),
               );
             } else {
-              return SizedBox();
+              return const SizedBox();
             }
           }),
         ),
@@ -230,89 +261,85 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage> {
     );
   }
 
+  bool _isHidden(AssetToken token) {
+    return injector<ConfigurationService>()
+        .getTempStorageHiddenTokenIDs()
+        .contains(token.id);
+  }
+
   Future _showArtworkOptionsDialog(AssetToken asset) async {
-    final theme = AuThemeManager.get(AppTheme.sheetTheme);
+    final theme = Theme.of(context);
 
     Widget optionRow({required String title, Function()? onTap}) {
       return InkWell(
+        onTap: onTap,
         child: Padding(
-          padding: EdgeInsets.symmetric(vertical: 16.0),
+          padding: const EdgeInsets.symmetric(vertical: 16.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(title, style: theme.textTheme.headline4),
-              Icon(Icons.navigate_next, color: Colors.white),
+              Text(title, style: theme.primaryTextTheme.headline4),
+              Icon(Icons.navigate_next, color: theme.colorScheme.secondary),
             ],
           ),
         ),
-        onTap: onTap,
       );
     }
 
     final ownerWallet = await asset.getOwnerWallet();
 
+    if (!mounted) return;
+    final isHidden = _isHidden(asset);
     UIHelper.showDialog(
       context,
       "Options",
-      Container(
-        child: Column(
-          children: [
-            optionRow(
-              title: asset.isHidden() ? 'Unhide artwork' : 'Hide artwork',
-              onTap: () async {
-                final appDatabase =
-                    injector<NetworkConfigInjector>().I<AppDatabase>();
-                if (asset.isHidden()) {
-                  asset.hidden = null;
-                } else {
-                  asset.hidden = 1;
-                }
-                await appDatabase.assetDao.updateAsset(asset);
-                await injector<ConfigurationService>()
-                    .updateTempStorageHiddenTokenIDs(
-                        [asset.id], asset.hidden == 1);
-                injector<SettingsDataService>().backup();
+      Column(
+        children: [
+          optionRow(
+            title: isHidden ? 'unhide_aw'.tr() : 'hide_aw'.tr(),
+            onTap: () async {
+              await injector<ConfigurationService>()
+                  .updateTempStorageHiddenTokenIDs([asset.id], !isHidden);
+              injector<SettingsDataService>().backup();
 
-                Navigator.of(context).pop();
-                UIHelper.showHideArtworkResultDialog(context, asset.isHidden(),
-                    onOK: () {
-                  Navigator.of(context).popUntil((route) =>
-                      route.settings.name == AppRouter.homePage ||
-                      route.settings.name == AppRouter.homePageNoTransition);
-                });
+              if (!mounted) return;
+
+              context.read<NftCollectionBloc>().add(RefreshNftCollection());
+              Navigator.of(context).pop();
+              UIHelper.showHideArtworkResultDialog(context, !isHidden,
+                  onOK: () {
+                Navigator.of(context).popUntil((route) =>
+                    route.settings.name == AppRouter.homePage ||
+                    route.settings.name == AppRouter.homePageNoTransition);
+              });
+            },
+          ),
+          if (ownerWallet != null) ...[
+            Divider(
+              color: theme.colorScheme.secondary,
+              height: 1,
+              thickness: 1,
+            ),
+            optionRow(
+              title: "send_artwork".tr(),
+              onTap: () async {
+                Navigator.of(context).popAndPushNamed(AppRouter.sendArtworkPage,
+                    arguments: SendArtworkPayload(asset, ownerWallet,
+                        await ownerWallet.getOwnedQuantity(asset)));
               },
             ),
-            if (ownerWallet != null) ...[
-              Divider(
-                color: Colors.white,
-                height: 1,
-                thickness: 1,
-              ),
-              optionRow(
-                title: "Send artwork",
-                onTap: () async {
-                  Navigator.of(context).popAndPushNamed(
-                      AppRouter.sendArtworkPage,
-                      arguments: SendArtworkPayload(asset, ownerWallet));
-                },
-              ),
-            ],
             const SizedBox(
               height: 18,
             ),
             TextButton(
               onPressed: () => Navigator.pop(context),
               child: Text(
-                "CANCEL",
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    fontFamily: "IBMPlexMono"),
+                "cancel".tr(),
+                style: theme.primaryTextTheme.caption,
               ),
             ),
           ],
-        ),
+        ],
       ),
       isDismissible: true,
     );

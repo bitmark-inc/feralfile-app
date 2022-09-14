@@ -14,6 +14,8 @@ import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/badge_view.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -28,7 +30,8 @@ class PenroseTopBarView extends StatefulWidget {
   final ScrollController scrollController;
   final PenroseTopBarViewStyle style;
 
-  PenroseTopBarView(this.scrollController, this.style);
+  const PenroseTopBarView(this.scrollController, this.style, {Key? key})
+      : super(key: key);
 
   @override
   State<PenroseTopBarView> createState() => _PenroseTopBarViewState();
@@ -68,6 +71,7 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
     widget.scrollController.removeListener(_scrollListener);
   }
 
+  @override
   void didPushNext() {
     // Reset to normal SystemUIMode
     if (Platform.isIOS) {
@@ -77,7 +81,15 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
   }
 
   _scrollListener() {
-    if (widget.scrollController.offset > 80) {
+    if (widget.scrollController.positions.isEmpty) {
+      // ScrollController not attached to any scroll views.
+      return;
+    }
+
+    final breakpoint =
+        widget.style == PenroseTopBarViewStyle.settings ? 25 : 80;
+
+    if (widget.scrollController.offset > breakpoint) {
       if (Platform.isIOS) {
         SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
       }
@@ -97,11 +109,13 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      builder: (context, value) => Stack(fit: StackFit.loose, children: [
-        Opacity(opacity: _opacity, child: _headerWidget()),
-      ]),
-      animation: widget.scrollController,
+    return SafeArea(
+      child: AnimatedBuilder(
+        builder: (context, value) => Stack(children: [
+          Opacity(opacity: _opacity, child: _headerWidget()),
+        ]),
+        animation: widget.scrollController,
+      ),
     );
   }
 
@@ -110,25 +124,27 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
       case PenroseTopBarViewStyle.main:
         return Container(
           alignment: Alignment.topCenter,
-          padding: EdgeInsets.fromLTRB(7, 40, 2, 90),
+          padding: const EdgeInsets.fromLTRB(7, 0, 2, 90),
           child: _mainHeaderWidget(isInSettingsPage: false),
         );
       case PenroseTopBarViewStyle.settings:
         return Container(
           alignment: Alignment.topCenter,
-          padding: EdgeInsets.fromLTRB(7, 40, 2, 90),
+          padding: const EdgeInsets.fromLTRB(7, 0, 2, 90),
           child: _mainHeaderWidget(isInSettingsPage: true),
         );
       case PenroseTopBarViewStyle.back:
         return Container(
           alignment: Alignment.topCenter,
-          padding: EdgeInsets.fromLTRB(16, 52, 12, 90),
+          padding: const EdgeInsets.fromLTRB(16, 12, 12, 90),
           child: _backHeaderWidget(),
         );
     }
   }
 
   Widget _backHeaderWidget() {
+    final theme = Theme.of(context);
+
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: () => Navigator.of(context).pop(),
@@ -139,10 +155,10 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
             Row(
               children: [
                 SvgPicture.asset('assets/images/nav-arrow-left.svg'),
-                SizedBox(width: 7),
+                const SizedBox(width: 7),
                 Text(
-                  "BACK",
-                  style: appTextTheme.caption,
+                  "back".tr(),
+                  style: theme.textTheme.button,
                 ),
               ],
             ),
@@ -153,14 +169,13 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
   }
 
   Widget _mainHeaderWidget({required bool isInSettingsPage}) {
+    final theme = Theme.of(context);
     return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Container(
-          padding: EdgeInsets.fromLTRB(0, 0, 9, 12),
+          padding: const EdgeInsets.fromLTRB(0, 0, 9, 12),
           child: IconButton(
-            constraints: BoxConstraints(),
+            constraints: const BoxConstraints(),
             icon: SvgPicture.asset("assets/images/iconQr.svg"),
             onPressed: () {
               if (_opacity == 0) return;
@@ -170,10 +185,21 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
           ),
         ),
         _discovery(),
-        Spacer(),
+        const Spacer(),
+        Visibility(
+          visible: isInSettingsPage,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(0, 0, 0, 10),
+            child: Text(
+              "settings".tr().toUpperCase(),
+              style: theme.textTheme.button,
+            ),
+          ),
+        ),
+        const Spacer(),
         _customerSupportIconWidget(),
         Container(
-          padding: EdgeInsets.fromLTRB(17, 0, 0, 10),
+          padding: const EdgeInsets.fromLTRB(17, 0, 0, 10),
           child: IconButton(
             tooltip: "Settings",
             onPressed: () {
@@ -186,7 +212,7 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
             },
             icon: isInSettingsPage
                 ? closeIcon()
-                : SvgPicture.asset('assets/images/hamburgerIcon.svg'),
+                : SvgPicture.asset('assets/images/userOutlinedIcon.svg'),
           ),
         ),
       ],
@@ -195,7 +221,7 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
 
   Widget _discovery() {
     return Container(
-      padding: EdgeInsets.fromLTRB(0, 0, 12, 12),
+      padding: const EdgeInsets.fromLTRB(0, 0, 12, 12),
       child: IconButton(
           onPressed: () {
             if (_opacity == 0) return;
@@ -213,8 +239,9 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
           final unreadIssues = numberOfIssuesInfo?[1] ?? 0;
           return GestureDetector(
             behavior: HitTestBehavior.translucent,
+            key: const Key("customerSupport"),
             child: Container(
-              padding: EdgeInsets.fromLTRB(20, 10, 0, 20),
+              padding: const EdgeInsets.fromLTRB(20, 10, 0, 20),
               child: Stack(
                 clipBehavior: Clip.none,
                 children: [

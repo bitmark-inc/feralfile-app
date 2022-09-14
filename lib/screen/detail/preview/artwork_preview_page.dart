@@ -9,36 +9,41 @@ import 'dart:io';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_state.dart';
+import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_widget.dart';
 import 'package:autonomy_flutter/screen/detail/report_rendering_issue/any_problem_nft_widget.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_box_view.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/theme_manager.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:cast/cast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:flutter_to_airplay/airplay_route_picker_view.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:flutter_to_airplay/flutter_to_airplay.dart';
 import 'package:mime/mime.dart';
+import 'package:nft_collection/models/asset_token.dart';
+import 'package:autonomy_flutter/util/string_ext.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:nft_rendering/nft_rendering.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shake/shake.dart';
 import 'package:wakelock/wakelock.dart';
-import 'package:nft_rendering/nft_rendering.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
+
+import '../../../service/aws_service.dart';
 
 enum AUCastDeviceType { Airplay, Chromecast }
 
@@ -62,53 +67,49 @@ class ArtworkPreviewPage extends StatefulWidget {
 
 class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     with
+        AfterLayoutMixin<ArtworkPreviewPage>,
         RouteAware,
-        WidgetsBindingObserver,
-        AfterLayoutMixin<ArtworkPreviewPage> {
-  bool isFullscreen = false;
-  AssetToken? asset;
-  late int currentIndex;
-  INFTRenderingWidget? _renderingWidget;
-
-  Future<List<CastDevice>> _castDevicesFuture = CastDiscoveryService().search();
-  String? swipeDirection;
-
-  static List<AUCastDevice> _defaultCastDevices = [
-    AUCastDevice(AUCastDeviceType.Airplay)
-  ];
-
+        WidgetsBindingObserver {
+  late PageController controller;
+  late ArtworkPreviewBloc _bloc;
   List<AUCastDevice> _castDevices = [];
 
   ShakeDetector? _detector;
 
-  @override
-  void afterFirstLayout(BuildContext context) {
-    // Calling the same function "after layout" to resolve the issue.
-    _detector = ShakeDetector.autoStart(onPhoneShake: () {
-      if (isFullscreen) {
-        setState(() {
-          isFullscreen = false;
-          SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
-              overlays: SystemUiOverlay.values);
-        });
-      }
-    });
+  static final List<AUCastDevice> _defaultCastDevices =
+      Platform.isIOS ? [AUCastDevice(AUCastDeviceType.Airplay)] : [];
 
-    _detector?.startListening();
-
-    WidgetsBinding.instance.addObserver(this);
-  }
+  final Future<List<CastDevice>> _castDevicesFuture =
+      CastDiscoveryService().search();
+  INFTRenderingWidget? _renderingWidget;
 
   @override
   void initState() {
+    controller = PageController(initialPage: widget.payload.currentIndex);
+    _bloc = context.read<ArtworkPreviewBloc>();
+    final currentId = widget.payload.ids[widget.payload.currentIndex];
+    _bloc.add(ArtworkPreviewGetAssetTokenEvent(currentId));
     super.initState();
+  }
 
-    currentIndex = widget.payload.currentIndex;
-    final id = widget.payload.ids[currentIndex];
+  @override
+  void dispose() {
+    disableLandscapeMode();
+    Wakelock.disable();
+    routeObserver.unsubscribe(this);
+    WidgetsBinding.instance.removeObserver(this);
+    _stopAllChromecastDevices();
 
-    context
-        .read<ArtworkPreviewBloc>()
-        .add(ArtworkPreviewGetAssetTokenEvent(id));
+    _detector?.stopListening();
+    if (Platform.isAndroid) {
+      SystemChrome.setEnabledSystemUIMode(
+        SystemUiMode.manual,
+        overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom],
+      );
+    }
+    controller.dispose();
+    Sentry.getSpan()?.finish(status: const SpanStatus.ok());
+    super.dispose();
   }
 
   @override
@@ -123,260 +124,570 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   void didPopNext() {
     enableLandscapeMode();
     Wakelock.enable();
-
     _renderingWidget?.didPopNext();
     super.didPopNext();
   }
 
   @override
-  void dispose() async {
-    disableLandscapeMode();
-    Wakelock.disable();
-    routeObserver.unsubscribe(this);
-    WidgetsBinding.instance.removeObserver(this);
-    _stopAllChromecastDevices();
-    _renderingWidget?.dispose();
-
-    _detector?.stopListening();
-    if (Platform.isAndroid) {
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
-          overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom]);
-    }
-    Sentry.getSpan()?.finish(status: SpanStatus.ok());
-    super.dispose();
-  }
-
-  void _disposeCurrentDisplay() {
-    _stopAllChromecastDevices();
-    _renderingWidget?.dispose();
-  }
-
-  @override
-  void didChangeMetrics() {
-    super.didChangeMetrics();
-    _updateWebviewSize();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: BlocConsumer<ArtworkPreviewBloc, ArtworkPreviewState>(
-          listener: (context, state) {
-        if (state.asset?.artistName == null) return;
-        context
-            .read<IdentityBloc>()
-            .add(GetIdentityEvent([state.asset!.artistName!]));
-      }, builder: (context, state) {
-        if (state.asset != null) {
-          asset = state.asset!;
-          Sentry.startTransaction("view: " + asset!.id, "load");
-
-          return SafeArea(
-              top: false,
-              bottom: false,
-              left: !isFullscreen,
-              right: !isFullscreen,
-              child: Column(
-                children: [
-                  Expanded(
-                    child: Stack(
-                      fit: StackFit.loose,
-                      children: [
-                        GestureDetector(
-                          behavior: HitTestBehavior.translucent,
-                          onHorizontalDragEnd: (dragEndDetails) {
-                            if (isFullscreen) {
-                              return;
-                            }
-                            if (dragEndDetails.primaryVelocity! < -300) {
-                              _moveNextToken();
-                            } else if (dragEndDetails.primaryVelocity! > 300) {
-                              _movePreviousToken();
-                            }
-                          },
-                          child: Center(
-                            child: _getArtworkView(asset!),
-                          ),
-                        ),
-                        // ),
-                        Align(
-                          alignment: Alignment.topCenter,
-                          child: Opacity(
-                              opacity: isFullscreen ? 0 : 1,
-                              child: _controlView(asset!)),
-                        ),
-
-                        if (!isFullscreen) ...[
-                          Align(
-                            alignment: Alignment.bottomCenter,
-                            child: Opacity(
-                              // height: !isFullscreen ? 64 : 0,
-                              opacity: isFullscreen ? 0 : 1,
-                              child: Container(
-                                height: 64,
-                                child: AnyProblemNFTWidget(
-                                    asset: asset!,
-                                    theme: AuThemeManager.get(
-                                        AppTheme.anyProblemNFTDarkTheme)),
-                              ),
-                            ),
-                          )
-                        ]
-                      ],
-                    ),
-                  ),
-                ],
-              ));
-        } else {
-          return SizedBox();
-        }
-      }),
+  void afterFirstLayout(BuildContext context) {
+    // Calling the same function "after layout" to resolve the issue.
+    _detector = ShakeDetector.autoStart(
+      onPhoneShake: () {
+        _bloc.add(ChangeFullScreen());
+        SystemChrome.setEnabledSystemUIMode(
+          SystemUiMode.manual,
+          overlays: SystemUiOverlay.values,
+        );
+      },
     );
+
+    _detector?.startListening();
+
+    WidgetsBinding.instance.addObserver(this);
   }
 
-  Widget _controlView(AssetToken asset) {
-    final identityState = context.watch<IdentityBloc>().state;
-    final artistName =
-        asset.artistName?.toIdentityOrMask(identityState.identityMap);
-    double safeAreaTop = MediaQuery.of(context).padding.top;
-
-    return Container(
-      color: Colors.black,
-      height: safeAreaTop + 52,
-      padding: EdgeInsets.fromLTRB(15, safeAreaTop, 15, 0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Expanded(
-            child: GestureDetector(
-              behavior: HitTestBehavior.translucent,
-              onTap: () => _moveToInfo(asset),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  SvgPicture.asset("assets/images/iconInfo.svg",
-                      color: Colors.white),
-                  SizedBox(width: 13),
-                  _titleAndArtistNameWidget(asset, artistName),
-                  SizedBox(width: 5),
-                ],
-              ),
-            ),
-          ),
-          _castButton(context),
-          SizedBox(width: 8),
-          IconButton(
-            onPressed: () async {
-              setState(() {
-                isFullscreen = true;
-              });
-
-              SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-
-              if (injector<ConfigurationService>().isFullscreenIntroEnabled()) {
-                showModalBottomSheet<void>(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return _fullscreenIntroPopup();
-                  },
-                );
-              }
-            },
-            icon: Icon(
-              Icons.fullscreen,
-              color: Colors.white,
-              size: 32,
-            ),
-          ),
-          previewCloseIcon(context),
-        ],
-      ),
-    );
-  }
-
-  Future _moveToInfo(AssetToken asset) async {
+  Future _moveToInfo(AssetToken? asset) async {
+    if (asset == null) return;
     final isImmediateInfoViewEnabled =
         injector<ConfigurationService>().isImmediateInfoViewEnabled();
 
-    if (isImmediateInfoViewEnabled) {
+    final currentIndex = widget.payload.ids.indexOf(asset.id);
+    if (isImmediateInfoViewEnabled &&
+        currentIndex == widget.payload.currentIndex) {
       Navigator.of(context).pop();
       return;
     }
 
-    final currentIndex = widget.payload.ids.indexOf(asset.id);
-
     disableLandscapeMode();
+
     Wakelock.disable();
-    _clearPrevious();
-    Navigator.of(context).pushNamed(AppRouter.artworkDetailsPage,
-        arguments: widget.payload.copyWith(currentIndex: currentIndex));
+
+    Navigator.of(context).pushNamed(
+      AppRouter.artworkDetailsPage,
+      arguments: widget.payload.copyWith(currentIndex: currentIndex),
+    );
   }
 
-  Future _movePreviousToken() async {
-    currentIndex =
-        currentIndex <= 0 ? widget.payload.ids.length - 1 : currentIndex - 1;
-    final id = widget.payload.ids[currentIndex];
-    _disposeCurrentDisplay();
-    context
-        .read<ArtworkPreviewBloc>()
-        .add(ArtworkPreviewGetAssetTokenEvent(id));
+  void onClickFullScreen() {
+    _bloc.add(ChangeFullScreen(isFullscreen: true));
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+
+    if (injector<ConfigurationService>().isFullscreenIntroEnabled()) {
+      showModalBottomSheet<void>(
+        context: context,
+        constraints: BoxConstraints(
+            maxWidth: ResponsiveLayout.isMobile
+                ? double.infinity
+                : Constants.maxWidthModalTablet),
+        builder: (BuildContext context) {
+          return const FullscreenIntroPopup();
+        },
+      );
+    }
   }
 
-  Future _moveNextToken() async {
-    currentIndex =
-        currentIndex >= widget.payload.ids.length - 1 ? 0 : currentIndex + 1;
-    final id = widget.payload.ids[currentIndex];
-    _disposeCurrentDisplay();
-    context
-        .read<ArtworkPreviewBloc>()
-        .add(ArtworkPreviewGetAssetTokenEvent(id));
+  Future<void> onCastTap(AssetToken? asset) async {
+    final canCast = asset?.medium == "video" ||
+        asset?.medium == "image" ||
+        asset?.mimeType?.startsWith("audio/") == true;
+
+    if (!canCast) {
+      return UIHelper.showUnavailableCastDialog(
+        context: context,
+        assetToken: asset,
+      );
+    }
+    return UIHelper.showDialog(
+      context,
+      "select_a_device".tr(),
+      FutureBuilder<List<CastDevice>>(
+        future: _castDevicesFuture,
+        builder: (context, snapshot) {
+          if (!snapshot.hasData ||
+              snapshot.data!.isEmpty ||
+              snapshot.hasError) {
+            if (asset?.medium == "video") {
+              _castDevices = _defaultCastDevices;
+            }
+          } else {
+            _castDevices = (asset?.medium == "video"
+                    ? _defaultCastDevices
+                    : List<AUCastDevice>.empty()) +
+                snapshot.data!
+                    .map((e) => AUCastDevice(AUCastDeviceType.Chromecast, e))
+                    .toList();
+          }
+
+          var castDevices = _castDevices;
+          if (asset?.medium == "image") {
+            // remove the airplay option
+            castDevices = _castDevices
+                .where((element) => element.type != AUCastDeviceType.Airplay)
+                .toList();
+          }
+
+          final theme = Theme.of(context);
+
+          return ValueListenableBuilder<Map<String, IAPProductStatus>>(
+            valueListenable: injector<IAPService>().purchases,
+            builder: (context, purchases, child) {
+              return FutureBuilder<bool>(
+                builder: (context, subscriptionSnapshot) {
+                  final isSubscribed = subscriptionSnapshot.hasData &&
+                      subscriptionSnapshot.data == true;
+                  return SizedBox(
+                    width: double.infinity,
+                    child: Column(
+                      children: [
+                        if (!isSubscribed) ...[
+                          UpgradeBoxView.getMoreAutonomyWidget(
+                              theme, PremiumFeature.AutonomyTV,
+                              autoClose: false)
+                        ],
+                        if (!snapshot.hasData) ...[
+                          // Searching for cast devices.
+                          CircularProgressIndicator(
+                            color: theme.colorScheme.primary,
+                            backgroundColor: theme.colorScheme.surface,
+                            strokeWidth: 2.0,
+                          )
+                        ],
+                        Visibility(
+                          visible: snapshot.hasData,
+                          child: _castingListView(
+                            context,
+                            castDevices,
+                            isSubscribed,
+                            asset: asset,
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: Text(
+                            "cancel".tr(),
+                            style: theme.primaryTextTheme.button,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                      ],
+                    ),
+                  );
+                },
+                future: injector<IAPService>().isSubscribed(),
+              );
+            },
+          );
+        },
+      ),
+      isDismissible: true,
+    );
   }
 
-  Widget _titleAndArtistNameWidget(AssetToken asset, String? artistName) {
-    final theme = AuThemeManager.get(AppTheme.previewNFTTheme);
+  Widget _castingListView(
+      BuildContext context, List<AUCastDevice> devices, bool isSubscribed,
+      {AssetToken? asset}) {
+    final theme = Theme.of(context);
 
-    return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            asset.title,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.bodyText1,
-          ),
-          if (artistName != null) ...[
-            SizedBox(height: 4.0),
-            Text(
-              "by $artistName",
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.bodyText2,
-            )
-          ]
-        ],
+    if (devices.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 42),
+        child: Text(
+          'no_device_detected'.tr(),
+          style: ResponsiveLayout.isMobile
+              ? theme.textTheme.atlasSpanishGreyBold16
+              : theme.textTheme.atlasSpanishGreyBold20,
+        ),
+      );
+    }
+
+    return ConstrainedBox(
+      constraints: const BoxConstraints(
+        minHeight: 35.0,
+        maxHeight: 160.0,
+      ),
+      child: ListView.separated(
+        shrinkWrap: true,
+        itemBuilder: ((context, index) {
+          final device = devices[index];
+
+          switch (device.type) {
+            case AUCastDeviceType.Airplay:
+              return GestureDetector(
+                  behavior: HitTestBehavior.translucent,
+                  onTap: () {
+                    injector<AWSService>()
+                        .storeEventWithDeviceData("stream_airplay");
+                  },
+                  child: _airplayItem(context, isSubscribed));
+            case AUCastDeviceType.Chromecast:
+              return GestureDetector(
+                onTap: isSubscribed
+                    ? () {
+                        injector<AWSService>()
+                            .storeEventWithDeviceData("stream_chromecast");
+                        UIHelper.hideInfoDialog(context);
+                        var copiedDevice = _castDevices[index];
+                        if (copiedDevice.isActivated) {
+                          _stopAndDisconnectChomecast(index);
+                        } else {
+                          _connectAndCast(index: index, asset: asset);
+                        }
+
+                        // invert the state
+                        copiedDevice.isActivated = !copiedDevice.isActivated;
+                        _castDevices[index] = copiedDevice;
+                      }
+                    : null,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 17),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.cast,
+                        color: isSubscribed
+                            ? theme.colorScheme.secondary
+                            : AppColor.secondaryDimGrey,
+                      ),
+                      const SizedBox(width: 17),
+                      Text(
+                        device.chromecastDevice!.name,
+                        style: theme.primaryTextTheme.headline4?.copyWith(
+                          color: isSubscribed
+                              ? theme.colorScheme.secondary
+                              : AppColor.secondaryDimGrey,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+          }
+        }),
+        separatorBuilder: ((context, index) => const Divider(
+              thickness: 1,
+              color: AppColor.secondaryDimGrey,
+            )),
+        itemCount: devices.length,
       ),
     );
   }
 
-  Widget _getArtworkView(AssetToken asset) {
-    if (_renderingWidget == null ||
-        _renderingWidget!.previewURL != asset.previewURL) {
-      _renderingWidget = buildRenderingWidget(context, asset);
-    }
-
-    return Container(
-      child: _renderingWidget?.build(context),
+  Widget _airplayItem(BuildContext context, bool isSubscribed) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: SizedBox(
+        height: 44,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 41, bottom: 5),
+                child: Text(
+                  "airplay".tr(),
+                  style: theme.primaryTextTheme.headline4?.copyWith(
+                      color: isSubscribed
+                          ? theme.colorScheme.secondary
+                          : AppColor.secondaryDimGrey),
+                ),
+              ),
+            ),
+            isSubscribed
+                ? AirPlayRoutePickerView(
+                    tintColor: theme.colorScheme.surface,
+                    activeTintColor: theme.colorScheme.surface,
+                    backgroundColor: Colors.transparent,
+                    prioritizesVideoDevices: true,
+                  )
+                : const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Icon(Icons.airplay_outlined,
+                        color: AppColor.secondaryDimGrey),
+                  ),
+          ],
+        ),
+      ),
     );
   }
 
-  Widget _fullscreenIntroPopup() {
+  void _stopAndDisconnectChomecast(int index) {
+    final session = _castDevices[index].chromecastSession;
+    session?.close();
+  }
+
+  void _stopAllChromecastDevices() {
+    for (var element in _castDevices) {
+      element.chromecastSession?.close();
+    }
+    _castDevices = [];
+  }
+
+  Future<void> _connectAndCast({required int index, AssetToken? asset}) async {
+    final device = _castDevices[index];
+    if (device.chromecastDevice == null) return;
+    if (asset == null) return;
+    final session = await CastSessionManager()
+        .startSession(device.chromecastDevice!, const Duration(seconds: 5));
+    device.chromecastSession = session;
+    _castDevices[index] = device;
+
+    log.info("[Chromecast] Connecting to ${device.chromecastDevice!.name}");
+    session.stateStream.listen((state) {
+      log.info("[Chromecast] device status: ${state.name}");
+      if (state == CastSessionState.connected) {
+        log.info(
+            "[Chromecast] send cast message with url: ${asset.getPreviewUrl()}");
+        _sendMessagePlayVideo(session: session, asset: asset);
+      }
+    });
+
+    session.messageStream.listen((message) {});
+
+    session.sendMessage(CastSession.kNamespaceReceiver, {
+      'type': 'LAUNCH',
+      'appId': 'CC1AD845', // set the appId of your app here
+    });
+  }
+
+  void _sendMessagePlayVideo(
+      {required CastSession session, required AssetToken asset}) {
+    var message = {
+      // Here you can plug an URL to any mp4, webm, mp3 or jpg file with the proper contentType.
+      'contentId': asset.getPreviewUrl() ?? '',
+      'contentType':
+          asset.mimeType ?? lookupMimeType(asset.getPreviewUrl() ?? ''),
+      'streamType': 'BUFFERED',
+      // or LIVE
+
+      // Title and cover displayed while buffering
+      'metadata': {
+        'type': 0,
+        'metadataType': 0,
+        'title': asset.title,
+        'images': [
+          {'url': asset.getThumbnailUrl() ?? ''},
+          {'url': asset.getPreviewUrl()},
+        ]
+      }
+    };
+
+    session.sendMessage(CastSession.kNamespaceMedia, {
+      'type': 'LOAD',
+      'autoPlay': true,
+      'currentTime': 0,
+      'media': message,
+    });
+    log.info("[Chromecast] Send message play video: $message");
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Scaffold(
+      backgroundColor: theme.colorScheme.primary,
+      body: BlocConsumer<ArtworkPreviewBloc, ArtworkPreviewState>(
+        builder: (context, state) {
+          AssetToken? assetToken;
+          bool isFullScreen = false;
+          if (state is ArtworkPreviewLoadedState) {
+            assetToken = state.asset;
+            isFullScreen = state.isFullScreen;
+          }
+          return SafeArea(
+            top: false,
+            bottom: false,
+            left: !isFullScreen,
+            right: !isFullScreen,
+            child: Column(
+              children: [
+                Visibility(
+                  visible: !isFullScreen,
+                  child: ControlView(
+                    assetToken: assetToken,
+                    onClickInfo: () => _moveToInfo(assetToken),
+                    onClickFullScreen: onClickFullScreen,
+                    onClickCast: (assetToken) => onCastTap(assetToken),
+                  ),
+                ),
+                Expanded(
+                  child: PageView.builder(
+                    physics: isFullScreen
+                        ? const NeverScrollableScrollPhysics()
+                        : null,
+                    onPageChanged: (value) {
+                      final currentId = widget.payload.ids[value];
+                      _bloc.add(ArtworkPreviewGetAssetTokenEvent(currentId));
+                      _stopAllChromecastDevices();
+                    },
+                    controller: controller,
+                    itemCount: widget.payload.ids.length,
+                    itemBuilder: (context, index) => Center(
+                      child: ArtworkPreviewWidget(
+                        id: widget.payload.ids[index],
+                      ),
+                    ),
+                  ),
+                ),
+                if (assetToken != null)
+                  Visibility(
+                    visible: !isFullScreen,
+                    child: SizedBox(
+                      height: 64,
+                      child: AnyProblemNFTWidget(
+                        asset: assetToken,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          );
+        },
+        listener: (context, state) {},
+      ),
+    );
+  }
+}
+
+class ControlView extends StatelessWidget {
+  final AssetToken? assetToken;
+  final VoidCallback? onClickFullScreen;
+  final Function(AssetToken?)? onClickCast;
+  final VoidCallback? onClickInfo;
+  const ControlView({
+    Key? key,
+    this.assetToken,
+    this.onClickFullScreen,
+    this.onClickCast,
+    this.onClickInfo,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final identityBloc = context.read<IdentityBloc>();
+    double safeAreaTop = MediaQuery.of(context).padding.top;
+    final neededIdentities = [
+      assetToken?.artistName ?? '',
+    ];
+
+    return Container(
+      color: theme.colorScheme.primary,
+      height: safeAreaTop + 52,
+      padding: EdgeInsets.fromLTRB(15, safeAreaTop, 15, 0),
+      child: Row(
+        children: [
+          Expanded(
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: onClickInfo,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SvgPicture.asset(
+                    "assets/images/iconInfo.svg",
+                    color: theme.colorScheme.secondary,
+                  ),
+                  const SizedBox(width: 13),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          assetToken?.title ?? '',
+                          overflow: TextOverflow.ellipsis,
+                          style: ResponsiveLayout.isMobile
+                              ? theme.textTheme.atlasWhiteBold12
+                              : theme.textTheme.atlasWhiteBold14,
+                        ),
+                        BlocBuilder<IdentityBloc, IdentityState>(
+                          bloc: identityBloc
+                            ..add(GetIdentityEvent(neededIdentities)),
+                          builder: (context, state) {
+                            final artistName = assetToken?.artistName
+                                ?.toIdentityOrMask(state.identityMap);
+                            if (artistName != null) {
+                              return Row(
+                                children: [
+                                  const SizedBox(height: 4.0),
+                                  Text(
+                                    "by".tr(args: [artistName]),
+                                    overflow: TextOverflow.ellipsis,
+                                    style: theme.primaryTextTheme.headline5,
+                                  )
+                                ],
+                              );
+                            }
+                            return const SizedBox();
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 5),
+                ],
+              ),
+            ),
+          ),
+          CastButton(
+            assetToken: assetToken,
+            onCastTap: () => onClickCast?.call(assetToken),
+          ),
+          const SizedBox(width: 8),
+          IconButton(
+            onPressed: onClickFullScreen,
+            icon: Icon(
+              Icons.fullscreen,
+              color: theme.colorScheme.secondary,
+              size: 32,
+            ),
+          ),
+          IconButton(
+            onPressed: () => Navigator.of(context).pop(),
+            icon: closeIcon(color: theme.colorScheme.secondary),
+            tooltip: "CloseArtwork",
+          )
+        ],
+      ),
+    );
+  }
+}
+
+class CastButton extends StatelessWidget {
+  final AssetToken? assetToken;
+  final VoidCallback? onCastTap;
+  const CastButton({Key? key, this.assetToken, this.onCastTap})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final canCast = assetToken?.medium == "video" ||
+        assetToken?.medium == "image" ||
+        assetToken?.mimeType?.startsWith("audio/") == true;
+
+    return InkWell(
+      onTap: onCastTap,
+      child: SvgPicture.asset(
+        'assets/images/chromecast.svg',
+        color: canCast ? theme.colorScheme.secondary : theme.disableColor,
+      ),
+    );
+  }
+}
+
+class FullscreenIntroPopup extends StatelessWidget {
+  const FullscreenIntroPopup({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
       height: 300,
-      padding: EdgeInsets.symmetric(horizontal: 16.0),
-      color: Colors.black,
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      color: theme.colorScheme.primary,
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -384,34 +695,23 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Text(
-              "Full screen",
-              style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 36,
-                  fontWeight: FontWeight.w700,
-                  fontFamily: "AtlasGrotesk"),
+              "full_screen".tr(),
+              style: theme.primaryTextTheme.headline1,
             ),
-            SizedBox(height: 40.0),
+            const SizedBox(height: 40.0),
             Text(
-              "Shake your phone to exit fullscreen mode.",
-              style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w300,
-                  fontFamily: "AtlasGrotesk"),
+              "shake_exit".tr(),
+              //"Shake your phone to exit fullscreen mode.",
+              style: theme.primaryTextTheme.bodyText1,
             ),
-            SizedBox(height: 40.0),
+            const SizedBox(height: 40.0),
             Row(
               children: [
                 Expanded(
                   child: AuFilledButton(
-                    text: "OK",
-                    color: Colors.white,
-                    textStyle: TextStyle(
-                        color: Colors.black,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        fontFamily: "IBMPlexMono"),
+                    text: "ok".tr(),
+                    color: theme.colorScheme.secondary,
+                    textStyle: theme.textTheme.button,
                     onPress: () {
                       Navigator.of(context).pop();
                     },
@@ -419,17 +719,13 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                 )
               ],
             ),
-            SizedBox(height: 14.0),
+            const SizedBox(height: 14.0),
             Center(
               child: GestureDetector(
                 child: Text(
-                  "DON’T SHOW AGAIN",
+                  "dont_show_again".tr(),
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w300,
-                      fontFamily: "IBMPlexMono"),
+                  style: theme.primaryTextTheme.button,
                 ),
                 onTap: () {
                   injector<ConfigurationService>()
@@ -442,282 +738,5 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
         ),
       ),
     );
-  }
-
-  Future<bool> _clearPrevious() async {
-    _renderingWidget?.clearPrevious();
-    return true;
-  }
-
-  _updateWebviewSize() {
-    if (_renderingWidget != null &&
-        _renderingWidget is WebviewNFTRenderingWidget) {
-      (_renderingWidget as WebviewNFTRenderingWidget).updateWebviewSize();
-    }
-  }
-
-  Widget _castButton(BuildContext context) {
-    return InkWell(
-      onTap: () => _showCastDialog(context),
-      child: SvgPicture.asset('assets/images/chromecast.svg'),
-    );
-  }
-
-  Widget _airplayItem(BuildContext context, bool isSubscribed) {
-    final theme = AuThemeManager.get(AppTheme.sheetTheme);
-    return Padding(
-        child: SizedBox(
-          height: 44,
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Padding(
-                  padding: EdgeInsets.only(left: 41, bottom: 5),
-                  child: Text(
-                    "Airplay",
-                    style: theme.textTheme.headline4?.copyWith(
-                        color: isSubscribed
-                            ? Colors.white
-                            : AppColorTheme.secondaryDimGrey),
-                  ),
-                ),
-              ),
-              isSubscribed
-                  ? AirPlayRoutePickerView(
-                      tintColor: Colors.grey,
-                      activeTintColor: Colors.grey,
-                      backgroundColor: Colors.transparent,
-                      prioritizesVideoDevices: true,
-                    )
-                  : Align(
-                      alignment: Alignment.centerLeft,
-                      child: Icon(Icons.airplay_outlined,
-                          color: AppColorTheme.secondaryDimGrey),
-                    ),
-            ],
-          ),
-        ),
-        padding: EdgeInsets.symmetric(vertical: 6));
-  }
-
-  Widget _castingListView(
-      BuildContext context, List<AUCastDevice> devices, bool isSubscribed) {
-    final theme = AuThemeManager.get(AppTheme.sheetTheme);
-    return ConstrainedBox(
-        constraints: new BoxConstraints(
-          minHeight: 35.0,
-          maxHeight: 160.0,
-        ),
-        child: ListView.separated(
-            shrinkWrap: true,
-            itemBuilder: ((context, index) {
-              final device = devices[index];
-
-              switch (device.type) {
-                case AUCastDeviceType.Airplay:
-                  return _airplayItem(context, isSubscribed);
-                case AUCastDeviceType.Chromecast:
-                  return GestureDetector(
-                    child: Padding(
-                      child: Row(
-                        children: [
-                          Icon(Icons.cast,
-                              color: isSubscribed
-                                  ? Colors.white
-                                  : AppColorTheme.secondaryDimGrey),
-                          SizedBox(width: 17),
-                          Text(
-                            device.chromecastDevice!.name,
-                            style: theme.textTheme.headline4?.copyWith(
-                                color: isSubscribed
-                                    ? Colors.white
-                                    : AppColorTheme.secondaryDimGrey),
-                          ),
-                        ],
-                      ),
-                      padding: EdgeInsets.symmetric(vertical: 17),
-                    ),
-                    onTap: isSubscribed
-                        ? () {
-                            UIHelper.hideInfoDialog(context);
-                            var copiedDevice = _castDevices[index];
-                            if (copiedDevice.isActivated) {
-                              _stopAndDisconnectChomecast(index);
-                            } else {
-                              _connectAndCast(index);
-                            }
-
-                            // invert the state
-                            copiedDevice.isActivated =
-                                !copiedDevice.isActivated;
-                            _castDevices[index] = copiedDevice;
-                          }
-                        : null,
-                  );
-              }
-            }),
-            separatorBuilder: ((context, index) => Divider(
-                  thickness: 1,
-                  color: AppColorTheme.secondarySpanishGrey,
-                )),
-            itemCount: devices.length));
-  }
-
-  Future<void> _showCastDialog(BuildContext context) {
-    return UIHelper.showDialog(
-        context,
-        "Select a device",
-        FutureBuilder<List<CastDevice>>(
-          future: _castDevicesFuture,
-          builder: (context, snapshot) {
-            if (!snapshot.hasData ||
-                snapshot.data!.isEmpty ||
-                snapshot.hasError) {
-              if (asset?.medium == "video") {
-                _castDevices = _defaultCastDevices;
-              }
-            } else {
-              _castDevices = (asset?.medium == "video"
-                      ? _defaultCastDevices
-                      : List<AUCastDevice>.empty()) +
-                  snapshot.data!
-                      .map((e) => AUCastDevice(AUCastDeviceType.Chromecast, e))
-                      .toList();
-            }
-
-            var castDevices = _castDevices;
-            if (asset?.medium == "image") {
-              // remove the airplay option
-              castDevices = _castDevices
-                  .where((element) => element.type != AUCastDeviceType.Airplay)
-                  .toList();
-            }
-
-            final theme = AuThemeManager.get(AppTheme.sheetTheme);
-
-            return FutureBuilder<bool>(
-                builder: (context, snapshot) {
-                  if (snapshot.hasData && snapshot.data!) {
-                    return Column(
-                      children: [
-                        _castingListView(context, castDevices, true),
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: Text(
-                            "CANCEL",
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
-                                fontFamily: "IBMPlexMono"),
-                          ),
-                        ),
-                        SizedBox(height: 20),
-                      ],
-                    );
-                  } else {
-                    return Column(
-                      children: [
-                        UpgradeBoxView.getMoreAutonomyWidget(
-                            theme, PremiumFeature.AutonomyTV),
-                        _castingListView(context, castDevices, false),
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: Text(
-                            "CANCEL",
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
-                                fontFamily: "IBMPlexMono"),
-                          ),
-                        ),
-                        SizedBox(height: 20),
-                      ],
-                    );
-                  }
-                },
-                future: injector<IAPService>().isSubscribed());
-          },
-        ),
-        isDismissible: true);
-  }
-
-  Future<void> _connectAndCast(int index) async {
-    final device = _castDevices[index];
-    if (device.chromecastDevice == null) return;
-    final session = await CastSessionManager()
-        .startSession(device.chromecastDevice!, Duration(seconds: 5));
-    device.chromecastSession = session;
-    _castDevices[index] = device;
-
-    log.info("[Chromecast] Connecting to ${device.chromecastDevice!.name}");
-    session.stateStream.listen((state) {
-      log.info("[Chromecast] device status: ${state.name}");
-      if (state == CastSessionState.connected) {
-        log.info(
-            "[Chromecast] send cast message with url: ${asset!.previewURL!}");
-      }
-    });
-
-    var i = 0;
-
-    session.messageStream.listen((message) {
-      i += 1;
-
-      print('receive message: $message');
-
-      if (i == 2) {
-        Future.delayed(Duration(seconds: 5)).then((x) {
-          _sendMessagePlayVideo(session);
-        });
-      }
-    });
-
-    session.sendMessage(CastSession.kNamespaceReceiver, {
-      'type': 'LAUNCH',
-      'appId': 'CC1AD845', // set the appId of your app here
-    });
-  }
-
-  void _sendMessagePlayVideo(CastSession session) {
-    var message = {
-      // Here you can plug an URL to any mp4, webm, mp3 or jpg file with the proper contentType.
-      'contentId': asset!.previewURL!,
-      'contentType': lookupMimeType(asset!.previewURL!),
-      'streamType': 'BUFFERED',
-      // or LIVE
-
-      // Title and cover displayed while buffering
-      'metadata': {
-        'type': 0,
-        'metadataType': 0,
-        'title': asset!.title,
-        'images': [
-          {'url': asset!.previewURL!}
-        ]
-      }
-    };
-
-    session.sendMessage(CastSession.kNamespaceMedia, {
-      'type': 'LOAD',
-      'autoPlay': true,
-      'currentTime': 0,
-      'media': message,
-    });
-  }
-
-  void _stopAndDisconnectChomecast(int index) {
-    final session = _castDevices[index].chromecastSession;
-    session?.close();
-  }
-
-  void _stopAllChromecastDevices() {
-    _castDevices.forEach((element) {
-      element.chromecastSession?.close();
-    });
-    _castDevices = [];
   }
 }

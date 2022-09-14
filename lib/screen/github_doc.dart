@@ -11,26 +11,26 @@ import 'package:autonomy_flutter/util/dio_interceptors.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:url_launcher/url_launcher_string.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 
 class GithubDocPage extends StatefulWidget {
   final Map<String, String> payload;
 
   const GithubDocPage({Key? key, required this.payload}) : super(key: key);
+
   @override
-  State<GithubDocPage> createState() =>
-      _GithubDocPageState(payload["document"]!, payload["title"]!);
+  State<GithubDocPage> createState() => _GithubDocPageState();
 }
 
 class _GithubDocPageState extends State<GithubDocPage> {
-  final String document;
-  final String title;
-
-  _GithubDocPageState(this.document, this.title);
+  late String document;
+  late String title;
 
   final dio = Dio(BaseOptions(
     baseUrl: "https://raw.githubusercontent.com",
@@ -40,18 +40,22 @@ class _GithubDocPageState extends State<GithubDocPage> {
   @override
   void initState() {
     super.initState();
+    document = widget.payload["document"]!;
+    title = widget.payload["title"]!;
     dio.interceptors.add(LoggingInterceptor());
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: getBackAppBar(
         context,
         onBack: () => Navigator.of(context).pop(),
       ),
       body: Container(
-        margin: pageEdgeInsets,
+        margin: ResponsiveLayout.pageEdgeInsets,
         child: FutureBuilder<Response<String>>(
           builder: (context, snapshot) => CustomScrollView(
             slivers: [
@@ -59,9 +63,9 @@ class _GithubDocPageState extends State<GithubDocPage> {
                 SliverToBoxAdapter(
                     child: Text(
                   title,
-                  style: appTextTheme.headline1,
+                  style: theme.textTheme.headline1,
                 )),
-                SliverPadding(padding: EdgeInsets.only(bottom: 40)),
+                const SliverPadding(padding: EdgeInsets.only(bottom: 40)),
               ],
               _contentView(context, snapshot)
             ],
@@ -75,15 +79,18 @@ class _GithubDocPageState extends State<GithubDocPage> {
 
   Widget _contentView(
       BuildContext context, AsyncSnapshot<Response<String>> snapshot) {
+    final theme = Theme.of(context);
+
     if (snapshot.hasData && snapshot.data?.statusCode == 200) {
       return SliverToBoxAdapter(
           child: Markdown(
+              key: const Key("githubMarkdown"),
               data: snapshot.data!.data!,
               softLineBreak: true,
               shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
-              padding: EdgeInsets.only(bottom: 50),
-              styleSheet: markDownLightStyle,
+              physics: const NeverScrollableScrollPhysics(),
+              padding: const EdgeInsets.only(bottom: 50),
+              styleSheet: markDownLightStyle(context),
               onTapLink: (text, href, title) async {
                 if (href == null) return;
                 if (!(await canLaunchUrlString(href))) {
@@ -94,7 +101,7 @@ class _GithubDocPageState extends State<GithubDocPage> {
                         "title": ""
                       });
                 } else {
-                  launchUrlString(href, mode: LaunchMode.platformDefault);
+                  launchUrlString(href);
                 }
               }));
     } else if (snapshot.hasError ||
@@ -102,11 +109,11 @@ class _GithubDocPageState extends State<GithubDocPage> {
       return SliverFillRemaining(
           child: Center(
               child: Text(
-        "Error when loading the content",
-        style: appTextTheme.headline4,
+        "error_loading_content".tr(),
+        style: theme.textTheme.headline4,
       )));
     } else {
-      return SliverFillRemaining(
+      return const SliverFillRemaining(
           child: Center(child: CupertinoActivityIndicator()));
     }
   }

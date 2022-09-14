@@ -13,7 +13,7 @@ abstract class CurrencyService {
 }
 
 class CurrencyServiceImpl extends CurrencyService {
-  CurrencyExchangeApi _currencyExchangeApi;
+  final CurrencyExchangeApi _currencyExchangeApi;
 
   CurrencyServiceImpl(this._currencyExchangeApi);
 
@@ -22,6 +22,6 @@ class CurrencyServiceImpl extends CurrencyService {
     final response = await _currencyExchangeApi.getExchangeRates();
 
     return response["data"]?.rates ??
-        CurrencyExchangeRate(eth: "1.0", xtz: "1.0");
+        const CurrencyExchangeRate(eth: "1.0", xtz: "1.0");
   }
 }

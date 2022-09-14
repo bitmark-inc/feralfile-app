@@ -7,7 +7,6 @@
 
 import 'dart:convert';
 
-import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/service/social_recovery/shard_deck.dart';
@@ -23,8 +22,6 @@ abstract class ConfigurationService {
   JWT? getIAPJWT();
   Future<void> setWCSessions(List<WCSessionStore> value);
   List<WCSessionStore> getWCSessions();
-  Future<void> setNetwork(Network value);
-  Network getNetwork();
   Future<void> setDevicePasscodeEnabled(bool value);
   bool isDevicePasscodeEnabled();
   Future<void> setNotificationEnabled(bool value);
@@ -50,7 +47,6 @@ abstract class ConfigurationService {
   List<String> getTempStorageHiddenTokenIDs({Network? network});
   Future updateTempStorageHiddenTokenIDs(List<String> tokenIDs, bool isAdd,
       {Network? network, bool override = false});
-  bool matchFeralFileSourceInNetwork(String source);
   Future<void> setWCDappSession(String? value);
   String? getWCDappSession();
   Future<void> setWCDappAccounts(List<String>? value);
@@ -66,6 +62,12 @@ abstract class ConfigurationService {
   Future<void> setImmediateInfoViewEnabled(bool value);
   bool isImmediateInfoViewEnabled();
   Future<String> getAccountHMACSecret();
+  bool isFinishedFeedOnBoarding();
+  Future<void> setFinishedFeedOnBoarding(bool value);
+  String? lastRemindReviewDate();
+  Future<void> setLastRemindReviewDate(String? value);
+  int? countOpenApp();
+  Future<void> setCountOpenApp(int? value);
   ShardDeck? getCachedDeckFromShardService();
   Future<void> setCachedDeckFromShardService(ShardDeck? deck);
 
@@ -74,6 +76,13 @@ abstract class ConfigurationService {
   Future<bool> toggleDemoArtworksMode();
   bool showTokenDebugInfo();
   Future setShowTokenDebugInfo(bool show);
+
+  // Do at once
+
+  /// to determine a hash value of the current addresses where
+  /// the app checked for Tezos artworks
+  int? sentTezosArtworkMetricValue();
+  Future setSentTezosArtworkMetric(int hashedAddresses);
 
   // Reload
   Future<void> reload();
@@ -84,7 +93,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_IAP_RECEIPT = "key_iap_receipt";
   static const String KEY_IAP_JWT = "key_iap_jwt";
   static const String KEY_WC_SESSIONS = "key_wc_sessions";
-  static const String KEY_NETWORK = "key_network";
   static const String KEY_DEVICE_PASSCODE = "device_passcode";
   static const String KEY_NOTIFICATION = "notifications";
   static const String KEY_ANALYTICS = "analytics";
@@ -95,15 +103,14 @@ class ConfigurationServiceImpl implements ConfigurationService {
       'hidden_personas_in_gallery';
   static const String KEY_HIDDEN_LINKED_ACCOUNTS_IN_GALLERY =
       'hidden_linked_accounts_in_gallery';
-  static const String KEY_TEMP_STORAGE_HIDDEN_TOKEN_IDS_MAINNET =
+  static const String KEY_TEMP_STORAGE_HIDDEN_TOKEN_IDS =
       'temp_storage_hidden_token_ids_mainnet';
-  static const String KEY_TEMP_STORAGE_HIDDEN_TOKEN_IDS_TESTNET =
-      'temp_storage_hidden_token_ids_testnet';
   static const String KEY_READ_RELEASE_NOTES_VERSION =
       'read_release_notes_version';
   static const String KEY_FINISHED_SURVEYS = "finished_surveys";
   static const String KEY_IMMEDIATE_INFOVIEW = 'immediate_infoview';
   static const String ACCOUNT_HMAC_SECRET = "account_hmac_secret";
+  static const String KEY_FINISHED_FEED_ONBOARDING = "finished_feed_onboarding";
   static const String CACHED_DECK_FROM_SHARD_SERVICE =
       'CACHED_DECK_FROM_SHARD_SERVICE';
 
@@ -114,14 +121,18 @@ class ConfigurationServiceImpl implements ConfigurationService {
   // ----- App Setting -----
   static const String KEY_APP_SETTING_DEMO_ARTWORKS =
       "show_demo_artworks_preference";
-  static const String KEY_LASTEST_REFRESH_TOKENS_MAINNET =
+  static const String KEY_LASTEST_REFRESH_TOKENS =
       "latest_refresh_tokens_mainnet_1";
-  static const String KEY_LASTEST_REFRESH_TOKENS_TESTNET =
-      "latest_refresh_tokens_testnet_1";
   static const String KEY_PREVIOUS_BUILD_NUMBER = "previous_build_number";
   static const String KEY_SHOW_TOKEN_DEBUG_INFO = "show_token_debug_info";
+  static const String LAST_REMIND_REVIEW = "last_remind_review";
+  static const String COUNT_OPEN_APP = "count_open_app";
 
-  SharedPreferences _preferences;
+  // Do at once
+  static const String KEY_SENT_TEZOS_ARTWORK_METRIC =
+      "sent_tezos_artwork_metric";
+
+  final SharedPreferences _preferences;
 
   ConfigurationServiceImpl(this._preferences);
 
@@ -177,28 +188,12 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  Future<void> setNetwork(Network value) async {
-    log.info("setNetwork: $value");
-    await _preferences.setString(KEY_NETWORK, value.toString());
-  }
-
-  @override
-  Network getNetwork() {
-    final value =
-        _preferences.getString(KEY_NETWORK) ?? Network.MAINNET.toString();
-    try {
-      return Network.values
-          .firstWhere((element) => element.toString() == value);
-    } catch (e) {
-      return Network.MAINNET;
-    }
-  }
-
   Future<void> setImmediateInfoViewEnabled(bool value) async {
     log.info("setImmediateInfoViewEnabled: $value");
     await _preferences.setBool(KEY_IMMEDIATE_INFOVIEW, value);
   }
 
+  @override
   bool isImmediateInfoViewEnabled() {
     return _preferences.getBool(KEY_IMMEDIATE_INFOVIEW) ?? false;
   }
@@ -229,6 +224,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
     return _preferences.getBool(KEY_DONE_ONBOARING) ?? false;
   }
 
+  @override
   bool isDoneOnboardingOnce() {
     return _preferences.getBool(KEY_DONE_ONBOARING_ONCE) ?? false;
   }
@@ -268,6 +264,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
     await _preferences.setBool(KEY_FULLSCREEN_INTRO, value);
   }
 
+  @override
   Future<void> setHidePersonaInGallery(
       List<String> personaUUIDs, bool isEnabled,
       {bool override = false}) async {
@@ -286,15 +283,18 @@ class ConfigurationServiceImpl implements ConfigurationService {
     }
   }
 
+  @override
   List<String> getPersonaUUIDsHiddenInGallery() {
     return _preferences.getStringList(KEY_HIDDEN_PERSONAS_IN_GALLERY) ?? [];
   }
 
+  @override
   bool isPersonaHiddenInGallery(String value) {
     var personaUUIDs = getPersonaUUIDsHiddenInGallery();
     return personaUUIDs.contains(value);
   }
 
+  @override
   Future<void> setHideLinkedAccountInGallery(
       List<String> addresses, bool isEnabled,
       {bool override = false}) async {
@@ -314,28 +314,27 @@ class ConfigurationServiceImpl implements ConfigurationService {
     }
   }
 
+  @override
   List<String> getLinkedAccountsHiddenInGallery() {
     return _preferences.getStringList(KEY_HIDDEN_LINKED_ACCOUNTS_IN_GALLERY) ??
         [];
   }
 
+  @override
   bool isLinkedAccountHiddenInGallery(String value) {
     var hiddenLinkedAccounts = getLinkedAccountsHiddenInGallery();
     return hiddenLinkedAccounts.contains(value);
   }
 
+  @override
   List<String> getTempStorageHiddenTokenIDs({Network? network}) {
-    final key = (network ?? getNetwork()) == Network.MAINNET
-        ? KEY_TEMP_STORAGE_HIDDEN_TOKEN_IDS_MAINNET
-        : KEY_TEMP_STORAGE_HIDDEN_TOKEN_IDS_TESTNET;
-    return _preferences.getStringList(key) ?? [];
+    return _preferences.getStringList(KEY_TEMP_STORAGE_HIDDEN_TOKEN_IDS) ?? [];
   }
 
+  @override
   Future updateTempStorageHiddenTokenIDs(List<String> tokenIDs, bool isAdd,
       {Network? network, bool override = false}) async {
-    final key = (network ?? getNetwork()) == Network.MAINNET
-        ? KEY_TEMP_STORAGE_HIDDEN_TOKEN_IDS_MAINNET
-        : KEY_TEMP_STORAGE_HIDDEN_TOKEN_IDS_TESTNET;
+    const key = KEY_TEMP_STORAGE_HIDDEN_TOKEN_IDS;
 
     if (override && isAdd) {
       await _preferences.setStringList(key, tokenIDs);
@@ -348,16 +347,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
               .removeWhere((element) => tokenIDs.contains(element));
       await _preferences.setStringList(
           key, tempHiddenTokenIDs.toSet().toList());
-    }
-  }
-
-  @override
-  bool matchFeralFileSourceInNetwork(String source) {
-    final network = getNetwork();
-    if (network == Network.MAINNET) {
-      return source == Environment.feralFileAPIMainnetURL;
-    } else {
-      return source != Environment.feralFileAPIMainnetURL;
     }
   }
 
@@ -391,10 +380,12 @@ class ConfigurationServiceImpl implements ConfigurationService {
     return _preferences.getStringList(KEY_WC_DAPP_ACCOUNTS);
   }
 
+  @override
   Future<void> setReadReleaseNotesInVersion(String version) async {
     await _preferences.setString(KEY_READ_RELEASE_NOTES_VERSION, version);
   }
 
+  @override
   String? getReadReleaseNotesVersion() {
     return _preferences.getString(KEY_READ_RELEASE_NOTES_VERSION);
   }
@@ -418,19 +409,16 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
   @override
   DateTime? getLatestRefreshTokens() {
-    final key = getNetwork() == Network.MAINNET
-        ? KEY_LASTEST_REFRESH_TOKENS_MAINNET
-        : KEY_LASTEST_REFRESH_TOKENS_TESTNET;
+    const key = KEY_LASTEST_REFRESH_TOKENS;
     final time = _preferences.getInt(key);
 
     if (time == null) return null;
     return DateTime.fromMillisecondsSinceEpoch(time);
   }
 
+  @override
   Future<bool> setLatestRefreshTokens(DateTime? value) {
-    final key = getNetwork() == Network.MAINNET
-        ? KEY_LASTEST_REFRESH_TOKENS_MAINNET
-        : KEY_LASTEST_REFRESH_TOKENS_TESTNET;
+    const key = KEY_LASTEST_REFRESH_TOKENS;
 
     if (value == null) {
       return _preferences.remove(key);
@@ -479,10 +467,21 @@ class ConfigurationServiceImpl implements ConfigurationService {
         KEY_FINISHED_SURVEYS, finishedSurveys.toSet().toList());
   }
 
+  @override
+  bool isFinishedFeedOnBoarding() {
+    return _preferences.getBool(KEY_FINISHED_FEED_ONBOARDING) ?? false;
+  }
+
+  @override
+  Future<void> setFinishedFeedOnBoarding(bool value) async {
+    await _preferences.setBool(KEY_FINISHED_FEED_ONBOARDING, value);
+  }
+
+  @override
   Future<String> getAccountHMACSecret() async {
     final value = _preferences.getString(ACCOUNT_HMAC_SECRET);
     if (value == null) {
-      final setValue = Uuid().v4();
+      final setValue = const Uuid().v4();
       await _preferences.setString(ACCOUNT_HMAC_SECRET, setValue);
       return setValue;
     }
@@ -490,10 +489,12 @@ class ConfigurationServiceImpl implements ConfigurationService {
     return value;
   }
 
+  @override
   bool showTokenDebugInfo() {
     return _preferences.getBool(KEY_SHOW_TOKEN_DEBUG_INFO) ?? false;
   }
 
+  @override
   Future setShowTokenDebugInfo(bool show) async {
     await _preferences.setBool(KEY_SHOW_TOKEN_DEBUG_INFO, show);
   }
@@ -501,5 +502,43 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   Future<void> removeAll() {
     return _preferences.clear();
+  }
+
+  @override
+  int? sentTezosArtworkMetricValue() {
+    return _preferences.getInt(KEY_SENT_TEZOS_ARTWORK_METRIC);
+  }
+
+  @override
+  Future setSentTezosArtworkMetric(int hashedAddresses) {
+    return _preferences.setInt(KEY_SENT_TEZOS_ARTWORK_METRIC, hashedAddresses);
+  }
+
+  @override
+  String? lastRemindReviewDate() {
+    return _preferences.getString(LAST_REMIND_REVIEW);
+  }
+
+  @override
+  Future<void> setLastRemindReviewDate(String? value) async {
+    if (value == null) {
+      await _preferences.remove(LAST_REMIND_REVIEW);
+      return;
+    }
+    await _preferences.setString(LAST_REMIND_REVIEW, value);
+  }
+
+  @override
+  int? countOpenApp() {
+    return _preferences.getInt(COUNT_OPEN_APP);
+  }
+
+  @override
+  Future<void> setCountOpenApp(int? value) async {
+    if (value == null) {
+      await _preferences.remove(COUNT_OPEN_APP);
+      return;
+    }
+    await _preferences.setInt(COUNT_OPEN_APP, value);
   }
 }

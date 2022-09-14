@@ -27,13 +27,14 @@ class _SetupEmergencyContactPageState extends State<SetupEmergencyContactPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: getBackAppBar(
         context,
         onBack: () => Navigator.of(context).pop(),
       ),
       body: Container(
-        margin: pageEdgeInsetsWithSubmitButton,
+        // margin: pageEdgeInsetsWithSubmitButton,
         child: Column(children: [
           Expanded(
             child: SingleChildScrollView(
@@ -42,12 +43,12 @@ class _SetupEmergencyContactPageState extends State<SetupEmergencyContactPage> {
                   children: [
                     Text(
                       "Setup Emergency Contact",
-                      style: appTextTheme.headline1,
+                      style: theme.textTheme.headline1,
                     ),
                     addTitleSpace(),
                     Text(
                       "some description about Emergency Contact",
-                      style: appTextTheme.bodyText1,
+                      style: theme.textTheme.bodyText1,
                     ),
                   ]),
             ),

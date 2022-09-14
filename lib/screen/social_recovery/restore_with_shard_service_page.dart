@@ -47,13 +47,14 @@ class _RestoreWithShardServicePageState
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: getBackAppBar(
         context,
         onBack: () => Navigator.of(context).pop(),
       ),
       body: Container(
-        margin: pageEdgeInsetsWithSubmitButton,
+        // margin: pageEdgeInsetsWithSubmitButton,
         child: Column(children: [
           Expanded(
             child: SingleChildScrollView(
@@ -62,12 +63,12 @@ class _RestoreWithShardServicePageState
                   children: [
                     Text(
                       "Get ShardDeck from Shard Service",
-                      style: appTextTheme.headline1,
+                      style: theme.textTheme.headline1,
                     ),
                     addTitleSpace(),
                     Text(
                       "some description about Shard Service",
-                      style: appTextTheme.bodyText1,
+                      style: theme.textTheme.bodyText1,
                     ),
                     SizedBox(height: 40),
                     AuTextField(
@@ -93,7 +94,7 @@ class _RestoreWithShardServicePageState
                               });
                             },
                             child: Text('Use Autonomy Service?',
-                                style: linkStyle)),
+                                style: theme.textTheme.caption)),
                       ],
                     )
                   ]),

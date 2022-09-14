@@ -6,43 +6,48 @@
 //
 
 import 'package:autonomy_flutter/au_bloc.dart';
-import 'package:autonomy_flutter/database/dao/asset_token_dao.dart';
+import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/helpers.dart';
+import 'package:nft_collection/database/dao/asset_token_dao.dart';
 
 class ArtworkPreviewBloc
     extends AuBloc<ArtworkPreviewEvent, ArtworkPreviewState> {
-  AssetTokenDao _assetTokenDao;
-  ConfigurationService _configurationService;
+  final AssetTokenDao _assetTokenDao;
+  final ConfigurationService _configurationService;
 
   ArtworkPreviewBloc(this._assetTokenDao, this._configurationService)
-      : super(ArtworkPreviewState()) {
+      : super(ArtworkPreviewLoadingState()) {
     on<ArtworkPreviewGetAssetTokenEvent>((event, emit) async {
       final asset = await _assetTokenDao.findAssetTokenById(event.id);
-      emit(ArtworkPreviewState(asset: asset));
-
-      // change ipfs if the CLOUDFLARE_IPFS_PREFIX has not worked
+      if (state is ArtworkPreviewLoadedState) {
+        final currentState = state as ArtworkPreviewLoadedState;
+        emit(currentState.copyWith(asset: asset));
+      } else {
+        emit(ArtworkPreviewLoadedState(asset: asset));
+      }
+      // change ipfs if the cloud_flare ipfs has not worked
       try {
         if (asset?.previewURL != null) {
           final response = await callRequest(Uri.parse(asset!.previewURL!));
           if (response.statusCode == 520) {
             asset.previewURL = asset.previewURL!.replaceRange(
-                0, CLOUDFLARE_IPFS_PREFIX.length, DEFAULT_IPFS_PREFIX);
-            final hiddenAssets = await _assetTokenDao.findAllHiddenAssets();
-            final hiddenIds =
-                _configurationService.getTempStorageHiddenTokenIDs() +
-                    hiddenAssets.map((e) => e.id).toList();
-            if (hiddenIds.contains(asset.id)) {
-              asset.hidden = 1;
-            }
+                0, Environment.autonomyIpfsPrefix.length, DEFAULT_IPFS_PREFIX);
             await _assetTokenDao.insertAsset(asset);
-            emit(ArtworkPreviewState(asset: asset));
+            emit(ArtworkPreviewLoadedState(asset: asset));
           }
         }
       } catch (_) {
         // ignore this error
+      }
+    });
+
+    on<ChangeFullScreen>((event, emit) async {
+      if (state is ArtworkPreviewLoadedState) {
+        final currentState = state as ArtworkPreviewLoadedState;
+        emit(currentState.copyWith(isFullScreen: event.isFullscreen));
       }
     });
   }

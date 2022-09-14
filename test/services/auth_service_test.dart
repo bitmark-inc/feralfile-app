@@ -17,7 +17,7 @@ main() async {
   late AccountService accountService;
   late ConfigurationService configService;
   late AuthService authService;
-  final jwt = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
+  const jwt = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
 
   group('auth service test', () {
     setup() {
@@ -32,7 +32,7 @@ main() async {
 
       final message = DateTime.now().millisecondsSinceEpoch.toString();
       when(accountService.getDefaultAccount())
-          .thenAnswer((_) async => MockWalletStorage(Uuid().v4().toString()));
+          .thenAnswer((_) async => MockWalletStorage(const Uuid().v4().toString()));
       when(configService.getIAPReceipt()).thenReturn(null);
       when(authApi.auth({
         "requester": "account_did",
@@ -50,7 +50,7 @@ main() async {
 
       final message = DateTime.now().millisecondsSinceEpoch.toString();
       when(accountService.getDefaultAccount())
-          .thenAnswer((_) async => MockWalletStorage(Uuid().v4().toString()));
+          .thenAnswer((_) async => MockWalletStorage(const Uuid().v4().toString()));
       when(configService.getIAPReceipt()).thenReturn(null);
       when(authApi.auth({
         "requester": "account_did",

@@ -13,13 +13,16 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/util/rand.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
+
 
 class SupportListPage extends StatefulWidget {
   const SupportListPage({Key? key}) : super(key: key);
@@ -63,10 +66,11 @@ class _SupportListPageState extends State<SupportListPage>
         (b.draft?.createdAt ?? b.lastMessage?.timestamp ?? b.timestamp)
             .compareTo(
                 a.draft?.createdAt ?? a.lastMessage?.timestamp ?? a.timestamp));
-    if (mounted)
+    if (mounted) {
       setState(() {
         _issues = issues;
       });
+    }
   }
 
   @override
@@ -81,18 +85,22 @@ class _SupportListPageState extends State<SupportListPage>
   }
 
   Widget _issuesWidget() {
-    final issues = _issues;
-    if (issues == null) return Center(child: CupertinoActivityIndicator());
+    final theme = Theme.of(context);
 
-    if (issues.length == 0) return SizedBox();
+    final issues = _issues;
+    if (issues == null) {
+      return const Center(child: CupertinoActivityIndicator());
+    }
+
+    if (issues.isEmpty) return const SizedBox();
 
     return CustomScrollView(slivers: [
       SliverToBoxAdapter(
         child: Container(
-            padding: pageEdgeInsets.copyWith(bottom: 40),
+            padding: ResponsiveLayout.pageEdgeInsets.copyWith(bottom: 40),
             child: Text(
-              "Support history",
-              style: appTextTheme.headline1,
+              "support_history".tr(),
+              style: theme.textTheme.headline1,
             )),
       ),
       SliverList(
@@ -101,7 +109,8 @@ class _SupportListPageState extends State<SupportListPage>
             final issue = issues[index];
             bool hasDivider = (index < issues.length - 1);
             return Padding(
-              padding: EdgeInsets.symmetric(horizontal: pageEdgeInsets.left),
+              padding: EdgeInsets.symmetric(
+                  horizontal: ResponsiveLayout.pageEdgeInsets.left),
               child: GestureDetector(
                 behavior: HitTestBehavior.translucent,
                 child: _contentRow(issue, hasDivider),
@@ -120,27 +129,29 @@ class _SupportListPageState extends State<SupportListPage>
   }
 
   Widget _contentRow(Issue issue, bool hasDivider) {
+    final theme = Theme.of(context);
+
     return Column(
-      mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Text(
                   ReportIssueType.toTitle(issue.reportIssueType),
-                  style: appTextTheme.headline4,
+                  style: theme.textTheme.headline4,
                 ),
                 if (issue.unread > 0) ...[
-                  SizedBox(width: 8),
+                  const SizedBox(width: 8),
                   Padding(
-                    padding: EdgeInsets.only(top: 4),
+                    padding: const EdgeInsets.only(top: 4),
                     child: Container(
                       decoration: BoxDecoration(
-                          color: Colors.black, shape: BoxShape.circle),
+                        color: theme.colorScheme.primary,
+                        shape: BoxShape.circle,
+                      ),
                       width: 10,
                       height: 10,
                     ),
@@ -153,22 +164,23 @@ class _SupportListPageState extends State<SupportListPage>
                 Text(getVerboseDateTimeRepresentation(
                     issue.lastMessage?.timestamp.toLocal() ??
                         issue.timestamp.toLocal())),
-                SizedBox(width: 14),
+                const SizedBox(width: 14),
                 SvgPicture.asset('assets/images/iconForward.svg'),
               ],
             ),
           ],
         ),
-        SizedBox(height: 17),
+        const SizedBox(height: 17),
         Padding(
           padding: const EdgeInsets.only(right: 14),
           child: Text(
             issue.status == "closed"
-                ? "Issue resolved.\nOur team thanks you for helping us improve Autonomy."
+                ? "issue_resolved"
+                    .tr() //"Issue resolved.\nOur team thanks you for helping us improve Autonomy."
                 : getLastMessage(issue),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: appTextTheme.bodyText1,
+            style: theme.textTheme.bodyText1,
           ),
         ),
         hasDivider
@@ -212,16 +224,19 @@ class _SupportListPageState extends State<SupportListPage>
 
     if (lastMessage == null) return '';
 
-    if (lastMessage.filteredMessage.isNotEmpty)
+    if (lastMessage.filteredMessage.isNotEmpty) {
       return lastMessage.filteredMessage;
+    }
 
     final attachment = lastMessage.attachments.last;
     final attachmentTitle =
         ReceiveAttachment.extractSizeAndRealTitle(attachment.title)[1];
     if (attachment.contentType.contains('image')) {
-      return 'Image sent: $attachmentTitle';
+      return "image_sent"
+          .tr(args: [attachmentTitle]); //'Image sent: $attachmentTitle';
     } else {
-      return 'File sent: $attachmentTitle';
+      return "file_sent"
+          .tr(args: [attachmentTitle]); //'File sent: $attachmentTitle';
     }
   }
 }

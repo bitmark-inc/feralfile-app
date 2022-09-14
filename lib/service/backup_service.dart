@@ -27,7 +27,7 @@ class BackupService {
 
   Future backupCloudDatabase() async {
     log.info("[BackupService] start database backup");
-    final filename = 'cloud_database.db';
+    const filename = 'cloud_database.db';
 
     try {
       final path = await sqfliteDatabaseFactory.getDatabasePath(filename);
@@ -39,7 +39,6 @@ class BackupService {
 
       await _iapApi.uploadProfile(deviceId, filename, version, file);
     } catch (err) {
-      print(err);
       log.warning("[BackupService] error database backup");
     }
 
@@ -47,7 +46,7 @@ class BackupService {
   }
 
   Future<String> fetchBackupVersion(WalletStorage account) async {
-    final filename = 'cloud_database.db';
+    const filename = 'cloud_database.db';
 
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
     String version = packageInfo.version;
@@ -94,7 +93,7 @@ class BackupService {
   Future restoreCloudDatabase(WalletStorage account, String version,
       {String dbName = 'cloud_database.db'}) async {
     log.info("[BackupService] start database restore");
-    final filename = 'cloud_database.db';
+    const filename = 'cloud_database.db';
 
     String? deviceId = await getBackupId();
     final authToken = await getAuthToken(account);
@@ -122,7 +121,7 @@ class BackupService {
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
     String? deviceId = await MigrationUtilImpl.getBackupDeviceID();
 
-    return "$deviceId\_${packageInfo.packageName}";
+    return "${deviceId}_${packageInfo.packageName}";
   }
 
   Future<String> getAuthToken(WalletStorage account) async {

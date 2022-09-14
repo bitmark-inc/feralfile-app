@@ -30,7 +30,7 @@ extension BigEndian on int {
     } else if (this <= 0xffff) {
       return [0xfd, this & 0xff, (this >> 8) & 0xff];
     } else {
-      return [0xfe] + this.uint32LE();
+      return [0xfe] + uint32LE();
     }
   }
 }

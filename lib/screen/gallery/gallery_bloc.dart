@@ -1,14 +1,14 @@
 import 'package:autonomy_flutter/au_bloc.dart';
-import 'package:autonomy_flutter/database/entity/asset_token.dart';
-import 'package:autonomy_flutter/gateway/indexer_api.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
+import 'package:nft_collection/data/api/indexer_api.dart';
+import 'package:nft_collection/models/asset_token.dart';
 
 part 'gallery_state.dart';
 
 class GalleryBloc extends AuBloc<GalleryEvent, GalleryState> {
-  IndexerApi _indexerApi;
+  final IndexerApi _indexerApi;
 
   GalleryBloc(this._indexerApi)
       : super(GalleryState(
@@ -29,7 +29,7 @@ class GalleryBloc extends AuBloc<GalleryEvent, GalleryState> {
             .toList();
         // reload if tokensLength's 0 because it might be indexing case
         final isLastPage =
-            tokens.length == 0 ? false : tokens.length < INDEXER_TOKENS_MAXIMUM;
+            tokens.isEmpty ? false : tokens.length < INDEXER_TOKENS_MAXIMUM;
 
         List<AssetToken> allTokens = (state.tokens ?? []) + tokens;
 

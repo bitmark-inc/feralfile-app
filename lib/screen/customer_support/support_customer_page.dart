@@ -14,7 +14,9 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/badge_view.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -53,24 +55,26 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: getCloseAppBar(
         context,
         onBack: () => Navigator.of(context).pop(),
       ),
       body: Container(
-        margin: pageEdgeInsets,
+        margin: ResponsiveLayout.pageEdgeInsets,
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "How can we help?",
-                style: appTextTheme.headline1,
+                "how_can_we_help".tr(),
+                style: theme.textTheme.headline1,
               ),
               addTitleSpace(),
               _reportItemsWidget(context),
-              SizedBox(height: 60),
+              const SizedBox(height: 60),
               _resourcesWidget(context),
             ],
           ),
@@ -80,6 +84,8 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
   }
 
   Widget _reportItemsWidget(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Column(
       children: [
         ...ReportIssueType.getSuggestList.map((item) {
@@ -87,7 +93,7 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
             children: [
               TappableForwardRow(
                 leftWidget: Text(ReportIssueType.toTitle(item),
-                    style: appTextTheme.headline4),
+                    style: theme.textTheme.headline4),
                 onTap: () => Navigator.of(context).pushNamed(
                     AppRouter.supportThreadPage,
                     arguments: NewIssuePayload(reportIssueType: item)),
@@ -103,23 +109,25 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
   }
 
   Widget _resourcesWidget(BuildContext context) {
+    final theme = Theme.of(context);
+
     return ValueListenableBuilder<List<int>?>(
         valueListenable: injector<CustomerSupportService>().numberOfIssuesInfo,
         builder: (BuildContext context, List<int>? numberOfIssuesInfo,
             Widget? child) {
-          if (numberOfIssuesInfo == null)
-            return Center(child: CupertinoActivityIndicator());
-          if (numberOfIssuesInfo[0] == 0) return SizedBox();
+          if (numberOfIssuesInfo == null) {
+            return const Center(child: CupertinoActivityIndicator());
+          }
+          if (numberOfIssuesInfo[0] == 0) return const SizedBox();
 
           return Column(
-            mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('RESOURCES', style: appTextTheme.headline4),
-              SizedBox(height: 19),
+              Text('resources'.tr(), style: theme.textTheme.headline4),
+              const SizedBox(height: 19),
               TappableForwardRow(
-                  leftWidget:
-                      Text('Support history', style: appTextTheme.headline4),
+                  leftWidget: Text('support_history'.tr(),
+                      style: theme.textTheme.headline4),
                   rightWidget: numberOfIssuesInfo[1] > 0
                       ? BadgeView(number: numberOfIssuesInfo[1])
                       : null,

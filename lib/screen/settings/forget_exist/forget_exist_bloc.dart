@@ -23,28 +23,26 @@ import 'package:autonomy_flutter/util/system_channel.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
-  AuthService _authService;
-  AccountService _accountService;
-  AutonomyService _autonomyService;
-  IAPApi _iapApi;
-  CloudDatabase _cloudDatabase;
-  AppDatabase _mainnetDatabase;
-  AppDatabase _testnetDatabase;
-  ConfigurationService _configurationService;
-  SocialRecoveryService _socialRecoveryService;
+  final AuthService _authService;
+  final AccountService _accountService;
+  final AutonomyService _autonomyService;
+  final IAPApi _iapApi;
+  final CloudDatabase _cloudDatabase;
+  final AppDatabase _appDatabase;
+  final ConfigurationService _configurationService;
+  final SocialRecoveryService _socialRecoveryService;
   late SystemChannel _systemChannel;
 
   ForgetExistBloc(
-    this._authService,
-    this._accountService,
-    this._autonomyService,
-    this._iapApi,
-    this._cloudDatabase,
-    this._mainnetDatabase,
-    this._testnetDatabase,
-    this._configurationService,
-    this._socialRecoveryService,
-  ) : super(ForgetExistState(false, null)) {
+      this._authService,
+      this._accountService,
+      this._autonomyService,
+      this._iapApi,
+      this._cloudDatabase,
+      this._appDatabase,
+      this._configurationService,
+      this._socialRecoveryService)
+      : super(ForgetExistState(false, null)) {
     _systemChannel = SystemChannel();
 
     on<UpdateCheckEvent>((event, emit) async {
@@ -64,15 +62,14 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
 
       final List<Persona> personas =
           await _cloudDatabase.personaDao.getPersonas();
-      personas.forEach((persona) async {
+      for (var persona in personas) {
         await _accountService.deletePersona(persona);
-      });
+      }
 
       await _socialRecoveryService.deleteHelpingContactDecks();
 
       await _cloudDatabase.removeAll();
-      await _mainnetDatabase.removeAll();
-      await _testnetDatabase.removeAll();
+      await _appDatabase.removeAll();
       await _configurationService.removeAll();
 
       _authService.reset();
@@ -86,8 +83,7 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
       deregisterPushNotification();
       await _autonomyService.clearLinkedAddresses();
       await _cloudDatabase.removeAll();
-      await _mainnetDatabase.removeAll();
-      await _testnetDatabase.removeAll();
+      await _appDatabase.removeAll();
       await _configurationService.removeAll();
 
       _authService.reset();
@@ -101,8 +97,7 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
       deregisterPushNotification();
       await _autonomyService.clearLinkedAddresses();
       await _cloudDatabase.removeAll();
-      await _mainnetDatabase.removeAll();
-      await _testnetDatabase.removeAll();
+      await _appDatabase.removeAll();
       await _configurationService.removeAll();
       await _systemChannel.removeAllKeychainKeys(false);
 
@@ -118,8 +113,7 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
       await _autonomyService.clearLinkedAddresses();
 
       await _cloudDatabase.removeAll();
-      await _mainnetDatabase.removeAll();
-      await _testnetDatabase.removeAll();
+      await _appDatabase.removeAll();
       await _configurationService.removeAll();
 
       await _systemChannel.removeAllKeychainKeys(false);

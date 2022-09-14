@@ -308,7 +308,7 @@ extension BeaconChannelHandler: FlutterStreamHandler {
                             switch operation {
                             case let .transaction(transaction):
                                 
-                                let entrypoint: String
+                                let entrypoint: String?
 
                                 switch transaction.parameters?.entrypoint {
                                 case let .custom(custom):
@@ -316,14 +316,14 @@ extension BeaconChannelHandler: FlutterStreamHandler {
                                 case let .common(common):
                                     entrypoint = common.rawValue
                                 case .none:
-                                    entrypoint = ""
+                                    entrypoint = nil
                                 }
                                 
-                                let params: Any
+                                let params: Any?
                                 if let value = transaction.parameters?.value {
                                     params = getParams(value: value)
                                 } else {
-                                    params = [:]
+                                    params = nil
                                 }
                                 
                                 let detail: [String : Any?] = [

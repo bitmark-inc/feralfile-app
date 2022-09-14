@@ -11,6 +11,16 @@ abstract class FeedBlocEvent {}
 
 class GetFeedsEvent extends FeedBlocEvent {}
 
+class ChangePageEvent extends FeedBlocEvent {
+  final int index;
+  ChangePageEvent({required this.index});
+}
+
+class ChangeOnBoardingEvent extends FeedBlocEvent {
+  final int index;
+  ChangeOnBoardingEvent({required this.index});
+}
+
 class RetryMissingTokenInFeedsEvent extends FeedBlocEvent {}
 
 class MoveToNextFeedEvent extends FeedBlocEvent {}
@@ -19,28 +29,34 @@ class MoveToPreviousFeedEvent extends FeedBlocEvent {}
 
 class FeedState {
   AppFeedData? appFeedData;
-  FeedEvent? viewingFeedEvent;
-  AssetToken? viewingToken;
+  List<AssetToken?>? feedTokens;
+  List<FeedEvent>? feedEvents;
   int? viewingIndex;
+  int onBoardingStep = -1;
 
   FeedState({
     this.appFeedData,
-    this.viewingFeedEvent,
-    this.viewingToken,
     this.viewingIndex,
+    this.onBoardingStep = -1,
+    this.feedTokens,
+    this.feedEvents,
   });
 
   FeedState copyWith({
     AppFeedData? appFeedData,
-    FeedEvent? viewingFeedEvent,
-    AssetToken? viewingToken,
     int? viewingIndex,
+    int onBoardingStep = -1,
+    List<AssetToken?>? feedTokens,
+    List<FeedEvent>? feedEvents,
   }) {
     return FeedState(
       appFeedData: appFeedData ?? this.appFeedData,
-      viewingFeedEvent: viewingFeedEvent ?? this.viewingFeedEvent,
-      viewingToken: viewingToken ?? this.viewingToken,
       viewingIndex: viewingIndex ?? this.viewingIndex,
+      onBoardingStep: onBoardingStep,
+      feedTokens: feedTokens ?? this.feedTokens,
+      feedEvents: feedEvents ?? this.feedEvents,
     );
   }
+
+  bool isFinishedOnBoarding() => onBoardingStep == -1;
 }

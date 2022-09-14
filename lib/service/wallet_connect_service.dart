@@ -7,6 +7,7 @@
 
 import 'dart:convert';
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/model/connection_supports.dart';
@@ -15,10 +16,12 @@ import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_
 import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:collection/collection.dart';
 import 'package:wallet_connect/wallet_connect.dart';
 
 class WalletConnectService {
@@ -27,7 +30,7 @@ class WalletConnectService {
   final ConfigurationService _configurationService;
 
   final List<WCClient> wcClients = List.empty(growable: true);
-  Map<WCPeerMeta, String> tmpUuids = Map();
+  Map<WCPeerMeta, String> tmpUuids = {};
 
   WalletConnectService(
     this._navigationService,
@@ -43,16 +46,15 @@ class WalletConnectService {
       return;
     }
 
-    wcConnections.forEach((element) {
+    for (var element in wcConnections) {
       final WCClient? wcClient = _createWCClient(null, element);
       final sessionStore = element.wcConnection?.sessionStore;
 
-      if (wcClient == null || sessionStore == null) return;
+      if (wcClient == null || sessionStore == null) continue;
 
-      wcClient.connectFromSessionStore(
-          sessionStore: sessionStore, isWallet: true);
+      wcClient.connectFromSessionStore(sessionStore: sessionStore);
       wcClients.add(wcClient);
-    });
+    }
   }
 
   connect(String wcUri) {
@@ -60,7 +62,7 @@ class WalletConnectService {
     final session = WCSession.from(wcUri);
     final peerMeta = WCPeerMeta(
       name: 'Autonomy',
-      url: 'https://bitmark.com',
+      url: 'https://autonomy.io',
       description: 'Autonomy Wallet',
       icons: [],
     );
@@ -73,8 +75,10 @@ class WalletConnectService {
 
   disconnect(WCPeerMeta peerMeta) {
     log.info("WalletConnectService.disconnect: $peerMeta");
-    final wcClient =
-        wcClients.lastWhere((element) => element.remotePeerMeta == peerMeta);
+    final wcClient = wcClients
+        .lastWhereOrNull((element) => element.remotePeerMeta == peerMeta);
+
+    if (wcClient == null) return;
 
     wcClient.disconnect();
     wcClients.remove(wcClient);
@@ -84,8 +88,10 @@ class WalletConnectService {
       int chainId) async {
     log.info(
         "WalletConnectService.approveSession: $peerMeta, $accounts, $chainId");
-    final wcClient =
-        wcClients.lastWhere((element) => element.remotePeerMeta == peerMeta);
+    final wcClient = wcClients
+        .lastWhereOrNull((element) => element.remotePeerMeta == peerMeta);
+    if (wcClient == null) return;
+
     wcClient.approveSession(accounts: accounts, chainId: chainId);
 
     tmpUuids[peerMeta] = uuid;
@@ -111,8 +117,10 @@ class WalletConnectService {
 
   rejectSession(WCPeerMeta peerMeta) {
     log.info("WalletConnectService.rejectSession: $peerMeta");
-    final wcClient =
-        wcClients.lastWhere((element) => element.remotePeerMeta == peerMeta);
+    final wcClient = wcClients
+        .lastWhereOrNull((element) => element.remotePeerMeta == peerMeta);
+
+    if (wcClient == null) return;
 
     wcClient.rejectSession();
     wcClients.remove(wcClient);
@@ -120,25 +128,29 @@ class WalletConnectService {
 
   approveRequest(WCPeerMeta peerMeta, int id, String result) {
     log.info("WalletConnectService.approveRequest: $peerMeta, $result");
-    final wcClient =
-        wcClients.lastWhere((element) => element.remotePeerMeta == peerMeta);
+    final wcClient = wcClients
+        .lastWhereOrNull((element) => element.remotePeerMeta == peerMeta);
+
+    if (wcClient == null) return;
 
     wcClient.approveRequest<String>(id: id, result: result);
   }
 
   rejectRequest(WCPeerMeta peerMeta, int id) {
     log.info("WalletConnectService.rejectRequest: $peerMeta, $id");
-    final wcClient =
-        wcClients.lastWhere((element) => element.remotePeerMeta == peerMeta);
+    final wcClient = wcClients
+        .lastWhereOrNull((element) => element.remotePeerMeta == peerMeta);
+
+    if (wcClient == null) return;
 
     wcClient.rejectRequest(id: id);
   }
 
-  WCClient? _createWCClient(String? _topic, Connection? connection) {
+  WCClient? _createWCClient(String? sessionTopic, Connection? connection) {
     final wcConnection = connection?.wcConnection;
     final sessionStore = wcConnection?.sessionStore;
 
-    final topic = _topic ?? sessionStore?.session.topic;
+    final topic = sessionTopic ?? sessionStore?.session.topic;
     if (topic == null) return null;
 
     WCPeerMeta? currentPeerMeta = sessionStore?.remotePeerMeta;
@@ -165,11 +177,12 @@ class WalletConnectService {
       onFailure: (error) {
         log.info("WC failed to connect: $error");
       },
-      onSessionRequest: (id, peerMeta) {
+      onSessionRequest: (id, peerMeta) async {
         currentPeerMeta = peerMeta;
         if (peerMeta.name == AUTONOMY_TV_PEER_NAME) {
+          final isSubscribed = await injector<IAPService>().isSubscribed();
           final jwt = _configurationService.getIAPJWT();
-          if (jwt != null && jwt.isValid(withSubscription: true)) {
+          if ((jwt != null && jwt.isValid(withSubscription: true)) || isSubscribed) {
             _navigationService.navigateTo(AppRouter.tvConnectPage,
                 arguments: WCConnectPageArgs(id, peerMeta));
           } else {

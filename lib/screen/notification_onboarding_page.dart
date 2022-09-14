@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/util/notification_util.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_svg/svg.dart';
@@ -23,14 +24,16 @@ class NotificationOnboardingPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: getBackAppBar(
         context,
         onBack: null,
       ),
       body: Container(
-        margin:
-            EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
+        margin: const EdgeInsets.only(
+            top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -41,27 +44,31 @@ class NotificationOnboardingPage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Notifications",
-                      style: appTextTheme.headline1,
+                      "notifications".tr(),
+                      style: theme.textTheme.headline1,
                     ),
-                    SizedBox(height: 30),
+                    const SizedBox(height: 30),
                     Markdown(
                       data:
-                          '''**Grant Autonomy permission to notify you when:** 
+                      "grant_permission_when".tr(),
+                      /*'''
+**Grant Autonomy permission to notify you when:** 
 * An NFT is added to your collection or someone sends you an NFT
 * You receive a signing requests from a dapp or service (coming soon)
 * You receive a customer support message 
 ''',
+                       */
                       softLineBreak: true,
-                      padding: EdgeInsets.only(bottom: 50),
+                      padding: const EdgeInsets.only(bottom: 50),
                       shrinkWrap: true,
-                      styleSheet: markDownLightStyle.copyWith(blockSpacing: 8),
+                      styleSheet:
+                          markDownLightStyle(context).copyWith(blockSpacing: 8),
                     ),
                     Center(
                         child: Padding(
+                      padding: const EdgeInsets.only(left: 25),
                       child: SvgPicture.asset(
                           'assets/images/notification_onboarding.svg'),
-                      padding: EdgeInsets.only(left: 25),
                     ))
                   ],
                 ),
@@ -71,7 +78,7 @@ class NotificationOnboardingPage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 AuFilledButton(
-                  text: "ENABLE NOTIFICATIONS".toUpperCase(),
+                  text: "enable_noti".tr().toUpperCase(),
                   onPress: () async {
                     if (Platform.isIOS &&
                         !await OneSignal.shared
@@ -89,12 +96,8 @@ class NotificationOnboardingPage extends StatelessWidget {
                     Navigator.of(context).pop();
                   },
                   child: Text(
-                    "NOT NOW",
-                    style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        fontFamily: "IBMPlexMono"),
+                    "not_now".tr(),
+                    style: theme.textTheme.button,
                   ),
                 )
               ],

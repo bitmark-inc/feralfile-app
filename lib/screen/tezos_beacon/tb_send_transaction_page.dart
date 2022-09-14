@@ -6,25 +6,28 @@
 //
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/pending_token_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/biometrics_util.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:collection/collection.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:nft_collection/nft_collection.dart';
 import 'package:tezart/tezart.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 
 class TBSendTransactionPage extends StatefulWidget {
   static const String tag = 'tb_send_transaction';
@@ -35,7 +38,7 @@ class TBSendTransactionPage extends StatefulWidget {
       : super(key: key);
 
   @override
-  _TBSendTransactionPageState createState() => _TBSendTransactionPageState();
+  State<TBSendTransactionPage> createState() => _TBSendTransactionPageState();
 }
 
 class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
@@ -54,8 +57,15 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
     final wallets = await Future.wait(
         personas.map((e) => LibAukDart.getWallet(e.uuid).getTezosWallet()));
 
-    final currentWallet = wallets.firstWhere(
+    final currentWallet = wallets.firstWhereOrNull(
         (element) => element.address == widget.request.sourceAddress);
+
+    if (currentWallet == null) {
+      injector<TezosBeaconService>().signResponse(widget.request.id, null);
+      if (!mounted) return;
+      Navigator.of(context).pop();
+      return;
+    }
 
     _estimateFee(currentWallet);
 
@@ -66,8 +76,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
 
   Future _estimateFee(TezosWallet wallet) async {
     try {
-      final fee = await injector<NetworkConfigInjector>()
-          .I<TezosService>()
+      final fee = await injector<TezosService>()
           .estimateOperationFee(wallet, widget.request.operations!);
       setState(() {
         _fee = fee;
@@ -76,7 +85,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
       log.info(err);
       UIHelper.showInfoDialog(
         context,
-        "Estimation failed",
+        "estimation_failed".tr(),
         getTezosErrorMessage(err),
         isDismissible: true,
       );
@@ -91,6 +100,8 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
     final total = _fee != null
         ? (widget.request.operations!.first.amount ?? 0) + _fee!
         : null;
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: getBackAppBar(
         context,
@@ -103,7 +114,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
       body: Stack(
         children: [
           Container(
-            margin: pageEdgeInsetsWithSubmitButton,
+            margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -112,80 +123,80 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        SizedBox(height: 8.0),
+                        const SizedBox(height: 8.0),
                         Text(
-                          "Confirm",
-                          style: appTextTheme.headline1,
+                          "h_confirm".tr(),
+                          style: theme.textTheme.headline1,
                         ),
-                        SizedBox(height: 40.0),
+                        const SizedBox(height: 40.0),
                         Text(
-                          "Asset",
-                          style: appTextTheme.headline4,
+                          "asset".tr(),
+                          style: theme.textTheme.headline4,
                         ),
-                        SizedBox(height: 16.0),
+                        const SizedBox(height: 16.0),
                         Text(
-                          "Tezos (XTZ)",
-                          style: appTextTheme.bodyText2,
+                          "tezos_xtz".tr(),
+                          style: theme.textTheme.bodyText2,
                         ),
-                        Divider(height: 32),
+                        const Divider(height: 32),
                         Text(
-                          "From",
-                          style: appTextTheme.headline4,
+                          "from".tr(),
+                          style: theme.textTheme.headline4,
                         ),
-                        SizedBox(height: 16.0),
+                        const SizedBox(height: 16.0),
                         Text(
                           widget.request.sourceAddress ?? "",
-                          style: appTextTheme.bodyText2,
+                          style: theme.textTheme.bodyText2,
                         ),
-                        Divider(height: 32),
+                        const Divider(height: 32),
                         Text(
-                          "Connection",
-                          style: appTextTheme.headline4,
+                          "connection".tr(),
+                          style: theme.textTheme.headline4,
                         ),
-                        SizedBox(height: 16.0),
+                        const SizedBox(height: 16.0),
                         Text(
                           widget.request.appName ?? "",
-                          style: appTextTheme.bodyText2,
+                          style: theme.textTheme.bodyText2,
                         ),
-                        Divider(height: 32),
+                        const Divider(height: 32),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              "Send",
-                              style: appTextTheme.headline4,
+                              "send".tr(),
+                              style: theme.textTheme.headline4,
                             ),
                             Text(
                               "${XtzAmountFormatter(widget.request.operations!.first.amount ?? 0).format()} XTZ",
-                              style: appTextTheme.bodyText2,
+                              style: theme.textTheme.bodyText2,
                             ),
                           ],
                         ),
-                        Divider(height: 32),
+                        const Divider(height: 32),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              "Gas fee",
-                              style: appTextTheme.headline4,
+                              "gas_fee2".tr(),
+                              style: theme.textTheme.headline4,
                             ),
                             Text(
                               "${_fee != null ? XtzAmountFormatter(_fee!).format() : "-"} XTZ",
-                              style: appTextTheme.bodyText2,
+                              style: theme.textTheme.bodyText2,
                             ),
                           ],
                         ),
-                        Divider(height: 32),
+                        const Divider(height: 32),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              "Total Amount",
-                              style: appTextTheme.headline4,
+                              "total_amount".tr(),
+                              style: theme.textTheme.headline4,
                             ),
                             Text(
                               "${total != null ? XtzAmountFormatter(total).format() : "-"} XTZ",
-                              style: appTextTheme.headline4,
+                              style: theme.textTheme.headline4,
                             ),
                           ],
                         ),
@@ -197,7 +208,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                   children: [
                     Expanded(
                       child: AuFilledButton(
-                        text: "Send".toUpperCase(),
+                        text: "sendH".tr().toUpperCase(),
                         onPress: (_currentWallet != null &&
                                 _fee != null &&
                                 !_isSending)
@@ -216,7 +227,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                                   final didAuthenticate =
                                       await localAuth.authenticate(
                                           localizedReason:
-                                              'Authentication for "Autonomy"');
+                                              "authen_for_autonomy".tr());
                                   if (!didAuthenticate) {
                                     setState(() {
                                       _isSending = false;
@@ -226,22 +237,33 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                                 }
 
                                 try {
-                                  final txHash =
-                                      await injector<NetworkConfigInjector>()
-                                          .I<TezosService>()
-                                          .sendOperationTransaction(
-                                              _currentWallet!,
-                                              widget.request.operations!);
+                                  final txHash = await injector<TezosService>()
+                                      .sendOperationTransaction(_currentWallet!,
+                                          widget.request.operations!);
 
                                   injector<TezosBeaconService>()
                                       .operationResponse(
                                           widget.request.id, txHash);
+
+                                  final address = widget.request.sourceAddress;
+                                  if (address != null) {
+                                    injector<PendingTokenService>()
+                                        .checkPendingTezosTokens(address)
+                                        .then((hasPendingTokens) {
+                                      if (hasPendingTokens) {
+                                        injector<NftCollectionBloc>()
+                                            .add(RefreshNftCollection());
+                                      }
+                                    });
+                                  }
+                                  if (!mounted) return;
                                   Navigator.of(context).pop();
                                 } on TezartNodeError catch (err) {
                                   log.info(err);
+                                  if (!mounted) return;
                                   UIHelper.showInfoDialog(
                                     context,
-                                    "Operation failed",
+                                    "operation_failed".tr(),
                                     getTezosErrorMessage(err),
                                     isDismissible: true,
                                   );
@@ -262,7 +284,9 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
               ],
             ),
           ),
-          _isSending ? Center(child: CupertinoActivityIndicator()) : SizedBox(),
+          _isSending
+              ? const Center(child: CupertinoActivityIndicator())
+              : const SizedBox(),
         ],
       ),
     );

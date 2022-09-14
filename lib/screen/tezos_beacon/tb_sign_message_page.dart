@@ -6,17 +6,19 @@
 //
 
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
-import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
-import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:collection/collection.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:web3dart/crypto.dart';
@@ -45,8 +47,16 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
     final wallets = await Future.wait(
         personas.map((e) => LibAukDart.getWallet(e.uuid).getTezosWallet()));
 
-    final currentWallet = wallets.firstWhere(
+    final currentWallet = wallets.firstWhereOrNull(
         (element) => element.address == widget.request.sourceAddress);
+
+    if (currentWallet == null) {
+      injector<TezosBeaconService>().signResponse(widget.request.id, null);
+      if (!mounted) return;
+      Navigator.of(context).pop();
+      return;
+    }
+
     final currentPersona =
         LibAukDart.getWallet(personas[wallets.indexOf(currentWallet)].uuid);
     setState(() {
@@ -57,9 +67,13 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
   @override
   Widget build(BuildContext context) {
     final message = hexToBytes(widget.request.payload!);
-    final messageInUtf8 = utf8.decode(message, allowMalformed: true);
+    final Uint8List viewMessage = message.length > 6 &&
+            message.sublist(0, 2).equals(Uint8List.fromList([5, 1]))
+        ? message.sublist(6)
+        : message;
+    final messageInUtf8 = utf8.decode(viewMessage, allowMalformed: true);
 
-    final networkInjector = injector<NetworkConfigInjector>();
+    final theme = Theme.of(context);
 
     return Scaffold(
       appBar: getBackAppBar(
@@ -70,7 +84,7 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
         },
       ),
       body: Container(
-        margin: pageEdgeInsetsWithSubmitButton,
+        margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -79,30 +93,30 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(height: 8.0),
+                    const SizedBox(height: 8.0),
                     Text(
-                      "Confirm",
-                      style: appTextTheme.headline1,
+                      "h_confirm".tr(),
+                      style: theme.textTheme.headline1,
                     ),
-                    SizedBox(height: 40.0),
+                    const SizedBox(height: 40.0),
                     Text(
-                      "Connection",
-                      style: appTextTheme.headline4,
+                      "connection".tr(),
+                      style: theme.textTheme.headline4,
                     ),
-                    SizedBox(height: 16.0),
+                    const SizedBox(height: 16.0),
                     Text(
                       widget.request.appName ?? "",
-                      style: appTextTheme.bodyText2,
+                      style: theme.textTheme.bodyText2,
                     ),
-                    Divider(height: 32),
+                    const Divider(height: 32),
                     Text(
-                      "Message",
-                      style: appTextTheme.headline4,
+                      "message".tr(),
+                      style: theme.textTheme.headline4,
                     ),
-                    SizedBox(height: 16.0),
+                    const SizedBox(height: 16.0),
                     Text(
                       messageInUtf8,
-                      style: appTextTheme.bodyText2,
+                      style: theme.textTheme.bodyText2,
                     ),
                   ],
                 ),
@@ -112,17 +126,18 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
               children: [
                 Expanded(
                   child: AuFilledButton(
-                    text: "Sign".toUpperCase(),
+                    text: "sign".tr().toUpperCase(),
                     onPress: _currentPersona != null
-                        ? () async {
-                            final wallet = await _currentPersona!.getTezosWallet();
-                            final signature = await networkInjector
-                                .I<TezosService>()
-                                .signMessage(wallet, message);
-                            injector<TezosBeaconService>()
-                                .signResponse(widget.request.id, signature);
-                            Navigator.of(context).pop();
-                          }
+                        ? () => withDebounce(() async {
+                              final wallet =
+                                  await _currentPersona!.getTezosWallet();
+                              final signature = await injector<TezosService>()
+                                  .signMessage(wallet, message);
+                              injector<TezosBeaconService>()
+                                  .signResponse(widget.request.id, signature);
+                              if (!mounted) return;
+                              Navigator.of(context).pop();
+                            })
                         : null,
                   ),
                 )

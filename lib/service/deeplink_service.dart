@@ -21,12 +21,12 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
-import 'package:autonomy_flutter/util/theme_manager.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_branch_sdk/flutter_branch_sdk.dart';
 import 'package:uni_links/uni_links.dart';
 
 abstract class DeeplinkService {
@@ -34,12 +34,11 @@ abstract class DeeplinkService {
 }
 
 class DeeplinkServiceImpl extends DeeplinkService {
-  StreamSubscription? _streamSubscription;
-  ConfigurationService _configurationService;
-  WalletConnectService _walletConnectService;
-  TezosBeaconService _tezosBeaconService;
-  FeralFileService _feralFileService;
-  NavigationService _navigationService;
+  final ConfigurationService _configurationService;
+  final WalletConnectService _walletConnectService;
+  final TezosBeaconService _tezosBeaconService;
+  final FeralFileService _feralFileService;
+  final NavigationService _navigationService;
 
   DeeplinkServiceImpl(
     this._configurationService,
@@ -49,13 +48,32 @@ class DeeplinkServiceImpl extends DeeplinkService {
     this._navigationService,
   );
 
+  @override
   Future setup() async {
+    FlutterBranchSdk.initSession().listen((data) {
+      log.info("[DeeplinkService] _handleFeralFileDeeplink with Branch");
+
+      if (data["+clicked_branch_link"] == true) {
+        final source = data["source"];
+        if (source == "FeralFile") {
+          final String? tokenId = data["token_id"];
+          if (tokenId != null) {
+            _linkFeralFileToken(tokenId);
+          }
+        }
+      }
+    }, onError: (error) {
+      log.warning('[DeeplinkService] InitBranchSession error: ${error.toString()}');
+    });
+
     try {
       final initialLink = await getInitialLink();
       _handleDeeplink(initialLink);
 
-      _streamSubscription = linkStream.listen(_handleDeeplink);
-    } on PlatformException {}
+      linkStream.listen(_handleDeeplink);
+    } on PlatformException {
+      //Ignore
+    }
   }
 
   void _handleDeeplink(String? link) async {
@@ -66,15 +84,13 @@ class DeeplinkServiceImpl extends DeeplinkService {
 
     log.info("[DeeplinkService] receive deeplink $link");
 
-    Timer.periodic(Duration(seconds: 2), (timer) async {
-      final context = _navigationService.navigatorKey.currentContext;
-      if (context == null) return;
+    Timer.periodic(const Duration(seconds: 2), (timer) async {
       timer.cancel();
 
       final validLink = _handleDappConnectDeeplink(link) ||
-          await _handleFeralFileDeeplink(context, link) ||
-          await _handleSendDeckToShardService(context, link) ||
-          await _handleGetDeckToShardService(context, link);
+          await _handleFeralFileDeeplink(link) ||
+          await _handleSendDeckToShardService(link) ||
+          await _handleGetDeckToShardService(link);
 
       if (!validLink) throw InvalidDeeplink();
     });
@@ -84,7 +100,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
     log.info("[DeeplinkService] _handleDappConnectDeeplink");
     final wcPrefixes = [
       "https://au.bitmark.com/apps/wc?uri=",
-      "https://au.bitmark.com/apps/wc/wc?uri=", // maybe something wrong with WC register; fix by this for now
+      "https://au.bitmark.com/apps/wc/wc?uri=",
+      // maybe something wrong with WC register; fix by this for now
       "https://autonomy.io/apps/wc?uri=",
       "https://autonomy.io/apps/wc/wc?uri=",
     ];
@@ -139,37 +156,38 @@ class DeeplinkServiceImpl extends DeeplinkService {
     return false;
   }
 
-  Future<bool> _handleFeralFileDeeplink(
-      BuildContext context, String link) async {
+  Future<bool> _handleFeralFileDeeplink(String link) async {
     log.info("[DeeplinkService] _handleFeralFileDeeplink");
 
     if (link.startsWith(FF_TOKEN_DEEPLINK_PREFIX)) {
-      final doneOnboarding = _configurationService.isDoneOnboarding();
-
-      final connection = await _feralFileService.linkFF(
-        link.replacePrefix(FF_TOKEN_DEEPLINK_PREFIX, ""),
-        delayLink: !doneOnboarding,
-      );
-
-      if (doneOnboarding) {
-        UIHelper.showFFAccountLinked(context, connection.name);
-
-        await Future.delayed(SHORT_SHOW_DIALOG_DURATION, () {
-          _navigationService.popUntilHomeOrSettings();
-        });
-      } else {
-        UIHelper.showFFAccountLinked(context, connection.name,
-            inOnboarding: true);
-      }
-
+      _linkFeralFileToken(link.replacePrefix(FF_TOKEN_DEEPLINK_PREFIX, ""));
       return true;
     }
 
     return false;
   }
 
-  Future<bool> _handleSendDeckToShardService(
-      BuildContext context, String link) async {
+  Future<void> _linkFeralFileToken(String tokenId) async {
+    final doneOnboarding = _configurationService.isDoneOnboarding();
+
+    final connection = await _feralFileService.linkFF(
+      tokenId,
+      delayLink: !doneOnboarding,
+    );
+
+    if (doneOnboarding) {
+      _navigationService.showFFAccountLinked(connection.name);
+
+      await Future.delayed(SHORT_SHOW_DIALOG_DURATION, () {
+        _navigationService.popUntilHomeOrSettings();
+      });
+    } else {
+      _navigationService.showFFAccountLinked(connection.name,
+          inOnboarding: true);
+    }
+  }
+
+  Future<bool> _handleSendDeckToShardService(String link) async {
     log.info("[DeeplinkService] _handleSendDeckToShardService");
     final uri = Uri.parse(link);
 
@@ -180,6 +198,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
       if (code == null || domain == null) {
         throw InvalidDeeplink();
       }
+
+      final context = injector<NavigationService>().navigatorKey.currentContext!;
 
       UIHelper.showInfoDialog(
         context,
@@ -200,8 +220,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
     }
   }
 
-  Future<bool> _handleGetDeckToShardService(
-      BuildContext context, String link) async {
+  Future<bool> _handleGetDeckToShardService(String link) async {
     log.info("[DeeplinkService] _handleGetDeckToShardService");
 
     final uri = Uri.parse(link);
@@ -215,6 +234,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
               null) {
         throw InvalidDeeplink();
       }
+
+      final context = injector<NavigationService>().navigatorKey.currentContext!;
 
       UIHelper.showInfoDialog(
         context,
@@ -250,12 +271,12 @@ class DeeplinkServiceImpl extends DeeplinkService {
           doneOnboardingRestore(context);
         } on SocialRecoveryMissingShard catch (_) {
           Navigator.of(context).pop();
-          final sheetTheme = AuThemeManager.get(AppTheme.sheetTheme);
+          final theme = Theme.of(context);
           UIHelper.showDialog(
             context,
             "Error",
             Text("ShardDecks don't match.",
-                style: sheetTheme.textTheme.bodyText1),
+                style: theme.primaryTextTheme.bodyText1),
             submitButton: AuFilledButton(
                 text: 'RESTORE WITH EMERGENCY CONTACT',
                 onPress: () => Navigator.of(context).pushNamedAndRemoveUntil(

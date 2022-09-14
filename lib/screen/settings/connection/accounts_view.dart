@@ -11,13 +11,17 @@ import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/service/social_recovery/social_recovery_service.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/theme_manager.dart';
+
 import 'package:autonomy_flutter/view/account_view.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -26,7 +30,8 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 class AccountsView extends StatefulWidget {
   final bool isInSettingsPage;
 
-  AccountsView({required this.isInSettingsPage, Key? key}) : super(key: key);
+  const AccountsView({required this.isInSettingsPage, Key? key})
+      : super(key: key);
 
   @override
   State<AccountsView> createState() => _AccountsViewState();
@@ -34,10 +39,11 @@ class AccountsView extends StatefulWidget {
 
 class _AccountsViewState extends State<AccountsView> {
   String? _editingAccountKey;
-  TextEditingController _nameController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return BlocConsumer<AccountsBloc, AccountsState>(
         listener: (context, state) {
       final accounts = state.accounts;
@@ -52,8 +58,8 @@ class _AccountsViewState extends State<AccountsView> {
       }
     }, builder: (context, state) {
       final accounts = state.accounts;
-      if (accounts == null) return CupertinoActivityIndicator();
-      if (accounts.isEmpty) return SizedBox();
+      if (accounts == null) return const CupertinoActivityIndicator();
+      if (accounts.isEmpty) return const SizedBox();
 
       if (!widget.isInSettingsPage) {
         return _noEditAccountsListWidget(accounts);
@@ -70,7 +76,6 @@ class _AccountsViewState extends State<AccountsView> {
                     Slidable(
                       key: UniqueKey(),
                       groupTag: 'accountsView',
-                      closeOnScroll: true,
                       endActionPane: ActionPane(
                         motion: const DrawerMotion(),
                         dragDismissible: false,
@@ -95,7 +100,7 @@ class _AccountsViewState extends State<AccountsView> {
                             color: (_editingAccountKey == null ||
                                     _editingAccountKey != account.key)
                                 ? null
-                                : Colors.black)
+                                : theme.colorScheme.primary)
                         : const SizedBox(),
                   ],
                 );
@@ -108,10 +113,11 @@ class _AccountsViewState extends State<AccountsView> {
   }
 
   List<SlidableAction> slidableActions(Account account, bool isDefault) {
+    final theme = Theme.of(context);
     var actions = [
       SlidableAction(
-        backgroundColor: AppColorTheme.secondarySpanishGrey,
-        foregroundColor: Colors.white,
+        backgroundColor: AppColor.secondarySpanishGrey,
+        foregroundColor: theme.colorScheme.secondary,
         icon: CupertinoIcons.pencil,
         onPressed: (_) {
           setState(() {
@@ -124,8 +130,8 @@ class _AccountsViewState extends State<AccountsView> {
 
     if (!isDefault) {
       actions.add(SlidableAction(
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
+        backgroundColor: theme.colorScheme.primary,
+        foregroundColor: theme.colorScheme.secondary,
         icon: CupertinoIcons.delete,
         onPressed: (_) {
           _showDeleteAccountConfirmation(context, account);
@@ -169,47 +175,50 @@ class _AccountsViewState extends State<AccountsView> {
   }
 
   Widget _editAccountItem(Account account) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        accountLogo(account),
-        SizedBox(width: 16),
-        Expanded(
-          child: TextField(
-            autofocus: true,
-            maxLines: 1,
-            decoration: InputDecoration(
-              isDense: true,
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.zero,
-            ),
-            style: appTextTheme.headline4,
-            controller: _nameController,
-            onSubmitted: (String value) async {
-              final persona = account.persona;
-              final connection = account.connections?.first;
-              if (persona != null) {
-                await injector<AccountService>().namePersona(persona, value);
-              } else if (connection != null) {
-                await injector<AccountService>()
-                    .nameLinkedAccount(connection, value);
-              }
+    final theme = Theme.of(context);
 
-              setState(() {
-                _editingAccountKey = null;
-              });
-              context.read<AccountsBloc>().add(GetAccountsEvent());
-            },
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: Row(
+        children: [
+          accountLogo(account),
+          const SizedBox(width: 16),
+          Expanded(
+            child: TextField(
+              autofocus: true,
+              decoration: const InputDecoration(
+                isDense: true,
+                border: InputBorder.none,
+                contentPadding: EdgeInsets.zero,
+              ),
+              style: theme.textTheme.headline4,
+              controller: _nameController,
+              onSubmitted: (String value) async {
+                final persona = account.persona;
+                final connection = account.connections?.first;
+                if (persona != null) {
+                  await injector<AccountService>().namePersona(persona, value);
+                } else if (connection != null) {
+                  await injector<AccountService>()
+                      .nameLinkedAccount(connection, value);
+                }
+
+                setState(() {
+                  _editingAccountKey = null;
+                });
+                if (!mounted) return;
+                context.read<AccountsBloc>().add(GetAccountsEvent());
+              },
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
   void _showDeleteAccountConfirmation(
       BuildContext pageContext, Account account) {
-    final theme = AuThemeManager.get(AppTheme.sheetTheme);
+    final theme = Theme.of(context);
     var accountName = account.name;
     if (accountName.isEmpty) {
       accountName = account.accountNumber.mask(4);
@@ -219,71 +228,71 @@ class _AccountsViewState extends State<AccountsView> {
         context: pageContext,
         enableDrag: false,
         backgroundColor: Colors.transparent,
+        constraints: BoxConstraints(
+          maxWidth: ResponsiveLayout.isMobile
+              ? double.infinity
+              : Constants.maxWidthModalTablet,
+        ),
         builder: (context) {
           return Container(
             color: Colors.transparent,
             child: ClipPath(
               clipper: AutonomyTopRightRectangleClipper(),
               child: Container(
-                color: theme.backgroundColor,
+                color: theme.colorScheme.primary,
                 padding:
                     const EdgeInsets.symmetric(horizontal: 14, vertical: 32),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Delete account', style: theme.textTheme.headline1),
-                    SizedBox(height: 40),
+                    Text('delete_account'.tr(),
+                        style: theme.primaryTextTheme.headline1),
+                    const SizedBox(height: 40),
                     RichText(
                       text: TextSpan(
-                        style: theme.textTheme.bodyText1,
+                        style: theme.primaryTextTheme.bodyText1,
                         children: <TextSpan>[
                           TextSpan(
-                            text:
-                                'Are you sure you want to delete the account ',
+                            text: "sure_delete_account".tr(),
+                            //'Are you sure you want to delete the account ',
                           ),
                           TextSpan(
                               text: '“$accountName”',
                               style:
                                   const TextStyle(fontWeight: FontWeight.bold)),
-                          TextSpan(
+                          const TextSpan(
                             text: '?',
                           ),
                           if (account.persona != null) ...[
-                            TextSpan(
-                                text:
-                                    ' If you haven’t backed up your recovery phrase, you will lose access to your funds.')
+                            TextSpan(text: "not_back_up_yet".tr())
+                            // If you haven’t backed up your recovery phrase, you will lose access to your funds.')
                           ]
                         ],
                       ),
                     ),
-                    SizedBox(height: 40),
+                    const SizedBox(height: 40),
                     Row(
                       children: [
                         Expanded(
                           child: AuFilledButton(
-                            text: "DELETE",
+                            text: "delete".tr(),
                             onPress: () {
                               Navigator.of(context).pop();
                               _deleteAccount(pageContext, account);
                             },
-                            color: theme.primaryColor,
-                            textStyle: TextStyle(
-                                color: theme.backgroundColor,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
-                                fontFamily: "IBMPlexMono"),
+                            color: theme.colorScheme.secondary,
+                            textStyle: theme.textTheme.button,
                           ),
                         ),
                       ],
                     ),
                     Align(
-                      alignment: Alignment.center,
                       child: TextButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          child: Text("CANCEL",
-                              style: theme.textTheme.button
-                                  ?.copyWith(color: Colors.white))),
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: Text("cancel".tr(),
+                            style: theme.primaryTextTheme.button),
+                      ),
                     )
                   ],
                 ),

@@ -29,6 +29,7 @@ import 'package:autonomy_flutter/util/migration/migration_util.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:fast_base58/fast_base58.dart';
 import 'package:libauk_dart/libauk_dart.dart';
+// ignore: depend_on_referenced_packages
 import 'package:elliptic/elliptic.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:uuid/uuid.dart';
@@ -97,7 +98,7 @@ class AccountServiceImpl extends AccountService {
   final BackupService _backupService;
   final AutonomyApi _autonomyApi;
 
-  final _defaultAccountLock = new Lock();
+  final _defaultAccountLock = Lock();
   AccountServiceImpl(
     this._cloudDB,
     this._walletConnectService,
@@ -109,18 +110,20 @@ class AccountServiceImpl extends AccountService {
     this._autonomyApi,
   );
 
+  @override
   Future<List<Persona>> getPersonas() {
     return _cloudDB.personaDao.getPersonas();
   }
 
+  @override
   Future<Persona> createPersona(
       {String name = "", bool isDefault = false}) async {
-    final uuid = Uuid().v4();
+    final uuid = const Uuid().v4();
     final walletStorage = LibAukDart.getWallet(uuid);
     await walletStorage.createKey(name);
 
     final persona = Persona.newPersona(
-        uuid: uuid, name: "", defaultAccount: isDefault ? 1 : null);
+        uuid: uuid, defaultAccount: isDefault ? 1 : null);
     await _cloudDB.personaDao.insertPersona(persona);
     await androidBackupKeys();
     await _auditService.auditPersonaAction('create', persona);
@@ -131,6 +134,7 @@ class AccountServiceImpl extends AccountService {
     return persona;
   }
 
+  @override
   Future<Persona> importPersona(String words) async {
     final personas = await _cloudDB.personaDao.getPersonas();
     for (final persona in personas) {
@@ -140,12 +144,12 @@ class AccountServiceImpl extends AccountService {
       }
     }
 
-    final uuid = Uuid().v4();
+    final uuid = const Uuid().v4();
     final walletStorage = LibAukDart.getWallet(uuid);
     await walletStorage.importKey(
         words, "", DateTime.now().microsecondsSinceEpoch);
 
-    final persona = Persona.newPersona(uuid: uuid, name: "");
+    final persona = Persona.newPersona(uuid: uuid);
     await _cloudDB.personaDao.insertPersona(persona);
     await androidBackupKeys();
     await _auditService.auditPersonaAction('import', persona);
@@ -156,12 +160,14 @@ class AccountServiceImpl extends AccountService {
     return persona;
   }
 
+  @override
   Future<WalletStorage> getDefaultAccount() async {
     return _defaultAccountLock.synchronized(() async {
       return await _getDefaultAccount();
     });
   }
 
+  @override
   Future<WalletStorage?> getCurrentDefaultAccount() async {
     var personas = await _cloudDB.personaDao.getDefaultPersonas();
     if (personas.isEmpty) return null;
@@ -177,7 +183,7 @@ class AccountServiceImpl extends AccountService {
       await injector<MigrationUtil>().migrationFromKeychain();
       await androidRestoreKeys();
 
-      await Future.delayed(Duration(seconds: 1));
+      await Future.delayed(const Duration(seconds: 1));
       personas = await _cloudDB.personaDao.getDefaultPersonas();
     }
 
@@ -201,6 +207,7 @@ class AccountServiceImpl extends AccountService {
     return LibAukDart.getWallet(defaultPersona.uuid);
   }
 
+  @override
   Future deletePersona(Persona persona) async {
     await _cloudDB.personaDao.deletePersona(persona);
     await _auditService.auditPersonaAction('delete', persona);
@@ -255,6 +262,7 @@ class AccountServiceImpl extends AccountService {
         hashingData: {"id": persona.uuid});
   }
 
+  @override
   Future deleteLinkedAccount(Connection connection) async {
     await _cloudDB.connectionDao.deleteConnection(connection);
     await setHideLinkedAccountInGallery(connection.hiddenGalleryKey, false);
@@ -262,6 +270,7 @@ class AccountServiceImpl extends AccountService {
         hashingData: {"address": connection.accountNumber});
   }
 
+  @override
   Future linkManuallyAddress(String address) async {
     final connection = Connection(
       key: address,
@@ -276,6 +285,7 @@ class AccountServiceImpl extends AccountService {
     _autonomyService.postLinkedAddresses();
   }
 
+  @override
   Future linkIndexerTokenID(String indexerTokenID) async {
     final connection = Connection(
       key: indexerTokenID,
@@ -289,6 +299,7 @@ class AccountServiceImpl extends AccountService {
     await _cloudDB.connectionDao.insertConnection(connection);
   }
 
+  @override
   Future<bool> isLinkedIndexerTokenID(String indexerTokenID) async {
     final connection = await _cloudDB.connectionDao.findById(indexerTokenID);
     if (connection == null) return false;
@@ -297,6 +308,7 @@ class AccountServiceImpl extends AccountService {
         ConnectionType.manuallyIndexerTokenID.rawValue;
   }
 
+  @override
   Future<Connection> linkETHWallet(WCConnectedSession session) async {
     final connection = Connection.fromETHWallet(session);
     final alreadyLinkedAccount =
@@ -312,6 +324,7 @@ class AccountServiceImpl extends AccountService {
     return connection;
   }
 
+  @override
   Future<Connection> linkETHBrowserWallet(
       String address, WalletApp walletApp) async {
     final alreadyLinkedAccount = await getExistingAccount(address);
@@ -335,20 +348,24 @@ class AccountServiceImpl extends AccountService {
     return connection;
   }
 
+  @override
   bool isPersonaHiddenInGallery(String personaUUID) {
     return _configurationService.isPersonaHiddenInGallery(personaUUID);
   }
 
+  @override
   bool isLinkedAccountHiddenInGallery(String address) {
     return _configurationService.isLinkedAccountHiddenInGallery(address);
   }
 
+  @override
   Future setHidePersonaInGallery(String personaUUID, bool isEnabled) async {
     await _configurationService
         .setHidePersonaInGallery([personaUUID], isEnabled);
     injector<SettingsDataService>().backup();
   }
 
+  @override
   Future setHideLinkedAccountInGallery(String address, bool isEnabled) async {
     await _configurationService
         .setHideLinkedAccountInGallery([address], isEnabled);
@@ -357,6 +374,7 @@ class AccountServiceImpl extends AccountService {
         hashingData: {"address": address});
   }
 
+  @override
   Future androidBackupKeys() async {
     if (Platform.isAndroid) {
       final accounts = await _cloudDB.personaDao.getPersonas();
@@ -366,6 +384,7 @@ class AccountServiceImpl extends AccountService {
     }
   }
 
+  @override
   Future androidRestoreKeys() async {
     if (Platform.isAndroid) {
       final accounts = await _backupChannel.restoreKeys();
@@ -411,6 +430,7 @@ class AccountServiceImpl extends AccountService {
     }
   }
 
+  @override
   Future<Persona> namePersona(Persona persona, String name) async {
     await persona.wallet().updateName(name);
     final updatedPersona = persona.copyWith(name: name);
@@ -420,6 +440,7 @@ class AccountServiceImpl extends AccountService {
     return updatedPersona;
   }
 
+  @override
   Future<Connection> nameLinkedAccount(
       Connection connection, String name) async {
     connection.name = name;
@@ -436,10 +457,12 @@ class AccountServiceImpl extends AccountService {
     return existingConnections.first;
   }
 
+  @override
   Future<bool?> isAndroidEndToEndEncryptionAvailable() {
     return _backupChannel.isEndToEndEncryptionAvailable();
   }
 
+  @override
   Future<List<String>> getAllAddresses() async {
     if (_configurationService.isDemoArtworksMode()) {
       return [await getDemoAccount()];
@@ -470,6 +493,7 @@ class AccountServiceImpl extends AccountService {
     return addresses;
   }
 
+  @override
   Future<List<String>> getHiddenAddresses() async {
     List<String> hiddenAddresses = [];
 
@@ -494,13 +518,15 @@ class AccountServiceImpl extends AccountService {
         _configurationService.getLinkedAccountsHiddenInGallery();
 
     for (final linkedAccount in linkedAccounts) {
-      if (hiddenLinkedAccounts.contains(linkedAccount.hiddenGalleryKey))
+      if (hiddenLinkedAccounts.contains(linkedAccount.hiddenGalleryKey)) {
         hiddenAddresses.addAll(linkedAccount.accountNumbers);
+      }
     }
 
     return hiddenAddresses;
   }
 
+  @override
   Future<List<String>> getShowedAddresses() async {
     if (_configurationService.isDemoArtworksMode()) {
       return [await getDemoAccount()];
@@ -531,8 +557,9 @@ class AccountServiceImpl extends AccountService {
         _configurationService.getLinkedAccountsHiddenInGallery();
 
     for (final linkedAccount in linkedAccounts) {
-      if (hiddenLinkedAccounts.contains(linkedAccount.hiddenGalleryKey))
+      if (hiddenLinkedAccounts.contains(linkedAccount.hiddenGalleryKey)) {
         continue;
+      }
 
       addresses.addAll(linkedAccount.accountNumbers);
     }
@@ -540,6 +567,7 @@ class AccountServiceImpl extends AccountService {
     return addresses;
   }
 
+  @override
   Future<String> authorizeToViewer() async {
     var ec = getS256();
     final privateKey = ec.generatePrivateKey();

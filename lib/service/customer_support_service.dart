@@ -8,7 +8,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/gateway/rendering_report_api.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -16,6 +15,8 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
+import 'package:nft_collection/models/asset_token.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:autonomy_flutter/database/dao/draft_customer_support_dao.dart';
@@ -56,19 +57,28 @@ abstract class CustomerSupportService {
     AssetToken token,
     List<String> topics,
   );
+
+  Future reportIPFSLoadingError(AssetToken token);
 }
 
 class CustomerSupportServiceImpl extends CustomerSupportService {
+
+  static const int _ipfsReportThreshold = 24 * 60 * 60 * 1000; // 1 day.
+
   final DraftCustomerSupportDao _draftCustomerSupportDao;
   final CustomerSupportApi _customerSupportApi;
   final RenderingReportApi _renderingReportApi;
   final AccountService _accountService;
   final ConfigurationService _configurationService;
 
+  @override
   ValueNotifier<List<int>?> numberOfIssuesInfo = ValueNotifier(null);
+  @override
   ValueNotifier<int> triggerReloadMessages = ValueNotifier(0);
+  @override
   ValueNotifier<CustomerSupportUpdate?> customerSupportUpdate =
       ValueNotifier(null);
+  @override
   Map<String, String> tempIssueIDMap = {};
 
   CustomerSupportServiceImpl(
@@ -81,6 +91,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
 
   bool _isProcessingDraftMessages = false;
 
+  @override
   Future<List<Issue>> getIssues() async {
     final issues = await _customerSupportApi.getIssues();
     issues.removeWhere(
@@ -133,15 +144,18 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     return issues;
   }
 
+  @override
   Future<IssueDetails> getDetails(String issueID) async {
     return await _customerSupportApi.getDetails(issueID);
   }
 
+  @override
   Future draftMessage(DraftCustomerSupport draft) async {
     await _draftCustomerSupportDao.insertDraft(draft);
     processMessages();
   }
 
+  @override
   Future processMessages() async {
     log.info('[CS-Service][trigger] processMessages');
     if (_isProcessingDraftMessages) return;
@@ -245,6 +259,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     processMessages();
   }
 
+  @override
   Future<List<DraftCustomerSupport>> getDrafts(String issueID) async {
     return _draftCustomerSupportDao.getDrafts(issueID);
   }
@@ -295,6 +310,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     return await _customerSupportApi.createIssue(payload);
   }
 
+  @override
   Future<String> createRenderingIssueReport(
     AssetToken token,
     List<String> topics,
@@ -351,8 +367,9 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
 
     final result = await _renderingReportApi.report(payload);
     final githubURL = result["url"];
-    if (githubURL == null)
+    if (githubURL == null) {
       throw SystemException("_renderingReportApi missing url $result");
+    }
     return githubURL;
   }
 
@@ -366,12 +383,14 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     return await _customerSupportApi.commentIssue(issueID, payload);
   }
 
+  @override
   Future<String> getStoredDirectory() async {
     Directory appDocumentsDirectory = await getApplicationDocumentsDirectory();
     String appDocumentsPath = appDocumentsDirectory.path;
     return '$appDocumentsPath/customer-support';
   }
 
+  @override
   Future<String> storeFile(String filename, List<int> bytes) async {
     log.info('[start] storeFile $filename');
     final directory = await getStoredDirectory();
@@ -384,7 +403,19 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     return file.path;
   }
 
+  @override
   Future reopen(String issueID) async {
     return _customerSupportApi.reOpenIssue(issueID);
+  }
+
+  @override
+  Future reportIPFSLoadingError(AssetToken token) async {
+    final reportBox = await Hive.openBox("au_ipfs_reports");
+    final int lastReportTime = reportBox.get(token.id) ?? 0;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    if (now > lastReportTime + _ipfsReportThreshold) {
+      reportBox.put(token.id, now);
+      await createRenderingIssueReport(token, ["IPFS Loading"]);
+    }
   }
 }

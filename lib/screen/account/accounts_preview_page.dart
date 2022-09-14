@@ -8,12 +8,13 @@
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/settings/connection/accounts_view.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/src/provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class AccountsPreviewPage extends StatefulWidget {
   const AccountsPreviewPage({Key? key}) : super(key: key);
@@ -32,14 +33,14 @@ class _AccountsPreviewPageState extends State<AccountsPreviewPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: getBackAppBar(
         context,
         onBack: null,
       ),
       body: Container(
-        margin:
-            EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
+        margin: ResponsiveLayout.pageEdgeInsets,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -49,11 +50,11 @@ class _AccountsPreviewPageState extends State<AccountsPreviewPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Accounts",
-                      style: appTextTheme.headline1,
+                      "accounts".tr(),
+                      style: theme.textTheme.headline1,
                     ),
-                    SizedBox(height: 24),
-                    AccountsView(isInSettingsPage: false),
+                    const SizedBox(height: 24),
+                    const AccountsView(isInSettingsPage: false),
                   ],
                 ),
               ),
@@ -64,7 +65,7 @@ class _AccountsPreviewPageState extends State<AccountsPreviewPage> {
                   children: [
                     Expanded(
                       child: AuFilledButton(
-                        text: "LINK ANOTHER ACCOUNT".toUpperCase(),
+                        text: "link_another_account".tr().toUpperCase(),
                         onPress: () {
                           Navigator.of(context)
                               .pushNamed(AppRouter.linkAccountpage);
@@ -74,10 +75,9 @@ class _AccountsPreviewPageState extends State<AccountsPreviewPage> {
                   ],
                 ),
                 TextButton(
-                    onPressed: () => doneOnboarding(context),
-                    child: Text("DONE",
-                        style: appTextTheme.button
-                            ?.copyWith(color: Colors.black))),
+                  onPressed: () => doneOnboarding(context),
+                  child: Text("done".tr(), style: theme.textTheme.button),
+                ),
               ],
             ),
           ],

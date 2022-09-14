@@ -9,22 +9,23 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/feralfile/feralfile_bloc.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
-import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:wallet_connect/models/wc_peer_meta.dart';
 import 'package:web3dart/crypto.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 
-class WCSignMessagePage extends StatelessWidget {
+class WCSignMessagePage extends StatefulWidget {
   static const String tag = 'wc_sign_message';
 
   final WCSignMessagePageArgs args;
@@ -32,21 +33,27 @@ class WCSignMessagePage extends StatelessWidget {
   const WCSignMessagePage({Key? key, required this.args}) : super(key: key);
 
   @override
+  State<WCSignMessagePage> createState() => _WCSignMessagePageState();
+}
+
+class _WCSignMessagePageState extends State<WCSignMessagePage> {
+  @override
   Widget build(BuildContext context) {
-    final message = hexToBytes(args.message);
+    final message = hexToBytes(widget.args.message);
     final messageInUtf8 = utf8.decode(message, allowMalformed: true);
+    final theme = Theme.of(context);
 
     return Scaffold(
       appBar: getBackAppBar(
         context,
         onBack: () {
           injector<WalletConnectService>()
-              .rejectRequest(args.peerMeta, args.id);
+              .rejectRequest(widget.args.peerMeta, widget.args.id);
           Navigator.of(context).pop();
         },
       ),
       body: Container(
-        margin: pageEdgeInsetsWithSubmitButton,
+        margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -55,30 +62,30 @@ class WCSignMessagePage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(height: 8.0),
+                    const SizedBox(height: 8.0),
                     Text(
-                      "Confirm",
-                      style: appTextTheme.headline1,
+                      "h_confirm".tr(),
+                      style: theme.textTheme.headline1,
                     ),
-                    SizedBox(height: 40.0),
+                    const SizedBox(height: 40.0),
                     Text(
-                      "Connection",
-                      style: appTextTheme.headline4,
+                      "connection".tr(),
+                      style: theme.textTheme.headline4,
                     ),
-                    SizedBox(height: 16.0),
+                    const SizedBox(height: 16.0),
                     Text(
-                      args.peerMeta.name,
-                      style: appTextTheme.bodyText2,
+                      widget.args.peerMeta.name,
+                      style: theme.textTheme.bodyText2,
                     ),
-                    Divider(height: 32),
+                    const Divider(height: 32),
                     Text(
-                      "Message",
-                      style: appTextTheme.headline4,
+                      "message".tr(),
+                      style: theme.textTheme.headline4,
                     ),
-                    SizedBox(height: 16.0),
+                    const SizedBox(height: 16.0),
                     Text(
                       messageInUtf8,
-                      style: appTextTheme.bodyText2,
+                      style: theme.textTheme.bodyText2,
                     ),
                   ],
                 ),
@@ -95,9 +102,12 @@ class WCSignMessagePage extends StatelessWidget {
       BuildContext pageContext, Uint8List message, String messageInUtf8) {
     return BlocConsumer<FeralfileBloc, FeralFileState>(
         listener: (context, state) {
-      final event = state.event;
-      if (event == null) return;
+      if (state.event != null) {
+        Navigator.of(context).pop();
+      }
 
+      /***
+       * Temporary ignore checking state with FF, will remove in the future
       if (event is LinkAccountSuccess) {
         Navigator.of(context).pop();
         return;
@@ -114,8 +124,9 @@ class WCSignMessagePage extends StatelessWidget {
             context,
             ErrorEvent(
                 null,
-                "Uh-oh!",
-                "To sign in with a Web3 wallet, you must first create a Feral File account then connect your wallet.",
+                "uh_oh".tr(),
+                "must_create_ff".tr(),
+                //"To sign in with a Web3 wallet, you must first create a Feral File account then connect your wallet.",
                 ErrorItemState.close), defaultAction: () {
           Navigator.of(context).popUntil((route) =>
               route.settings.name == AppRouter.settingsPage ||
@@ -123,47 +134,49 @@ class WCSignMessagePage extends StatelessWidget {
               route.settings.name == AppRouter.homePageNoTransition);
         });
       }
+       */
     }, builder: (context, state) {
-      final networkInjector = injector<NetworkConfigInjector>();
-
       return Row(
         children: [
           Expanded(
             child: AuFilledButton(
-              text: "Sign".toUpperCase(),
-              onPress: () async {
-                final WalletStorage wallet = LibAukDart.getWallet(args.uuid);
-                final signature = await networkInjector
-                    .I<EthereumService>()
+              text: "sign".tr().toUpperCase(),
+              onPress: () => withDebounce(() async {
+                final WalletStorage wallet =
+                    LibAukDart.getWallet(widget.args.uuid);
+                final signature = await injector<EthereumService>()
                     .signPersonalMessage(wallet, message);
 
-                injector<WalletConnectService>()
-                    .approveRequest(args.peerMeta, args.id, signature);
+                injector<WalletConnectService>().approveRequest(
+                    widget.args.peerMeta, widget.args.id, signature);
 
-                if (args.peerMeta.url.contains("feralfile")) {
-                  if (messageInUtf8.contains(
-                      'Feral File is requesting to connect your wallet address')) {
+                if (!mounted) return;
+
+                if (widget.args.peerMeta.url.contains("feralfile")) {
+                  if (messageInUtf8.contains("ff_request_connect".tr())) {
                     context.read<FeralfileBloc>().add(LinkFFWeb3AccountEvent(
-                        args.topic, args.peerMeta.url, wallet, true));
-                  } else if (messageInUtf8.contains(
-                      'Feral File is requesting authorization to sign in')) {
+                        widget.args.topic,
+                        widget.args.peerMeta.url,
+                        wallet,
+                        true));
+                  } else if (messageInUtf8.contains("ff_request_auth".tr())) {
                     context.read<FeralfileBloc>().add(LinkFFWeb3AccountEvent(
-                        args.topic, args.peerMeta.url, wallet, false));
-                  } else if (messageInUtf8.contains(
-                      "Feral File is requesting authorization to disconnect your wallet from your Feral File account")) {
-                    final matched = RegExp("Wallet address:\\n(0[xX][0-9a-fA-F]+)\\n")
-                        .firstMatch(messageInUtf8);
+                        widget.args.topic,
+                        widget.args.peerMeta.url,
+                        wallet,
+                        false));
+                  } else if (messageInUtf8
+                      .contains("ff_request_auth_dis".tr())) {
+                    final matched =
+                        RegExp("Wallet address:\\n(0[xX][0-9a-fA-F]+)\\n")
+                            .firstMatch(messageInUtf8);
                     final address = matched?.group(0)?.split("\n")[1].trim();
                     if (address == null) {
                       Navigator.of(context).pop();
                       return;
                     }
-                    context.read<FeralfileBloc>().add(
-                        UnlinkFFWeb3AccountEvent(
-                            source: args.peerMeta.url,
-                            address: address
-                        )
-                    );
+                    context.read<FeralfileBloc>().add(UnlinkFFWeb3AccountEvent(
+                        source: widget.args.peerMeta.url, address: address));
                   } else {
                     Navigator.of(context).pop();
                   }
@@ -171,7 +184,7 @@ class WCSignMessagePage extends StatelessWidget {
                 } else {
                   Navigator.of(context).pop();
                 }
-              },
+              }),
             ),
           )
         ],

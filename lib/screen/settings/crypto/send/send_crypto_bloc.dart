@@ -18,14 +18,16 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
+import 'package:autonomy_flutter/util/xtz_utils.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:tezart/tezart.dart';
 import 'package:web3dart/web3dart.dart';
 
 class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
-  EthereumService _ethereumService;
-  TezosService _tezosService;
-  CurrencyService _currencyService;
-  CryptoType _type;
+  final EthereumService _ethereumService;
+  final TezosService _tezosService;
+  final CurrencyService _currencyService;
+  final CryptoType _type;
   String? cachedAddress;
   BigInt? cachedAmount;
   bool isEstimating = false;
@@ -87,7 +89,8 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
         switch (_type) {
           case CryptoType.ETH:
             try {
-              final address = EthereumAddress.fromHex(event.address);
+              final address =
+                  EthereumAddress.fromHex(event.address, enforceEip55: true);
               newState.address = address.hexEip55;
               newState.isAddressError = false;
 
@@ -97,7 +100,7 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
             }
             break;
           case CryptoType.XTZ:
-            if (event.address.startsWith("tz")) {
+            if (event.address.isValidTezosAddress) {
               newState.address = event.address;
               newState.isAddressError = false;
 
@@ -186,7 +189,7 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
           } on TezartNodeError catch (err) {
             UIHelper.showInfoDialog(
               injector<NavigationService>().navigatorKey.currentContext!,
-              "Estimation failed",
+              "estimation_failed".tr(),
               getTezosErrorMessage(err),
               isDismissible: true,
             );

@@ -2,10 +2,27 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+    <key>branch_universal_link_domains</key>
+    <array>
+        <string>link.autonomy.io</string>
+        <string>autonomy-app.app.link</string>
+        <string>autonomy-app-alternate.app.link</string>
+        <string>autonomy-app.test.app.link</string>
+        <string>autonomy-app-alternate.test.app.link</string>
+    </array>
+    <key>branch_key</key>
+    <dict>
+        <key>live</key>
+        <string></string>
+        <key>test</key>
+        <string></string>
+    </dict>
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
 		<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	</array>
+	<key>CADisableMinimumFrameDurationOnPhone</key>
+	<true/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
@@ -24,8 +41,6 @@
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>This app requires access to the photo library.</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -71,18 +86,27 @@
 	<string>Scan for your Ledger hardware wallets.</string>
 	<key>NSBluetoothPeripheralUsageDescription</key>
 	<string>Scan for your Ledger hardware wallets.</string>
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>  
-	<string>Scan for your Ledger hardware wallets.</string>  
-	<key>NSLocationAlwaysUsageDescription</key>  
-	<string>Scan for your Ledger hardware wallets.</string>  
-	<key>NSLocationWhenInUseUsageDescription</key>  
-	<string>Scan for your Ledger hardware wallets.</string>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_googlecast._tcp</string>
+		<string>_YOUR_APP_ID._googlecast._tcp</string>
+	</array>
 	<key>NSCameraUsageDescription</key>
 	<string>QR code scanning requires camera access.</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Allow Autonomy to use Face ID to authenticate.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Uses the local network to discover Cast-enabled devices on your WiFi network.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Scan for your Ledger hardware wallets.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Scan for your Ledger hardware wallets.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Scan for your Ledger hardware wallets.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Viewing artwork with microphone enable.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app requires access to the photo library.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>
@@ -112,14 +136,5 @@
 	<string>Light</string>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
-		<key>NSBonjourServices</key>
-	<array>
-		<string>_googlecast._tcp</string>
-		<string>_YOUR_APP_ID._googlecast._tcp</string>
-	</array>
-	<key>NSLocalNetworkUsageDescription</key>
-	<string>Uses the local network to discover Cast-enabled devices on your WiFi network.</string>
-	<key>CADisableMinimumFrameDurationOnPhone</key>
-	<true/>
 </dict>
 </plist>

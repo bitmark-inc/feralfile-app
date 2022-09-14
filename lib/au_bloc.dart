@@ -5,7 +5,7 @@ abstract class AuBloc<Event, State> extends Bloc<Event, State> {
 
   @override
   void add(Event event) {
-    if (this.isClosed) return;
+    if (isClosed) return;
     super.add(event);
   }
 }

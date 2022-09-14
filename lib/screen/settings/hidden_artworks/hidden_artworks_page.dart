@@ -6,21 +6,29 @@
 //
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
-import 'package:autonomy_flutter/util/au_cached_manager.dart';
-import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:nft_collection/models/asset_token.dart';
+import 'package:nft_rendering/nft_rendering.dart';
+
+// ignore: depend_on_referenced_packages
 import 'package:path/path.dart' as p;
 
 import 'hidden_artworks_bloc.dart';
 
 class HiddenArtworksPage extends StatefulWidget {
+  const HiddenArtworksPage({Key? key}) : super(key: key);
+
   @override
   State<HiddenArtworksPage> createState() => _HiddenArtworksPageState();
 }
@@ -52,9 +60,15 @@ class _HiddenArtworksPageState extends State<HiddenArtworksPage> {
   }
 
   Widget _assetsWidget(List<AssetToken> tokens) {
+    final theme = Theme.of(context);
+
     final tokenIDs = tokens.map((e) => e.id).toList();
-    const int cellPerRow = 3;
+    const int cellPerRowPhone = 3;
+    const int cellPerRowTablet = 6;
     const double cellSpacing = 3.0;
+    int cellPerRow =
+        ResponsiveLayout.isMobile ? cellPerRowPhone : cellPerRowTablet;
+
     if (_cachedImageSize == 0) {
       final estimatedCellWidth =
           MediaQuery.of(context).size.width / cellPerRow -
@@ -66,56 +80,65 @@ class _HiddenArtworksPageState extends State<HiddenArtworksPage> {
       slivers: [
         SliverToBoxAdapter(
           child: Container(
-            padding: EdgeInsets.fromLTRB(14, 24, 24, 14),
+            padding: const EdgeInsets.fromLTRB(14, 24, 24, 14),
             child: Text(
               "Hidden",
-              style: appTextTheme.headline1,
+              style: theme.textTheme.headline1,
             ),
           ),
         ),
         SliverGrid(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: cellPerRow,
               crossAxisSpacing: cellSpacing,
               mainAxisSpacing: cellSpacing,
-              childAspectRatio: 1.0,
             ),
             delegate: SliverChildBuilderDelegate(
               (BuildContext context, int index) {
                 final asset = tokens[index];
-                final ext = p.extension(asset.galleryThumbnailURL!);
+                final ext = p.extension(asset.getGalleryThumbnailUrl()!);
                 return GestureDetector(
                   child: Hero(
                     tag: asset.id,
                     child: ext == ".svg"
-                        ? SvgPicture.network(asset.galleryThumbnailURL!)
+                        ? SvgImage(
+                            url: asset.getGalleryThumbnailUrl()!,
+                            loadingWidgetBuilder: (_) =>
+                                const GalleryThumbnailPlaceholder(),
+                            errorWidgetBuilder: (_) =>
+                                const GalleryThumbnailErrorWidget(),
+                            unsupportWidgetBuilder: (context) =>
+                                const GalleryUnSupportThumbnailWidget(),
+                          )
                         : CachedNetworkImage(
-                            imageUrl: asset.galleryThumbnailURL!,
+                            imageUrl: asset.getGalleryThumbnailUrl()!,
                             fit: BoxFit.cover,
                             memCacheHeight: _cachedImageSize,
                             memCacheWidth: _cachedImageSize,
-                            cacheManager: injector<AUCacheManager>(),
-                            placeholder: (context, index) => Container(
-                                color: Color.fromRGBO(227, 227, 227, 1)),
-                            placeholderFadeInDuration:
-                                Duration(milliseconds: 300),
-                            errorWidget: (context, url, error) => Container(
-                                color: Color.fromRGBO(227, 227, 227, 1),
-                                child: Center(
-                                  child: SvgPicture.asset(
-                                    'assets/images/image_error.svg',
-                                    width: 75,
-                                    height: 75,
-                                  ),
-                                )),
+                            cacheManager: injector<CacheManager>(),
+                            placeholder: (context, index) =>
+                                const GalleryThumbnailPlaceholder(),
+                            errorWidget: (context, url, error) =>
+                                const GalleryThumbnailErrorWidget(),
+                            placeholderFadeInDuration: const Duration(
+                              milliseconds: 300,
+                            ),
                           ),
                   ),
                   onTap: () {
                     final index = tokenIDs.indexOf(asset.id);
                     final payload = ArtworkDetailPayload(tokenIDs, index);
-                    Navigator.of(context).pushNamed(
-                        AppRouter.artworkPreviewPage,
-                        arguments: payload);
+
+                    if (injector<ConfigurationService>()
+                        .isImmediateInfoViewEnabled()) {
+                      Navigator.of(context).pushNamed(
+                          AppRouter.artworkDetailsPage,
+                          arguments: payload);
+                    } else {
+                      Navigator.of(context).pushNamed(
+                          AppRouter.artworkPreviewPage,
+                          arguments: payload);
+                    }
                   },
                 );
               },

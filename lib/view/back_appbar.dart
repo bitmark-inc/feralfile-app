@@ -15,18 +15,18 @@ AppBar getBackAppBar(BuildContext context,
     String title = "",
     required Function()? onBack,
     Function()? action}) {
+  final theme = Theme.of(context);
+
   return AppBar(
     systemOverlayStyle: SystemUiOverlayStyle(
-      statusBarColor: Colors.white,
+      statusBarColor: theme.colorScheme.secondary,
       statusBarIconBrightness: Brightness.dark,
       statusBarBrightness: Brightness.light,
     ),
-    leading: SizedBox(),
+    leading: const SizedBox(),
     leadingWidth: 0.0,
-    automaticallyImplyLeading: true,
     title: Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         GestureDetector(
           behavior: HitTestBehavior.translucent,
@@ -39,15 +39,15 @@ AppBar getBackAppBar(BuildContext context,
                   Row(
                     children: [
                       SvgPicture.asset('assets/images/nav-arrow-left.svg'),
-                      SizedBox(width: 7),
+                      const SizedBox(width: 7),
                       Text(
                         backTitle,
-                        style: appTextTheme.caption,
+                        style: theme.textTheme.button,
                       ),
                     ],
                   ),
                 ] else ...[
-                  SizedBox(width: 60),
+                  const SizedBox(width: 60),
                 ],
               ],
             ),
@@ -57,19 +57,19 @@ AppBar getBackAppBar(BuildContext context,
           child: Text(
             title,
             overflow: TextOverflow.ellipsis,
-            style: appTextTheme.caption,
+            style: theme.textTheme.button,
             textAlign: TextAlign.center,
           ),
         ),
         action != null
             ? IconButton(
-                constraints: BoxConstraints(maxWidth: 36.0),
+                constraints: const BoxConstraints(maxWidth: 36.0),
                 onPressed: action,
                 icon: Icon(
                   Icons.more_horiz,
-                  color: Colors.black,
+                  color: theme.colorScheme.primary,
                 ))
-            : SizedBox(width: 60),
+            : const SizedBox(width: 60),
       ],
     ),
     backgroundColor: Colors.transparent,
@@ -80,15 +80,16 @@ AppBar getBackAppBar(BuildContext context,
 
 AppBar getCloseAppBar(BuildContext context,
     {String title = "", required Function()? onBack}) {
+  final theme = Theme.of(context);
+
   return AppBar(
     systemOverlayStyle: SystemUiOverlayStyle(
-      statusBarColor: Colors.white,
+      statusBarColor: theme.colorScheme.secondary,
       statusBarIconBrightness: Brightness.dark,
       statusBarBrightness: Brightness.light,
     ),
-    leading: SizedBox(),
+    leading: const SizedBox(),
     leadingWidth: 0.0,
-    automaticallyImplyLeading: true,
     title: Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -100,17 +101,17 @@ AppBar getCloseAppBar(BuildContext context,
                   padding: const EdgeInsets.fromLTRB(0, 7, 18, 8),
                   child: closeIcon(),
                 )
-              : SizedBox(width: 60),
+              : const SizedBox(width: 60),
         ),
         Expanded(
           child: Text(
             title,
             overflow: TextOverflow.ellipsis,
-            style: appTextTheme.caption,
+            style: theme.textTheme.button,
             textAlign: TextAlign.center,
           ),
         ),
-        SizedBox(width: 60),
+        const SizedBox(width: 60),
       ],
     ),
     backgroundColor: Colors.transparent,

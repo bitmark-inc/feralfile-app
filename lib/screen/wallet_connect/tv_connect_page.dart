@@ -5,18 +5,19 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
-import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/theme_manager.dart';
+import 'package:autonomy_flutter/util/debouce_util.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
+
 import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -72,31 +73,26 @@ class _TVConnectPageState extends State<TVConnectPage>
     final authorizedKeypair =
         await injector<AccountService>().authorizeToViewer();
 
-    final chainId =
-        injector<ConfigurationService>().getNetwork() == Network.MAINNET
-            ? 1
-            : 4;
+    final chainId = Environment.appTestnetConfig ? 4 : 1;
 
-    await injector<WalletConnectService>().approveSession(Uuid().v4(),
+    await injector<WalletConnectService>().approveSession(const Uuid().v4(),
         widget.wcConnectArgs.peerMeta, [authorizedKeypair], chainId);
 
+    if (!mounted) return;
     Navigator.of(context).pop();
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = AuThemeManager.get(AppTheme.sheetTheme);
-    final appTextTheme = theme.textTheme;
+    final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: theme.colorScheme.primary,
       appBar: AppBar(
-        leading: SizedBox(),
+        leading: const SizedBox(),
         leadingWidth: 0.0,
-        automaticallyImplyLeading: true,
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             GestureDetector(
               behavior: HitTestBehavior.translucent,
@@ -109,12 +105,12 @@ class _TVConnectPageState extends State<TVConnectPage>
                       children: [
                         SvgPicture.asset(
                           'assets/images/nav-arrow-left.svg',
-                          color: Colors.white,
+                          color: theme.colorScheme.secondary,
                         ),
-                        SizedBox(width: 7),
+                        const SizedBox(width: 7),
                         Text(
-                          "BACK",
-                          style: appTextTheme.caption,
+                          "back".tr(),
+                          style: theme.primaryTextTheme.button,
                         ),
                       ],
                     ),
@@ -129,38 +125,34 @@ class _TVConnectPageState extends State<TVConnectPage>
         elevation: 0,
       ),
       body: Container(
-        margin: pageEdgeInsetsWithSubmitButton,
+        margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(
-            "Connect to Autonomy Viewer",
-            style: appTextTheme.headline1,
+            "connect_au_viewer".tr(),
+            style: theme.primaryTextTheme.headline1,
           ),
-          SizedBox(height: 24),
-          Text(
-              "Instantly set up your personal NFT art gallery on TVs and projectors anywhere you go.",
-              style: appTextTheme.bodyText1),
+          const SizedBox(height: 24),
+          Text("set_up_gallery".tr(),
+              style: theme.primaryTextTheme.bodyText1),
           Divider(
             height: 64,
-            color: Colors.white,
+            color: theme.colorScheme.secondary,
           ),
-          Text("Autonomy Viewer is requesting to: ",
-              style: appTextTheme.bodyText1),
-          SizedBox(height: 8),
-          Text("• View your Autonomy NFT collections",
-              style: appTextTheme.bodyText1),
-          Expanded(child: SizedBox()),
+          Text("viewer_request_to".tr(),
+              style: theme.primaryTextTheme.bodyText1),
+          const SizedBox(height: 8),
+          Text(
+              "view_collections".tr(),
+              style: theme.primaryTextTheme.bodyText1),
+          const Expanded(child: SizedBox()),
           Row(
             children: [
               Expanded(
                 child: AuFilledButton(
-                  text: "Authorize".toUpperCase(),
-                  onPress: () => _approve(),
-                  color: theme.primaryColor,
-                  textStyle: TextStyle(
-                      color: theme.backgroundColor,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      fontFamily: "IBMPlexMono"),
+                  text: "Authorize".tr().toUpperCase(),
+                  onPress: () => withDebounce(() => _approve()),
+                  color: theme.colorScheme.secondary,
+                  textStyle: theme.textTheme.button,
                 ),
               )
             ],

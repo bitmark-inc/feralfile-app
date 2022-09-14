@@ -12,7 +12,9 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:share_plus/share_plus.dart';
 
 class LinkTezosKukaiPage extends StatelessWidget {
@@ -21,6 +23,7 @@ class LinkTezosKukaiPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tezosBeaconService = injector<TezosBeaconService>();
+    final theme = Theme.of(context);
 
     return Scaffold(
         appBar: getBackAppBar(
@@ -28,7 +31,7 @@ class LinkTezosKukaiPage extends StatelessWidget {
           onBack: () => Navigator.of(context).pop(),
         ),
         body: Container(
-          margin: pageEdgeInsetsWithSubmitButton,
+          margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Expanded(
@@ -37,23 +40,23 @@ class LinkTezosKukaiPage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Linking to Kukai",
-                      style: appTextTheme.headline1,
+                      "linking_to_kukai".tr(),
+                      style: theme.textTheme.headline1,
                     ),
                     addTitleSpace(),
                     Text(
-                      "Since Kukai only exists as a web wallet, you will need to follow these additional steps to link it to Autonomy: ",
-                      style: appTextTheme.bodyText1,
+                      "ltk_since_kukai_only".tr(),
+                      //"Since Kukai only exists as a web wallet, you will need to follow these additional steps to link it to Autonomy: ",
+                      style: theme.textTheme.bodyText1,
                     ),
-                    SizedBox(height: 20),
-                    _stepWidget('1',
-                        'Generate a link request and send it to the web browser where you are currently signed in to Kukai.'),
-                    SizedBox(height: 10),
-                    _stepWidget('2',
-                        'When prompted by Kukai, approve Autonomy’s permissions requests. '),
-                    SizedBox(height: 40),
+                    const SizedBox(height: 20),
+                    _stepWidget(context, '1', "ltk_generate_a_link".tr()),
+                    //'Generate a link request and send it to the web browser where you are currently signed in to Kukai.'),
+                    const SizedBox(height: 10),
+                    _stepWidget(context, '2', "ltk_when_prompted_by".tr()),
+                    //'When prompted by Kukai, approve Autonomy’s permissions requests. '),
+                    const SizedBox(height: 40),
                     Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Expanded(
@@ -68,7 +71,7 @@ class LinkTezosKukaiPage extends StatelessWidget {
               children: [
                 Expanded(
                   child: AuFilledButton(
-                    text: "GENERATE LINK".toUpperCase(),
+                    text: "generate_link".tr().toUpperCase(),
                     onPress: () async {
                       final uri = await tezosBeaconService.getConnectionURI();
                       Share.share("https://wallet.kukai.app/tezos$uri");
@@ -81,23 +84,25 @@ class LinkTezosKukaiPage extends StatelessWidget {
         ));
   }
 
-  Widget _stepWidget(String stepNumber, String stepGuide) {
+  Widget _stepWidget(
+      BuildContext context, String stepNumber, String stepGuide) {
+    final theme = Theme.of(context);
+
     return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.only(top: 2),
+          padding: const EdgeInsets.only(top: 2),
           child: Text(
             stepNumber,
-            style: appTextTheme.caption,
+            style: theme.textTheme.button,
           ),
         ),
-        SizedBox(
+        const SizedBox(
           width: 10,
         ),
         Expanded(
-          child: Text(stepGuide, style: appTextTheme.bodyText1),
+          child: Text(stepGuide, style: theme.textTheme.bodyText1),
         )
       ],
     );

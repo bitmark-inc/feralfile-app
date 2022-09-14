@@ -21,17 +21,15 @@ import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
-import 'package:collection/collection.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 part 'accounts_state.dart';
 
 class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
-  ConfigurationService _configurationService;
-  CloudDatabase _cloudDB;
-  BackupService _backupService;
-  AuditService _auditService;
-  AccountService _accountService;
+  final ConfigurationService _configurationService;
+  final CloudDatabase _cloudDB;
+  final BackupService _backupService;
+  final AuditService _auditService;
+  final AccountService _accountService;
 
   AccountsBloc(this._configurationService, this._cloudDB, this._backupService,
       this._auditService, this._accountService)
@@ -73,20 +71,18 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
                 connection.ffWeb3Connection?.source;
             if (source == null) continue;
 
-            if (_configurationService.matchFeralFileSourceInNetwork(source)) {
-              final accountNumber = connection.accountNumber;
-              try {
-                final account = accounts.firstWhere(
-                    (element) => element.accountNumber == accountNumber);
-                account.connections?.add(connection);
-              } catch (error) {
-                accounts.add(Account(
-                    key: connection.key,
-                    accountNumber: accountNumber,
-                    connections: [connection],
-                    name: connection.name,
-                    createdAt: connection.createdAt));
-              }
+            final accountNumber = connection.accountNumber;
+            try {
+              final account = accounts.firstWhere(
+                  (element) => element.accountNumber == accountNumber);
+              account.connections?.add(connection);
+            } catch (error) {
+              accounts.add(Account(
+                  key: connection.key,
+                  accountNumber: accountNumber,
+                  connections: [connection],
+                  name: connection.name,
+                  createdAt: connection.createdAt));
             }
             break;
 
@@ -111,8 +107,7 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
       }
 
       accounts.sort((a, b) => a.createdAt.compareTo(b.createdAt));
-      final network = _configurationService.getNetwork();
-      emit(AccountsState(accounts: accounts, network: network));
+      emit(AccountsState(accounts: accounts));
     });
 
     on<GetCategorizedAccountsEvent>((event, emit) async {
@@ -327,12 +322,30 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
         addresses.removeWhere((e) => e == '');
       }
 
-      emit(state.setEvent(FetchAllAddressesSuccessEvent(addresses)));
+      final newState = state.copyWith(
+          addresses: addresses,
+          event: FetchAllAddressesSuccessEvent(addresses));
+      emit(newState);
 
       // reset the event after triggering
-      await Future.delayed(Duration(milliseconds: 500), () {
-        emit(state.setEvent(null));
+      await Future.delayed(const Duration(milliseconds: 500), () {
+        emit(newState.setEvent(null));
       });
+    });
+
+    on<FindAccount>((event, emit) async {
+      final persona = await _cloudDB.personaDao.findById(event.personaUUID);
+      List<Account> accounts = [];
+      if (persona != null) {
+        accounts.add(Account(
+            key: persona.uuid,
+            persona: persona,
+            name: persona.name,
+            blockchain: event.type.source,
+            accountNumber: event.address,
+            createdAt: persona.createdAt));
+      }
+      emit(AccountsState(accounts: accounts));
     });
   }
 

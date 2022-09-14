@@ -8,31 +8,30 @@
 import 'dart:async';
 import 'dart:isolate';
 
-import 'package:autonomy_flutter/database/entity/asset_token.dart';
-import 'package:autonomy_flutter/gateway/indexer_api.dart';
-import 'package:autonomy_flutter/model/network.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/util/string_ext.dart';
-import 'package:collection/collection.dart';
-import 'package:dio/dio.dart';
-import 'package:get_it/get_it.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
-import 'package:uuid/uuid.dart';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/common/network_config_injector.dart';
-import 'package:autonomy_flutter/database/app_database.dart';
-import 'package:autonomy_flutter/database/dao/asset_token_dao.dart';
 import 'package:autonomy_flutter/gateway/feed_api.dart';
 import 'package:autonomy_flutter/model/feed.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/string_ext.dart';
+import 'package:collection/collection.dart';
+import 'package:dio/dio.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:nft_collection/data/api/indexer_api.dart';
+import 'package:nft_collection/models/asset_token.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:uuid/uuid.dart';
 
 abstract class FeedService {
-  Future refreshFollowings();
+  Future refreshFollowings(List<String> artistIds);
+
   Future<AppFeedData> fetchFeeds(FeedNext? next);
+
   Future<List<AssetToken>> fetchTokensByIndexerID(List<String> indexerIDs);
+
   Future refreshJWTToken(String jwtToken);
 }
 
@@ -83,30 +82,23 @@ class AppFeedData {
 }
 
 class FeedServiceImpl extends FeedService {
-  NetworkConfigInjector _networkConfigInjector;
-  ConfigurationService _configurationService;
-
   static const REFRESH_FOLLOWINGS = 'REFRESH_FOLLOWINGS';
   static const FETCH_FEEDS = 'FETCH_FEEDS';
   static const FETCH_TOKENS_BY_INDEXIDS = 'FETCH_TOKENS_BY_INDEXIDS';
   static const REFRESH_JWT_TOKEN = 'REFRESH_JWT_TOKEN';
 
-  Map<String, Completer<void>> _refreshFollowingsCompleters = {};
-  Map<String, Completer<AppFeedData>> _fetchFeedsCompleters = {};
-  Map<String, Completer<List<AssetToken>>> _fetchTokensByIndexerIDCompleters =
-      {};
-
-  FeedServiceImpl(this._networkConfigInjector, this._configurationService);
+  final Map<String, Completer<void>> _refreshFollowingsCompleters = {};
+  final Map<String, Completer<AppFeedData>> _fetchFeedsCompleters = {};
+  final Map<String, Completer<List<AssetToken>>>
+      _fetchTokensByIndexerIDCompleters = {};
 
   SendPort? _sendPort;
   ReceivePort? _receivePort;
   Isolate? _isolate;
   var _isolateReady = Completer<void>();
   static SendPort? _isolateSendPort;
-  Future<void> get isolateReady => _isolateReady.future;
 
-  AssetTokenDao get _assetDao =>
-      _networkConfigInjector.I<AppDatabase>().assetDao;
+  Future<void> get isolateReady => _isolateReady.future;
 
   Future<void> start() async {
     if (_sendPort != null) return;
@@ -121,6 +113,7 @@ class FeedServiceImpl extends FeedService {
       Environment.feedURL,
       Environment.indexerMainnetURL,
       Environment.indexerTestnetURL,
+      dotenv,
     ]);
   }
 
@@ -135,14 +128,15 @@ class FeedServiceImpl extends FeedService {
     }
   }
 
-  Future refreshFollowings() async {
+  @override
+  Future refreshFollowings(List<String> artistIds) async {
     await startIsolateOrWait();
 
-    final uuid = Uuid().v4();
+    final uuid = const Uuid().v4();
     final completer = Completer();
     _refreshFollowingsCompleters[uuid] = completer;
 
-    final followings = await _assetDao.findAllAssetArtistIDs();
+    final followings = artistIds;
     followings.removeWhere((element) => element == "");
     followings.remove("0x0000000000000000000000000000000000000000");
 
@@ -153,35 +147,38 @@ class FeedServiceImpl extends FeedService {
     return completer.future;
   }
 
+  @override
   Future<AppFeedData> fetchFeeds(FeedNext? next) async {
     await startIsolateOrWait();
 
-    final uuid = Uuid().v4();
+    final uuid = const Uuid().v4();
     final completer = Completer<AppFeedData>();
     _fetchFeedsCompleters[uuid] = completer;
 
     log.info("[FeedFollowService] start FETCH_FEEDS");
-    final isTestnet = _configurationService.getNetwork() == Network.TESTNET;
+    final isTestnet = await isAppCenterBuild();
     _sendPort!
         .send([FETCH_FEEDS, uuid, isTestnet, next?.serial, next?.timestamp]);
 
     return completer.future;
   }
 
+  @override
   Future<List<AssetToken>> fetchTokensByIndexerID(
       List<String> indexerIDs) async {
     await startIsolateOrWait();
 
-    final uuid = Uuid().v4();
+    final uuid = const Uuid().v4();
     final completer = Completer<List<AssetToken>>();
     _fetchTokensByIndexerIDCompleters[uuid] = completer;
 
-    final isTestnet = _configurationService.getNetwork() == Network.TESTNET;
+    final isTestnet = Environment.appTestnetConfig;
     _sendPort!.send([FETCH_TOKENS_BY_INDEXIDS, uuid, isTestnet, indexerIDs]);
 
     return completer.future;
   }
 
+  @override
   Future refreshJWTToken(String jwtToken) async {
     if (_sendPort == null) return;
     _sendPort!.send([REFRESH_JWT_TOKEN, jwtToken]);
@@ -189,6 +186,7 @@ class FeedServiceImpl extends FeedService {
 
   static void _isolateEntry(List<dynamic> arguments) async {
     SendPort sendPort = arguments[0];
+    dotenv = arguments[5];
 
     final receivePort = ReceivePort();
     receivePort.listen(_handleMessageInIsolate);
@@ -328,7 +326,7 @@ class FeedServiceImpl extends FeedService {
   static void _fetchFeeds(
       String uuid, bool isTestnet, String? serial, String? timestamp) async {
     try {
-      final count = 50;
+      const count = 50;
       final feedData = await injector<FeedApi>()
           .getFeeds(isTestnet, count, serial, timestamp);
 
@@ -343,7 +341,7 @@ class FeedServiceImpl extends FeedService {
           .map((e) => AssetToken.fromAsset(e))
           .toList();
 
-      final next = feedData.events.length < 50 ? null : feedData.next;
+      final next = feedData.events.length < count ? null : feedData.next;
 
       // Get missing tokens
       final eventsWithMissingToken = feedData.events.where(
@@ -351,18 +349,6 @@ class FeedServiceImpl extends FeedService {
             tokens.firstWhereOrNull((token) => token.id == event.indexerID) ==
             null,
       );
-
-      // RequestIndex for missing tokens
-      for (final event in eventsWithMissingToken) {
-        log.info(
-            "RequestIndexOne ${event.recipient} - ${event.contract} - ${event.tokenID}");
-        indexerAPI.requestIndexOne({
-          "owner": event.recipient,
-          "contract": event.contract,
-          "tokenID": event.tokenID,
-          "dryrun": false,
-        });
-      }
 
       final missingTokenIDs =
           eventsWithMissingToken.map((e) => e.indexerID).toList();

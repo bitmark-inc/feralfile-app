@@ -13,8 +13,8 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 
 class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
-  IAPService _iapService;
-  ConfigurationService _configurationService;
+  final IAPService _iapService;
+  final ConfigurationService _configurationService;
 
   UpgradesBloc(this._iapService, this._configurationService)
       : super(UpgradeState(IAPProductStatus.loading, null)) {
@@ -45,6 +45,7 @@ class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
     on<UpgradeIAPInfoEvent>((event, emit) async {
       ProductDetails? productDetail;
       IAPProductStatus state = IAPProductStatus.loading;
+      DateTime? trialExpireDate;
 
       if (_iapService.products.value.isNotEmpty) {
         final productId = _iapService.products.value.keys.first;
@@ -52,9 +53,13 @@ class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
 
         final subscriptionState = _iapService.purchases.value[productId];
         state = subscriptionState ?? IAPProductStatus.notPurchased;
+        if (state == IAPProductStatus.trial) {
+          trialExpireDate = _iapService.trialExpireDates.value[productId];
+        }
       }
 
-      emit(UpgradeState(state, productDetail));
+      emit(UpgradeState(state, productDetail,
+          trialExpiredDate: trialExpireDate));
     });
 
 // Update new state if needed
@@ -86,9 +91,7 @@ class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
   }
 
   void _onNewIAPEventFunc() {
-    if (!this.isClosed) {
-      add(UpgradeIAPInfoEvent());
-    }
+    add(UpgradeIAPInfoEvent());
   }
 
   @override

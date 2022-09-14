@@ -6,147 +6,168 @@
 //
 
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/github_doc.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_state.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class PreferenceView extends StatelessWidget {
+  const PreferenceView({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     context.read<PreferencesBloc>().add(PreferenceInfoEvent());
+    final theme = Theme.of(context);
 
     return BlocBuilder<PreferencesBloc, PreferenceState>(
         builder: (context, state) {
-      return Container(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Preferences",
-              style: appTextTheme.headline1,
-            ),
-            SizedBox(height: 24),
-            _preferenceItem(
-              context,
-              'Immediate info view',
-              "Enable info view when tapping on a thumbnail.",
-              state.isImmediateInfoViewEnabled,
-              (value) {
-                final newState =
-                    state.copyWith(isImmediateInfoViewEnabled: value);
-                context
-                    .read<PreferencesBloc>()
-                    .add(PreferenceUpdateEvent(newState));
-              },
-            ),
-            Divider(),
-            _preferenceItem(
-              context,
-              state.authMethodName,
-              "Use ${state.authMethodName != 'Device Passcode' ? state.authMethodName : 'device passcode'} to unlock the app, transact, and authenticate.",
-              state.isDevicePasscodeEnabled,
-              (value) {
-                final newState = state.copyWith(isDevicePasscodeEnabled: value);
-                context
-                    .read<PreferencesBloc>()
-                    .add(PreferenceUpdateEvent(newState));
-              },
-            ),
-            addDivider(),
-            _preferenceItem(
-              context,
-              "Notifications",
-              "Receive notifications when you get new NFTs, signing requests, or customer support messages.",
-              state.isNotificationEnabled,
-              (value) {
-                final newState = state.copyWith(isNotificationEnabled: value);
-                context
-                    .read<PreferencesBloc>()
-                    .add(PreferenceUpdateEvent(newState));
-              },
-            ),
-            addDivider(),
-            _preferenceItemWithBuilder(
-              context,
-              "Analytics",
-              description: (context) => Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Contribute anonymized, aggregate usage data to help improve Autonomy.",
-                    style: appTextTheme.bodyText1,
-                  ),
-                  SizedBox(height: 10),
-                  GestureDetector(
-                      child: Text("Learn how we anonymize your data...",
-                          textAlign: TextAlign.left, style: linkStyle),
-                      onTap: () => Navigator.of(context).pushNamed(
-                            AppRouter.githubDocPage,
-                            arguments: {
-                              "document": "protect_your_usage_data.md",
-                              "title": "How we protect your usage data"
-                            },
-                          )),
-                ],
-              ),
-              isEnabled: state.isAnalyticEnabled,
-              onChanged: (value) {
-                final newState = state.copyWith(isAnalyticEnabled: value);
-                context
-                    .read<PreferencesBloc>()
-                    .add(PreferenceUpdateEvent(newState));
-              },
-            ),
-            addDivider(),
-            state.hasHiddenArtworks
-                ? InkWell(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text("Hidden artworks", style: appTextTheme.headline4),
-                        Icon(Icons.navigate_next, color: Colors.black),
-                      ],
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "preferences".tr(),
+            style: theme.textTheme.headline1,
+          ),
+          const SizedBox(height: 24),
+          _preferenceItem(
+            context,
+            'immediate_info_view'.tr(),
+            "enable_info".tr(),
+            //"Enable info view when tapping on a thumbnail.",
+            state.isImmediateInfoViewEnabled,
+            (value) {
+              final newState =
+                  state.copyWith(isImmediateInfoViewEnabled: value);
+              context
+                  .read<PreferencesBloc>()
+                  .add(PreferenceUpdateEvent(newState));
+            },
+          ),
+          addDivider(),
+          _preferenceItem(
+            context,
+            state.authMethodName,
+            "use_device_passcode".tr(args: [
+              state.authMethodName != "device_passcode".tr()
+                  ? state.authMethodName
+                  : "device_passcode".tr()
+            ]),
+            //"Use ${state.authMethodName != 'Device Passcode' ? state.authMethodName : 'device passcode'} to unlock the app, transact, and authenticate.",
+            state.isDevicePasscodeEnabled,
+            (value) {
+              final newState = state.copyWith(isDevicePasscodeEnabled: value);
+              context
+                  .read<PreferencesBloc>()
+                  .add(PreferenceUpdateEvent(newState));
+            },
+          ),
+          addDivider(),
+          _preferenceItem(
+            context,
+            "notifications".tr(),
+            "receive_notification".tr(),
+            //"Receive notifications when you get new NFTs, signing requests, or customer support messages.",
+            state.isNotificationEnabled,
+            (value) {
+              final newState = state.copyWith(isNotificationEnabled: value);
+              context
+                  .read<PreferencesBloc>()
+                  .add(PreferenceUpdateEvent(newState));
+            },
+          ),
+          addDivider(),
+          _preferenceItemWithBuilder(
+            context,
+            "analytics".tr(),
+            description: (context) => Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "contribute_anonymize".tr(),
+                  //"Contribute anonymized, aggregate usage data to help improve Autonomy.",
+                  style: theme.textTheme.bodyText1,
+                ),
+                const SizedBox(height: 10),
+                GestureDetector(
+                    child: Text(
+                      "learn_anonymize".tr(),
+                      textAlign: TextAlign.left,
+                      style: ResponsiveLayout.isMobile
+                          ? theme.textTheme.linkStyle
+                          : theme.textTheme.linkStyle16,
                     ),
-                    onTap: () {
-                      Navigator.of(context)
-                          .pushNamed(AppRouter.hiddenArtworksPage);
-                    },
-                  )
-                : SizedBox(),
-          ],
-        ),
+                    onTap: () => Navigator.of(context).pushNamed(
+                          AppRouter.githubDocPage,
+                          arguments: {
+                            "document": "protect_your_usage_data.md",
+                            "title": "how_protect_data"
+                                .tr() // "How we protect your usage data"
+                          },
+                        )),
+              ],
+            ),
+            isEnabled: state.isAnalyticEnabled,
+            onChanged: (value) {
+              final newState = state.copyWith(isAnalyticEnabled: value);
+              context
+                  .read<PreferencesBloc>()
+                  .add(PreferenceUpdateEvent(newState));
+            },
+          ),
+          addDivider(),
+          state.hasHiddenArtworks
+              ? InkWell(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text("hidden_artworks".tr(),
+                          style: theme.textTheme.headline4),
+                      Icon(
+                        Icons.navigate_next,
+                        color: theme.colorScheme.primary,
+                      ),
+                    ],
+                  ),
+                  onTap: () {
+                    Navigator.of(context)
+                        .pushNamed(AppRouter.hiddenArtworksPage);
+                  },
+                )
+              : const SizedBox(),
+        ],
       );
     });
   }
 
   Widget _preferenceItem(BuildContext context, String title, String description,
       bool isEnabled, ValueChanged<bool> onChanged) {
-    return Container(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(title, style: appTextTheme.headline4),
-              CupertinoSwitch(
-                value: isEnabled,
-                onChanged: onChanged,
-                activeColor: Colors.black,
-              )
-            ],
-          ),
-          SizedBox(height: 7),
-          Text(
-            description,
-            style: appTextTheme.bodyText1,
-          ),
-        ],
-      ),
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(title, style: theme.textTheme.headline4),
+            CupertinoSwitch(
+              value: isEnabled,
+              onChanged: onChanged,
+              activeColor: theme.colorScheme.primary,
+            )
+          ],
+        ),
+        const SizedBox(height: 7),
+        Text(
+          description,
+          style: theme.textTheme.bodyText1,
+        ),
+      ],
     );
   }
 
@@ -154,25 +175,25 @@ class PreferenceView extends StatelessWidget {
       {bool isEnabled = false,
       WidgetBuilder? description,
       ValueChanged<bool>? onChanged}) {
-    return Container(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(title, style: appTextTheme.headline4),
-              CupertinoSwitch(
-                value: isEnabled,
-                onChanged: onChanged,
-                activeColor: Colors.black,
-              )
-            ],
-          ),
-          SizedBox(height: 7),
-          if (description != null) description(context),
-        ],
-      ),
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(title, style: theme.textTheme.headline4),
+            CupertinoSwitch(
+              value: isEnabled,
+              onChanged: onChanged,
+              activeColor: theme.colorScheme.primary,
+            )
+          ],
+        ),
+        const SizedBox(height: 7),
+        if (description != null) description(context),
+      ],
     );
   }
 }

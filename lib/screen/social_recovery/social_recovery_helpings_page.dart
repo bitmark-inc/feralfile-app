@@ -67,13 +67,14 @@ class _SocialRecoveryHelpingsPageState extends State<SocialRecoveryHelpingsPage>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: getBackAppBar(
         context,
         onBack: () => Navigator.of(context).pop(),
       ),
       body: Container(
-        margin: pageEdgeInsetsWithSubmitButton,
+        // margin: pageEdgeInsetsWithSubmitButton,
         child: Column(children: [
           Expanded(
             child: SingleChildScrollView(
@@ -82,12 +83,12 @@ class _SocialRecoveryHelpingsPageState extends State<SocialRecoveryHelpingsPage>
                   children: [
                     Text(
                       "Helping Contacts",
-                      style: appTextTheme.headline1,
+                      style: theme.textTheme.headline1,
                     ),
                     addTitleSpace(),
                     Text(
                       "some description about ContactDeck they should take care",
-                      style: appTextTheme.bodyText1,
+                      style: theme.textTheme.bodyText1,
                     ),
                     SizedBox(height: 15),
                     _helpingsListWidget(),
@@ -98,7 +99,7 @@ class _SocialRecoveryHelpingsPageState extends State<SocialRecoveryHelpingsPage>
                             onPressed: () => Navigator.of(context)
                                 .pushNamed(AppRouter.storeContactDeckPage),
                             child: Text('+ Add',
-                                style: appTextTheme.bodyText2
+                                style: theme.textTheme.bodyText2
                                     ?.copyWith(color: Colors.black))),
                         SizedBox(width: 13),
                       ],
@@ -133,7 +134,7 @@ class _SocialRecoveryHelpingsPageState extends State<SocialRecoveryHelpingsPage>
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            Text(contactDeck.name, style: appTextTheme.headline4),
+            Text(contactDeck.name, style: Theme.of(context).textTheme.headline4),
           ],
         ),
         onTap: () async {

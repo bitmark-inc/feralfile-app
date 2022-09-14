@@ -8,7 +8,9 @@
 import UserNotifications
 
 import OneSignal
+import UIKit
 
+@available(iOSApplicationExtension, unavailable)
 class NotificationService: UNNotificationServiceExtension {
     
     var contentHandler: ((UNNotificationContent) -> Void)?
@@ -32,8 +34,13 @@ class NotificationService: UNNotificationServiceExtension {
                           Setting an attachment or action buttons automatically adds this */
             //OneSignal.setLogLevel(.LL_VERBOSE, visualLevel: .LL_NONE)
             //bestAttemptContent.body = "[Modified] " + bestAttemptContent.body
-            
-            OneSignal.didReceiveNotificationExtensionRequest(self.receivedRequest, with: bestAttemptContent, withContentHandler: self.contentHandler)
+
+            if UIApplication.shared.applicationState == .active
+                || UserDefaults.standard.bool(forKey: "flutter.notifications") == true {
+                OneSignal.didReceiveNotificationExtensionRequest(self.receivedRequest, with: bestAttemptContent, withContentHandler: self.contentHandler)
+            } else {
+                contentHandler(UNNotificationContent())
+            }
         }
     }
     

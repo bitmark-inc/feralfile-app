@@ -1,16 +1,17 @@
 import 'dart:async';
 
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-
-import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/screen/gallery/gallery_bloc.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/penrose_top_bar_view.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
+import 'package:nft_collection/models/asset_token.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 
 class GalleryPagePayload {
   String address;
@@ -26,6 +27,7 @@ class GalleryPagePayload {
 
 class GalleryPage extends StatefulWidget {
   final GalleryPagePayload payload;
+
   const GalleryPage({Key? key, required this.payload}) : super(key: key);
 
   @override
@@ -50,7 +52,7 @@ class _GalleryPageState extends State<GalleryPage> {
     context.read<GalleryBloc>().add(GetTokensEvent(address));
     context.read<GalleryBloc>().add(ReindexIndexerEvent(address));
 
-    _timer = Timer.periodic(Duration(seconds: 5), (timer) {
+    _timer = Timer.periodic(const Duration(seconds: 5), (timer) {
       context.read<GalleryBloc>().add(GetTokensEvent(widget.payload.address));
     });
   }
@@ -76,7 +78,6 @@ class _GalleryPageState extends State<GalleryPage> {
       controller: _scrollController,
       child: Scaffold(
         body: Stack(
-          fit: StackFit.loose,
           children: [
             BlocConsumer<GalleryBloc, GalleryState>(listener: (context, state) {
               final tokens = state.tokens;
@@ -102,8 +103,14 @@ class _GalleryPageState extends State<GalleryPage> {
   }
 
   Widget _assetsWidget(List<AssetToken>? tokens, bool isLoading) {
-    const int cellPerRow = 3;
+    final theme = Theme.of(context);
+
+    const int cellPerRowPhone = 3;
+    const int cellPerRowTablet = 6;
     const double cellSpacing = 3.0;
+    int cellPerRow =
+        ResponsiveLayout.isMobile ? cellPerRowPhone : cellPerRowTablet;
+
     final artistURL = widget.payload.artistURL;
 
     if (_cachedImageSize == 0) {
@@ -116,29 +123,40 @@ class _GalleryPageState extends State<GalleryPage> {
     sources = [
       SliverToBoxAdapter(
           child: Container(
+        padding: const EdgeInsets.fromLTRB(0, 72, 0, 48),
         child: autonomyLogo,
-        padding: EdgeInsets.fromLTRB(0, 72, 0, 48),
       )),
       SliverToBoxAdapter(
         child: Container(
           alignment: Alignment.topLeft,
-          padding: EdgeInsets.fromLTRB(6, 0, 14, 14),
+          padding: const EdgeInsets.fromLTRB(6, 0, 14, 14),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               TextButton(
-                style: ButtonStyle(alignment: Alignment.centerRight),
-                onPressed: artistURL != null ? () => launch(artistURL) : null,
+                style: const ButtonStyle(alignment: Alignment.centerRight),
+                onPressed: artistURL != null
+                    ? () {
+                        final uri = Uri.tryParse(artistURL);
+                        if (uri != null) {
+                          launchUrl(uri);
+                        }
+                      }
+                    : null,
                 child: Text(
                   widget.payload.artistName,
                   style: artistURL != null
-                      ? makeLinkStyle(appTextTheme.headline2!)
-                      : appTextTheme.headline2,
+                      ? makeLinkStyle(theme.textTheme.headline2!)
+                      : theme.textTheme.headline2,
                 ),
               ),
               if (tokens != null && tokens.isEmpty) ...[
-                Text('indexing...',
-                    style: appTextTheme.headline2?.copyWith(fontSize: 12)),
+                Text(
+                  'indexing'.tr(),
+                  style: ResponsiveLayout.isMobile
+                      ? theme.textTheme.atlasBlackBold12
+                      : theme.textTheme.atlasBlackBold14,
+                ),
               ]
             ],
           ),
@@ -148,26 +166,24 @@ class _GalleryPageState extends State<GalleryPage> {
         ...[]
       else if (tokens.isEmpty) ...[
         SliverGrid(
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: cellPerRow,
             crossAxisSpacing: cellSpacing,
             mainAxisSpacing: cellSpacing,
-            childAspectRatio: 1.0,
           ),
           delegate: SliverChildBuilderDelegate(
             (BuildContext context, int index) {
-              return placeholder();
+              return placeholder(context);
             },
             childCount: 15,
           ),
         ),
       ] else ...[
         SliverGrid(
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: cellPerRow,
             crossAxisSpacing: cellSpacing,
             mainAxisSpacing: cellSpacing,
-            childAspectRatio: 1.0,
           ),
           delegate: SliverChildBuilderDelegate(
             (BuildContext context, int index) {
@@ -183,7 +199,7 @@ class _GalleryPageState extends State<GalleryPage> {
       if (isLoading) ...[
         SliverToBoxAdapter(
           child: Container(
-            padding: EdgeInsets.fromLTRB(16, 24, 24, 14),
+            padding: const EdgeInsets.fromLTRB(16, 24, 24, 14),
             child: Center(child: loadingIndicator()),
           ),
         ),

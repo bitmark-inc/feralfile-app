@@ -34,13 +34,14 @@ class _StoreContactDeckPageState extends State<StoreContactDeckPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: getBackAppBar(
         context,
         onBack: () => Navigator.of(context).pop(),
       ),
       body: Container(
-        margin: pageEdgeInsetsWithSubmitButton,
+        // margin: pageEdgeInsetsWithSubmitButton,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -51,7 +52,7 @@ class _StoreContactDeckPageState extends State<StoreContactDeckPage> {
                     children: [
                       Text(
                         "Add Helping Contact",
-                        style: appTextTheme.headline1,
+                        style: theme.textTheme.headline1,
                       ),
                       addTitleSpace(),
                       AuTextField(

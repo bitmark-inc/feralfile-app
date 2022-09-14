@@ -5,9 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:autonomy_flutter/database/entity/asset_token.dart';
-import 'package:autonomy_flutter/model/asset_price.dart';
-import 'package:autonomy_flutter/model/bitmark.dart';
+import 'package:nft_collection/models/asset_token.dart';
 
 abstract class ArtworkPreviewEvent {}
 
@@ -17,8 +15,28 @@ class ArtworkPreviewGetAssetTokenEvent extends ArtworkPreviewEvent {
   ArtworkPreviewGetAssetTokenEvent(this.id);
 }
 
-class ArtworkPreviewState {
-  AssetToken? asset;
+abstract class ArtworkPreviewState {
+  ArtworkPreviewState();
+}
 
-  ArtworkPreviewState({this.asset});
+class ChangeFullScreen extends ArtworkPreviewEvent {
+  bool isFullscreen;
+  ChangeFullScreen({this.isFullscreen = false});
+}
+
+class ArtworkPreviewLoadingState extends ArtworkPreviewState {
+  ArtworkPreviewLoadingState();
+}
+
+class ArtworkPreviewLoadedState extends ArtworkPreviewState {
+  AssetToken? asset;
+  bool isFullScreen;
+
+  ArtworkPreviewLoadedState({this.asset, this.isFullScreen = false});
+
+  ArtworkPreviewLoadedState copyWith({AssetToken? asset, bool? isFullScreen}) {
+    return ArtworkPreviewLoadedState(
+        asset: asset ?? this.asset,
+        isFullScreen: isFullScreen ?? this.isFullScreen);
+  }
 }

@@ -5,11 +5,12 @@
 //  that can be found in the LICENSE file.
 //
 
+// ignore_for_file: implementation_imports
+
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:autonomy_flutter/model/network.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:tezart/src/crypto/crypto.dart' as crypto;
@@ -22,24 +23,23 @@ abstract class TezosService {
   Future<int> getBalance(String address);
 
   Future<int> estimateOperationFee(
-      TezosWallet wallet, List<Operation> operation);
+      TezosWallet wallet, List<Operation> operations);
 
   Future<int> estimateFee(TezosWallet wallet, String to, int amount);
 
   Future<String?> sendOperationTransaction(
-      TezosWallet wallet, List<Operation> operation);
+      TezosWallet wallet, List<Operation> operations);
 
   Future<String?> sendTransaction(TezosWallet wallet, String to, int amount);
 
   Future<String> signMessage(TezosWallet wallet, Uint8List message);
 
   Future<Operation> getFa2TransferOperation(
-      String contract, String from, String to, int tokenId);
+      String contract, String from, String to, int tokenId, int quantity);
 }
 
 class TezosServiceImpl extends TezosService {
   final TezartClient _tezartClient;
-  final ConfigurationService _configurationService;
 
   late final backupTezartClients = [
     TezartClient("https://mainnet.api.tez.ie"),
@@ -49,7 +49,7 @@ class TezosServiceImpl extends TezosService {
     TezartClient("https://mainnet.tezos.marigold.dev"),
   ];
 
-  TezosServiceImpl(this._tezartClient, this._configurationService);
+  TezosServiceImpl(this._tezartClient);
 
   @override
   Future<String> getPublicKey(TezosWallet wallet) async {
@@ -78,9 +78,9 @@ class TezosServiceImpl extends TezosService {
       var operationList =
           OperationsList(source: keystore, rpcInterface: client.rpcInterface);
 
-      operations.forEach((element) {
+      for (var element in operations) {
         operationList.appendOperation(element);
-      });
+      }
 
       final isReveal = await client.isKeyRevealed(keystore.address);
       if (!isReveal) {
@@ -90,7 +90,7 @@ class TezosServiceImpl extends TezosService {
       await operationList.estimate();
 
       return operationList.operations
-          .map((e) => e.fee)
+          .map((e) => e.totalFee)
           .reduce((value, element) => value + element);
     });
   }
@@ -106,9 +106,9 @@ class TezosServiceImpl extends TezosService {
       var operationList =
           OperationsList(source: keystore, rpcInterface: client.rpcInterface);
 
-      operations.forEach((element) {
+      for (var element in operations) {
         operationList.appendOperation(element);
-      });
+      }
 
       final isReveal = await client.isKeyRevealed(keystore.address);
       if (!isReveal) {
@@ -131,12 +131,11 @@ class TezosServiceImpl extends TezosService {
         source: keystore,
         destination: to,
         amount: amount,
-        reveal: true,
       );
       await operation.estimate();
 
       return operation.operations
-          .map((e) => e.fee)
+          .map((e) => e.totalFee)
           .reduce((value, element) => value + element);
     });
   }
@@ -151,7 +150,6 @@ class TezosServiceImpl extends TezosService {
         source: keystore,
         destination: to,
         amount: amount,
-        reveal: true,
       );
       await operation.execute();
 
@@ -169,22 +167,22 @@ class TezosServiceImpl extends TezosService {
   }
 
   @override
-  Future<Operation> getFa2TransferOperation(
-      String contract, String from, String to, int tokenId) async {
+  Future<Operation> getFa2TransferOperation(String contract, String from,
+      String to, int tokenId, int quantity) async {
     final params = [
       {
         "prim": "Pair",
         "args": [
-          {"string": "$from"},
+          {"string": from},
           [
             {
               "args": [
-                {"string": "$to"},
+                {"string": to},
                 {
                   "prim": "Pair",
                   "args": [
                     {"int": "$tokenId"},
-                    {"int": "1"}
+                    {"int": "$quantity"}
                   ]
                 }
               ],
@@ -216,14 +214,14 @@ class TezosServiceImpl extends TezosService {
   Future<T> _retryOnNodeError<T>(Future<T> Function(TezartClient) func) async {
     try {
       return await func(_tezartClient);
-    } on TezartNodeError catch (e) {
-      if (_configurationService.getNetwork() == Network.TESTNET) {
-        throw e;
+    } on TezartNodeError catch (_) {
+      if (Environment.appTestnetConfig) {
+        rethrow;
       }
 
-      final _random = new Random();
+      final random = Random();
       final clientToRetry =
-          backupTezartClients[_random.nextInt(backupTezartClients.length)];
+          backupTezartClients[random.nextInt(backupTezartClients.length)];
       return await func(clientToRetry);
     }
   }

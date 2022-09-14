@@ -6,7 +6,6 @@
 //
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/common/network_config_injector.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
@@ -14,10 +13,10 @@ import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/biometrics_util.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:local_auth/local_auth.dart';
@@ -40,6 +39,7 @@ class _SendReviewPageState extends State<SendReviewPage> {
   @override
   Widget build(BuildContext context) {
     final total = widget.payload.amount + widget.payload.fee;
+    final theme = Theme.of(context);
 
     return Scaffold(
       appBar: getBackAppBar(
@@ -60,73 +60,73 @@ class _SendReviewPageState extends State<SendReviewPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "Confirmation",
-                  style: appTextTheme.headline1,
+                  "confirmation".tr(),
+                  style: theme.textTheme.headline1,
                 ),
-                SizedBox(height: 40.0),
+                const SizedBox(height: 40.0),
                 Text(
-                  "To",
-                  style: appTextTheme.headline4,
+                  "to".tr(),
+                  style: theme.textTheme.headline4,
                 ),
-                SizedBox(height: 16.0),
+                const SizedBox(height: 16.0),
                 Text(
                   widget.payload.address,
-                  style: appTextTheme.bodyText2,
+                  style: theme.textTheme.bodyText2,
                 ),
-                Divider(height: 32),
+                const Divider(height: 32),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      "Send",
-                      style: appTextTheme.headline4,
+                      "send".tr(),
+                      style: theme.textTheme.headline4,
                     ),
                     Text(
                       widget.payload.type == CryptoType.ETH
                           ? "${EthAmountFormatter(widget.payload.amount).format()} ETH (${widget.payload.exchangeRate.ethToUsd(widget.payload.amount)} USD)"
                           : "${XtzAmountFormatter(widget.payload.amount.toInt()).format()} XTZ (${widget.payload.exchangeRate.xtzToUsd(widget.payload.amount.toInt())} USD)",
-                      style: appTextTheme.bodyText2,
+                      style: theme.textTheme.bodyText2,
                     ),
                   ],
                 ),
-                Divider(height: 32),
+                const Divider(height: 32),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      "Gas fee",
-                      style: appTextTheme.headline4,
+                      "gas_fee2".tr(),
+                      style: theme.textTheme.headline4,
                     ),
                     Text(
                       widget.payload.type == CryptoType.ETH
                           ? "${EthAmountFormatter(widget.payload.fee).format()} ETH (${widget.payload.exchangeRate.ethToUsd(widget.payload.fee)} USD)"
                           : "${XtzAmountFormatter(widget.payload.fee.toInt()).format()} XTZ (${widget.payload.exchangeRate.xtzToUsd(widget.payload.fee.toInt())} USD)",
-                      style: appTextTheme.bodyText2,
+                      style: theme.textTheme.bodyText2,
                     ),
                   ],
                 ),
-                Divider(height: 32),
+                const Divider(height: 32),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      "Total Amount",
-                      style: appTextTheme.headline4,
+                      "total_amount".tr(),
+                      style: theme.textTheme.headline4,
                     ),
                     Text(
                       widget.payload.type == CryptoType.ETH
                           ? "${EthAmountFormatter(total).format()} ETH (${widget.payload.exchangeRate.ethToUsd(total)} USD)"
                           : "${XtzAmountFormatter(total.toInt()).format()} XTZ (${widget.payload.exchangeRate.xtzToUsd(total.toInt())} USD)",
-                      style: appTextTheme.headline4,
+                      style: theme.textTheme.headline4,
                     ),
                   ],
                 ),
-                Expanded(child: SizedBox()),
+                const Expanded(child: SizedBox()),
                 Row(
                   children: [
                     Expanded(
                       child: AuFilledButton(
-                        text: "Send",
+                        text: "send".tr(),
                         onPress: _isSending
                             ? null
                             : () async {
@@ -134,8 +134,6 @@ class _SendReviewPageState extends State<SendReviewPage> {
                                   _isSending = true;
                                 });
 
-                                final networkInjector =
-                                    injector<NetworkConfigInjector>();
                                 final configurationService =
                                     injector<ConfigurationService>();
 
@@ -146,7 +144,7 @@ class _SendReviewPageState extends State<SendReviewPage> {
                                   final didAuthenticate =
                                       await localAuth.authenticate(
                                           localizedReason:
-                                              'Authentication for "Autonomy"');
+                                              "authen_for_autonomy".tr());
                                   if (!didAuthenticate) {
                                     setState(() {
                                       _isSending = false;
@@ -159,28 +157,29 @@ class _SendReviewPageState extends State<SendReviewPage> {
                                   case CryptoType.ETH:
                                     final address = EthereumAddress.fromHex(
                                         widget.payload.address);
-                                    final txHash = await networkInjector
-                                        .I<EthereumService>()
-                                        .sendTransaction(
-                                            widget.payload.wallet,
-                                            address,
-                                            widget.payload.amount,
-                                            null,
-                                            null);
+                                    final txHash =
+                                        await injector<EthereumService>()
+                                            .sendTransaction(
+                                                widget.payload.wallet,
+                                                address,
+                                                widget.payload.amount,
+                                                null,
+                                                null);
 
+                                    if (!mounted) return;
                                     Navigator.of(context).pop(txHash);
                                     break;
                                   case CryptoType.XTZ:
                                     final tezosWallet = await widget
                                         .payload.wallet
                                         .getTezosWallet();
-                                    final sig = await networkInjector
-                                        .I<TezosService>()
+                                    final sig = await injector<TezosService>()
                                         .sendTransaction(
                                             tezosWallet,
                                             widget.payload.address,
                                             widget.payload.amount.toInt());
 
+                                    if (!mounted) return;
                                     Navigator.of(context).pop(sig);
                                     break;
                                   case CryptoType.BITMARK:
@@ -199,7 +198,9 @@ class _SendReviewPageState extends State<SendReviewPage> {
               ],
             ),
           ),
-          _isSending ? Center(child: CupertinoActivityIndicator()) : SizedBox(),
+          _isSending
+              ? const Center(child: CupertinoActivityIndicator())
+              : const SizedBox(),
         ],
       ),
     );

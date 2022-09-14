@@ -22,12 +22,49 @@ class AddressChangedEvent extends SendArtworkEvent {
   AddressChangedEvent(this.address);
 }
 
+class QuantityUpdateEvent extends SendArtworkEvent {
+  final int quantity;
+  final int maxQuantity;
+
+  QuantityUpdateEvent({required this.quantity, required this.maxQuantity});
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is QuantityUpdateEvent &&
+          runtimeType == other.runtimeType &&
+          quantity == other.quantity &&
+          maxQuantity == other.maxQuantity;
+
+  @override
+  int get hashCode => quantity.hashCode ^ maxQuantity.hashCode;
+}
+
 class EstimateFeeEvent extends SendArtworkEvent {
   final String address;
   final String contractAddress;
   final String tokenId;
+  final int quantity;
 
-  EstimateFeeEvent(this.address, this.contractAddress, this.tokenId);
+  EstimateFeeEvent(
+      this.address, this.contractAddress, this.tokenId, this.quantity);
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is EstimateFeeEvent &&
+          runtimeType == other.runtimeType &&
+          address == other.address &&
+          contractAddress == other.contractAddress &&
+          tokenId == other.tokenId &&
+          quantity == other.quantity;
+
+  @override
+  int get hashCode =>
+      address.hashCode ^
+      contractAddress.hashCode ^
+      tokenId.hashCode ^
+      quantity.hashCode;
 }
 
 class SendArtworkState {
@@ -35,6 +72,7 @@ class SendArtworkState {
 
   bool isScanQR;
   bool isAddressError;
+  bool isQuantityError;
   bool isValid;
 
   BigInt? fee;
@@ -45,24 +83,77 @@ class SendArtworkState {
 
   bool isEstimating = false;
 
+  int quantity;
+
   SendArtworkState(
       {this.wallet,
         this.isScanQR = true,
         this.isAddressError = false,
+        this.isQuantityError = false,
+        this.isEstimating = false,
         this.isValid = false,
         this.fee,
         this.address,
         this.balance,
-        this.exchangeRate = const CurrencyExchangeRate(eth: "1.0", xtz: "1.0")});
+        this.exchangeRate = const CurrencyExchangeRate(eth: "1.0", xtz: "1.0"),
+        this.quantity = 1});
 
   SendArtworkState clone() => SendArtworkState(
     wallet: wallet,
     isScanQR: isScanQR,
     isAddressError: isAddressError,
+    isQuantityError: isQuantityError,
+    isEstimating: isEstimating,
     isValid: isValid,
     fee: fee,
     address: address,
     exchangeRate: exchangeRate,
     balance: balance,
+    quantity: quantity,
   );
+
+  SendArtworkState copyWith({int? quantity, bool? isEstimating, BigInt? fee}) {
+    return SendArtworkState(
+        wallet: wallet,
+        isScanQR: isScanQR,
+        isAddressError: isAddressError,
+        isQuantityError: isQuantityError,
+        isEstimating: isEstimating ?? this.isEstimating,
+        isValid: isValid,
+        fee: fee ?? this.fee,
+        address: address,
+        exchangeRate: exchangeRate,
+        balance: balance,
+        quantity: quantity ?? this.quantity
+    );
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is SendArtworkState &&
+          runtimeType == other.runtimeType &&
+          isScanQR == other.isScanQR &&
+          isAddressError == other.isAddressError &&
+          isQuantityError == other.isQuantityError &&
+          isValid == other.isValid &&
+          fee == other.fee &&
+          address == other.address &&
+          balance == other.balance &&
+          exchangeRate == other.exchangeRate &&
+          isEstimating == other.isEstimating &&
+          quantity == other.quantity;
+
+  @override
+  int get hashCode =>
+      isScanQR.hashCode ^
+      isAddressError.hashCode ^
+      isQuantityError.hashCode ^
+      isValid.hashCode ^
+      (fee?.hashCode ?? 0) ^
+      (address?.hashCode ?? 0) ^
+      balance.hashCode ^
+      exchangeRate.hashCode ^
+      isEstimating.hashCode ^
+      quantity.hashCode;
 }

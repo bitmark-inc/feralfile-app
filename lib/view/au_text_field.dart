@@ -5,7 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:flutter/material.dart';
 
 class AuTextField extends StatelessWidget {
@@ -18,6 +19,7 @@ class AuTextField extends StatelessWidget {
   final Widget? suffix;
   final TextInputType keyboardType;
   final ValueChanged<String>? onChanged;
+  final ValueChanged<String>? onSubmit;
   final int? maxLines;
   final int? hintMaxLines;
 
@@ -28,25 +30,28 @@ class AuTextField extends StatelessWidget {
       this.isError = false,
       this.expanded = false,
       this.maxLines = 1,
-      this.hintMaxLines = null,
+      this.hintMaxLines,
       required this.controller,
       this.subTitleView,
       this.suffix,
       this.keyboardType = TextInputType.text,
-      this.onChanged})
+      this.onChanged,
+      this.onSubmit})
       : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Expanded(
         flex: expanded ? 1 : 0,
         child: Container(
-            padding: EdgeInsets.only(top: 8.0, left: 8.0, bottom: 8.0),
+            padding: title.isNotEmpty
+                ? const EdgeInsets.only(top: 3.0, left: 8.0, bottom: 3.0)
+                : const EdgeInsets.only(top: 13.5, left: 8.0, bottom: 16.5),
             decoration: BoxDecoration(
                 border: Border.all(
-                    color: isError ? AppColorTheme.errorColor : Colors.black)),
+                    color: isError ? AppColor.red : theme.colorScheme.primary)),
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Expanded(
                   child: Column(
@@ -57,24 +62,20 @@ class AuTextField extends StatelessWidget {
                           if (title.isNotEmpty) ...[
                             Text(
                               title,
-                              style: TextStyle(
-                                  fontSize: 12,
-                                  fontFamily: "AtlasGrotesk",
-                                  color: AppColorTheme.secondaryHeaderColor,
-                                  fontWeight: FontWeight.w700),
+                              style: ResponsiveLayout.isMobile
+                                  ? theme.textTheme.atlasGreyBold12
+                                  : theme.textTheme.atlasGreyBold14,
                             ),
                           ],
-                          this.subTitleView != null
+                          subTitleView != null
                               ? Text(
                                   " | ",
-                                  style: TextStyle(
-                                      fontSize: 12,
-                                      fontFamily: "AtlasGrotesk",
-                                      color: AppColorTheme.secondaryHeaderColor,
-                                      fontWeight: FontWeight.w300),
+                                  style: ResponsiveLayout.isMobile
+                                      ? theme.textTheme.atlasGreyNormal12
+                                      : theme.textTheme.atlasGreyNormal14,
                                 )
-                              : SizedBox(),
-                          this.subTitleView ?? SizedBox(),
+                              : const SizedBox(),
+                          subTitleView ?? const SizedBox(),
                         ],
                       ),
                       if (maxLines == 1) ...[
@@ -87,37 +88,32 @@ class AuTextField extends StatelessWidget {
                     ],
                   ),
                 ),
-                suffix ?? SizedBox(),
+                suffix ?? const SizedBox(),
               ],
             )));
   }
 
   Widget _textFieldWidget(BuildContext context) {
+    final theme = Theme.of(context);
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 8.0),
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
       child: TextField(
         maxLines: maxLines,
         decoration: InputDecoration(
+          contentPadding: const EdgeInsets.fromLTRB(0, 3, 0, 0),
           isDense: true,
           border: InputBorder.none,
           hintText: placeholder,
           hintMaxLines: hintMaxLines,
-          hintStyle: TextStyle(
-            fontSize: 16,
-            fontFamily: "AtlasGrotesk",
-          ),
+          hintStyle: ResponsiveLayout.isMobile
+              ? theme.textTheme.atlasSpanishGreyNormal16
+              : theme.textTheme.atlasSpanishGreyNormal20,
         ),
         keyboardType: keyboardType,
-        style: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w300,
-          // height: 1.2,
-          fontFamily: "IBMPlexMono",
-          color: Colors.black,
-        ),
+        style: theme.textTheme.subtitle1,
         controller: controller,
         onChanged: onChanged,
-        onSubmitted: onChanged,
+        onSubmitted: onSubmit ?? onChanged,
       ),
     );
   }

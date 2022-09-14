@@ -13,9 +13,11 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 
 class CloudPage extends StatelessWidget {
   final String section;
@@ -39,11 +41,13 @@ class CloudPage extends StatelessWidget {
   }
 
   Widget _contentWidget(BuildContext context) {
+    final theme = Theme.of(context);
+
     return ValueListenableBuilder<bool>(
         valueListenable: injector<CloudService>().isAvailableNotifier,
         builder: (BuildContext context, bool isAvailable, Widget? child) {
           return Container(
-            margin: pageEdgeInsetsWithSubmitButton,
+            margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -53,30 +57,33 @@ class CloudPage extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            isAvailable ? "Backed up" : "Sign in to iCloud",
-                            style: appTextTheme.headline1,
+                            isAvailable
+                                ? "backed_up".tr()
+                                : "sign_in_to_icloud".tr(),
+                            style: theme.textTheme.headline1,
                           ),
                           addTitleSpace(),
                           Text(
-                            "Autonomy will automatically back up all of your account information securely, including cryptographic material from accounts you manage as well as links to your accounts. If you ever lose your phone, you will be able to recover everything.",
-                            style: appTextTheme.bodyText1,
+                            "autonomy_will_auto_bk".tr(),
+                            //"Autonomy will automatically back up all of your account information securely, including cryptographic material from accounts you manage as well as links to your accounts. If you ever lose your phone, you will be able to recover everything.",
+                            style: theme.textTheme.bodyText1,
                           ),
                           if (isAvailable) ...[
-                            SizedBox(height: 40),
+                            const SizedBox(height: 40),
                             Center(
                                 child: SvgPicture.asset(
                                     "assets/images/cloudOn.svg")),
                           ] else ...[
-                            SizedBox(height: 16),
+                            const SizedBox(height: 16),
                             Text(
                               "iCloud is currently turned off on your device. We recommend you enable it so we can safely back up your account.",
-                              style: appTextTheme.headline4,
+                              style: theme.textTheme.headline4,
                             ),
                             SizedBox(height: section == "settings" ? 40 : 80),
                             Center(
                                 child: SvgPicture.asset(
                                     "assets/images/icloudKeychainGuide.svg")),
-                            SizedBox(height: 20),
+                            const SizedBox(height: 20),
                           ],
                         ]),
                   ),
@@ -89,6 +96,7 @@ class CloudPage extends StatelessWidget {
   }
 
   Widget _buttonsGroup(BuildContext context, bool isAvailable) {
+    final theme = Theme.of(context);
     switch (section) {
       case "nameAlias":
         if (isAvailable) {
@@ -105,34 +113,30 @@ class CloudPage extends StatelessWidget {
         } else {
           return Column(
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: AuFilledButton(
-                      text: "CONTINUE WITHOUT ICLOUD".toUpperCase(),
-                      onPress: () => _continue(context),
-                    ),
-                  ),
-                ],
+              AuFilledButton(
+                onPress: () => openAppSettings(),
+                text: "open_icloud_setting".tr(),
               ),
               TextButton(
-                  onPressed: () => openAppSettings(),
-                  child: Text("OPEN ICLOUD SETTINGS",
-                      style:
-                          appTextTheme.button?.copyWith(color: Colors.black))),
+                child: Text(
+                  "continue_without_icloud".tr().toUpperCase(),
+                  style: theme.textTheme.button,
+                ),
+                onPressed: () => _continue(context),
+              ),
             ],
           );
         }
 
       case "settings":
         if (isAvailable) {
-          return SizedBox();
+          return const SizedBox();
         } else {
           return Row(
             children: [
               Expanded(
                 child: AuFilledButton(
-                  text: "OPEN ICLOUD SETTINGS".toUpperCase(),
+                  text: "open_icloud_setting".tr().toUpperCase(),
                   onPress: () => openAppSettings(),
                 ),
               ),
@@ -141,7 +145,7 @@ class CloudPage extends StatelessWidget {
         }
 
       default:
-        return SizedBox();
+        return const SizedBox();
     }
   }
 

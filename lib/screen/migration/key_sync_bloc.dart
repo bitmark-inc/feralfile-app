@@ -11,8 +11,8 @@ import 'package:autonomy_flutter/screen/migration/key_sync_state.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 
 class KeySyncBloc extends AuBloc<KeySyncEvent, KeySyncState> {
-  BackupService _backupService;
-  CloudDatabase _cloudDatabase;
+  final BackupService _backupService;
+  final CloudDatabase _cloudDatabase;
 
   KeySyncBloc(this._backupService, this._cloudDatabase)
       : super(KeySyncState(true, null)) {
@@ -31,7 +31,7 @@ class KeySyncBloc extends AuBloc<KeySyncEvent, KeySyncState> {
       final cloudBackupVersion = await _backupService.fetchBackupVersion(cloudWallet);
 
       if (cloudBackupVersion.isNotEmpty) {
-        final tmpCloudDbName = 'tmp_cloud_database.db';
+        const tmpCloudDbName = 'tmp_cloud_database.db';
         await _backupService.restoreCloudDatabase(cloudWallet, cloudBackupVersion, dbName: tmpCloudDbName);
 
         final tmpCloudDb = await $FloorCloudDatabase

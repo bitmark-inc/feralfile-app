@@ -19,9 +19,9 @@ import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:flutter/material.dart';
 
 class WalletDetailBloc extends AuBloc<WalletDetailEvent, WalletDetailState> {
-  EthereumService _ethereumService;
-  TezosService _tezosService;
-  CurrencyService _currencyService;
+  final EthereumService _ethereumService;
+  final TezosService _tezosService;
+  final CurrencyService _currencyService;
 
   WalletDetailBloc(
       this._ethereumService, this._tezosService, this._currencyService)
@@ -39,11 +39,10 @@ class WalletDetailBloc extends AuBloc<WalletDetailEvent, WalletDetailState> {
           newState.address = address;
           newState.balance =
               "${EthAmountFormatter(balance.getInWei).format().characters.take(7)} ETH";
-          newState.balanceInUSD = (balance.getInWei.toDouble() /
+          newState.balanceInUSD = "${(balance.getInWei.toDouble() /
                       pow(10, 18) /
                       double.parse(exchangeRate.eth))
-                  .toStringAsPrecision(2) +
-              " USD";
+                  .toStringAsPrecision(2)} USD";
           break;
         case CryptoType.XTZ:
           final tezosWallet = await event.wallet.getTezosWallet();
@@ -55,9 +54,8 @@ class WalletDetailBloc extends AuBloc<WalletDetailEvent, WalletDetailState> {
           newState.address = address;
           newState.balance = "${XtzAmountFormatter(balance).format()} XTZ";
           newState.balanceInUSD =
-              (balance / pow(10, 6) / double.parse(exchangeRate.xtz))
-                      .toStringAsFixed(2) +
-                  " USD";
+              "${(balance / pow(10, 6) / double.parse(exchangeRate.xtz))
+                      .toStringAsFixed(2)} USD";
 
           break;
         case CryptoType.BITMARK:

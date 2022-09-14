@@ -29,20 +29,17 @@ class GetTezosAddressEvent extends TezosEvent {
 
 class TezosState {
   Map<String, String>? personaAddresses;
-  Map<Network, Map<String, int>> balances;
+  Map<String, int> balances;
 
-  TezosState({
-    this.personaAddresses,
-    required Map<Network, Map<String, int>> balances,
-  }) : this.balances = balances;
+  TezosState(this.personaAddresses, this.balances);
 
   TezosState copyWith({
     Map<String, String>? personaAddresses,
-    Map<Network, Map<String, int>>? balances,
+    Map<String, int>? balances,
   }) {
     return TezosState(
-      personaAddresses: personaAddresses ?? this.personaAddresses,
-      balances: balances ?? this.balances,
+      personaAddresses ?? this.personaAddresses,
+      balances ?? this.balances,
     );
   }
 }

@@ -43,9 +43,9 @@ class Persona {
     DateTime? createdAt,
   }) {
     return Persona(
-        uuid: this.uuid,
+        uuid: uuid,
         name: name ?? this.name,
-        defaultAccount: this.defaultAccount,
+        defaultAccount: defaultAccount,
         createdAt: createdAt ?? this.createdAt);
   }
 

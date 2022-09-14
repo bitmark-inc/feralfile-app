@@ -14,11 +14,13 @@ import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_state.d
 import 'package:autonomy_flutter/screen/settings/crypto/send_review_page.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
-import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -36,8 +38,8 @@ class SendCryptoPage extends StatefulWidget {
 }
 
 class _SendCryptoPageState extends State<SendCryptoPage> {
-  TextEditingController _addressController = TextEditingController();
-  TextEditingController _amountController = TextEditingController();
+  final TextEditingController _addressController = TextEditingController();
+  final TextEditingController _amountController = TextEditingController();
 
   @override
   void initState() {
@@ -53,6 +55,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
   @override
   Widget build(BuildContext context) {
     final type = widget.data.type;
+    final theme = Theme.of(context);
 
     return Scaffold(
       appBar: getBackAppBar(
@@ -64,19 +67,19 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
       body: BlocBuilder<SendCryptoBloc, SendCryptoState>(
           builder: (context, state) {
         return Container(
-          margin: EdgeInsets.all(16.0),
+          margin: const EdgeInsets.all(16.0),
           child: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "Send ${type == CryptoType.ETH ? "ETH" : "XTZ"}",
-                  style: appTextTheme.headline1,
+                  type == CryptoType.ETH ? "send_eth".tr() : "send_xtz".tr(),
+                  style: theme.textTheme.headline1,
                 ),
-                SizedBox(height: 40.0),
+                const SizedBox(height: 40.0),
                 AuTextField(
-                  title: "To",
-                  placeholder: "Paste or scan address",
+                  title: "to".tr(),
+                  placeholder: "paste_or_scan_address".tr(),
                   isError: state.isAddressError,
                   controller: _addressController,
                   suffix: IconButton(
@@ -97,6 +100,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                                 : ScannerItem.XTZ_ADDRESS);
                         if (address != null && address is String) {
                           _addressController.text = address;
+                          if (!mounted) return;
                           context
                               .read<SendCryptoBloc>()
                               .add(AddressChangedEvent(address));
@@ -110,23 +114,21 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                         .add(AddressChangedEvent(_addressController.text));
                   },
                 ),
-                SizedBox(height: 16.0),
+                const SizedBox(height: 16.0),
                 AuTextField(
-                  title: "Send",
+                  title: "send".tr(),
                   placeholder: "0",
                   isError: state.isAmountError,
                   controller: _amountController,
-                  keyboardType: TextInputType.numberWithOptions(decimal: true),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
                   subTitleView: state.maxAllow != null
                       ? GestureDetector(
                           child: Text(
                             _maxAmountText(state),
-                            style: TextStyle(
-                                fontSize: 12,
-                                decoration: TextDecoration.underline,
-                                fontFamily: "AtlasGrotesk",
-                                color: AppColorTheme.secondaryHeaderColor,
-                                fontWeight: FontWeight.w300),
+                            style: ResponsiveLayout.isMobile
+                                ? theme.textTheme.atlasGreyUnderline12
+                                : theme.textTheme.atlasGreyUnderline14,
                           ),
                           onTap: () {
                             String amountInStr = _maxAmount(state);
@@ -177,19 +179,15 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                         _amountController.text.replaceAll(",", ".")));
                   },
                 ),
-                SizedBox(height: 8.0),
-                Text(_gasFee(state),
-                    style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 12,
-                        fontFamily: "AtlasGrotesk")),
-                SizedBox(height: 24.0),
+                const SizedBox(height: 8.0),
+                Text(_gasFee(state), style: theme.textTheme.headline5),
+                const SizedBox(height: 24.0),
                 // Expanded(child: SizedBox()),
                 Row(
                   children: [
                     Expanded(
                       child: AuFilledButton(
-                        text: "Review",
+                        text: "review".tr(),
                         onPress: state.isValid
                             ? () async {
                                 final payload = SendCryptoPayload(
@@ -203,6 +201,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                                     .pushNamed(SendReviewPage.tag,
                                         arguments: payload);
                                 if (txHash != null && txHash is String) {
+                                  if (!mounted) return;
                                   Navigator.of(context).pop();
                                 }
                               }
@@ -223,7 +222,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
     if (state.maxAllow == null) return "";
     final max = state.maxAllow!;
 
-    String text = "Max: ";
+    String text = "max".tr();
 
     switch (widget.data.type) {
       case CryptoType.ETH:
@@ -264,7 +263,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
     if (state.fee == null) return "";
     final fee = state.fee!;
 
-    String text = "Gas fee: ";
+    String text = "gas_fee".tr();
 
     switch (widget.data.type) {
       case CryptoType.ETH:

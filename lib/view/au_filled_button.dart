@@ -5,10 +5,9 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:flutter/material.dart';
-
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:flutter/material.dart';
 
 class AuFilledButton extends StatelessWidget {
   final String text;
@@ -17,6 +16,7 @@ class AuFilledButton extends StatelessWidget {
   final bool enabled;
   final Widget? icon;
   final TextStyle? textStyle;
+  final TextAlign? textAlign;
   final bool isProcessing;
 
   const AuFilledButton(
@@ -25,50 +25,52 @@ class AuFilledButton extends StatelessWidget {
       required this.onPress,
       this.icon,
       this.enabled = true,
-      this.color = Colors.black,
+      this.color = AppColor.primaryBlack,
       this.isProcessing = false,
-      this.textStyle})
+      this.textStyle,
+      this.textAlign})
       : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return ClipPath(
       clipper: AutonomyButtonClipper(),
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
             primary: enabled ? color : color.withOpacity(0.6),
             onSurface: color,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.zero,
-            ),
+            shape: const RoundedRectangleBorder(),
             splashFactory:
                 enabled ? InkRipple.splashFactory : NoSplash.splashFactory,
             padding: const EdgeInsets.symmetric(vertical: 14)),
+        onPressed: enabled ? onPress : () {},
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             isProcessing
                 ? Container(
-                    child: CircularProgressIndicator(
-                      color: Colors.black,
-                      backgroundColor: Colors.grey,
-                      strokeWidth: 2.0,
-                    ),
                     height: 14.0,
                     width: 14.0,
-                    margin: EdgeInsets.only(right: 8.0),
+                    margin: const EdgeInsets.only(right: 8.0),
+                    child: CircularProgressIndicator(
+                      color: theme.colorScheme.primary,
+                      backgroundColor: theme.colorScheme.surface,
+                      strokeWidth: 2.0,
+                    ),
                   )
-                : SizedBox(),
+                : const SizedBox(),
             icon != null
-                ? Container(child: icon!, margin: EdgeInsets.only(right: 8.0))
-                : SizedBox(),
+                ? Container(
+                    margin: const EdgeInsets.only(right: 8.0), child: icon!)
+                : const SizedBox(),
             Text(
               text.toUpperCase(),
-              style: textStyle ?? appTextTheme.button,
+              style: textStyle ?? theme.primaryTextTheme.button,
             ),
           ],
         ),
-        onPressed: enabled ? onPress : () {},
       ),
     );
   }

@@ -8,12 +8,13 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:flutter/material.dart';
 
 class NavigationService {
-  final GlobalKey<NavigatorState> navigatorKey =
-      new GlobalKey<NavigatorState>();
+  final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
   // to prevent showing duplicate ConnectPage
   // workaround solution for unknown reason ModalRoute(navigatorKey.currentContext) returns nil
@@ -27,8 +28,48 @@ class NavigationService {
       return null;
     }
 
+    if (navigatorKey.currentState?.mounted != true ||
+        navigatorKey.currentContext == null) {
+      return null;
+    }
+
     return navigatorKey.currentState
         ?.pushNamed(routeName, arguments: arguments);
+  }
+
+  void showFFAccountLinked(String alias, {bool inOnboarding = false}) {
+    log.info("NavigationService.showFFAccountLinked: $alias");
+
+    if (navigatorKey.currentState?.mounted == true &&
+        navigatorKey.currentContext != null) {
+      UIHelper.showFFAccountLinked(navigatorKey.currentContext!, alias,
+          inOnboarding: inOnboarding);
+    }
+  }
+
+  void showErrorDialog(
+    ErrorEvent event, {
+    Function()? defaultAction,
+    Function()? cancelAction,
+  }) {
+    log.info("NavigationService.showErrorDialog");
+
+    if (navigatorKey.currentState?.mounted == true &&
+        navigatorKey.currentContext != null) {
+      showErrorDiablog(
+        navigatorKey.currentContext!,
+        event,
+        defaultAction: defaultAction,
+        cancelAction: cancelAction,
+      );
+    }
+  }
+
+  void hideInfoDialog() {
+    if (navigatorKey.currentState?.mounted == true &&
+        navigatorKey.currentContext != null) {
+      UIHelper.hideInfoDialog(navigatorKey.currentContext!);
+    }
   }
 
   void goBack() {

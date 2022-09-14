@@ -21,6 +21,7 @@ class AutonomyServiceImpl extends AutonomyService {
 
   AutonomyServiceImpl(this._cloudDB, this._autonomyApi);
 
+  @override
   Future postLinkedAddresses() async {
     List<String> addresses = [];
 
@@ -28,7 +29,8 @@ class AutonomyServiceImpl extends AutonomyService {
 
     if (personas.isEmpty) {
       log.info(
-          '[AutonomyService] postLinkedAddresses; skip when there is no persona');
+          '[AutonomyService] postLinkedAddresses;'
+              ' skip when there is no persona');
       return; // avoid re-create default account when forgot I existing
     }
 
@@ -50,6 +52,7 @@ class AutonomyServiceImpl extends AutonomyService {
     });
   }
 
+  @override
   Future clearLinkedAddresses() async {
     log.info('[AutonomyService] clearLinkedAddresses');
     return _autonomyApi.postLinkedAddressed({

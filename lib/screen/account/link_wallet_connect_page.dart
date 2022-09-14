@@ -9,11 +9,14 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/wallet_connect_dapp_service/wallet_connect_dapp_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 
 class LinkWalletConnectPage extends StatefulWidget {
   final String unableOpenAppname;
@@ -43,6 +46,7 @@ class _LinkWalletConnectPageState extends State<LinkWalletConnectPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: getBackAppBar(
         context,
@@ -51,8 +55,7 @@ class _LinkWalletConnectPageState extends State<LinkWalletConnectPage> {
         },
       ),
       body: Container(
-        margin:
-            EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
+        margin: ResponsiveLayout.pageEdgeInsets,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -62,26 +65,34 @@ class _LinkWalletConnectPageState extends State<LinkWalletConnectPage> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
-                      "Scan code to link",
-                      style: appTextTheme.headline1,
+                      "scan_code_to_link".tr(),
+                      style: theme.textTheme.headline1,
                     ),
                     addTitleSpace(),
                     if (widget.unableOpenAppname.isNotEmpty) ...[
                       Text(
-                          "We were unable to open ${widget.unableOpenAppname} on this device.",
-                          style: appTextTheme.bodyText1
-                              ?.copyWith(fontWeight: FontWeight.bold)),
-                      SizedBox(height: 24),
+                          'sctl_we_were_unable'
+                              .tr(args: ['widget.unableOpenAppname']),
+                          //"We were unable to open ${widget.unableOpenAppname} on this device.",
+                          style: theme.textTheme.headline4),
+                      const SizedBox(height: 24),
                     ],
                     Text(
-                      "If your wallet is on another device, you can open it and scan the QR code below to link your account to Autonomy: ",
-                      style: appTextTheme.bodyText1,
+                      "sctl_if_your_wallet".tr(),
+                      //"If your wallet is on another device, you can open it and scan the QR code below to link your account to Autonomy: ",
+                      style: theme.textTheme.bodyText1,
                     ),
-                    SizedBox(height: 24),
+                    const SizedBox(height: 24),
                     _wcQRCode(),
                     if (_copied) ...[
-                      SizedBox(height: 24),
-                      Center(child: Text("Copied", style: copiedTextStyle)),
+                      const SizedBox(height: 24),
+                      Center(
+                          child: Text(
+                        "copied".tr(),
+                        style: ResponsiveLayout.isMobile
+                            ? theme.textTheme.atlasBlackBold12
+                            : theme.textTheme.atlasBlackBold14,
+                      )),
                     ]
                   ],
                 ),
@@ -105,10 +116,9 @@ class _LinkWalletConnectPageState extends State<LinkWalletConnectPage> {
               child: wcURI != null
                   ? QrImage(
                       data: wcURI,
-                      version: QrVersions.auto,
                       size: 180.0,
                     )
-                  : CupertinoActivityIndicator(
+                  : const CupertinoActivityIndicator(
                       // color: Colors.black,
                       ),
             ),

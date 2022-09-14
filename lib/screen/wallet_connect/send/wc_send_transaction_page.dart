@@ -8,9 +8,9 @@
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_bloc.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_state.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -26,7 +26,7 @@ class WCSendTransactionPage extends StatefulWidget {
   const WCSendTransactionPage({Key? key, required this.args}) : super(key: key);
 
   @override
-  _WCSendTransactionPageState createState() => _WCSendTransactionPageState();
+  State<WCSendTransactionPage> createState() => _WCSendTransactionPageState();
 }
 
 class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
@@ -44,6 +44,8 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: getBackAppBar(
         context,
@@ -74,80 +76,80 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            SizedBox(height: 8.0),
+                            const SizedBox(height: 8.0),
                             Text(
-                              "Confirm",
-                              style: appTextTheme.headline1,
+                              "h_confirm".tr(),
+                              style: theme.textTheme.headline1,
                             ),
-                            SizedBox(height: 40.0),
+                            const SizedBox(height: 40.0),
                             Text(
-                              "Asset",
-                              style: appTextTheme.headline4,
+                              "asset".tr(),
+                              style: theme.textTheme.headline4,
                             ),
-                            SizedBox(height: 16.0),
+                            const SizedBox(height: 16.0),
                             Text(
-                              "Ethereum (ETH)",
-                              style: appTextTheme.bodyText2,
+                              "ethereum_eth".tr(),
+                              style: theme.textTheme.bodyText2,
                             ),
-                            Divider(height: 32),
+                            const Divider(height: 32),
                             Text(
-                              "From",
-                              style: appTextTheme.headline4,
+                              "from".tr(),
+                              style: theme.textTheme.headline4,
                             ),
-                            SizedBox(height: 16.0),
+                            const SizedBox(height: 16.0),
                             Text(
                               widget.args.transaction.from,
-                              style: appTextTheme.bodyText2,
+                              style: theme.textTheme.bodyText2,
                             ),
-                            Divider(height: 32),
+                            const Divider(height: 32),
                             Text(
-                              "Connection",
-                              style: appTextTheme.headline4,
+                              "connection".tr(),
+                              style: theme.textTheme.headline4,
                             ),
-                            SizedBox(height: 16.0),
+                            const SizedBox(height: 16.0),
                             Text(
                               widget.args.peerMeta.name,
-                              style: appTextTheme.bodyText2,
+                              style: theme.textTheme.bodyText2,
                             ),
-                            Divider(height: 32),
+                            const Divider(height: 32),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  "Send",
-                                  style: appTextTheme.headline4,
+                                  "send".tr(),
+                                  style: theme.textTheme.headline4,
                                 ),
                                 Text(
                                   "${EthAmountFormatter(amount.getInWei).format()} ETH",
-                                  style: appTextTheme.bodyText2,
+                                  style: theme.textTheme.bodyText2,
                                 ),
                               ],
                             ),
-                            Divider(height: 32),
+                            const Divider(height: 32),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  "Gas fee",
-                                  style: appTextTheme.headline4,
+                                  "gas_fee2".tr(),
+                                  style: theme.textTheme.headline4,
                                 ),
                                 Text(
                                   "${state.fee != null ? EthAmountFormatter(state.fee!).format() : "-"} ETH",
-                                  style: appTextTheme.bodyText2,
+                                  style: theme.textTheme.bodyText2,
                                 ),
                               ],
                             ),
-                            Divider(height: 32),
+                            const Divider(height: 32),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  "Total Amount",
-                                  style: appTextTheme.headline4,
+                                  "total_amount".tr(),
+                                  style: theme.textTheme.headline4,
                                 ),
                                 Text(
                                   "${total != null ? EthAmountFormatter(total).format() : "-"} ETH",
-                                  style: appTextTheme.headline4,
+                                  style: theme.textTheme.headline4,
                                 ),
                               ],
                             ),
@@ -159,7 +161,7 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                       children: [
                         Expanded(
                           child: AuFilledButton(
-                            text: "Send".toUpperCase(),
+                            text: "send".tr().toUpperCase(),
                             onPress: (state.fee != null && !state.isSending)
                                 ? () async {
                                     final to = EthereumAddress.fromHex(
@@ -184,8 +186,8 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                 ),
               ),
               state.isSending
-                  ? Center(child: CupertinoActivityIndicator())
-                  : SizedBox(),
+                  ? const Center(child: CupertinoActivityIndicator())
+                  : const SizedBox(),
             ],
           );
         },

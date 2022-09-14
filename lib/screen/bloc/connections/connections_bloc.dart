@@ -18,9 +18,9 @@ import 'package:wallet_connect/wallet_connect.dart';
 part 'connections_state.dart';
 
 class ConnectionsBloc extends AuBloc<ConnectionsEvent, ConnectionsState> {
-  CloudDatabase _cloudDB;
-  WalletConnectService _walletConnectService;
-  TezosBeaconService _tezosBeaconService;
+  final CloudDatabase _cloudDB;
+  final WalletConnectService _walletConnectService;
+  final TezosBeaconService _tezosBeaconService;
 
   ConnectionsBloc(
       this._cloudDB, this._walletConnectService, this._tezosBeaconService)

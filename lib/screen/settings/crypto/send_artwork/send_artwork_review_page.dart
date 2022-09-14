@@ -6,22 +6,21 @@
 //
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/common/network_config_injector.dart';
-import 'package:autonomy_flutter/database/entity/asset_token.dart';
 import 'package:autonomy_flutter/model/currency_exchange.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:libauk_dart/libauk_dart.dart';
+import 'package:nft_collection/models/asset_token.dart';
 import 'package:web3dart/web3dart.dart';
 
 class SendArtworkReviewPage extends StatefulWidget {
@@ -39,6 +38,7 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final asset = widget.payload.asset;
 
     final identityState = context.watch<IdentityBloc>().state;
@@ -69,81 +69,111 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "Confirmation",
-                          style: appTextTheme.headline1,
+                          "confirmation".tr(),
+                          style: theme.textTheme.headline1,
                         ),
-                        SizedBox(height: 40.0),
+                        const SizedBox(height: 40.0),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              "Title",
-                              style: appTextTheme.headline4,
+                              "title".tr(),
+                              style: theme.textTheme.headline4,
                             ),
                             Expanded(
                               child: Text(
                                 asset.title,
                                 textAlign: TextAlign.right,
-                                style: appTextTheme.bodyText2,
+                                style: theme.textTheme.bodyText2,
                               ),
                             ),
                           ],
                         ),
-                        Divider(height: 32),
+                        const Divider(height: 32),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              "Artist",
-                              style: appTextTheme.headline4,
+                              "artist".tr(),
+                              style: theme.textTheme.headline4,
                             ),
                             Text(
                               artistName ?? "",
-                              style: appTextTheme.bodyText2,
+                              style: theme.textTheme.bodyText2,
                             ),
                           ],
                         ),
-                        Divider(height: 32),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "Edition",
-                              style: appTextTheme.headline4,
-                            ),
-                            Text(
-                              "${asset.edition}/${asset.maxEdition}",
-                              style: appTextTheme.bodyText2,
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 32.0),
+                        const Divider(height: 32),
+                        if (widget.payload.asset.fungible == true) ...[
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "owned_tokens".tr(),
+                                style: theme.textTheme.headline4,
+                              ),
+                              Text(
+                                "${widget.payload.ownedTokens}",
+                                style: theme.textTheme.bodyText2,
+                              ),
+                            ],
+                          ),
+                          const Divider(height: 32),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "quantity_sent".tr(),
+                                style: theme.textTheme.headline4,
+                              ),
+                              Text(
+                                "${widget.payload.quantity}",
+                                style: theme.textTheme.bodyText2,
+                              ),
+                            ],
+                          ),
+                        ] else ...[
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "edition".tr(),
+                                style: theme.textTheme.headline4,
+                              ),
+                              Text(
+                                "${asset.edition}/${asset.maxEdition}",
+                                style: theme.textTheme.bodyText2,
+                              ),
+                            ],
+                          ),
+                        ],
+                        const SizedBox(height: 32.0),
                         Text(
-                          "To",
-                          style: appTextTheme.headline4,
+                          "to".tr(),
+                          style: theme.textTheme.headline4,
                         ),
-                        SizedBox(height: 16.0),
+                        const SizedBox(height: 16.0),
                         Text(
                           widget.payload.address,
-                          style: appTextTheme.bodyText2,
+                          style: theme.textTheme.bodyText2,
                         ),
-                        Divider(height: 32),
+                        const Divider(height: 32),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              "Gas fee",
-                              style: appTextTheme.headline4,
+                              "gas_fee2".tr(),
+                              style: theme.textTheme.headline4,
                             ),
                             Text(
                               widget.payload.asset.blockchain == "ethereum"
                                   ? "${EthAmountFormatter(widget.payload.fee).format()} ETH (${widget.payload.exchangeRate.ethToUsd(widget.payload.fee)} USD)"
                                   : "${XtzAmountFormatter(widget.payload.fee.toInt()).format()} XTZ (${widget.payload.exchangeRate.xtzToUsd(widget.payload.fee.toInt())} USD)",
-                              style: appTextTheme.bodyText2,
+                              style: theme.textTheme.bodyText2,
                             ),
                           ],
                         ),
-                        SizedBox(height: 24.0),
+                        const SizedBox(height: 24.0),
                       ],
                     ),
                   ),
@@ -152,7 +182,7 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                   children: [
                     Expanded(
                       child: AuFilledButton(
-                        text: "SEND",
+                        text: "sendH".tr(),
                         onPress: _isSending
                             ? null
                             : () async {
@@ -164,8 +194,7 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                                 if (widget.payload.asset.blockchain ==
                                     "ethereum") {
                                   final ethereumService =
-                                      injector<NetworkConfigInjector>()
-                                          .I<EthereumService>();
+                                      injector<EthereumService>();
 
                                   final contractAddress =
                                       EthereumAddress.fromHex(
@@ -177,9 +206,22 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                                           .getETHAddress());
                                   final tokenId = asset.tokenId!;
 
-                                  final data = await ethereumService
-                                      .getERC721TransferTransactionData(
-                                          contractAddress, from, to, tokenId);
+                                  final data = widget
+                                              .payload.asset.contractType ==
+                                          "erc1155"
+                                      ? await ethereumService
+                                          .getERC1155TransferTransactionData(
+                                              contractAddress,
+                                              from,
+                                              to,
+                                              tokenId,
+                                              widget.payload.quantity)
+                                      : await ethereumService
+                                          .getERC721TransferTransactionData(
+                                              contractAddress,
+                                              from,
+                                              to,
+                                              tokenId);
 
                                   final txHash =
                                       await ethereumService.sendTransaction(
@@ -188,11 +230,10 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                                           BigInt.zero,
                                           null,
                                           data);
+                                  if (!mounted) return;
                                   Navigator.of(context).pop(txHash);
                                 } else {
-                                  final tezosService =
-                                      injector<NetworkConfigInjector>()
-                                          .I<TezosService>();
+                                  final tezosService = injector<TezosService>();
                                   final tokenId = asset.tokenId!;
 
                                   final tezosWallet = await widget
@@ -203,10 +244,12 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                                           widget.payload.asset.contractAddress!,
                                           tezosWallet.address,
                                           widget.payload.address,
-                                          int.parse(tokenId));
+                                          int.parse(tokenId),
+                                          widget.payload.quantity);
                                   final opHash = await tezosService
                                       .sendOperationTransaction(
                                           tezosWallet, [operation]);
+                                  if (!mounted) return;
                                   Navigator.of(context).pop(opHash);
                                 }
 
@@ -218,11 +261,13 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                     ),
                   ],
                 ),
-                SizedBox(height: 16.0),
+                const SizedBox(height: 16.0),
               ],
             ),
           ),
-          _isSending ? Center(child: CupertinoActivityIndicator()) : SizedBox(),
+          _isSending
+              ? const Center(child: CupertinoActivityIndicator())
+              : const SizedBox(),
         ],
       ),
     );
@@ -235,7 +280,9 @@ class SendArtworkReviewPayload {
   final String address;
   final BigInt fee;
   final CurrencyExchangeRate exchangeRate;
+  final int ownedTokens;
+  final int quantity;
 
-  SendArtworkReviewPayload(
-      this.asset, this.wallet, this.address, this.fee, this.exchangeRate);
+  SendArtworkReviewPayload(this.asset, this.wallet, this.address, this.fee,
+      this.exchangeRate, this.ownedTokens, this.quantity);
 }

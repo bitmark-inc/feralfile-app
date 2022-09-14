@@ -6,11 +6,11 @@
 //
 
 import 'package:autonomy_flutter/au_bloc.dart';
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -21,9 +21,8 @@ import 'package:libauk_dart/libauk_dart.dart';
 part 'feralfile_state.dart';
 
 class FeralfileBloc extends AuBloc<FeralFileEvent, FeralFileState> {
-  ConfigurationService _configurationService;
-  FeralFileService _feralFileService;
-  CloudDatabase _cloudDB;
+  final FeralFileService _feralFileService;
+  final CloudDatabase _cloudDB;
 
   // TODO: Improve using cache?
   Future<Persona?> getPersonaFromETHAddress(String address) async {
@@ -37,8 +36,11 @@ class FeralfileBloc extends AuBloc<FeralFileEvent, FeralFileState> {
     return null;
   }
 
-  FeralfileBloc(
-      this._configurationService, this._feralFileService, this._cloudDB)
+  static FeralfileBloc create() {
+    return FeralfileBloc(injector(), injector());
+  }
+
+  FeralfileBloc(this._feralFileService, this._cloudDB)
       : super(FeralFileState()) {
     on<GetFFAccountInfoEvent>((event, emit) async {
       try {
@@ -101,7 +103,7 @@ class FeralfileBloc extends AuBloc<FeralFileEvent, FeralFileState> {
           // loop with delay because FeralFile may take time to execute 2FA
           if (retries < retryLimit) {
             retries++;
-            await Future.delayed(Duration(seconds: 5));
+            await Future.delayed(const Duration(seconds: 5));
           } else {
             final code = decodeErrorResponse(error);
             if (code == null) rethrow;
@@ -127,10 +129,7 @@ class FeralfileBloc extends AuBloc<FeralFileEvent, FeralFileState> {
       if (ffConnection != null) {
         await _cloudDB.connectionDao.deleteConnection(ffConnection);
       }
-      emit(state.copyWith(
-          connection: null,
-          event: FFUnlinked()
-      ));
+      emit(state.copyWith(event: FFUnlinked()));
     });
   }
 

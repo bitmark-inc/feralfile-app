@@ -8,9 +8,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:autonomy_flutter/database/dao/asset_token_dao.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
-import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:crypto/crypto.dart';
@@ -29,8 +27,6 @@ abstract class SettingsDataService {
 class SettingsDataServiceImpl implements SettingsDataService {
   final ConfigurationService _configurationService;
   final AccountService _accountService;
-  final AssetTokenDao _mainnetAssetDao;
-  final AssetTokenDao _testnetAssetDao;
   final IAPApi _iapApi;
 
   var latestDataHash = '';
@@ -38,8 +34,6 @@ class SettingsDataServiceImpl implements SettingsDataService {
   SettingsDataServiceImpl(
     this._configurationService,
     this._accountService,
-    this._mainnetAssetDao,
-    this._testnetAssetDao,
     this._iapApi,
   );
 
@@ -56,26 +50,16 @@ class SettingsDataServiceImpl implements SettingsDataService {
     if (addresses.isEmpty) return;
 
     _numberOfCallingBackups += 1;
-    final hiddenMainnetTokenIDs =
-        (await _mainnetAssetDao.findAllHiddenTokenIDs() +
-                _configurationService.getTempStorageHiddenTokenIDs(
-                    network: Network.MAINNET))
-            .toSet()
-            .toList();
 
-    final hiddenTestnetTokenIDs =
-        (await _testnetAssetDao.findAllHiddenTokenIDs() +
-                _configurationService.getTempStorageHiddenTokenIDs(
-                    network: Network.TESTNET))
-            .toSet()
-            .toList();
+    final hiddenMainnetTokenIDs =
+        _configurationService.getTempStorageHiddenTokenIDs();
 
     final data = SettingsDataBackup(
       addresses: addresses,
       isAnalyticsEnabled: _configurationService.isAnalyticsEnabled(),
       finishedSurveys: _configurationService.getFinishedSurveys(),
       hiddenMainnetTokenIDs: hiddenMainnetTokenIDs,
-      hiddenTestnetTokenIDs: hiddenTestnetTokenIDs,
+      hiddenTestnetTokenIDs: [],
       hiddenFullAccountsFromGallery:
           _configurationService.getPersonaUUIDsHiddenInGallery(),
       hiddenLinkedAccountsFromGallery:
@@ -90,7 +74,7 @@ class SettingsDataServiceImpl implements SettingsDataService {
     }
 
     String dir = (await getTemporaryDirectory()).path;
-    File backupFile = new File('$dir/$_filename');
+    File backupFile = File('$dir/$_filename');
     await backupFile.writeAsBytes(dataBytes);
 
     var isSuccess = false;
@@ -115,6 +99,7 @@ class SettingsDataServiceImpl implements SettingsDataService {
     log.info('[SettingsDataService][Done] backup');
   }
 
+  @override
   Future restoreSettingsData() async {
     log.info('[SettingsDataService][Start] restoreSettingsData');
     final response =
@@ -127,10 +112,7 @@ class SettingsDataServiceImpl implements SettingsDataService {
 
     await _configurationService.updateTempStorageHiddenTokenIDs(
         data.hiddenMainnetTokenIDs, true,
-        network: Network.MAINNET, override: true);
-    await _configurationService.updateTempStorageHiddenTokenIDs(
-        data.hiddenTestnetTokenIDs, true,
-        network: Network.TESTNET, override: true);
+        override: true);
 
     await _configurationService.setHidePersonaInGallery(
         data.hiddenFullAccountsFromGallery, true,

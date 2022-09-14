@@ -11,6 +11,7 @@ import android.app.KeyguardManager
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.util.Log
 import androidx.annotation.NonNull
 import androidx.biometric.BiometricManager
 import io.flutter.embedding.android.FlutterFragmentActivity

@@ -14,26 +14,35 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/aws_service.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
-import 'package:autonomy_flutter/util/au_cached_manager.dart';
+import 'package:autonomy_flutter/util/au_file_service.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_flutter/view/user_agent_utils.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:floor/floor.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_downloader/flutter_downloader.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
-import 'package:flutter_native_splash/flutter_native_splash.dart';
-import 'package:flutter_downloader/flutter_downloader.dart';
-import 'package:onesignal_flutter/onesignal_flutter.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 void main() async {
-  await dotenv.load(fileName: ".env");
+  await dotenv.load();
+
+  // feature/text_localization
+  WidgetsFlutterBinding.ensureInitialized();
+  await EasyLocalization.ensureInitialized();
 
   SentryFlutter.init((options) {
     options.dsn = Environment.sentryDSN;
@@ -51,13 +60,13 @@ void main() async {
     await FlutterDownloader.initialize();
     await Hive.initFlutter();
     FlutterDownloader.registerCallback(downloadCallback);
-    AUCacheManager().setup();
+    await AuFileService().setup();
 
     OneSignal.shared.setLogLevel(OSLogLevel.error, OSLogLevel.none);
     OneSignal.shared.setAppId(Environment.onesignalAppID);
 
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-      statusBarColor: Colors.white,
+      statusBarColor: AppColor.white,
       statusBarIconBrightness: Brightness.dark,
       statusBarBrightness: Brightness.light,
     ));
@@ -89,19 +98,31 @@ void main() async {
 _setupApp() async {
   await setup();
   await injector<AWSService>().initServices();
+  await DeviceInfo.instance.init();
+
+  final countOpenApp = injector<ConfigurationService>().countOpenApp() ?? 0;
+  injector<ConfigurationService>().setCountOpenApp(countOpenApp + 1);
 
   BlocOverrides.runZoned(
-    () => runApp(OverlaySupport.global(child: AutonomyApp())),
-    blocObserver: AppBlocObserver(),
+    () => runApp(EasyLocalization(
+        supportedLocales: const [Locale('en', 'US')],
+        path: 'assets/translations',
+        fallbackLocale: const Locale('en', 'US'),
+        child: const OverlaySupport.global(child: AutonomyApp()))),
   );
 
   Sentry.configureScope((scope) async {
     final deviceID = await getDeviceID();
     if (deviceID != null) {
-      scope.user = SentryUser(id: deviceID);
+      scope.setUser(SentryUser(id: deviceID));
     }
   });
   FlutterNativeSplash.remove();
+
+  //safe delay to wait for onboarding finished
+  Future.delayed(const Duration(seconds: 2), () {
+    injector<DeeplinkService>().setup();
+  });
 }
 
 Future<void> _deleteLocalDatabase() async {
@@ -114,49 +135,35 @@ Future<void> _deleteLocalDatabase() async {
 }
 
 class AutonomyApp extends StatelessWidget {
+  const AutonomyApp({Key? key}) : super(key: key);
+  static double maxWidth = 0;
+
   @override
   Widget build(BuildContext context) {
-    return CupertinoApp(
-      title: 'Autonomy',
-      theme: CupertinoThemeData(
-        scaffoldBackgroundColor: Colors.white,
-        primaryColor: Colors.grey,
-        barBackgroundColor: Color(0xFF6D6B6B),
-        // errorColor: Color(0xFFA1200A),
-        textTheme: CupertinoTextThemeData(
-          primaryColor: Colors.grey,
-        ),
-      ),
-      localizationsDelegates: [
-        DefaultMaterialLocalizations.delegate,
-        DefaultCupertinoLocalizations.delegate,
-        DefaultWidgetsLocalizations.delegate,
-      ],
-      debugShowCheckedModeBanner: false,
-      navigatorKey: injector<NavigationService>().navigatorKey,
-      navigatorObservers: [
-        routeObserver,
-        SentryNavigatorObserver(),
-        HeroController()
-      ],
-      initialRoute: AppRouter.onboardingPage,
-      onGenerateRoute: AppRouter.onGenerateRoute,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        maxWidth = constraints.maxWidth;
+        return MaterialApp(
+          title: 'Autonomy',
+          theme: ResponsiveLayout.isMobile
+              ? AppTheme.lightTheme()
+              : AppTheme.tabletLightTheme(),
+          darkTheme: AppTheme.lightTheme(),
+          localizationsDelegates: context.localizationDelegates,
+          supportedLocales: context.supportedLocales,
+          locale: context.locale,
+          debugShowCheckedModeBanner: false,
+          navigatorKey: injector<NavigationService>().navigatorKey,
+          navigatorObservers: [
+            routeObserver,
+            SentryNavigatorObserver(),
+            HeroController()
+          ],
+          initialRoute: AppRouter.onboardingPage,
+          onGenerateRoute: AppRouter.onGenerateRoute,
+        );
+      },
     );
-  }
-}
-
-/// Custom [BlocObserver] that observes all bloc and cubit state changes.
-class AppBlocObserver extends BlocObserver {
-  @override
-  void onChange(BlocBase bloc, Change change) {
-    super.onChange(bloc, change);
-    if (bloc is Cubit) print(change);
-  }
-
-  @override
-  void onTransition(Bloc bloc, Transition transition) {
-    super.onTransition(bloc, transition);
-    log.info(transition);
   }
 }
 

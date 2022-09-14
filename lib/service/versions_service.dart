@@ -14,9 +14,10 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/helpers.dart';
-import 'package:autonomy_flutter/util/theme_manager.dart';
+
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -32,7 +33,7 @@ class VersionService {
 
   Future checkForUpdate() async {
     if (kDebugMode) return;
-    if (UIHelper.currentDialogTitle == "Update Required") return;
+    if (UIHelper.currentDialogTitle == "update_required".tr()) return;
 
     final versionInfo = await getVersionInfo();
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
@@ -91,8 +92,8 @@ class VersionService {
       releaseNotes = await _pubdocAPI.getReleaseNotesContent(app, version);
 
       final textBegin = "## VERSION: $currentVersion\n";
-      final iOSTextBegin = "#### [iOS]\n";
-      final androidTextBegin = "#### [Android]\n";
+      const iOSTextBegin = "#### [iOS]\n";
+      const androidTextBegin = "#### [Android]\n";
 
       if (releaseNotes.contains(textBegin)) {
         releaseNotes = releaseNotes.split(textBegin)[1];
@@ -121,29 +122,28 @@ class VersionService {
     final context = _navigationService.navigatorKey.currentContext;
     if (context == null) return;
 
-    final theme = AuThemeManager.get(AppTheme.sheetTheme);
+    final theme = Theme.of(context);
     await UIHelper.showDialog(
         context,
-        "Update Required",
+        "update_required".tr(),
         Column(children: [
           Text(
-              "There is a newer version available for download! Please update the app to continue.",
-              style: theme.textTheme.bodyText1),
-          SizedBox(height: 35),
+              "newer_version".tr(),
+              style: theme.primaryTextTheme.bodyText1),
+          const SizedBox(height: 35),
           Row(
             children: [
               Expanded(
                 child: AuFilledButton(
-                  text: "UPDATE",
+                  text: "update".tr(),
                   onPress: () {
-                    launch(link, forceSafariVC: false);
+                    final uri = Uri.tryParse(link);
+                    if (uri != null) {
+                      launchUrl(uri, mode: LaunchMode.inAppWebView);
+                    }
                   },
-                  color: theme.primaryColor,
-                  textStyle: TextStyle(
-                      color: theme.backgroundColor,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      fontFamily: "IBMPlexMono"),
+                  color: theme.colorScheme.secondary,
+                  textStyle: theme.textTheme.button,
                 ),
               ),
             ],
@@ -153,11 +153,11 @@ class VersionService {
 
   Future showReleaseNodeDialog(
       String releaseNotes, String currentVersion) async {
-    final screenKey =
-        "What’s new?"; // avoid showing multiple what's new screens
+    var screenKey =
+        "what_new".tr(); // avoid showing multiple what's new screens
     if (UIHelper.currentDialogTitle == screenKey) return;
 
-    releaseNotes = "[$currentVersion]\n\n" + releaseNotes;
+    releaseNotes = "[$currentVersion]\n\n$releaseNotes";
     UIHelper.currentDialogTitle = screenKey;
 
     await _configurationService.setReadReleaseNotesInVersion(currentVersion);

@@ -11,7 +11,6 @@ import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/util/isolated_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:dio/dio.dart';
-import 'package:sentry/sentry.dart';
 import 'dart:convert';
 
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -38,9 +37,9 @@ class LoggingInterceptor extends Interceptor {
   Future writeAPILog(Response response) async {
     final apiPath =
         response.requestOptions.baseUrl + response.requestOptions.path;
-    bool _shortCurlLog = await IsolatedUtil().shouldShortCurlLog(apiPath);
+    bool shortCurlLog = await IsolatedUtil().shouldShortCurlLog(apiPath);
 
-    if (_shortCurlLog) {
+    if (shortCurlLog) {
       final request = response.requestOptions;
       apiLog.info("API Request: ${request.method} ${request.uri.toString()}");
     } else {
@@ -48,9 +47,9 @@ class LoggingInterceptor extends Interceptor {
       apiLog.info("API Request: $curl");
     }
 
-    bool _shortAPIResponseLog =
+    bool shortAPIResponseLog =
         await IsolatedUtil().shouldShortAPIResponseLog(apiPath);
-    if (_shortAPIResponseLog) {
+    if (shortAPIResponseLog) {
       apiLog.info("API Response Status: ${response.statusCode}");
     } else {
       final message = response.toString();
@@ -60,24 +59,20 @@ class LoggingInterceptor extends Interceptor {
 
   String cURLRepresentation(RequestOptions options) {
     List<String> components = ["\$ curl -i"];
-    if (options.method != null && options.method.toUpperCase() == "GET") {
+    if (options.method.toUpperCase() == "GET") {
       components.add("-X ${options.method}");
     }
 
-    if (options.headers != null) {
-      options.headers.forEach((k, v) {
-        if (k != "Cookie") {
-          components.add("-H \"$k: $v\"");
-        }
-      });
-    }
+    options.headers.forEach((k, v) {
+      if (k != "Cookie") {
+        components.add("-H \"$k: $v\"");
+      }
+    });
 
     try {
       var data = json.encode(options.data);
-      if (data != null) {
-        data = data.replaceAll('\"', '\\\"');
-        components.add("-d \"$data\"");
-      }
+      data = data.replaceAll('"', '\\"');
+      components.add("-d \"$data\"");
     } catch (err) {
       //ignore
     }

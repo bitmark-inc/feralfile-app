@@ -80,23 +80,23 @@ platform :ios do
 		sentry_create_release(
 			auth_token: ENV["SENTRY_AUTH"],
 			org_slug: 'bitmark-inc',
-			project_slug: 'autonomy-ios',
+			project_slug: 'autonomy-client-flutter',
 			version: ENV["APP_VERSION"],
 			build: next_build_number.to_s,
 			app_identifier: app_identifier
 		)
 
-		sentry_upload_dsym(
-			auth_token: ENV["SENTRY_AUTH"],
-			org_slug: 'bitmark-inc',
-			project_slug: 'autonomy-ios',
-			app_identifier: app_identifier
-		)
+# 		sentry_upload_dsym(
+# 			auth_token: ENV["SENTRY_AUTH"],
+# 			org_slug: 'bitmark-inc',
+# 			project_slug: 'autonomy-client-flutter',
+# 			dsym_path: './ipas/Runner.app.dSYM.zip'
+# 		)
 
 		sentry_finalize_release(
 			auth_token: ENV["SENTRY_AUTH"],
 			org_slug: 'bitmark-inc',
-			project_slug: 'autonomy-ios',
+			project_slug: 'autonomy-client-flutter',
 			version: ENV["APP_VERSION"],
 			build: next_build_number.to_s,
 			app_identifier: app_identifier
@@ -177,7 +177,7 @@ platform :ios do
 		sentry_create_release(
 			auth_token: ENV["SENTRY_AUTH"],
 			org_slug: 'bitmark-inc',
-			project_slug: 'autonomy-ios',
+			project_slug: 'autonomy-client-flutter',
 			version: ENV["APP_VERSION"],
 			build: next_build_number.to_s,
 			app_identifier: app_identifier
@@ -186,7 +186,7 @@ platform :ios do
 		sentry_set_commits(
 			auth_token: ENV["SENTRY_AUTH"],
 			org_slug: 'bitmark-inc',
-			project_slug: 'autonomy-ios',
+			project_slug: 'autonomy-client-flutter',
 			auto: true,
 			version: ENV["APP_VERSION"],
 			build: next_build_number.to_s,
@@ -196,14 +196,14 @@ platform :ios do
 		sentry_upload_dsym(
 			auth_token: ENV["SENTRY_AUTH"],
 			org_slug: 'bitmark-inc',
-			project_slug: 'autonomy-ios',
+			project_slug: 'autonomy-client-flutter',
 			dsym_path: './ipas/Runner.app.dSYM.zip'
 		)
 
 		sentry_create_deploy(
 			auth_token: ENV["SENTRY_AUTH"],
 			org_slug: 'bitmark-inc',
-			project_slug: 'autonomy-ios',
+			project_slug: 'autonomy-client-flutter',
 			started: dep_start,
 			finished: Time.now.to_i,
 			env: "Production",
@@ -213,7 +213,7 @@ platform :ios do
 		sentry_finalize_release(
 			auth_token: ENV["SENTRY_AUTH"],
 			org_slug: 'bitmark-inc',
-			project_slug: 'autonomy-ios',
+			project_slug: 'autonomy-client-flutter',
 			version: ENV["APP_VERSION"],
 			build: next_build_number.to_s,
 			app_identifier: app_identifier

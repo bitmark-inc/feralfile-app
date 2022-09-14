@@ -7,10 +7,13 @@
 
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 
 class LinkBeaconConnectPage extends StatefulWidget {
   final String uri;
@@ -26,6 +29,7 @@ class _LinkBeaconConnectPageState extends State<LinkBeaconConnectPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: getBackAppBar(
         context,
@@ -34,8 +38,7 @@ class _LinkBeaconConnectPageState extends State<LinkBeaconConnectPage> {
         },
       ),
       body: Container(
-        margin:
-            EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
+        margin: ResponsiveLayout.pageEdgeInsets,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -45,15 +48,16 @@ class _LinkBeaconConnectPageState extends State<LinkBeaconConnectPage> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
-                      "Scan code to link",
-                      style: appTextTheme.headline1,
+                      "scan_code_to_link".tr(),
+                      style: theme.textTheme.headline1,
                     ),
                     addTitleSpace(),
                     Text(
-                      "If your wallet is on another device, you can open it and scan the QR code below to link your account to Autonomy: ",
-                      style: appTextTheme.bodyText1,
+                      "sctl_if_your_wallet".tr(),
+                      //"If your wallet is on another device, you can open it and scan the QR code below to link your account to Autonomy: ",
+                      style: theme.textTheme.bodyText1,
                     ),
-                    SizedBox(height: 24),
+                    const SizedBox(height: 24),
                     GestureDetector(
                       child: Container(
                         alignment: Alignment.center,
@@ -61,7 +65,6 @@ class _LinkBeaconConnectPageState extends State<LinkBeaconConnectPage> {
                         height: 180,
                         child: QrImage(
                           data: "tezos://${widget.uri}",
-                          version: QrVersions.auto,
                           size: 180.0,
                         ),
                       ),
@@ -75,8 +78,15 @@ class _LinkBeaconConnectPageState extends State<LinkBeaconConnectPage> {
                       },
                     ),
                     if (_copied) ...[
-                      SizedBox(height: 24),
-                      Center(child: Text("Copied", style: copiedTextStyle)),
+                      const SizedBox(height: 24),
+                      Center(
+                        child: Text(
+                          "copied".tr(),
+                          style: ResponsiveLayout.isMobile
+                              ? theme.textTheme.atlasBlackBold12
+                              : theme.textTheme.atlasBlackBold14,
+                        ),
+                      ),
                     ]
                   ],
                 ),

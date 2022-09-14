@@ -5,40 +5,44 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/global_receive/receive_detail_page.dart';
+import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
-import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 
 Widget accountWithConnectionItem(
     BuildContext context, CategorizedAccounts categorizedAccounts) {
+  final theme = Theme.of(context);
+
   switch (categorizedAccounts.className) {
     case 'Persona':
       return Row(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          Container(
+          SizedBox(
               width: 24,
               height: 24,
               child: Image.asset("assets/images/autonomyIcon.png")),
-          SizedBox(width: 16),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Text(categorizedAccounts.category,
                     overflow: TextOverflow.ellipsis,
-                    style: appTextTheme.headline4),
-                SizedBox(height: 8),
+                    style: theme.textTheme.headline4),
+                const SizedBox(height: 8),
                 ...categorizedAccounts.accounts
                     .map((a) => Container(
-                        child: _blockchainAddressView(a,
+                        child: _blockchainAddressView(context, a,
                             onTap: () => Navigator.of(context).pushNamed(
                                 GlobalReceiveDetailPage.tag,
                                 arguments: a))))
@@ -50,19 +54,17 @@ Widget accountWithConnectionItem(
       );
     case 'Connection':
       final connection = categorizedAccounts.accounts.first.connections?.first;
-      if (connection == null) return SizedBox();
+      if (connection == null) return const SizedBox();
 
       return Row(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.start,
         children: [
           Container(
               alignment: Alignment.topCenter, child: _appLogo(connection)),
-          SizedBox(width: 16),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -71,15 +73,15 @@ Widget accountWithConnectionItem(
                       Text(
                           connection.name.isNotEmpty
                               ? connection.name
-                              : "Unnamed",
+                              : "unnamed".tr(),
                           overflow: TextOverflow.ellipsis,
-                          style: appTextTheme.headline4),
-                      _linkedBox(),
+                          style: theme.textTheme.headline4),
+                      _linkedBox(context),
                     ]),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 ...categorizedAccounts.accounts
                     .map((a) => Container(
-                        child: _blockchainAddressView(a,
+                        child: _blockchainAddressView(context, a,
                             onTap: () => Navigator.of(context).pushNamed(
                                 GlobalReceiveDetailPage.tag,
                                 arguments: a))))
@@ -91,79 +93,103 @@ Widget accountWithConnectionItem(
       );
 
     default:
-      return SizedBox();
+      return const SizedBox();
   }
 }
 
 Widget accountItem(BuildContext context, Account account,
     {Function()? onPersonaTap, Function()? onConnectionTap}) {
+  final theme = Theme.of(context);
   final persona = account.persona;
   if (persona != null) {
+    final isHideGalleryEnabled =
+        injector<AccountService>().isPersonaHiddenInGallery(persona.uuid);
     return TappableForwardRow(
-        leftWidget: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            accountLogo(account),
-            SizedBox(width: 16),
-            Text(
-                account.name.isNotEmpty
-                    ? account.name.maskIfNeeded()
-                    : account.accountNumber.mask(4),
-                style: appTextTheme.headline4),
-          ],
+      leftWidget: Row(
+        children: [
+          accountLogo(account),
+          const SizedBox(width: 16),
+          Text(
+            account.name.isNotEmpty
+                ? account.name.maskIfNeeded()
+                : account.accountNumber.mask(4),
+            style: theme.textTheme.headline4,
+          ),
+        ],
+      ),
+      rightWidget: Visibility(
+        visible: isHideGalleryEnabled,
+        child: Icon(
+          Icons.visibility_off_outlined,
+          color: theme.colorScheme.surface,
         ),
-        onTap: onPersonaTap);
+      ),
+      onTap: onPersonaTap,
+    );
   }
 
   final connection = account.connections?.first;
+
   if (connection != null) {
+    final isHideGalleryEnabled = injector<AccountService>()
+        .isLinkedAccountHiddenInGallery(connection.hiddenGalleryKey);
     return TappableForwardRow(
-        leftWidget: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            accountLogo(account),
-            SizedBox(width: 16),
-            Text(
-                connection.name.isNotEmpty
-                    ? connection.name.maskIfNeeded()
-                    : connection.accountNumber.mask(4),
-                style: appTextTheme.headline4),
-          ],
-        ),
-        rightWidget: _linkedBox(),
-        onTap: onConnectionTap);
+      leftWidget: Row(
+        children: [
+          accountLogo(account),
+          const SizedBox(width: 16),
+          Text(
+            connection.name.isNotEmpty
+                ? connection.name.maskIfNeeded()
+                : connection.accountNumber.mask(4),
+            style: theme.textTheme.headline4,
+          ),
+        ],
+      ),
+      rightWidget: Row(
+        children: [
+          Visibility(
+            visible: isHideGalleryEnabled,
+            child: Icon(
+              Icons.visibility_off_outlined,
+              color: theme.colorScheme.surface,
+            ),
+          ),
+          const SizedBox(
+            width: 10,
+          ),
+          _linkedBox(context),
+        ],
+      ),
+      onTap: onConnectionTap,
+    );
   }
 
-  return SizedBox();
+  return const SizedBox();
 }
 
-Widget _blockchainAddressView(Account account, {Function()? onTap}) {
+Widget _blockchainAddressView(
+  BuildContext context,
+  Account account, {
+  Function()? onTap,
+}) {
+  final theme = Theme.of(context);
   return TappableForwardRow(
-    padding: EdgeInsets.symmetric(vertical: 7),
+    padding: const EdgeInsets.symmetric(vertical: 7),
     leftWidget: Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      mainAxisAlignment: MainAxisAlignment.start,
       children: [
         _blockchainLogo(account.blockchain),
-        SizedBox(width: 8),
+        const SizedBox(width: 8),
         Text(
           _blockchainName(account.blockchain),
-          style: TextStyle(
-              color: Colors.black,
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              fontFamily: "AtlasGrotesk"),
+          style: theme.textTheme.headline5,
         ),
-        SizedBox(width: 8),
+        const SizedBox(width: 8),
         Text(
           account.accountNumber.mask(4),
-          style: TextStyle(
-              color: Colors.black,
-              fontSize: 14,
-              fontWeight: FontWeight.w400,
-              fontFamily: "IBMPlexMono"),
+          style: ResponsiveLayout.isMobile
+              ? theme.textTheme.ibmBlackNormal14
+              : theme.textTheme.ibmBlackNormal16,
         ),
       ],
     ),
@@ -183,20 +209,20 @@ Widget _blockchainLogo(String? blockchain) {
     case "walletBeacon":
       return SvgPicture.asset('assets/images/iconXtz.svg');
     default:
-      return SizedBox();
+      return const SizedBox();
   }
 }
 
 String _blockchainName(String? blockchain) {
   switch (blockchain) {
     case "Bitmark":
-      return "BITMARK";
+      return "bitmark".tr();
     case "Ethereum":
     case "walletConnect":
-      return "ETHEREUM";
+      return "ethereum".tr();
     case "Tezos":
     case "walletBeacon":
-      return "TEZOS";
+      return "tezos".tr();
     default:
       return "";
   }
@@ -204,7 +230,7 @@ String _blockchainName(String? blockchain) {
 
 Widget accountLogo(Account account) {
   if (account.persona != null) {
-    return Container(
+    return SizedBox(
         width: 24,
         height: 24,
         child: Image.asset("assets/images/autonomyIcon.png"));
@@ -215,7 +241,7 @@ Widget accountLogo(Account account) {
     return _appLogo(connection);
   }
 
-  return SizedBox(
+  return const SizedBox(
     width: 24,
   );
 }
@@ -260,27 +286,31 @@ Widget _appLogo(Connection connection) {
         case "MetaMask":
           return Image.asset("assets/images/metamask-alternative.png");
         default:
-          return SizedBox(
+          return const SizedBox(
             width: 24,
           );
       }
 
     default:
-      return SizedBox(
+      return const SizedBox(
         width: 24,
       );
   }
 }
 
-Widget _linkedBox() {
+Widget _linkedBox(BuildContext context) {
+  final theme = Theme.of(context);
   return Container(
-    padding: EdgeInsets.symmetric(vertical: 5, horizontal: 8),
-    decoration:
-        BoxDecoration(border: Border.all(color: Color(0xFF6D6B6B), width: 1)),
+    padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
+    decoration: BoxDecoration(
+        border: Border.all(
+      color: theme.colorScheme.surface,
+    )),
     child: Text(
-      "LINKED",
-      style: TextStyle(
-          color: Color(0xFF6D6B6B), fontSize: 12, fontFamily: "IBMPlexMono"),
+      "linked".tr(),
+      style: ResponsiveLayout.isMobile
+          ? theme.textTheme.ibmGreyNormal12
+          : theme.textTheme.ibmGreyNormal14,
     ),
   );
 }

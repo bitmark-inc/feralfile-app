@@ -22,6 +22,9 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -39,7 +42,7 @@ class ScanQRPage extends StatefulWidget {
       : super(key: key);
 
   @override
-  _ScanQRPageState createState() => _ScanQRPageState();
+  State<ScanQRPage> createState() => _ScanQRPageState();
 }
 
 class _ScanQRPageState extends State<ScanQRPage> with RouteAware {
@@ -72,7 +75,7 @@ class _ScanQRPageState extends State<ScanQRPage> with RouteAware {
       openAppSettings();
     } else {
       if (Platform.isAndroid) {
-        Future.delayed(Duration(seconds: 1), () {
+        Future.delayed(const Duration(seconds: 1), () {
           controller.resumeCamera();
         });
       }
@@ -81,11 +84,13 @@ class _ScanQRPageState extends State<ScanQRPage> with RouteAware {
 
   @override
   Widget build(BuildContext context) {
-    final qrSize = MediaQuery.of(context).size.width - 130;
+    final size1 = MediaQuery.of(context).size.height / 2;
+    final size2 = MediaQuery.of(context).size.width - 130;
+    final qrSize = size1 < size2 ? size1 : size2;
 
     var cutPaddingTop = qrSize + 460 - MediaQuery.of(context).size.height;
     if (cutPaddingTop < 0) cutPaddingTop = 0;
-
+    final theme = Theme.of(context);
     return BlocListener<FeralfileBloc, FeralFileState>(
       listener: (context, state) {
         final event = state.event;
@@ -98,8 +103,9 @@ class _ScanQRPageState extends State<ScanQRPage> with RouteAware {
               context,
               ErrorEvent(
                   null,
-                  "Already linked",
-                  "You’ve already linked this account to Autonomy.",
+                  "already_linked".tr(),
+                  "al_you’ve_already".tr(),
+                  //"You’ve already linked this account to Autonomy.",
                   ErrorItemState.seeAccount), defaultAction: () {
             Navigator.of(context).pushReplacementNamed(
                 AppRouter.linkedAccountDetailsPage,
@@ -115,26 +121,26 @@ class _ScanQRPageState extends State<ScanQRPage> with RouteAware {
       child: Scaffold(
         body: Stack(
           children: <Widget>[
-            Container(
-              child: QRView(
-                key: qrKey,
-                overlay: QrScannerOverlayShape(
-                  borderColor: isScanDataError ? Colors.red : Colors.white,
-                  cutOutSize: qrSize,
-                  borderWidth: 8,
-                  borderRadius: 40,
-                  // borderLength: qrSize / 2,
-                  cutOutBottomOffset: 32 + cutPaddingTop,
-                ),
-                onQRViewCreated: _onQRViewCreated,
+            QRView(
+              key: qrKey,
+              overlay: QrScannerOverlayShape(
+                borderColor: isScanDataError
+                    ? AppColor.red
+                    : theme.colorScheme.secondary,
+                cutOutSize: qrSize,
+                borderWidth: 8,
+                borderRadius: 40,
+                // borderLength: qrSize / 2,
+                cutOutBottomOffset: 32 + cutPaddingTop,
               ),
+              onQRViewCreated: _onQRViewCreated,
             ),
             GestureDetector(
                 behavior: HitTestBehavior.translucent,
                 onTap: () => Navigator.of(context).pop(),
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(15, 55, 15, 15),
-                  child: closeIcon(color: Colors.white),
+                  child: closeIcon(color: theme.colorScheme.secondary),
                 )),
             Padding(
               padding: EdgeInsets.fromLTRB(
@@ -150,12 +156,12 @@ class _ScanQRPageState extends State<ScanQRPage> with RouteAware {
                 child: Align(
               alignment: Alignment.bottomCenter,
               child: Padding(
-                padding: EdgeInsets.fromLTRB(16.0, 0, 16.0, 32.0),
+                padding: const EdgeInsets.fromLTRB(16.0, 0, 16.0, 32.0),
                 child: AuFilledButton(
-                    text: "SHOW MY QR CODE",
+                    text: "show_qr".tr(),
                     icon: SvgPicture.asset(
                       "assets/images/iconQr.svg",
-                      color: Colors.white,
+                      color: theme.colorScheme.secondary,
                       height: 16.0,
                       width: 16.0,
                     ),
@@ -167,8 +173,10 @@ class _ScanQRPageState extends State<ScanQRPage> with RouteAware {
             )),
             if (_isLoading) ...[
               Center(
-                child:
-                    CupertinoActivityIndicator(color: Colors.black, radius: 16),
+                child: CupertinoActivityIndicator(
+                  color: theme.colorScheme.primary,
+                  radius: 16,
+                ),
               ),
             ]
           ],
@@ -178,59 +186,60 @@ class _ScanQRPageState extends State<ScanQRPage> with RouteAware {
   }
 
   Widget _instructionView() {
+    final theme = Theme.of(context);
+
     switch (widget.scannerItem) {
       case ScannerItem.WALLET_CONNECT:
       case ScannerItem.BEACON_CONNECT:
       case ScannerItem.FERALFILE_TOKEN:
       case ScannerItem.GLOBAL:
         return Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Text(
-              "Scan QR code to connect to".toUpperCase(),
-              style: appTextTheme.button?.copyWith(color: Colors.white),
+              "scan_qr_to".tr().toUpperCase(),
+              style: theme.primaryTextTheme.button,
             ),
-            SizedBox(height: 24),
+            const SizedBox(height: 24),
             Text(
-              "Apps",
-              style: appTextTheme.headline4
-                  ?.copyWith(color: Colors.white, fontSize: 12),
+              "apps".tr(),
+              style: ResponsiveLayout.isMobile
+                  ? theme.textTheme.atlasWhiteBold12
+                  : theme.textTheme.atlasWhiteBold14,
             ),
-            Text('Such as OpenSea or objkt.com',
-                style: appTextTheme.bodyText1
-                    ?.copyWith(color: Colors.white, fontSize: 12)),
-            SizedBox(height: 8),
             Text(
-              "Wallets",
-              style: appTextTheme.headline4
-                  ?.copyWith(color: Colors.white, fontSize: 12),
+              "such_as_openSea".tr(),
+              style: theme.primaryTextTheme.headline5,
             ),
-            Text('Such as MetaMask',
-                style: appTextTheme.bodyText1
-                    ?.copyWith(color: Colors.white, fontSize: 12)),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
-              "Autonomy",
-              style: appTextTheme.headline4
-                  ?.copyWith(color: Colors.white, fontSize: 12),
+              "wallets".tr(),
+              style: ResponsiveLayout.isMobile
+                  ? theme.textTheme.atlasWhiteBold12
+                  : theme.textTheme.atlasWhiteBold14,
             ),
-            Text('on TV or desktop',
-                style: appTextTheme.bodyText1
-                    ?.copyWith(color: Colors.white, fontSize: 12)),
+            Text(
+              'such_as_metamask'.tr(),
+              style: theme.primaryTextTheme.headline5,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              "h_autonomy".tr(),
+              style: ResponsiveLayout.isMobile
+                  ? theme.textTheme.atlasWhiteBold12
+                  : theme.textTheme.atlasWhiteBold14,
+            ),
+            Text(
+              'on_tv_or_desktop'.tr(),
+              style: theme.primaryTextTheme.headline5,
+            ),
           ],
         );
 
       case ScannerItem.ETH_ADDRESS:
       case ScannerItem.XTZ_ADDRESS:
         return Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Text(
-              "SCAN QR CODE",
-              style: appTextTheme.button?.copyWith(color: Colors.white),
-            ),
+            Text("scan_qr".tr(), style: theme.primaryTextTheme.button),
           ],
         );
     }
@@ -334,6 +343,7 @@ class _ScanQRPageState extends State<ScanQRPage> with RouteAware {
           code.replacePrefix(FF_TOKEN_DEEPLINK_PREFIX, ""),
           delayLink: false);
       injector<NavigationService>().popUntilHomeOrSettings();
+      if (!mounted) return;
       UIHelper.showFFAccountLinked(context, connection.name);
     } catch (_) {
       Navigator.of(context).pop();

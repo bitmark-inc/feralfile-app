@@ -11,7 +11,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter/services.dart';
 
 class AndroidBackupChannel {
-  static const MethodChannel _channel = const MethodChannel('backup');
+  static const MethodChannel _channel = MethodChannel('backup');
 
   Future<bool?> isEndToEndEncryptionAvailable() async {
     return await _channel.invokeMethod('isEndToEndEncryptionAvailable', {});
