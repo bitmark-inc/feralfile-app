@@ -402,9 +402,7 @@ class _ReportButtonState extends State<ReportButton> {
 
   @override
   void initState() {
-    // TODO: implement initState
     widget.scrollController.addListener(_scrollListener);
-
     super.initState();
   }
 
