@@ -46,45 +46,18 @@ class ArtworkDetailPage extends StatefulWidget {
 class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     with AfterLayoutMixin<ArtworkDetailPage> {
   late ScrollController _scrollController;
-  bool _showArtwortReportProblemContainer = true;
   HashSet<String> _accountNumberHash = HashSet.identity();
   AssetToken? currentAsset;
 
   @override
   void initState() {
     _scrollController = ScrollController();
-    _scrollController.addListener(_scrollListener);
     super.initState();
 
     context.read<ArtworkDetailBloc>().add(ArtworkDetailGetInfoEvent(
         widget.payload.ids[widget.payload.currentIndex]));
     context.read<AccountsBloc>().add(FetchAllAddressesEvent());
     context.read<AccountsBloc>().add(GetAccountsEvent());
-  }
-
-  _scrollListener() {
-    /*
-    So we see it like that when we are at the top of the page. 
-    When we start scrolling down it disappears and we see it again attached at the bottom of the page.
-    And if we scroll all the way up again, we would display again it attached down the screen
-    https://www.figma.com/file/Ze71GH9ZmZlJwtPjeHYZpc?node-id=51:5175#159199971
-    */
-    if (_scrollController.offset > 80) {
-      setState(() {
-        _showArtwortReportProblemContainer = false;
-      });
-    } else {
-      setState(() {
-        _showArtwortReportProblemContainer = true;
-      });
-    }
-
-    if (_scrollController.position.pixels + 100 >=
-        _scrollController.position.maxScrollExtent) {
-      setState(() {
-        _showArtwortReportProblemContainer = true;
-      });
-    }
   }
 
   @override
@@ -238,8 +211,10 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
           bottom: 0,
           left: 0,
           right: 0,
-          child: reportNFTProblemContainer(
-              currentAsset, _showArtwortReportProblemContainer),
+          child: ReportButton(
+            token: currentAsset,
+            scrollController: _scrollController,
+          ),
         ),
       ],
     );

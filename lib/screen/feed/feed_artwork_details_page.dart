@@ -38,7 +38,6 @@ class FeedArtworkDetailsPage extends StatefulWidget {
 
 class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
   late ScrollController _scrollController;
-  bool _showArtwortReportProblemContainer = true;
   late FeedEvent feedEvent;
   AssetToken? token;
   HashSet<String> _accountNumberHash = HashSet.identity();
@@ -46,34 +45,8 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
   @override
   void initState() {
     _scrollController = ScrollController();
-    _scrollController.addListener(_scrollListener);
     fetchIdentities();
     super.initState();
-  }
-
-  _scrollListener() {
-    /*
-    So we see it like that when we are at the top of the page. 
-    When we start scrolling down it disappears and we see it again attached at the bottom of the page.
-    And if we scroll all the way up again, we would display again it attached down the screen
-    https://www.figma.com/file/Ze71GH9ZmZlJwtPjeHYZpc?node-id=51:5175#159199971
-    */
-    if (_scrollController.offset > 80) {
-      setState(() {
-        _showArtwortReportProblemContainer = false;
-      });
-    } else {
-      setState(() {
-        _showArtwortReportProblemContainer = true;
-      });
-    }
-
-    if (_scrollController.position.pixels + 100 >=
-        _scrollController.position.maxScrollExtent) {
-      setState(() {
-        _showArtwortReportProblemContainer = true;
-      });
-    }
   }
 
   void fetchIdentities() {
@@ -257,8 +230,10 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
           bottom: 0,
           left: 0,
           right: 0,
-          child: reportNFTProblemContainer(
-              token, _showArtwortReportProblemContainer),
+          child: ReportButton(
+            token: token,
+            scrollController: _scrollController,
+          ),
         ),
       ],
     );
