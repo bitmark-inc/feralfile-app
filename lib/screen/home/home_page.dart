@@ -317,9 +317,16 @@ class _HomePageState extends State<HomePage>
             final asset = tokens[index];
 
             return GestureDetector(
-              child:
-                  tokenGalleryThumbnailWidget(context, asset, _cachedImageSize),
+              child: asset.pending == true
+                  ? const PendingTokenWidget()
+                  : tokenGalleryThumbnailWidget(
+                      context,
+                      asset,
+                      _cachedImageSize,
+                    ),
               onTap: () {
+                if (asset.pending == true) return;
+
                 final index = tokens.indexOf(asset);
                 final payload = ArtworkDetailPayload(tokenIDs, index);
 

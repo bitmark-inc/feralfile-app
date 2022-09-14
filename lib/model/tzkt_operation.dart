@@ -204,6 +204,7 @@ class TZKTOperation implements TZKTTransactionInterface {
   }
 }
 
+@JsonSerializable()
 class TZKTTokenTransfer implements TZKTTransactionInterface {
   int id;
   int level;
@@ -300,8 +301,15 @@ class TZKTToken {
   TZKTActor? contract;
   String? tokenId;
   String? standard;
+  Map<String, dynamic>? metadata;
 
-  TZKTToken({required this.id, this.contract, this.tokenId, this.standard});
+  TZKTToken({
+    required this.id,
+    this.contract,
+    this.tokenId,
+    this.standard,
+    this.metadata,
+  });
 
   factory TZKTToken.fromJson(Map<String, dynamic> json) =>
       _$TZKTTokenFromJson(json);

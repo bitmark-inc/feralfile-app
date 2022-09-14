@@ -8,6 +8,7 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/pending_token_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/biometrics_util.dart';
@@ -24,6 +25,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:nft_collection/nft_collection.dart';
 import 'package:tezart/tezart.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 
@@ -242,6 +244,18 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                                   injector<TezosBeaconService>()
                                       .operationResponse(
                                           widget.request.id, txHash);
+
+                                  final address = widget.request.sourceAddress;
+                                  if (address != null) {
+                                    injector<PendingTokenService>()
+                                        .checkPendingTezosTokens(address)
+                                        .then((hasPendingTokens) {
+                                      if (hasPendingTokens) {
+                                        injector<NftCollectionBloc>()
+                                            .add(RefreshNftCollection());
+                                      }
+                                    });
+                                  }
                                   if (!mounted) return;
                                   Navigator.of(context).pop();
                                 } on TezartNodeError catch (err) {
