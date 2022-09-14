@@ -359,17 +359,66 @@ Widget placeholder(BuildContext context) {
   );
 }
 
-Widget reportNFTProblemContainer(
-    AssetToken? token, bool isShowingArtwortReportProblemContainer) {
-  if (token == null) return const SizedBox();
-  return AnimatedContainer(
-    duration: const Duration(milliseconds: 300),
-    height: isShowingArtwortReportProblemContainer ? 62 : 0,
-    child: AnyProblemNFTWidget(
-      asset: token,
-      // theme: AuThemeManager.get(AppTheme.anyProblemNFTTheme),
-    ),
-  );
+class ReportButton extends StatefulWidget {
+  final AssetToken? token;
+  final ScrollController scrollController;
+  const ReportButton({
+    Key? key,
+    this.token,
+    required this.scrollController,
+  }) : super(key: key);
+
+  @override
+  State<ReportButton> createState() => _ReportButtonState();
+}
+
+class _ReportButtonState extends State<ReportButton> {
+  bool isShowingArtwortReportProblemContainer = true;
+
+  _scrollListener() {
+    /*
+    So we see it like that when we are at the top of the page. 
+    When we start scrolling down it disappears and we see it again attached at the bottom of the page.
+    And if we scroll all the way up again, we would display again it attached down the screen
+    https://www.figma.com/file/Ze71GH9ZmZlJwtPjeHYZpc?node-id=51:5175#159199971
+    */
+    if (widget.scrollController.offset > 80) {
+      setState(() {
+        isShowingArtwortReportProblemContainer = false;
+      });
+    } else {
+      setState(() {
+        isShowingArtwortReportProblemContainer = true;
+      });
+    }
+
+    if (widget.scrollController.position.pixels + 100 >=
+        widget.scrollController.position.maxScrollExtent) {
+      setState(() {
+        isShowingArtwortReportProblemContainer = true;
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    widget.scrollController.addListener(_scrollListener);
+
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.token == null) return const SizedBox();
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      height: isShowingArtwortReportProblemContainer ? 62 : 0,
+      child: AnyProblemNFTWidget(
+        asset: widget.token!,
+      ),
+    );
+  }
 }
 
 INFTRenderingWidget buildRenderingWidget(BuildContext context, AssetToken token,
