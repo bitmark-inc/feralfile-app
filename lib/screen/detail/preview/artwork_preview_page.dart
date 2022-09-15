@@ -530,16 +530,6 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                     ),
                   ),
                 ),
-                if (assetToken != null)
-                  Visibility(
-                    visible: !isFullScreen,
-                    child: SizedBox(
-                      height: 64,
-                      child: AnyProblemNFTWidget(
-                        asset: assetToken,
-                      ),
-                    ),
-                  ),
               ],
             ),
           );
