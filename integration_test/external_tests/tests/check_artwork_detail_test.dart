@@ -76,7 +76,7 @@ void main() {
         await timeDelay(ARTWORK_LOADING_TIME_LIMIT);
         var hasloading = await driver.findElements(AppiumBy.accessibilityId('loading...')).length;
         expect(hasloading, 0);
-        
+
         var closeArtwork = await driver.findElement(AppiumBy.accessibilityId('CloseArtwork'));
         await closeArtwork.click();
       }

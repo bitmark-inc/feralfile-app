@@ -30,15 +30,6 @@ Future<AppiumWebElement> getElementByContentDesc(AppiumWebDriver driver, String 
   return element;
 }
 
-Future<void> timeDelay(int second) async {
-  Duration dur = Duration(seconds: 1);
-  for (int i = 0; i < second; i++){
-    print(i);
-    await Future.delayed(dur);
-  }
-}
-
-
 void main() {
   late AppiumWebDriver driver;
   final dir = Directory.current;
@@ -102,17 +93,17 @@ void main() {
 
       var bitmark = await getElementByContentDesc(driver, 'Bitmark');
       var bitmartDesc = await bitmark.attributes['content-desc'];
-      print(bitmartDesc);
+      //print(bitmartDesc);
       expect (bitmartDesc.length, 58);
 
       var ethereum = await getElementByContentDesc(driver, 'Ethereum\n0.0 ETH');
       var ethereumDesc = await ethereum.attributes['content-desc'];
-      print(ethereumDesc);
+      //print(ethereumDesc);
       expect(ethereumDesc.length, 59);
 
       var tezos = await getElementByContentDesc(driver, 'Tezos\n0.0 XTZ');
       var tezosDesc = await tezos.attributes['content-desc'];
-      print(tezosDesc);
+      //print(tezosDesc);
       expect(tezosDesc.length, 50);
 
     });
