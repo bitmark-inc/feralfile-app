@@ -14,6 +14,7 @@ import 'package:test/test.dart';
 import '../commons/test_util.dart';
 import '../pages/onboarding_page.dart';
 import '../test_data/test_configurations.dart';
+import '../pages/settings_page.dart';
 
 AppiumBy newAccountLocator =  const AppiumBy.xpath(
     "//android.widget.ImageView[contains(@content-desc,'Make a new account with addresses you can use')]");
@@ -37,29 +38,6 @@ Future<void> timeDelay(int second) async {
   }
 }
 
-Future<int> numberAccount(AppiumWebDriver driver) async {
-  var scrollView = await driver.findElements(AppiumBy.className('android.widget.ScrollView')).first;
-      //xpath('/hierarchy/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.FrameLayout/android.widget.FrameLayout/android.widget.FrameLayout/android.view.View/android.view.View/android.view.View/android.view.View/android.widget.ScrollView'));
-  int count = 0;
-  bool isContinue = true;
-
-  var lst = await scrollView.findElements(
-      AppiumBy.className('android.view.View'));
-  var a = await lst.toList();
-
-  await Future.forEach(a, (AppiumWebElement element) async {
-    var decs = await element.attributes['content-desc'];
-    if (decs == 'Preferences') {
-      isContinue = false;
-    }
-    if (isContinue) {
-      count += 1;
-    }
-  });
-
-
-  return count;
-}
 
 void main() {
   late AppiumWebDriver driver;
@@ -121,6 +99,22 @@ void main() {
           '//android.widget.ImageView[contains(@content-desc, "0.0 ETH")]'
       )).length;
       expect(hasZeroETH, 1);
+
+      var bitmark = await getElementByContentDesc(driver, 'Bitmark');
+      var bitmartDesc = await bitmark.attributes['content-desc'];
+      print(bitmartDesc);
+      expect (bitmartDesc.length, 58);
+
+      var ethereum = await getElementByContentDesc(driver, 'Ethereum\n0.0 ETH');
+      var ethereumDesc = await ethereum.attributes['content-desc'];
+      print(ethereumDesc);
+      expect(ethereumDesc.length, 59);
+
+      var tezos = await getElementByContentDesc(driver, 'Tezos\n0.0 XTZ');
+      var tezosDesc = await tezos.attributes['content-desc'];
+      print(tezosDesc);
+      expect(tezosDesc.length, 50);
+
     });
 
     test("Without Alias", () async {
