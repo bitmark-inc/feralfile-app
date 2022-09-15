@@ -84,6 +84,7 @@ Future<void> enterSeeds(AppiumWebDriver driver, String seeds) async {
   await confirmButton.click();
 }
 
+<<<<<<< HEAD
 Future<bool> findArtwork(AppiumWebDriver driver, String artworkName) async {
   int i = 2;
   int hasArtwork = await driver
@@ -166,6 +167,8 @@ Future<void> wait4TezBlockchainConfirmation(AppiumWebDriver driver) async {
   await driver.device.getDisplayDensity();
   await Future.delayed(const Duration(seconds: 30));
 }
+=======
+>>>>>>> 9092dcfb (Add check artwork detail test)
 
 Future<void> scroll(driver, scrollUIAutomator) async {
   var finder = await AppiumBy.uiautomator(scrollUIAutomator);
@@ -174,17 +177,26 @@ Future<void> scroll(driver, scrollUIAutomator) async {
 
 Future<void> scrollUntil(AppiumWebDriver driver, String decs) async {
   var subSelector = 'new UiSelector().descriptionContains("$decs")';
+<<<<<<< HEAD
   var scrollViewSeletor =
       'new UiSelector().className("android.widget.ScrollView")';
   var scrollUIAutomator =
       await 'new UiScrollable($scrollViewSeletor).setSwipeDeadZonePercentage(0.4).scrollIntoView($subSelector)';
+=======
+  var scrollViewSeletor = 'new UiSelector().className("android.widget.ScrollView")';
+  var scrollUIAutomator = await 'new UiScrollable($scrollViewSeletor).setSwipeDeadZonePercentage(0.4).scrollIntoView($subSelector)';
+>>>>>>> 9092dcfb (Add check artwork detail test)
   await scroll(driver, scrollUIAutomator);
 }
 
 Future<void> timeDelay(int second) async {
   Duration dur = Duration(seconds: 1);
   for (int i = 0; i < second; i++){
+<<<<<<< HEAD
     //print(i);
+=======
+    print(i);
+>>>>>>> 9092dcfb (Add check artwork detail test)
     await Future.delayed(dur);
   }
 }
@@ -194,6 +206,7 @@ Future<void> goBack(AppiumWebDriver driver, int step) async {
     await driver.back();
   }
 }
+<<<<<<< HEAD
 
 Future<void> captureScreen(AppiumWebDriver driver) async {
   var screenshot = await driver.captureScreenshotAsBase64();
@@ -209,3 +222,5 @@ Future<void> captureScreen(AppiumWebDriver driver) async {
       .create(recursive: true);
   file.writeAsBytesSync(decodedBytes);
 }
+=======
+>>>>>>> 9092dcfb (Add check artwork detail test)
