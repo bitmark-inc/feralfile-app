@@ -62,3 +62,30 @@ Future<void> enterSeeds(AppiumWebDriver driver, String seeds) async {
   var confirmButton = await driver.findElement(confirmButtonLocator);
   await confirmButton.click();
 }
+
+
+Future<void> scroll(driver, scrollUIAutomator) async {
+  var finder = await AppiumBy.uiautomator(scrollUIAutomator);
+  await driver.findElement(finder);
+}
+
+Future<void> scrollUntil(AppiumWebDriver driver, String decs) async {
+  var subSelector = 'new UiSelector().descriptionContains("$decs")';
+  var scrollViewSeletor = 'new UiSelector().className("android.widget.ScrollView")';
+  var scrollUIAutomator = await 'new UiScrollable($scrollViewSeletor).setSwipeDeadZonePercentage(0.4).scrollIntoView($subSelector)';
+  await scroll(driver, scrollUIAutomator);
+}
+
+Future<void> timeDelay(int second) async {
+  Duration dur = Duration(seconds: 1);
+  for (int i = 0; i < second; i++){
+    print(i);
+    await Future.delayed(dur);
+  }
+}
+
+Future<void> goBack(AppiumWebDriver driver, int step) async {
+  for (int i = 0; i < step; i++) {
+    await driver.back();
+  }
+}

@@ -4,6 +4,7 @@ const VIDEO_ARTWORK = 'Caught Red Handed';
 const ARTWORK_4 = 'EVOLVE Magazine Issue 03';
 const ARTWORK_5 = 'To make a botanist cry #266';
 const ARTWORK_6 = '100';
+const ARTWORK_LOADING_TIME_LIMIT = 5; //second
 const LIST_CHECK_ARTWORKS = [
   'Kamisaki',
   'Caught Red Handed',
@@ -23,8 +24,8 @@ const LIST_CHECK_ARTWORKSID_ADD_MANUAL = [
   'tez-KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton-759675',
   'tez-KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton-761761',
   'tez-KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton-693627',
-  'tez-KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton-633068',
-  'tez-KT1KXXZ758wtyf2NBjWKPeXugDh5Mm7kyckw-10',
+  //'tez-KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton-633068',
+  //'tez-KT1KXXZ758wtyf2NBjWKPeXugDh5Mm7kyckw-10',
 ];
 const SEEDS_TO_RESTORE_FULLACCOUNT =
     'spin toward remind wagon flame hen sell tragic hundred verb culture believe';
