@@ -31,6 +31,7 @@ import 'package:nft_rendering/nft_rendering.dart';
 
 // ignore: depend_on_referenced_packages
 import 'package:path/path.dart' as p;
+import 'package:share/share.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../common/injector.dart';
@@ -529,28 +530,25 @@ void _showReportRenderingDialogSuccess(BuildContext context, String githubURL) {
   final theme = Theme.of(context);
   UIHelper.showDialog(
     context,
-    'report_received'.tr(),
+    'share_with_artist'.tr(),
     Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           "thank_for_report".tr(),
-          style: theme.textTheme.bodyText1,
+          style: theme.primaryTextTheme.bodyText1,
         ),
         const SizedBox(height: 40),
         Row(
           children: [
             Expanded(
               child: AuFilledButton(
-                icon: SvgPicture.asset('assets/images/external_link.svg'),
-                text: "view_issue_status".tr(),
+                text: "share".tr(),
                 onPress: () {
-                  final uri = Uri.tryParse(githubURL);
-                  if (uri != null) {
-                    launchUrl(uri, mode: LaunchMode.inAppWebView);
-                  }
-                  Navigator.of(context).pop();
+                  Share.share(githubURL).then((value) {
+                    Navigator.of(context).pop();
+                  });
                 },
                 color: theme.colorScheme.secondary,
                 textStyle: theme.textTheme.button,
@@ -563,7 +561,7 @@ void _showReportRenderingDialogSuccess(BuildContext context, String githubURL) {
           child: TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
-              'close'.tr(),
+              'cancel'.tr(),
               style: theme.primaryTextTheme.button,
             ),
           ),

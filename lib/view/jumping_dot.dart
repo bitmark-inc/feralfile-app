@@ -40,8 +40,8 @@ class JumpingDots extends StatefulWidget {
     Key? key,
     this.numberOfDots = 3,
     this.radius = 10,
-    this.innerPadding = 2.5,
-    this.animationDuration = const Duration(milliseconds: 200),
+    this.innerPadding = 1.2,
+    this.animationDuration = const Duration(milliseconds: 500),
     this.color = const Color(0xfff2c300),
   }) : super(key: key);
 
@@ -80,7 +80,7 @@ class _JumpingDotsState extends State<JumpingDots>
 
     for (int i = 0; i < widget.numberOfDots; i++) {
       _animations.add(
-          Tween<double>(begin: 0, end: -6).animate(_animationControllers![i]));
+          Tween<double>(begin: 0, end: -3).animate(_animationControllers![i]));
     }
 
     for (int i = 0; i < widget.numberOfDots; i++) {
