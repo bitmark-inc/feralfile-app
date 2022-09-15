@@ -13,12 +13,14 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/feed_api.dart';
 import 'package:autonomy_flutter/model/feed.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:nft_collection/data/api/indexer_api.dart';
 import 'package:nft_collection/models/asset_token.dart';
@@ -26,6 +28,10 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:uuid/uuid.dart';
 
 abstract class FeedService {
+  ValueNotifier<int> get unviewedCount;
+
+  Future checkNewFeeds();
+
   Future refreshFollowings(List<String> artistIds);
 
   Future<AppFeedData> fetchFeeds(FeedNext? next);
@@ -92,6 +98,11 @@ class FeedServiceImpl extends FeedService {
   final Map<String, Completer<List<AssetToken>>>
       _fetchTokensByIndexerIDCompleters = {};
 
+  @override
+  ValueNotifier<int> unviewedCount = ValueNotifier(0);
+
+  final ConfigurationService _configurationService;
+
   SendPort? _sendPort;
   ReceivePort? _receivePort;
   Isolate? _isolate;
@@ -99,6 +110,8 @@ class FeedServiceImpl extends FeedService {
   static SendPort? _isolateSendPort;
 
   Future<void> get isolateReady => _isolateReady.future;
+
+  FeedServiceImpl(this._configurationService);
 
   Future<void> start() async {
     if (_sendPort != null) return;
@@ -145,6 +158,18 @@ class FeedServiceImpl extends FeedService {
     _sendPort!.send([REFRESH_FOLLOWINGS, uuid, followings]);
 
     return completer.future;
+  }
+
+  @override
+  Future checkNewFeeds() async {
+    final service = injector<FeedApi>();
+    final isTestnet = await isAppCenterBuild();
+    final feedData = await service.getFeeds(isTestnet, 10, null, null);
+    final lastTimeOpenFeed = _configurationService.getLastTimeOpenFeed();
+    final newEvents = feedData.events.where(
+        (event) => event.timestamp.millisecondsSinceEpoch > lastTimeOpenFeed);
+    log.info("[FeedService] ${newEvents.length} unread feeds");
+    unviewedCount.value = newEvents.length;
   }
 
   @override

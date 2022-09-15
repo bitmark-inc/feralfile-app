@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
+import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/badge_view.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -220,15 +221,33 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
   }
 
   Widget _discovery() {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(0, 0, 12, 12),
-      child: IconButton(
-          onPressed: () {
-            if (_opacity == 0) return;
-            Navigator.of(context).pushNamed(AppRouter.feedPreviewPage);
-          },
-          icon: SvgPicture.asset('assets/images/iconFeed.svg')),
-    );
+    return ValueListenableBuilder<int>(
+        valueListenable: injector<FeedService>().unviewedCount,
+        builder: (BuildContext context, int unreadCount, Widget? child) {
+          return Container(
+            padding: const EdgeInsets.fromLTRB(0, 0, 12, 12),
+            child: Stack(
+              children: [
+                IconButton(
+                    onPressed: () {
+                      if (_opacity == 0) return;
+                      Navigator.of(context)
+                          .pushNamed(AppRouter.feedPreviewPage);
+                    },
+                    icon: SvgPicture.asset('assets/images/iconFeed.svg')),
+                if (unreadCount > 0) ...[
+                  Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Align(
+                        alignment: Alignment.topRight,
+                        child: BadgeView(number: unreadCount),
+                      )),
+                ]
+              ],
+            ),
+          );
+        });
   }
 
   Widget _customerSupportIconWidget() {

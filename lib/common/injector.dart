@@ -246,7 +246,7 @@ Future<void> setup() async {
   injector.registerLazySingleton<AppDatabase>(() => mainnetDB);
 
   injector.registerLazySingleton<FeedService>(
-      () => FeedServiceImpl());
+      () => FeedServiceImpl(injector()));
 
   injector.registerLazySingleton<FeralFileService>(() => FeralFileServiceImpl(
         injector(),

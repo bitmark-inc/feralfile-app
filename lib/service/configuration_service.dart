@@ -68,6 +68,10 @@ abstract class ConfigurationService {
   int? countOpenApp();
   Future<void> setCountOpenApp(int? value);
 
+  // Feed
+  Future<void> setLastTimeOpenFeed(int timestamp);
+  int getLastTimeOpenFeed();
+
   // ----- App Setting -----
   bool isDemoArtworksMode();
   Future<bool> toggleDemoArtworksMode();
@@ -122,6 +126,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_SHOW_TOKEN_DEBUG_INFO = "show_token_debug_info";
   static const String LAST_REMIND_REVIEW = "last_remind_review";
   static const String COUNT_OPEN_APP = "count_open_app";
+  static const String KEY_LAST_TIME_OPEN_FEED = "last_time_open_feed";
 
   // Do at once
   static const String KEY_SENT_TEZOS_ARTWORK_METRIC =
@@ -383,6 +388,16 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   String? getReadReleaseNotesVersion() {
     return _preferences.getString(KEY_READ_RELEASE_NOTES_VERSION);
+  }
+
+  @override
+  Future<void> setLastTimeOpenFeed(int timestamp) async {
+    await _preferences.setInt(KEY_LAST_TIME_OPEN_FEED, timestamp);
+  }
+
+  @override
+  int getLastTimeOpenFeed() {
+    return _preferences.getInt(KEY_LAST_TIME_OPEN_FEED) ?? 0;
   }
 
   @override
