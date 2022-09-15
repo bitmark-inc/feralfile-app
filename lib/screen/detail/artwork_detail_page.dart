@@ -9,6 +9,7 @@ import 'dart:collection';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/tzkt_operation.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
@@ -298,9 +299,32 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
             optionRow(
               title: "send_artwork".tr(),
               onTap: () async {
-                Navigator.of(context).popAndPushNamed(AppRouter.sendArtworkPage,
+                final payload = await Navigator.of(context).popAndPushNamed(
+                    AppRouter.sendArtworkPage,
                     arguments: SendArtworkPayload(asset, ownerWallet,
-                        await ownerWallet.getOwnedQuantity(asset)));
+                        await ownerWallet.getOwnedQuantity(asset))) as Map?;
+                if (payload == null || !payload["isTezos"]) {
+                  return;
+                }
+
+                if (!mounted) return;
+                final tx = payload['tx'] as TZKTOperation;
+                UIHelper.showMessageAction(
+                  context,
+                  'success'.tr(),
+                  'send_success_des'.tr(),
+                  onAction: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pushNamed(
+                      AppRouter.tezosTXDetailPage,
+                      arguments: {
+                        "current_address": tx.sender?.address,
+                        "tx": tx,
+                      },
+                    );
+                  },
+                  actionButton: 'see_transaction_detail'.tr().toUpperCase(),
+                );
               },
             ),
             const SizedBox(

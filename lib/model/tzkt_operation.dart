@@ -5,7 +5,6 @@
 //  that can be found in the LICENSE file.
 //
 
-
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/widgets.dart';
@@ -106,7 +105,7 @@ class TZKTOperation implements TZKTTransactionInterface {
   @override
   bool isReceiveNFT(String? currentAddress) {
     currentAddress = currentAddress ?? sender?.address;
-    if (currentAddress == null)  return false;
+    if (currentAddress == null) return false;
     if (tokenTransfer?.to?.address == currentAddress) return true;
     return false;
   }
@@ -114,7 +113,7 @@ class TZKTOperation implements TZKTTransactionInterface {
   @override
   bool isSendNFT(String? currentAddress) {
     currentAddress = currentAddress ?? sender?.address;
-    if (currentAddress == null)  return false;
+    if (currentAddress == null) return false;
     if (tokenTransfer?.from?.address == currentAddress) return true;
     return false;
   }
@@ -216,18 +215,21 @@ class TZKTTokenTransfer implements TZKTTransactionInterface {
   int? transactionId;
   int? originationId;
   int? migrationId;
+  String? status;
 
-  TZKTTokenTransfer(
-      {required this.id,
-      required this.level,
-      required this.timestamp,
-      this.amount,
-      this.token,
-      this.from,
-      this.to,
-      this.transactionId,
-      this.originationId,
-      this.migrationId});
+  TZKTTokenTransfer({
+    required this.id,
+    required this.level,
+    required this.timestamp,
+    this.amount,
+    this.token,
+    this.from,
+    this.to,
+    this.transactionId,
+    this.originationId,
+    this.migrationId,
+    this.status,
+  });
 
   factory TZKTTokenTransfer.fromJson(Map<String, dynamic> json) =>
       _$TZKTTokenTransferFromJson(json);
@@ -269,7 +271,7 @@ class TZKTTokenTransfer implements TZKTTransactionInterface {
 
   @override
   String transactionStatus() {
-    return "applied".tr();
+    return status?.tr() ?? "applied".tr();
   }
 
   @override
