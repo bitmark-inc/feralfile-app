@@ -31,6 +31,13 @@ AppiumBy typedartSyncButtonLocator = const AppiumBy.xpath("//button[.='sync']");
 AppiumBy hicetnuncSyncButtonLocator =
     const AppiumBy.xpath("//button[./div[.='sync']]");
 
+AppiumBy FFsigninLocator = AppiumBy.xpath(
+    "//div[contains(@class, 'content-center')]/p[.='Sign In']");
+AppiumBy FFconnectYourWalletLocator = AppiumBy.xpath(
+    "//div[contains(@class, 'option')][1]/p[contains(., 'Connect')]");
+AppiumBy FFtezosWalletLocator = AppiumBy.xpath(
+    "//div[@class='wallet-app-item-info']/p[.='Tezos wallet']");
+
 //script to click Connect button by Javascript
 const script =
     '''document.querySelector("div[id*='beacon-alert-wrapper']")?.shadowRoot?.querySelector("a[id*='button_'] > button[class*='connect__btn']").click();''';
@@ -48,7 +55,8 @@ Future<void> linkBeaconWalletFromExchange(
   await driver.get("https://$exchange");
 
   //need to wait long time because sometime mobile browser loads website too long because of network
-  sleep(Duration(seconds: 20));
+  //sleep(Duration(seconds: 20));
+  await Future.delayed(Duration(seconds: 10));
   if (exchange == "objkt.com") {
     var objktHamburgerIcon =
         await driver.findElement(objktHamburgerIconLocator);
@@ -80,6 +88,13 @@ Future<void> linkBeaconWalletFromExchange(
     var hicetnuncSyncButton =
         await driver.findElement(hicetnuncSyncButtonLocator);
     await hicetnuncSyncButton.click();
+  } else if (exchange == "feralfile.staging.bitmark.com/exhibitions"){
+    var FFsignInButton = await driver.findElement(FFsigninLocator);
+    await FFsignInButton.click();
+    var FFconnectWalletButton = await driver.findElement(FFconnectYourWalletLocator);
+    await FFconnectWalletButton.click();
+    var FFtezosWallet = await driver.findElement(FFtezosWalletLocator);
+    await FFtezosWallet.click();
   }
 
   sleep(Duration(seconds: 2));

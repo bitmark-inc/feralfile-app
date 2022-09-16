@@ -42,4 +42,5 @@ const LIST_OF_EXCHANGES = [
   {'exchangeName': 'versum.xyz', 'linkedExchangeName': 'versum'},
   {'exchangeName': 'akaswap.com', 'linkedExchangeName': 'akaswap'},
   {'exchangeName': 'typed.art', 'linkedExchangeName': 'typed.art'},
+  {'exchangeName': 'feralfile.staging.bitmark.com/exhibitions', 'linkedExchangeName':'Feral File'},
 ];
