@@ -6,6 +6,7 @@
 //
 
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -17,7 +18,7 @@ Widget privacyView(BuildContext context) {
     fontSize: 12,
     fontWeight: FontWeight.w500,
   );
-  final Uri uri = Uri.parse("https://github.com/bitmark-inc/autonomy-client");
+  final Uri uri = Uri.parse(AUTONOMY_CLIENT_GITHUB_LINK);
 
   return Column(
     children: [
