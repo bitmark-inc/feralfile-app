@@ -1,4 +1,4 @@
-const APPIUM_SERVER_URL = 'http://127.0.0.1:4723/wd/hub/';
+const APPIUM_SERVER_URL = 'http://0.0.0.0:4723/wd/hub/';
 Map<String, String> CHROME_MOBILE_BROWSER_PROFILE(String currentDir) => {
       'platformName': 'android',
       'platformVersion': '12',
