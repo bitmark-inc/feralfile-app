@@ -31,12 +31,12 @@ AppiumBy typedartSyncButtonLocator = const AppiumBy.xpath("//button[.='sync']");
 AppiumBy hicetnuncSyncButtonLocator =
     const AppiumBy.xpath("//button[./div[.='sync']]");
 
-AppiumBy FFsigninLocator = AppiumBy.xpath(
-    "//div[contains(@class, 'content-center')]/p[.='Sign In']");
-AppiumBy FFconnectYourWalletLocator = AppiumBy.xpath(
-    "//div[contains(@class, 'option')][1]/p[contains(., 'Connect')]");
-AppiumBy FFtezosWalletLocator = AppiumBy.xpath(
-    "//div[@class='wallet-app-item-info']/p[.='Tezos wallet']");
+AppiumBy feralFileSigninLocator = AppiumBy.xpath(
+    "//app-header//p[.='Sign In']");
+AppiumBy feralFileConnectYourWalletLocator = AppiumBy.xpath(
+    "//app-header//p[contains(., 'Connect')]");
+AppiumBy feralFileTezosWalletLocator = AppiumBy.xpath(
+    "//app-header//p[.='Tezos wallet']");
 
 //script to click Connect button by Javascript
 const script =
@@ -89,12 +89,12 @@ Future<void> linkBeaconWalletFromExchange(
         await driver.findElement(hicetnuncSyncButtonLocator);
     await hicetnuncSyncButton.click();
   } else if (exchange == "feralfile.staging.bitmark.com/exhibitions"){
-    var FFsignInButton = await driver.findElement(FFsigninLocator);
-    await FFsignInButton.click();
-    var FFconnectWalletButton = await driver.findElement(FFconnectYourWalletLocator);
-    await FFconnectWalletButton.click();
-    var FFtezosWallet = await driver.findElement(FFtezosWalletLocator);
-    await FFtezosWallet.click();
+    var feralFileSignInButton = await driver.findElement(feralFileSigninLocator);
+    await feralFileSignInButton.click();
+    var feralFileConnectWalletButton = await driver.findElement(feralFileConnectYourWalletLocator);
+    await feralFileConnectWalletButton.click();
+    var feralFileTezosWallet = await driver.findElement(feralFileTezosWalletLocator);
+    await feralFileTezosWallet.click();
   }
 
   sleep(Duration(seconds: 2));
