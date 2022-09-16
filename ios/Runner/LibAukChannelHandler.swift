@@ -268,6 +268,50 @@ class LibAukChannelHandler {
             })
             .store(in: &cancelBag)
     }
+
+    func encryptFile(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args: NSDictionary = call.arguments as! NSDictionary
+        let uuid: String = args["uuid"] as! String
+        let inputPath: String = args["inputPath"] as! String
+        let outputPath: String = args["outputPath"] as! String
+
+        LibAuk.shared.storage(for: UUID(uuidString: uuid)!)
+            .encryptFile(inputPath: inputPath, outputPath: outputPath)
+            .sink(receiveCompletion: { (completion) in
+                if let error = completion.error {
+                    result(ErrorHandler.handle(error: error))
+                }
+            }, receiveValue: { output in
+                result([
+                    "error": 0,
+                    "msg": "encryptFile success",
+                    "data": output as! String,
+                ])
+            })
+            .store(in: &cancelBag)
+    }
+
+    func decryptFile(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args: NSDictionary = call.arguments as! NSDictionary
+        let uuid: String = args["uuid"] as! String
+        let inputPath: String = args["inputPath"] as! String
+        let outputPath: String = args["outputPath"] as! String
+
+        LibAuk.shared.storage(for: UUID(uuidString: uuid)!)
+            .decryptFile(inputPath: inputPath, outputPath: outputPath)
+            .sink(receiveCompletion: { (completion) in
+                if let error = completion.error {
+                    result(ErrorHandler.handle(error: error))
+                }
+            }, receiveValue: { output in
+                result([
+                    "error": 0,
+                    "msg": "encryptFile success",
+                    "data": output as! String,
+                ])
+            })
+            .store(in: &cancelBag)
+    }
     
     func getBitmarkAddress(call: FlutterMethodCall, result: @escaping FlutterResult) {
         let args: NSDictionary = call.arguments as! NSDictionary

@@ -381,8 +381,9 @@ class _HomePageState extends State<HomePage>
   }
 
   Future<void> _cloudBackup() async {
+    final accountService = injector<AccountService>();
     final backup = injector<BackupService>();
-    await backup.backupCloudDatabase();
+    await backup.backupCloudDatabase(await accountService.getDefaultAccount());
   }
 
   Future<void> _checkForKeySync() async {
