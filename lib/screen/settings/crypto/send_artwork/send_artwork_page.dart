@@ -44,6 +44,8 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
   final _reviewButtonVisible =
       ValueNotifier(!KeyboardVisibilityController().isVisible);
 
+  final _focusNode = FocusNode();
+
   @override
   void initState() {
     super.initState();
@@ -60,6 +62,11 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
     KeyboardVisibilityController().onChange.listen((keyboardVisible) async {
       await Future.delayed(Duration(milliseconds: keyboardVisible ? 0 : 150),
           () => _reviewButtonVisible.value = !keyboardVisible);
+    });
+    _focusNode.addListener(() {
+      if (!_focusNode.hasFocus) {
+        _onQuantityUpdated();
+      }
     });
   }
 
@@ -98,6 +105,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
           constraints: const BoxConstraints(minWidth: 30, maxWidth: 90),
           child: IntrinsicWidth(
             child: TextField(
+              focusNode: _focusNode,
               controller: _quantityController,
               decoration: const InputDecoration(border: InputBorder.none),
               textAlign: TextAlign.center,
@@ -120,6 +128,14 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
             )),
       ],
     );
+  }
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    _quantityController.dispose();
+    _addressController.dispose();
+    super.dispose();
   }
 
   @override
@@ -342,7 +358,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                             state.address!,
                             state.fee!,
                             state.exchangeRate,
-                            widget.payload.ownedQuantity,
+                            _quantity,
                             state.quantity)) as Map?;
                     if (payload != null &&
                         payload["hash"] != null &&
