@@ -16,7 +16,6 @@ import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_page.dart';
-import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
@@ -31,6 +30,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:html_unescape/html_unescape.dart';
+import 'package:metric_client/metric_client.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/provenance.dart';
 import 'package:nft_collection/nft_collection.dart';
@@ -62,8 +62,8 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   }
 
   @override
-  void afterFirstLayout(BuildContext context) {
-    injector<AWSService>().storeEventWithDeviceData("view_artwork_detail",
+  void afterFirstLayout(BuildContext context) async {
+    await MetricClient.addEvent("view_artwork_detail",
         data: {"id": widget.payload.ids[widget.payload.currentIndex]});
   }
 

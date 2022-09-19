@@ -16,7 +16,6 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_widget.dart';
-import 'package:autonomy_flutter/screen/detail/report_rendering_issue/any_problem_nft_widget.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_box_view.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
@@ -32,6 +31,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_to_airplay/flutter_to_airplay.dart';
+import 'package:metric_client/metric_client.dart';
 import 'package:mime/mime.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -42,8 +42,6 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shake/shake.dart';
 import 'package:wakelock/wakelock.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
-
-import '../../../service/aws_service.dart';
 
 enum AUCastDeviceType { Airplay, Chromecast }
 
@@ -314,17 +312,15 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
             case AUCastDeviceType.Airplay:
               return GestureDetector(
                   behavior: HitTestBehavior.translucent,
-                  onTap: () {
-                    injector<AWSService>()
-                        .storeEventWithDeviceData("stream_airplay");
+                  onTap: () async {
+                    await MetricClient.addEvent("stream_airplay");
                   },
                   child: _airplayItem(context, isSubscribed));
             case AUCastDeviceType.Chromecast:
               return GestureDetector(
                 onTap: isSubscribed
                     ? () {
-                        injector<AWSService>()
-                            .storeEventWithDeviceData("stream_chromecast");
+                        MetricClient.addEvent("stream_chromecast");
                         UIHelper.hideInfoDialog(context);
                         var copiedDevice = _castDevices[index];
                         if (copiedDevice.isActivated) {

@@ -15,7 +15,6 @@ import 'package:autonomy_flutter/gateway/autonomy_api.dart';
 import 'package:autonomy_flutter/model/p2p_peer.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
-import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
@@ -31,6 +30,7 @@ import 'package:fast_base58/fast_base58.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 // ignore: depend_on_referenced_packages
 import 'package:elliptic/elliptic.dart';
+import 'package:metric_client/metric_client.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:uuid/uuid.dart';
 import 'package:wallet_connect/wallet_connect.dart';
@@ -122,13 +122,13 @@ class AccountServiceImpl extends AccountService {
     final walletStorage = LibAukDart.getWallet(uuid);
     await walletStorage.createKey(name);
 
-    final persona = Persona.newPersona(
-        uuid: uuid, defaultAccount: isDefault ? 1 : null);
+    final persona =
+        Persona.newPersona(uuid: uuid, defaultAccount: isDefault ? 1 : null);
     await _cloudDB.personaDao.insertPersona(persona);
     await androidBackupKeys();
     await _auditService.auditPersonaAction('create', persona);
-    injector<AWSService>().storeEventWithDeviceData("create_full_account",
-        hashingData: {"id": uuid});
+    await MetricClient.addEvent("create_full_account",
+        hashedData: {"id": uuid});
     _autonomyService.postLinkedAddresses();
 
     return persona;
@@ -153,8 +153,8 @@ class AccountServiceImpl extends AccountService {
     await _cloudDB.personaDao.insertPersona(persona);
     await androidBackupKeys();
     await _auditService.auditPersonaAction('import', persona);
-    injector<AWSService>().storeEventWithDeviceData("import_full_account",
-        hashingData: {"id": uuid});
+    await MetricClient.addEvent("import_full_account",
+        hashedData: {"id": uuid});
     _autonomyService.postLinkedAddresses();
 
     return persona;
@@ -180,13 +180,8 @@ class AccountServiceImpl extends AccountService {
     var personas = await _cloudDB.personaDao.getDefaultPersonas();
 
     if (personas.isEmpty) {
-      await MigrationUtil(
-              _configurationService,
-              _cloudDB,
-              this,
-              injector(),
-              _auditService,
-              _backupService)
+      await MigrationUtil(_configurationService, _cloudDB, this, injector(),
+              _auditService, _backupService)
           .migrationFromKeychain();
       await androidRestoreKeys();
 
@@ -201,11 +196,9 @@ class AccountServiceImpl extends AccountService {
         defaultPersona = personas.first;
         defaultPersona.defaultAccount = 1;
         await _cloudDB.personaDao.updatePersona(defaultPersona);
-        await injector<AWSService>().initServices();
       } else {
         log.info("[AccountService] create default account");
         defaultPersona = await createPersona(name: "Default", isDefault: true);
-        await injector<AWSService>().initServices();
       }
     } else {
       defaultPersona = personas.first;
@@ -265,16 +258,16 @@ class AccountServiceImpl extends AccountService {
       Sentry.captureException(exception);
     }
 
-    injector<AWSService>().storeEventWithDeviceData("delete_full_account",
-        hashingData: {"id": persona.uuid});
+    await MetricClient.addEvent("delete_full_account",
+        hashedData: {"id": persona.uuid});
   }
 
   @override
   Future deleteLinkedAccount(Connection connection) async {
     await _cloudDB.connectionDao.deleteConnection(connection);
     await setHideLinkedAccountInGallery(connection.hiddenGalleryKey, false);
-    injector<AWSService>().storeEventWithDeviceData("delete_linked_account",
-        hashingData: {"address": connection.accountNumber});
+    await MetricClient.addEvent("delete_linked_account",
+        hashedData: {"address": connection.accountNumber});
   }
 
   @override
@@ -325,8 +318,8 @@ class AccountServiceImpl extends AccountService {
     }
 
     await _cloudDB.connectionDao.insertConnection(connection);
-    injector<AWSService>().storeEventWithDeviceData("link_eth_wallet",
-        hashingData: {"address": connection.accountNumber});
+    await MetricClient.addEvent("link_eth_wallet",
+        hashedData: {"address": connection.accountNumber});
     _autonomyService.postLinkedAddresses();
     return connection;
   }
@@ -349,8 +342,8 @@ class AccountServiceImpl extends AccountService {
     );
 
     await _cloudDB.connectionDao.insertConnection(connection);
-    injector<AWSService>().storeEventWithDeviceData("link_eth_wallet_browser",
-        hashingData: {"address": connection.accountNumber});
+    await MetricClient.addEvent("link_eth_wallet_browser",
+        hashedData: {"address": connection.accountNumber});
     _autonomyService.postLinkedAddresses();
     return connection;
   }
@@ -377,8 +370,8 @@ class AccountServiceImpl extends AccountService {
     await _configurationService
         .setHideLinkedAccountInGallery([address], isEnabled);
     injector<SettingsDataService>().backup();
-    injector<AWSService>().storeEventWithDeviceData("hide_linked_account",
-        hashingData: {"address": address});
+    await MetricClient.addEvent("hide_linked_account",
+        hashedData: {"address": address});
   }
 
   @override

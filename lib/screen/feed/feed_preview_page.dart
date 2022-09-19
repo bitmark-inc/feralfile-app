@@ -14,7 +14,6 @@ import 'package:autonomy_flutter/model/feed.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/feed/feed_bloc.dart';
-import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
@@ -30,6 +29,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:get_it/get_it.dart';
+import 'package:metric_client/metric_client.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_rendering/nft_rendering.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -79,8 +79,8 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
   }
 
   @override
-  void afterFirstLayout(BuildContext context) {
-    injector<AWSService>().storeEventWithDeviceData(
+  Future<void> afterFirstLayout(BuildContext context) async {
+    await MetricClient.addEvent(
       "view_discovery",
     );
   }
