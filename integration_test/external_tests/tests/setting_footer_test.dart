@@ -29,7 +29,7 @@ void main() {
     });
 
     tearDown(() async {
-      //await driver.app.remove(AUTONOMY_APPPACKAGE);
+      await driver.app.remove(AUTONOMY_APPPACKAGE);
       await driver.quit();
     });
 
@@ -57,28 +57,6 @@ void main() {
       expect(hasVersion, 1);
     });
 
-    test("EULA", () async {
-      await onBoardingSteps(driver);
-
-      await selectSubSettingMenu(driver, "Settings");
-
-      await scrollUntil(driver, "EULA");
-
-      await selectSubSettingMenu(driver, "EULA");
-
-      int hasLicense = await driver.findElements(AppiumBy.xpath(
-        "//android.view.View[@content-desc='Autonomy End User License Agreement']"
-      )).length;
-
-      expect(hasLicense, 1);
-
-      await driver.back();
-
-      var hasEULA = await driver.findElements(
-              AppiumBy.accessibilityId("EULA")).length;
-      expect(hasEULA, 1);
-    });
-
     test("Privacy Policy", () async {
       // Open App at Home Page
       await onBoardingSteps(driver);
@@ -101,7 +79,6 @@ void main() {
               AppiumBy.accessibilityId("Privacy Policy")).length;
       expect(hasPrivacyAndPolicy, 1);
     });
-
-
+    
   }, timeout: Timeout.none);
 }
