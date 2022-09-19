@@ -13,7 +13,6 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -34,8 +33,10 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:overlay_support/overlay_support.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:metric_client/metric_client.dart';
 
 void main() async {
   await dotenv.load();
@@ -97,7 +98,19 @@ void main() async {
 
 _setupApp() async {
   await setup();
-  await injector<AWSService>().initServices();
+  final root = await getTemporaryDirectory();
+
+  await MetricClient.init(
+    storageOption: StorageOption(
+      name: 'metric',
+      path: '${root.path}/metric',
+    ),
+    apiOption: APIOption(
+      endpoint: Environment.metricEndpoint,
+      secret: Environment.metricSecretKey,
+    ),
+  );
+
   await DeviceInfo.instance.init();
 
   final countOpenApp = injector<ConfigurationService>().countOpenApp() ?? 0;

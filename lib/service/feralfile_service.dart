@@ -16,7 +16,6 @@ import 'package:autonomy_flutter/gateway/feralfile_api.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/asset_price.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
-import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
@@ -25,6 +24,7 @@ import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
 import 'package:libauk_dart/libauk_dart.dart';
+import 'package:metric_client/metric_client.dart';
 import 'package:nft_collection/nft_collection.dart';
 
 // TODO:
@@ -92,16 +92,16 @@ class FeralFileServiceImpl extends FeralFileService {
     // mark survey from FeralFile as referrer if user hasn't answerred
     final finishedSurveys = _configurationService.getFinishedSurveys();
     if (!finishedSurveys.contains(Survey.onboarding)) {
-      injector<AWSService>().storeEventWithDeviceData(
+      await MetricClient.addEvent(
         Survey.onboarding,
         message: 'Feral File Website',
       );
       injector<ConfigurationService>().setFinishedSurvey([Survey.onboarding]);
     }
 
-    injector<AWSService>().storeEventWithDeviceData(
+    await MetricClient.addEvent(
       "link_feralfile",
-      hashingData: {"address": connection.accountNumber},
+      hashedData: {"address": connection.accountNumber},
     );
 
     log.info("[FeralFileService][end] linkFF");

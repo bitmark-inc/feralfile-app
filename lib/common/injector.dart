@@ -22,7 +22,6 @@ import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
-import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/cloud_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -151,7 +150,6 @@ Future<void> setup() async {
 
   injector.registerLazySingleton(() => Client());
   injector.registerLazySingleton(() => NavigationService());
-  injector.registerLazySingleton(() => AWSService(injector(), injector()));
   injector.registerLazySingleton(() => LedgerHardwareService());
   injector.registerLazySingleton<AutonomyService>(
       () => AutonomyServiceImpl(injector(), injector()));
@@ -241,12 +239,12 @@ Future<void> setup() async {
 
   injector.registerLazySingleton<EthereumService>(
       () => EthereumServiceImpl(injector()));
-  injector.registerLazySingleton<TezosService>(
-      () => TezosServiceImpl(injector()));
+  injector
+      .registerLazySingleton<TezosService>(() => TezosServiceImpl(injector()));
   injector.registerLazySingleton<AppDatabase>(() => mainnetDB);
 
-  injector.registerLazySingleton<FeedService>(
-      () => FeedServiceImpl(injector()));
+  injector
+      .registerLazySingleton<FeedService>(() => FeedServiceImpl(injector()));
 
   injector.registerLazySingleton<FeralFileService>(() => FeralFileServiceImpl(
         injector(),

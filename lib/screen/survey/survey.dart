@@ -7,7 +7,6 @@
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/survey/survey_thankyou.dart';
-import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
@@ -15,6 +14,7 @@ import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:metric_client/metric_client.dart';
 
 class SurveyPage extends StatefulWidget {
   static const String tag = 'survey_step_1';
@@ -52,7 +52,7 @@ class _SurveyPageState extends State<SurveyPage> {
           children: [
             Text(
               _currentPage == 0
-                  ? "how_did_hear".tr()//"How did you hear about Autonomy? "
+                  ? "how_did_hear".tr() //"How did you hear about Autonomy? "
                   : "which_nft".tr(), //"Which NFT marketplace? ",
               style: theme.textTheme.headline1,
             ),
@@ -71,14 +71,14 @@ class _SurveyPageState extends State<SurveyPage> {
             AuFilledButton(
                 text: "continue".tr(),
                 enabled: _surveyAnswer != null && _surveyAnswer!.isNotEmpty,
-                onPress: () {
+                onPress: () async {
                   const onboardingSurveyKey = "onboarding_survey";
-                  injector<AWSService>().storeEventWithDeviceData(
-                      onboardingSurveyKey,
+                  await MetricClient.addEvent(onboardingSurveyKey,
                       message: _surveyAnswer);
                   injector<ConfigurationService>()
                       .setFinishedSurvey([onboardingSurveyKey]);
                   injector<SettingsDataService>().backup();
+                  if (!mounted) return;
                   Navigator.of(context)
                       .pushReplacementNamed(SurveyThankyouPage.tag);
                 }),
