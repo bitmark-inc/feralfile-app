@@ -58,14 +58,15 @@ abstract class SocialRecoveryService {
 }
 
 class SocialRecoveryServiceImpl extends SocialRecoveryService {
+  @override
   ValueNotifier<SocialRecoveryStep?> socialRecoveryStep = ValueNotifier(null);
 
   late SocialRecoveryChannel _socialRecoveryChannel;
-  CloudDatabase _cloudDB;
-  AccountService _accountService;
-  AuditService _auditService;
-  ConfigurationService _configurationService;
-  BackupService _backupService;
+  final CloudDatabase _cloudDB;
+  final AccountService _accountService;
+  final AuditService _auditService;
+  final ConfigurationService _configurationService;
+  final BackupService _backupService;
 
   SocialRecoveryServiceImpl(
     this._cloudDB,
@@ -78,6 +79,7 @@ class SocialRecoveryServiceImpl extends SocialRecoveryService {
     refreshSetupStep();
   }
 
+  @override
   Future refreshSetupStep() async {
     // NOTE: Update this when support Social Recovery in Android
     if (!Platform.isIOS) return;
@@ -131,6 +133,7 @@ class SocialRecoveryServiceImpl extends SocialRecoveryService {
     }
   }
 
+  @override
   Future sendDeckToShardService(String domain, String code) async {
     // Create ShardService's ShardDeck
     // Send ShardDeck to ShardService with OTP Code
@@ -139,7 +142,7 @@ class SocialRecoveryServiceImpl extends SocialRecoveryService {
     final body = {"code": code, "secret": jsonEncode(shardDeck.toJson())};
 
     final response = await http.put(
-      Uri.parse(domain + "/apis/v1/shard"),
+      Uri.parse("$domain/apis/v1/shard"),
       headers: {HttpHeaders.contentTypeHeader: 'application/json'},
       body: jsonEncode(body),
     );
@@ -160,12 +163,14 @@ class SocialRecoveryServiceImpl extends SocialRecoveryService {
     }
   }
 
+  @override
   Future<String> getEmergencyContactDeck() async {
     final shardDeck =
         await _getShardDeckFromAccounts(ShardType.EmergencyContact);
     return storeDataInTempSecretFile(jsonEncode(shardDeck));
   }
 
+  @override
   Future doneSetupEmergencyContact() async {
     final accounts = await _cloudDB.personaDao.getPersonas();
 
@@ -174,6 +179,7 @@ class SocialRecoveryServiceImpl extends SocialRecoveryService {
     await _auditService.auditSocialRecoveryAction('Done', '');
   }
 
+  @override
   Future<String> storeDataInTempSecretFile(String data) async {
     Directory appDocumentsDirectory = await getApplicationDocumentsDirectory();
     String filePath =
@@ -186,6 +192,7 @@ class SocialRecoveryServiceImpl extends SocialRecoveryService {
     return filePath;
   }
 
+  @override
   Future cleanTempSecretFile() async {
     Directory appDocumentsDirectory = await getApplicationDocumentsDirectory();
     String filePath =
@@ -196,11 +203,12 @@ class SocialRecoveryServiceImpl extends SocialRecoveryService {
     }
   }
 
+  @override
   Future<ShardDeck> requestDeckFromShardService(
       String domain, String code) async {
     // Get ShardDeck to ShardService with OTP Code
     final response = await http.get(
-      Uri.parse(domain + "/apis/v1/shard?code=$code"),
+      Uri.parse("$domain/apis/v1/shard?code=$code"),
       headers: {HttpHeaders.contentTypeHeader: 'application/json'},
     );
 
@@ -214,10 +222,12 @@ class SocialRecoveryServiceImpl extends SocialRecoveryService {
     }
   }
 
+  @override
   Future<bool> hasPlatformShards() {
     return LibAukDart.general().hasPlatformShards();
   }
 
+  @override
   Future restoreAccountWithPlatformKey(ShardDeck shardDeck) async {
     // Restore Default Account
     final defaultAccountUUID = shardDeck.defaultAccount.uuid;
@@ -236,6 +246,7 @@ class SocialRecoveryServiceImpl extends SocialRecoveryService {
     restoreAccount(platformDeck, shardDeck);
   }
 
+  @override
   Future restoreAccount(ShardDeck shardDeck1, ShardDeck shardDeck2) async {
     // Restore Default Account
     final defaultAccountUUID = shardDeck1.defaultAccount.uuid;
@@ -291,8 +302,9 @@ class SocialRecoveryServiceImpl extends SocialRecoveryService {
 
     // Update defaultAccount's name in Keychain (after getting name from publicData)
     final defaultName = accountsInfo[defaultAccountUUID]?[0];
-    if (defaultName != null && defaultName!.isNotEmpty)
+    if (defaultName != null && defaultName!.isNotEmpty) {
       defaultAccountWallet.updateName(defaultName);
+    }
 
     injector<MigrationUtil>().migrationFromKeychain();
 
@@ -303,18 +315,22 @@ class SocialRecoveryServiceImpl extends SocialRecoveryService {
     await injector<AWSService>().initServices();
   }
 
+  @override
   Future clearRestoreProcess() async {
     await _configurationService.setCachedDeckFromShardService(null);
   }
 
+  @override
   Future<List<ContactDeck>> getContactDecks() async {
     return await _socialRecoveryChannel.getContactDecks();
   }
 
+  @override
   Future storeContactDeck(ContactDeck contactDeck) async {
     return _socialRecoveryChannel.storeContactDeck(contactDeck);
   }
 
+  @override
   Future deleteHelpingContactDecks() async {
     await _socialRecoveryChannel.deleteHelpingContactDecks();
   }

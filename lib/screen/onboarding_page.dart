@@ -145,10 +145,10 @@ class _OnboardingPageState extends State<OnboardingPage> {
             if (Platform.isIOS) ...[
               TextButton(
                 onPressed: () => Navigator.of(context)
-                    .pushNamed(AppRouter.restoreWithShardServicePage),
+                    .pushNamed(AppRouter.restoreIntroductionPage),
                 child: Text(
                   "restore".tr().toUpperCase(),
-                  style: TextStyle(
+                  style: const TextStyle(
                       color: Colors.black,
                       fontSize: 14,
                       fontWeight: FontWeight.w700,

@@ -83,8 +83,19 @@ import 'package:autonomy_flutter/screen/settings/hidden_artworks/hidden_artworks
 import 'package:autonomy_flutter/screen/settings/hidden_artworks/hidden_artworks_page.dart';
 import 'package:autonomy_flutter/screen/settings/settings_page.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
+import 'package:autonomy_flutter/screen/social_recovery/restore/restore_institutional_page.dart';
+import 'package:autonomy_flutter/screen/social_recovery/restore/restore_institutional_verify_page.dart';
+import 'package:autonomy_flutter/screen/social_recovery/restore/restore_introduction_page.dart';
+import 'package:autonomy_flutter/screen/social_recovery/restore/restore_personal_page.dart';
+import 'package:autonomy_flutter/screen/social_recovery/restore/restore_platform_page.dart';
+import 'package:autonomy_flutter/screen/social_recovery/setup/personal_collaborator_page.dart';
+import 'package:autonomy_flutter/screen/social_recovery/setup/recovery_institutional_page.dart';
+import 'package:autonomy_flutter/screen/social_recovery/setup/recovery_institutional_verify_page.dart';
+import 'package:autonomy_flutter/screen/social_recovery/setup/recovery_introduction_page.dart';
+import 'package:autonomy_flutter/screen/social_recovery/setup/recovery_platform_page.dart';
 import 'package:autonomy_flutter/screen/social_recovery/restore_with_emergency_contact_page.dart';
 import 'package:autonomy_flutter/screen/social_recovery/restore_with_shard_service_page.dart';
+import 'package:autonomy_flutter/screen/social_recovery/setup/recovery_setup_done_page.dart';
 import 'package:autonomy_flutter/screen/social_recovery/setup_emergency_contact_page.dart';
 import 'package:autonomy_flutter/screen/social_recovery/setup_shard_service_page.dart';
 import 'package:autonomy_flutter/screen/social_recovery/social_recovery_helpings_page.dart';
@@ -173,6 +184,18 @@ class AppRouter {
       'restoreWithEmergencyContactPage';
   static const socialRecoveryHelpingsPage = 'socialRecoveryHelpingsPage';
   static const storeContactDeckPage = 'storeContactDeckPage';
+  static const recoveryIntroductionPage = 'recoveryIntroductionPage';
+  static const recoveryPlatformPage = 'recoveryPlatformPage';
+  static const recoveryInstitutionalPage = 'recoveryInstitutionalPage';
+  static const recoveryInstitutionalVerifyPage =
+      'recoveryInstitutionalVerifyPage';
+  static const personalCollaboratorPage = 'personalCollaboratorPage';
+  static const recoverySetupDonePage = 'recoverySetupDonePage';
+  static const restoreIntroductionPage = 'restoreIntroductionPage';
+  static const restorePlatformPage = 'restorePlatformPage';
+  static const restoreInstitutionalPage = 'restoreInstitutionalPage';
+  static const restoreInstitutionalVerifyPage = 'restoreInstitutionalVerifyPage';
+  static const restorePersonalPage = 'restorePersonalPage';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final ethereumBloc = EthereumBloc(injector());
@@ -866,11 +889,66 @@ class AppRouter {
       case socialRecoveryHelpingsPage:
         return CupertinoPageRoute(
             settings: settings,
-            builder: (context) => SocialRecoveryHelpingsPage());
+            builder: (context) => const SocialRecoveryHelpingsPage());
 
       case storeContactDeckPage:
         return CupertinoPageRoute(
             settings: settings, builder: (context) => StoreContactDeckPage());
+
+      case recoveryIntroductionPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => const RecoveryIntroductionPage());
+
+      case recoveryPlatformPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => const RecoveryPlatformPage());
+
+      case recoveryInstitutionalPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => RecoveryInstitutionalPage());
+
+      case recoveryInstitutionalVerifyPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => RecoveryInstitutionalVerifyPage(payload: settings.arguments));
+
+      case personalCollaboratorPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => const PersonalCollaboratorPage());
+
+      case recoverySetupDonePage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => const RecoverySetupDonePage());
+
+      case restoreIntroductionPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => const RestoreIntroductionPage());
+
+      case restorePlatformPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => const RestorePlatformPage());
+
+      case restoreInstitutionalPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => RestoreInstitutionalPage());
+
+      case restoreInstitutionalVerifyPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => RestoreInstitutionalVerifyPage(payload: settings.arguments));
+
+      case restorePersonalPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => const RestorePersonalPage());
 
       default:
         throw Exception('Invalid route: ${settings.name}');

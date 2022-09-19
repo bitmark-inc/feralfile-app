@@ -32,6 +32,7 @@ import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -270,18 +271,19 @@ class _SettingsPageState extends State<SettingsPage>
       children: [
         const SizedBox(height: 40),
         Text(
-          "Social Recovery",
+          "Recovery network",
           style: theme.textTheme.headline1,
         ),
         const SizedBox(height: 24),
-        Text('Short description about social recovery',
-            style: theme.textTheme.bodyText1),
-        const SizedBox(height: 15),
         _setupSocialRecoveryWidget(),
         addOnlyDivider(),
-        TappableForwardRow(
+        const SizedBox(height: 16),
+        TappableForwardRowWithContent(
             leftWidget:
-                Text('Helping Contacts', style: theme.textTheme.headline4),
+                Text('People you’re helping', style: theme.textTheme.headline4),
+            bottomWidget: Text('Secure your friends’ recovery codes.',
+                //'Erase all information about me and delete my keys from my cloud backup including the keys on this device.',
+                style: theme.textTheme.bodyText1),
             onTap: () => Navigator.of(context)
                 .pushNamed(AppRouter.socialRecoveryHelpingsPage)),
       ],
@@ -299,24 +301,62 @@ class _SettingsPageState extends State<SettingsPage>
 
           switch (step) {
             case SocialRecoveryStep.SetupShardService:
-              return TappableForwardRowWithContent(
-                  leftWidget: Text(
-                    'Setup Shard Service',
-                    style: theme.textTheme.headline4,
-                  ),
-                  bottomWidget: const SizedBox(),
-                  onTap: () => Navigator.of(context)
-                      .pushNamed(AppRouter.setupShardServicePage));
+              return InkWell(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Collaborative recovery',
+                            style: theme.textTheme.headline4),
+                        CupertinoSwitch(
+                          value: false,
+                          onChanged: null,
+                          activeColor: theme.colorScheme.primary,
+                        )
+                      ],
+                    ),
+                    const SizedBox(height: 7),
+                    Text(
+                      "Restore access if you lose your device. ",
+                      style: theme.textTheme.bodyText1,
+                    ),
+                    const SizedBox(height: 16.0),
+                  ],
+                ),
+                onTap: () => Navigator.of(context)
+                    .pushNamed(AppRouter.recoveryIntroductionPage),
+              );
 
             case SocialRecoveryStep.SetupEmergencyContact:
-              return TappableForwardRowWithContent(
-                  leftWidget: Text(
-                    'Setup Emergency Contact',
-                    style: theme.textTheme.headline4,
-                  ),
-                  bottomWidget: const SizedBox(),
-                  onTap: () => Navigator.of(context)
-                      .pushNamed(AppRouter.setupEmergencyContactPage));
+              return InkWell(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Collaborative recovery',
+                            style: theme.textTheme.headline4),
+                        CupertinoSwitch(
+                          value: false,
+                          onChanged: null,
+                          activeColor: theme.colorScheme.primary,
+                        )
+                      ],
+                    ),
+                    const SizedBox(height: 7),
+                    Text(
+                      "Restore access if you lose your device. ",
+                      style: theme.textTheme.bodyText1,
+                    ),
+                    const SizedBox(height: 16.0),
+                  ],
+                ),
+                onTap: () => Navigator.of(context)
+                    .pushNamed(AppRouter.personalCollaboratorPage),
+              );
 
             case SocialRecoveryStep.RestartWhenHasChanges:
               return Column(
@@ -326,14 +366,33 @@ class _SettingsPageState extends State<SettingsPage>
                         style: theme.textTheme.bodyText1
                             ?.copyWith(color: theme.errorColor)),
                     const SizedBox(height: 15),
-                    TappableForwardRowWithContent(
-                        leftWidget: Text(
-                          'Setup Shard Service',
-                          style: theme.textTheme.headline4,
-                        ),
-                        bottomWidget: const SizedBox(),
-                        onTap: () => Navigator.of(context)
-                            .pushNamed(AppRouter.setupShardServicePage)),
+                    InkWell(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text('Collaborative recovery',
+                                  style: theme.textTheme.headline4),
+                              CupertinoSwitch(
+                                value: false,
+                                onChanged: (value) {},
+                                activeColor: theme.colorScheme.primary,
+                              )
+                            ],
+                          ),
+                          const SizedBox(height: 7),
+                          Text(
+                            "Restore access if you lose your device. ",
+                            style: theme.textTheme.bodyText1,
+                          ),
+                          const SizedBox(height: 16.0),
+                        ],
+                      ),
+                      onTap: () => Navigator.of(context)
+                          .pushNamed(AppRouter.recoveryIntroductionPage),
+                    ),
                   ]);
 
             case SocialRecoveryStep.RestartWhenLostPlatform:
@@ -345,24 +404,57 @@ class _SettingsPageState extends State<SettingsPage>
                         style: theme.textTheme.bodyText1
                             ?.copyWith(color: theme.errorColor)),
                     const SizedBox(height: 15),
-                    TappableForwardRowWithContent(
-                        leftWidget: Text(
-                          'Setup Shard Service',
-                          style: theme.textTheme.headline4,
-                        ),
-                        bottomWidget: const SizedBox(),
-                        onTap: () => Navigator.of(context)
-                            .pushNamed(AppRouter.setupShardServicePage)),
+                    InkWell(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text('Collaborative recovery',
+                                  style: theme.textTheme.headline4),
+                              CupertinoSwitch(
+                                value: false,
+                                onChanged: (value) {},
+                                activeColor: theme.colorScheme.primary,
+                              )
+                            ],
+                          ),
+                          const SizedBox(height: 7),
+                          Text(
+                            "Restore access if you lose your device. ",
+                            style: theme.textTheme.bodyText1,
+                          ),
+                          const SizedBox(height: 16.0),
+                        ],
+                      ),
+                      onTap: () => Navigator.of(context)
+                          .pushNamed(AppRouter.recoveryIntroductionPage),
+                    ),
                   ]);
 
             case SocialRecoveryStep.Done:
               return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    "Social Recovery is completed",
-                    style: theme.textTheme.headline4,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Collaborative recovery',
+                          style: theme.textTheme.headline4),
+                      CupertinoSwitch(
+                        value: true,
+                        onChanged: null,
+                        activeColor: theme.colorScheme.primary,
+                      )
+                    ],
                   ),
-                  const SizedBox(height: 15),
+                  const SizedBox(height: 7),
+                  Text(
+                    "Any 2 of the following collaborators can help you restore access:\n\n • Apple\n • Feral File\n • Contact ",
+                    style: theme.textTheme.bodyText1,
+                  ),
+                  const SizedBox(height: 16.0),
                 ],
               );
           }

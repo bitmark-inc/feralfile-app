@@ -12,7 +12,9 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/social_recovery/shard_deck.dart';
 import 'package:autonomy_flutter/service/social_recovery/social_recovery_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
@@ -74,7 +76,7 @@ class _SocialRecoveryHelpingsPageState extends State<SocialRecoveryHelpingsPage>
         onBack: () => Navigator.of(context).pop(),
       ),
       body: Container(
-        // margin: pageEdgeInsetsWithSubmitButton,
+        margin: ResponsiveLayout.pageEdgeInsets,
         child: Column(children: [
           Expanded(
             child: SingleChildScrollView(
@@ -82,30 +84,33 @@ class _SocialRecoveryHelpingsPageState extends State<SocialRecoveryHelpingsPage>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Helping Contacts",
-                      style: theme.textTheme.headline1,
+                      "People you’re helping",
+                      style: theme.textTheme.headline2,
                     ),
                     addTitleSpace(),
                     Text(
-                      "some description about ContactDeck they should take care",
+                      "Autonomy helps you safely store recovery codes for friends who have chosen you as their personal collaborator. ",
                       style: theme.textTheme.bodyText1,
                     ),
-                    SizedBox(height: 15),
-                    _helpingsListWidget(),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        TextButton(
-                            onPressed: () => Navigator.of(context)
-                                .pushNamed(AppRouter.storeContactDeckPage),
-                            child: Text('+ Add',
-                                style: theme.textTheme.bodyText2
-                                    ?.copyWith(color: Colors.black))),
-                        SizedBox(width: 13),
-                      ],
+                    const SizedBox(height: 40),
+                    Text(
+                      "RECOVERY CODES",
+                      style: theme.textTheme.headline4,
                     ),
+                    _helpingsListWidget(),
                   ]),
             ),
+          ),
+          Row(
+            children: [
+              Expanded(
+                child: AuFilledButton(
+                  text: "ADD FRIEND’S RECOVERY CODE".toUpperCase(),
+                  onPress: () => Navigator.of(context)
+                      .pushNamed(AppRouter.storeContactDeckPage),
+                ),
+              ),
+            ],
           ),
         ]),
       ),
@@ -131,8 +136,6 @@ class _SocialRecoveryHelpingsPageState extends State<SocialRecoveryHelpingsPage>
   Widget _contactDeckWidget(ContactDeck contactDeck) {
     return TappableForwardRow(
         leftWidget: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Text(contactDeck.name, style: Theme.of(context).textTheme.headline4),
           ],

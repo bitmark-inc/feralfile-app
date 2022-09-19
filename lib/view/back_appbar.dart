@@ -119,3 +119,45 @@ AppBar getCloseAppBar(BuildContext context,
     elevation: 0,
   );
 }
+
+AppBar getTrailingCloseAppBar(BuildContext context,
+    {String title = "", required Function()? onBack}) {
+  final theme = Theme.of(context);
+
+  return AppBar(
+    systemOverlayStyle: SystemUiOverlayStyle(
+      statusBarColor: theme.colorScheme.secondary,
+      statusBarIconBrightness: Brightness.dark,
+      statusBarBrightness: Brightness.light,
+    ),
+    leading: const SizedBox(),
+    leadingWidth: 0.0,
+    title: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        const SizedBox(width: 60),
+        Expanded(
+          child: Text(
+            title,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.button,
+            textAlign: TextAlign.center,
+          ),
+        ),
+        GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onTap: onBack,
+          child: onBack != null
+              ? Padding(
+            padding: const EdgeInsets.fromLTRB(0, 7, 18, 8),
+            child: closeIcon(),
+          )
+              : const SizedBox(width: 60),
+        ),
+      ],
+    ),
+    backgroundColor: Colors.transparent,
+    shadowColor: Colors.transparent,
+    elevation: 0,
+  );
+}

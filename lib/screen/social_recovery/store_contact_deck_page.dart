@@ -8,15 +8,14 @@
 import 'dart:convert';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/social_recovery/shard_deck.dart';
 import 'package:autonomy_flutter/service/social_recovery/social_recovery_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:flutter/material.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:uuid/uuid.dart';
 
 class StoreContactDeckPage extends StatefulWidget {
@@ -27,8 +26,8 @@ class StoreContactDeckPage extends StatefulWidget {
 }
 
 class _StoreContactDeckPageState extends State<StoreContactDeckPage> {
-  TextEditingController _nameTextController = TextEditingController();
-  TextEditingController _deckTextController = TextEditingController();
+  final TextEditingController _nameTextController = TextEditingController();
+  final TextEditingController _deckTextController = TextEditingController();
   bool _isError = false;
   bool _isSubmissionEnabled = false;
 
@@ -36,12 +35,12 @@ class _StoreContactDeckPageState extends State<StoreContactDeckPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: getBackAppBar(
+      appBar: getTrailingCloseAppBar(
         context,
         onBack: () => Navigator.of(context).pop(),
       ),
       body: Container(
-        // margin: pageEdgeInsetsWithSubmitButton,
+        margin: ResponsiveLayout.pageEdgeInsets,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -51,25 +50,30 @@ class _StoreContactDeckPageState extends State<StoreContactDeckPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "Add Helping Contact",
-                        style: theme.textTheme.headline1,
+                        "Add friend’s recovery code",
+                        style: theme.textTheme.headline2,
                       ),
                       addTitleSpace(),
+                      Text(
+                        "Autonomy will securely store and back up this recovery code. Enter a name to identify whose code this is. ",
+                        style: theme.textTheme.bodyText1,
+                      ),
+                      const SizedBox(height: 40),
                       AuTextField(
-                        title: "",
-                        placeholder: "Enter owner name",
+                        title: "Whose recovery code is this?",
+                        placeholder: "Name",
                         controller: _nameTextController,
                         keyboardType: TextInputType.name,
                         onChanged: (_) => _refreshSubmissionEnaled(),
                       ),
-                      SizedBox(height: 15),
-                      Container(
-                        height: 120,
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        height: 112,
                         child: Column(
                           children: [
                             AuTextField(
                               title: "",
-                              placeholder: "Enter contact deck",
+                              placeholder: "Paste recovery code here",
                               keyboardType: TextInputType.multiline,
                               expanded: true,
                               maxLines: null,
@@ -89,7 +93,7 @@ class _StoreContactDeckPageState extends State<StoreContactDeckPage> {
                 Expanded(
                   child: AuFilledButton(
                     enabled: _isSubmissionEnabled,
-                    text: "ADD".toUpperCase(),
+                    text: "SAVE RECOVERY CODE".toUpperCase(),
                     onPress: () => storeContactDeck(),
                   ),
                 ),
@@ -116,10 +120,11 @@ class _StoreContactDeckPageState extends State<StoreContactDeckPage> {
       setState(() {
         _isError = true;
       });
+      return;
     }
 
     final contactDeck = ContactDeck(
-      uuid: Uuid().v4(),
+      uuid: const Uuid().v4(),
       name: _nameTextController.text,
       deck: shardDeck,
       createdAt: DateTime.now(),
@@ -127,6 +132,7 @@ class _StoreContactDeckPageState extends State<StoreContactDeckPage> {
 
     await injector<SocialRecoveryService>().storeContactDeck(contactDeck);
 
+    if (!mounted) return;
     Navigator.of(context).pop();
   }
 }
