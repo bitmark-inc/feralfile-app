@@ -77,14 +77,12 @@ class _TVConnectPageState extends State<TVConnectPage>
 
     final chainId = Environment.appTestnetConfig ? 4 : 1;
 
-    final result = await injector<WalletConnectService>().approveSession(
-        const Uuid().v4(),
-        widget.wcConnectArgs.peerMeta,
-        [authorizedKeypair],
-        chainId);
+    final isApproveSuccess = await injector<WalletConnectService>()
+        .approveSession(const Uuid().v4(), widget.wcConnectArgs.peerMeta,
+            [authorizedKeypair], chainId);
 
-    if (!result) {
-      if (!mounted) return;
+    if (!mounted) return;
+    if (!isApproveSuccess) {
       Navigator.of(context).pop();
       showErrorDiablog(
         context,
@@ -97,7 +95,6 @@ class _TVConnectPageState extends State<TVConnectPage>
       );
       return;
     }
-    if (!mounted) return;
     await UIHelper.showConnectedSuccess(
       context,
       onClose: () {
@@ -105,7 +102,6 @@ class _TVConnectPageState extends State<TVConnectPage>
         Navigator.of(context).pop();
       },
     );
-    return;
   }
 
   @override
