@@ -84,21 +84,26 @@ class WalletConnectService {
     wcClients.remove(wcClient);
   }
 
-  approveSession(String uuid, WCPeerMeta peerMeta, List<String> accounts,
-      int chainId) async {
+  Future<bool> approveSession(String uuid, WCPeerMeta peerMeta,
+      List<String> accounts, int chainId) async {
     log.info(
         "WalletConnectService.approveSession: $peerMeta, $accounts, $chainId");
     final wcClient = wcClients
         .lastWhereOrNull((element) => element.remotePeerMeta == peerMeta);
-    if (wcClient == null) return;
+    if (wcClient == null) return false;
 
     wcClient.approveSession(accounts: accounts, chainId: chainId);
 
     tmpUuids[peerMeta] = uuid;
 
     if (peerMeta.name == AUTONOMY_TV_PEER_NAME) {
+      final date = peerMeta.description?.split(' -');
+      final expiredTime = DateTime.tryParse(date?.last ?? '');
+      if (expiredTime == null || expiredTime.isBefore(DateTime.now())) {
+        return false;
+      }
       log.info("it's AUTONOMY_TV_PEER_NAME => skip storing connection");
-      return;
+      return true;
     }
 
     final wcConnection = WalletConnectConnection(
@@ -113,6 +118,7 @@ class WalletConnectService {
       createdAt: DateTime.now(),
     );
     await _cloudDB.connectionDao.insertConnection(connection);
+    return true;
   }
 
   rejectSession(WCPeerMeta peerMeta) {
@@ -182,13 +188,15 @@ class WalletConnectService {
         if (peerMeta.name == AUTONOMY_TV_PEER_NAME) {
           final isSubscribed = await injector<IAPService>().isSubscribed();
           final jwt = _configurationService.getIAPJWT();
-          if ((jwt != null && jwt.isValid(withSubscription: true)) || isSubscribed) {
+          if ((jwt != null && jwt.isValid(withSubscription: true)) ||
+              isSubscribed) {
             _navigationService.navigateTo(AppRouter.tvConnectPage,
                 arguments: WCConnectPageArgs(id, peerMeta));
           } else {
             //rejectRequest(peerMeta, id);
             _configurationService.setTVConnectData(peerMeta, id);
-            throw RequiredPremiumFeature(feature: PremiumFeature.AutonomyTV, peerMeta: peerMeta, id: id);
+            throw RequiredPremiumFeature(
+                feature: PremiumFeature.AutonomyTV, peerMeta: peerMeta, id: id);
           }
         } else {
           _navigationService.navigateTo(AppRouter.wcConnectPage,

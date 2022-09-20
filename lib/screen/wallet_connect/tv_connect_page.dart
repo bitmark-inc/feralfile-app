@@ -14,6 +14,8 @@ import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/debouce_util.dart';
+import 'package:autonomy_flutter/util/error_handler.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 
 import 'package:autonomy_flutter/view/au_filled_button.dart';
@@ -75,11 +77,31 @@ class _TVConnectPageState extends State<TVConnectPage>
 
     final chainId = Environment.appTestnetConfig ? 4 : 1;
 
-    await injector<WalletConnectService>().approveSession(const Uuid().v4(),
-        widget.wcConnectArgs.peerMeta, [authorizedKeypair], chainId);
+    final isApproveSuccess = await injector<WalletConnectService>()
+        .approveSession(const Uuid().v4(), widget.wcConnectArgs.peerMeta,
+            [authorizedKeypair], chainId);
 
     if (!mounted) return;
-    Navigator.of(context).pop();
+    if (!isApproveSuccess) {
+      Navigator.of(context).pop();
+      showErrorDiablog(
+        context,
+        ErrorEvent(
+          null,
+          "🤔",
+          'connect_TV_failed_des'.tr(),
+          ErrorItemState.getReport,
+        ),
+      );
+      return;
+    }
+    await UIHelper.showConnectedSuccess(
+      context,
+      onClose: () {
+        UIHelper.hideInfoDialog(context);
+        Navigator.of(context).pop();
+      },
+    );
   }
 
   @override
@@ -132,8 +154,7 @@ class _TVConnectPageState extends State<TVConnectPage>
             style: theme.primaryTextTheme.headline1,
           ),
           const SizedBox(height: 24),
-          Text("set_up_gallery".tr(),
-              style: theme.primaryTextTheme.bodyText1),
+          Text("set_up_gallery".tr(), style: theme.primaryTextTheme.bodyText1),
           Divider(
             height: 64,
             color: theme.colorScheme.secondary,
@@ -141,8 +162,7 @@ class _TVConnectPageState extends State<TVConnectPage>
           Text("viewer_request_to".tr(),
               style: theme.primaryTextTheme.bodyText1),
           const SizedBox(height: 8),
-          Text(
-              "view_collections".tr(),
+          Text("view_collections".tr(),
               style: theme.primaryTextTheme.bodyText1),
           const Expanded(child: SizedBox()),
           Row(

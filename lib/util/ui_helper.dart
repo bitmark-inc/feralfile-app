@@ -606,6 +606,47 @@ class UIHelper {
         )));
   }
 
+  static showConnectedSuccess(
+    BuildContext context, {
+    required Function() onClose,
+  }) {
+    final theme = Theme.of(context);
+
+    showDialog(
+      context,
+      'connected'.tr(),
+      Flexible(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'connect_TV_success_des'.tr(),
+              style: theme.primaryTextTheme.bodyText1,
+            ),
+            const SizedBox(
+              height: 40,
+            ),
+            Row(
+              children: [
+                Expanded(
+                  child: AuFilledButton(
+                    text: "close".tr(),
+                    onPress: onClose,
+                    color: theme.colorScheme.secondary,
+                    textStyle: theme.textTheme.button,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 15),
+          ],
+        ),
+      ),
+      isDismissible: true,
+      autoDismissAfter: 5,
+    );
+  }
+
   static showAccountLinked(
       BuildContext context, Connection connection, String walletName) {
     UIHelper.showInfoDialog(context, "account_linked".tr(),
