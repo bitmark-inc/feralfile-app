@@ -10,6 +10,11 @@ jobs:
   build:
     runs-on: [self-hosted, linux, ci-local-bmvn]
     steps:      
+      - name: Set flutter version
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.0.5'
+          channel: stable
       # Checkout code and get packages.
       - name: Checkout code
         uses: actions/checkout@v3
