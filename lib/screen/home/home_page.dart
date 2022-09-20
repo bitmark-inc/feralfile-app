@@ -233,10 +233,12 @@ class _HomePageState extends State<HomePage>
               state.status == IAPProductStatus.completed) {
             injector<NavigationService>().navigateTo(AppRouter.tvConnectPage,
                 arguments: WCConnectPageArgs(id!, peerMeta!));
-          } else {
+            config.deleteTVConnectData();
+          } else if (state.status != IAPProductStatus.loading &&
+              state.status != IAPProductStatus.pending) {
             injector<WalletConnectService>().rejectRequest(peerMeta!, id!);
+            config.deleteTVConnectData();
           }
-          config.deleteTVConnectData();
         }
       },
       child: PrimaryScrollController(
