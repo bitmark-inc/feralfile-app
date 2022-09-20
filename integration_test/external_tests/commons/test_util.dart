@@ -163,3 +163,15 @@ Future<void> wait4TezBlockchainConfirmation(AppiumWebDriver driver) async {
   await driver.device.getDisplayDensity();
   await Future.delayed(const Duration(seconds: 50));
 }
+
+Future<void> scroll(driver, scrollUIAutomator) async {
+  var finder = await AppiumBy.uiautomator(scrollUIAutomator);
+  await driver.findElement(finder);
+}
+
+Future<void> scrollUntil(AppiumWebDriver driver, String decs) async {
+  var subSelector = 'new UiSelector().descriptionContains("$decs")';
+  var scrollViewSeletor = 'new UiSelector().className("android.widget.ScrollView")';
+  var scrollUIAutomator = await 'new UiScrollable($scrollViewSeletor).setSwipeDeadZonePercentage(0.4).scrollIntoView($subSelector)';
+  await scroll(driver, scrollUIAutomator);
+}
