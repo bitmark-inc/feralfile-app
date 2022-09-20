@@ -42,6 +42,7 @@ const LIST_OF_EXCHANGES = [
   {'exchangeName': 'versum.xyz', 'linkedExchangeName': 'versum'},
   {'exchangeName': 'akaswap.com', 'linkedExchangeName': 'akaswap'},
   {'exchangeName': 'typed.art', 'linkedExchangeName': 'typed.art'},
+  {'exchangeName': 'feralfile.staging.bitmark.com/exhibitions', 'linkedExchangeName':'Feral File'},
 ];
 
 const TEZ_SOURCE_ADDRESS = "tz1SidNQb9XcwP7L3MzCZD9JHmWw2ebDzgyX";
