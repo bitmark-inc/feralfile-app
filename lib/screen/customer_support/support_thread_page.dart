@@ -7,30 +7,31 @@
 
 import 'dart:convert';
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
+import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/model/customer_support.dart' as app;
+import 'package:autonomy_flutter/model/customer_support.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
+import 'package:autonomy_flutter/service/customer_support_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/log.dart' as log_util;
+import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:bubble/bubble.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:flutter_chat_ui/flutter_chat_ui.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
-import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/model/customer_support.dart' as app;
-import 'package:autonomy_flutter/model/customer_support.dart';
-import 'package:autonomy_flutter/service/customer_support_service.dart';
-import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/log.dart' as log_util;
-import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_flutter/view/back_appbar.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 
 import '../../util/datetime_ext.dart';
 
@@ -89,20 +90,37 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
 
   late var _forceAccountsViewRedraw;
   var _sendIcon = "assets/images/sendMessage.svg";
-  final _introMessagerID = const Uuid().v4();
-  final _resolvedMessagerID = const Uuid().v4();
-  types.TextMessage get _introMessager => types.TextMessage(
+  final _introMessengerID = const Uuid().v4();
+  final _resolvedMessengerID = const Uuid().v4();
+  final _askRatingMessengerID = const Uuid().v4();
+  final _askReviewMessengerID = const Uuid().v4();
+
+  types.TextMessage get _introMessenger => types.TextMessage(
         author: _bitmark,
-        id: _introMessagerID,
+        id: _introMessengerID,
         text: ReportIssueType.introMessage(_reportIssueType),
         createdAt: DateTime.now().millisecondsSinceEpoch,
       );
 
-  types.CustomMessage get _resolvedMessager => types.CustomMessage(
-        id: _resolvedMessagerID,
+  types.CustomMessage get _resolvedMessenger => types.CustomMessage(
+        id: _resolvedMessengerID,
         author: _bitmark,
         metadata: const {"status": "resolved"},
       );
+
+  types.CustomMessage get _askRatingMessenger => types.CustomMessage(
+        id: _askRatingMessengerID,
+        author: _user,
+        metadata: const {"status": "askRating"},
+      );
+
+  types.CustomMessage get _askReviewMessenger => types.CustomMessage(
+        id: _askReviewMessengerID,
+        author: _bitmark,
+        metadata: const {"status": "askReview"},
+      );
+
+
 
   @override
   void initState() {
@@ -206,11 +224,11 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   Widget build(BuildContext context) {
     List<types.Message> messages = (_draftMessages + _messages);
     if (_status == 'closed' || _status == 'clickToReopen') {
-      messages.insert(0, _resolvedMessager);
+      messages.insert(0, _resolvedMessenger);
     }
-
+    messages.insert(0,_askRatingMessenger);
     if (_issueID == null || messages.isNotEmpty) {
-      messages.add(_introMessager);
+      messages.add(_introMessenger);
     }
 
     return Scaffold(
@@ -243,10 +261,28 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
                     });
                   }),
               user: _user,
-              customBottomWidget:
-                  _status == 'closed' ? const SizedBox(height: 40) : null,
+              customBottomWidget: _status == 'closed'
+                  ? const MyRatingBar()
+                  : null,
             )));
   }
+
+  Widget _ratingBar(double rating) {
+    return RatingBar.builder(
+      initialRating: rating,
+      minRating: 1,
+      itemSize: 24,
+      itemPadding: const EdgeInsets.symmetric(horizontal: 10.0),
+      itemBuilder: (context, _) => const Icon(
+        Icons.star,
+        color: Colors.black,
+      ),
+      unratedColor: const Color(0xff999999),
+      ignoreGestures: true,
+      onRatingUpdate: (double value) {  },
+    );
+  }
+
 
   Widget _bubbleBuilder(
     Widget child, {
@@ -310,6 +346,28 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
             ),
           ]),
         );
+      case "askRating":
+        return Container(
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          color: const Color(0xffEDEDED),
+          child: _ratingBar(3),
+        );
+
+      case "rating":
+        return Container(
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          color: AppColor.chatPrimaryColor,
+          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+            Text(
+              "Please tell us how we did with this support issue by rating your experience."
+                  .tr(),
+              textAlign: TextAlign.center,
+              style: ResponsiveLayout.isMobile
+                  ? theme.textTheme.atlasWhiteBold14
+                  : theme.textTheme.atlasWhiteBold16,
+            ),
+          ]),
+        );
 
       default:
         return const SizedBox();
@@ -333,6 +391,25 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
         _messages = parsedMessages;
       });
     }
+  }
+
+  _convertChatMessageToRating(types.Message message){
+    if(_isRating(message)) {
+      final ratingMessengerID = const Uuid().v4();
+      final ratingMessenger = types.CustomMessage(
+        id: ratingMessengerID,
+        author: _user,
+        metadata: const {"status": "rating"},
+      );
+      return ratingMessenger;
+
+    }
+    return message;
+  }
+
+  bool _isRating(types.Message message){
+    //if(message. == "5star") return true;
+    return false;
   }
 
   Future _loadDrafts() async {
@@ -610,7 +687,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     return DefaultChatTheme(
       messageInsetsVertical: 14,
       messageInsetsHorizontal: 14,
-      inputPadding: const EdgeInsets.fromLTRB(0, 24, 0, 20),
+      inputPadding: const EdgeInsets.fromLTRB(0, 24, 0, 40),
       backgroundColor: Colors.transparent,
       inputBackgroundColor: theme.colorScheme.primary,
       inputTextStyle: theme.textTheme.bodyText1!,
@@ -661,4 +738,52 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       ),
     );
   }
+}
+
+class MyRatingBar extends StatefulWidget {
+  const MyRatingBar({Key? key}) : super(key: key);
+
+  @override
+  _MyRatingBar createState() => _MyRatingBar();
+}
+
+class _MyRatingBar extends State<MyRatingBar> {
+  double customerRating = 0;
+  Widget sendButton = SvgPicture.asset("assets/images/sendMessage.svg");
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(0, 10, 0, 30),
+      color: Colors.black,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          RatingBar.builder(
+            minRating: 1,
+            itemSize: 24,
+            itemPadding: const EdgeInsets.symmetric(horizontal: 10.0),
+            itemBuilder: (context, _) => const Icon(
+              Icons.star,
+              color: Colors.white,
+            ),
+            unratedColor: const Color(0xff6D6B6B),
+            onRatingUpdate: _updateRating,
+          ),
+          const SizedBox(width: 40),
+          IconButton(onPressed: _sendButtonOnPress, icon: sendButton),
+          const SizedBox(width: 10)
+        ],
+      ),
+    );
+  }
+
+  _updateRating(double rating) {
+    customerRating = rating;
+    setState(() {
+      sendButton = SvgPicture.asset("assets/images/sendMessageFilled.svg");
+    });
+  }
+
+  _sendButtonOnPress() {}
 }

@@ -90,7 +90,7 @@ class ReceiveAttachment {
 
   Map<String, dynamic> toJson() => _$ReceiveAttachmentToJson(this);
 
-  // Because logs are big and aren't valueable for user. I don't store  the local logs files
+  // Because logs are big and aren't valuable for user. I don't store  the local logs files
   // I join the size of file inside the attachment's title
   static List<dynamic> extractSizeAndRealTitle(String title) {
     final fileInfos = title.split('_');
