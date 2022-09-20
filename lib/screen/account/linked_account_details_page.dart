@@ -14,9 +14,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:nft_collection/nft_collection.dart';
-import 'package:share/share.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/screen/bloc/feralfile/feralfile_bloc.dart';
@@ -28,7 +26,6 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 
 class LinkedAccountDetailsPage extends StatefulWidget {
   final Connection connection;
@@ -246,7 +243,8 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
           Expanded(
             child: GestureDetector(
               onTap: () async {
-                showInfoNotification(const Key("address"), "copied_to_clipboard".tr());
+                showInfoNotification(
+                    const Key("address"), "copied_to_clipboard".tr());
                 Clipboard.setData(ClipboardData(text: address));
               },
               child: Text(

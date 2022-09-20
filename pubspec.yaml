@@ -144,7 +144,7 @@ dependencies:
   metric_client:
     git:
       url: https://github.com/autonomy-system/metric-client-dart
-      ref: 855cc6ae66a5be618f6ea4f27c0cfad570c60a12
+      ref: ec37709d6f7a3901e3bd4238ba178205a88f6261
 
 dependency_overrides:
   # Error using when import photo_view from dependencies:

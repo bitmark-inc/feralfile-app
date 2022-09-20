@@ -17,6 +17,7 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -63,8 +64,13 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
 
   @override
   void afterFirstLayout(BuildContext context) async {
-    await MetricClient.addEvent("view_artwork_detail",
-        data: {"id": widget.payload.ids[widget.payload.currentIndex]});
+    final metricClient = injector.get<MetricClientService>();
+    await metricClient.addEvent(
+      "view_artwork_detail",
+      data: {
+        "id": widget.payload.ids[widget.payload.currentIndex],
+      },
+    );
   }
 
   @override

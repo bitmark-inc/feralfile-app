@@ -17,6 +17,7 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/asset_price.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -88,18 +89,19 @@ class FeralFileServiceImpl extends FeralFileService {
           .tokensService
           .fetchTokensForAddresses(connection.accountNumbers);
     }
+    final metricClient = injector.get<MetricClientService>();
 
     // mark survey from FeralFile as referrer if user hasn't answerred
     final finishedSurveys = _configurationService.getFinishedSurveys();
     if (!finishedSurveys.contains(Survey.onboarding)) {
-      await MetricClient.addEvent(
+      await metricClient.addEvent(
         Survey.onboarding,
         message: 'Feral File Website',
       );
       injector<ConfigurationService>().setFinishedSurvey([Survey.onboarding]);
     }
 
-    await MetricClient.addEvent(
+    await metricClient.addEvent(
       "link_feralfile",
       hashedData: {"address": connection.accountNumber},
     );

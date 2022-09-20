@@ -1130,8 +1130,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "855cc6ae66a5be618f6ea4f27c0cfad570c60a12"
-      resolved-ref: "855cc6ae66a5be618f6ea4f27c0cfad570c60a12"
+      ref: ec37709d6f7a3901e3bd4238ba178205a88f6261
+      resolved-ref: ec37709d6f7a3901e3bd4238ba178205a88f6261
       url: "https://github.com/autonomy-system/metric-client-dart"
     source: git
     version: "1.0.0"
@@ -2222,5 +2222,5 @@ packages:
     source: hosted
     version: "3.1.1"
 sdks:
-  dart: ">=2.18.0 <3.0.0"
+  dart: ">=2.17.6 <3.0.0"
   flutter: ">=3.0.0"

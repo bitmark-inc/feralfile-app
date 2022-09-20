@@ -19,6 +19,7 @@ import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_wid
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_box_view.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -297,6 +298,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
         ),
       );
     }
+    final metricClient = injector.get<MetricClientService>();
 
     return ConstrainedBox(
       constraints: const BoxConstraints(
@@ -313,14 +315,14 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
               return GestureDetector(
                   behavior: HitTestBehavior.translucent,
                   onTap: () async {
-                    await MetricClient.addEvent("stream_airplay");
+                    await metricClient.addEvent("stream_airplay");
                   },
                   child: _airplayItem(context, isSubscribed));
             case AUCastDeviceType.Chromecast:
               return GestureDetector(
                 onTap: isSubscribed
                     ? () {
-                        MetricClient.addEvent("stream_chromecast");
+                        metricClient.addEvent("stream_chromecast");
                         UIHelper.hideInfoDialog(context);
                         var copiedDevice = _castDevices[index];
                         if (copiedDevice.isActivated) {
