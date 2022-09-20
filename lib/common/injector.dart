@@ -33,6 +33,7 @@ import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/ledger_hardware/ledger_hardware_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/pending_token_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
@@ -153,7 +154,8 @@ Future<void> setup() async {
   injector.registerLazySingleton(() => LedgerHardwareService());
   injector.registerLazySingleton<AutonomyService>(
       () => AutonomyServiceImpl(injector(), injector()));
-
+  injector.registerLazySingleton<MetricClientService>(
+      () => MetricClientService(injector()));
   injector.registerLazySingleton(
       () => WalletConnectService(injector(), injector(), injector()));
   injector.registerLazySingleton<CacheManager>(() => AUImageCacheManage());

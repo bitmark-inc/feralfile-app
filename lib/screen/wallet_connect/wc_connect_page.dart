@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/screen/connection/persona_connections_page.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
@@ -59,6 +60,7 @@ class _WCConnectPageState extends State<WCConnectPage>
   Persona? selectedPersona;
   List<Persona>? personas;
   bool generatedPersona = false;
+  final metricClient = injector.get<MetricClientService>();
 
   @override
   void initState() {
@@ -135,11 +137,11 @@ class _WCConnectPageState extends State<WCConnectPage>
       }
 
       if (wcConnectArgs.peerMeta.name == AUTONOMY_TV_PEER_NAME) {
-        await MetricClient.addEvent(
+        await metricClient.addEvent(
           "connect_autonomy_display",
         );
       } else {
-        await MetricClient.addEvent(
+        await metricClient.addEvent(
           "connect_external",
           data: {
             "method": "wallet_connect",
@@ -180,7 +182,7 @@ class _WCConnectPageState extends State<WCConnectPage>
           arguments: payload);
     }
 
-    await MetricClient.addEvent(
+    await metricClient.addEvent(
       "connect_external",
       data: {
         "method": "tezos_beacon",

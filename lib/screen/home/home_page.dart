@@ -32,6 +32,7 @@ import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
@@ -68,6 +69,7 @@ class _HomePageState extends State<HomePage>
     with RouteAware, WidgetsBindingObserver, AfterLayoutMixin<HomePage> {
   StreamSubscription<FGBGType>? _fgbgSubscription;
   late ScrollController _controller;
+  late MetricClientService metricClient;
   int _cachedImageSize = 0;
 
   Future<List<String>> getAddresses() async {
@@ -87,6 +89,7 @@ class _HomePageState extends State<HomePage>
   @override
   void initState() {
     super.initState();
+    metricClient = injector.get<MetricClientService>();
     _checkForKeySync();
     WidgetsBinding.instance.addObserver(this);
     _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
@@ -189,7 +192,7 @@ class _HomePageState extends State<HomePage>
             hashedAddresses &&
         tokens.any((asset) =>
             asset.blockchain == Blockchain.TEZOS.name.toLowerCase())) {
-      await MetricClient.addEvent("collection_has_tezos");
+      await metricClient.addEvent("collection_has_tezos");
       injector<ConfigurationService>()
           .setSentTezosArtworkMetric(hashedAddresses);
     }
@@ -506,7 +509,7 @@ class _HomePageState extends State<HomePage>
       nftBloc.add(
           RefreshTokenEvent(addresses: addresses, debugTokens: manualTokenIds));
       nftBloc.add(RequestIndexEvent(addresses));
-      await MetricClient.addEvent("device_foreground");
+      await metricClient.addEvent("device_foreground");
     });
 
     injector<VersionService>().checkForUpdate();
@@ -526,9 +529,8 @@ class _HomePageState extends State<HomePage>
   }
 
   void _handleBackground() async {
-    await MetricClient.addEvent("device_background");
-    await MetricClient.sendMetrics();
-    await MetricClient.clear();
+    await metricClient.addEvent("device_background");
+    await metricClient.sendAndClearMetrics();
     _cloudBackup();
     FileLogger.shrinkLogFileIfNeeded();
   }

@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/feed/feed_bloc.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -80,7 +81,8 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
 
   @override
   Future<void> afterFirstLayout(BuildContext context) async {
-    await MetricClient.addEvent(
+    final metricClient = injector.get<MetricClientService>();
+    await metricClient.addEvent(
       "view_discovery",
     );
   }
