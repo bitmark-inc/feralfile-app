@@ -219,6 +219,11 @@ class AppRouter {
                     BlocProvider(
                         create: (_) => IdentityBloc(injector(), injector())),
                     BlocProvider.value(value: nftCollectionBloc),
+                    BlocProvider(
+                        create: (_) => UpgradesBloc(
+                          injector(),
+                          injector(),
+                        )),
                   ],
                   child: const HomePage(),
                 ));
