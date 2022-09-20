@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/screen/settings/subscription/upgrade_box_view.d
 import 'package:autonomy_flutter/screen/survey/survey.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
@@ -26,10 +27,10 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
-import 'package:intl/intl.dart';
 import 'package:jiffy/jiffy.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:share/share.dart';
+import 'package:wallet_connect/models/wc_peer_meta.dart';
 
 enum ActionState { notRequested, loading, error, done }
 
@@ -640,37 +641,43 @@ class UIHelper {
         isDismissible: true, autoDismissAfter: 3);
   }
 
-  static Future showFeatureRequiresSubscriptionDialog(
-      BuildContext context, PremiumFeature feature) {
+  static Future showFeatureRequiresSubscriptionDialog(BuildContext context,
+      PremiumFeature feature, WCPeerMeta peerMeta, int id) {
     final theme = Theme.of(context);
 
     return showDialog(
-        context,
-        "h_subscribe".tr(),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text("require_subs".tr(), style: theme.primaryTextTheme.bodyText1),
-            const SizedBox(height: 40),
-            UpgradeBoxView.getMoreAutonomyWidget(theme, feature),
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                Expanded(
-                  child: TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: Text(
-                      "cancel".tr(),
-                      style: theme.primaryTextTheme.button,
-                    ),
+      context,
+      "h_subscribe".tr(),
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text("require_subs".tr(), style: theme.primaryTextTheme.bodyText1),
+          const SizedBox(height: 40),
+          UpgradeBoxView.getMoreAutonomyWidget(theme, feature,
+              peerMeta: peerMeta, id: id),
+          const SizedBox(height: 24),
+          Row(
+            children: [
+              Expanded(
+                child: TextButton(
+                  onPressed: () {
+                    injector<WalletConnectService>()
+                        .rejectRequest(peerMeta, id);
+                    injector<ConfigurationService>().deleteTVConnectData();
+                    Navigator.pop(context);
+                  },
+                  child: Text(
+                    "cancel".tr(),
+                    style: theme.primaryTextTheme.button,
                   ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 20),
-          ],
-        ),
-        isDismissible: true);
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+        ],
+      ),
+    );
   }
 }
 

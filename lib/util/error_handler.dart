@@ -5,6 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
+
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -273,7 +275,7 @@ void showErrorDialogFromException(Object exception,
       return;
     } else if (exception is RequiredPremiumFeature) {
       UIHelper.showFeatureRequiresSubscriptionDialog(
-          context, exception.feature);
+          context, exception.feature, exception.peerMeta, exception.id);
       return;
     } else if (exception is AlreadyLinkedException) {
       UIHelper.showAlreadyLinked(context, exception.connection);
