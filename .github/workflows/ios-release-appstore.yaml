@@ -30,9 +30,6 @@ jobs:
         with:
           flutter-version: '3.0.5'
           channel: stable
-          cache: true
-          cache-key: flutter # optional, change this to force refresh cache
-          cache-path: ${{ runner.tool_cache }}/flutter
 
       # Checkout code and get packages.
       - name: Checkout code
