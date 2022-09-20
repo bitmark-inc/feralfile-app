@@ -71,6 +71,8 @@ jobs:
           echo ONESIGNAL_APP_ID=${{ secrets.ONESIGNAL_APP_ID }} >> .env
           echo AWS_IDENTITY_POOL_ID=${{ secrets.AWS_IDENTITY_POOL_ID }} >> .env
           echo AUTONOMY_SHARD_SERVICE=${{ secrets.AUTONOMY_SHARD_SERVICE }} >> .env
+          echo METRIC_ENDPOINT=${{ secrets.METRIC_ENDPOINT }} >> .env
+          echo METRIC_SECRET_KEY=${{ secrets.METRIC_SECRET_KEY }} >> .env
 
           echo APP_TESTNET_CONFIG=${{ github.event.inputs.testnet }} >> .env
           cat .env

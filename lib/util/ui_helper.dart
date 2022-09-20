@@ -145,6 +145,69 @@ class UIHelper {
     );
   }
 
+  static Future<void> showMessageAction(
+    BuildContext context,
+    String title,
+    String description, {
+    bool isDismissible = false,
+    int autoDismissAfter = 0,
+    String? closeButton,
+    Function? onClose,
+    FeedbackType? feedback = FeedbackType.selection,
+    String? actionButton,
+    Function? onAction,
+  }) async {
+    log.info("[UIHelper] showInfoDialog: $title, $description");
+    final theme = Theme.of(context);
+
+    if (autoDismissAfter > 0) {
+      Future.delayed(
+          Duration(seconds: autoDismissAfter), () => hideInfoDialog(context));
+    }
+
+    await showDialog(
+      context,
+      title,
+      SizedBox(
+        width: double.infinity,
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          if (description.isNotEmpty) ...[
+            Text(
+              description,
+              style: theme.primaryTextTheme.bodyText1,
+            ),
+          ],
+          const SizedBox(height: 40),
+          if (onAction != null) ...[
+            AuFilledButton(
+              onPress: () => onAction.call(),
+              text: actionButton ?? '',
+              color: theme.colorScheme.secondary,
+              textStyle: theme.textTheme.button,
+            ),
+            const SizedBox(height: 15),
+          ],
+          Row(
+            children: [
+              Expanded(
+                child: TextButton(
+                  onPressed: () => onClose ?? Navigator.pop(context),
+                  child: Text(
+                    closeButton ?? 'cancel'.tr(),
+                    style: theme.primaryTextTheme.button,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 15),
+        ]),
+      ),
+      isDismissible: isDismissible,
+      feedback: feedback,
+    );
+  }
+
   static Future<void> showInfoDialog(
       BuildContext context, String title, String description,
       {bool isDismissible = false,

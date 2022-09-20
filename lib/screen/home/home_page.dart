@@ -25,7 +25,6 @@ import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
-import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
@@ -54,6 +53,7 @@ import 'package:nft_collection/nft_collection.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:wallet_connect/models/wc_peer_meta.dart';
+import 'package:metric_client/metric_client.dart';
 
 class HomePage extends StatefulWidget {
   static const tag = "home";
@@ -189,8 +189,7 @@ class _HomePageState extends State<HomePage>
             hashedAddresses &&
         tokens.any((asset) =>
             asset.blockchain == Blockchain.TEZOS.name.toLowerCase())) {
-      await injector<AWSService>()
-          .storeEventWithDeviceData("collection_has_tezos");
+      await MetricClient.addEvent("collection_has_tezos");
       injector<ConfigurationService>()
           .setSentTezosArtworkMetric(hashedAddresses);
     }
@@ -507,8 +506,7 @@ class _HomePageState extends State<HomePage>
       nftBloc.add(
           RefreshTokenEvent(addresses: addresses, debugTokens: manualTokenIds));
       nftBloc.add(RequestIndexEvent(addresses));
-      await injector<AWSService>()
-          .storeEventWithDeviceData("device_foreground");
+      await MetricClient.addEvent("device_foreground");
     });
 
     injector<VersionService>().checkForUpdate();
@@ -527,8 +525,10 @@ class _HomePageState extends State<HomePage>
     injector<CustomerSupportService>().processMessages();
   }
 
-  void _handleBackground() {
-    injector<AWSService>().storeEventWithDeviceData("device_background");
+  void _handleBackground() async {
+    await MetricClient.addEvent("device_background");
+    await MetricClient.sendMetrics();
+    await MetricClient.clear();
     _cloudBackup();
     FileLogger.shrinkLogFileIfNeeded();
   }

@@ -141,6 +141,10 @@ dependencies:
       url: https://github.com/autonomy-system/nft-collection
       ref: 4c8880ca160883101dce907b53d689f145cbc497
   flutter_branch_sdk: ^6.1.0
+  metric_client:
+    git:
+      url: https://github.com/autonomy-system/metric-client-dart
+      ref: 855cc6ae66a5be618f6ea4f27c0cfad570c60a12
 
 dependency_overrides:
   # Error using when import photo_view from dependencies:

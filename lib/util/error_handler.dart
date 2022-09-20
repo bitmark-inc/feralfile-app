@@ -12,7 +12,6 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/screen/report/sentry_report.dart';
-import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
@@ -27,6 +26,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
+import 'package:metric_client/metric_client.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -300,7 +300,7 @@ void showErrorDialogFromException(Object exception,
   }
 
   log.warning("Unhandled error: $exception", exception);
-  injector<AWSService>().storeEventWithDeviceData("unhandled_error",
+  await MetricClient.addEvent("unhandled_error",
       data: {"message": exception.toString()});
 
   if (library != null || onlySentryException(exception)) {
