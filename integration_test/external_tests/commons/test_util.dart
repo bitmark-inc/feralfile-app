@@ -157,11 +157,11 @@ Future<void> sendAwrtwork(AppiumWebDriver driver, String artworkName,
 }
 
 Future<void> wait4TezBlockchainConfirmation(AppiumWebDriver driver) async {
-  await Future.delayed(const Duration(seconds: 50));
+  await Future.delayed(const Duration(seconds: 40));
   await driver.device.getDisplayDensity();
-  await Future.delayed(const Duration(seconds: 50));
+  await Future.delayed(const Duration(seconds: 40));
   await driver.device.getDisplayDensity();
-  await Future.delayed(const Duration(seconds: 50));
+  await Future.delayed(const Duration(seconds: 30));
 }
 
 Future<void> scroll(driver, scrollUIAutomator) async {
