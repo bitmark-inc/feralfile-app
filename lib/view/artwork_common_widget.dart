@@ -142,6 +142,8 @@ class TokenThumbnailWidget extends StatelessWidget {
   }
 }
 
+final Map<String, Future<bool>> _cachingStates = {};
+
 Widget tokenGalleryThumbnailWidget(
     BuildContext context, AssetToken token, int cachedImageSize) {
   final thumbnailUrl = token.getGalleryThumbnailUrl();
@@ -150,6 +152,17 @@ Widget tokenGalleryThumbnailWidget(
   }
 
   final ext = p.extension(thumbnailUrl);
+
+  final cacheManager = injector<CacheManager>();
+
+  Future<bool> cachingState = _cachingStates[thumbnailUrl] ??
+      cacheManager.store.retrieveCacheData(thumbnailUrl).then((cachedObject) {
+        final cached = cachedObject != null;
+        if (cached) {
+          _cachingStates[thumbnailUrl] = Future.value(true);
+        }
+        return cached;
+      });
 
   return Hero(
     tag: token.id,
@@ -170,9 +183,14 @@ Widget tokenGalleryThumbnailWidget(
             memCacheWidth: cachedImageSize,
             maxWidthDiskCache: cachedImageSize,
             maxHeightDiskCache: cachedImageSize,
-            cacheManager: injector<CacheManager>(),
-            placeholder: (context, index) =>
-                const GalleryThumbnailPlaceholder(),
+            cacheManager: cacheManager,
+            placeholder: (context, index) => FutureBuilder<bool>(
+                future: cachingState,
+                builder: (context, snapshot) {
+                  return GalleryThumbnailPlaceholder(
+                    loading: !(snapshot.data ?? true),
+                  );
+                }),
             errorWidget: (context, url, error) =>
                 const GalleryThumbnailErrorWidget(),
           ),
@@ -307,7 +325,12 @@ class GalleryNoThumbnailWidget extends StatelessWidget {
 }
 
 class GalleryThumbnailPlaceholder extends StatelessWidget {
-  const GalleryThumbnailPlaceholder({Key? key}) : super(key: key);
+  final bool loading;
+
+  const GalleryThumbnailPlaceholder({
+    Key? key,
+    this.loading = true,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -315,16 +338,20 @@ class GalleryThumbnailPlaceholder extends StatelessWidget {
     return AspectRatio(
       aspectRatio: 1,
       child: ClipPath(
-        clipper: AutonomyTopRightRectangleClipper(),
+        clipper:
+            loading ? AutonomyTopRightRectangleClipper() : null,
         child: Container(
           padding: const EdgeInsets.all(13),
           color: const Color.fromRGBO(227, 227, 227, 1),
-          child: Align(
-            alignment: AlignmentDirectional.bottomStart,
-            child: loadingIndicator(
-              size: 13,
-              valueColor: theme.colorScheme.primary,
-              backgroundColor: theme.colorScheme.primary.withOpacity(0.5),
+          child: Visibility(
+            visible: loading,
+            child: Align(
+              alignment: AlignmentDirectional.bottomStart,
+              child: loadingIndicator(
+                size: 13,
+                valueColor: theme.colorScheme.primary,
+                backgroundColor: theme.colorScheme.primary.withOpacity(0.5),
+              ),
             ),
           ),
         ),
