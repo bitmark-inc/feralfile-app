@@ -85,6 +85,16 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE          
           flutter pub run test integration_test/external_tests/mobile_external_webs/connectWalletToExchanges_test.dart
+      - name: Run Flutter Driver tests for Suite "Send/transfer artworks"
+        if: success() || failure()
+        run: |
+          cd $GITHUB_WORKSPACE          
+          flutter pub run test integration_test/external_tests/tests/send_artwork_test.dart
+      - name: Run Flutter Driver tests for Suite "Check static pages, build"
+        if: success() || failure()
+        run: |
+          cd $GITHUB_WORKSPACE          
+          flutter pub run test integration_test/external_tests/tests/setting_footer_test.dart
       - name: Report Status
         if: always()
         uses: ravsamhq/notify-slack-action@v2
