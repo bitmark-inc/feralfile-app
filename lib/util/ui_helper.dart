@@ -606,7 +606,7 @@ class UIHelper {
         )));
   }
 
-  static showConnectedSuccess(
+  static showConnectionSuccess(
     BuildContext context, {
     required Function() onClose,
   }) {
@@ -642,8 +642,43 @@ class UIHelper {
           ],
         ),
       ),
-      isDismissible: true,
-      autoDismissAfter: 5,
+    );
+  }
+
+  static showConnectionFaild(
+    BuildContext context, {
+    required Function() onClose,
+  }) {
+    final theme = Theme.of(context);
+
+    showDialog(
+      context,
+      'expired'.tr(),
+      Flexible(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'expired_des'.tr(),
+              style: theme.primaryTextTheme.bodyText1,
+            ),
+            const SizedBox(
+              height: 40,
+            ),
+            Row(
+              children: [
+                Expanded(
+                  child: AuFilledButton(
+                    text: "close".tr(),
+                    onPress: onClose,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 15),
+          ],
+        ),
+      ),
     );
   }
 

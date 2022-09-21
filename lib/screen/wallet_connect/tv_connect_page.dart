@@ -83,19 +83,16 @@ class _TVConnectPageState extends State<TVConnectPage>
 
     if (!mounted) return;
     if (!isApproveSuccess) {
-      Navigator.of(context).pop();
-      showErrorDiablog(
+      await UIHelper.showConnectionFaild(
         context,
-        ErrorEvent(
-          null,
-          "🤔",
-          'connect_TV_failed_des'.tr(),
-          ErrorItemState.getReport,
-        ),
+        onClose: () {
+          UIHelper.hideInfoDialog(context);
+          Navigator.of(context).pop();
+        },
       );
       return;
     }
-    await UIHelper.showConnectedSuccess(
+    await UIHelper.showConnectionSuccess(
       context,
       onClose: () {
         UIHelper.hideInfoDialog(context);
