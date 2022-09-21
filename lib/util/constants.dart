@@ -16,6 +16,7 @@ const AUTONOMY_TV_PEER_NAME = 'Autonomy TV';
 const DEFAULT_IPFS_PREFIX = 'https://ipfs.io';
 const CLOUDFLARE_IPFS_PREFIX = 'https://cloudflare-ipfs.com';
 const EMPTY_ISSUE_MESSAGE = 'NO MESSAGE BODY WAS PROVIDED';
+const RATING_MESSAGE_START = "### Customer support rating\n";
 const KNOWN_BUGS_LINK = 'https://github.com/orgs/bitmark-inc/projects/16';
 const USER_TEST_CALENDAR_LINK =
     'https://calendly.com/anais-bitmark/usertesting';

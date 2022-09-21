@@ -87,6 +87,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   final _bitmark = const types.User(id: 'bitmark');
 
   String _status = '';
+  bool _isRated = false;
 
   late var _forceAccountsViewRedraw;
   var _sendIcon = "assets/images/sendMessage.svg";
@@ -108,19 +109,20 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
         metadata: const {"status": "resolved"},
       );
 
-  types.CustomMessage get _askRatingMessenger => types.CustomMessage(
-        id: _askRatingMessengerID,
-        author: _user,
-        metadata: const {"status": "askRating"},
-      );
-
-  types.CustomMessage get _askReviewMessenger => types.CustomMessage(
-        id: _askReviewMessengerID,
+  types.TextMessage get _askRatingMessenger => types.TextMessage(
         author: _bitmark,
-        metadata: const {"status": "askReview"},
+        id: _askRatingMessengerID,
+        text:
+            "Please tell us how we did with this support issue by rating your experience.",
+        createdAt: DateTime.now().millisecondsSinceEpoch,
       );
 
-
+  types.TextMessage get _askReviewMessenger => types.TextMessage(
+        author: _bitmark,
+        id: _askReviewMessengerID,
+        text: "Care to share more about how we can improve?",
+        createdAt: DateTime.now().millisecondsSinceEpoch,
+      );
 
   @override
   void initState() {
@@ -223,10 +225,26 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   @override
   Widget build(BuildContext context) {
     List<types.Message> messages = (_draftMessages + _messages);
+
+    for (int i = 0; i < messages.length; i++) {
+      if (_isRating(messages[i])) {
+        final ratingMessengerID = const Uuid().v4();
+        final ratingMessenger = types.CustomMessage(
+          id: ratingMessengerID,
+          author: _user,
+          metadata: {
+            "status": "rating",
+            "rating": messages[i].metadata?["rating"] ?? ""
+          },
+        );
+        messages[i] = ratingMessenger;
+      }
+    }
+
     if (_status == 'closed' || _status == 'clickToReopen') {
       messages.insert(0, _resolvedMessenger);
     }
-    messages.insert(0,_askRatingMessenger);
+    messages.insert(0, _askRatingMessenger);
     if (_issueID == null || messages.isNotEmpty) {
       messages.add(_introMessenger);
     }
@@ -261,15 +279,23 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
                     });
                   }),
               user: _user,
-              customBottomWidget: _status == 'closed'
-                  ? const MyRatingBar()
+              customBottomWidget: _isRated == false && _status == 'closed'
+                  ? MyRatingBar(
+                      submit:
+                          (String messageType, DraftCustomerSupportData data,
+                                  {bool isRating = false}) =>
+                              _submit(messageType, data, isRating: isRating))
                   : null,
             )));
   }
 
-  Widget _ratingBar(double rating) {
+
+
+
+  Widget _ratingBar(int rating) {
+    if (rating == 0) return const SizedBox();
     return RatingBar.builder(
-      initialRating: rating,
+      initialRating: rating.toDouble(),
       minRating: 1,
       itemSize: 24,
       itemPadding: const EdgeInsets.symmetric(horizontal: 10.0),
@@ -279,10 +305,9 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       ),
       unratedColor: const Color(0xff999999),
       ignoreGestures: true,
-      onRatingUpdate: (double value) {  },
+      onRatingUpdate: (double value) {},
     );
   }
-
 
   Widget _bubbleBuilder(
     Widget child, {
@@ -346,27 +371,11 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
             ),
           ]),
         );
-      case "askRating":
-        return Container(
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          color: const Color(0xffEDEDED),
-          child: _ratingBar(3),
-        );
-
       case "rating":
         return Container(
           padding: const EdgeInsets.symmetric(vertical: 14),
-          color: AppColor.chatPrimaryColor,
-          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Text(
-              "Please tell us how we did with this support issue by rating your experience."
-                  .tr(),
-              textAlign: TextAlign.center,
-              style: ResponsiveLayout.isMobile
-                  ? theme.textTheme.atlasWhiteBold14
-                  : theme.textTheme.atlasWhiteBold16,
-            ),
-          ]),
+          color: const Color(0xffEDEDED),
+          child: _ratingBar(message.metadata?["rating"] ?? 0),
         );
 
       default:
@@ -387,28 +396,18 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     if (mounted) {
       setState(() {
         _status = issueDetails.issue.status;
+        _isRated = issueDetails.issue.rating > 0 &&
+            issueDetails.issue.status == "open";
         _reportIssueType = issueDetails.issue.reportIssueType;
         _messages = parsedMessages;
       });
     }
   }
 
-  _convertChatMessageToRating(types.Message message){
-    if(_isRating(message)) {
-      final ratingMessengerID = const Uuid().v4();
-      final ratingMessenger = types.CustomMessage(
-        id: ratingMessengerID,
-        author: _user,
-        metadata: const {"status": "rating"},
-      );
-      return ratingMessenger;
-
-    }
-    return message;
-  }
-
-  bool _isRating(types.Message message){
-    //if(message. == "5star") return true;
+  bool _isRating(types.Message message) {
+    if (message.metadata?["rating"] != null &&
+        message.metadata?["rating"] != "" &&
+        message.metadata?["rating"] != 0 ) return true;
     return false;
   }
 
@@ -446,7 +445,8 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     });
   }
 
-  Future _submit(String messageType, DraftCustomerSupportData data) async {
+  Future _submit(String messageType, DraftCustomerSupportData data,
+      {bool isRating = false}) async {
     log_util.log.info('[CS-Thread][start] _submit $messageType - $data');
     List<String> mutedMessages = [];
     if (_issueID == null) {
@@ -467,6 +467,12 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       }
     }
 
+    if(messageType == CSMessageType.PostMessage.rawValue && _isRated == true){
+      data.text = "$RATING_MESSAGE_START${data.text}";
+    }
+
+    _isRated = isRating;
+
     final draft = DraftCustomerSupport(
       uuid: const Uuid().v4(),
       issueID: _issueID!,
@@ -485,6 +491,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       });
       await injector<CustomerSupportService>().reopen(_issueID!);
       _status = "open";
+      _isRated = false;
     }
 
     await injector<CustomerSupportService>().draftMessage(draft);
@@ -596,13 +603,18 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     types.Status status;
     DateTime createdAt;
     String? text;
-
+    int rating = 0;
+    Map<String, dynamic> metadata = {};
     if (message is app.Message) {
       id = tempID ?? "${message.id}";
       author = message.from.contains("did:key") ? _user : _bitmark;
       status = types.Status.delivered;
       createdAt = message.timestamp;
       text = message.filteredMessage;
+      rating = getRating(text ?? "");
+      if (rating > 0) {
+        metadata = {"rating": rating};
+      }
       //
     } else if (message is DraftCustomerSupport) {
       id = message.uuid;
@@ -610,6 +622,9 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       status = types.Status.sending;
       createdAt = message.createdAt;
       text = message.draftData.text;
+      metadata = json.decode(message.data);
+      rating = getRating(text ?? "");
+      metadata["rating"] = rating;
       //
     } else {
       return [];
@@ -625,6 +640,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
         text: text,
         status: status,
         showStatus: true,
+        metadata: metadata,
       ));
     }
 
@@ -680,6 +696,15 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     }
 
     return result;
+  }
+
+  getRating(String text) {
+    if (text == "*") return 1;
+    if (text == "**") return 2;
+    if (text == "***") return 3;
+    if (text == "****") return 4;
+    if (text == "*****") return 5;
+    return 0;
   }
 
   DefaultChatTheme get _chatTheme {
@@ -741,15 +766,17 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
 }
 
 class MyRatingBar extends StatefulWidget {
-  const MyRatingBar({Key? key}) : super(key: key);
+  MyRatingBar({Key? key, required this.submit}) : super(key: key);
+  Future<dynamic> Function(String messageType, DraftCustomerSupportData data,
+      {bool isRating}) submit;
 
   @override
   _MyRatingBar createState() => _MyRatingBar();
 }
 
 class _MyRatingBar extends State<MyRatingBar> {
-  double customerRating = 0;
-  Widget sendButton = SvgPicture.asset("assets/images/sendMessage.svg");
+  String customerRating = "";
+  Widget sendButtonRating = SvgPicture.asset("assets/images/sendMessage.svg");
 
   @override
   Widget build(BuildContext context) {
@@ -771,7 +798,7 @@ class _MyRatingBar extends State<MyRatingBar> {
             onRatingUpdate: _updateRating,
           ),
           const SizedBox(width: 40),
-          IconButton(onPressed: _sendButtonOnPress, icon: sendButton),
+          IconButton(onPressed: _sendButtonOnPress, icon: sendButtonRating),
           const SizedBox(width: 10)
         ],
       ),
@@ -779,11 +806,27 @@ class _MyRatingBar extends State<MyRatingBar> {
   }
 
   _updateRating(double rating) {
-    customerRating = rating;
+    customerRating = _convertRatingToText(rating);
     setState(() {
-      sendButton = SvgPicture.asset("assets/images/sendMessageFilled.svg");
+      sendButtonRating =
+          SvgPicture.asset("assets/images/sendMessageFilled.svg");
     });
   }
 
-  _sendButtonOnPress() {}
+  _sendButtonOnPress() async {
+    widget.submit(CSMessageType.PostMessage.rawValue,
+        DraftCustomerSupportData(text: customerRating),
+        isRating: true);
+  }
+
+  String _convertRatingToText(double rating) {
+    final ratingI = rating.toInt();
+    if (ratingI == 1) return "*";
+    if (ratingI == 2) return "**";
+    if (ratingI == 3) return "***";
+    if (ratingI == 4) return "****";
+    if (ratingI == 5) return "*****";
+
+    return "";
+  }
 }

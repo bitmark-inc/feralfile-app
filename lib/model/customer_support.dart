@@ -21,6 +21,7 @@ class Issue {
   DateTime timestamp;
   int total;
   int unread;
+  int rating;
   @JsonKey(name: 'last_message')
   Message? lastMessage;
   // only on local
@@ -37,6 +38,7 @@ class Issue {
     required this.unread,
     required this.lastMessage,
     this.draft,
+    required this.rating,
   });
 
   factory Issue.fromJson(Map<String, dynamic> json) => _$IssueFromJson(json);
