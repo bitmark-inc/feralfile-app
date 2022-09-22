@@ -110,10 +110,10 @@ class _ReportRenderingIssueWidgetState
                     text: "generate_report".tr(),
                     onPress: () => _reportIssue(),
                     isProcessing: _isProcessing,
-                    color: theme.colorScheme.secondary,
-                    textStyle: _isSubmissionEnabled
-                        ? theme.textTheme.button
-                        : theme.textTheme.ibmGreyBold14,
+                    color: _isSubmissionEnabled
+                        ? theme.colorScheme.secondary
+                        : AppColor.secondarySpanishGrey,
+                    textStyle: theme.textTheme.button,
                   ),
                 ),
               ],
