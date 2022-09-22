@@ -152,9 +152,8 @@ class _TVConnectPageState extends State<TVConnectPage>
           ),
           const SizedBox(height: 24),
           Text("set_up_gallery".tr(), style: theme.primaryTextTheme.bodyText1),
-          Divider(
-            height: 64,
-            color: theme.colorScheme.secondary,
+          const SizedBox(
+            height: 32,
           ),
           Text("viewer_request_to".tr(),
               style: theme.primaryTextTheme.bodyText1),
