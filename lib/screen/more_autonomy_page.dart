@@ -43,24 +43,28 @@ class MoreAutonomyPage extends StatelessWidget {
             margin: const EdgeInsets.only(
                 top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
             child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text("more_autonomy".tr(), style: theme.textTheme.headline1),
                 const SizedBox(height: 40),
-                Text('upgrading_gives_you'.tr(), style: theme.textTheme.bodyText1),
-                SvgPicture.asset(
-                  'assets/images/premium_comparation_light.svg',
-                  height: 320,
+                Expanded(
+                  child: ListView(
+                    children: [
+                      Text('upgrading_gives_you'.tr(),
+                          style: theme.textTheme.bodyText1),
+                      SvgPicture.asset(
+                        'assets/images/premium_comparation_light.svg',
+                        height: 250,
+                      ),
+                      const SizedBox(height: 16),
+                      Text("gg_tv_app".tr(), style: theme.textTheme.headline5),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 16),
-                Text("gg_tv_app".tr(),
-                    style: theme.textTheme.headline5),
-                const Expanded(child: SizedBox()),
                 AuFilledButton(
-                  text:
-                      "sub_then_price".tr(args: [state.productDetails?.price ?? "4.99usd".tr()]),
-                      //"SUBSCRIBE FOR A 30-DAY FREE TRIAL\n(THEN ${state.productDetails?.price ?? "US\$4.99"}/MONTH)",
+                  text: "sub_then_price".tr(
+                      args: [state.productDetails?.price ?? "4.99usd".tr()]),
+                  //"SUBSCRIBE FOR A 30-DAY FREE TRIAL\n(THEN ${state.productDetails?.price ?? "US\$4.99"}/MONTH)",
                   textAlign: TextAlign.center,
                   onPress: state.status == IAPProductStatus.loading ||
                           state.status == IAPProductStatus.pending
@@ -72,12 +76,17 @@ class MoreAutonomyPage extends StatelessWidget {
                         },
                   textStyle: theme.primaryTextTheme.button,
                 ),
-                TextButton(
-                  onPressed: () => newAccountPageOrSkipInCondition(context),
-                  child: Text(
-                    "not_now".tr(),
-                    style: theme.textTheme.button,
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    TextButton(
+                      onPressed: () => newAccountPageOrSkipInCondition(context),
+                      child: Text(
+                        "not_now".tr(),
+                        style: theme.textTheme.button,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

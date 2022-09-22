@@ -267,7 +267,6 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                             style: theme.primaryTextTheme.button,
                           ),
                         ),
-                        const SizedBox(height: 20),
                       ],
                     ),
                   );
@@ -288,13 +287,15 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     final theme = Theme.of(context);
 
     if (devices.isEmpty) {
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 42),
-        child: Text(
-          'no_device_detected'.tr(),
-          style: ResponsiveLayout.isMobile
-              ? theme.textTheme.atlasSpanishGreyBold16
-              : theme.textTheme.atlasSpanishGreyBold20,
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 42),
+          child: Text(
+            'no_device_detected'.tr(),
+            style: ResponsiveLayout.isMobile
+                ? theme.textTheme.atlasSpanishGreyBold16
+                : theme.textTheme.atlasSpanishGreyBold20,
+          ),
         ),
       );
     }
