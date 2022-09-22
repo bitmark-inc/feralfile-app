@@ -52,9 +52,10 @@ class MoreAutonomyPage extends StatelessWidget {
                     children: [
                       Text('upgrading_gives_you'.tr(),
                           style: theme.textTheme.bodyText1),
-                      SvgPicture.asset(
-                        'assets/images/premium_comparation_light.svg',
-                        height: 250,
+                      FittedBox(
+                        child: SvgPicture.asset(
+                          'assets/images/premium_comparation_light.svg',
+                        ),
                       ),
                       const SizedBox(height: 16),
                       Text("gg_tv_app".tr(), style: theme.textTheme.headline5),
