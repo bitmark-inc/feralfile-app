@@ -97,9 +97,12 @@ class WalletConnectService {
     tmpUuids[peerMeta] = uuid;
 
     if (peerMeta.name == AUTONOMY_TV_PEER_NAME) {
-      final date = peerMeta.description?.split(' -');
-      final expiredTime = DateTime.tryParse(date?.last ?? '');
-      if (expiredTime == null || expiredTime.isBefore(DateTime.now())) {
+      final date = peerMeta.description?.split(' -').last;
+      final microsecondsSinceEpoch = int.tryParse(date ?? '');
+      if (microsecondsSinceEpoch == null) return true;
+      final expiredTime =
+          DateTime.fromMicrosecondsSinceEpoch(microsecondsSinceEpoch);
+      if (expiredTime.isBefore(DateTime.now())) {
         return false;
       }
       log.info("it's AUTONOMY_TV_PEER_NAME => skip storing connection");
