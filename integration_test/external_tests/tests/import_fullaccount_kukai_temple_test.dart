@@ -35,57 +35,69 @@ void main() {
     });
 
     test('MetaMask', () async {
-      await onBoardingSteps(driver);
+      try {
+        await onBoardingSteps(driver);
 
-      await selectSubSettingMenu(driver, "Settings->+ Account");
+        await selectSubSettingMenu(driver, "Settings->+ Account");
 
-      Future<String> metaAccountAliasf = genTestDataRandom("Meta");
-      String metaAccountAlias = await metaAccountAliasf;
+        Future<String> metaAccountAliasf = genTestDataRandom("Meta");
+        String metaAccountAlias = await metaAccountAliasf;
 
-      await importAnAccountBySeeds(
-          driver, "MetaMask", SEEDS_TO_RESTORE_FULLACCOUNT, metaAccountAlias);
+        await importAnAccountBySeeds(
+            driver, "MetaMask", SEEDS_TO_RESTORE_FULLACCOUNT, metaAccountAlias);
 
-      int isCreatedMetaMaskAcc = await driver
-          .findElements(AppiumBy.xpath(
-              "//android.view.View[contains(@content-desc,'$metaAccountAlias')]"))
-          .length;
-      expect(isCreatedMetaMaskAcc, 1);
+        int isCreatedMetaMaskAcc = await driver
+            .findElements(AppiumBy.xpath(
+                "//android.view.View[contains(@content-desc,'$metaAccountAlias')]"))
+            .length;
+        expect(isCreatedMetaMaskAcc, 1);
+      } catch (e) {
+        await captureScreen(driver);
+      }
     });
 
     test('Temple', () async {
-      await onBoardingSteps(driver);
+      try {
+        await onBoardingSteps(driver);
 
-      await selectSubSettingMenu(driver, "Settings->+ Account");
+        await selectSubSettingMenu(driver, "Settings->+ Account");
 
-      Future<String> templeAccountAliasf = genTestDataRandom("Temple");
-      String templeAccountAlias = await templeAccountAliasf;
+        Future<String> templeAccountAliasf = genTestDataRandom("Temple");
+        String templeAccountAlias = await templeAccountAliasf;
 
-      await importAnAccountBySeeds(
-          driver, "Temple", SEED_TO_RESTORE_TEMPLE, templeAccountAlias);
+        await importAnAccountBySeeds(
+            driver, "Temple", SEED_TO_RESTORE_TEMPLE, templeAccountAlias);
 
-      int isCreatedMetaMaskAcc = await driver
-          .findElements(AppiumBy.xpath(
-              "//android.view.View[contains(@content-desc,'$templeAccountAlias')]"))
-          .length;
-      expect(isCreatedMetaMaskAcc, 1);
+        int isCreatedMetaMaskAcc = await driver
+            .findElements(AppiumBy.xpath(
+                "//android.view.View[contains(@content-desc,'$templeAccountAlias')]"))
+            .length;
+        expect(isCreatedMetaMaskAcc, 1);
+      } catch (e) {
+        await captureScreen(driver);
+      }
     });
 
     test('Kukai', () async {
-      await onBoardingSteps(driver);
+      try {
+        await onBoardingSteps(driver);
 
-      await selectSubSettingMenu(driver, "Settings->+ Account");
+        await selectSubSettingMenu(driver, "Settings->+ Account");
 
-      Future<String> kukaiAccountAliasf = genTestDataRandom("Kukai");
-      String kukaiAccountAlias = await kukaiAccountAliasf;
+        Future<String> kukaiAccountAliasf = genTestDataRandom("Kukai");
+        String kukaiAccountAlias = await kukaiAccountAliasf;
 
-      await importAnAccountBySeeds(
-          driver, "MetaMask", SEED_TO_RESTORE_KUKAI, kukaiAccountAlias);
+        await importAnAccountBySeeds(
+            driver, "MetaMask", SEED_TO_RESTORE_KUKAI, kukaiAccountAlias);
 
-      int isCreatedMetaMaskAcc = await driver
-          .findElements(AppiumBy.xpath(
-              "//android.view.View[contains(@content-desc,'$kukaiAccountAlias')]"))
-          .length;
-      expect(isCreatedMetaMaskAcc, 1);
+        int isCreatedMetaMaskAcc = await driver
+            .findElements(AppiumBy.xpath(
+                "//android.view.View[contains(@content-desc,'$kukaiAccountAlias')]"))
+            .length;
+        expect(isCreatedMetaMaskAcc, 1);
+      } catch (e) {
+        await captureScreen(driver);
+      }
     });
   }, timeout: Timeout.none);
 }
