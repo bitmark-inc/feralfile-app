@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/feralfile/feralfile_bloc.dart';
+import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
@@ -250,7 +251,14 @@ class _ScanQRPageState extends State<ScanQRPage> with RouteAware {
     controller.scannedDataStream.listen((scanData) async {
       if (scanData.code == null) return;
 
-      final code = scanData.code!;
+      String code = scanData.code!;
+
+      if (DEEP_LINKS.any((prefix) => code.startsWith(prefix))) {
+        controller.dispose();
+        Navigator.pop(context);
+        injector<DeeplinkService>().handleDeeplink(code);
+        return;
+      }
 
       switch (widget.scannerItem) {
         case ScannerItem.WALLET_CONNECT:
