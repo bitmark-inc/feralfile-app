@@ -34,24 +34,28 @@ void main() {
     });
 
     test('Metamask', () async {
-      await driver.app.activate(METAMASK_APPPACKAGE);
-      sleep(const Duration(seconds: 15));
-      await driver.app.activate(AUTONOMY_APPPACKAGE);
+      try {
+        await driver.app.activate(METAMASK_APPPACKAGE);
+        sleep(const Duration(seconds: 15));
+        await driver.app.activate(AUTONOMY_APPPACKAGE);
 
-      await onBoardingSteps(driver);
+        await onBoardingSteps(driver);
 
-      await selectSubSettingMenu(driver, "Settings->+ Account");
+        await selectSubSettingMenu(driver, "Settings->+ Account");
 
-      Future<String> metaAccountAliasf = genTestDataRandom("Meta");
-      String metaAccountAlias = await metaAccountAliasf;
+        Future<String> metaAccountAliasf = genTestDataRandom("Meta");
+        String metaAccountAlias = await metaAccountAliasf;
 
-      await addExistingMetaMaskAccount(driver, "app", metaAccountAlias);
+        await addExistingMetaMaskAccount(driver, "app", metaAccountAlias);
 
-      int isCreatedMetaMaskAcc = await driver
-          .findElements(AppiumBy.xpath(
-              "//android.view.View[contains(@content-desc,'$metaAccountAlias')]"))
-          .length;
-      expect(isCreatedMetaMaskAcc, 1);
+        int isCreatedMetaMaskAcc = await driver
+            .findElements(AppiumBy.xpath(
+                "//android.view.View[contains(@content-desc,'$metaAccountAlias')]"))
+            .length;
+        expect(isCreatedMetaMaskAcc, 1);
+      } catch (e) {
+        await captureScreen(driver);
+      }
     });
   }, timeout: Timeout.none);
 }

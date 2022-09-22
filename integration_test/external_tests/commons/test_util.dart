@@ -10,6 +10,9 @@ import 'dart:math';
 
 import 'package:appium_driver/async_io.dart';
 import 'package:test/test.dart';
+import 'package:intl/intl.dart';
+
+import 'dart:convert';
 
 AppiumBy settingButtonLocator = const AppiumBy.accessibilityId("Settings");
 AppiumBy accountAliasLocator =
@@ -171,7 +174,24 @@ Future<void> scroll(driver, scrollUIAutomator) async {
 
 Future<void> scrollUntil(AppiumWebDriver driver, String decs) async {
   var subSelector = 'new UiSelector().descriptionContains("$decs")';
-  var scrollViewSeletor = 'new UiSelector().className("android.widget.ScrollView")';
-  var scrollUIAutomator = await 'new UiScrollable($scrollViewSeletor).setSwipeDeadZonePercentage(0.4).scrollIntoView($subSelector)';
+  var scrollViewSeletor =
+      'new UiSelector().className("android.widget.ScrollView")';
+  var scrollUIAutomator =
+      await 'new UiScrollable($scrollViewSeletor).setSwipeDeadZonePercentage(0.4).scrollIntoView($subSelector)';
   await scroll(driver, scrollUIAutomator);
+}
+
+Future<void> captureScreen(AppiumWebDriver driver) async {
+  var screenshot = await driver.captureScreenshotAsBase64();
+
+  final decodedBytes = base64Decode(screenshot.replaceAll(RegExp(r'\s+'), ''));
+
+  final DateTime now = DateTime.now();
+  final DateFormat formatter = DateFormat('MMddyyyy');
+  final String formattedFolder = formatter.format(now);
+
+  final filename = DateTime.now().microsecondsSinceEpoch;
+  var file = await File("/tmp/AUResult/$formattedFolder/$filename.png")
+      .create(recursive: true);
+  file.writeAsBytesSync(decodedBytes);
 }

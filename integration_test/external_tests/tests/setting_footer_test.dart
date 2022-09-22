@@ -10,7 +10,6 @@ import 'dart:io';
 import 'package:appium_driver/async_io.dart';
 import 'package:test/test.dart';
 
-
 import '../commons/test_util.dart';
 import '../pages/onboarding_page.dart';
 import '../test_data/test_configurations.dart';
@@ -19,7 +18,6 @@ void main() {
   late AppiumWebDriver driver;
   final dir = Directory.current;
   group("Setting Footer Test", () {
-
     setUp(() async {
       driver = await createDriver(
           uri: Uri.parse(APPIUM_SERVER_URL),
@@ -34,51 +32,62 @@ void main() {
     });
 
     test("Version", () async {
-      await onBoardingSteps(driver);
+      try {
+        await onBoardingSteps(driver);
 
-      await selectSubSettingMenu(driver, "Settings");
+        await selectSubSettingMenu(driver, "Settings");
 
-      await scrollUntil(driver, "Version");
+        await scrollUntil(driver, "Version");
 
-      var versionEle = await driver.findElement(AppiumBy.xpath(
-          "//android.view.View[contains(@content-desc,'Version')]"));
+        var versionEle = await driver.findElement(AppiumBy.xpath(
+            "//android.view.View[contains(@content-desc,'Version')]"));
 
-      String versionStr = await versionEle.attributes['content-desc'];
+        String versionStr = await versionEle.attributes['content-desc'];
 
-      RegExp versionExp = RegExp(r'[0-9]+.[0-9]+.[0-9]+');
+        RegExp versionExp = RegExp(r'[0-9]+.[0-9]+.[0-9]+');
 
-      var version = await versionExp.stringMatch(versionStr);
+        var version = await versionExp.stringMatch(versionStr);
 
-      await selectSubSettingMenu(driver, "Release notes");
+        await selectSubSettingMenu(driver, "Release notes");
 
-      var hasVersion = await driver.findElements(AppiumBy.xpath(
-          "//android.view.View[contains(@content-desc, '$version')]")).length;
+        var hasVersion = await driver
+            .findElements(AppiumBy.xpath(
+                "//android.view.View[contains(@content-desc, '$version')]"))
+            .length;
 
-      expect(hasVersion, 1);
+        expect(hasVersion, 1);
+      } catch (e) {
+        await captureScreen(driver);
+      }
     });
 
     test("Privacy Policy", () async {
-      // Open App at Home Page
-      await onBoardingSteps(driver);
+      try {
+        // Open App at Home Page
+        await onBoardingSteps(driver);
 
-      await selectSubSettingMenu(driver, "Settings");
+        await selectSubSettingMenu(driver, "Settings");
 
-      await scrollUntil(driver, "Privacy Policy");
+        await scrollUntil(driver, "Privacy Policy");
 
-      await selectSubSettingMenu(driver, "Privacy Policy");
+        await selectSubSettingMenu(driver, "Privacy Policy");
 
-      int hasPrivacyPolicy = await driver.findElements(AppiumBy.xpath(
-      "//android.view.View[@content-desc='Autonomy Privacy Policy']"
-      )).length;
+        int hasPrivacyPolicy = await driver
+            .findElements(AppiumBy.xpath(
+                "//android.view.View[@content-desc='Autonomy Privacy Policy']"))
+            .length;
 
-      expect(hasPrivacyPolicy, 1);
+        expect(hasPrivacyPolicy, 1);
 
-      await driver.back();
+        await driver.back();
 
-      var hasPrivacyAndPolicy = await driver.findElements(
-              AppiumBy.accessibilityId("Privacy Policy")).length;
-      expect(hasPrivacyAndPolicy, 1);
+        var hasPrivacyAndPolicy = await driver
+            .findElements(AppiumBy.accessibilityId("Privacy Policy"))
+            .length;
+        expect(hasPrivacyAndPolicy, 1);
+      } catch (e) {
+        await captureScreen(driver);
+      }
     });
-    
   }, timeout: Timeout.none);
 }

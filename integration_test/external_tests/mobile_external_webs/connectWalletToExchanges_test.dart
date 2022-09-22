@@ -12,6 +12,7 @@ import 'package:appium_driver/async_io.dart';
 
 import 'package:test/test.dart';
 
+import '../commons/test_util.dart';
 import '../pages/exchanges_page.dart';
 import '../pages/onboarding_page.dart';
 import '../test_data/test_configurations.dart';
@@ -49,16 +50,20 @@ void main() {
 
     for (var exchange in LIST_OF_EXCHANGES) {
       test(exchange["exchangeName"] ?? "", () async {
-        await onBoardingSteps(driver);
+        try {
+          await onBoardingSteps(driver);
 
-        await linkBeaconWalletFromExchange(
-            driver, exchange["exchangeName"] ?? "");
+          await linkBeaconWalletFromExchange(
+              driver, exchange["exchangeName"] ?? "");
 
-        int isWalletLinked = await driver
-            .findElements(
-                AppiumBy.accessibilityId(exchange["linkedExchangeName"] ?? ""))
-            .length;
-        expect(isWalletLinked, 1);
+          int isWalletLinked = await driver
+              .findElements(AppiumBy.accessibilityId(
+                  exchange["linkedExchangeName"] ?? ""))
+              .length;
+          expect(isWalletLinked, 1);
+        } catch (e) {
+          await captureScreen(driver);
+        }
       });
 
       /* This section is waiting for the bug https://github.com/bitmark-inc/autonomy-apps/issues/1690 is fixed. 
