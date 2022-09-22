@@ -287,7 +287,8 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     final theme = Theme.of(context);
 
     if (devices.isEmpty) {
-      return Center(
+      return Align(
+        alignment: Alignment.centerLeft,
         child: Padding(
           padding: const EdgeInsets.only(bottom: 42),
           child: Text(

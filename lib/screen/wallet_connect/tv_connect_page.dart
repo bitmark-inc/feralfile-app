@@ -104,76 +104,83 @@ class _TVConnectPageState extends State<TVConnectPage>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
-    return Scaffold(
-      backgroundColor: theme.colorScheme.primary,
-      appBar: AppBar(
-        leading: const SizedBox(),
-        leadingWidth: 0.0,
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            GestureDetector(
-              behavior: HitTestBehavior.translucent,
-              onTap: () => _reject(),
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(0, 7, 18, 8),
-                child: Row(
-                  children: [
-                    Row(
-                      children: [
-                        SvgPicture.asset(
-                          'assets/images/nav-arrow-left.svg',
-                          color: theme.colorScheme.secondary,
-                        ),
-                        const SizedBox(width: 7),
-                        Text(
-                          "back".tr(),
-                          style: theme.primaryTextTheme.button,
-                        ),
-                      ],
-                    ),
-                  ],
+    return WillPopScope(
+      onWillPop: () async {
+        _reject();
+        return true;
+      },
+      child: Scaffold(
+        backgroundColor: theme.colorScheme.primary,
+        appBar: AppBar(
+          leading: const SizedBox(),
+          leadingWidth: 0.0,
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onTap: () => _reject(),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 7, 18, 8),
+                  child: Row(
+                    children: [
+                      Row(
+                        children: [
+                          SvgPicture.asset(
+                            'assets/images/nav-arrow-left.svg',
+                            color: theme.colorScheme.secondary,
+                          ),
+                          const SizedBox(width: 7),
+                          Text(
+                            "back".tr(),
+                            style: theme.primaryTextTheme.button,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
-        ),
-        backgroundColor: Colors.transparent,
-        shadowColor: Colors.transparent,
-        elevation: 0,
-      ),
-      body: Container(
-        margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(
-            "connect_au_viewer".tr(),
-            style: theme.primaryTextTheme.headline1,
-          ),
-          const SizedBox(height: 24),
-          Text("set_up_gallery".tr(), style: theme.primaryTextTheme.bodyText1),
-          const SizedBox(
-            height: 32,
-          ),
-          Text("viewer_request_to".tr(),
-              style: theme.primaryTextTheme.bodyText1),
-          const SizedBox(height: 8),
-          Text("view_collections".tr(),
-              style: theme.primaryTextTheme.bodyText1),
-          const Expanded(child: SizedBox()),
-          Row(
-            children: [
-              Expanded(
-                child: AuFilledButton(
-                  text: "Authorize".tr().toUpperCase(),
-                  onPress: () => withDebounce(() => _approve()),
-                  color: theme.colorScheme.secondary,
-                  textStyle: theme.textTheme.button,
-                ),
-              )
             ],
-          )
-        ]),
+          ),
+          backgroundColor: Colors.transparent,
+          shadowColor: Colors.transparent,
+          elevation: 0,
+        ),
+        body: Container(
+          margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(
+              "connect_au_viewer".tr(),
+              style: theme.primaryTextTheme.headline1,
+            ),
+            const SizedBox(height: 24),
+            Text("set_up_gallery".tr(),
+                style: theme.primaryTextTheme.bodyText1),
+            const SizedBox(
+              height: 32,
+            ),
+            Text("viewer_request_to".tr(),
+                style: theme.primaryTextTheme.bodyText1),
+            const SizedBox(height: 8),
+            Text("view_collections".tr(),
+                style: theme.primaryTextTheme.bodyText1),
+            const Expanded(child: SizedBox()),
+            Row(
+              children: [
+                Expanded(
+                  child: AuFilledButton(
+                    text: "Authorize".tr().toUpperCase(),
+                    onPress: () => withDebounce(() => _approve()),
+                    color: theme.colorScheme.secondary,
+                    textStyle: theme.textTheme.button,
+                  ),
+                )
+              ],
+            )
+          ]),
+        ),
       ),
     );
   }
