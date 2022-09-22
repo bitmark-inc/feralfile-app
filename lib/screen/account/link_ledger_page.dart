@@ -208,7 +208,7 @@ class _LinkLedgerPageState extends State<LinkLedgerPage> {
       late String ledgerAppname;
       switch (widget.payload) {
         case "Tezos":
-          ledgerAppname = "tezos_wallet".tr();
+          ledgerAppname = "Tezos Wallet";
           break;
         default:
           ledgerAppname = widget.payload;
