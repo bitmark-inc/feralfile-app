@@ -7,12 +7,6 @@
 
 //import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-//import 'package:autonomy_flutter/common/injector.dart';
-//import 'package:autonomy_flutter/database/cloud_database.dart';
-//import 'package:flutter_dotenv/flutter_dotenv.dart';
-//import 'package:http/http.dart' as http;
-//import 'dart:convert';
-
 import 'dart:io';
 import 'package:appium_driver/async_io.dart';
 import 'package:test/test.dart';
@@ -23,7 +17,6 @@ import '../test_data/test_configurations.dart';
 import '../test_data/test_constants.dart';
 import '../pages/settings_page.dart';
 import '../pages/transactions_page.dart';
-
 
 void main() async {
   //await dotenv.load();
@@ -59,17 +52,26 @@ void main() async {
       double balance = await getTezosBalance(driver, ALIAS_ACCOUNT);
 
       // deposit to address
-      await depositTezos(address);
-      await timeDelay(58);
+      var depositTime = await depositTezos(address);
+      await timeDelay(40);
+      //var depositTime = DateTime.parse('2022-09-15 08:57');
 
       double balanceAfterDeposit = await getTezosBalance(driver, ALIAS_ACCOUNT);
-      expect(balance + DEPOSIT_AMOUNT, balanceAfterDeposit);
+      expect((balance + DEPOSIT_AMOUNT - balanceAfterDeposit).abs() <= EPS, true);
+
+      await gotoTransactionPage(driver, ALIAS_ACCOUNT);
+      AppiumWebElement receiveTransaction = await getRecentTransaction(driver, "Received");
+      await receiveTransaction.click();
+      await expectReceiveTransaction(driver, XTZ_GETBACK_ADDRESS, from24to12(depositTime), DEPOSIT_AMOUNT);
+      await goBack(driver, 1);
 
       // send back
-      await gotoTransactionPage(driver, ALIAS_ACCOUNT);
-      double total = await getRecentSentTransaction(driver);
-      double sentValue = await sendTezos(driver, XTZ_GETBACK_ADDRESS);
-      await timeDelay(30);
+      var lst = await sendTezos(driver, XTZ_GETBACK_ADDRESS);
+      double fee = lst[0] as double;
+      DateTime sendTime = lst[1] as DateTime;
+      double sendAmount = lst[2] as double;
+      double total = await round(sendAmount + fee, 5);
+      await timeDelay(40);
 
       //Assert Back to Transactions Page
       int hasSendButton = await driver.findElements(AppiumBy.accessibilityId("SEND")).length;
@@ -79,8 +81,19 @@ void main() async {
 
       await goBack(driver, 3);
       double balanceAfterSendBack = await getTezosBalance(driver, ALIAS_ACCOUNT);
-      expect((balanceAfterDeposit - total - balanceAfterSendBack).abs() > 0, true);
+      //print('($balanceAfterDeposit - $total - $balanceAfterSendBack) = ${balanceAfterDeposit - total - balanceAfterSendBack}');
+      expect((balanceAfterDeposit - total - balanceAfterSendBack).abs() < EPS, true);
+
+      await gotoTransactionPage(driver, ALIAS_ACCOUNT);
+      // Get Latest Transaction
+      AppiumWebElement sentTransaction = await getRecentTransaction(driver);
+      var sentDesc = await sentTransaction.attributes['content-desc'];
+      double minustotal = await getTezosFromString(sentDesc);
+      expect((minustotal + total).abs() <= EPS, true);
+      await sentTransaction.click();
+      await expectSentTransaction(driver, XTZ_GETBACK_ADDRESS, from24to12(sendTime), sendAmount, fee);
     });
+
     // Case 2
 
     test("send and receive with 2 account", () async{
@@ -100,21 +113,26 @@ void main() async {
       String addressA = await getTezosAddress(driver, ALIAS_ACCOUNT);
       String addressB = await getTezosAddress(driver, ALIAS_ANOTHER_ACCOUNT);
 
-      double balanceA = 0.000008;//await getTezosBalance(driver, ALIAS_ACCOUNT);
+      double balanceA = await getTezosBalance(driver, ALIAS_ACCOUNT);
       double balanceB = await getTezosBalance(driver, ALIAS_ANOTHER_ACCOUNT);
 
       //  Deposit Tezos to address
-      await depositTezos(addressA);
-      await timeDelay(58);
+      DateTime depositTime = await depositTezos(addressA);
+      await timeDelay(30);
 
       // Check Balance After Deposit
       double balanceAAfterDeposit = await getTezosBalance(driver, ALIAS_ACCOUNT);
-      expect(balanceA + DEPOSIT_AMOUNT, balanceAAfterDeposit);
+      expect((balanceA + DEPOSIT_AMOUNT - balanceAAfterDeposit).abs() < EPS, true);
+
 
       // Send to another address
       await gotoTransactionPage(driver, ALIAS_ACCOUNT);
-      double toB = await sendTezos(driver, addressB);
-      await timeDelay(30);
+      var lst = await sendTezos(driver, addressB);
+      await timeDelay(40);
+      DateTime sentToBTime = lst[1] as DateTime;
+      double sentToBFee = lst[0] as double;
+      double amountSentToB = lst[2] as double;
+      double totalSentToB = await round(amountSentToB + sentToBFee, 5);
 
       // Assert Back to Transactions Page
       int hasSendButton = await driver.findElements(AppiumBy.accessibilityId("SEND")).length;
@@ -122,12 +140,27 @@ void main() async {
       int hasReceiveButton = await driver.findElements(AppiumBy.accessibilityId('RECEIVE')).length;
       expect(hasReceiveButton, 1);
 
-      double fromA = await getRecentSentTransaction(driver);
+      AppiumWebElement sentFromA = await getRecentTransaction(driver, 'Sent');
+      await sentFromA.click();
+      await expectSentTransaction(driver, addressB, from24to12(sentToBTime), amountSentToB, sentToBFee);
+      await goBack(driver, 4);
 
-      await goBack(driver, 3);
       // Send to GETBACK account
       await gotoTransactionPage(driver, ALIAS_ANOTHER_ACCOUNT);
-      double toDeposit = await sendTezos(driver, XTZ_GETBACK_ADDRESS);
+      // Check balance
+      AppiumWebElement receivedFromA = await getRecentTransaction(driver, 'Received');
+      await receivedFromA.click();
+      await expectReceiveTransaction(driver, addressA, from24to12(sentToBTime), amountSentToB);
+      await goBack(driver, 4);
+
+      await gotoTransactionPage(driver, ALIAS_ANOTHER_ACCOUNT);
+
+      var lst2 = await sendTezos(driver, XTZ_GETBACK_ADDRESS);
+      await timeDelay(40);
+
+      DateTime sendFromBTime = lst2[1] as DateTime;
+      double sendFromBFee = lst2[0] as double;
+      double fromBAmount = lst2[2] as double;
 
       //Assert Back to Transactions Page
       hasSendButton = await driver.findElements(AppiumBy.accessibilityId("SEND")).length;
@@ -135,14 +168,20 @@ void main() async {
       hasReceiveButton = await driver.findElements(AppiumBy.accessibilityId('RECEIVE')).length;
       expect(hasReceiveButton, 1);
 
-      double fromB = await getRecentSentTransaction(driver);
-
       await goBack(driver, 3);
 
       double balanceAAtEnd = await getTezosBalance(driver, ALIAS_ACCOUNT);
       double balanceBAtEnd = await getTezosBalance(driver, ALIAS_ANOTHER_ACCOUNT);
-      expect((balanceA + DEPOSIT_AMOUNT - fromA - balanceAAtEnd).abs() < EPS, true);
-      expect((balanceB + toB - fromB - balanceBAtEnd).abs() < EPS, true);
+      //print("($balanceA + $DEPOSIT_AMOUNT - $totalSentToB - $balanceAAtEnd) = ${(balanceA + DEPOSIT_AMOUNT - totalSentToB - balanceAAtEnd)}");
+      expect((balanceA + DEPOSIT_AMOUNT - totalSentToB - balanceAAtEnd).abs() <= EPS, true);
+      //print("($balanceB + $amountSentToB - $fromBAmount - $sendFromBFee - $balanceBAtEnd) = ${(balanceB + amountSentToB - fromBAmount - sendFromBFee - balanceBAtEnd)}");
+      expect((balanceB + amountSentToB - fromBAmount -sendFromBFee - balanceBAtEnd).abs() <= EPS, true);
+
+      await gotoTransactionPage(driver, ALIAS_ANOTHER_ACCOUNT);
+
+      var fromB = await getRecentTransaction(driver);
+      await fromB.click();
+      await expectSentTransaction(driver, XTZ_GETBACK_ADDRESS, from24to12(sendFromBTime), fromBAmount, sendFromBFee);
     });
 
   }, timeout: Timeout.none);

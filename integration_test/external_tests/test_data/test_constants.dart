@@ -44,4 +44,4 @@ const SEED_TO_RESTORE_ANOTHER_ACCOUNT =
     "pair copper together wife riot lawn extend rebuild universe brain local easy";
 
 const DEPOSIT_AMOUNT = 0.1;
-const EPS = 1e6;
+const EPS = 2e4;

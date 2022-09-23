@@ -12,7 +12,7 @@ import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:appium_driver/async_io.dart';
 import 'package:http/http.dart' as http;
-
+import 'package:intl/intl.dart';
 
 AppiumBy settingButtonLocator = const AppiumBy.accessibilityId("Settings");
 AppiumBy accountAliasLocator =
@@ -89,14 +89,14 @@ Future<void> scroll(driver, scrollUIAutomator) async {
   await driver.findElement(finder);
 }
 
-Future<void> scrollSettingPage(driver) async {
-  var scrollUIAutomator = await 'new UiScrollable(new UiSelector().className("android.widget.ScrollView")).scrollForward()';
-  await scroll(driver, scrollUIAutomator);
-  scrollUIAutomator = await 'new UiScrollable(new UiSelector().className("android.widget.ScrollView")).scrollToEnd(10)';
+Future<void> scrollUntil(AppiumWebDriver driver, String decs) async {
+  var subSelector = 'new UiSelector().descriptionContains("$decs")';
+  var scrollViewSeletor = 'new UiSelector().className("android.widget.ScrollView")';
+  var scrollUIAutomator = await 'new UiScrollable($scrollViewSeletor).setSwipeDeadZonePercentage(0.4).scrollIntoView($subSelector)';
   await scroll(driver, scrollUIAutomator);
 }
 
-Future<void> depositTezos(String address) async {
+Future<DateTime> depositTezos(String address) async {
   final faucetUrl = dotenv.env['TEZOS_FAUCET_URL'] ?? '';
   final token = dotenv.env['TEZOS_FAUCET_AUTH_TOKEN'] ?? '';
 
@@ -111,8 +111,8 @@ Future<void> depositTezos(String address) async {
       "Authorization": "Basic $token",
     },
   );
+  return DateTime.now();
 }
-
 Future<AppiumWebElement> getElementByContentDesc(AppiumWebDriver driver, String contain) async {
   AppiumBy locator = AppiumBy.xpath(
       '//*[contains(@content-desc,"$contain")]');
@@ -164,5 +164,15 @@ Future<void> timeDelay(int second) async {
   for (int i = 0; i < second; i++){
     await Future.delayed(dur);
   }
+}
+
+Future<double> round(double x, int n) async {
+  String tmp = x.toStringAsFixed(n);
+  return double.parse(tmp);
+}
+
+DateTime from24to12(DateTime time24){
+  String timeStr = DateFormat('yyyy-MM-dd hh:mm a').format(time24);
+  return DateTime.parse(timeStr.substring(0, timeStr.length - 3));
 }
 
