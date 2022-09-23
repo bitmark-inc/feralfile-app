@@ -6,6 +6,7 @@
 //
 
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -24,17 +25,17 @@ class AnyProblemNFTWidget extends StatelessWidget {
       child: Container(
         alignment: Alignment.bottomCenter,
         padding: const EdgeInsets.fromLTRB(0, 18, 0, 24),
-        color: theme.colorScheme.primary,
+        color: AppColor.secondaryDimGreyBackground,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text("problem_nft".tr(),
-                style: theme.primaryTextTheme.button),
+                style: theme.textTheme.button),
             const SizedBox(
               width: 4,
             ),
             SvgPicture.asset("assets/images/iconSharpFeedback.svg",
-                color: theme.colorScheme.secondary),
+                color: theme.colorScheme.primary),
           ],
         ),
       ),

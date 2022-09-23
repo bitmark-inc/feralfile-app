@@ -41,7 +41,10 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
   final TextEditingController _quantityController =
       TextEditingController(text: "1");
   final feeWidgetKey = GlobalKey();
-  final _reviewButtonVisible = ValueNotifier(!KeyboardVisibilityController().isVisible);
+  final _reviewButtonVisible =
+      ValueNotifier(!KeyboardVisibilityController().isVisible);
+
+  final _focusNode = FocusNode();
 
   @override
   void initState() {
@@ -59,6 +62,11 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
     KeyboardVisibilityController().onChange.listen((keyboardVisible) async {
       await Future.delayed(Duration(milliseconds: keyboardVisible ? 0 : 150),
           () => _reviewButtonVisible.value = !keyboardVisible);
+    });
+    _focusNode.addListener(() {
+      if (!_focusNode.hasFocus) {
+        _onQuantityUpdated();
+      }
     });
   }
 
@@ -97,6 +105,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
           constraints: const BoxConstraints(minWidth: 30, maxWidth: 90),
           child: IntrinsicWidth(
             child: TextField(
+              focusNode: _focusNode,
               controller: _quantityController,
               decoration: const InputDecoration(border: InputBorder.none),
               textAlign: TextAlign.center,
@@ -119,6 +128,14 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
             )),
       ],
     );
+  }
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    _quantityController.dispose();
+    _addressController.dispose();
+    super.dispose();
   }
 
   @override
@@ -147,11 +164,12 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
             }
           }, builder: (context, state) {
             return Container(
-              margin: EdgeInsets.only(
-                  top: 16.0,
-                  left: 16.0,
-                  right: 16.0,
-                  bottom: MediaQuery.of(context).padding.bottom),
+              margin: const EdgeInsets.only(
+                top: 16.0,
+                left: 16.0,
+                right: 16.0,
+                bottom: 40.0,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -261,13 +279,12 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                                       .read<SendArtworkBloc>()
                                       .add(AddressChangedEvent(""));
                                 } else {
-                                  dynamic address =
-                                  await Navigator.of(context).pushNamed(
-                                      ScanQRPage.tag,
-                                      arguments:
-                                      asset.blockchain == "ethereum"
-                                          ? ScannerItem.ETH_ADDRESS
-                                          : ScannerItem.XTZ_ADDRESS);
+                                  dynamic address = await Navigator.of(context)
+                                      .pushNamed(ScanQRPage.tag,
+                                          arguments:
+                                              asset.blockchain == "ethereum"
+                                                  ? ScannerItem.ETH_ADDRESS
+                                                  : ScannerItem.XTZ_ADDRESS);
                                   if (address != null && address is String) {
                                     _addressController.text = address;
                                     if (!mounted) return;
@@ -279,9 +296,13 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                               },
                             ),
                             onSubmit: (value) {
-                              context.read<SendArtworkBloc>().add(
-                                  AddressChangedEvent(
-                                      _addressController.text));
+                              if (value != state.address) {
+                                context.read<SendArtworkBloc>().add(
+                                      AddressChangedEvent(
+                                        _addressController.text,
+                                      ),
+                                    );
+                              }
                             },
                           ),
                           const SizedBox(height: 8.0),
@@ -312,7 +333,6 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                           child: _reviewButton(asset, state),
                         );
                       }),
-                  const SizedBox(height: 16.0),
                 ],
               ),
             );
@@ -330,7 +350,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
             text: "review".tr(),
             onPress: state.isValid
                 ? () async {
-                    final txHash = await Navigator.of(context).pushNamed(
+                    final payload = await Navigator.of(context).pushNamed(
                         AppRouter.sendArtworkReviewPage,
                         arguments: SendArtworkReviewPayload(
                             asset,
@@ -338,11 +358,13 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                             state.address!,
                             state.fee!,
                             state.exchangeRate,
-                            widget.payload.ownedQuantity,
-                            state.quantity));
-                    if (txHash != null && txHash is String) {
+                            _quantity,
+                            state.quantity)) as Map?;
+                    if (payload != null &&
+                        payload["hash"] != null &&
+                        payload["hash"] is String) {
                       if (!mounted) return;
-                      Navigator.of(context).pop();
+                      Navigator.of(context).pop(payload);
                     }
                   }
                 : null,

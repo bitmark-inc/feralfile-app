@@ -16,9 +16,9 @@ import 'package:autonomy_flutter/model/connection_supports.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
-import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 
@@ -283,10 +283,12 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
       _cloudDB.connectionDao.insertConnection(newConnection);
       emit(state.setEvent(LinkAccountSuccess(newConnection)));
 
-      injector<AWSService>().storeEventWithDeviceData(
+      final metricClient = injector.get<MetricClientService>();
+
+      await metricClient.addEvent(
         "link_ledger",
         data: {"blockchain": event.blockchain},
-        hashingData: {"address": event.address},
+        hashedData: {"address": event.address},
       );
 
       add(GetAccountsEvent());

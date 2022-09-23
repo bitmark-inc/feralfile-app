@@ -44,6 +44,7 @@ import it.airgap.beaconsdk.transport.p2p.matrix.p2pMatrix
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -352,6 +353,12 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
 
             launch {
                 beaconClient?.connect()
+                    ?.catch { error ->
+                        FileLogger.log(
+                            "TezosBeaconDartPlugin",
+                            "connect: ${error.message}"
+                        )
+                    }
                     ?.onEach { result -> result.getOrNull()?.let { saveAwaitingRequest(it) } }
                     ?.collect { result ->
                         result.getOrNull()?.let {
@@ -617,6 +624,7 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
         CoroutineScope(Dispatchers.IO).launch {
             beaconClient?.addPeers(peer)
             val jsonPeer = jsonKT.encodeToString(peer)
+            FileLogger.log("TezosBeaconDartPlugin", "peer added: $jsonPeer")
             result.success(mapOf("error" to 0, "result" to jsonPeer))
         }
     }

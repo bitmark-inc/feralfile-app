@@ -18,19 +18,24 @@ import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dar
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
+import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
+import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
+import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
-import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
+import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -48,6 +53,8 @@ import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:wallet_connect/models/wc_peer_meta.dart';
+import 'package:metric_client/metric_client.dart';
 
 class HomePage extends StatefulWidget {
   static const tag = "home";
@@ -62,6 +69,7 @@ class _HomePageState extends State<HomePage>
     with RouteAware, WidgetsBindingObserver, AfterLayoutMixin<HomePage> {
   StreamSubscription<FGBGType>? _fgbgSubscription;
   late ScrollController _controller;
+  late MetricClientService metricClient;
   int _cachedImageSize = 0;
 
   Future<List<String>> getAddresses() async {
@@ -81,6 +89,7 @@ class _HomePageState extends State<HomePage>
   @override
   void initState() {
     super.initState();
+    metricClient = injector.get<MetricClientService>();
     _checkForKeySync();
     WidgetsBinding.instance.addObserver(this);
     _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
@@ -183,8 +192,7 @@ class _HomePageState extends State<HomePage>
             hashedAddresses &&
         tokens.any((asset) =>
             asset.blockchain == Blockchain.TEZOS.name.toLowerCase())) {
-      await injector<AWSService>()
-          .storeEventWithDeviceData("collection_has_tezos");
+      await metricClient.addEvent("collection_has_tezos");
       injector<ConfigurationService>()
           .setSentTezosArtworkMetric(hashedAddresses);
     }
@@ -215,18 +223,37 @@ class _HomePageState extends State<HomePage>
       }
     });
 
-    return PrimaryScrollController(
-      controller: _controller,
-      child: Scaffold(
-        backgroundColor: theme.backgroundColor,
-        body: Stack(
-          children: [
-            contentWidget,
-            PenroseTopBarView(
-              _controller,
-              PenroseTopBarViewStyle.main,
-            ),
-          ],
+    return BlocListener<UpgradesBloc, UpgradeState>(
+      listener: (context, state) {
+        ConfigurationService config = injector<ConfigurationService>();
+        WCPeerMeta? peerMeta = config.getTVConnectPeerMeta();
+        int? id = config.getTVConnectID();
+        if (peerMeta != null || id != null) {
+          if (state.status == IAPProductStatus.trial ||
+              state.status == IAPProductStatus.completed) {
+            injector<NavigationService>().navigateTo(AppRouter.tvConnectPage,
+                arguments: WCConnectPageArgs(id!, peerMeta!));
+            config.deleteTVConnectData();
+          } else if (state.status != IAPProductStatus.loading &&
+              state.status != IAPProductStatus.pending) {
+            injector<WalletConnectService>().rejectRequest(peerMeta!, id!);
+            config.deleteTVConnectData();
+          }
+        }
+      },
+      child: PrimaryScrollController(
+        controller: _controller,
+        child: Scaffold(
+          backgroundColor: theme.backgroundColor,
+          body: Stack(
+            children: [
+              contentWidget,
+              PenroseTopBarView(
+                _controller,
+                PenroseTopBarViewStyle.main,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -354,8 +381,9 @@ class _HomePageState extends State<HomePage>
   }
 
   Future<void> _cloudBackup() async {
+    final accountService = injector<AccountService>();
     final backup = injector<BackupService>();
-    await backup.backupCloudDatabase();
+    await backup.backupCloudDatabase(await accountService.getDefaultAccount());
   }
 
   Future<void> _checkForKeySync() async {
@@ -484,8 +512,7 @@ class _HomePageState extends State<HomePage>
       nftBloc.add(
           RefreshTokenEvent(addresses: addresses, debugTokens: manualTokenIds));
       nftBloc.add(RequestIndexEvent(addresses));
-      await injector<AWSService>()
-          .storeEventWithDeviceData("device_foreground");
+      await metricClient.addEvent("device_foreground");
     });
 
     injector<VersionService>().checkForUpdate();
@@ -504,8 +531,9 @@ class _HomePageState extends State<HomePage>
     injector<CustomerSupportService>().processMessages();
   }
 
-  void _handleBackground() {
-    injector<AWSService>().storeEventWithDeviceData("device_background");
+  void _handleBackground() async {
+    await metricClient.addEvent("device_background");
+    await metricClient.sendAndClearMetrics();
     _cloudBackup();
     FileLogger.shrinkLogFileIfNeeded();
   }

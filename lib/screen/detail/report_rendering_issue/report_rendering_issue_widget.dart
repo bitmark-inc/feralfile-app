@@ -52,7 +52,14 @@ class _ReportRenderingIssueWidgetState
         Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('select_topic_below'.tr().toUpperCase(),
+            Text(
+              'report_issue_subtitle'.tr(),
+              style: theme.primaryTextTheme.bodyText1,
+            ),
+            const SizedBox(
+              height: 40,
+            ),
+            Text('select_a_type_of_issue'.tr().toUpperCase(),
                 style: theme.primaryTextTheme.headline5),
             const SizedBox(height: 16),
             ListView.builder(
@@ -100,13 +107,13 @@ class _ReportRenderingIssueWidgetState
               children: [
                 Expanded(
                   child: AuFilledButton(
-                    text: "report_issue2".tr(),
+                    text: "generate_report".tr(),
                     onPress: () => _reportIssue(),
                     isProcessing: _isProcessing,
-                    color: theme.colorScheme.secondary,
-                    textStyle: _isSubmissionEnabled
-                        ? theme.textTheme.button
-                        : theme.textTheme.ibmGreyBold14,
+                    color: _isSubmissionEnabled
+                        ? theme.colorScheme.secondary
+                        : AppColor.secondarySpanishGrey,
+                    textStyle: theme.textTheme.button,
                   ),
                 ),
               ],

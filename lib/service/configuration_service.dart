@@ -9,7 +9,9 @@ import 'dart:convert';
 
 import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/model/network.dart';
+import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import 'package:wallet_connect/wallet_connect.dart';
@@ -19,6 +21,10 @@ abstract class ConfigurationService {
   String? getIAPReceipt();
   Future<void> setIAPJWT(JWT? value);
   JWT? getIAPJWT();
+  Future<void> setTVConnectData(WCPeerMeta peerMeta, int id);
+  Future<void> deleteTVConnectData();
+  WCPeerMeta? getTVConnectPeerMeta();
+  int? getTVConnectID();
   Future<void> setWCSessions(List<WCSessionStore> value);
   List<WCSessionStore> getWCSessions();
   Future<void> setDevicePasscodeEnabled(bool value);
@@ -128,6 +134,9 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String COUNT_OPEN_APP = "count_open_app";
   static const String KEY_LAST_TIME_OPEN_FEED = "last_time_open_feed";
 
+  static const String TV_CONNECT_PEER_META = "tv_connect_peer_meta";
+  static const String TV_CONNECT_ID = "tv_connect_id";
+
   // Do at once
   static const String KEY_SENT_TEZOS_ARTWORK_METRIC =
       "sent_tezos_artwork_metric";
@@ -169,6 +178,33 @@ class ConfigurationServiceImpl implements ConfigurationService {
       final json = jsonDecode(data);
       return JWT.fromJson(json);
     }
+  }
+  @override
+  Future<void> setTVConnectData(WCPeerMeta peerMeta, int id) async {
+    final json = jsonEncode(peerMeta);
+    await _preferences.setString(TV_CONNECT_PEER_META, json);
+    await _preferences.setInt(TV_CONNECT_ID, id);
+  }
+
+  @override
+  Future<void> deleteTVConnectData() async {
+    await _preferences.remove(TV_CONNECT_PEER_META);
+    await _preferences.remove(TV_CONNECT_ID);
+  }
+  @override
+  WCPeerMeta? getTVConnectPeerMeta(){
+    final data = _preferences.getString(TV_CONNECT_PEER_META);
+    if (data == null) {
+      return null;
+    } else {
+      final json = jsonDecode(data);
+      return WCPeerMeta.fromJson(json);
+    }
+  }
+
+  @override
+  int? getTVConnectID(){
+    return _preferences.getInt(TV_CONNECT_ID);
   }
 
   @override
@@ -534,4 +570,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
     }
     await _preferences.setInt(COUNT_OPEN_APP, value);
   }
+
+
 }

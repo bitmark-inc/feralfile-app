@@ -1016,8 +1016,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: edd3354bf2db2394a3ba1bb8a3202b5035e9177e
-      resolved-ref: edd3354bf2db2394a3ba1bb8a3202b5035e9177e
+      ref: "3ab410b0bf16472990759776d0206b3e0fac2b7e"
+      resolved-ref: "3ab410b0bf16472990759776d0206b3e0fac2b7e"
       url: "https://github.com/autonomy-system/libauk-dart.git"
     source: git
     version: "0.0.1"
@@ -1126,6 +1126,15 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.8.0"
+  metric_client:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: ec37709d6f7a3901e3bd4238ba178205a88f6261
+      resolved-ref: ec37709d6f7a3901e3bd4238ba178205a88f6261
+      url: "https://github.com/autonomy-system/metric-client-dart"
+    source: git
+    version: "1.0.0"
   mime:
     dependency: "direct main"
     description:
