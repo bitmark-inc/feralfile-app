@@ -23,8 +23,6 @@ environment:
 dependencies:
   after_layout: ^1.2.0
   async: ^2.8.2
-  aws_cognito_identity_api: ^1.2.0
-  aws_firehose_api: ^1.2.0
   bubble: ^1.2.1
   cached_network_image: ^3.2.1
   cast: ^1.1.0
@@ -60,10 +58,7 @@ dependencies:
   flutter_markdown: ^0.6.9
   flutter_native_splash: ^2.0.5
   flutter_slidable: ^1.2.0
-  flutter_svg:
-    git:
-      url: https://github.com/autonomy-system/flutter_svg.git
-      ref: dfe0828aec39169276cc2722e016a2dbaa95baee
+  flutter_svg: ^1.1.5
   flutter_to_airplay:
     git:
       url: https://github.com/autonomy-system/flutter_to_airplay.git
@@ -91,7 +86,7 @@ dependencies:
   nft_rendering:
     git:
       url: https://github.com/autonomy-system/nft-rendering.git
-      ref: v1.0.9
+      ref: 260f92bc9b7e9ab50aab5671ce597fc0caa417be
   onesignal_flutter: ^3.3.0
   open_settings: ^2.0.2
   overlay_support: ^2.0.0
@@ -139,7 +134,7 @@ dependencies:
   nft_collection:
     git:
       url: https://github.com/autonomy-system/nft-collection
-      ref: 4c8880ca160883101dce907b53d689f145cbc497
+      ref: a5a52d95c3510086fc3b7fd7e8e65631f4036303
   flutter_branch_sdk: ^6.1.0
   metric_client:
     git:
@@ -147,6 +142,8 @@ dependencies:
       ref: ec37709d6f7a3901e3bd4238ba178205a88f6261
 
 dependency_overrides:
+  cached_network_image: 3.2.1
+  syncfusion_flutter_pdfviewer: 20.2.46-beta
   # Error using when import photo_view from dependencies:
   # https://stackoverflow.com/questions/70404718/error-with-photoview-looking-up-a-deactivated-widgets-ancestor-is-unsafe/71010204#71010204
   photo_view:

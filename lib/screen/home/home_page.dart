@@ -303,13 +303,13 @@ class _HomePageState extends State<HomePage>
 
       if (aSource == INDEXER_UNKNOWN_SOURCE &&
           bSource == INDEXER_UNKNOWN_SOURCE) {
-        return b.lastActivityTime.compareTo(a.lastActivityTime);
+        return b.lastUpdateTime.compareTo(a.lastUpdateTime);
       }
 
       if (aSource == INDEXER_UNKNOWN_SOURCE) return 1;
       if (bSource == INDEXER_UNKNOWN_SOURCE) return -1;
 
-      return b.lastActivityTime.compareTo(a.lastActivityTime);
+      return b.lastUpdateTime.compareTo(a.lastUpdateTime);
     });
 
     final tokenIDs = tokens.map((element) => element.id).toList();
