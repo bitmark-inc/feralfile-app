@@ -173,11 +173,7 @@ class _SupportListPageState extends State<SupportListPage>
         const SizedBox(height: 17),
         Padding(
           padding: const EdgeInsets.only(right: 14),
-          child: Text(
-            issue.status == "closed"
-                ? "issue_resolved"
-                    .tr() //"Issue resolved.\nOur team thanks you for helping us improve Autonomy."
-                : getLastMessage(issue),
+          child: Text(getPreviewMessage(issue),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: theme.textTheme.bodyText1,
@@ -192,9 +188,18 @@ class _SupportListPageState extends State<SupportListPage>
     );
   }
 
+  String getPreviewMessage(Issue issue){
+    final lastMessage = getLastMessage(issue);
+    if (issue.status == "closed"){
+      if (lastMessage.contains(RATING_MESSAGE_START)) return lastMessage.substring(RATING_MESSAGE_START.length);
+      if (lastMessage.contains(STAR_RATING)) return "care_to_share".tr();
+      return "rate_issue".tr();
+    }
+    return lastMessage;
+  }
+
   String getLastMessage(Issue issue) {
     var lastMessage = issue.lastMessage;
-
     if (issue.draft != null) {
       final draft = issue.draft!;
       final draftData = draft.draftData;
@@ -227,8 +232,9 @@ class _SupportListPageState extends State<SupportListPage>
     if (lastMessage.filteredMessage.isNotEmpty) {
       return lastMessage.filteredMessage;
     }
-
+    if (lastMessage.attachments == null) return "";
     final attachment = lastMessage.attachments.last;
+    if (attachment == null) return "";
     final attachmentTitle =
         ReceiveAttachment.extractSizeAndRealTitle(attachment.title)[1];
     if (attachment.contentType.contains('image')) {

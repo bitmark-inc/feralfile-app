@@ -112,15 +112,14 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   types.TextMessage get _askRatingMessenger => types.TextMessage(
         author: _bitmark,
         id: _askRatingMessengerID,
-        text:
-            "Please tell us how we did with this support issue by rating your experience.",
+        text: "rate_issue".tr(),
         createdAt: DateTime.now().millisecondsSinceEpoch,
       );
 
   types.TextMessage get _askReviewMessenger => types.TextMessage(
         author: _bitmark,
         id: _askReviewMessengerID,
-        text: "Care to share more about how we can improve?",
+        text: "care_to_share".tr(),
         createdAt: DateTime.now().millisecondsSinceEpoch,
       );
 
@@ -246,9 +245,25 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       final ratingIndex = _firstRatingIndex(messages);
       messages.insert(ratingIndex + 1, _resolvedMessenger);
       messages.insert(ratingIndex + 1, _askRatingMessenger);
-      if (_status != 'clickToReopen') {
-        if (ratingIndex > -1) {
-          messages.insert(ratingIndex, _askReviewMessenger);
+      if(messages[0] == _askRatingMessenger){
+        _isRated = false;
+      }
+
+      if (ratingIndex > -1) {
+        messages.insert(ratingIndex, _askReviewMessenger);
+        _isRated = true;
+      }
+    }
+
+    for(int i = 0; i< messages.length; i++){
+      if(_isRatingMessage(messages[i])){
+        if(messages[i+1] != _askRatingMessenger) {
+          messages.insert(i + 1, _resolvedMessenger);
+          messages.insert(i + 1, _askRatingMessenger);
+        }
+        if(_isCustomerSupportMessage(messages[i-1])) {
+          messages.insert(i, _askReviewMessenger);
+          i++;
         }
       }
     }
@@ -279,12 +294,16 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
               onSendPressed: _handleSendPressed,
               inputOptions: InputOptions(
                   sendButtonVisibilityMode: SendButtonVisibilityMode.always,
+                  // fix this to reduce the time of rebuild when typing
                   onTextChanged: (text) {
-                    setState(() {
-                      _sendIcon = text.trim() != ''
-                          ? "assets/images/sendMessageFilled.svg"
-                          : "assets/images/sendMessage.svg";
-                    });
+                    if (_sendIcon == "assets/images/sendMessageFilled.svg" && text.trim() == '' ||
+                        _sendIcon == "assets/images/sendMessage.svg" && text.trim() != ''){
+                      setState(() {
+                        _sendIcon = text.trim() != ''
+                            ? "assets/images/sendMessageFilled.svg"
+                            : "assets/images/sendMessage.svg";
+                      });
+                    }
                   }),
               user: _user,
               customBottomWidget: _isRated == false && _status == 'closed'
@@ -299,6 +318,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
 
   bool _isRatingMessage(types.Message message) {
     if (message is types.CustomMessage) {
+      if (message.metadata?["rating"] == null) return false;
       if (message.metadata?["rating"] > 0) {
         return true;
       }
@@ -501,7 +521,9 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       mutedMessages.add(MUTE_RATING_MESSAGE);
     }
 
-    if (messageType == CSMessageType.PostMessage.rawValue && _isRated == true) {
+    if (messageType == CSMessageType.PostMessage.rawValue &&
+        _isRated == true &&
+        _status == "closed") {
       data.text = "$RATING_MESSAGE_START${data.text}";
     }
 
@@ -538,8 +560,6 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       _forceAccountsViewRedraw = Object();
       if (isRating == true) _isRated == true;
     });
-
-
   }
 
   void _handleSendPressed(types.PartialText message) async {
@@ -866,7 +886,7 @@ class _MyRatingBar extends State<MyRatingBar> {
   }
 
   String _convertRatingToText(int rating) {
-    if (rating > 1) return "$STAR_RATING${rating.toString()}";
+    if (rating > 0) return "$STAR_RATING${rating.toString()}";
 
     return "";
   }
