@@ -12,7 +12,7 @@ Map<String, String> CHROME_MOBILE_BROWSER_PROFILE(String currentDir) => {
 Map<String, String> AUTONOMY_PROFILE(String currentDir) => {
       'platformName': "Android",
       'platformVersion': "12",
-      'deviceName': 'Galaxy S10+',
+      'deviceName': 'Galaxy A52s 5G',
       'app':
           "${currentDir}/build/app/outputs/flutter-apk/app-inhouse-release.apk",
       'appPackage': "com.bitmark.autonomy_client.inhouse",

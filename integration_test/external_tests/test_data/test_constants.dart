@@ -25,8 +25,8 @@ const LIST_CHECK_ARTWORKSID_ADD_MANUAL = [
   'tez-KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton-759675',
   'tez-KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton-761761',
   'tez-KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton-693627',
-  //'tez-KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton-633068',
-  //'tez-KT1KXXZ758wtyf2NBjWKPeXugDh5Mm7kyckw-10',
+  'tez-KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton-633068',
+  'tez-KT1KXXZ758wtyf2NBjWKPeXugDh5Mm7kyckw-10',
 ];
 const SEEDS_TO_RESTORE_FULLACCOUNT =
     'spin toward remind wagon flame hen sell tragic hundred verb culture believe';
@@ -36,6 +36,17 @@ const SEED_TO_RESTORE_KUKAI =
 const SEED_TO_RESTORE_TEMPLE =
     'hidden laundry process risk unveil merge pyramid arrange hollow jeans motion scrap';
 
+const LIST_OF_EXCHANGES = [
+  {"exchangeName": 'objkt.com', "linkedExchangeName": 'objkt.com'},
+  {'exchangeName': 'fxhash.xyz', 'linkedExchangeName': 'fxhash'},
+  {'exchangeName': 'hicetnunc.cc', 'linkedExchangeName': 'hicetnunc.xyz'},
+  {'exchangeName': 'teia.art', 'linkedExchangeName': 'teia.art'},
+  {'exchangeName': 'versum.xyz', 'linkedExchangeName': 'versum'},
+  {'exchangeName': 'akaswap.com', 'linkedExchangeName': 'akaswap'},
+  {'exchangeName': 'typed.art', 'linkedExchangeName': 'typed.art'},
+  {'exchangeName': 'feralfile.staging.bitmark.com/exhibitions', 'linkedExchangeName':'Feral File'},
+];
+
 const ALIAS_ACCOUNT = "ACOUNT_A";
 const ALIAS_ANOTHER_ACCOUNT = "ACOUNT_B";
 const SEED_TO_RESTORE_ACCOUNT =
@@ -43,5 +54,10 @@ const SEED_TO_RESTORE_ACCOUNT =
 const SEED_TO_RESTORE_ANOTHER_ACCOUNT =
     "pair copper together wife riot lawn extend rebuild universe brain local easy";
 
+const TEZ_SOURCE_ADDRESS = "tz1SidNQb9XcwP7L3MzCZD9JHmWw2ebDzgyX";
+const TEZ_TARGET_ADDRESS = "tz1LVCTxttjxVPmZEfBatmXk8uT5S9CKmMUr";
+const TEZ_SEND_ARTWORK_NAME = "Cay luoi ho cua Long";
+const URL_BALANCE_SOURCE_ACCOUNT =
+    "https://api.tzkt.io/v1/tokens/balances?account=$TEZ_SOURCE_ADDRESS&token.metadata.artifactUri.null=false&sort.desc=balance&limit=1";
 const DEPOSIT_AMOUNT = 0.1;
 const EPS = 2e4;

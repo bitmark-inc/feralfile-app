@@ -13,6 +13,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:appium_driver/async_io.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:test/test.dart';
 
 AppiumBy settingButtonLocator = const AppiumBy.accessibilityId("Settings");
 AppiumBy accountAliasLocator =
@@ -84,6 +85,89 @@ Future<void> enterSeeds(AppiumWebDriver driver, String seeds) async {
   await confirmButton.click();
 }
 
+Future<bool> findArtwork(AppiumWebDriver driver, String artworkName) async {
+  int i = 2;
+  int hasArtwork = await driver
+      .findElements(AppiumBy.xpath(
+      "//android.widget.ScrollView/android.widget.ImageView[$i]"))
+      .length;
+
+  while (hasArtwork == 1) {
+    sleep(const Duration(seconds: 2));
+    var artworkIcon = await driver.findElement(AppiumBy.xpath(
+        "//android.widget.ScrollView/android.widget.ImageView[$i]"));
+    await artworkIcon.click();
+    i++;
+    int isCorrectArtwork = await driver
+        .findElements(AppiumBy.xpath(
+        "//android.widget.ImageView[contains(@content-desc,'$artworkName')]"))
+        .length;
+
+    if (isCorrectArtwork == 1) {
+      return true;
+    } else {
+      var closeArtworkButton =
+      await driver.findElement(closeArtworkButtonLocator);
+      await closeArtworkButton.click();
+    }
+  }
+  return false;
+}
+
+Future<void> sendAwrtwork(AppiumWebDriver driver, String artworkName,
+    String toAddress, int amount) async {
+  bool isArtworkFound = await findArtwork(driver, artworkName);
+
+  var artworkTitle = await driver.findElement(AppiumBy.xpath(
+      "//android.widget.ImageView[contains(@content-desc,'$artworkName')]"));
+  await artworkTitle.click();
+
+  var dotIcon = await driver.findElement(dotIconLocator);
+  await dotIcon.click();
+  var sendArtworkButton = await driver.findElement(sendArtworkButtonLocator);
+  await sendArtworkButton.click();
+
+  var reviewButton = await driver.findElement(reviewButtonLocator);
+  String statusReviewButton = await reviewButton.attributes["clickable"];
+
+  expect(statusReviewButton, "false");
+
+  var quantityTxt = await driver.findElement(quantityTxtLocator);
+  await quantityTxt.click();
+  await quantityTxt.clear();
+  await Future.delayed(const Duration(seconds: 1));
+  await quantityTxt.sendKeys(amount.toString());
+
+  var toTxt = await driver.findElement(toTxtLocator);
+  await toTxt.click();
+  await toTxt.sendKeys(toAddress);
+
+  await driver.device.pressKeycode(66);
+
+  await Future.delayed(const Duration(seconds: 5));
+  int isFeeCalculated =
+  await driver.findElements(isFeeCalculatedLocator).length;
+
+  expect(isFeeCalculated, 1);
+
+  var reviewButton1 = await driver.findElement(reviewButtonLocator);
+  statusReviewButton = await reviewButton1.attributes["clickable"];
+  expect(statusReviewButton, "true");
+
+  await reviewButton1.click();
+
+  var sendButton = await driver.findElement(sendButtonLocator);
+  await sendButton.click();
+}
+
+Future<void> wait4TezBlockchainConfirmation(AppiumWebDriver driver) async {
+  await Future.delayed(const Duration(seconds: 40));
+  await driver.device.getDisplayDensity();
+  await Future.delayed(const Duration(seconds: 40));
+  await driver.device.getDisplayDensity();
+  await Future.delayed(const Duration(seconds: 30));
+}
+
 Future<void> scroll(driver, scrollUIAutomator) async {
   var finder = await AppiumBy.uiautomator(scrollUIAutomator);
   await driver.findElement(finder);
@@ -94,6 +178,21 @@ Future<void> scrollUntil(AppiumWebDriver driver, String decs) async {
   var scrollViewSeletor = 'new UiSelector().className("android.widget.ScrollView")';
   var scrollUIAutomator = await 'new UiScrollable($scrollViewSeletor).setSwipeDeadZonePercentage(0.4).scrollIntoView($subSelector)';
   await scroll(driver, scrollUIAutomator);
+}
+
+Future<void> captureScreen(AppiumWebDriver driver) async {
+  var screenshot = await driver.captureScreenshotAsBase64();
+
+  final decodedBytes = base64Decode(screenshot.replaceAll(RegExp(r'\s+'), ''));
+
+  final DateTime now = DateTime.now();
+  final DateFormat formatter = DateFormat('MMddyyyy');
+  final String formattedFolder = formatter.format(now);
+
+  final filename = DateTime.now().microsecondsSinceEpoch;
+  var file = await File("/tmp/AUResult/$formattedFolder/$filename.png")
+      .create(recursive: true);
+  file.writeAsBytesSync(decodedBytes);
 }
 
 Future<DateTime> depositTezos(String address) async {
