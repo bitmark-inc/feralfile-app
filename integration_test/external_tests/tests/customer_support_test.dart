@@ -14,7 +14,6 @@ import '../pages/onboarding_page.dart';
 import '../test_data/test_configurations.dart';
 import '../pages/customer_support_page.dart';
 
-
 void main() {
   late AppiumWebDriver driver;
   // late AppiumWebDriver driver1;
@@ -36,7 +35,6 @@ void main() {
     test('Request a feature', () async {
       await onBoardingSteps(driver);
 
-
     });
     test('Report a bug', () async {
       await onBoardingSteps(driver);
@@ -52,8 +50,5 @@ void main() {
       await onBoardingSteps(driver);
       await testSupportSubMenu(driver, 'Something else');
     });
-
-
-
   }, timeout: Timeout.none);
 }
