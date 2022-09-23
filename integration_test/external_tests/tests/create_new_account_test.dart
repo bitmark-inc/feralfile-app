@@ -12,23 +12,9 @@ import 'package:test/test.dart';
 
 
 import '../commons/test_util.dart';
-import '../pages/onboarding_page.dart';
+import '../pages/onboarding_page.dart' as Onboarding;
 import '../test_data/test_configurations.dart';
 import '../pages/settings_page.dart';
-
-AppiumBy newAccountLocator =  const AppiumBy.xpath(
-    "//android.widget.ImageView[contains(@content-desc,'Make a new account with addresses you can use')]");
-
-AppiumBy continueButtonLocator = const AppiumBy.accessibilityId('CONTINUE WITHOUT IT');
-AppiumBy saveAliasLocator = const AppiumBy.accessibilityId('SAVE ALIAS');
-AppiumBy enterAliasLocator = const AppiumBy.className('android.widget.EditText');
-
-Future<AppiumWebElement> getElementByContentDesc(AppiumWebDriver driver, String contain) async {
-  AppiumBy locator = AppiumBy.xpath(
-      '//*[contains(@content-desc,"$contain")]');
-  var element = driver.findElements(locator).elementAt(0);
-  return element;
-}
 
 void main() {
   late AppiumWebDriver driver;
@@ -44,18 +30,18 @@ void main() {
     });
 
     tearDown(() async {
-      //await driver.app.remove(AUTONOMY_APPPACKAGE);
+      await driver.app.remove(AUTONOMY_APPPACKAGE);
       await driver.quit();
     });
 
     test("with alias and check balance", () async {
-      await onBoardingSteps(driver);
+      await Onboarding.onBoardingSteps(driver);
       await selectSubSettingMenu(driver, "Settings->+ Account");
 
       var newButton = await getElementByContentDesc(driver, 'New');
       await newButton.click();
 
-      var continueButton = await driver.findElement(AppiumBy.accessibilityId('CONTINUE'));
+      var continueButton = await driver.findElement(continueButtonLocator);
       await continueButton.click();
 
       String userAlias = 'Alias';
@@ -66,11 +52,10 @@ void main() {
       await enterAlias.sendKeys(userAlias);
       await driver.keyboard.sendKeys('\n');
 
-      var saveButton = await getElementByContentDesc(driver, 'SAVE ALIAS');
+      var saveButton = await driver.findElement(saveAliasButtonLocator);
       await saveButton.click();
 
-      var continueWithout = await driver.findElement(
-          AppiumBy.accessibilityId('CONTINUE WITHOUT IT'));
+      var continueWithout = await driver.findElement(continueWithouItbuttonLocation);
       await continueWithout.click();
 
       // Check Alias
@@ -109,7 +94,7 @@ void main() {
     });
 
     test("Without Alias", () async {
-      await onBoardingSteps(driver);
+      await Onboarding.onBoardingSteps(driver);
 
       await selectSubSettingMenu(driver, "Settings");
       int numberAccountBefore = await numberAccount(driver);
@@ -118,14 +103,13 @@ void main() {
       var newButton = await getElementByContentDesc(driver, 'New');
       await newButton.click();
 
-      var continueButton = await driver.findElement(AppiumBy.accessibilityId('CONTINUE'));
+      var continueButton = await driver.findElement(continueButtonLocator);
       await continueButton.click();
 
-      var skipButton = await driver.findElement(AppiumBy.accessibilityId('SKIP'));
+      var skipButton = await driver.findElement(skipButtonLocator);
       skipButton.click();
 
-      var continueWithout = await driver.findElement(
-          AppiumBy.accessibilityId('CONTINUE WITHOUT IT'));
+      var continueWithout = await driver.findElement(continueWithouItbuttonLocation);
       await continueWithout.click();
       var numberAccountAfter = await numberAccount(driver);
       expect(numberAccountAfter - numberAccountBefore, 1);
