@@ -92,34 +92,38 @@ class ForgetExistView extends StatelessWidget {
           const SizedBox(
             height: 16,
           ),
-          Row(
-            children: [
-              RoundCheckBox(
-                size: 24.0,
-                borderColor: theme.colorScheme.secondary,
-                uncheckedColor: theme.colorScheme.primary,
-                checkedColor: theme.colorScheme.secondary,
-                isChecked: state.isChecked,
-                checkedWidget: Icon(
-                  CupertinoIcons.checkmark,
-                  color: theme.colorScheme.primary,
-                  size: 14,
+          GestureDetector(
+            onTap: () => context
+                .read<ForgetExistBloc>()
+                .add(UpdateCheckEvent(!state.isChecked)),
+            child: Row(
+              children: [
+                RoundCheckBox(
+                  size: 24.0,
+                  borderColor: theme.colorScheme.secondary,
+                  uncheckedColor: theme.colorScheme.primary,
+                  checkedColor: theme.colorScheme.secondary,
+                  isChecked: state.isChecked,
+                  checkedWidget: Icon(
+                    CupertinoIcons.checkmark,
+                    color: theme.colorScheme.primary,
+                    size: 14,
+                  ),
+                  onTap: (bool? value) {
+                    context
+                        .read<ForgetExistBloc>()
+                        .add(UpdateCheckEvent(value ?? false));
+                  },
                 ),
-                // checkedColor: Colors,
-                onTap: (bool? value) {
-                  context
-                      .read<ForgetExistBloc>()
-                      .add(UpdateCheckEvent(value ?? false));
-                },
-              ),
-              const SizedBox(width: 15),
-              Expanded(
-                  child: Text(
-                "i_understand".tr(),
-                //"I understand that this action cannot be undone.",
-                style: theme.primaryTextTheme.headline5,
-              )),
-            ],
+                const SizedBox(width: 15),
+                Expanded(
+                    child: Text(
+                  "i_understand".tr(),
+                  //"I understand that this action cannot be undone.",
+                  style: theme.primaryTextTheme.headline5,
+                )),
+              ],
+            ),
           ),
           const SizedBox(
             height: 40,
