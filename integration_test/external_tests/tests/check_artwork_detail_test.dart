@@ -12,9 +12,9 @@ import 'package:test/test.dart';
 
 import '../commons/test_util.dart';
 import '../pages/onboarding_page.dart';
-import '../pages/settings_page.dart';
 import '../test_data/test_configurations.dart';
 import '../test_data/test_constants.dart';
+import '../pages/artwork_page.dart';
 
 void main() {
   late AppiumWebDriver driver;
@@ -30,7 +30,7 @@ void main() {
     });
 
     tearDown(() async {
-      //await driver.app.remove(AUTONOMY_APPPACKAGE);
+      await driver.app.remove(AUTONOMY_APPPACKAGE);
       await driver.quit();
     });
 
@@ -39,43 +39,39 @@ void main() {
 
       for (var tokenID in LIST_CHECK_ARTWORKSID_ADD_MANUAL) {
         await selectSubSettingMenu(driver, "Settings->+ Account");
-        AppiumBy deleteAllDebugLinkedLocator = AppiumBy.xpath(
-            '//android.widget.Button[contains(@content-desc, "Delete All Debug")]');
-        var deleteAllDebugLinked = await driver.findElements(deleteAllDebugLinkedLocator).first;
-        await deleteAllDebugLinked.click();
+        await deleteAllDebugAddress(driver);
+        await goBack(driver, 2);
 
-        AppiumBy debugIndexerLocator = AppiumBy.xpath('//android.widget.ImageView[contains(@content-desc, "Debug Indexer TokenID")]');
-        var debugIndexer = await driver.findElements(debugIndexerLocator).first;
-        await debugIndexer.click();
-        var pasteIndexerTokenID = await driver
-            .findElements(
-            AppiumBy.className('android.widget.EditText'))
-            .first;
-        await pasteIndexerTokenID.click();
-        await pasteIndexerTokenID.sendKeys(tokenID);
-        await driver.keyboard.sendKeys('\n');
+        int numberArtwork = await countArtwork(driver);
+        expect(numberArtwork, 0);
 
-        var linkButton = await driver.findElement(
-            AppiumBy.accessibilityId('LINK'));
-        await linkButton.click();
-
+        await selectSubSettingMenu(driver, "Settings->+ Account");
+        await importArtwork(driver, tokenID);
         var closeSetting = await driver.findElements(AppiumBy.xpath(
             '//android.widget.ImageView[@content-desc="Settings"]')).first;
         await closeSetting.click();
 
         await timeDelay(ARTWORK_LOADING_TIME_LIMIT);
-        AppiumBy loadingImageLocator = AppiumBy.xpath('//android.widget.ImageView[@content-desc="Settings"]/../android.view.View/android.view.View/android.view.View');
-        var loadingImage = await driver.findElements(loadingImageLocator).length;
-        expect(loadingImage, 0);
+        int numberArtworkAfterImport = await countArtwork(driver);
+        expect(numberArtwork + 1, numberArtworkAfterImport);
 
-        AppiumBy artworkLocator = AppiumBy.xpath(
-            '//android.widget.ImageView[@content-desc="Settings"]/../android.view.View/android.view.View/android.widget.ImageView[2]');
-        var artwork = await driver.findElements(artworkLocator).first;
-        await artwork.click();
-        
+        int hasScrollView = await driver.findElements(AppiumBy.xpath('//android.widget.ScrollView')).length;
+        if (hasScrollView == 0) {
+          var artwork = await driver.findElements(artworkGridLocator).elementAt(1);
+          await artwork.click();
+        }
+        else{
+          var artwork = await driver.findElements(AppiumBy.xpath(
+              'android.widget.ScrollView/android.widget.ImageView')).elementAt(1);
+          await artwork.click();
+        }
+
         await timeDelay(ARTWORK_LOADING_TIME_LIMIT);
         var hasloading = await driver.findElements(AppiumBy.accessibilityId('loading...')).length;
         expect(hasloading, 0);
+
+        var isInterective = await isInterectiveArtwork(driver);
+        expect(isInterective, IS_INTERACTIVE_ARTWORK[tokenID]);
 
         var closeArtwork = await driver.findElement(AppiumBy.accessibilityId('CloseArtwork'));
         await closeArtwork.click();
