@@ -40,7 +40,8 @@ Widget privacyView(BuildContext context) {
                   "open_source".tr(),
                   style: customLinkStyle,
                 ),
-                onTap: () => launchUrl(uri),
+                onTap: () =>
+                    launchUrl(uri, mode: LaunchMode.externalApplication),
               ),
             ],
           ),
