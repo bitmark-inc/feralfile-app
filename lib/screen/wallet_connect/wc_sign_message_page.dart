@@ -43,56 +43,63 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
     final messageInUtf8 = utf8.decode(message, allowMalformed: true);
     final theme = Theme.of(context);
 
-    return Scaffold(
-      appBar: getBackAppBar(
-        context,
-        onBack: () {
-          injector<WalletConnectService>()
-              .rejectRequest(widget.args.peerMeta, widget.args.id);
-          Navigator.of(context).pop();
-        },
-      ),
-      body: Container(
-        margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 8.0),
-                    Text(
-                      "h_confirm".tr(),
-                      style: theme.textTheme.headline1,
-                    ),
-                    const SizedBox(height: 40.0),
-                    Text(
-                      "connection".tr(),
-                      style: theme.textTheme.headline4,
-                    ),
-                    const SizedBox(height: 16.0),
-                    Text(
-                      widget.args.peerMeta.name,
-                      style: theme.textTheme.bodyText2,
-                    ),
-                    const Divider(height: 32),
-                    Text(
-                      "message".tr(),
-                      style: theme.textTheme.headline4,
-                    ),
-                    const SizedBox(height: 16.0),
-                    Text(
-                      messageInUtf8,
-                      style: theme.textTheme.bodyText2,
-                    ),
-                  ],
+    return WillPopScope(
+      onWillPop: () async {
+        injector<WalletConnectService>()
+            .rejectRequest(widget.args.peerMeta, widget.args.id);
+        return true;
+      },
+      child: Scaffold(
+        appBar: getBackAppBar(
+          context,
+          onBack: () {
+            injector<WalletConnectService>()
+                .rejectRequest(widget.args.peerMeta, widget.args.id);
+            Navigator.of(context).pop();
+          },
+        ),
+        body: Container(
+          margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 8.0),
+                      Text(
+                        "h_confirm".tr(),
+                        style: theme.textTheme.headline1,
+                      ),
+                      const SizedBox(height: 40.0),
+                      Text(
+                        "connection".tr(),
+                        style: theme.textTheme.headline4,
+                      ),
+                      const SizedBox(height: 16.0),
+                      Text(
+                        widget.args.peerMeta.name,
+                        style: theme.textTheme.bodyText2,
+                      ),
+                      const Divider(height: 32),
+                      Text(
+                        "message".tr(),
+                        style: theme.textTheme.headline4,
+                      ),
+                      const SizedBox(height: 16.0),
+                      Text(
+                        messageInUtf8,
+                        style: theme.textTheme.bodyText2,
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            _signButton(context, message, messageInUtf8),
-          ],
+              _signButton(context, message, messageInUtf8),
+            ],
+          ),
         ),
       ),
     );
