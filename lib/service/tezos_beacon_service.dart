@@ -18,7 +18,7 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_sign_message_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
-import 'package:autonomy_flutter/service/aws_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
@@ -26,6 +26,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:metric_client/metric_client.dart';
 
 class TezosBeaconService implements BeaconHandler {
   final NavigationService _navigationService;
@@ -138,10 +139,11 @@ class TezosBeaconService implements BeaconHandler {
     );
 
     await injector<CloudDatabase>().connectionDao.insertConnection(connection);
+    final metricClient = injector.get<MetricClientService>();
 
-    injector<AWSService>().storeEventWithDeviceData(
+    await metricClient.addEvent(
       "link_tezos_beacon",
-      hashingData: {"address": tezosConnection.address},
+      hashedData: {"address": tezosConnection.address},
     );
 
     _navigationService.hideInfoDialog();

@@ -63,6 +63,7 @@ AppBar getBackAppBar(BuildContext context,
         ),
         action != null
             ? IconButton(
+                tooltip: "AppbarAction",
                 constraints: const BoxConstraints(maxWidth: 36.0),
                 onPressed: action,
                 icon: Icon(

@@ -28,6 +28,8 @@ import 'package:uni_links/uni_links.dart';
 
 abstract class DeeplinkService {
   Future setup();
+
+  Future handleDeeplink(String? link);
 }
 
 class DeeplinkServiceImpl extends DeeplinkService {
@@ -66,15 +68,16 @@ class DeeplinkServiceImpl extends DeeplinkService {
 
     try {
       final initialLink = await getInitialLink();
-      _handleDeeplink(initialLink);
+      handleDeeplink(initialLink);
 
-      linkStream.listen(_handleDeeplink);
+      linkStream.listen(handleDeeplink);
     } on PlatformException {
       //Ignore
     }
   }
 
-  void _handleDeeplink(String? link) async {
+  @override
+  Future handleDeeplink(String? link) async {
     // return for case when FeralFile pass empty deeplink to return Autonomy
     if (link == "autonomy://") return;
 
@@ -86,7 +89,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
       timer.cancel();
 
       final validLink = _handleDappConnectDeeplink(link) ||
-          await _handleFeralFileDeeplink(link) ||
+          _handleFeralFileDeeplink(link) ||
           await _handleSendDeckToShardService(link) ||
           await _handleGetDeckToShardService(link);
 
@@ -154,12 +157,27 @@ class DeeplinkServiceImpl extends DeeplinkService {
     return false;
   }
 
-  Future<bool> _handleFeralFileDeeplink(String link) async {
+  bool _handleFeralFileDeeplink(String link) {
     log.info("[DeeplinkService] _handleFeralFileDeeplink");
+
+    final branchDeepLinks = [
+      "https://autonomy-app.app.link",
+      "https://autonomy-app-alternate.app.link",
+      "https://link.autonomy.io",
+    ];
 
     if (link.startsWith(FF_TOKEN_DEEPLINK_PREFIX)) {
       _linkFeralFileToken(link.replacePrefix(FF_TOKEN_DEEPLINK_PREFIX, ""));
       return true;
+    }
+
+    if (branchDeepLinks.any((prefix) => link.startsWith(prefix))) {
+      final uri = Uri.parse(link);
+      final token = uri.queryParameters["token"];
+      if (token != null) {
+        _linkFeralFileToken(token);
+        return true;
+      }
     }
 
     return false;

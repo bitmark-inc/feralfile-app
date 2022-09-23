@@ -83,6 +83,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
       });
     } on TezartNodeError catch (err) {
       log.info(err);
+      if (!mounted) return;
       UIHelper.showInfoDialog(
         context,
         "estimation_failed".tr(),
@@ -90,6 +91,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
         isDismissible: true,
       );
     } catch (err) {
+      if (!mounted) return;
       showErrorDialogFromException(err);
       log.warning(err);
     }

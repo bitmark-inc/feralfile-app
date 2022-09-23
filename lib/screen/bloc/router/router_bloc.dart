@@ -10,7 +10,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/aws_service.dart';
+import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
@@ -101,7 +101,6 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
       // Finish restore process
       await _cloudDB.personaDao.setUniqueDefaultAccount(defaultAccount.uuid);
       await _configurationService.setDoneOnboarding(true);
-      await injector<AWSService>().initServices();
       emit(RouterState(onboardingStep: OnboardingStep.dashboard));
     });
   }

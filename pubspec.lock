@@ -68,8 +68,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "1.0.0"
-      resolved-ref: "42f6d217fcddf4cfdef0e8b029b62044a6df8de7"
+      ref: "1.0.1"
+      resolved-ref: "1ca380384738a1c12424f88036c2472f43acdf7b"
       url: "https://github.com/bitmark-inc/autonomy-client-shared-theme.git"
     source: git
     version: "0.0.1+20"
@@ -1016,8 +1016,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: da867562586447c7d103ec36801348c1224c4b6f
-      resolved-ref: da867562586447c7d103ec36801348c1224c4b6f
+      ref: c58dcb3759d11df3b0d26e7e4125df44e933d4c5
+      resolved-ref: c58dcb3759d11df3b0d26e7e4125df44e933d4c5
       url: "https://github.com/autonomy-system/libauk-dart.git"
     source: git
     version: "0.0.1"
@@ -1126,6 +1126,15 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.7.0"
+  metric_client:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: ec37709d6f7a3901e3bd4238ba178205a88f6261
+      resolved-ref: ec37709d6f7a3901e3bd4238ba178205a88f6261
+      url: "https://github.com/autonomy-system/metric-client-dart"
+    source: git
+    version: "1.0.0"
   mime:
     dependency: "direct main"
     description:
@@ -1158,8 +1167,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "11750b01bb388b44a699c420ef680d8730fd8ab2"
-      resolved-ref: "11750b01bb388b44a699c420ef680d8730fd8ab2"
+      ref: "4c8880ca160883101dce907b53d689f145cbc497"
+      resolved-ref: "4c8880ca160883101dce907b53d689f145cbc497"
       url: "https://github.com/autonomy-system/nft-collection"
     source: git
     version: "0.0.1"
@@ -1167,8 +1176,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "v1.0.8"
-      resolved-ref: cf3efb52db5dc2da91829608a87ac824f99353df
+      ref: "v1.0.9"
+      resolved-ref: "6286316fd63cf4f2baecd1927a50a647e872df5a"
       url: "https://github.com/autonomy-system/nft-rendering.git"
     source: git
     version: "0.0.1"

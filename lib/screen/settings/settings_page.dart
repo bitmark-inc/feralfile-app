@@ -244,7 +244,7 @@ class _SettingsPageState extends State<SettingsPage>
                               : theme.textTheme.linkStyle14,
                         )),
                     const SizedBox(height: 10),
-                    eulaAndPrivacyView(context),
+                    privacyView(context),
                   ]),
                   const SizedBox(height: 60),
                 ],

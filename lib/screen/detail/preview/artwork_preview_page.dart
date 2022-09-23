@@ -16,10 +16,10 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_widget.dart';
-import 'package:autonomy_flutter/screen/detail/report_rendering_issue/any_problem_nft_widget.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_box_view.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -32,6 +32,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_to_airplay/flutter_to_airplay.dart';
+import 'package:metric_client/metric_client.dart';
 import 'package:mime/mime.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -42,8 +43,6 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shake/shake.dart';
 import 'package:wakelock/wakelock.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
-
-import '../../../service/aws_service.dart';
 
 enum AUCastDeviceType { Airplay, Chromecast }
 
@@ -268,7 +267,6 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                             style: theme.primaryTextTheme.button,
                           ),
                         ),
-                        const SizedBox(height: 20),
                       ],
                     ),
                   );
@@ -289,16 +287,20 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     final theme = Theme.of(context);
 
     if (devices.isEmpty) {
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 42),
-        child: Text(
-          'no_device_detected'.tr(),
-          style: ResponsiveLayout.isMobile
-              ? theme.textTheme.atlasSpanishGreyBold16
-              : theme.textTheme.atlasSpanishGreyBold20,
+      return Align(
+        alignment: Alignment.centerLeft,
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 42),
+          child: Text(
+            'no_device_detected'.tr(),
+            style: ResponsiveLayout.isMobile
+                ? theme.textTheme.atlasSpanishGreyBold16
+                : theme.textTheme.atlasSpanishGreyBold20,
+          ),
         ),
       );
     }
+    final metricClient = injector.get<MetricClientService>();
 
     return ConstrainedBox(
       constraints: const BoxConstraints(
@@ -314,17 +316,15 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
             case AUCastDeviceType.Airplay:
               return GestureDetector(
                   behavior: HitTestBehavior.translucent,
-                  onTap: () {
-                    injector<AWSService>()
-                        .storeEventWithDeviceData("stream_airplay");
+                  onTap: () async {
+                    await metricClient.addEvent("stream_airplay");
                   },
                   child: _airplayItem(context, isSubscribed));
             case AUCastDeviceType.Chromecast:
               return GestureDetector(
                 onTap: isSubscribed
                     ? () {
-                        injector<AWSService>()
-                            .storeEventWithDeviceData("stream_chromecast");
+                        metricClient.addEvent("stream_chromecast");
                         UIHelper.hideInfoDialog(context);
                         var copiedDevice = _castDevices[index];
                         if (copiedDevice.isActivated) {
@@ -530,16 +530,6 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                     ),
                   ),
                 ),
-                if (assetToken != null)
-                  Visibility(
-                    visible: !isFullScreen,
-                    child: SizedBox(
-                      height: 64,
-                      child: AnyProblemNFTWidget(
-                        asset: assetToken,
-                      ),
-                    ),
-                  ),
               ],
             ),
           );

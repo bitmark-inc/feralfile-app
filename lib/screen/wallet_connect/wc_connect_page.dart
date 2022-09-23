@@ -12,8 +12,8 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/screen/connection/persona_connections_page.dart';
-import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
@@ -31,6 +31,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:metric_client/metric_client.dart';
 import 'package:wallet_connect/models/wc_peer_meta.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 
@@ -59,6 +60,7 @@ class _WCConnectPageState extends State<WCConnectPage>
   Persona? selectedPersona;
   List<Persona>? personas;
   bool generatedPersona = false;
+  final metricClient = injector.get<MetricClientService>();
 
   @override
   void initState() {
@@ -135,11 +137,11 @@ class _WCConnectPageState extends State<WCConnectPage>
       }
 
       if (wcConnectArgs.peerMeta.name == AUTONOMY_TV_PEER_NAME) {
-        injector<AWSService>().storeEventWithDeviceData(
+        await metricClient.addEvent(
           "connect_autonomy_display",
         );
       } else {
-        injector<AWSService>().storeEventWithDeviceData(
+        await metricClient.addEvent(
           "connect_external",
           data: {
             "method": "wallet_connect",
@@ -180,7 +182,7 @@ class _WCConnectPageState extends State<WCConnectPage>
           arguments: payload);
     }
 
-    injector<AWSService>().storeEventWithDeviceData(
+    await metricClient.addEvent(
       "connect_external",
       data: {
         "method": "tezos_beacon",

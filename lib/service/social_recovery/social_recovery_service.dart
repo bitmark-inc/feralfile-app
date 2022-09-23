@@ -9,7 +9,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/migration/migration_util.dart';
@@ -312,7 +311,6 @@ class SocialRecoveryServiceImpl extends SocialRecoveryService {
     await _configurationService.setCachedDeckFromShardService(null);
     await _cloudDB.personaDao.setUniqueDefaultAccount(defaultAccountUUID);
     await _configurationService.setDoneOnboarding(true);
-    await injector<AWSService>().initServices();
   }
 
   @override

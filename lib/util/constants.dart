@@ -20,6 +20,16 @@ const KNOWN_BUGS_LINK = 'https://github.com/orgs/bitmark-inc/projects/16';
 const USER_TEST_CALENDAR_LINK =
     'https://calendly.com/anais-bitmark/usertesting';
 const FF_TOKEN_DEEPLINK_PREFIX = 'https://autonomy.io/apps/feralfile?token=';
+const AUTONOMY_CLIENT_GITHUB_LINK = "https://github.com/bitmark-inc/autonomy-client";
+const DEEP_LINKS = [
+  "autonomy://",
+  "https://autonomy.io",
+  "https://au.bitmark.com",
+  "https://autonomy-app.app.link",
+  "https://autonomy-app-alternate.app.link",
+  "https://link.autonomy.io",
+];
+
 
 Future<bool> isAppCenterBuild() async {
   final PackageInfo info = await PackageInfo.fromPlatform();

@@ -31,6 +31,7 @@ import 'package:nft_rendering/nft_rendering.dart';
 
 // ignore: depend_on_referenced_packages
 import 'package:path/path.dart' as p;
+import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../common/injector.dart';
@@ -141,6 +142,8 @@ class TokenThumbnailWidget extends StatelessWidget {
   }
 }
 
+final Map<String, Future<bool>> _cachingStates = {};
+
 Widget tokenGalleryThumbnailWidget(
     BuildContext context, AssetToken token, int cachedImageSize) {
   final thumbnailUrl = token.getGalleryThumbnailUrl();
@@ -149,6 +152,17 @@ Widget tokenGalleryThumbnailWidget(
   }
 
   final ext = p.extension(thumbnailUrl);
+
+  final cacheManager = injector<CacheManager>();
+
+  Future<bool> cachingState = _cachingStates[thumbnailUrl] ??
+      cacheManager.store.retrieveCacheData(thumbnailUrl).then((cachedObject) {
+        final cached = cachedObject != null;
+        if (cached) {
+          _cachingStates[thumbnailUrl] = Future.value(true);
+        }
+        return cached;
+      });
 
   return Hero(
     tag: token.id,
@@ -169,9 +183,14 @@ Widget tokenGalleryThumbnailWidget(
             memCacheWidth: cachedImageSize,
             maxWidthDiskCache: cachedImageSize,
             maxHeightDiskCache: cachedImageSize,
-            cacheManager: injector<CacheManager>(),
-            placeholder: (context, index) =>
-                const GalleryThumbnailPlaceholder(),
+            cacheManager: cacheManager,
+            placeholder: (context, index) => FutureBuilder<bool>(
+                future: cachingState,
+                builder: (context, snapshot) {
+                  return GalleryThumbnailPlaceholder(
+                    loading: !(snapshot.data ?? true),
+                  );
+                }),
             errorWidget: (context, url, error) =>
                 const GalleryThumbnailErrorWidget(),
           ),
@@ -306,7 +325,12 @@ class GalleryNoThumbnailWidget extends StatelessWidget {
 }
 
 class GalleryThumbnailPlaceholder extends StatelessWidget {
-  const GalleryThumbnailPlaceholder({Key? key}) : super(key: key);
+  final bool loading;
+
+  const GalleryThumbnailPlaceholder({
+    Key? key,
+    this.loading = true,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -314,16 +338,20 @@ class GalleryThumbnailPlaceholder extends StatelessWidget {
     return AspectRatio(
       aspectRatio: 1,
       child: ClipPath(
-        clipper: AutonomyTopRightRectangleClipper(),
+        clipper:
+            loading ? AutonomyTopRightRectangleClipper() : null,
         child: Container(
           padding: const EdgeInsets.all(13),
           color: const Color.fromRGBO(227, 227, 227, 1),
-          child: Align(
-            alignment: AlignmentDirectional.bottomStart,
-            child: loadingIndicator(
-              size: 13,
-              valueColor: theme.colorScheme.primary,
-              backgroundColor: theme.colorScheme.primary.withOpacity(0.5),
+          child: Visibility(
+            visible: loading,
+            child: Align(
+              alignment: AlignmentDirectional.bottomStart,
+              child: loadingIndicator(
+                size: 13,
+                valueColor: theme.colorScheme.primary,
+                backgroundColor: theme.colorScheme.primary.withOpacity(0.5),
+              ),
             ),
           ),
         ),
@@ -359,17 +387,64 @@ Widget placeholder(BuildContext context) {
   );
 }
 
-Widget reportNFTProblemContainer(
-    AssetToken? token, bool isShowingArtwortReportProblemContainer) {
-  if (token == null) return const SizedBox();
-  return AnimatedContainer(
-    duration: const Duration(milliseconds: 300),
-    height: isShowingArtwortReportProblemContainer ? 62 : 0,
-    child: AnyProblemNFTWidget(
-      asset: token,
-      // theme: AuThemeManager.get(AppTheme.anyProblemNFTTheme),
-    ),
-  );
+class ReportButton extends StatefulWidget {
+  final AssetToken? token;
+  final ScrollController scrollController;
+  const ReportButton({
+    Key? key,
+    this.token,
+    required this.scrollController,
+  }) : super(key: key);
+
+  @override
+  State<ReportButton> createState() => _ReportButtonState();
+}
+
+class _ReportButtonState extends State<ReportButton> {
+  bool isShowingArtwortReportProblemContainer = true;
+
+  _scrollListener() {
+    /*
+    So we see it like that when we are at the top of the page. 
+    When we start scrolling down it disappears and we see it again attached at the bottom of the page.
+    And if we scroll all the way up again, we would display again it attached down the screen
+    https://www.figma.com/file/Ze71GH9ZmZlJwtPjeHYZpc?node-id=51:5175#159199971
+    */
+    if (widget.scrollController.offset > 80) {
+      setState(() {
+        isShowingArtwortReportProblemContainer = false;
+      });
+    } else {
+      setState(() {
+        isShowingArtwortReportProblemContainer = true;
+      });
+    }
+
+    if (widget.scrollController.position.pixels + 100 >=
+        widget.scrollController.position.maxScrollExtent) {
+      setState(() {
+        isShowingArtwortReportProblemContainer = true;
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    widget.scrollController.addListener(_scrollListener);
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.token == null) return const SizedBox();
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      height: isShowingArtwortReportProblemContainer ? 62 : 0,
+      child: AnyProblemNFTWidget(
+        asset: widget.token!,
+      ),
+    );
+  }
 }
 
 INFTRenderingWidget buildRenderingWidget(BuildContext context, AssetToken token,
@@ -482,28 +557,25 @@ void _showReportRenderingDialogSuccess(BuildContext context, String githubURL) {
   final theme = Theme.of(context);
   UIHelper.showDialog(
     context,
-    'report_received'.tr(),
+    'share_with_artist'.tr(),
     Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           "thank_for_report".tr(),
-          style: theme.textTheme.bodyText1,
+          style: theme.primaryTextTheme.bodyText1,
         ),
         const SizedBox(height: 40),
         Row(
           children: [
             Expanded(
               child: AuFilledButton(
-                icon: SvgPicture.asset('assets/images/external_link.svg'),
-                text: "view_issue_status".tr(),
+                text: "share".tr(),
                 onPress: () {
-                  final uri = Uri.tryParse(githubURL);
-                  if (uri != null) {
-                    launchUrl(uri, mode: LaunchMode.inAppWebView);
-                  }
-                  Navigator.of(context).pop();
+                  Share.share(githubURL).then((value) {
+                    Navigator.of(context).pop();
+                  });
                 },
                 color: theme.colorScheme.secondary,
                 textStyle: theme.textTheme.button,
@@ -516,7 +588,7 @@ void _showReportRenderingDialogSuccess(BuildContext context, String githubURL) {
           child: TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
-              'close'.tr(),
+              'cancel'.tr(),
               style: theme.primaryTextTheme.button,
             ),
           ),

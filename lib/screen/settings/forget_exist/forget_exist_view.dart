@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/settings/forget_exist/forget_exist_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/forget_exist/forget_exist_state.dart';
+import 'package:autonomy_flutter/service/account_service.dart';
 
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
@@ -146,7 +147,7 @@ class ForgetExistView extends StatelessWidget {
                     .read<ForgetExistBloc>()
                     .add(ConfirmForgetExistEvent());
               } else {
-                await injector<BackupService>().backupCloudDatabase();
+                await injector<BackupService>().backupCloudDatabase(await injector<AccountService>().getDefaultAccount());
                 context.read<ForgetExistBloc>().add(event!);
               }
             },

@@ -42,4 +42,11 @@ const LIST_OF_EXCHANGES = [
   {'exchangeName': 'versum.xyz', 'linkedExchangeName': 'versum'},
   {'exchangeName': 'akaswap.com', 'linkedExchangeName': 'akaswap'},
   {'exchangeName': 'typed.art', 'linkedExchangeName': 'typed.art'},
+  {'exchangeName': 'feralfile.staging.bitmark.com/exhibitions', 'linkedExchangeName':'Feral File'},
 ];
+
+const TEZ_SOURCE_ADDRESS = "tz1SidNQb9XcwP7L3MzCZD9JHmWw2ebDzgyX";
+const TEZ_TARGET_ADDRESS = "tz1LVCTxttjxVPmZEfBatmXk8uT5S9CKmMUr";
+const TEZ_SEND_ARTWORK_NAME = "Cay luoi ho cua Long";
+const URL_BALANCE_SOURCE_ACCOUNT =
+    "https://api.tzkt.io/v1/tokens/balances?account=$TEZ_SOURCE_ADDRESS&token.metadata.artifactUri.null=false&sort.desc=balance&limit=1";

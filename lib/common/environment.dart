@@ -25,11 +25,13 @@ class Environment {
   static String get feralFileAPIURL =>
       appTestnetConfig ? feralFileAPITestnetURL : feralFileAPIMainnetURL;
 
-  static String get extensionSupportURL =>
-      appTestnetConfig ? extensionSupportTestnetURL : extensionSupportMainnetURL;
+  static String get extensionSupportURL => appTestnetConfig
+      ? extensionSupportTestnetURL
+      : extensionSupportMainnetURL;
 
-  static String get connectWebsocketURL =>
-      appTestnetConfig ? connectWebsocketTestnetURL : connectWebsocketMainnetURL;
+  static String get connectWebsocketURL => appTestnetConfig
+      ? connectWebsocketTestnetURL
+      : connectWebsocketMainnetURL;
 
   static String get indexerMainnetURL =>
       dotenv.env['INDEXER_MAINNET_API_URL'] ?? '';
@@ -106,6 +108,9 @@ class Environment {
 
   static String get autonomyShardService =>
       dotenv.env['AUTONOMY_SHARD_SERVICE'] ?? '';
+
+  static String get metricEndpoint => dotenv.env['METRIC_ENDPOINT'] ?? '';
+  static String get metricSecretKey => dotenv.env['METRIC_SECRET_KEY'] ?? '';
 }
 
 class Secret {

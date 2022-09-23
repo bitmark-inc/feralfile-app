@@ -57,6 +57,10 @@ import Sentry
                 LibAukChannelHandler.shared.exportMnemonicWords(call: call, result: result)
             case "signTransaction":
                 LibAukChannelHandler.shared.signTransaction(call: call, result: result)
+            case "encryptFile":
+                LibAukChannelHandler.shared.encryptFile(call: call, result: result)
+            case "decryptFile":
+                LibAukChannelHandler.shared.decryptFile(call: call, result: result)
             case "getTezosWallet":
                 LibAukChannelHandler.shared.getTezosWallet(call: call, result: result)
             case "getBitmarkAddress":

@@ -8,11 +8,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-final DateFormat dateFormatterYMDHM = DateFormat('yyyy-MMM-dd hh:mm');
-final DateFormat dateFormatterMDHM = DateFormat('MMM-dd hh:mm');
-final DateFormat timeFormatterHM = DateFormat('hh:mm');
-final DateFormat dateFormatterMD = DateFormat('MMM-dd');
-final DateFormat dateFormatterYMD = DateFormat('yyyy-MMM-dd');
+final DateFormat dateFormatterYMDHM = DateFormat('yyyy-MMM-dd hh:mm', "en_US");
+final DateFormat dateFormatterMDHM = DateFormat('MMM-dd hh:mm', "en_US");
+final DateFormat timeFormatterHM = DateFormat('hh:mm', "en_US");
+final DateFormat dateFormatterMD = DateFormat('MMM-dd', "en_US");
+final DateFormat dateFormatterYMD = DateFormat('yyyy-MMM-dd', "en_US");
 
 String localTimeString(DateTime date) {
   return dateFormatterYMDHM.format(date.toLocal()).toUpperCase();
