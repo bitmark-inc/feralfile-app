@@ -102,7 +102,7 @@ class _RestoreInstitutionalVerifyPageState
                           if (!mounted) return;
                           // try to restore from PlatformShards & ShardService's ShardDeck
                           UIHelper.showInfoDialog(context, "RESTORING...",
-                              'Restoring your account with 2 shardDecks: Platform & ShardService');
+                              'Restoring Autonomy from retrieved recovery codes: Platform collaborator and Institutional collaborator.');
                           // await Future.delayed(SHORT_SHOW_DIALOG_DURATION);
 
                           try {

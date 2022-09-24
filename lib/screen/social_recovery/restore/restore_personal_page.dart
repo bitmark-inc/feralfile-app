@@ -96,7 +96,7 @@ class _RestorePersonalPageState extends State<RestorePersonalPage> {
 
                         if (shardServiceDeck != null) {
                           UIHelper.showInfoDialog(context, "RESTORING...",
-                              'Restoring your account with 2 shardDecks: Shard Service & Contact');
+                              'Restoring Autonomy from retrieved recovery codes: Institutional collaborator and Personal collaborator.');
                           try {
                             await injector<SocialRecoveryService>()
                                 .restoreAccount(shardServiceDeck, shardDeck);
@@ -107,7 +107,7 @@ class _RestorePersonalPageState extends State<RestorePersonalPage> {
                         if (runRestoreAccountWithPlatformKey) {
                           if (!mounted) return;
                           UIHelper.showInfoDialog(context, "RESTORING...",
-                              'Restoring your account with 2 shardDecks: Platform & Contact');
+                              'Restoring Autonomy from retrieved recovery codes: Platform collaborator and Personal collaborator.');
                           await injector<SocialRecoveryService>()
                               .restoreAccountWithPlatformKey(shardDeck);
                         }

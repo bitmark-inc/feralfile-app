@@ -40,12 +40,8 @@ const SHOW_DIALOG_DURATION = Duration(seconds: 2);
 const SHORT_SHOW_DIALOG_DURATION = Duration(seconds: 1);
 
 void doneOnboarding(BuildContext context) async {
-  print("1111113 - done restoring");
-
   injector<ConfigurationService>().setDoneOnboarding(true);
   injector<NavigationService>().navigatorKey.currentState?.pushNamedAndRemoveUntil(AppRouter.homePage, (route) => false);
-
-  print("1111114 - done restoring");
 
   await askForNotification();
   // Future.delayed(
@@ -59,9 +55,6 @@ void doneOnboardingRestore(BuildContext context) async {
     // just ignore this so that user can go through onboarding
     Sentry.captureException(exception);
   }
-
-  print("1111112 - done restoring");
-
   doneOnboarding(context);
   await askForNotification();
 }

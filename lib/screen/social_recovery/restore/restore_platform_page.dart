@@ -5,17 +5,39 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/service/social_recovery/social_recovery_service.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:permission_handler/permission_handler.dart';
 
-class RestorePlatformPage extends StatelessWidget {
+class RestorePlatformPage extends StatefulWidget {
   const RestorePlatformPage({Key? key}) : super(key: key);
 
+  @override
+  State<RestorePlatformPage> createState() => _RestorePlatformPageState();
+}
+
+class _RestorePlatformPageState extends State<RestorePlatformPage> {
+
+  bool? isHavingPlatformShard;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  Future checkPlatformShard() async {
+    final hasPlatformShards = await injector<SocialRecoveryService>().hasPlatformShards();
+    setState(() {
+      isHavingPlatformShard = hasPlatformShards;
+    });
+  }
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -56,7 +78,7 @@ class RestorePlatformPage extends StatelessWidget {
               child: SvgPicture.asset("assets/images/icloudKeychainGuide.svg"),
             ),
             const SizedBox(height: 32),
-            Row(
+            isHavingPlatformShard == null ? const SizedBox() : isHavingPlatformShard! ? Row(
               children: [
                 Expanded(
                   child: AuFilledButton(
@@ -66,6 +88,21 @@ class RestorePlatformPage extends StatelessWidget {
                           .pushNamed(AppRouter.restoreInstitutionalPage);
                     },
                   ),
+                ),
+              ],
+            ) : Column(
+              children: [
+                AuFilledButton(
+                  onPress: () => openAppSettings(),
+                  text: "TRY A DIFFERENT ICLOUD ACCOUNT",
+                ),
+                TextButton(
+                  child: Text(
+                    "CONTINUE WITHOUT PLATFORM CODE",
+                    style: theme.textTheme.button,
+                  ),
+                  onPressed: () => Navigator.of(context)
+                      .pushNamed(AppRouter.restoreInstitutionalPage),
                 ),
               ],
             ),
