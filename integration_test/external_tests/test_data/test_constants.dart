@@ -64,3 +64,10 @@ const TEZ_TARGET_ADDRESS = "tz1LVCTxttjxVPmZEfBatmXk8uT5S9CKmMUr";
 const TEZ_SEND_ARTWORK_NAME = "Cay luoi ho cua Long";
 const URL_BALANCE_SOURCE_ACCOUNT =
     "https://api.tzkt.io/v1/tokens/balances?account=$TEZ_SOURCE_ADDRESS&token.metadata.artifactUri.null=false&sort.desc=balance&limit=1";
+
+const SUPPORT_SUB_MENU = [
+  'Request a feature',
+  'Report a bug',
+  'Share feedback',
+  'Something else',
+];
