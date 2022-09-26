@@ -18,8 +18,6 @@ var supportLocator = AppiumBy.xpath(
     '//android.widget.ImageView[@content-desc="Settings"]/../android.widget.ImageView[2]');
 
 Future<void> testSupportSubMenu(AppiumWebDriver driver, String menu) async {
-  var supportButton = await driver.findElements(supportLocator).first;
-  await supportButton.click();
   int hasFeature = await driver.findElements(AppiumBy.xpath(
       '//android.widget.ImageView[contains(@content-desc, "$menu")]')).length;
   expect(hasFeature, 1);

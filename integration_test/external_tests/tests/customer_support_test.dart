@@ -13,6 +13,7 @@ import 'package:test/test.dart';
 import '../pages/onboarding_page.dart';
 import '../test_data/test_configurations.dart';
 import '../pages/customer_support_page.dart';
+import '../test_data/test_constants.dart';
 
 void main() {
   late AppiumWebDriver driver;
@@ -28,27 +29,19 @@ void main() {
     });
 
     tearDown(() async {
-      await driver.app.remove(AUTONOMY_APPPACKAGE);
+      //await driver.app.remove(AUTONOMY_APPPACKAGE);
       await driver.quit();
     });
 
-    test('Request a feature', () async {
+    test('', () async {
       await onBoardingSteps(driver);
 
-    });
-    test('Report a bug', () async {
-      await onBoardingSteps(driver);
-      await testSupportSubMenu(driver, 'Report a bug');
-    });
+      var supportButton = await driver.findElements(supportLocator).first;
+      await supportButton.click();
 
-    test('Share feedback', () async {
-      await onBoardingSteps(driver);
-      await testSupportSubMenu(driver, 'Share feedback');
-    });
-
-    test('Something else?', () async {
-      await onBoardingSteps(driver);
-      await testSupportSubMenu(driver, 'Something else');
+      for (var menu in SUPPORT_SUB_MENU){
+        await testSupportSubMenu(driver, menu);
+      }
     });
   }, timeout: Timeout.none);
 }
