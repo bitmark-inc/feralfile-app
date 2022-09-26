@@ -33,7 +33,7 @@ void main() async {
     });
 
     tearDown(() async {
-      await driver.app.remove(AUTONOMY_APPPACKAGE);
+      //await driver.app.remove(AUTONOMY_APPPACKAGE);
       await driver.quit();
     });
 
@@ -123,8 +123,7 @@ void main() async {
       // Check Balance After Deposit
       double balanceAAfterDeposit = await getTezosBalance(driver, ALIAS_ACCOUNT);
       expect((balanceA + DEPOSIT_AMOUNT - balanceAAfterDeposit).abs() < EPS, true);
-
-
+      
       // Send to another address
       await gotoTransactionPage(driver, ALIAS_ACCOUNT);
       var lst = await sendTezos(driver, addressB);

@@ -9,7 +9,7 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:convert';
 
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:dotenv/dotenv.dart';
 import 'package:appium_driver/async_io.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
@@ -196,11 +196,9 @@ Future<void> captureScreen(AppiumWebDriver driver) async {
 }
 
 Future<DateTime> depositTezos(String address) async {
-  final faucetUrl = dotenv.env['TEZOS_FAUCET_URL'] ?? '';
-  final token = dotenv.env['TEZOS_FAUCET_AUTH_TOKEN'] ?? '';
-
-  //final faucetUrl = TEZOS_FAUCET_URL;
-  //final token = TEZOS_FAUCET_AUTH_TOKEN;
+  var dotenv = DotEnv(includePlatformEnvironment: true)..load();
+  final faucetUrl = '${dotenv["TEZOS_FAUCET_URL"]}' ?? '';
+  final token = '${dotenv["TEZOS_FAUCET_AUTH_TOKEN"]}' ?? '';
 
   await http.post(
     Uri.parse(faucetUrl),

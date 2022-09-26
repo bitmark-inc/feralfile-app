@@ -36,12 +36,13 @@ AppiumBy alreadyLinkedHeaderLocator =
 AppiumBy newAccountLocator =  const AppiumBy.xpath(
     '//android.widget.ImageView[@content-desc="New Make a new account with addresses you can use to collect or receive NFTs on Ethereum, Feral File, and Tezos. "]'
 );
-AppiumBy continueButtonLocator = const AppiumBy.accessibilityId('CONTINUE WITHOUT IT');
+AppiumBy continueButtonLocator = const AppiumBy.accessibilityId("CONTINUE");
+AppiumBy continueWithouItbuttonLocation = const AppiumBy.xpath(
+    "//android.widget.Button[@content-desc='CONTINUE WITHOUT IT']");
 AppiumBy saveAliasLocator = const AppiumBy.accessibilityId('SAVE ALIAS');
 AppiumBy enterAliasLocator = const AppiumBy.xpath(
   '/hierarchy/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.FrameLayout/android.widget.FrameLayout/android.widget.FrameLayout/android.view.View/android.view.View/android.view.View/android.view.View/android.view.View[2]/android.widget.EditText'
 );
-
 
 Future<void> addExistingMetaMaskAccount(
     AppiumWebDriver driver, String type, String metaMaskAlias) async {
@@ -94,8 +95,16 @@ Future<void> importAnAccountBySeeds(AppiumWebDriver driver, String accountType,
 
   await enterAccountAlias(driver, alias);
 
-  var continueButton = await driver.findElement(continueButtonLocator);
-  await continueButton.click();
+  int isContinueWithoutButtonExist =
+  await driver.findElements(continueWithouItbuttonLocation).length;
+  if (isContinueWithoutButtonExist == 1) {
+    var continueWithoutItButton =
+      await driver.findElement(continueWithouItbuttonLocation);
+    await continueWithoutItButton.click();
+  } else {
+    var continueButton = await driver.findElement(continueButtonLocator);
+    await continueButton.click();
+  }
 }
 
 RegExp XTZExp = RegExp(r'[0-9]+.[0-9]*');
