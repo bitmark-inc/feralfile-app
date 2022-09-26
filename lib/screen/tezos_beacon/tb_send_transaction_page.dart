@@ -104,192 +104,202 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
         : null;
     final theme = Theme.of(context);
 
-    return Scaffold(
-      appBar: getBackAppBar(
-        context,
-        onBack: () {
-          injector<TezosBeaconService>()
-              .operationResponse(widget.request.id, null);
-          Navigator.of(context).pop();
-        },
-      ),
-      body: Stack(
-        children: [
-          Container(
-            margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 8.0),
-                        Text(
-                          "h_confirm".tr(),
-                          style: theme.textTheme.headline1,
-                        ),
-                        const SizedBox(height: 40.0),
-                        Text(
-                          "asset".tr(),
-                          style: theme.textTheme.headline4,
-                        ),
-                        const SizedBox(height: 16.0),
-                        Text(
-                          "tezos_xtz".tr(),
-                          style: theme.textTheme.bodyText2,
-                        ),
-                        const Divider(height: 32),
-                        Text(
-                          "from".tr(),
-                          style: theme.textTheme.headline4,
-                        ),
-                        const SizedBox(height: 16.0),
-                        Text(
-                          widget.request.sourceAddress ?? "",
-                          style: theme.textTheme.bodyText2,
-                        ),
-                        const Divider(height: 32),
-                        Text(
-                          "connection".tr(),
-                          style: theme.textTheme.headline4,
-                        ),
-                        const SizedBox(height: 16.0),
-                        Text(
-                          widget.request.appName ?? "",
-                          style: theme.textTheme.bodyText2,
-                        ),
-                        const Divider(height: 32),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "send".tr(),
-                              style: theme.textTheme.headline4,
-                            ),
-                            Text(
-                              "${XtzAmountFormatter(widget.request.operations!.first.amount ?? 0).format()} XTZ",
-                              style: theme.textTheme.bodyText2,
-                            ),
-                          ],
-                        ),
-                        const Divider(height: 32),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "gas_fee2".tr(),
-                              style: theme.textTheme.headline4,
-                            ),
-                            Text(
-                              "${_fee != null ? XtzAmountFormatter(_fee!).format() : "-"} XTZ",
-                              style: theme.textTheme.bodyText2,
-                            ),
-                          ],
-                        ),
-                        const Divider(height: 32),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "total_amount".tr(),
-                              style: theme.textTheme.headline4,
-                            ),
-                            Text(
-                              "${total != null ? XtzAmountFormatter(total).format() : "-"} XTZ",
-                              style: theme.textTheme.headline4,
-                            ),
-                          ],
-                        ),
-                      ],
+    return WillPopScope(
+      onWillPop: () async {
+        injector<TezosBeaconService>()
+            .operationResponse(widget.request.id, null);
+        return true;
+      },
+      child: Scaffold(
+        appBar: getBackAppBar(
+          context,
+          onBack: () {
+            injector<TezosBeaconService>()
+                .operationResponse(widget.request.id, null);
+            Navigator.of(context).pop();
+          },
+        ),
+        body: Stack(
+          children: [
+            Container(
+              margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 8.0),
+                          Text(
+                            "h_confirm".tr(),
+                            style: theme.textTheme.headline1,
+                          ),
+                          const SizedBox(height: 40.0),
+                          Text(
+                            "asset".tr(),
+                            style: theme.textTheme.headline4,
+                          ),
+                          const SizedBox(height: 16.0),
+                          Text(
+                            "tezos_xtz".tr(),
+                            style: theme.textTheme.bodyText2,
+                          ),
+                          const Divider(height: 32),
+                          Text(
+                            "from".tr(),
+                            style: theme.textTheme.headline4,
+                          ),
+                          const SizedBox(height: 16.0),
+                          Text(
+                            widget.request.sourceAddress ?? "",
+                            style: theme.textTheme.bodyText2,
+                          ),
+                          const Divider(height: 32),
+                          Text(
+                            "connection".tr(),
+                            style: theme.textTheme.headline4,
+                          ),
+                          const SizedBox(height: 16.0),
+                          Text(
+                            widget.request.appName ?? "",
+                            style: theme.textTheme.bodyText2,
+                          ),
+                          const Divider(height: 32),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "send".tr(),
+                                style: theme.textTheme.headline4,
+                              ),
+                              Text(
+                                "${XtzAmountFormatter(widget.request.operations!.first.amount ?? 0).format()} XTZ",
+                                style: theme.textTheme.bodyText2,
+                              ),
+                            ],
+                          ),
+                          const Divider(height: 32),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "gas_fee2".tr(),
+                                style: theme.textTheme.headline4,
+                              ),
+                              Text(
+                                "${_fee != null ? XtzAmountFormatter(_fee!).format() : "-"} XTZ",
+                                style: theme.textTheme.bodyText2,
+                              ),
+                            ],
+                          ),
+                          const Divider(height: 32),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "total_amount".tr(),
+                                style: theme.textTheme.headline4,
+                              ),
+                              Text(
+                                "${total != null ? XtzAmountFormatter(total).format() : "-"} XTZ",
+                                style: theme.textTheme.headline4,
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: AuFilledButton(
-                        text: "sendH".tr().toUpperCase(),
-                        onPress: (_currentWallet != null &&
-                                _fee != null &&
-                                !_isSending)
-                            ? () async {
-                                setState(() {
-                                  _isSending = true;
-                                });
+                  Row(
+                    children: [
+                      Expanded(
+                        child: AuFilledButton(
+                          text: "sendH".tr().toUpperCase(),
+                          onPress: (_currentWallet != null &&
+                                  _fee != null &&
+                                  !_isSending)
+                              ? () async {
+                                  setState(() {
+                                    _isSending = true;
+                                  });
 
-                                final configurationService =
-                                    injector<ConfigurationService>();
+                                  final configurationService =
+                                      injector<ConfigurationService>();
 
-                                if (configurationService
-                                        .isDevicePasscodeEnabled() &&
-                                    await authenticateIsAvailable()) {
-                                  final localAuth = LocalAuthentication();
-                                  final didAuthenticate =
-                                      await localAuth.authenticate(
-                                          localizedReason:
-                                              "authen_for_autonomy".tr());
-                                  if (!didAuthenticate) {
-                                    setState(() {
-                                      _isSending = false;
-                                    });
-                                    return;
+                                  if (configurationService
+                                          .isDevicePasscodeEnabled() &&
+                                      await authenticateIsAvailable()) {
+                                    final localAuth = LocalAuthentication();
+                                    final didAuthenticate =
+                                        await localAuth.authenticate(
+                                            localizedReason:
+                                                "authen_for_autonomy".tr());
+                                    if (!didAuthenticate) {
+                                      setState(() {
+                                        _isSending = false;
+                                      });
+                                      return;
+                                    }
                                   }
-                                }
 
-                                try {
-                                  final txHash = await injector<TezosService>()
-                                      .sendOperationTransaction(_currentWallet!,
-                                          widget.request.operations!);
+                                  try {
+                                    final txHash =
+                                        await injector<TezosService>()
+                                            .sendOperationTransaction(
+                                                _currentWallet!,
+                                                widget.request.operations!);
 
-                                  injector<TezosBeaconService>()
-                                      .operationResponse(
-                                          widget.request.id, txHash);
+                                    injector<TezosBeaconService>()
+                                        .operationResponse(
+                                            widget.request.id, txHash);
 
-                                  final address = widget.request.sourceAddress;
-                                  if (address != null) {
-                                    injector<PendingTokenService>()
-                                        .checkPendingTezosTokens(address)
-                                        .then((hasPendingTokens) {
-                                      if (hasPendingTokens) {
-                                        injector<NftCollectionBloc>()
-                                            .add(RefreshNftCollection());
-                                      }
-                                    });
+                                    final address =
+                                        widget.request.sourceAddress;
+                                    if (address != null) {
+                                      injector<PendingTokenService>()
+                                          .checkPendingTezosTokens(address)
+                                          .then((hasPendingTokens) {
+                                        if (hasPendingTokens) {
+                                          injector<NftCollectionBloc>()
+                                              .add(RefreshNftCollection());
+                                        }
+                                      });
+                                    }
+                                    if (!mounted) return;
+                                    Navigator.of(context).pop();
+                                  } on TezartNodeError catch (err) {
+                                    log.info(err);
+                                    if (!mounted) return;
+                                    UIHelper.showInfoDialog(
+                                      context,
+                                      "operation_failed".tr(),
+                                      getTezosErrorMessage(err),
+                                      isDismissible: true,
+                                    );
+                                  } catch (err) {
+                                    showErrorDialogFromException(err);
+                                    log.warning(err);
                                   }
-                                  if (!mounted) return;
-                                  Navigator.of(context).pop();
-                                } on TezartNodeError catch (err) {
-                                  log.info(err);
-                                  if (!mounted) return;
-                                  UIHelper.showInfoDialog(
-                                    context,
-                                    "operation_failed".tr(),
-                                    getTezosErrorMessage(err),
-                                    isDismissible: true,
-                                  );
-                                } catch (err) {
-                                  showErrorDialogFromException(err);
-                                  log.warning(err);
-                                }
 
-                                setState(() {
-                                  _isSending = false;
-                                });
-                              }
-                            : null,
-                      ),
-                    )
-                  ],
-                ),
-              ],
+                                  setState(() {
+                                    _isSending = false;
+                                  });
+                                }
+                              : null,
+                        ),
+                      )
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-          _isSending
-              ? const Center(child: CupertinoActivityIndicator())
-              : const SizedBox(),
-        ],
+            _isSending
+                ? const Center(child: CupertinoActivityIndicator())
+                : const SizedBox(),
+          ],
+        ),
       ),
     );
   }
