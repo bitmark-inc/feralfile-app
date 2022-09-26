@@ -55,8 +55,16 @@ void main() {
       var saveButton = await driver.findElement(saveAliasButtonLocator);
       await saveButton.click();
 
-      var continueWithout = await driver.findElement(continueWithouItbuttonLocation);
-      await continueWithout.click();
+      int isContinueWithoutButtonExist =
+      await driver.findElements(continueWithouItbuttonLocation).length;
+      if (isContinueWithoutButtonExist == 1) {
+        var continueWithoutItButton =
+        await driver.findElement(continueWithouItbuttonLocation);
+        await continueWithoutItButton.click();
+      } else {
+        continueButton = await driver.findElement(continueButtonLocator);
+        await continueButton.click();
+      }
 
       // Check Alias
       var newAlias = await driver.findElements(AppiumBy.accessibilityId('$userAlias'));
