@@ -26,7 +26,7 @@ void main() {
           uri: Uri.parse(APPIUM_SERVER_URL),
           desired: AUTONOMY_PROFILE(dir.path));
 
-      await driver.timeouts.setImplicitTimeout(const Duration(seconds: 30));
+      await driver.timeouts.setImplicitTimeout(const Duration(seconds: 5));
     });
 
     tearDown(() async {
@@ -117,8 +117,17 @@ void main() {
       var skipButton = await driver.findElement(skipButtonLocator);
       skipButton.click();
 
-      var continueWithout = await driver.findElement(continueWithouItbuttonLocation);
-      await continueWithout.click();
+      int isContinueWithoutButtonExist =
+      await driver.findElements(continueWithouItbuttonLocation).length;
+      if (isContinueWithoutButtonExist == 1) {
+        var continueWithoutItButton =
+        await driver.findElement(continueWithouItbuttonLocation);
+        await continueWithoutItButton.click();
+      } else {
+        continueButton = await driver.findElement(continueButtonLocator);
+        await continueButton.click();
+      }
+
       var numberAccountAfter = await numberAccount(driver);
       expect(numberAccountAfter - numberAccountBefore, 1);
 

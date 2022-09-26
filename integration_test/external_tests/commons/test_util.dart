@@ -191,7 +191,6 @@ Future<void> scrollUntil(AppiumWebDriver driver, String decs) async {
 Future<void> timeDelay(int second) async {
   Duration dur = Duration(seconds: 1);
   for (int i = 0; i < second; i++){
-    print(i);
     await Future.delayed(dur);
   }
 }
