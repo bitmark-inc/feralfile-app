@@ -37,7 +37,6 @@ var monthMap = {
 RegExp XTZExp = RegExp(r'[+-]*[0-9]+[.][0-9]*');
 RegExp XTZExp2 = RegExp(r'[+-]*[0-9]+.[0-9]* XTZ');
 
-
 String yearExp = "(\\d{4})";
 String monthExp =  '(jan(?:uary)?|'
     'feb(?:ruary)?|'
@@ -77,7 +76,7 @@ Future<List<Object>> sendTezos(AppiumWebDriver driver, String address, [double a
 
   await toAddress.click();
   await toAddress.sendKeys(address);
-  await driver.keyboard.sendKeys('\n');
+  await driver.device.pressKeycode(66);
 
   AppiumBy reviewButtonLocator = AppiumBy.accessibilityId("REVIEW");
   var reviewButton = await driver.findElement(reviewButtonLocator);
@@ -90,7 +89,7 @@ Future<List<Object>> sendTezos(AppiumWebDriver driver, String address, [double a
   AppiumWebElement sendTxt = await driver.findElements(editTextLocator).elementAt(1); //TODO
   await sendTxt.click();
   await sendTxt.sendKeys(await amount.toString());
-  await driver.keyboard.sendKeys('\n');
+  await driver.device.pressKeycode(66);
   double fee = await getFee(driver);
 
   // Click on Review Button
@@ -104,7 +103,6 @@ Future<List<Object>> sendTezos(AppiumWebDriver driver, String address, [double a
   await sendButton.click();
   return [fee, sendtime, amount];
 }
-
 
 Future<AppiumWebElement> getRecentTransaction(AppiumWebDriver driver, [String type = ""]) async {
   if (!(type == 'Sent' || type == "Received" || type == "")){
@@ -129,7 +127,6 @@ Future<AppiumWebElement> getRecentTransaction(AppiumWebDriver driver, [String ty
   var recentTransaction = await allTransaction.first;
   return recentTransaction;
 }
-
 
 Future<void> expectTransaction(AppiumWebDriver driver, String address, DateTime date, double amount) async {
   int hasStatus = await driver.findElements(AppiumBy.xpath(

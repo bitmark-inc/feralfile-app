@@ -28,12 +28,11 @@ void main() async {
       driver = await createDriver(
           uri: Uri.parse(APPIUM_SERVER_URL),
           desired: AUTONOMY_PROFILE(dir.path));
-
       await driver.timeouts.setImplicitTimeout(const Duration(seconds: 30));
     });
 
     tearDown(() async {
-      //await driver.app.remove(AUTONOMY_APPPACKAGE);
+      await driver.app.remove(AUTONOMY_APPPACKAGE);
       await driver.quit();
     });
 

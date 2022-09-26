@@ -60,4 +60,4 @@ const TEZ_SEND_ARTWORK_NAME = "Cay luoi ho cua Long";
 const URL_BALANCE_SOURCE_ACCOUNT =
     "https://api.tzkt.io/v1/tokens/balances?account=$TEZ_SOURCE_ADDRESS&token.metadata.artifactUri.null=false&sort.desc=balance&limit=1";
 const DEPOSIT_AMOUNT = 0.1;
-const EPS = 2e4;
+const EPS = 2e-4;
