@@ -217,17 +217,3 @@ Future<void> captureScreen(AppiumWebDriver driver) async {
   file.writeAsBytesSync(decodedBytes);
 }
 
-Future<void> timeDelay(int second) async {
-  Duration dur = Duration(seconds: 1);
-  for (int i = 0; i < second; i++){
-    //print(i);
-    await Future.delayed(dur);
-  }
-}
-
-Future<AppiumWebElement> getElementByContentDesc(AppiumWebDriver driver, String contain) async {
-  AppiumBy locator = AppiumBy.xpath(
-      '//*[contains(@content-desc,"$contain")]');
-  var element = driver.findElements(locator).elementAt(0);
-  return element;
-}
