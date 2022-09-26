@@ -6,7 +6,9 @@
 //
 
 import 'package:autonomy_flutter/common/environment.dart';
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/service/social_recovery/social_recovery_service.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -16,15 +18,36 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class RestoreInstitutionalPage extends StatelessWidget {
-  RestoreInstitutionalPage({Key? key}) : super(key: key);
+class RestoreInstitutionalPage extends StatefulWidget {
+  const RestoreInstitutionalPage({Key? key}) : super(key: key);
 
-  final steps = [
+  @override
+  State<RestoreInstitutionalPage> createState() => _RestoreInstitutionalPageState();
+}
+
+class _RestoreInstitutionalPageState extends State<RestoreInstitutionalPage> {
+  final _steps = [
     "Tap the button below to request your recovery code from https://feralfile.com",
     "Feral File will ask you to enter the email address you used to set up collaborative recovery",
     "Feral File will email your recovery code.",
     "Copy the recovery code from the email then return here and paste it into Autonomy.",
   ];
+
+  bool? _isHavingPlatformShard;
+
+  @override
+  void initState() {
+    super.initState();
+    checkPlatformShard();
+  }
+
+  Future checkPlatformShard() async {
+    final hasPlatformShards =
+    await injector<SocialRecoveryService>().hasPlatformShards();
+    setState(() {
+      _isHavingPlatformShard = hasPlatformShards;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,7 +81,7 @@ class RestoreInstitutionalPage extends StatelessWidget {
               style: theme.textTheme.headline4,
             ),
             const SizedBox(height: 8),
-            ...steps
+            ..._steps
                 .mapIndexed(
                   (index, e) => Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -102,7 +125,7 @@ class RestoreInstitutionalPage extends StatelessWidget {
                               mode: LaunchMode.externalApplication);
                         },
                       ),
-                      TextButton(
+                      _isHavingPlatformShard != false ? TextButton(
                         onPressed: () {
                           Navigator.of(context).pushNamed(
                               AppRouter.restorePersonalPage);
@@ -111,7 +134,7 @@ class RestoreInstitutionalPage extends StatelessWidget {
                           "CONTINUE WITHOUT PLATFORM CODE",
                           style: theme.textTheme.button,
                         ),
-                      )
+                      ) : const SizedBox(),
                     ],
                   ),
                 ),

@@ -948,7 +948,7 @@ class AppRouter {
       case restoreInstitutionalPage:
         return CupertinoPageRoute(
             settings: settings,
-            builder: (context) => RestoreInstitutionalPage());
+            builder: (context) => const RestoreInstitutionalPage());
 
       case restoreInstitutionalVerifyPage:
         return CupertinoPageRoute(

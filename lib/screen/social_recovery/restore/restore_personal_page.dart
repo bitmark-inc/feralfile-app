@@ -95,8 +95,8 @@ class _RestorePersonalPageState extends State<RestorePersonalPage> {
                         var runRestoreAccountWithPlatformKey = true;
 
                         if (shardServiceDeck != null) {
-                          UIHelper.showInfoDialog(context, "RESTORING...",
-                              'Restoring Autonomy from retrieved recovery codes: Institutional collaborator and Personal collaborator.');
+                          UIHelper.showRestoringDialog(context, "Restoring...",
+                              'Institutional collaborator', 'Personal collaborator');
                           try {
                             await injector<SocialRecoveryService>()
                                 .restoreAccount(shardServiceDeck, shardDeck);
@@ -106,8 +106,8 @@ class _RestorePersonalPageState extends State<RestorePersonalPage> {
 
                         if (runRestoreAccountWithPlatformKey) {
                           if (!mounted) return;
-                          UIHelper.showInfoDialog(context, "RESTORING...",
-                              'Restoring Autonomy from retrieved recovery codes: Platform collaborator and Personal collaborator.');
+                          UIHelper.showRestoringDialog(context, "Restoring...",
+                              'Platform collaborator', 'Personal collaborator');
                           await injector<SocialRecoveryService>()
                               .restoreAccountWithPlatformKey(shardDeck);
                         }

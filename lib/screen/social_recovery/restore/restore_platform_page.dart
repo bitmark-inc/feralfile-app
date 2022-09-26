@@ -25,19 +25,21 @@ class RestorePlatformPage extends StatefulWidget {
 
 class _RestorePlatformPageState extends State<RestorePlatformPage> {
 
-  bool? isHavingPlatformShard;
+  bool? _isHavingPlatformShard;
 
   @override
   void initState() {
     super.initState();
+    checkPlatformShard();
   }
 
   Future checkPlatformShard() async {
     final hasPlatformShards = await injector<SocialRecoveryService>().hasPlatformShards();
     setState(() {
-      isHavingPlatformShard = hasPlatformShards;
+      _isHavingPlatformShard = hasPlatformShards;
     });
   }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -60,7 +62,7 @@ class _RestorePlatformPageState extends State<RestorePlatformPage> {
               style: theme.textTheme.headline2,
             ),
             const SizedBox(height: 40),
-            Row(
+            _isHavingPlatformShard == null ? const SizedBox() : _isHavingPlatformShard! ? Row(
               children: [
                 const Icon(CupertinoIcons.check_mark),
                 const SizedBox(width: 16.0),
@@ -72,13 +74,25 @@ class _RestorePlatformPageState extends State<RestorePlatformPage> {
                   ),
                 ),
               ],
+            ) : Row(
+              children: [
+                const Icon(Icons.warning),
+                const SizedBox(width: 16.0),
+                Expanded(
+                  child: Text(
+                    "We checked your iCloud account but were unable to locate your recovery code. Are you signed into the correct iCloud account? ",
+                    maxLines: 2,
+                    style: theme.textTheme.bodyText1,
+                  ),
+                ),
+              ],
             ),
             const Expanded(child: SizedBox()),
             Center(
               child: SvgPicture.asset("assets/images/icloudKeychainGuide.svg"),
             ),
             const SizedBox(height: 32),
-            isHavingPlatformShard == null ? const SizedBox() : isHavingPlatformShard! ? Row(
+            _isHavingPlatformShard == null ? const SizedBox() : _isHavingPlatformShard! ? Row(
               children: [
                 Expanded(
                   child: AuFilledButton(

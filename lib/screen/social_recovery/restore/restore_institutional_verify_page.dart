@@ -86,27 +86,35 @@ class _RestoreInstitutionalVerifyPageState
                       () async {
                         late ShardDeck shardServiceDeck;
                         try {
-                          shardServiceDeck = await injector<SocialRecoveryService>()
-                              .requestDeckFromShardService(widget.payload?.domain ??
-                                    Environment.autonomyShardService,
-                                _textController.text,);
+                          shardServiceDeck =
+                              await injector<SocialRecoveryService>()
+                                  .requestDeckFromShardService(
+                            widget.payload?.domain ??
+                                Environment.autonomyShardService,
+                            _textController.text,
+                          );
                         } catch (_) {
                           Navigator.of(context).pop();
                           rethrow;
                         }
-                        await injector<ConfigurationService>().setCachedDeckFromShardService(shardServiceDeck);
+                        await injector<ConfigurationService>()
+                            .setCachedDeckFromShardService(shardServiceDeck);
                         await Future.delayed(SHOW_DIALOG_DURATION);
 
-                        final hasPlatformShards = await injector<SocialRecoveryService>().hasPlatformShards();
+                        final hasPlatformShards =
+                            await injector<SocialRecoveryService>()
+                                .hasPlatformShards();
                         if (hasPlatformShards) {
                           if (!mounted) return;
                           // try to restore from PlatformShards & ShardService's ShardDeck
-                          UIHelper.showInfoDialog(context, "RESTORING...",
-                              'Restoring Autonomy from retrieved recovery codes: Platform collaborator and Institutional collaborator.');
+                          UIHelper.showRestoringDialog(context, "Restoring...",
+                              'Platform collaborator', 'Institutional collaborator');
                           // await Future.delayed(SHORT_SHOW_DIALOG_DURATION);
 
                           try {
-                            await injector<SocialRecoveryService>().restoreAccountWithPlatformKey(shardServiceDeck);
+                            await injector<SocialRecoveryService>()
+                                .restoreAccountWithPlatformKey(
+                                    shardServiceDeck);
                             if (!mounted) return;
 
                             doneOnboardingRestore(context);
@@ -120,10 +128,13 @@ class _RestoreInstitutionalVerifyPageState
                                   style: theme.primaryTextTheme.bodyText1),
                               submitButton: AuFilledButton(
                                   text: 'RESTORE WITH EMERGENCY CONTACT',
-                                  onPress: () => Navigator.of(context).pushNamedAndRemoveUntil(
-                                      AppRouter.restoreWithEmergencyContactPage,
-                                      (route) =>
-                                          route.settings.name == AppRouter.onboardingPage)),
+                                  onPress: () => Navigator.of(context)
+                                      .pushNamedAndRemoveUntil(
+                                          AppRouter
+                                              .restoreWithEmergencyContactPage,
+                                          (route) =>
+                                              route.settings.name ==
+                                              AppRouter.onboardingPage)),
                               closeButton: 'CLOSE',
                             );
                           } catch (_) {
@@ -136,11 +147,12 @@ class _RestoreInstitutionalVerifyPageState
                           await injector<NavigationService>()
                               .navigatorKey
                               .currentState
-                              ?.pushNamedAndRemoveUntil(AppRouter.restoreWithEmergencyContactPage,
-                                  (route) => route.settings.name == AppRouter.onboardingPage);
+                              ?.pushNamedAndRemoveUntil(
+                                  AppRouter.restorePersonalPage,
+                                  (route) =>
+                                      route.settings.name ==
+                                      AppRouter.onboardingPage);
                         }
-
-
 
                         // await injector<SocialRecoveryService>()
                         //     .sendDeckToShardService(

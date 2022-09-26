@@ -261,6 +261,50 @@ class UIHelper {
     );
   }
 
+  static Future<void> showRestoringDialog(
+      BuildContext context, String title, String firstShard, String secondShard) async {
+    log.info("[UIHelper] showInfoDialog: $title, $firstShard, $secondShard");
+    final theme = Theme.of(context);
+
+    await showDialog(
+      context,
+      title,
+      SizedBox(
+        width: double.infinity,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            RichText(
+              text: TextSpan(
+                style: theme.primaryTextTheme.bodyText1,
+                children: <TextSpan>[
+                  const TextSpan(
+                    text: "Restoring Autonomy from retrieved recovery codes: ",
+                  ),
+                  TextSpan(
+                      text: firstShard,
+                      style:
+                      const TextStyle(fontWeight: FontWeight.bold)),
+                  const TextSpan(
+                    text: " and ",
+                  ),
+                  TextSpan(
+                      text: secondShard,
+                      style:
+                      const TextStyle(fontWeight: FontWeight.bold)),
+                  const TextSpan(
+                    text: ".",
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 40),
+          ],
+        ),
+      ),
+    );
+  }
+
   static Future<void> showInfoDialog(
       BuildContext context, String title, String description,
       {bool isDismissible = false,
