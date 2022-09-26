@@ -19,6 +19,8 @@ AppiumBy accountAliasLocator =
     const AppiumBy.xpath("//android.widget.EditText[@text='Enter alias']");
 AppiumBy saveAliasButtonLocator = const AppiumBy.accessibilityId("SAVE ALIAS");
 AppiumBy continueButtonLocator = const AppiumBy.accessibilityId("CONTINUE");
+AppiumBy continueWithouItbuttonLocation = const AppiumBy.xpath(
+    "//android.widget.Button[@content-desc='CONTINUE WITHOUT IT']");
 AppiumBy accountSeedsLocator = const AppiumBy.xpath(
     "//android.widget.EditText[contains(@text,'Enter recovery phrase')]");
 
@@ -39,6 +41,11 @@ AppiumBy isFeeCalculatingLocator = const AppiumBy.xpath(
 AppiumBy isFeeCalculatedLocator = const AppiumBy.xpath(
     "//android.view.View[contains(@content-desc,'Gas fee: 0.')]");
 AppiumBy sendButtonLocator = const AppiumBy.accessibilityId("SEND");
+
+AppiumBy newAccountLocator =  const AppiumBy.xpath(
+    "//android.widget.ImageView[contains(@content-desc,'Make a new account with addresses')]");
+
+AppiumBy enterAliasLocator = const AppiumBy.xpath('//android.widget.EditText[contains(@text,"Enter alias")]');
 
 Future<void> selectSubSettingMenu(AppiumWebDriver driver, String menu) async {
   String sub_menu = await menu;
@@ -184,7 +191,6 @@ Future<void> scrollUntil(AppiumWebDriver driver, String decs) async {
 Future<void> timeDelay(int second) async {
   Duration dur = Duration(seconds: 1);
   for (int i = 0; i < second; i++){
-    //print(i);
     await Future.delayed(dur);
   }
 }
@@ -209,3 +215,11 @@ Future<void> captureScreen(AppiumWebDriver driver) async {
       .create(recursive: true);
   file.writeAsBytesSync(decodedBytes);
 }
+
+Future<AppiumWebElement> getElementByContentDesc(AppiumWebDriver driver, String contain) async {
+  AppiumBy locator = AppiumBy.xpath(
+      '//*[contains(@content-desc,"$contain")]');
+  var element = driver.findElements(locator).elementAt(0);
+  return element;
+}
+

@@ -85,3 +85,26 @@ Future<void> importAnAccountBySeeds(AppiumWebDriver driver, String accountType,
   var continueButton = await driver.findElement(continueButtonLocator);
   await continueButton.click();
 }
+
+Future<int> numberAccount(AppiumWebDriver driver) async {
+  var scrollView = await driver.findElements(AppiumBy.className('android.widget.ScrollView')).first;
+  //xpath('/hierarchy/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.FrameLayout/android.widget.FrameLayout/android.widget.FrameLayout/android.view.View/android.view.View/android.view.View/android.view.View/android.widget.ScrollView'));
+  int count = 0;
+  bool isContinue = true;
+
+  var lst = await scrollView.findElements(
+      AppiumBy.className('android.view.View'));
+  var a = await lst.toList();
+
+  await Future.forEach(a, (AppiumWebElement element) async {
+    var decs = await element.attributes['content-desc'];
+    if (decs == 'Preferences') {
+      isContinue = false;
+    }
+    if (isContinue) {
+      count += 1;
+    }
+  });
+
+  return count;
+}
