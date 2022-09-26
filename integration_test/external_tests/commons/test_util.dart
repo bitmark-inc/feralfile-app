@@ -11,6 +11,8 @@ import 'dart:math';
 import 'package:appium_driver/async_io.dart';
 import 'package:test/test.dart';
 import 'package:intl/intl.dart';
+import 'package:http/http.dart' as http;
+import 'package:dotenv/dotenv.dart';
 
 import 'dart:convert';
 
@@ -222,4 +224,42 @@ Future<AppiumWebElement> getElementByContentDesc(AppiumWebDriver driver, String 
   var element = driver.findElements(locator).elementAt(0);
   return element;
 }
+/////
+Future<DateTime> depositTezos(String address) async {
+  var dotenv = DotEnv(includePlatformEnvironment: true)..load();
+  final faucetUrl = '${dotenv["TEZOS_FAUCET_URL"]}' ?? '';
+  final token = '${dotenv["TEZOS_FAUCET_AUTH_TOKEN"]}' ?? '';
 
+  await http.post(
+    Uri.parse(faucetUrl),
+    body: json.encode({"address": address}),
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Basic $token",
+    },
+  );
+  return DateTime.now();
+}
+
+Future<double> round(double x, int n) async {
+  String tmp = x.toStringAsFixed(n);
+  return double.parse(tmp);
+}
+
+DateTime from24to12(DateTime time24){
+  String timeStr = DateFormat('yyyy-MM-dd hh:mm a').format(time24);
+  return DateTime.parse(timeStr.substring(0, timeStr.length - 3));
+}
+
+Future<void> continueStep(AppiumWebDriver driver) async {
+  int isContinueWithoutButtonExist =
+      await driver.findElements(continueWithouItbuttonLocation).length;
+  if (isContinueWithoutButtonExist == 1) {
+    var continueWithoutItButton =
+        await driver.findElement(continueWithouItbuttonLocation);
+    await continueWithoutItButton.click();
+  } else {
+    var continueButton = await driver.findElement(continueButtonLocator);
+    await continueButton.click();
+  }
+}

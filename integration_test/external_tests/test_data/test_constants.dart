@@ -71,3 +71,14 @@ const SUPPORT_SUB_MENU = [
   'Share feedback',
   'Something else',
 ];
+
+const ALIAS_ACCOUNT = "ACOUNT_A";
+const ALIAS_ANOTHER_ACCOUNT = "ACOUNT_B";
+const SEED_TO_RESTORE_ACCOUNT =
+    "real cat erase wrong shine example pen science barrel shed gentle tilt";
+const SEED_TO_RESTORE_ANOTHER_ACCOUNT =
+    "pair copper together wife riot lawn extend rebuild universe brain local easy";
+
+
+const DEPOSIT_AMOUNT = 0.1;
+const EPS = 2e-4;
