@@ -140,6 +140,7 @@ dependencies:
     git:
       url: https://github.com/autonomy-system/metric-client-dart
       ref: ec37709d6f7a3901e3bd4238ba178205a88f6261
+  dotenv: ^4.0.1
 
 dependency_overrides:
   cached_network_image: 3.2.1

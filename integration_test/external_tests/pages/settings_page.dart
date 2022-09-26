@@ -82,8 +82,7 @@ Future<void> importAnAccountBySeeds(AppiumWebDriver driver, String accountType,
 
   await enterAccountAlias(driver, alias);
 
-  var continueButton = await driver.findElement(continueButtonLocator);
-  await continueButton.click();
+  await continueStep(driver);
 }
 
 Future<int> numberAccount(AppiumWebDriver driver) async {
@@ -107,4 +106,55 @@ Future<int> numberAccount(AppiumWebDriver driver) async {
   });
 
   return count;
+}
+
+RegExp TEZOS_ADRESS_EXP = RegExp(r'tz.*');
+Future<String> getTezosAddress(AppiumWebDriver driver, String alias) async {
+  await timeDelay(1);
+  AppiumWebElement toAccount = await driver.findElement(AppiumBy.accessibilityId('$alias'));
+  await toAccount.click();
+
+  AppiumBy tezozAddressLocator = AppiumBy.xpath(
+      '//android.widget.ImageView[contains(@content-desc, "Tezos")]');
+
+  var tezozAddress = await driver.findElements(tezozAddressLocator).first;
+  String decs = await tezozAddress.attributes['content-desc'];
+  String? address = TEZOS_ADRESS_EXP.stringMatch(decs);
+
+  await goBack(driver, 1);
+  return address as String;
+}
+
+RegExp XTZExp = RegExp(r'[0-9]+.[0-9]*');
+Future<double> getTezosBalance(AppiumWebDriver driver, String alias) async {
+
+  AppiumWebElement toAccount = await driver.findElement(AppiumBy.accessibilityId('$alias'));
+  await toAccount.click();
+  await timeDelay(3); // wait for loading
+
+  AppiumBy tezozAddressLocator = AppiumBy.xpath(
+      '//android.widget.ImageView[contains(@content-desc, "Tezos")][not(contains(@content-desc, "--"))]');
+
+  var tezozAddress = await driver.findElements(tezozAddressLocator).first;
+  String decs = await tezozAddress.attributes['content-desc'];
+  String? address = XTZExp.stringMatch(decs);
+  double balance = double.parse(address as String ?? '0.0');
+  await goBack(driver, 1);
+  return balance;
+}
+
+Future<void> gotoTransactionPage(AppiumWebDriver driver, String alias) async {
+  //From Setting Page
+  AppiumWebElement toAccount = await driver.findElement(AppiumBy.accessibilityId('$alias'));
+  await toAccount.click();
+
+  AppiumBy tezos_XTZLocator = AppiumBy.xpath(
+      '//android.widget.ImageView[contains(@content-desc,"Tezos")]');
+  AppiumWebElement tezos_XTZ = await driver.findElements(tezos_XTZLocator).first;
+  await tezos_XTZ.click();
+
+  AppiumBy historyButtonLocator = AppiumBy.xpath(
+      '//android.widget.ImageView[contains(@content-desc, "History")]');
+  var historyButton = await driver.findElement(historyButtonLocator);
+  historyButton.click();
 }
