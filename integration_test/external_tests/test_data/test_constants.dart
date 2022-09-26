@@ -4,6 +4,7 @@ const VIDEO_ARTWORK = 'Caught Red Handed';
 const ARTWORK_4 = 'EVOLVE Magazine Issue 03';
 const ARTWORK_5 = 'To make a botanist cry #266';
 const ARTWORK_6 = '100';
+const ARTWORK_LOADING_TIME_LIMIT = 5; //second
 const LIST_CHECK_ARTWORKS = [
   'Kamisaki',
   'Caught Red Handed',
@@ -23,9 +24,21 @@ const LIST_CHECK_ARTWORKSID_ADD_MANUAL = [
   'tez-KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton-759675',
   'tez-KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton-761761',
   'tez-KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton-693627',
-  'tez-KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton-633068',
-  'tez-KT1KXXZ758wtyf2NBjWKPeXugDh5Mm7kyckw-10',
+  //'tez-KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton-633068',
+  //'tez-KT1KXXZ758wtyf2NBjWKPeXugDh5Mm7kyckw-10',
 ];
+
+const IS_INTERACTIVE_ARTWORK = {
+  'tez-KT1U6EHmNxJTkvaWJ4ThczG4FSDaHC21ssvi-873515': false,//
+  'tez-KT1TG3hqXr5Emip4KBbijKP9LM5hmCCjE2HM-2': false,//
+  'tez-KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton-757148': true,//
+  'tez-KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton-759675': true,
+  'tez-KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton-761761': true,//
+  'tez-KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton-693627': true,
+  'tez-KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton-633068': false,
+  'tez-KT1KXXZ758wtyf2NBjWKPeXugDh5Mm7kyckw-10': false,
+};
+
 const SEEDS_TO_RESTORE_FULLACCOUNT =
     'spin toward remind wagon flame hen sell tragic hundred verb culture believe';
 
@@ -44,6 +57,7 @@ const LIST_OF_EXCHANGES = [
   {'exchangeName': 'typed.art', 'linkedExchangeName': 'typed.art'},
   {'exchangeName': 'feralfile.staging.bitmark.com/exhibitions', 'linkedExchangeName':'Feral File'},
 ];
+
 
 const TEZ_SOURCE_ADDRESS = "tz1SidNQb9XcwP7L3MzCZD9JHmWw2ebDzgyX";
 const TEZ_TARGET_ADDRESS = "tz1LVCTxttjxVPmZEfBatmXk8uT5S9CKmMUr";
