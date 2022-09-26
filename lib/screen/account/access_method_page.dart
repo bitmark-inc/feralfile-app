@@ -58,12 +58,12 @@ class AccessMethodPage extends StatelessWidget {
                         ),
                         RichText(
                           text: TextSpan(
-                              text: 'important_des_1'.tr(),
+                              text: 'autonomy_currently'.tr(),
                               children: [
                                 TextSpan(
-                                    text: 'important_des_2'.tr(),
+                                    text: '${'ethereum_mainnet'.tr()}. ',
                                     style: theme.textTheme.atlasBlackBold14),
-                                TextSpan(text: 'important_des_3'.tr()),
+                                TextSpan(text: 'all_other_evm_networks'.tr()),
                               ],
                               style: theme.textTheme.atlasBlackNormal14),
                         ),
