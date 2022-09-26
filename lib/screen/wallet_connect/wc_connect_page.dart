@@ -200,67 +200,74 @@ class _WCConnectPageState extends State<WCConnectPage>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Scaffold(
-      appBar: getBackAppBar(
-        context,
-        onBack: () => _reject(),
-      ),
-      body: Container(
-        margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(
-            "connect".tr(),
-            style: theme.textTheme.headline1,
-          ),
-          const SizedBox(height: 24.0),
-          _appInfo(),
-          const SizedBox(height: 24.0),
-          Padding(
-            padding: const EdgeInsets.only(left: 10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ...grantPermissions
-                    .map(
-                      (permission) => Text("• $permission",
-                          style: theme.textTheme.bodyText1),
-                    )
-                    .toList(),
-              ],
+    return WillPopScope(
+      onWillPop: () async {
+        _reject();
+        return true;
+      },
+      child: Scaffold(
+        appBar: getBackAppBar(
+          context,
+          onBack: () => _reject(),
+        ),
+        body: Container(
+          margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(
+              "connect".tr(),
+              style: theme.textTheme.headline1,
             ),
-          ),
-          const SizedBox(height: 40),
-          BlocConsumer<PersonaBloc, PersonaState>(listener: (context, state) {
-            var statePersonas = state.personas;
-            if (statePersonas == null) return;
+            const SizedBox(height: 24.0),
+            _appInfo(),
+            const SizedBox(height: 24.0),
+            Padding(
+              padding: const EdgeInsets.only(left: 10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ...grantPermissions
+                      .map(
+                        (permission) => Text("• $permission",
+                            style: theme.textTheme.bodyText1),
+                      )
+                      .toList(),
+                ],
+              ),
+            ),
+            const SizedBox(height: 40),
+            BlocConsumer<PersonaBloc, PersonaState>(listener: (context, state) {
+              var statePersonas = state.personas;
+              if (statePersonas == null) return;
 
-            final scopedPersonaUUID = memoryValues.scopedPersona;
-            if (scopedPersonaUUID != null) {
-              final scopedPersona = statePersonas
-                  .firstWhere((element) => element.uuid == scopedPersonaUUID);
-              statePersonas = [scopedPersona];
-            }
+              final scopedPersonaUUID = memoryValues.scopedPersona;
+              if (scopedPersonaUUID != null) {
+                final scopedPersona = statePersonas
+                    .firstWhere((element) => element.uuid == scopedPersonaUUID);
+                statePersonas = [scopedPersona];
+              }
 
-            if (statePersonas.length == 1) {
+              if (statePersonas.length == 1) {
+                setState(() {
+                  selectedPersona = statePersonas?.first;
+                });
+              }
+
               setState(() {
-                selectedPersona = statePersonas?.first;
+                personas = statePersonas;
               });
-            }
+            }, builder: (context, state) {
+              final statePersonas = personas;
+              if (statePersonas == null) return const SizedBox();
 
-            setState(() {
-              personas = statePersonas;
-            });
-          }, builder: (context, state) {
-            final statePersonas = personas;
-            if (statePersonas == null) return const SizedBox();
-
-            if (statePersonas.isEmpty) {
-              return Expanded(child: _suggestToCreatePersona());
-            } else {
-              return Expanded(child: _selectPersonaWidget(statePersonas));
-            }
-          }),
-        ]),
+              if (statePersonas.isEmpty) {
+                return Expanded(child: _suggestToCreatePersona());
+              } else {
+                return Expanded(child: _selectPersonaWidget(statePersonas));
+              }
+            }),
+          ]),
+        ),
       ),
     );
   }
