@@ -181,6 +181,20 @@ Future<void> scrollUntil(AppiumWebDriver driver, String decs) async {
   await scroll(driver, scrollUIAutomator);
 }
 
+Future<void> timeDelay(int second) async {
+  Duration dur = Duration(seconds: 1);
+  for (int i = 0; i < second; i++){
+    //print(i);
+    await Future.delayed(dur);
+  }
+}
+
+Future<void> goBack(AppiumWebDriver driver, int step) async {
+  for (int i = 0; i < step; i++) {
+    await driver.back();
+  }
+}
+
 Future<void> captureScreen(AppiumWebDriver driver) async {
   var screenshot = await driver.captureScreenshotAsBase64();
 
