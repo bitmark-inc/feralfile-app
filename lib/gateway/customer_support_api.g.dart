@@ -43,8 +43,6 @@ class _CustomerSupportApi implements CustomerSupportApi {
                     queryParameters: queryParameters, data: _data)
                 .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
     final value = IssueDetails.fromJson(_result.data!);
-    print("========================");
-    print(_result.data);
     return value;
   }
 

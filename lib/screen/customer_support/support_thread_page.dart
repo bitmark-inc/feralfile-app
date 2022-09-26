@@ -48,10 +48,14 @@ class NewIssuePayload extends SupportThreadPayload {
 class DetailIssuePayload extends SupportThreadPayload {
   final String reportIssueType;
   final String issueID;
+  final String status;
+  final bool isRated;
 
   DetailIssuePayload({
     required this.reportIssueType,
     required this.issueID,
+    this.status = "",
+    this.isRated = false
   });
 }
 
@@ -88,6 +92,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
 
   String _status = '';
   bool _isRated = false;
+
 
   late var _forceAccountsViewRedraw;
   var _sendIcon = "assets/images/sendMessage.svg";
@@ -150,6 +155,8 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       }
     } else if (payload is DetailIssuePayload) {
       _reportIssueType = payload.reportIssueType;
+      _status = payload.status;
+      _isRated = payload.isRated;
       _issueID =
           injector<CustomerSupportService>().tempIssueIDMap[payload.issueID] ??
               payload.issueID;
@@ -175,6 +182,8 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     if (_issueID != null && !_issueID!.startsWith("TEMP")) {
       _loadIssueDetails();
     }
+
+
   }
 
   @override
@@ -245,13 +254,8 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       final ratingIndex = _firstRatingIndex(messages);
       messages.insert(ratingIndex + 1, _resolvedMessenger);
       messages.insert(ratingIndex + 1, _askRatingMessenger);
-      if(messages[0] == _askRatingMessenger){
-        _isRated = false;
-      }
-
-      if (ratingIndex > -1) {
+      if (ratingIndex > -1 && _status == 'closed') {
         messages.insert(ratingIndex, _askReviewMessenger);
-        _isRated = true;
       }
     }
 
@@ -261,7 +265,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
           messages.insert(i + 1, _resolvedMessenger);
           messages.insert(i + 1, _askRatingMessenger);
         }
-        if(_isCustomerSupportMessage(messages[i-1])) {
+        if(i > 0 && _isCustomerSupportMessage(messages[i-1])) {
           messages.insert(i, _askReviewMessenger);
           i++;
         }
@@ -294,7 +298,6 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
               onSendPressed: _handleSendPressed,
               inputOptions: InputOptions(
                   sendButtonVisibilityMode: SendButtonVisibilityMode.always,
-                  // fix this to reduce the time of rebuild when typing
                   onTextChanged: (text) {
                     if (_sendIcon == "assets/images/sendMessageFilled.svg" && text.trim() == '' ||
                         _sendIcon == "assets/images/sendMessage.svg" && text.trim() != ''){
@@ -444,9 +447,16 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
 
     if (mounted) {
       setState(() {
+        String lastMessage = "";
+        if (issueDetails.messages.isNotEmpty){
+          lastMessage = issueDetails.messages[0].message ?? "";
+        }
+
         _status = issueDetails.issue.status;
         _isRated = issueDetails.issue.rating > 0 &&
-            issueDetails.issue.status == "closed";
+            issueDetails.issue.status == "closed" &&
+            (lastMessage.contains(RATING_MESSAGE_START) ||
+            lastMessage.contains(STAR_RATING));
         _reportIssueType = issueDetails.issue.reportIssueType;
         _messages = parsedMessages;
       });
@@ -558,7 +568,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     setState(() {
       _sendIcon = "assets/images/sendMessage.svg";
       _forceAccountsViewRedraw = Object();
-      if (isRating == true) _isRated == true;
+      if (isRating == true) _isRated = true;
     });
   }
 
