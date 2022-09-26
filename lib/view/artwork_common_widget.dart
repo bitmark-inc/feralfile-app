@@ -338,8 +338,7 @@ class GalleryThumbnailPlaceholder extends StatelessWidget {
     return AspectRatio(
       aspectRatio: 1,
       child: ClipPath(
-        clipper:
-            loading ? AutonomyTopRightRectangleClipper() : null,
+        clipper: loading ? AutonomyTopRightRectangleClipper() : null,
         child: Container(
           padding: const EdgeInsets.all(13),
           color: const Color.fromRGBO(227, 227, 227, 1),
@@ -737,11 +736,13 @@ Widget artworkDetailsMetadataSection(
       _rowItem(context, "medium".tr(), asset.medium?.capitalize()),
       const Divider(height: 32.0),
       _rowItem(
-          context,
-          "date_minted".tr(),
-          asset.mintedAt != null
-              ? localTimeStringFromISO8601(asset.mintedAt!)
-              : null),
+        context,
+        "date_minted".tr(),
+        asset.mintedAt != null
+            ? localTimeStringFromISO8601(asset.mintedAt!)
+            : null,
+        maxLines: 1,
+      ),
       asset.assetData != null && asset.assetData!.isNotEmpty
           ? Column(
               children: [
@@ -830,11 +831,13 @@ Widget artworkDetailsProvenanceSectionNotEmpty(
                   title: Row(
                     children: [
                       Flexible(
-                        child: Text(
-                          identityTitle ?? '',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.headline4,
+                        child: FittedBox(
+                          child: Text(
+                            identityTitle ?? '',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.headline4,
+                          ),
                         ),
                       ),
                       Visibility(
@@ -846,6 +849,7 @@ Widget artworkDetailsProvenanceSectionNotEmpty(
                       ),
                     ],
                   ),
+                  maxLines: 1,
                 ),
                 const Divider(height: 32.0),
               ],
@@ -938,6 +942,7 @@ Widget _rowItem(
   bool? forceSafariVC,
   Function()? onValueTap,
   Widget? title,
+  int maxLines = 2,
 }) {
   if (onValueTap == null && tapLink != null) {
     final uri = Uri.parse(tapLink);
@@ -953,6 +958,7 @@ Widget _rowItem(
     mainAxisAlignment: MainAxisAlignment.spaceBetween,
     children: [
       Flexible(
+        flex: 3,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -973,6 +979,7 @@ Widget _rowItem(
         ),
       ),
       Flexible(
+        flex: 4,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
@@ -982,7 +989,7 @@ Widget _rowItem(
                 child: Text(
                   value ?? '',
                   textAlign: TextAlign.end,
-                  maxLines: 2,
+                  maxLines: maxLines,
                   softWrap: true,
                   overflow: TextOverflow.ellipsis,
                   style: onValueTap != null
