@@ -30,7 +30,7 @@ void main() {
     });
 
     tearDown(() async {
-      //await driver.app.remove(AUTONOMY_APPPACKAGE);
+      await driver.app.remove(AUTONOMY_APPPACKAGE);
       await driver.quit();
     });
 
