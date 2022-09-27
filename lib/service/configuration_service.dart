@@ -10,6 +10,7 @@ import 'dart:convert';
 import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
+import 'package:autonomy_flutter/service/social_recovery/shard_deck.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -73,6 +74,8 @@ abstract class ConfigurationService {
   Future<void> setLastRemindReviewDate(String? value);
   int? countOpenApp();
   Future<void> setCountOpenApp(int? value);
+  ShardDeck? getCachedDeckFromShardService();
+  Future<void> setCachedDeckFromShardService(ShardDeck? deck);
 
   // Feed
   Future<void> setLastTimeOpenFeed(int timestamp);
@@ -118,6 +121,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_IMMEDIATE_INFOVIEW = 'immediate_infoview';
   static const String ACCOUNT_HMAC_SECRET = "account_hmac_secret";
   static const String KEY_FINISHED_FEED_ONBOARDING = "finished_feed_onboarding";
+  static const String CACHED_DECK_FROM_SHARD_SERVICE =
+      'CACHED_DECK_FROM_SHARD_SERVICE';
 
   // keys for WalletConnect dapp side
   static const String KEY_WC_DAPP_SESSION = "wc_dapp_store";
@@ -486,6 +491,23 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   List<String> getFinishedSurveys() {
     return _preferences.getStringList(KEY_FINISHED_SURVEYS) ?? [];
+  }
+
+  @override
+  ShardDeck? getCachedDeckFromShardService() {
+    final value = _preferences.getString(CACHED_DECK_FROM_SHARD_SERVICE);
+
+    if (value == null) return null;
+    return ShardDeck.fromJson(jsonDecode(value));
+  }
+
+  Future setCachedDeckFromShardService(ShardDeck? deck) async {
+    if (deck == null) {
+      await _preferences.remove(CACHED_DECK_FROM_SHARD_SERVICE);
+    } else {
+      await _preferences.setString(
+          CACHED_DECK_FROM_SHARD_SERVICE, jsonEncode(deck));
+    }
   }
 
   @override

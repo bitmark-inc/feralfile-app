@@ -31,7 +31,7 @@ import 'package:nft_rendering/nft_rendering.dart';
 
 // ignore: depend_on_referenced_packages
 import 'package:path/path.dart' as p;
-import 'package:share/share.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../common/injector.dart';

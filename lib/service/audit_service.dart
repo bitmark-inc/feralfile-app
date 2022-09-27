@@ -15,11 +15,13 @@ import 'package:uuid/uuid.dart';
 abstract class AuditService {
   void auditFirstLog();
   Future auditPersonaAction(String action, Persona? persona);
+  Future auditSocialRecoveryAction(String action, String metadata);
   Future<List<int>> export();
 }
 
 class AuditCategory {
   static const fullAccount = 'fullAccount';
+  static const SocialRecovery = 'socialRecovery';
 }
 
 class AuditServiceImpl extends AuditService {
@@ -77,6 +79,18 @@ class AuditServiceImpl extends AuditService {
       action: action,
       createdAt: DateTime.now(),
       metadata: jsonEncode(metadata),
+    );
+
+    await _cloudDB.auditDao.insertAudit(audit);
+  }
+
+  Future auditSocialRecoveryAction(String action, String metadata) async {
+    final audit = Audit(
+      uuid: Uuid().v4(),
+      category: AuditCategory.SocialRecovery,
+      action: action,
+      createdAt: DateTime.now(),
+      metadata: metadata,
     );
 
     await _cloudDB.auditDao.insertAudit(audit);

@@ -13,6 +13,8 @@ import 'package:autonomy_flutter/model/jwt.dart' as _i2;
 import 'package:autonomy_flutter/model/network.dart' as _i15;
 import 'package:autonomy_flutter/service/account_service.dart' as _i10;
 import 'package:autonomy_flutter/service/configuration_service.dart' as _i13;
+import 'package:autonomy_flutter/service/social_recovery/shard_deck.dart'
+    as _i16;
 import 'package:autonomy_flutter/service/wallet_connect_dapp_service/wc_connected_session.dart'
     as _i11;
 import 'package:autonomy_flutter/util/constants.dart' as _i12;
@@ -106,6 +108,11 @@ class MockAccountService extends _i1.Mock implements _i10.AccountService {
           Invocation.method(#getDefaultAccount, []),
           returnValue: Future<_i4.WalletStorage>.value(_FakeWalletStorage_3()))
       as _i8.Future<_i4.WalletStorage>);
+  @override
+  _i8.Future<_i4.WalletStorage?> getCurrentDefaultAccount() =>
+      (super.noSuchMethod(Invocation.method(#getCurrentDefaultAccount, []),
+              returnValue: Future<_i4.WalletStorage?>.value())
+          as _i8.Future<_i4.WalletStorage?>);
   @override
   _i8.Future<dynamic> androidBackupKeys() =>
       (super.noSuchMethod(Invocation.method(#androidBackupKeys, []),
@@ -383,9 +390,32 @@ class MockConfigurationService extends _i1.Mock
           returnValue: Future<void>.value(),
           returnValueForMissingStub: Future<void>.value()) as _i8.Future<void>);
   @override
+  _i8.Future<void> setImmediateInfoViewEnabled(bool? value) => (super
+      .noSuchMethod(Invocation.method(#setImmediateInfoViewEnabled, [value]),
+          returnValue: Future<void>.value(),
+          returnValueForMissingStub: Future<void>.value()) as _i8.Future<void>);
+  @override
+  bool isImmediateInfoViewEnabled() =>
+      (super.noSuchMethod(Invocation.method(#isImmediateInfoViewEnabled, []),
+          returnValue: false) as bool);
+  @override
   _i8.Future<String> getAccountHMACSecret() =>
       (super.noSuchMethod(Invocation.method(#getAccountHMACSecret, []),
           returnValue: Future<String>.value('')) as _i8.Future<String>);
+  @override
+  _i8.Future<void> setCachedDeckFromShardService(_i16.ShardDeck? deck) => (super
+      .noSuchMethod(Invocation.method(#setCachedDeckFromShardService, [deck]),
+          returnValue: Future<void>.value(),
+          returnValueForMissingStub: Future<void>.value()) as _i8.Future<void>);
+  @override
+  bool isLostPlatformRestore() =>
+      (super.noSuchMethod(Invocation.method(#isLostPlatformRestore, []),
+          returnValue: false) as bool);
+  @override
+  _i8.Future<void> setIsLostPlatformRestore(bool? value) =>
+      (super.noSuchMethod(Invocation.method(#setIsLostPlatformRestore, [value]),
+          returnValue: Future<void>.value(),
+          returnValueForMissingStub: Future<void>.value()) as _i8.Future<void>);
   @override
   bool isDemoArtworksMode() =>
       (super.noSuchMethod(Invocation.method(#isDemoArtworksMode, []),

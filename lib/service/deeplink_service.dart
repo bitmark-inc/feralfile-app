@@ -7,12 +7,17 @@
 
 import 'dart:async';
 
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/social_recovery/setup/recovery_institutional_verify_page.dart';
+import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -23,7 +28,8 @@ import 'package:uni_links/uni_links.dart';
 
 abstract class DeeplinkService {
   Future setup();
-  void handleDeeplink(String? link);
+
+  Future handleDeeplink(String? link);
 }
 
 class DeeplinkServiceImpl extends DeeplinkService {
@@ -56,7 +62,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
         }
       }
     }, onError: (error) {
-      log.warning('[DeeplinkService] InitBranchSession error: ${error.toString()}');
+      log.warning(
+          '[DeeplinkService] InitBranchSession error: ${error.toString()}');
     });
 
     try {
@@ -70,7 +77,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
   }
 
   @override
-  void handleDeeplink(String? link) {
+  Future handleDeeplink(String? link) async {
     // return for case when FeralFile pass empty deeplink to return Autonomy
     if (link == "autonomy://") return;
 
@@ -78,9 +85,15 @@ class DeeplinkServiceImpl extends DeeplinkService {
 
     log.info("[DeeplinkService] receive deeplink $link");
 
-    Timer.periodic(const Duration(seconds: 2), (timer) {
+    Timer.periodic(const Duration(seconds: 2), (timer) async {
       timer.cancel();
-      _handleDappConnectDeeplink(link) || _handleFeralFileDeeplink(link);
+
+      final validLink = _handleDappConnectDeeplink(link) ||
+          _handleFeralFileDeeplink(link) ||
+          await _handleSendDeckToShardService(link) ||
+          await _handleGetDeckToShardService(link);
+
+      if (!validLink) throw InvalidDeeplink();
     });
   }
 
@@ -187,6 +200,145 @@ class DeeplinkServiceImpl extends DeeplinkService {
     } else {
       _navigationService.showFFAccountLinked(connection.name,
           inOnboarding: true);
+    }
+  }
+
+  Future<bool> _handleSendDeckToShardService(String link) async {
+    log.info("[DeeplinkService] _handleSendDeckToShardService");
+    final uri = Uri.parse(link);
+
+    if (uri.path == "/apps/social-recovery/set") {
+      final code = uri.queryParameters['code'];
+      final domain = uri.queryParameters['domain'];
+
+      if (code == null || domain == null) {
+        throw InvalidDeeplink();
+      }
+
+      await injector<NavigationService>()
+          .navigatorKey
+          .currentState
+          ?.pushNamedAndRemoveUntil(
+            AppRouter.recoveryInstitutionalVerifyPage,
+            (route) =>
+                route.settings.name !=
+                AppRouter.recoveryInstitutionalVerifyPage,
+            arguments: RecoveryVerifyPayload(code, domain),
+          );
+      // final context = injector<NavigationService>().navigatorKey.currentContext!;
+      //
+      // UIHelper.showInfoDialog(
+      //   context,
+      //   'Processing...',
+      //   'Sending ShardDeck to $domain',
+      //   autoDismissAfter: 5,
+      //   isDismissible: false,
+      // );
+      //
+      // await injector<SocialRecoveryService>()
+      //     .sendDeckToShardService(domain, code);
+      //
+      // injector<NavigationService>().popUntilHomeOrSettings();
+
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  Future<bool> _handleGetDeckToShardService(String link) async {
+    log.info("[DeeplinkService] _handleGetDeckToShardService");
+
+    final uri = Uri.parse(link);
+    if (uri.path == "/apps/social-recovery/get") {
+      final code = uri.queryParameters['code'];
+      final domain = uri.queryParameters['domain'];
+
+      if (code == null ||
+          domain == null ||
+          (await injector<AccountService>().getCurrentDefaultAccount()) !=
+              null) {
+        throw InvalidDeeplink();
+      }
+
+      await injector<NavigationService>()
+          .navigatorKey
+          .currentState
+          ?.pushNamedAndRemoveUntil(
+            AppRouter.restoreInstitutionalVerifyPage,
+            (route) =>
+                route.settings.name != AppRouter.restoreInstitutionalVerifyPage,
+            arguments: RecoveryVerifyPayload(code, domain),
+          );
+
+      // final context =
+      //     injector<NavigationService>().navigatorKey.currentContext!;
+      //
+      // UIHelper.showInfoDialog(
+      //   context,
+      //   'Processing...',
+      //   'Getting ShardDeck from $domain',
+      //   isDismissible: false,
+      // );
+      //
+      // late ShardDeck shardServiceDeck;
+      // try {
+      //   shardServiceDeck = await injector<SocialRecoveryService>()
+      //       .requestDeckFromShardService(domain, code);
+      // } catch (_) {
+      //   Navigator.of(context).pop();
+      //   rethrow;
+      // }
+      // await _configurationService
+      //     .setCachedDeckFromShardService(shardServiceDeck);
+      // await Future.delayed(SHOW_DIALOG_DURATION);
+      //
+      // final hasPlatformShards =
+      //     await injector<SocialRecoveryService>().hasPlatformShards();
+      // if (hasPlatformShards) {
+      //   // try to restore from PlatformShards & ShardService's ShardDeck
+      //   Navigator.of(context).pop();
+      //   UIHelper.showInfoDialog(context, "RESTORING...",
+      //       'Restoring your account with 2 shardDecks: Platform & ShardService');
+      //   await Future.delayed(SHORT_SHOW_DIALOG_DURATION);
+      //
+      //   try {
+      //     await injector<SocialRecoveryService>()
+      //         .restoreAccountWithPlatformKey(shardServiceDeck);
+      //     doneOnboardingRestore(context);
+      //   } on SocialRecoveryMissingShard catch (_) {
+      //     Navigator.of(context).pop();
+      //     final theme = Theme.of(context);
+      //     UIHelper.showDialog(
+      //       context,
+      //       "Error",
+      //       Text("ShardDecks don't match.",
+      //           style: theme.primaryTextTheme.bodyText1),
+      //       submitButton: AuFilledButton(
+      //           text: 'RESTORE WITH EMERGENCY CONTACT',
+      //           onPress: () => Navigator.of(context).pushNamedAndRemoveUntil(
+      //               AppRouter.restoreWithEmergencyContactPage,
+      //               (route) =>
+      //                   route.settings.name == AppRouter.onboardingPage)),
+      //       closeButton: 'CLOSE',
+      //     );
+      //   } catch (_) {
+      //     Navigator.of(context).pop();
+      //     rethrow;
+      //   }
+      // } else {
+      //   // missing platformShards, ask EC's ShardDeck to restore
+      //   Navigator.of(context).pop();
+      //   await injector<NavigationService>()
+      //       .navigatorKey
+      //       .currentState
+      //       ?.pushNamedAndRemoveUntil(AppRouter.restoreWithEmergencyContactPage,
+      //           (route) => route.settings.name == AppRouter.onboardingPage);
+      // }
+
+      return true;
+    } else {
+      return false;
     }
   }
 }

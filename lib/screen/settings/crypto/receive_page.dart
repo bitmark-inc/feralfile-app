@@ -12,8 +12,8 @@ import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:share/share.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:share_plus/share_plus.dart';
 
 class ReceivePage extends StatelessWidget {
   static const String tag = 'receive';

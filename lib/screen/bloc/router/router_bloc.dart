@@ -8,11 +8,12 @@
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
+import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/iap_service.dart';
+import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/migration/migration_util.dart';
 
@@ -23,28 +24,27 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
   final BackupService _backupService;
   final AccountService _accountService;
   final CloudDatabase _cloudDB;
-  final IAPService _iapService;
-  final AuditService _auditService;
+  final MigrationUtil _migrationUtil;
 
   Future<bool> hasAccounts() async {
     final personas = await _cloudDB.personaDao.getPersonas();
-    final connections = await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
-    return personas.isNotEmpty || connections.isNotEmpty;
+    return personas.isNotEmpty;
   }
 
-  RouterBloc(this._configurationService, this._backupService,
-      this._accountService, this._cloudDB, this._iapService, this._auditService)
-      : super(RouterState(onboardingStep: OnboardingStep.undefined)) {
-    final migrationUtil = MigrationUtil(_configurationService, _cloudDB,
-        _accountService, _iapService, _auditService, _backupService);
-
+  RouterBloc(
+    this._configurationService,
+    this._backupService,
+    this._accountService,
+    this._cloudDB,
+    this._migrationUtil,
+  ) : super(RouterState(onboardingStep: OnboardingStep.undefined)) {
     on<DefineViewRoutingEvent>((event, emit) async {
       if (state.onboardingStep != OnboardingStep.undefined) return;
 
-      await migrationUtil.migrateIfNeeded();
+      await _migrationUtil.migrateIfNeeded();
 
       // Check and restore full accounts from cloud if existing
-      await migrationUtil.migrationFromKeychain();
+      await _migrationUtil.migrationFromKeychain();
       await _accountService.androidRestoreKeys();
 
       if (_configurationService.isDoneOnboarding()) {
@@ -56,47 +56,52 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
       await Future.delayed(const Duration(seconds: 1));
 
       if (await hasAccounts()) {
-        final backupVersion = await _backupService
-            .fetchBackupVersion(await _accountService.getDefaultAccount());
-
-        if (backupVersion.isNotEmpty) {
-          log.info("[DefineViewRoutingEvent] have backup version");
-          //restore backup database
-          emit(RouterState(
-              onboardingStep: OnboardingStep.restore,
-              backupVersion: backupVersion));
-          return;
-        } else {
-          _configurationService.setDoneOnboarding(true);
-          emit(RouterState(onboardingStep: OnboardingStep.dashboard));
-          return;
-        }
+        emit(RouterState(onboardingStep: OnboardingStep.restore));
+        //
       } else {
-        emit(RouterState(onboardingStep: OnboardingStep.startScreen));
+        if (_configurationService.getCachedDeckFromShardService() == null) {
+          emit(RouterState(onboardingStep: OnboardingStep.startScreen));
+          //
+        } else {
+          // user's in process restoring account with social recovery
+          emit(RouterState(
+              onboardingStep: OnboardingStep.restoreWithEmergencyContact));
+        }
       }
     });
 
     on<RestoreCloudDatabaseRoutingEvent>((event, emit) async {
-      emit(RouterState(
-          onboardingStep: state.onboardingStep,
-          backupVersion: state.backupVersion,
-          isLoading: true));
-
-      await _backupService.restoreCloudDatabase(
-          await _accountService.getDefaultAccount(), event.version);
-      await _accountService.androidRestoreKeys();
+      emit(state.copyWith(isRestoring: true));
 
       final personas = await _cloudDB.personaDao.getPersonas();
-      final connections =
-          await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
-      if (personas.isEmpty && connections.isEmpty) {
-        _configurationService.setDoneOnboarding(false);
-        emit(RouterState(onboardingStep: OnboardingStep.startScreen));
-      } else {
-        _configurationService.setDoneOnboarding(true);
-        emit(RouterState(onboardingStep: OnboardingStep.dashboard));
+      if (personas.isEmpty) throw IncorrectFlow();
+
+      // Scan to get the backup version from the earliest persona
+      Persona defaultAccount = personas.first;
+      String? backupVersion;
+      for (final persona in personas) {
+        try {
+          backupVersion =
+              await _backupService.fetchBackupVersion(persona.wallet());
+          defaultAccount = persona;
+          break;
+        } catch (_) {
+          continue;
+        }
       }
-      await migrationUtil.migrateIfNeeded();
+      log.info(
+          "[RestoreCloudDatabaseRoutingEvent] scanBackupVersion result: ${defaultAccount.uuid} - $backupVersion");
+
+      if (backupVersion != null) {
+        await _backupService.restoreCloudDatabase(
+            defaultAccount.wallet(), backupVersion);
+        await _migrationUtil.migrationFromKeychain();
+      }
+
+      // Finish restore process
+      await _cloudDB.personaDao.setUniqueDefaultAccount(defaultAccount.uuid);
+      await _configurationService.setDoneOnboarding(true);
+      emit(RouterState(onboardingStep: OnboardingStep.dashboard));
     });
   }
 }

@@ -106,6 +106,9 @@ class Environment {
   static bool get appTestnetConfig =>
       dotenv.env['APP_TESTNET_CONFIG']?.toUpperCase() == "TRUE";
 
+  static String get autonomyShardService =>
+      dotenv.env['AUTONOMY_SHARD_SERVICE'] ?? '';
+
   static String get metricEndpoint => dotenv.env['METRIC_ENDPOINT'] ?? '';
   static String get metricSecretKey => dotenv.env['METRIC_SECRET_KEY'] ?? '';
 }

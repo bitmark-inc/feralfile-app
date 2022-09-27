@@ -67,6 +67,35 @@ import Sentry
                 LibAukChannelHandler.shared.getBitmarkAddress(call: call, result: result)
             case "removeKeys":
                 LibAukChannelHandler.shared.removeKeys(call: call, result: result)
+            case "setupSSKR":
+                LibAukChannelHandler.shared.setupSSKR(call: call, result: result)
+            case "getShard":
+                LibAukChannelHandler.shared.getShard(call: call, result: result)
+            case "removeShard":
+                LibAukChannelHandler.shared.removeShard(call: call, result: result)
+            case "restoreByBytewordShards":
+                LibAukChannelHandler.shared.restoreByBytewordShards(call: call, result: result)
+            case "hasPlatformShards":
+                LibAukChannelHandler.shared.hasPlatformShards(call: call, result: result)
+            case "scanPersonaUUIDs":
+                LibAukChannelHandler.shared.scanPersonaUUIDs(call: call, result: result)
+            case "migrateAccountsFromV0ToV1":
+                LibAukChannelHandler.shared.migrateAccountsFromV0ToV1(call: call, result: result)
+            default:
+                result(FlutterMethodNotImplemented)
+            }
+        })
+
+        let socialRecoveryChannel = FlutterMethodChannel(name: "social_recovery",
+                                                 binaryMessenger: controller.binaryMessenger)
+        socialRecoveryChannel.setMethodCallHandler({(call: FlutterMethodCall, result: @escaping FlutterResult) -> Void in
+            switch call.method {
+            case "getContactDecks":
+                SocialRecoveryChannelHandler.shared.getContactDecks(call: call, result: result)
+            case "storeContactDeck":
+                SocialRecoveryChannelHandler.shared.storeContactDeck(call: call, result: result)
+            case "deleteHelpingContactDecks":
+                SocialRecoveryChannelHandler.shared.deleteHelpingContactDecks(call: call, result: result)
             default:
                 result(FlutterMethodNotImplemented)
             }
@@ -82,12 +111,21 @@ import Sentry
             case "cleariOSMigrationData":
                 SystemChannelHandler.shared.cleariOSMigrationData(call: call, result: result)
 
-            case "getWalletUUIDsFromKeychain":
-                SystemChannelHandler.shared.getWalletUUIDsFromKeychain(call: call, result: result)
-
             case "getDeviceID":
                 SystemChannelHandler.shared.getDeviceUniqueID(call: call, result: result)
-                
+
+            default:
+                result(FlutterMethodNotImplemented)
+            }
+        })
+
+        let systemChannel = FlutterMethodChannel(name: "system",
+                                                    binaryMessenger: controller.binaryMessenger)
+        systemChannel.setMethodCallHandler({(call: FlutterMethodCall, result: @escaping FlutterResult) -> Void in
+            switch call.method {
+            case "removeAllKeychainKeys":
+                SystemChannelHandler.shared.removeAllKeychainKeys(call: call, result: result)
+
             default:
                 result(FlutterMethodNotImplemented)
             }

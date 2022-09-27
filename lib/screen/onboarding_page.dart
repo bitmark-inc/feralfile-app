@@ -6,6 +6,7 @@
 //
 
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -69,6 +70,11 @@ class _OnboardingPageState extends State<OnboardingPage> {
             //     () => showSurveysNotification(context));
             break;
 
+          case OnboardingStep.restoreWithEmergencyContact:
+            Navigator.of(context)
+                .pushNamed(AppRouter.restoreWithEmergencyContactPage);
+            break;
+
           default:
             break;
         }
@@ -119,17 +125,37 @@ class _OnboardingPageState extends State<OnboardingPage> {
   Widget _getStartupButton(RouterState state) {
     switch (state.onboardingStep) {
       case OnboardingStep.startScreen:
-        return Row(
+      case OnboardingStep.restoreWithEmergencyContact:
+        return Column(
           children: [
-            Expanded(
-              child: AuFilledButton(
-                text: "start".tr().toUpperCase(),
-                key: const Key("start_button"),
-                onPress: () {
-                  Navigator.of(context).pushNamed(AppRouter.beOwnGalleryPage);
-                },
+            Row(
+              children: [
+                Expanded(
+                  child: AuFilledButton(
+                    text: "start".tr().toUpperCase(),
+                    onPress: () {
+                      Navigator.of(context)
+                          .pushNamed(AppRouter.beOwnGalleryPage);
+                    },
+                  ),
+                ),
+              ],
+            ),
+            // NOTE: Update this when support Social Recovery in Android
+            if (Platform.isIOS) ...[
+              TextButton(
+                onPressed: () => Navigator.of(context)
+                    .pushNamed(AppRouter.restoreIntroductionPage),
+                child: Text(
+                  "restore".tr().toUpperCase(),
+                  style: const TextStyle(
+                      color: Colors.black,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      fontFamily: "IBMPlexMono"),
+                ),
               ),
-            )
+            ]
           ],
         );
       case OnboardingStep.restore:
@@ -137,13 +163,14 @@ class _OnboardingPageState extends State<OnboardingPage> {
           children: [
             Expanded(
               child: AuFilledButton(
-                text: "restore".tr().toUpperCase(),
+                text: state.isRestoring ? "RESTORING..." : "restore".tr().toUpperCase(),
                 key: const Key("restore_button"),
-                onPress: !state.isLoading
+                isProcessing: state.isRestoring,
+                onPress: !state.isRestoring
                     ? () {
-                        context.read<RouterBloc>().add(
-                            RestoreCloudDatabaseRoutingEvent(
-                                state.backupVersion));
+                        context
+                            .read<RouterBloc>()
+                            .add(RestoreCloudDatabaseRoutingEvent());
                       }
                     : null,
               ),

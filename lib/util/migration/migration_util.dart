@@ -14,31 +14,35 @@ import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/model/connection_supports.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
-import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/migration/migration_data.dart';
 import 'package:flutter/services.dart';
+import 'package:libauk_dart/libauk_dart.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
-class MigrationUtil {
-  static const MethodChannel _channel = MethodChannel('migration_util');
-  final ConfigurationService _configurationService;
-  final CloudDatabase _cloudDB;
-  final AccountService _accountService;
-  final IAPService _iapService;
-  final AuditService _auditService;
-  final BackupService _backupService;
+abstract class MigrationUtil {
+  Future migrateIfNeeded();
+  Future migrationFromKeychain();
+}
 
-  MigrationUtil(
-      this._configurationService,
-      this._cloudDB,
-      this._accountService,
-      this._iapService,
-      this._auditService,
-      this._backupService);
+class MigrationUtilImpl extends MigrationUtil {
+  static const MethodChannel _channel = const MethodChannel('migration_util');
+  ConfigurationService _configurationService;
+  CloudDatabase _cloudDB;
+  AccountService _accountService;
+  IAPService _iapService;
+  AuditService _auditService;
+
+  MigrationUtilImpl(
+    this._configurationService,
+    this._cloudDB,
+    this._accountService,
+    this._iapService,
+    this._auditService,
+  );
 
   Future<void> migrateIfNeeded() async {
     if (Platform.isIOS) {
@@ -54,10 +58,12 @@ class MigrationUtil {
     log.info("[migration] finished");
   }
 
-  Future<void> migrationFromKeychain() async {
+  Future migrationFromKeychain() async {
     if (!Platform.isIOS) return;
-    final List personaUUIDs =
-        await _channel.invokeMethod('getWalletUUIDsFromKeychain', {});
+
+    await LibAukDart.general().migrateAccountsFromV0ToV1();
+
+    final List personaUUIDs = await LibAukDart.general().scanPersonaUUIDs();
 
     final personas = await _cloudDB.personaDao.getPersonas();
     if (personas.length == personaUUIDs.length &&
@@ -81,15 +87,11 @@ class MigrationUtil {
       if (existingPersona == null) {
         final wallet = Persona.newPersona(uuid: uuid).wallet();
         final name = await wallet.getName();
-
-        final backupVersion = await _backupService.fetchBackupVersion(wallet);
-        final defaultAccount = backupVersion.isNotEmpty ? 1 : null;
-
         final persona = Persona.newPersona(
             uuid: uuid,
             name: name,
             createdAt: DateTime.now(),
-            defaultAccount: defaultAccount);
+            defaultAccount: null);
 
         await _cloudDB.personaDao.insertPersona(persona);
         await _auditService.auditPersonaAction(

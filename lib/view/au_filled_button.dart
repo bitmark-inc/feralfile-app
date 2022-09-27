@@ -75,4 +75,24 @@ class AuFilledButton extends StatelessWidget {
       ),
     );
   }
+
+  AuFilledButton copyWith({
+    String? text,
+    Function()? onPress,
+    Color? color,
+    bool? enabled,
+    Widget? icon,
+    TextStyle? textStyle,
+    bool? isProcessing,
+  }) {
+    return AuFilledButton(
+      text: text ?? this.text,
+      onPress: onPress ?? this.onPress,
+      color: color ?? this.color,
+      enabled: enabled ?? this.enabled,
+      icon: icon ?? this.icon,
+      textStyle: textStyle ?? this.textStyle,
+      isProcessing: isProcessing ?? this.isProcessing,
+    );
+  }
 }

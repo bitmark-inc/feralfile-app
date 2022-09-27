@@ -285,6 +285,10 @@ void showErrorDialogFromException(Object exception,
       UIHelper.showInfoDialog(context, "😵", "link_not_valid".tr(),
           isDismissible: true, autoDismissAfter: 3);
       return;
+    } else if (exception is ExpiredCodeLink) {
+      UIHelper.showInfoDialog(context, "😵", "The link is not valid or expired",
+          isDismissible: true, autoDismissAfter: 3);
+      return;
     }
   }
 

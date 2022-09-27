@@ -10,6 +10,9 @@ import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
+import 'package:autonomy_flutter/screen/settings/forget_exist/forget_exist_bloc.dart';
+import 'package:autonomy_flutter/screen/settings/forget_exist/forget_exist_state.dart';
+import 'package:autonomy_flutter/screen/settings/forget_exist/forget_exist_view.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -111,6 +114,42 @@ class _AddAccountPageState extends State<AddAccountPage> {
                   ],
                 ),
                 const SizedBox(height: 40),
+                addDivider(),
+                TappableForwardRowWithContent(
+                    leftWidget: Text(
+                      'Debug - Erase Local Data',
+                      style: theme.textTheme.headline4,
+                    ),
+                    bottomWidget: Text(
+                        'Simulate Case 1: Restore from local account keys',
+                        style: theme.textTheme.bodyText1),
+                    onTap: () => _showEraseDeviceInfoDialog(
+                        'Erase Local Data', EraseLocalDataEvent())),
+                addDivider(),
+                TappableForwardRowWithContent(
+                    leftWidget: Text(
+                      'Debug - Erase Local Data and Local Keys',
+                      style: theme.textTheme.headline4,
+                    ),
+                    bottomWidget: Text(
+                        "Simulate Case 2 / 3: Restore from Platform Shards and ShardService's ShardDeck OR Emergency Contact's ShardDeck.\nDo after Social Recovery Setup is done.",
+                        style: theme.textTheme.bodyText1),
+                    onTap: () => _showEraseDeviceInfoDialog(
+                        'Erase Local Data and Keys',
+                        EraseLocalDataAndLocalKeysEvent())),
+                addDivider(),
+                TappableForwardRowWithContent(
+                    leftWidget: Text(
+                      'Debug - Erase Local Data and All Keys',
+                      style: theme.textTheme.headline4,
+                    ),
+                    bottomWidget: Text(
+                        "Simulate Case 4: Restore from ShardService + Emegency Contact's ShardDecks.\nDo after Social Recovery Setup is done.",
+                        style: theme.textTheme.bodyText1),
+                    onTap: () => _showEraseDeviceInfoDialog(
+                        'Erase Local Data and All Keys',
+                        EraseLocalDataAndAllKeysEvent())),
+                const SizedBox(height: 40),
               ],
             );
           }
@@ -187,6 +226,26 @@ class _AddAccountPageState extends State<AddAccountPage> {
           },
         );
       },
+    );
+  }
+
+  void _showEraseDeviceInfoDialog(String title, ForgetExistEvent event) {
+    UIHelper.showDialog(
+      context,
+      title,
+      BlocProvider(
+        create: (_) => ForgetExistBloc(
+          injector(),
+          injector(),
+          injector(),
+          injector(),
+          injector(),
+          injector(),
+          injector(),
+          injector(),
+        ),
+        child: ForgetExistView(event: event),
+      ),
     );
   }
 }

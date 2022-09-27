@@ -30,6 +30,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 
 import '../../view/responsive.dart';
+import 'package:share_plus/share_plus.dart';
 
 class PersonaConnectionsPage extends StatefulWidget {
   final PersonaConnectionsPayload payload;

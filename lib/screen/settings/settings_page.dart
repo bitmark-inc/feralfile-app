@@ -5,6 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:io';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -19,17 +21,18 @@ import 'package:autonomy_flutter/screen/settings/subscription/upgrade_view.dart'
 import 'package:autonomy_flutter/service/cloud_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
+import 'package:autonomy_flutter/service/social_recovery/social_recovery_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
-import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/eula_privacy.dart';
 import 'package:autonomy_flutter/view/penrose_top_bar_view.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
-import 'package:easy_localization/easy_localization.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -58,6 +61,7 @@ class _SettingsPageState extends State<SettingsPage>
     WidgetsBinding.instance.addObserver(this);
     _loadPackageInfo();
     context.read<AccountsBloc>().add(GetAccountsEvent());
+    injector<SocialRecoveryService>().refreshSetupStep();
     injector<SettingsDataService>().backup();
     _controller = ScrollController();
     _forceAccountsViewRedraw = Object();
@@ -80,6 +84,7 @@ class _SettingsPageState extends State<SettingsPage>
   void didPopNext() {
     super.didPopNext();
     context.read<AccountsBloc>().add(GetAccountsEvent());
+    injector<SocialRecoveryService>().refreshSetupStep();
     injector<SettingsDataService>().backup();
     setState(() {
       _forceAccountsViewRedraw = Object();
@@ -138,6 +143,7 @@ class _SettingsPageState extends State<SettingsPage>
                       const SizedBox(width: 13),
                     ],
                   ),
+                  _socialRecoveryWidget(),
                   const SizedBox(height: 40),
                   BlocProvider(
                     create: (_) => PreferencesBloc(injector()),
@@ -254,6 +260,207 @@ class _SettingsPageState extends State<SettingsPage>
     );
   }
 
+  // NOTE: Update this when support Social Recovery in Android
+  Widget _socialRecoveryWidget() {
+    if (!Platform.isIOS) return const SizedBox();
+
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 40),
+        Text(
+          "Recovery network",
+          style: theme.textTheme.headline1,
+        ),
+        const SizedBox(height: 24),
+        _setupSocialRecoveryWidget(),
+        addOnlyDivider(),
+        const SizedBox(height: 16),
+        TappableForwardRowWithContent(
+            leftWidget:
+                Text('People you’re helping', style: theme.textTheme.headline4),
+            bottomWidget: Text('Secure your friends’ recovery codes.',
+                //'Erase all information about me and delete my keys from my cloud backup including the keys on this device.',
+                style: theme.textTheme.bodyText1),
+            onTap: () => Navigator.of(context)
+                .pushNamed(AppRouter.socialRecoveryHelpingsPage)),
+      ],
+    );
+  }
+
+  Widget _setupSocialRecoveryWidget() {
+    final theme = Theme.of(context);
+
+    return ValueListenableBuilder<SocialRecoveryStep?>(
+        valueListenable: injector<SocialRecoveryService>().socialRecoveryStep,
+        builder:
+            (BuildContext context, SocialRecoveryStep? step, Widget? child) {
+          if (step == null) return loadingIndicator(size: 16);
+
+          switch (step) {
+            case SocialRecoveryStep.SetupShardService:
+              return InkWell(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Collaborative recovery',
+                            style: theme.textTheme.headline4),
+                        CupertinoSwitch(
+                          value: false,
+                          onChanged: null,
+                          activeColor: theme.colorScheme.primary,
+                        )
+                      ],
+                    ),
+                    const SizedBox(height: 7),
+                    Text(
+                      "Restore access if you lose your device. ",
+                      style: theme.textTheme.bodyText1,
+                    ),
+                    const SizedBox(height: 16.0),
+                  ],
+                ),
+                onTap: () => Navigator.of(context)
+                    .pushNamed(AppRouter.recoveryIntroductionPage),
+              );
+
+            case SocialRecoveryStep.SetupEmergencyContact:
+              return InkWell(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Collaborative recovery',
+                            style: theme.textTheme.headline4),
+                        CupertinoSwitch(
+                          value: false,
+                          onChanged: null,
+                          activeColor: theme.colorScheme.primary,
+                        )
+                      ],
+                    ),
+                    const SizedBox(height: 7),
+                    Text(
+                      "Restore access if you lose your device. ",
+                      style: theme.textTheme.bodyText1,
+                    ),
+                    const SizedBox(height: 16.0),
+                  ],
+                ),
+                onTap: () => Navigator.of(context)
+                    .pushNamed(AppRouter.personalCollaboratorPage),
+              );
+
+            case SocialRecoveryStep.RestartWhenHasChanges:
+              return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('You has changed your accounts',
+                        style: theme.textTheme.bodyText1
+                            ?.copyWith(color: theme.errorColor)),
+                    const SizedBox(height: 15),
+                    InkWell(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text('Collaborative recovery',
+                                  style: theme.textTheme.headline4),
+                              CupertinoSwitch(
+                                value: false,
+                                onChanged: (value) {},
+                                activeColor: theme.colorScheme.primary,
+                              )
+                            ],
+                          ),
+                          const SizedBox(height: 7),
+                          Text(
+                            "Restore access if you lose your device. ",
+                            style: theme.textTheme.bodyText1,
+                          ),
+                          const SizedBox(height: 16.0),
+                        ],
+                      ),
+                      onTap: () => Navigator.of(context)
+                          .pushNamed(AppRouter.recoveryIntroductionPage),
+                    ),
+                  ]);
+
+            case SocialRecoveryStep.RestartWhenLostPlatform:
+              return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                        'Recommend to re-setup. Social Recovery is compromised because the platform shards have lost',
+                        style: theme.textTheme.bodyText1
+                            ?.copyWith(color: theme.errorColor)),
+                    const SizedBox(height: 15),
+                    InkWell(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text('Collaborative recovery',
+                                  style: theme.textTheme.headline4),
+                              CupertinoSwitch(
+                                value: false,
+                                onChanged: (value) {},
+                                activeColor: theme.colorScheme.primary,
+                              )
+                            ],
+                          ),
+                          const SizedBox(height: 7),
+                          Text(
+                            "Restore access if you lose your device. ",
+                            style: theme.textTheme.bodyText1,
+                          ),
+                          const SizedBox(height: 16.0),
+                        ],
+                      ),
+                      onTap: () => Navigator.of(context)
+                          .pushNamed(AppRouter.recoveryIntroductionPage),
+                    ),
+                  ]);
+
+            case SocialRecoveryStep.Done:
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Collaborative recovery',
+                          style: theme.textTheme.headline4),
+                      CupertinoSwitch(
+                        value: true,
+                        onChanged: null,
+                        activeColor: theme.colorScheme.primary,
+                      )
+                    ],
+                  ),
+                  const SizedBox(height: 7),
+                  Text(
+                    "Any 2 of the following collaborators can help you restore access:\n\n • Apple\n • Feral File\n • Contact ",
+                    style: theme.textTheme.bodyText1,
+                  ),
+                  const SizedBox(height: 16.0),
+                ],
+              );
+          }
+        });
+  }
+
   Future<void> _loadPackageInfo() async {
     final info = await PackageInfo.fromPlatform();
     setState(() {
@@ -283,7 +490,7 @@ class _SettingsPageState extends State<SettingsPage>
       "forget_exist".tr(),
       BlocProvider(
         create: (_) => ForgetExistBloc(injector(), injector(), injector(),
-            injector(), injector(), injector(), injector()),
+            injector(), injector(), injector(), injector(), injector()),
         child: const ForgetExistView(),
       ),
     );

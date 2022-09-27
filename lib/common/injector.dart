@@ -37,6 +37,7 @@ import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/pending_token_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
+import 'package:autonomy_flutter/service/social_recovery/social_recovery_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
@@ -46,6 +47,7 @@ import 'package:autonomy_flutter/util/au_file_service.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
 import 'package:autonomy_flutter/util/isolated_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/migration/migration_util.dart';
 import 'package:dio/dio.dart';
 import 'package:dio_smart_retry/dio_smart_retry.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
@@ -253,6 +255,26 @@ Future<void> setup() async {
         injector(),
         injector(),
       ));
+
+  injector.registerLazySingleton<SocialRecoveryService>(
+    () => SocialRecoveryServiceImpl(
+      injector(),
+      injector(),
+      injector(),
+      injector(),
+      injector(),
+    ),
+  );
+
+  injector.registerLazySingleton<MigrationUtil>(
+    () => MigrationUtilImpl(
+      injector(),
+      injector(),
+      injector(),
+      injector(),
+      injector(),
+    ),
+  );
 
   injector.registerLazySingleton<DeeplinkService>(() => DeeplinkServiceImpl(
       injector(), injector(), injector(), injector(), injector()));

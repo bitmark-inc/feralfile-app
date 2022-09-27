@@ -5,10 +5,13 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/settings/forget_exist/forget_exist_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/forget_exist/forget_exist_state.dart';
+import 'package:autonomy_flutter/service/account_service.dart';
 
+import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
@@ -17,7 +20,17 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:roundcheckbox/roundcheckbox.dart';
 
 class ForgetExistView extends StatelessWidget {
-  const ForgetExistView({Key? key}) : super(key: key);
+  final ForgetExistEvent? event;
+
+  const ForgetExistView({Key? key, this.event}) : super(key: key);
+
+  String get descriptionEvent {
+    if (event == null || event is ConfirmForgetExistEvent) {
+      return "accounts_delete".tr();
+    } else {
+      return '';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +61,7 @@ class ForgetExistView extends StatelessWidget {
                           text: "action_irrevocable".tr(),
                           style: const TextStyle(fontWeight: FontWeight.bold)),
                       TextSpan(
-                        text: "accounts_delete".tr(),
+                        text: descriptionEvent,
                         //" Your accounts and data from your device and your cloud backup will be deleted. Autonomy will not be able to help you recover access.",
                       ),
                     ],
@@ -132,8 +145,15 @@ class ForgetExistView extends StatelessWidget {
             text:
                 state.isProcessing == true ? "forgetting".tr() : "confirm".tr(),
             enabled: state.isProcessing == null && state.isChecked,
-            onPress: () {
-              context.read<ForgetExistBloc>().add(ConfirmForgetExistEvent());
+            onPress: () async {
+              if (event == null || event is ConfirmForgetExistEvent) {
+                context
+                    .read<ForgetExistBloc>()
+                    .add(ConfirmForgetExistEvent());
+              } else {
+                await injector<BackupService>().backupCloudDatabase(await injector<AccountService>().getDefaultAccount());
+                context.read<ForgetExistBloc>().add(event!);
+              }
             },
             color: theme.colorScheme.secondary,
             isProcessing: state.isProcessing == true,
