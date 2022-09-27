@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart' as log_util;
+import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
@@ -51,12 +52,11 @@ class DetailIssuePayload extends SupportThreadPayload {
   final String status;
   final bool isRated;
 
-  DetailIssuePayload({
-    required this.reportIssueType,
-    required this.issueID,
-    this.status = "",
-    this.isRated = false
-  });
+  DetailIssuePayload(
+      {required this.reportIssueType,
+      required this.issueID,
+      this.status = "",
+      this.isRated = false});
 }
 
 class ExceptionErrorPayload extends SupportThreadPayload {
@@ -92,7 +92,6 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
 
   String _status = '';
   bool _isRated = false;
-
 
   late var _forceAccountsViewRedraw;
   var _sendIcon = "assets/images/sendMessage.svg";
@@ -182,8 +181,6 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     if (_issueID != null && !_issueID!.startsWith("TEMP")) {
       _loadIssueDetails();
     }
-
-
   }
 
   @override
@@ -259,13 +256,13 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       }
     }
 
-    for(int i = 0; i< messages.length; i++){
-      if(_isRatingMessage(messages[i])){
-        if(messages[i+1] != _askRatingMessenger) {
+    for (int i = 0; i < messages.length; i++) {
+      if (_isRatingMessage(messages[i])) {
+        if (messages[i + 1] != _askRatingMessenger) {
           messages.insert(i + 1, _resolvedMessenger);
           messages.insert(i + 1, _askRatingMessenger);
         }
-        if(i > 0 && _isCustomerSupportMessage(messages[i-1])) {
+        if (i > 0 && _isCustomerSupportMessage(messages[i - 1])) {
           messages.insert(i, _askReviewMessenger);
           i++;
         }
@@ -299,8 +296,10 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
               inputOptions: InputOptions(
                   sendButtonVisibilityMode: SendButtonVisibilityMode.always,
                   onTextChanged: (text) {
-                    if (_sendIcon == "assets/images/sendMessageFilled.svg" && text.trim() == '' ||
-                        _sendIcon == "assets/images/sendMessage.svg" && text.trim() != ''){
+                    if (_sendIcon == "assets/images/sendMessageFilled.svg" &&
+                            text.trim() == '' ||
+                        _sendIcon == "assets/images/sendMessage.svg" &&
+                            text.trim() != '') {
                       setState(() {
                         _sendIcon = text.trim() != ''
                             ? "assets/images/sendMessageFilled.svg"
@@ -353,9 +352,9 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       itemPadding: const EdgeInsets.symmetric(horizontal: 10.0),
       itemBuilder: (context, _) => const Icon(
         Icons.star,
-        color: Colors.black,
+        color: AppColor.primaryBlack,
       ),
-      unratedColor: AppColor.secondarySpanishGrey ,
+      unratedColor: AppColor.secondarySpanishGrey,
       ignoreGestures: true,
       onRatingUpdate: (double value) {},
     );
@@ -426,7 +425,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       case "rating":
         return Container(
           padding: const EdgeInsets.symmetric(vertical: 14),
-          color:  AppColor.chatPrimaryColor ,
+          color: AppColor.chatPrimaryColor,
           child: _ratingBar(message.metadata?["rating"]),
         );
 
@@ -448,7 +447,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     if (mounted) {
       setState(() {
         String lastMessage = "";
-        if (issueDetails.messages.isNotEmpty){
+        if (issueDetails.messages.isNotEmpty) {
           lastMessage = issueDetails.messages[0].message ?? "";
         }
 
@@ -456,7 +455,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
         _isRated = issueDetails.issue.rating > 0 &&
             issueDetails.issue.status == "closed" &&
             (lastMessage.contains(RATING_MESSAGE_START) ||
-            lastMessage.contains(STAR_RATING));
+                lastMessage.contains(STAR_RATING));
         _reportIssueType = issueDetails.issue.reportIssueType;
         _messages = parsedMessages;
       });
@@ -464,11 +463,8 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   }
 
   bool _isRating(types.Message message) {
-    List<int> listStar = [1, 2, 3, 4, 5];
-    if (message.metadata?["rating"] != null &&
-        message.metadata?["rating"] != "" &&
-        message.metadata?["rating"] > 0 &&
-        message.metadata?["rating"] < 6) return true;
+    final rating = message.metadata?["rating"];
+    if (rating != null && rating != "" && rating > 0 && rating < 6) return true;
     return false;
   }
 
@@ -772,11 +768,12 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   }
 
   int getRating(String text) {
-    if (text == "${STAR_RATING}1") return 1;
-    if (text == "${STAR_RATING}2") return 2;
-    if (text == "${STAR_RATING}3") return 3;
-    if (text == "${STAR_RATING}4") return 4;
-    if (text == "${STAR_RATING}5") return 5;
+    if (text.startsWith(STAR_RATING)){
+      final rating = int.tryParse(text.replacePrefix(STAR_RATING, ""));
+      if (rating != null && rating > 0 && rating <= 5) {
+        return rating;
+      }
+    }
     return 0;
   }
 
@@ -856,7 +853,7 @@ class _MyRatingBar extends State<MyRatingBar> {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.fromLTRB(0, 10, 0, 30),
-      color: Colors.black,
+      color: AppColor.primaryBlack,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
@@ -866,9 +863,9 @@ class _MyRatingBar extends State<MyRatingBar> {
             itemPadding: const EdgeInsets.symmetric(horizontal: 10.0),
             itemBuilder: (context, _) => const Icon(
               Icons.star,
-              color: Colors.white,
+              color: AppColor.white,
             ),
-            unratedColor: AppColor.chatSecondaryColor ,
+            unratedColor: AppColor.chatSecondaryColor,
             onRatingUpdate: _updateRating,
           ),
           const SizedBox(width: 40),
