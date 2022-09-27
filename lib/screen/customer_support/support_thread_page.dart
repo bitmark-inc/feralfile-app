@@ -355,7 +355,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
         Icons.star,
         color: Colors.black,
       ),
-      unratedColor: const Color(0xff999999),
+      unratedColor: AppColor.secondarySpanishGrey ,
       ignoreGestures: true,
       onRatingUpdate: (double value) {},
     );
@@ -426,7 +426,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       case "rating":
         return Container(
           padding: const EdgeInsets.symmetric(vertical: 14),
-          color: const Color(0xffEDEDED),
+          color:  AppColor.chatPrimaryColor ,
           child: _ratingBar(message.metadata?["rating"]),
         );
 
@@ -527,7 +527,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
         }
       }
     }
-    if (isRating == true) {
+    if (isRating) {
       mutedMessages.add(MUTE_RATING_MESSAGE);
     }
 
@@ -559,7 +559,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     }
 
     await injector<CustomerSupportService>().draftMessage(draft);
-    if (isRating == true) {
+    if (isRating) {
       final rating = getRating(data.text ?? "");
       if (rating > 0) {
         await injector<CustomerSupportService>().rateIssue(_issueID!, rating);
@@ -568,7 +568,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     setState(() {
       _sendIcon = "assets/images/sendMessage.svg";
       _forceAccountsViewRedraw = Object();
-      if (isRating == true) _isRated = true;
+      if (isRating) _isRated = true;
     });
   }
 
@@ -771,7 +771,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     return result;
   }
 
-  getRating(String text) {
+  int getRating(String text) {
     if (text == "${STAR_RATING}1") return 1;
     if (text == "${STAR_RATING}2") return 2;
     if (text == "${STAR_RATING}3") return 3;
@@ -868,7 +868,7 @@ class _MyRatingBar extends State<MyRatingBar> {
               Icons.star,
               color: Colors.white,
             ),
-            unratedColor: const Color(0xff6D6B6B),
+            unratedColor: AppColor.chatSecondaryColor ,
             onRatingUpdate: _updateRating,
           ),
           const SizedBox(width: 40),
