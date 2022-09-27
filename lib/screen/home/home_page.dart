@@ -33,6 +33,7 @@ import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/service/pending_token_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
@@ -513,6 +514,10 @@ class _HomePageState extends State<HomePage>
           RefreshTokenEvent(addresses: addresses, debugTokens: manualTokenIds));
       nftBloc.add(RequestIndexEvent(addresses));
       await metricClient.addEvent("device_foreground");
+      final pendingTokenService = injector<PendingTokenService>();
+      addresses.where((address) => address.startsWith("tz")).forEach((address) {
+        pendingTokenService.checkPendingTezosTokens(address, maxRetries: 1);
+      });
     });
 
     injector<VersionService>().checkForUpdate();
