@@ -1,8 +1,11 @@
+import 'dart:math';
+
 import 'package:autonomy_flutter/gateway/tzkt_api.dart';
 import 'package:autonomy_flutter/model/tzkt_operation.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:collection/collection.dart';
+import 'package:flutter/widgets.dart';
 import 'package:nft_collection/database/dao/asset_token_dao.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/services/tokens_service.dart';
@@ -159,16 +162,16 @@ class PendingTokenService {
         "[PendingTokenService] Check pending Ethereum tokens: $owner, $tx");
     int retryCount = 0;
     TransactionReceipt? receipt;
-    while (receipt == null && retryCount < _maxRetries) {
+    do {
+      await Future.delayed(_getRetryDelayDuration(retryCount));
       receipt = await _web3Client.getTransactionReceipt(tx);
       log.info("[PendingTokenService] Receipt: $receipt");
       if (receipt != null) {
         break;
       } else {
-        await Future.delayed(Duration(milliseconds: 3000 * (retryCount + 1)));
         retryCount++;
       }
-    }
+    } while ((receipt == null && retryCount < _maxRetries));
     if (receipt != null) {
       final pendingTokens = receipt.logs
           .map((e) => e.toAssetToken(owner, DateTime.now()))
@@ -187,13 +190,14 @@ class PendingTokenService {
     }
   }
 
-  Future<bool> checkPendingTezosTokens(String owner) async {
+  Future<bool> checkPendingTezosTokens(String owner, {int? maxRetries}) async {
     log.info("[PendingTokenService] Check pending Tezos tokens: $owner");
     int retryCount = 0;
     final pendingTokens = List<AssetToken>.empty(growable: true);
     final ownedTokenIds = await getTokenIDs(owner);
 
-    while (pendingTokens.isEmpty && retryCount < _maxRetries) {
+    do {
+      await Future.delayed(_getRetryDelayDuration(retryCount));
       final operations = await _tzktApi.getTokenTransfer(
         to: owner,
         sort: "timestamp",
@@ -212,10 +216,9 @@ class PendingTokenService {
         break;
       } else {
         log.info("[PendingTokenService] Not found any new tokens.");
-        await Future.delayed(Duration(milliseconds: 3000 * (retryCount + 1)));
         retryCount++;
       }
-    }
+    } while (pendingTokens.isEmpty && retryCount < (maxRetries ?? _maxRetries));
 
     if (pendingTokens.isNotEmpty) {
       await _tokenService.setCustomTokens(pendingTokens);
@@ -226,5 +229,10 @@ class PendingTokenService {
 
   Future<List<String>> getTokenIDs(String owner) async {
     return _assetTokenDao.findAllAssetTokenIDsByOwner(owner);
+  }
+
+  Duration _getRetryDelayDuration(int n) {
+    final delayMs = min(60 * 1000, 5000 * pow(2, n));
+    return Duration(milliseconds: delayMs.toInt());
   }
 }
