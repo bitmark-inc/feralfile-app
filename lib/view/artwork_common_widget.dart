@@ -257,6 +257,7 @@ class GalleryUnSupportWidget extends StatelessWidget {
 
 class GalleryUnSupportThumbnailWidget extends StatelessWidget {
   final String type;
+
   const GalleryUnSupportThumbnailWidget({Key? key, this.type = '.svg'})
       : super(key: key);
 
@@ -389,6 +390,7 @@ Widget placeholder(BuildContext context) {
 class ReportButton extends StatefulWidget {
   final AssetToken? token;
   final ScrollController scrollController;
+
   const ReportButton({
     Key? key,
     this.token,
@@ -404,7 +406,7 @@ class _ReportButtonState extends State<ReportButton> {
 
   _scrollListener() {
     /*
-    So we see it like that when we are at the top of the page. 
+    So we see it like that when we are at the top of the page.
     When we start scrolling down it disappears and we see it again attached at the bottom of the page.
     And if we scroll all the way up again, we would display again it attached down the screen
     https://www.figma.com/file/Ze71GH9ZmZlJwtPjeHYZpc?node-id=51:5175#159199971
@@ -704,12 +706,18 @@ Widget artworkDetailsMetadataSection(
           forceSafariVC: true,
         ),
       ],
-      (asset.maxEdition ?? 0) > 0
+      (asset.fungible == false)
           ? Column(
               children: [
                 const Divider(height: 32.0),
                 _rowItem(
                     context, "edition_number".tr(), asset.edition.toString()),
+              ],
+            )
+          : const SizedBox(),
+      (asset.maxEdition ?? 0) > 0
+          ? Column(
+              children: [
                 const Divider(height: 32.0),
                 _rowItem(
                     context, "edition_size".tr(), asset.maxEdition.toString()),
