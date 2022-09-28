@@ -101,8 +101,8 @@ class _SettingsPageState extends State<SettingsPage>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(
-                    height: 85,
+                  SizedBox(
+                    height: MediaQuery.of(context).padding.top + 52,
                   ),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
