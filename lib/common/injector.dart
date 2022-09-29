@@ -10,6 +10,7 @@ import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/gateway/autonomy_api.dart';
 import 'package:autonomy_flutter/gateway/bitmark_api.dart';
+import 'package:autonomy_flutter/gateway/branch_api.dart';
 import 'package:autonomy_flutter/gateway/currency_exchange_api.dart';
 import 'package:autonomy_flutter/gateway/customer_support_api.dart';
 import 'package:autonomy_flutter/gateway/feed_api.dart';
@@ -176,6 +177,7 @@ Future<void> setup() async {
   injector.registerLazySingleton(() =>
       AutonomyApi(authenticatedDio, baseUrl: Environment.autonomyAuthURL));
   injector.registerLazySingleton(() => TZKTApi(dio));
+  injector.registerLazySingleton(() => BranchApi(dio));
   injector.registerLazySingleton(
       () => FeedApi(authenticatedDio, baseUrl: Environment.feedURL));
   injector.registerLazySingleton(
@@ -255,7 +257,7 @@ Future<void> setup() async {
       ));
 
   injector.registerLazySingleton<DeeplinkService>(() => DeeplinkServiceImpl(
-      injector(), injector(), injector(), injector(), injector()));
+      injector(), injector(), injector(), injector(), injector(), injector()));
 
   injector.registerLazySingleton<PendingTokenService>(() => PendingTokenService(
         injector(),

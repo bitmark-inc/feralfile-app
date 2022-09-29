@@ -108,6 +108,8 @@ class Environment {
 
   static String get metricEndpoint => dotenv.env['METRIC_ENDPOINT'] ?? '';
   static String get metricSecretKey => dotenv.env['METRIC_SECRET_KEY'] ?? '';
+
+  static String get branchKey => dotenv.env['BRANCH_KEY'] ?? '';
 }
 
 class Secret {
