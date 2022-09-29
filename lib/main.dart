@@ -183,6 +183,7 @@ class MemoryValues {
   String? viewingSupportThreadIssueID;
   DateTime? inForegroundAt;
   bool inGalleryView;
+  String? airdropFFExhibitionId;
   List<Connection>? linkedFFConnections = [];
 
   MemoryValues({
@@ -190,6 +191,7 @@ class MemoryValues {
     this.viewingSupportThreadIssueID,
     this.inForegroundAt,
     this.inGalleryView = true,
+    this.airdropFFExhibitionId,
     this.linkedFFConnections,
   });
 

@@ -9,6 +9,7 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/gateway/branch_api.dart';
+import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -19,6 +20,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:collection/collection.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_branch_sdk/flutter_branch_sdk.dart';
 import 'package:uni_links/uni_links.dart';
@@ -192,11 +194,12 @@ class DeeplinkServiceImpl extends DeeplinkService {
             DateTime.now().isAfter(DateTime.fromMillisecondsSinceEpoch(
                 int.tryParse(expiredAt) ?? 0))) {
           log.info("[DeeplinkService] FeralFile Airdrop expired");
+          _navigationService.showAirdropExpired();
           break;
         }
 
         if (exhibitionId != null) {
-          //TODO handle FeralFile airdrop here
+          _claimFFAirdropToken(exhibitionId);
         }
         break;
     }
@@ -219,6 +222,23 @@ class DeeplinkServiceImpl extends DeeplinkService {
     } else {
       _navigationService.showFFAccountLinked(connection.name,
           inOnboarding: true);
+    }
+  }
+
+  Future _claimFFAirdropToken(String exhibitionId) async {
+    log.info(
+        "[DeeplinkService] Claim FF Airdrop token. Exhibition $exhibitionId");
+    try {
+      final doneOnboarding = _configurationService.isDoneOnboarding();
+      if (doneOnboarding) {
+        _navigationService.popUntilHomeOrSettings();
+        final exhibition = await _feralFileService.getExhibition(exhibitionId);
+        _navigationService.openClaimTokenPage(exhibition);
+      } else {
+        memoryValues.airdropFFExhibitionId = exhibitionId;
+      }
+    } catch (e) {
+      debugPrint("[DeeplinkService] _claimFFAirdropToken error $e");
     }
   }
 }

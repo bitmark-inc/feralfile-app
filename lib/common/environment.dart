@@ -25,6 +25,12 @@ class Environment {
   static String get feralFileAPIURL =>
       appTestnetConfig ? feralFileAPITestnetURL : feralFileAPIMainnetURL;
 
+  static String get feralFileSecretKey =>
+      appTestnetConfig ? feralFileSecretKeyTestnet : feralFileSecretKeyMainnet;
+
+  static String get feralFileAssetURL =>
+      appTestnetConfig ? feralFileAssetURLTestnet : feralFileAssetURLMainnet;
+
   static String get extensionSupportURL => appTestnetConfig
       ? extensionSupportTestnetURL
       : extensionSupportMainnetURL;
@@ -60,8 +66,20 @@ class Environment {
   static String get feralFileAPIMainnetURL =>
       dotenv.env['FERAL_FILE_API_MAINNET_URL'] ?? '';
 
+  static String get feralFileSecretKeyMainnet =>
+      dotenv.env['FERAL_FILE_SECRET_KEY_MAINNET'] ?? '';
+
   static String get feralFileAPITestnetURL =>
       dotenv.env['FERAL_FILE_API_TESTNET_URL'] ?? '';
+
+  static String get feralFileSecretKeyTestnet =>
+      dotenv.env['FERAL_FILE_SECRET_KEY_TESTNET'] ?? '';
+
+  static String get feralFileAssetURLMainnet =>
+      dotenv.env['FERAL_FILE_ASSET_URL_MAINNET'] ?? '';
+
+  static String get feralFileAssetURLTestnet =>
+      dotenv.env['FERAL_FILE_ASSET_URL_TESTNET'] ?? '';
 
   static String get extensionSupportMainnetURL =>
       dotenv.env['EXTENSION_SUPPORT_MAINNET_URL'] ?? '';

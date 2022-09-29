@@ -8,8 +8,10 @@
 import 'dart:developer';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/router/router_bloc.dart';
+import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
@@ -30,6 +32,9 @@ class OnboardingPage extends StatefulWidget {
 }
 
 class _OnboardingPageState extends State<OnboardingPage> {
+
+  bool _processing = false;
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -116,6 +121,17 @@ class _OnboardingPageState extends State<OnboardingPage> {
     ));
   }
 
+  void _setProcessing(bool processing) {
+    setState(() {
+      _processing = processing;
+    });
+  }
+
+  Future _gotoOwnGalleryPage() async {
+    if (!mounted) return;
+    return Navigator.of(context).pushNamed(AppRouter.beOwnGalleryPage);
+  }
+
   Widget _getStartupButton(RouterState state) {
     switch (state.onboardingStep) {
       case OnboardingStep.startScreen:
@@ -123,10 +139,33 @@ class _OnboardingPageState extends State<OnboardingPage> {
           children: [
             Expanded(
               child: AuFilledButton(
+                isProcessing: _processing,
+                enabled: !_processing,
                 text: "start".tr().toUpperCase(),
                 key: const Key("start_button"),
-                onPress: () {
-                  Navigator.of(context).pushNamed(AppRouter.beOwnGalleryPage);
+                onPress: () async {
+                  final exhibitionId = memoryValues.airdropFFExhibitionId;
+                  if (exhibitionId != null) {
+                    try {
+                      _setProcessing(true);
+                      final exhibition = await injector<FeralFileService>()
+                          .getExhibition(exhibitionId);
+                      if (!mounted) return;
+                      final claimed = await Navigator.of(context).pushNamed(
+                        AppRouter.claimFeralfileTokenPage,
+                        arguments: exhibition,
+                      );
+                      if (claimed == false) {
+                        _gotoOwnGalleryPage();
+                      }
+                    } catch (e) {
+                      _gotoOwnGalleryPage();
+                    } finally {
+                      _setProcessing(false);
+                    }
+                  } else {
+                    _gotoOwnGalleryPage();
+                  }
                 },
               ),
             )

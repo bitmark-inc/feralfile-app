@@ -5,9 +5,12 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_box_view.dart';
 import 'package:autonomy_flutter/screen/survey/survey.dart';
@@ -378,6 +381,34 @@ class UIHelper {
         ),
         isDismissible: true,
         autoDismissAfter: 5);
+  }
+
+  static Future showAirdropExpired(BuildContext context) async {
+    final theme = Theme.of(context);
+    return UIHelper.showDialog(
+      context,
+      "Expired offer",
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            "The QR code you tried to scan is now expired. It is no longer possible to redeem your gift edition.",
+            style: theme.primaryTextTheme.bodyText1,
+          ),
+          const SizedBox(
+            height: 40,
+          ),
+          AuFilledButton(
+            text: "close".tr(),
+            onPress: () {
+              Navigator.of(context).pop();
+            },
+            textStyle: theme.primaryTextTheme.button,
+          ),
+        ],
+      ),
+      isDismissible: true,
+    );
   }
 
   // MARK: - Connection

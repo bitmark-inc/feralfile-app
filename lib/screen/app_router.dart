@@ -10,6 +10,7 @@ import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
+import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/screen/account/access_method_page.dart';
 import 'package:autonomy_flutter/screen/account/accounts_preview_page.dart';
 import 'package:autonomy_flutter/screen/account/add_account_page.dart';
@@ -40,6 +41,8 @@ import 'package:autonomy_flutter/screen/bloc/router/router_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/tzkt_transaction/tzkt_transaction_bloc.dart';
 import 'package:autonomy_flutter/screen/bug_bounty_page.dart';
+import 'package:autonomy_flutter/screen/claim/claim_token_page.dart';
+import 'package:autonomy_flutter/screen/claim/select_account_page.dart';
 import 'package:autonomy_flutter/screen/cloud/cloud_android_page.dart';
 import 'package:autonomy_flutter/screen/cloud/cloud_page.dart';
 import 'package:autonomy_flutter/screen/connection/connection_details_page.dart';
@@ -160,6 +163,8 @@ class AppRouter {
   static const githubDocPage = 'github_doc_page';
   static const sendArtworkPage = 'send_artwork_page';
   static const sendArtworkReviewPage = 'send_artwork_review_page';
+  static const claimFeralfileTokenPage = 'claim_feralfile_token_page';
+  static const claimSelectAccountPage = 'claim_select_account_page';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final ethereumBloc = EthereumBloc(injector());
@@ -841,6 +846,28 @@ class AppRouter {
                   child: SendArtworkReviewPage(
                       payload: settings.arguments as SendArtworkReviewPayload),
                 ));
+
+      case claimFeralfileTokenPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) {
+              return ClaimTokenPage(
+                exhibition: settings.arguments as Exhibition,
+              );
+            });
+
+      case claimSelectAccountPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) {
+              return BlocProvider.value(
+                value: accountsBloc,
+                child: SelectAccountPage(
+                  blockchain: settings.arguments as String?,
+                ),
+              );
+            });
+
       default:
         throw Exception('Invalid route: ${settings.name}');
     }

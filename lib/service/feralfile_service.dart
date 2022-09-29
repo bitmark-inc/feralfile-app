@@ -16,8 +16,10 @@ import 'package:autonomy_flutter/gateway/feralfile_api.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/asset_price.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
+import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -27,6 +29,7 @@ import 'package:dio/dio.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:metric_client/metric_client.dart';
 import 'package:nft_collection/nft_collection.dart';
+import 'package:nft_collection/services/tokens_service.dart';
 
 // TODO:
 abstract class FeralFileService {
@@ -39,17 +42,28 @@ abstract class FeralFileService {
   Future<FFAccount> getWeb3Account(WalletStorage wallet);
 
   Future<List<AssetPrice>> getAssetPrices(List<String> ids);
+
+  Future<Exhibition> getExhibition(String id);
+
+  Future<bool> claimToken({
+    required String exhibitionId,
+    String? address,
+    bool delayed = false,
+    Future<bool> Function(Exhibition)? onConfirm,
+  });
 }
 
 class FeralFileServiceImpl extends FeralFileService {
   final ConfigurationService _configurationService;
   final CloudDatabase _cloudDB;
   final FeralFileApi _feralFileApi;
+  final AccountService _accountService;
 
   FeralFileServiceImpl(
     this._configurationService,
     this._cloudDB,
     this._feralFileApi,
+    this._accountService,
   );
 
   @override
@@ -168,5 +182,65 @@ class FeralFileServiceImpl extends FeralFileService {
     final rawToken = "$address|$message|$signature";
     final bytes = utf8.encode(rawToken);
     return base64.encode(bytes);
+  }
+
+  @override
+  Future<Exhibition> getExhibition(String id) async {
+    final resp = await _feralFileApi.getExhibition(id);
+    return resp.result;
+  }
+
+  @override
+  Future<bool> claimToken({
+    required String exhibitionId,
+    String? address,
+    bool delayed = false,
+    Future<bool> Function(Exhibition)? onConfirm
+  }) async {
+    log.info(
+        "[FeralFileService] Claim token - exhibitionId: $exhibitionId, delayed: $delayed");
+    if (delayed) {
+      memoryValues.airdropFFExhibitionId = exhibitionId;
+      return false;
+    }
+
+    final exhibition = (await _feralFileApi.getExhibition(exhibitionId)).result;
+
+    if (exhibition.airdropInfo == null ||
+        exhibition.airdropInfo?.endedAt?.isBefore(DateTime.now()) == true) {
+      throw AirdropExpired();
+    }
+
+    if ((exhibition.airdropInfo?.remainAmount ?? 0) > 0) {
+      final accepted = await onConfirm?.call(exhibition) ?? true;
+      if (!accepted) {
+        log.info("[FeralFileService] User refused claim token");
+        return false;
+      }
+      final wallet = await _accountService.getDefaultAccount();
+      final message =
+          (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
+      final accountDID = await wallet.getAccountDID();
+      final signature = await wallet.getAccountDIDSignature(message);
+      final receiver = address ?? (await wallet.getTezosWallet()).address;
+      Map<String, dynamic> body = {
+        "claimer": accountDID,
+        "timestamp": message,
+        "signature": signature,
+        "address": receiver,
+      };
+      final response = await _feralFileApi.claimToken(exhibitionId, body);
+      final prefix = exhibition.airdropInfo?.blockchain == "Tezos" ? "tez" : "eth";
+      final indexerId =
+          "$prefix-${exhibition.airdropInfo?.contractAddress}-${response.result.editionID}";
+      final indexer = injector<TokensService>();
+      await indexer.reindexAddresses([receiver]);
+      indexer.setCustomTokens(
+        [createPendingAssetToken(indexerId: indexerId, owner: receiver)],
+      );
+      return true;
+    } else {
+      throw NoRemainingToken();
+    }
   }
 }
