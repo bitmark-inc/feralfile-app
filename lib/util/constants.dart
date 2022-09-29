@@ -171,7 +171,7 @@ extension CryptoTypeHelpers on CryptoType {
       case CryptoType.BITMARK:
         return "USDC";
       case CryptoType.UNKNOWN:
-        return "USDC";
+        return "";
     }
   }
 
@@ -184,7 +184,7 @@ extension CryptoTypeHelpers on CryptoType {
       case CryptoType.BITMARK:
         return "USD Coin (USDC)";
       case CryptoType.UNKNOWN:
-        return "USD Coin (USDC)";
+        return "";
     }
   }
 
