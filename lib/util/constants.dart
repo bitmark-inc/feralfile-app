@@ -158,6 +158,7 @@ enum CryptoType {
   ETH,
   XTZ,
   BITMARK,
+  UNKNOWN,
 }
 
 extension CryptoTypeHelpers on CryptoType {
@@ -169,6 +170,8 @@ extension CryptoTypeHelpers on CryptoType {
         return "XTZ";
       case CryptoType.BITMARK:
         return "USDC";
+      case CryptoType.UNKNOWN:
+        return "";
     }
   }
 
@@ -180,6 +183,8 @@ extension CryptoTypeHelpers on CryptoType {
         return "Tezos (XTZ)";
       case CryptoType.BITMARK:
         return "USD Coin (USDC)";
+      case CryptoType.UNKNOWN:
+        return "";
     }
   }
 
@@ -191,6 +196,8 @@ extension CryptoTypeHelpers on CryptoType {
         return "Tezos";
       case CryptoType.BITMARK:
         return "Bitmark";
+      case CryptoType.UNKNOWN:
+        return "Unknown";
     }
   }
 }
