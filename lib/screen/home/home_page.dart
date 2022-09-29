@@ -39,9 +39,11 @@ import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/penrose_top_bar_view.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -134,6 +136,24 @@ class _HomePageState extends State<HomePage>
   @override
   void afterFirstLayout(BuildContext context) {
     injector<FeralFileService>().completeDelayedFFConnections();
+    injector<FeralFileService>().completePendingAirdropClaim(
+      onConfirm: (exhibition) async {
+        return UIHelper.confirmClaimToken(context, exhibition: exhibition);
+      },
+    ).then(
+      (claimed) {
+        if (claimed) {
+          log.info("FF airdrop token is claimed");
+          context.read<NftCollectionBloc>().add(RefreshNftCollection());
+        }
+      },
+      onError: (e) {
+        log.info("FF airdrop token is claim error. $e");
+        if (e is NoRemainingToken) {
+          // TODO: show error message
+        }
+      },
+    );
     _cloudBackup();
     _handleForeground();
     injector<AutonomyService>().postLinkedAddresses();

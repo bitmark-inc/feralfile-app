@@ -7,10 +7,13 @@
 
 import 'dart:async';
 
+import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 class NavigationService {
@@ -45,6 +48,24 @@ class NavigationService {
       UIHelper.showFFAccountLinked(navigatorKey.currentContext!, alias,
           inOnboarding: inOnboarding);
     }
+  }
+
+  void showPendingClaimToken() {
+    log.info("NavigationService.showPendingClaimToken");
+    if (navigatorKey.currentState?.mounted == true &&
+        navigatorKey.currentContext != null) {
+      UIHelper.showPendingClaimToken(navigatorKey.currentContext!);
+    }
+  }
+
+  Future<bool> confirmClaimToken(Exhibition exhibition) async {
+    log.info("NavigationService.confirmClaimToken");
+    if (navigatorKey.currentState?.mounted == true &&
+        navigatorKey.currentContext != null) {
+      final context = navigatorKey.currentContext!;
+      return await UIHelper.confirmClaimToken(context, exhibition: exhibition);
+    }
+    return false;
   }
 
   void showErrorDialog(

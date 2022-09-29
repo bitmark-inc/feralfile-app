@@ -8,6 +8,7 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/environment.dart';
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/branch_api.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
@@ -21,6 +22,7 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_branch_sdk/flutter_branch_sdk.dart';
+import 'package:nft_collection/nft_collection.dart';
 import 'package:uni_links/uni_links.dart';
 
 abstract class DeeplinkService {
@@ -196,7 +198,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
         }
 
         if (exhibitionId != null) {
-          //TODO handle FeralFile airdrop here
+          _claimFFAirdropToken(exhibitionId);
         }
         break;
     }
@@ -219,6 +221,36 @@ class DeeplinkServiceImpl extends DeeplinkService {
     } else {
       _navigationService.showFFAccountLinked(connection.name,
           inOnboarding: true);
+    }
+  }
+
+  Future _claimFFAirdropToken(String exhibitionId) async {
+    log.info(
+        "[DeeplinkService] Claim FF Airdrop token. Exhibition $exhibitionId");
+    final doneOnboarding = _configurationService.isDoneOnboarding();
+    if (doneOnboarding) {
+      await Future.delayed(SHORT_SHOW_DIALOG_DURATION, () async {
+        _navigationService.popUntilHomeOrSettings();
+        try {
+          final claimed = await _feralFileService.claimToken(
+            exhibitionId: exhibitionId,
+            onConfirm: (exhibition) async {
+              return _navigationService.confirmClaimToken(exhibition);
+            },
+          );
+          if (claimed) {
+            injector<NftCollectionBloc>().add(RefreshNftCollection());
+          }
+        } catch (e) {
+          log.info("[DeeplinkService] Claim token error $e");
+        }
+      });
+    } else {
+      await _feralFileService.claimToken(
+        exhibitionId: exhibitionId,
+        delayed: true,
+      );
+      _navigationService.showPendingClaimToken();
     }
   }
 }

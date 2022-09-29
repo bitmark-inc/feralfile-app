@@ -24,4 +24,13 @@ abstract class FeralFileApi {
   @POST("/api/asset-prices")
   Future<Map<String, List<AssetPrice>>> getAssetPrice(
       @Body() Map<String, List<String>> body);
+
+  @GET("/api/exhibition/{exhibitionId}")
+  Future<Exhibition> getExhibition(@Path("exhibitionId") String exhibitionId);
+
+  @POST("/api/exhibition/{exhibitionId}/claim")
+  Future<TokenClaimResponse> claimToken(
+    @Path("exhibitionId") String exhibitionId,
+    @Body() Map<String, dynamic> body,
+  );
 }

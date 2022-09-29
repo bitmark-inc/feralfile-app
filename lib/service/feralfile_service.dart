@@ -16,8 +16,10 @@ import 'package:autonomy_flutter/gateway/feralfile_api.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/asset_price.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
+import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -27,6 +29,7 @@ import 'package:dio/dio.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:metric_client/metric_client.dart';
 import 'package:nft_collection/nft_collection.dart';
+import 'package:nft_collection/services/tokens_service.dart';
 
 // TODO:
 abstract class FeralFileService {
@@ -39,17 +42,29 @@ abstract class FeralFileService {
   Future<FFAccount> getWeb3Account(WalletStorage wallet);
 
   Future<List<AssetPrice>> getAssetPrices(List<String> ids);
+
+  Future<bool> claimToken({
+    required String exhibitionId,
+    bool delayed = false,
+    Future<bool> Function(Exhibition)? onConfirm,
+  });
+
+  Future<bool> completePendingAirdropClaim({
+    required Future<bool> Function(Exhibition) onConfirm,
+  });
 }
 
 class FeralFileServiceImpl extends FeralFileService {
   final ConfigurationService _configurationService;
   final CloudDatabase _cloudDB;
   final FeralFileApi _feralFileApi;
+  final AccountService _accountService;
 
   FeralFileServiceImpl(
     this._configurationService,
     this._cloudDB,
     this._feralFileApi,
+    this._accountService,
   );
 
   @override
@@ -168,5 +183,64 @@ class FeralFileServiceImpl extends FeralFileService {
     final rawToken = "$address|$message|$signature";
     final bytes = utf8.encode(rawToken);
     return base64.encode(bytes);
+  }
+
+  @override
+  Future<bool> claimToken({
+    required String exhibitionId,
+    bool delayed = false,
+    Future<bool> Function(Exhibition)? onConfirm
+  }) async {
+    log.info(
+        "[FeralFileService] Claim token - exhibitionId: $exhibitionId, delayed: $delayed");
+    if (delayed) {
+      memoryValues.airdropFFExhibitionId = exhibitionId;
+      return false;
+    }
+
+    final exhibition = await _feralFileApi.getExhibition(exhibitionId);
+    if (exhibition.airdrop.leftEdition  > 0) {
+      final accepted = await onConfirm?.call(exhibition) ?? true;
+      if (!accepted) {
+        log.info("[FeralFileService] User refused claim token");
+        return false;
+      }
+      final wallet = await _accountService.getDefaultAccount();
+      final message = DateTime.now().millisecondsSinceEpoch.toString();
+      final accountDID = await wallet.getAccountDID();
+      final signature = await wallet.getAccountDIDSignature(message);
+      Map<String, dynamic> body = {
+        "claimer": accountDID,
+        "timestamp": message,
+        "signature": signature,
+        "address": (await wallet.getTezosWallet()).address,
+      };
+      final response = await _feralFileApi.claimToken(exhibitionId, body);
+      final indexerId = "tez-${exhibition.airdrop.contract}-${response.tokenId}";
+      final address = (await wallet.getTezosWallet()).address;
+      await injector<TokensService>().setCustomTokens(
+        [createPendingAssetToken(indexerId: indexerId, owner: address)],
+      );
+      return true;
+    } else {
+      throw NoRemainingToken();
+    }
+  }
+
+  @override
+  Future<bool> completePendingAirdropClaim({
+    required Future<bool> Function(Exhibition) onConfirm,
+  }) async {
+    final exhibitionId = memoryValues.airdropFFExhibitionId;
+    if (exhibitionId != null) {
+      final claimed = await claimToken(
+        exhibitionId: exhibitionId,
+        onConfirm: onConfirm,
+      );
+      memoryValues.airdropFFExhibitionId = null;
+      return claimed;
+    } else {
+      return false;
+    }
   }
 }

@@ -127,3 +127,45 @@ String _refineToCloudflareURL(String url, String thumbnailID, String variant) {
       ? _replaceIPFS(url)
       : "$CLOUDFLAREIMAGEURLPREFIX$thumbnailID/$variant";
 }
+
+AssetToken createPendingAssetToken({
+  required String indexerId,
+  required String owner,
+}) {
+  return AssetToken(
+    artistName: null,
+    artistURL: null,
+    artistID: null,
+    assetData: null,
+    assetID: null,
+    assetURL: null,
+    basePrice: null,
+    baseCurrency: null,
+    blockchain: "tezos",
+    blockchainUrl: null,
+    fungible: false,
+    contractType: null,
+    tokenId: null,
+    contractAddress: null,
+    desc: null,
+    edition: 0,
+    id: indexerId,
+    maxEdition: 1,
+    medium: null,
+    mimeType: null,
+    mintedAt: null,
+    previewURL: null,
+    source: null,
+    sourceURL: null,
+    thumbnailID: null,
+    thumbnailURL: null,
+    galleryThumbnailURL: null,
+    title: "",
+    ownerAddress: owner,
+    owners: {
+      owner: 1,
+    },
+    lastActivityTime: DateTime.now(),
+    pending: true,
+  );
+}
