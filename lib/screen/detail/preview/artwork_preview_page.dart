@@ -245,10 +245,17 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                         ],
                         if (!snapshot.hasData) ...[
                           // Searching for cast devices.
-                          CircularProgressIndicator(
-                            color: theme.colorScheme.primary,
-                            backgroundColor: theme.colorScheme.surface,
-                            strokeWidth: 2.0,
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Padding(
+                              padding: const EdgeInsets.only(bottom: 42),
+                              child: Text(
+                                'searching_for_device'.tr(),
+                                style: ResponsiveLayout.isMobile
+                                    ? theme.textTheme.atlasSpanishGreyBold16
+                                    : theme.textTheme.atlasSpanishGreyBold20,
+                              ),
+                            ),
                           )
                         ],
                         Visibility(
