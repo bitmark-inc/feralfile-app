@@ -121,6 +121,9 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
           fetchXtzBalance(tezosAddress);
         }
         break;
+      case "manuallyAddress":
+        contextedAddresses.add(ContextedAddress(CryptoType.UNKNOWN, widget.connection.accountNumber));
+        break;
 
       default:
         break;
