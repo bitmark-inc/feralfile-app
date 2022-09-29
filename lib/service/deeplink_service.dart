@@ -7,6 +7,8 @@
 
 import 'dart:async';
 
+import 'package:autonomy_flutter/common/environment.dart';
+import 'package:autonomy_flutter/gateway/branch_api.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -23,6 +25,7 @@ import 'package:uni_links/uni_links.dart';
 
 abstract class DeeplinkService {
   Future setup();
+
   void handleDeeplink(String? link);
 }
 
@@ -32,6 +35,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
   final TezosBeaconService _tezosBeaconService;
   final FeralFileService _feralFileService;
   final NavigationService _navigationService;
+  final BranchApi _branchApi;
 
   DeeplinkServiceImpl(
     this._configurationService,
@@ -39,6 +43,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
     this._tezosBeaconService,
     this._feralFileService,
     this._navigationService,
+    this._branchApi,
   );
 
   @override
@@ -47,16 +52,11 @@ class DeeplinkServiceImpl extends DeeplinkService {
       log.info("[DeeplinkService] _handleFeralFileDeeplink with Branch");
 
       if (data["+clicked_branch_link"] == true) {
-        final source = data["source"];
-        if (source == "FeralFile") {
-          final String? tokenId = data["token_id"];
-          if (tokenId != null) {
-            _linkFeralFileToken(tokenId);
-          }
-        }
+        _handleBranchDeeplinkData(data);
       }
     }, onError: (error) {
-      log.warning('[DeeplinkService] InitBranchSession error: ${error.toString()}');
+      log.warning(
+          '[DeeplinkService] InitBranchSession error: ${error.toString()}');
     });
 
     try {
@@ -78,9 +78,11 @@ class DeeplinkServiceImpl extends DeeplinkService {
 
     log.info("[DeeplinkService] receive deeplink $link");
 
-    Timer.periodic(const Duration(seconds: 2), (timer) {
+    Timer.periodic(const Duration(seconds: 2), (timer) async {
       timer.cancel();
-      _handleDappConnectDeeplink(link) || _handleFeralFileDeeplink(link);
+      _handleDappConnectDeeplink(link) ||
+          _handleFeralFileDeeplink(link) ||
+          await _handleBranchDeeplink(link);
     });
   }
 
@@ -147,27 +149,57 @@ class DeeplinkServiceImpl extends DeeplinkService {
   bool _handleFeralFileDeeplink(String link) {
     log.info("[DeeplinkService] _handleFeralFileDeeplink");
 
+    if (link.startsWith(FF_TOKEN_DEEPLINK_PREFIX)) {
+      _linkFeralFileToken(link.replacePrefix(FF_TOKEN_DEEPLINK_PREFIX, ""));
+      return true;
+    }
+
+    return false;
+  }
+
+  Future<bool> _handleBranchDeeplink(String link) async {
+    log.info("[DeeplinkService] _handleBranchDeeplink");
+
     final branchDeepLinks = [
       "https://autonomy-app.app.link",
       "https://autonomy-app-alternate.app.link",
       "https://link.autonomy.io",
     ];
 
-    if (link.startsWith(FF_TOKEN_DEEPLINK_PREFIX)) {
-      _linkFeralFileToken(link.replacePrefix(FF_TOKEN_DEEPLINK_PREFIX, ""));
+    if (branchDeepLinks.any((prefix) => link.startsWith(prefix))) {
+      final response = await _branchApi.getParams(Environment.branchKey, link);
+      _handleBranchDeeplinkData(response["data"]);
       return true;
     }
-
-    if (branchDeepLinks.any((prefix) => link.startsWith(prefix))) {
-      final uri = Uri.parse(link);
-      final token = uri.queryParameters["token"];
-      if (token != null) {
-        _linkFeralFileToken(token);
-        return true;
-      }
-    }
-
     return false;
+  }
+
+  void _handleBranchDeeplinkData(Map<dynamic, dynamic> data) {
+    final source = data["source"];
+    switch (source) {
+      case "FeralFile":
+        final String? tokenId = data["token_id"];
+        if (tokenId != null) {
+          log.info("[DeeplinkService] _linkFeralFileToken $tokenId");
+          _linkFeralFileToken(tokenId);
+        }
+        break;
+      case "FeralFile_AirDrop":
+        final String? exhibitionId = data["exhibition_id"];
+        final String? expiredAt = data["expired_at"];
+
+        if (expiredAt != null &&
+            DateTime.now().isAfter(DateTime.fromMillisecondsSinceEpoch(
+                int.tryParse(expiredAt) ?? 0))) {
+          log.info("[DeeplinkService] FeralFile Airdrop expired");
+          break;
+        }
+
+        if (exhibitionId != null) {
+          //TODO handle FeralFile airdrop here
+        }
+        break;
+    }
   }
 
   Future<void> _linkFeralFileToken(String tokenId) async {
