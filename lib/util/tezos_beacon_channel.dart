@@ -40,6 +40,10 @@ class TezosBeaconChannel {
     await _channel.invokeMethod('removePeer', {'peer': peerJSON});
   }
 
+  Future cleanup(List<String> ids) async {
+    await _channel.invokeMethod('cleanup', {'retain_ids': ids});
+  }
+
   Future permissionResponse(
       String id, String? publicKey, String? address) async {
     await _channel.invokeMethod(

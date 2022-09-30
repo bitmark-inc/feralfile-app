@@ -9,6 +9,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/model/connection_supports.dart';
@@ -25,8 +26,8 @@ import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:metric_client/metric_client.dart';
 
 class TezosBeaconService implements BeaconHandler {
   final NavigationService _navigationService;
@@ -193,5 +194,17 @@ class TezosBeaconService implements BeaconHandler {
 
     if (existingConnections.isEmpty) return null;
     return existingConnections.first;
+  }
+
+  Future cleanup() async {
+    final connections = await _cloudDB.connectionDao
+        .getConnectionsByType(ConnectionType.beaconP2PPeer.rawValue);
+
+    final ids = connections
+        .map((e) => e.beaconConnectConnection?.peer.id)
+        .whereNotNull()
+        .toList();
+
+    _beaconChannel.cleanup(ids);
   }
 }

@@ -35,6 +35,7 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/pending_token_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
+import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -121,6 +122,7 @@ class _HomePageState extends State<HomePage>
     });
     injector<IAPService>().setup();
     memoryValues.inGalleryView = true;
+    injector<TezosBeaconService>().cleanup();
   }
 
   @override
