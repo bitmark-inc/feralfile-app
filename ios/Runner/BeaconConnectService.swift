@@ -194,6 +194,31 @@ class BeaconConnectService {
         }
         .eraseToAnyPublisher()
     }
+    
+    func cleanupSession(_ retainIds: [String]) -> AnyPublisher<Void, Error> {
+        return Future<Void, Error> { [self] (promise) in
+            self.beaconClient?.getPeers { result in
+                switch result {
+                case .success(let peers):
+                    let retainPeers = peers.filter { peer in !retainIds.contains(peer.id ?? "") }
+                    self.beaconClient?.remove(retainPeers) { removeResult in
+                        switch removeResult {
+                        case .success(_):
+                            logger.info("[TezosBeaconService] cleanupSession retainIds: \(retainIds)")
+                            promise(.success(()))
+
+                        case let .failure(error):
+                            promise(.failure(error))
+                        }
+                    }
+
+                case let .failure(error):
+                    promise(.failure(error))
+                }
+            }
+        }
+        .eraseToAnyPublisher()
+    }
 
     func response(_ content: TezosBeaconResponse, completion: @escaping Completion<Void>) {
         beaconClient?.respond(with: content, completion: { result in
