@@ -77,6 +77,27 @@ class BeaconChannelHandler: NSObject {
 
     }
     
+    func cleanupSessions(call: FlutterMethodCall, result: @escaping FlutterResult) {let args: NSDictionary = call.arguments as! NSDictionary
+        let retainIds: [String] = args["retain_ids"] as! [String]
+
+        BeaconConnectService.shared.cleanupSession(retainIds)
+            .sink(receiveCompletion: { (completion) in
+                if let error = completion.error {
+                    result(
+                        FlutterError(code: "Failed to cleanupSession", message: error.localizedDescription, details: nil)
+                    )
+                }
+
+            }, receiveValue: { _ in
+                result([
+                    "error": 0,
+                    "msg": "cleanupSession success",
+                ])
+            })
+            .store(in: &cancelBag)
+
+    }
+    
     func response(call: FlutterMethodCall, result: @escaping FlutterResult) {
         let args: NSDictionary = call.arguments as! NSDictionary
         let id: String = args["id"] as! String

@@ -692,7 +692,7 @@ Widget artworkDetailsMetadataSection(
         "metadata".tr(),
         style: theme.textTheme.headline2,
       ),
-      const SizedBox(height: 16.0),
+      const SizedBox(height: 23.0),
       _rowItem(context, "title".tr(), asset.title),
       if (artistName != null) ...[
         const Divider(height: 32.0),
@@ -879,7 +879,7 @@ Widget _artworkRightView(BuildContext context) {
         "rights".tr(),
         style: theme.textTheme.headline2,
       ),
-      const SizedBox(height: 16.0),
+      const SizedBox(height: 23.0),
       Text(
         "ff_protect".tr(),
         style: theme.textTheme.bodyText1,

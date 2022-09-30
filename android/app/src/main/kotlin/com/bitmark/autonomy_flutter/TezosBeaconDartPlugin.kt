@@ -100,9 +100,9 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
                 startBeacon()
             }
             "getConnectionURI" ->
-                getConnectionURI(call, result)
+                getConnectionURI(result)
             "getPostMessageConnectionURI" ->
-                getPostMessageConnectionURI(call, result)
+                getPostMessageConnectionURI(result)
             "handlePostMessageOpenChannel" ->
                 handlePostMessageOpenChannel(call, result)
             "handlePostMessageMessage" ->
@@ -111,8 +111,16 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
                 val link: String = call.argument("link") ?: ""
                 addPeer(link, result)
             }
-            "removePeer" ->
-                removePeers()
+            "removePeer" -> {
+                val peer: String = call.argument("peer") ?: ""
+                removePeer(peer, result)
+            }
+
+            "removePeers" -> removePeers()
+            "cleanup" -> {
+                val retainIds: List<String> = call.argument("retain_ids") ?: emptyList()
+                cleanupSessions(retainIds, result)
+            }
             "response" ->
                 respond(call, result)
             "pause", "resume" -> result.success("")
@@ -392,7 +400,7 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
         }
     }
 
-    private fun getConnectionURI(call: MethodCall, result: Result) {
+    private fun getConnectionURI(result: Result) {
         val rev: HashMap<String, Any> = HashMap()
         rev["error"] = 0
 
@@ -420,7 +428,7 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
         result.success(rev)
     }
 
-    private fun getPostMessageConnectionURI(call: MethodCall, result: Result) {
+    private fun getPostMessageConnectionURI(result: Result) {
         val rev: HashMap<String, Any> = HashMap()
         rev["error"] = 0
 
@@ -633,6 +641,29 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
         FileLogger.log("TezosBeaconDartPlugin", "removePeers")
         CoroutineScope(Dispatchers.IO).launch {
             beaconClient?.removeAllPeers()
+        }
+    }
+
+    private fun removePeer(peerJson: String, result: Result) {
+        FileLogger.log("TezosBeaconDartPlugin", "removePeer")
+        CoroutineScope(Dispatchers.IO).launch {
+            val peer = jsonKT.decodeFromString(
+                Peer.serializer(),
+                peerJson
+            )
+            beaconClient?.removePeers(peer)
+            result.success(mapOf("error" to 0))
+        }
+    }
+
+    private fun cleanupSessions(retainIds: List<String>, result: Result) {
+        FileLogger.log("TezosBeaconDartPlugin", "cleanupSessions retainsIds: $retainIds")
+        CoroutineScope(Dispatchers.IO).launch {
+            beaconClient?.getPeers()?.let { peers ->
+                val peer: List<Peer> = peers.filterNot { peer -> retainIds.any { it == peer.id } }
+                beaconClient?.removePeers(peer)
+            }
+            result.success(mapOf("error" to 0))
         }
     }
 

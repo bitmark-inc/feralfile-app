@@ -182,7 +182,7 @@ Widget _blockchainAddressView(
         const SizedBox(width: 8),
         Text(
           _blockchainName(account.blockchain),
-          style: theme.textTheme.headline5,
+          style: theme.textTheme.atlasBlackBold12,
         ),
         const SizedBox(width: 8),
         Text(

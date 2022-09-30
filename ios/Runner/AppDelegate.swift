@@ -109,6 +109,8 @@ import Sentry
                 BeaconChannelHandler.shared.addPeer(call: call, result: result)
             case "removePeer":
                 BeaconChannelHandler.shared.removePeer(call: call, result: result)
+            case "cleanup":
+                BeaconChannelHandler.shared.cleanupSessions(call: call, result: result)
             case "response":
                 BeaconChannelHandler.shared.response(call: call, result: result)
             case "pause":
