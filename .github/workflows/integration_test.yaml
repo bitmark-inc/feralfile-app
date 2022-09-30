@@ -62,7 +62,6 @@ jobs:
 
 
       - name: Submoudles update
-        run: git config --global submodule.recurse true
         run: git submodule update --init --recursive
       - run: flutter pub cache repair
       - run: flutter pub get 
