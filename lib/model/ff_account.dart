@@ -61,17 +61,22 @@ class WyreWallet {
 @JsonSerializable()
 class Exhibition {
   final String title;
+  final String coverURI;
+  final String thumbnailCoverURI;
+  final String saleModel;
+  final String mintBlockchain;
+  final List<FFArtwork> artworks;
+  final AirdropInfo airdropInfo;
 
-  @JsonKey(name: "cover_uri")
-  final String coverUri;
-
-  @JsonKey(name: "thumbnail_cover_uri")
-  final String thumbnailCoverUri;
-
-  @JsonKey(name: "airdrop_info")
-  final AirdropInfo airdrop;
-
-  Exhibition(this.airdrop, this.title, this.coverUri, this.thumbnailCoverUri);
+  Exhibition(
+    this.airdropInfo,
+    this.title,
+    this.coverURI,
+    this.thumbnailCoverURI,
+    this.artworks,
+    this.saleModel,
+    this.mintBlockchain,
+  );
 
   factory Exhibition.fromJson(Map<String, dynamic> json) =>
       _$ExhibitionFromJson(json);
@@ -80,11 +85,58 @@ class Exhibition {
 }
 
 @JsonSerializable()
-class AirdropInfo {
-  final String contract;
-  final int leftEdition;
+class ExhibitionResponse {
+  final Exhibition result;
 
-  AirdropInfo(this.contract, this.leftEdition);
+  ExhibitionResponse(this.result);
+
+  factory ExhibitionResponse.fromJson(Map<String, dynamic> json) =>
+      _$ExhibitionResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ExhibitionResponseToJson(this);
+}
+
+@JsonSerializable()
+class FFArtwork {
+  final String id;
+  final String title;
+  final String medium;
+  final String description;
+  final String? thumbnailFileURI;
+  final String? galleryThumbnailFileURI;
+
+  FFArtwork(
+    this.id,
+    this.title,
+    this.medium,
+    this.description,
+    this.thumbnailFileURI,
+    this.galleryThumbnailFileURI,
+  );
+
+  factory FFArtwork.fromJson(Map<String, dynamic> json) =>
+      _$FFArtworkFromJson(json);
+
+  Map<String, dynamic> toJson() => _$FFArtworkToJson(this);
+}
+
+@JsonSerializable()
+class AirdropInfo {
+  final String contractAddress;
+  final String blockchain;
+  final int remainAmount;
+  final String? artworkTitle;
+  final String? artist;
+  final String? endedAt;
+
+  AirdropInfo(
+    this.contractAddress,
+    this.blockchain,
+    this.remainAmount,
+    this.artworkTitle,
+    this.artist,
+    this.endedAt,
+  );
 
   factory AirdropInfo.fromJson(Map<String, dynamic> json) =>
       _$AirdropInfoFromJson(json);
@@ -94,10 +146,9 @@ class AirdropInfo {
 
 @JsonSerializable()
 class TokenClaimResponse {
-  final String contract;
   final String tokenId;
 
-  TokenClaimResponse(this.contract, this.tokenId);
+  TokenClaimResponse(this.tokenId);
 
   factory TokenClaimResponse.fromJson(Map<String, dynamic> json) =>
       _$TokenClaimResponseFromJson(json);

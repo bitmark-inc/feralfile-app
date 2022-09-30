@@ -414,7 +414,7 @@ class UIHelper {
       Column(
         children: [
           CachedNetworkImage(
-            imageUrl: exhibition.thumbnailCoverUri,
+            imageUrl: exhibition.thumbnailCoverURI,
           ),
           const SizedBox(
             height: 10,

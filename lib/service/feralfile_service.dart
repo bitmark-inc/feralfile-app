@@ -198,8 +198,8 @@ class FeralFileServiceImpl extends FeralFileService {
       return false;
     }
 
-    final exhibition = await _feralFileApi.getExhibition(exhibitionId);
-    if (exhibition.airdrop.leftEdition  > 0) {
+    final exhibition = (await _feralFileApi.getExhibition(exhibitionId)).result;
+    if (exhibition.airdropInfo.remainAmount  > 0) {
       final accepted = await onConfirm?.call(exhibition) ?? true;
       if (!accepted) {
         log.info("[FeralFileService] User refused claim token");
@@ -216,7 +216,9 @@ class FeralFileServiceImpl extends FeralFileService {
         "address": (await wallet.getTezosWallet()).address,
       };
       final response = await _feralFileApi.claimToken(exhibitionId, body);
-      final indexerId = "tez-${exhibition.airdrop.contract}-${response.tokenId}";
+      final prefix = exhibition.airdropInfo.blockchain == "tezos" ? "tez" : "eth";
+      final indexerId =
+          "$prefix-${exhibition.airdropInfo.contractAddress}-${response.tokenId}";
       final address = (await wallet.getTezosWallet()).address;
       await injector<TokensService>().setCustomTokens(
         [createPendingAssetToken(indexerId: indexerId, owner: address)],
