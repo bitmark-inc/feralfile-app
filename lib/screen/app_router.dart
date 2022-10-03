@@ -69,7 +69,6 @@ import 'package:autonomy_flutter/screen/onboarding_page.dart';
 import 'package:autonomy_flutter/screen/participate_user_test_page.dart';
 import 'package:autonomy_flutter/screen/release_notes_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
-import 'package:autonomy_flutter/screen/settings/crypto/receive_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_bloc.dart';
@@ -534,16 +533,14 @@ class AppRouter {
                     BlocProvider(
                         create: (_) => WalletDetailBloc(
                             injector(), injector(), injector())),
-                    BlocProvider(create: (_) => TZKTTransactionBloc())
+                    BlocProvider(create: (_) => TZKTTransactionBloc()),
+                    BlocProvider(
+                        create: (_) => AccountsBloc(
+                            injector(), injector(),injector(),injector(), injector())),
                   ],
                   child: WalletDetailPage(
                       payload: settings.arguments as WalletDetailsPayload),
                 ));
-      case ReceivePage.tag:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) =>
-                ReceivePage(payload: settings.arguments as WalletPayload));
       case SendCryptoPage.tag:
         return CupertinoPageRoute(
             settings: settings,
