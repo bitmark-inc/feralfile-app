@@ -18,6 +18,16 @@ const _erc721Topic =
 
 const _maxRetries = 5;
 
+const _ethContractBlackList = [
+  "0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85",
+];
+
+const _tezosContractBlacklist = [
+  "KT1C9X9s5rpVJGxwVuHEVBLYEdAQ1Qw8QDjH",
+  "KT1GBZmSxmnKJXGMdMLbugPfLyUPmuLSMwKS",
+  "KT1A5P4ejnLix13jtadsfV9GCnXLMNnab8UT",
+];
+
 extension FilterEventExt on FilterEvent {
   bool isERC721() {
     return topics?.firstOrNull?.toUpperCase() == _erc721Topic;
@@ -174,6 +184,7 @@ class PendingTokenService {
     } while ((receipt == null && retryCount < _maxRetries));
     if (receipt != null) {
       final pendingTokens = receipt.logs
+          .where((log) => !_ethContractBlackList.contains(log.address?.hex))
           .map((e) => e.toAssetToken(owner, DateTime.now()))
           .where((element) => element != null)
           .map((e) => e as AssetToken)
@@ -204,6 +215,8 @@ class PendingTokenService {
         limit: 3,
       );
       final tokens = operations
+          .where((e) =>
+              !_tezosContractBlacklist.contains(e.token?.contract?.address))
           .map((e) => e.token?.toAssetToken(owner, DateTime.now()))
           .where((e) => e != null)
           .map((e) => e as AssetToken)
