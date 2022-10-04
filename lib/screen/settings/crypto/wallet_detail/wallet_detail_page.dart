@@ -6,7 +6,8 @@
 //
 
 import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/screen/settings/crypto/receive_page.dart';
+import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
+import 'package:autonomy_flutter/screen/global_receive/receive_detail_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/tezos_transaction_list_view.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_bloc.dart';
@@ -14,11 +15,11 @@ import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_det
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/view/au_outlined_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:libauk_dart/libauk_dart.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 
 class WalletDetailPage extends StatefulWidget {
   final WalletDetailsPayload payload;
@@ -53,8 +54,12 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
 
   @override
   Widget build(BuildContext context) {
-    context.read<WalletDetailBloc>().add(
-        WalletDetailBalanceEvent(widget.payload.type, widget.payload.wallet));
+    double safeAreaBottom = MediaQuery.of(context).padding.bottom;
+    final cryptoType = widget.payload.type;
+    final wallet = widget.payload.wallet;
+    context
+        .read<WalletDetailBloc>()
+        .add(WalletDetailBalanceEvent(cryptoType, wallet));
     final theme = Theme.of(context);
     return Scaffold(
       appBar: getBackAppBar(
@@ -64,79 +69,92 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
         },
       ),
       body: BlocConsumer<WalletDetailBloc, WalletDetailState>(
-          listener: (context, state) async {},
-          builder: (context, state) {
-            return Container(
-              margin: EdgeInsets.only(
-                  top: 16.0,
-                  left: 16.0,
-                  right: 16.0,
-                  bottom: MediaQuery.of(context).padding.bottom),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+          listener: (context, state) async {
+        context
+            .read<AccountsBloc>()
+            .add(FindAccount(wallet.uuid, state.address, cryptoType));
+      }, builder: (context, state) {
+        return Container(
+          margin: EdgeInsets.only(
+              top: 16.0,
+              left: 16.0,
+              right: 16.0,
+              bottom: MediaQuery.of(context).padding.bottom),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 16.0),
+              SizedBox(
+                width: double.infinity,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      state.balance.isNotEmpty
+                          ? state.balance
+                          : "-- ${widget.payload.type == CryptoType.ETH ? "ETH" : "XTZ"}",
+                      style: theme.textTheme.ibmBlackBold24,
+                    ),
+                    const SizedBox(height: 8.0),
+                    Text(
+                      state.balanceInUSD.isNotEmpty
+                          ? state.balanceInUSD
+                          : "-- USD",
+                      style: theme.textTheme.subtitle1,
+                    )
+                  ],
+                ),
+              ),
+              const SizedBox(height: 10),
+              Expanded(
+                child: widget.payload.type == CryptoType.XTZ
+                    ? TezosTXListView(address: state.address)
+                    : Container(),
+              ),
+              const SizedBox(height: 10),
+              Row(
                 children: [
-                  const SizedBox(height: 16.0),
-                  SizedBox(
-                    width: double.infinity,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          state.balance.isNotEmpty
-                              ? state.balance
-                              : "-- ${widget.payload.type == CryptoType.ETH ? "ETH" : "XTZ"}",
-                          style: theme.textTheme.ibmBlackBold24,
-                        ),
-                        const SizedBox(height: 8.0),
-                        Text(
-                          state.balanceInUSD.isNotEmpty
-                              ? state.balanceInUSD
-                              : "-- USD",
-                          style: theme.textTheme.subtitle1,
-                        )
-                      ],
+                  Expanded(
+                    child: AuOutlinedButton(
+                      text: "send".tr(),
+                      onPress: () {
+                        Navigator.of(context).pushNamed(SendCryptoPage.tag,
+                            arguments: SendData(widget.payload.wallet,
+                                widget.payload.type, null));
+                      },
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  Expanded(
-                    child: widget.payload.type == CryptoType.XTZ
-                        ? TezosTXListView(address: state.address)
-                        : Container(),
+                  const SizedBox(
+                    width: 16.0,
                   ),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: AuOutlinedButton(
-                          text: "send".tr(),
-                          onPress: () {
-                            Navigator.of(context).pushNamed(SendCryptoPage.tag,
-                                arguments: SendData(widget.payload.wallet,
-                                    widget.payload.type, null));
-                          },
-                        ),
-                      ),
-                      const SizedBox(
-                        width: 16.0,
-                      ),
-                      Expanded(
-                        child: AuOutlinedButton(
+                  Expanded(
+                    child: BlocConsumer<AccountsBloc, AccountsState>(
+                      listener: (context, accountState) async {},
+                      builder: (context, accountState) {
+                        final account = accountState.accounts?.firstWhere(
+                            (element) =>
+                                element.blockchain == cryptoType.source);
+                        return AuOutlinedButton(
                           text: "receive".tr(),
                           onPress: () {
-                            if (state.address.isNotEmpty) {
-                              Navigator.of(context).pushNamed(ReceivePage.tag,
-                                  arguments: WalletPayload(
-                                      widget.payload.type, state.address));
+                            if (account != null &&
+                                account.accountNumber.isNotEmpty) {
+                              Navigator.of(context).pushNamed(
+                                  GlobalReceiveDetailPage.tag,
+                                  arguments: account);
                             }
                           },
-                        ),
-                      ),
-                    ],
-                  )
+                        );
+                      },
+                    ),
+                  ),
                 ],
               ),
-            );
-          }),
+              SizedBox(height: safeAreaBottom > 0 ? 40 : 16),
+            ],
+          ),
+        );
+      }),
     );
   }
 }
