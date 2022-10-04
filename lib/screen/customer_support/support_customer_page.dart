@@ -74,7 +74,6 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
               ),
               addTitleSpace(),
               _reportItemsWidget(context),
-              const SizedBox(height: 60),
               _resourcesWidget(context),
             ],
           ),
@@ -98,9 +97,7 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
                     AppRouter.supportThreadPage,
                     arguments: NewIssuePayload(reportIssueType: item)),
               ),
-              if (item != ReportIssueType.Other) ...[
-                addOnlyDivider(),
-              ]
+              addOnlyDivider(),
             ],
           );
         })
@@ -123,8 +120,6 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('resources'.tr(), style: theme.textTheme.headline4),
-              const SizedBox(height: 19),
               TappableForwardRow(
                   leftWidget: Text('support_history'.tr(),
                       style: theme.textTheme.headline4),
