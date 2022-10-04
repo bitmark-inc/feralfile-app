@@ -195,7 +195,9 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
                                     }
                                     is MichelinePrimitiveBytes -> {
                                         result["bytes"] =
-                                            HexString(value.bytes).asString(withPrefix = false)
+                                            if (value.bytes.isEmpty()) "" else HexString(value.bytes).asString(
+                                                withPrefix = false
+                                            )
                                     }
                                     is MichelineNode -> {
                                         return value.expressions.map { arg -> getParams(arg) }
