@@ -21,6 +21,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../service/configuration_service.dart';
+
 enum PenroseTopBarViewStyle {
   main,
   back,
@@ -213,9 +215,41 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
             },
             icon: isInSettingsPage
                 ? closeIcon()
-                : SvgPicture.asset('assets/images/userOutlinedIcon.svg'),
+                : _settingIcon(),
           ),
         ),
+      ],
+    );
+  }
+
+  Widget _settingIcon() {
+    final hasPendingSettings =
+        injector<ConfigurationService>().hasPendingSettings();
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        SvgPicture.asset('assets/images/userOutlinedIcon.svg'),
+        if (hasPendingSettings) ...[
+          Positioned(
+              top: -6,
+              left: 10,
+              child: Align(
+                alignment: Alignment.topRight,
+                child: Container(
+                  padding: const EdgeInsets.all(2),
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white,
+                  ),
+                  child: SvgPicture.asset(
+                    "assets/images/icon_exclamation.svg",
+                    width: 16,
+                    height: 16,
+                    color: Colors.black,
+                  ),
+                ),
+              )),
+        ]
       ],
     );
   }

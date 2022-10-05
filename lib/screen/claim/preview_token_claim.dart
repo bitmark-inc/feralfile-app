@@ -103,8 +103,9 @@ class _PreviewTokenClaimState extends State<PreviewTokenClaim>
                                     children: [
                                       const SizedBox(height: 4.0),
                                       Text(
-                                        "by".tr(
-                                            args: [widget.artistName ?? '']),
+                                        "by".tr(args: [
+                                          widget.artistName ?? ''
+                                        ]).trim(),
                                         overflow: TextOverflow.ellipsis,
                                         style: theme.primaryTextTheme.headline5,
                                       )

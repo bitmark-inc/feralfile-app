@@ -15,6 +15,8 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:nft_rendering/nft_rendering.dart';
 
 class PreferenceView extends StatelessWidget {
   const PreferenceView({Key? key}) : super(key: key);
@@ -29,11 +31,33 @@ class PreferenceView extends StatelessWidget {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "preferences".tr(),
-            style: theme.textTheme.headline1,
+          Row(
+            children: [
+              Text(
+                "preferences".tr(),
+                style: theme.textTheme.headline1,
+              ),
+              const Expanded(child: SizedBox()),
+              if (state.hasPendingSettings) ...[
+                SvgPicture.asset(
+                  "assets/images/icon_exclamation.svg",
+                  width: 24,
+                  height: 24,
+                  color: Colors.black,
+                )
+              ],
+            ],
           ),
-          const SizedBox(height: 24),
+          if (state.hasPendingSettings) ...[
+            const SizedBox(
+              height: 16,
+            ),
+            Text(
+              "All preferences have been disabled by default.",
+              style: theme.textTheme.bodyText1,
+            )
+          ],
+          const SizedBox(height: 40),
           _preferenceItem(
             context,
             'immediate_info_view'.tr(),

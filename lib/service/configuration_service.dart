@@ -35,6 +35,8 @@ abstract class ConfigurationService {
   bool isAnalyticsEnabled();
   Future<void> setDoneOnboarding(bool value);
   bool isDoneOnboarding();
+  Future<void> setPendingSettings(bool value);
+  bool hasPendingSettings();
   Future<void> setDoneOnboardingOnce(bool value);
   bool isDoneOnboardingOnce();
   Future<void> setFullscreenIntroEnable(bool value);
@@ -105,6 +107,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_ANALYTICS = "analytics";
   static const String KEY_FULLSCREEN_INTRO = "fullscreen_intro";
   static const String KEY_DONE_ONBOARING = "done_onboarding";
+  static const String KEY_PENDING_SETTINGS = "has_pending_settings";
   static const String KEY_DONE_ONBOARING_ONCE = "done_onboarding_once";
   static const String KEY_HIDDEN_PERSONAS_IN_GALLERY =
       'hidden_personas_in_gallery';
@@ -263,6 +266,16 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   bool isDoneOnboardingOnce() {
     return _preferences.getBool(KEY_DONE_ONBOARING_ONCE) ?? false;
+  }
+
+  @override
+  bool hasPendingSettings() {
+    return _preferences.getBool(KEY_PENDING_SETTINGS) ?? false;
+  }
+
+  @override
+  Future<void> setPendingSettings(bool value) async {
+    await _preferences.setBool(KEY_PENDING_SETTINGS, value);
   }
 
   @override

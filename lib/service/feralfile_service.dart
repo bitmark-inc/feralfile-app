@@ -230,7 +230,9 @@ class FeralFileServiceImpl extends FeralFileService {
         "address": receiver,
       };
       final response = await _feralFileApi.claimToken(exhibitionId, body);
-      final prefix = exhibition.airdropInfo?.blockchain == "Tezos" ? "tez" : "eth";
+      final prefix = exhibition.airdropInfo?.blockchain.toLowerCase() == "tezos"
+          ? "tez"
+          : "eth";
       final indexerId =
           "$prefix-${exhibition.airdropInfo?.contractAddress}-${response.result.editionID}";
       final indexer = injector<TokensService>();

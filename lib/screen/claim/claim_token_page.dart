@@ -154,9 +154,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
               "accept_ownership_desc".tr(),
               style: theme.primaryTextTheme.bodyText1,
             ),
-            const SizedBox(
-              height: 16,
-            ),
+            const Expanded(child: SizedBox()),
             RichText(
               text: TextSpan(
                 text: "airdrop_accept_privacy_policy".tr(),
@@ -178,7 +176,9 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                 ],
               ),
             ),
-            const Expanded(child: SizedBox()),
+            const SizedBox(
+              height: 24,
+            ),
             AuFilledButton(
               text: "accept_ownership".tr(),
               color: theme.colorScheme.secondary,
@@ -198,8 +198,9 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                 if (addresses.isEmpty) {
                   final defaultAccount =
                       await accountService.getDefaultAccount();
-                  await injector<ConfigurationService>()
-                      .setDoneOnboarding(true);
+                  final configService = injector<ConfigurationService>();
+                  await configService.setDoneOnboarding(true);
+                  await configService.setPendingSettings(true);
                   address = blockchain == "Tezos"
                       ? (await defaultAccount.getTezosWallet()).address
                       : await defaultAccount.getETHAddress();
