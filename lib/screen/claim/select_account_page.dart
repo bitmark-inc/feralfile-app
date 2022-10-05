@@ -1,16 +1,42 @@
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/model/ff_account.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
+import 'package:autonomy_flutter/service/feralfile_service.dart';
+import 'package:autonomy_flutter/util/account_ext.dart';
+import 'package:autonomy_flutter/util/custom_exception.dart';
+import 'package:autonomy_flutter/util/error_handler.dart';
+import 'package:autonomy_flutter/util/feralfile_extension.dart';
+import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/account_view.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+class SelectAccountPageArgs {
+  final String? blockchain;
+
+  // If exhibitionId is not null, claim token after confirmed, otherwise, return selected account.
+  final String? exhibitionId;
+
+  SelectAccountPageArgs(
+    this.blockchain,
+    this.exhibitionId,
+  );
+}
+
 class SelectAccountPage extends StatefulWidget {
+  final String? exhibitionId;
   final String? blockchain;
 
   const SelectAccountPage({
     Key? key,
+    this.exhibitionId,
     this.blockchain,
   }) : super(key: key);
 
@@ -22,6 +48,7 @@ class SelectAccountPage extends StatefulWidget {
 
 class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
   Account? _selectedAccount;
+  bool _processing = false;
 
   @override
   void initState() {
@@ -78,11 +105,20 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
             ),
             Expanded(child: _buildPersonaList(context)),
             AuFilledButton(
+                isProcessing: _processing,
+                enabled: !_processing,
                 text: "CONFIRM",
                 onPress: _selectedAccount == null
                     ? null
-                    : () {
-                        Navigator.of(context).pop(_selectedAccount);
+                    : () async {
+                        if (widget.exhibitionId != null) {
+                          await _claimToken(
+                            _selectedAccount!,
+                            widget.exhibitionId!,
+                          );
+                        } else {
+                          Navigator.of(context).pop(_selectedAccount);
+                        }
                       }),
           ],
         ),
@@ -142,5 +178,51 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
         itemCount: accountWidgets.length,
       );
     });
+  }
+
+  void _setProcessingState(bool processing) {
+    setState(() {
+      _processing = processing;
+    });
+  }
+
+  Future _claimToken(
+    Account account,
+    String exhibitionId,
+  ) async {
+    try {
+      _setProcessingState(true);
+      final ffService = injector<FeralFileService>();
+      final address = await account.getAddress(widget.blockchain ?? "tezos");
+      await ffService.claimToken(
+        exhibitionId: exhibitionId,
+        address: address,
+      );
+      memoryValues.airdropFFExhibitionId = null;
+    } catch (e) {
+      log.info("[SelectAccountPage] Claim token failed. $e");
+      if (e is AirdropExpired) {
+        await UIHelper.showAirdropExpired(context);
+      } else if (e is DioError) {
+        final ffError = e.error as FeralfileError?;
+        final message = ffError != null
+            ? ffError.dialogMessage
+            : "${e.response?.data ?? e.message}";
+        await showErrorDialog(
+          context,
+          ffError?.dialogTitle ?? "error".tr(),
+          message,
+          "close".tr(),
+        );
+      }
+    } finally {
+      _setProcessingState(false);
+    }
+
+    if (!mounted) return;
+    Navigator.of(context).pushNamedAndRemoveUntil(
+      AppRouter.homePage,
+          (route) => false,
+    );
   }
 }

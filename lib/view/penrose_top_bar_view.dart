@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/badge_view.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -231,21 +232,16 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
         SvgPicture.asset('assets/images/userOutlinedIcon.svg'),
         if (hasPendingSettings) ...[
           Positioned(
-              top: -6,
-              left: 10,
+              top: -1,
+              left: 14,
               child: Align(
                 alignment: Alignment.topRight,
                 child: Container(
-                  padding: const EdgeInsets.all(2),
+                  width: 10,
+                  height: 10,
                   decoration: const BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white,
-                  ),
-                  child: SvgPicture.asset(
-                    "assets/images/icon_exclamation.svg",
-                    width: 16,
-                    height: 16,
-                    color: Colors.black,
+                    color: AppColor.red,
                   ),
                 ),
               )),

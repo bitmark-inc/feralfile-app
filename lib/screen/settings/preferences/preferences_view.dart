@@ -31,32 +31,10 @@ class PreferenceView extends StatelessWidget {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Text(
-                "preferences".tr(),
-                style: theme.textTheme.headline1,
-              ),
-              const Expanded(child: SizedBox()),
-              if (state.hasPendingSettings) ...[
-                SvgPicture.asset(
-                  "assets/images/icon_exclamation.svg",
-                  width: 24,
-                  height: 24,
-                  color: Colors.black,
-                )
-              ],
-            ],
+          Text(
+            "preferences".tr(),
+            style: theme.textTheme.headline1,
           ),
-          if (state.hasPendingSettings) ...[
-            const SizedBox(
-              height: 16,
-            ),
-            Text(
-              "All preferences have been disabled by default.",
-              style: theme.textTheme.bodyText1,
-            )
-          ],
           const SizedBox(height: 40),
           _preferenceItem(
             context,
@@ -103,6 +81,7 @@ class PreferenceView extends StatelessWidget {
                   .read<PreferencesBloc>()
                   .add(PreferenceUpdateEvent(newState));
             },
+            pendingSetting: state.hasPendingSettings
           ),
           addDivider(),
           _preferenceItemWithBuilder(
@@ -168,8 +147,14 @@ class PreferenceView extends StatelessWidget {
     });
   }
 
-  Widget _preferenceItem(BuildContext context, String title, String description,
-      bool isEnabled, ValueChanged<bool> onChanged) {
+  Widget _preferenceItem(
+    BuildContext context,
+    String title,
+    String description,
+    bool isEnabled,
+    ValueChanged<bool> onChanged, {
+    bool pendingSetting = false,
+  }) {
     final theme = Theme.of(context);
 
     return Column(
@@ -178,7 +163,24 @@ class PreferenceView extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(title, style: theme.textTheme.headline4),
+            Row(
+              children: [
+                Text(title, style: theme.textTheme.headline4),
+                if (pendingSetting) ...[
+                  const SizedBox(
+                    width: 7,
+                  ),
+                  Container(
+                    width: 10,
+                    height: 10,
+                    decoration: const BoxDecoration(
+                      color: AppColor.red,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ],
+              ],
+            ),
             CupertinoSwitch(
               value: isEnabled,
               onChanged: onChanged,

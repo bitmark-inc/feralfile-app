@@ -3,9 +3,9 @@ import 'dart:io';
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:shake/shake.dart';
@@ -86,7 +86,6 @@ class _PreviewTokenClaimState extends State<PreviewTokenClaim>
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const SizedBox(width: 30),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -141,7 +140,7 @@ class _PreviewTokenClaimState extends State<PreviewTokenClaim>
               ),
               Expanded(
                 child: widget.artworkThumbnail != null
-                    ? Image.network(widget.artworkThumbnail!)
+                    ? CachedNetworkImage(imageUrl: widget.artworkThumbnail!)
                     : Container(),
               )
             ],

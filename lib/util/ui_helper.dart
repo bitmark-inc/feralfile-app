@@ -387,7 +387,7 @@ class UIHelper {
     final theme = Theme.of(context);
     return UIHelper.showDialog(
       context,
-      "Expired offer",
+      "Expired",
       Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

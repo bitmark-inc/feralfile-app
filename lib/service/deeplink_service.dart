@@ -233,7 +233,13 @@ class DeeplinkServiceImpl extends DeeplinkService {
       if (doneOnboarding) {
         _navigationService.popUntilHomeOrSettings();
         final exhibition = await _feralFileService.getExhibition(exhibitionId);
-        _navigationService.openClaimTokenPage(exhibition);
+        final endTime = exhibition.airdropInfo?.endedAt;
+        if (exhibition.airdropInfo == null ||
+            (endTime != null && endTime.isBefore(DateTime.now()))) {
+          _navigationService.showAirdropExpired();
+        } else {
+          _navigationService.openClaimTokenPage(exhibition);
+        }
       } else {
         memoryValues.airdropFFExhibitionId = exhibitionId;
       }

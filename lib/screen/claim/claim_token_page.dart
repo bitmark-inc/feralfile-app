@@ -4,6 +4,7 @@ import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/claim/preview_token_claim.dart';
+import 'package:autonomy_flutter/screen/claim/select_account_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
@@ -208,7 +209,10 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                   if (!mounted) return;
                   final account = await Navigator.of(context).pushNamed(
                     AppRouter.claimSelectAccountPage,
-                    arguments: blockchain,
+                    arguments: SelectAccountPageArgs(
+                      blockchain,
+                      widget.exhibition.id,
+                    ),
                   ) as Account?;
                   final wallet = account?.persona?.wallet();
                   if (wallet != null) {

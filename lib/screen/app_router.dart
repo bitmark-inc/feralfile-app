@@ -857,13 +857,15 @@ class AppRouter {
             });
 
       case claimSelectAccountPage:
+        final args = settings.arguments as SelectAccountPageArgs;
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) {
               return BlocProvider.value(
                 value: accountsBloc,
                 child: SelectAccountPage(
-                  blockchain: settings.arguments as String?,
+                  exhibitionId: args.exhibitionId,
+                  blockchain: args.blockchain,
                 ),
               );
             });
