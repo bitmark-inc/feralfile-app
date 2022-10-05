@@ -77,6 +77,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
 
   static final List<AUCastDevice> _defaultCastDevices =
       Platform.isIOS ? [AUCastDevice(AUCastDeviceType.Airplay)] : [];
+  final keyboardManagerKey = GlobalKey<KeyboardManagerWidgetState>();
 
   final Future<List<CastDevice>> _castDevicesFuture =
       CastDiscoveryService().search();
@@ -147,6 +148,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
 
   Future _moveToInfo(AssetToken? asset) async {
     if (asset == null) return;
+    keyboardManagerKey.currentState?.hideKeyboard();
     final isImmediateInfoViewEnabled =
         injector<ConfigurationService>().isImmediateInfoViewEnabled();
 
@@ -492,7 +494,6 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final keyboardManagerKey = GlobalKey<KeyboardManagerWidgetState>();
     return Scaffold(
       backgroundColor: theme.colorScheme.primary,
       resizeToAvoidBottomInset: false,
