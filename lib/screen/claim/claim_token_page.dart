@@ -3,6 +3,7 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
+import 'package:autonomy_flutter/screen/claim/preview_token_claim.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
@@ -106,7 +107,16 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                 ],
               ),
               onTap: () {
-                // TODO: open preview page.
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => PreviewTokenClaim(
+                      artistName: artistName,
+                      title: artwork?.title ?? widget.exhibition.title,
+                      artworkThumbnail: artworkThumbnail,
+                    ),
+                  ),
+                );
               },
             ),
             const SizedBox(
@@ -121,7 +131,16 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                 )),
               ),
               onTap: () {
-                // TODO: open preview
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => PreviewTokenClaim(
+                      artistName: artistName,
+                      title: artwork?.title ?? widget.exhibition.title,
+                      artworkThumbnail: artworkThumbnail,
+                    ),
+                  ),
+                );
               },
             ),
             Text(
@@ -177,8 +196,10 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
 
                 String? address;
                 if (addresses.isEmpty) {
-                  final defaultAccount = await accountService.getDefaultAccount();
-                  await injector<ConfigurationService>().setDoneOnboarding(true);
+                  final defaultAccount =
+                      await accountService.getDefaultAccount();
+                  await injector<ConfigurationService>()
+                      .setDoneOnboarding(true);
                   address = blockchain == "Tezos"
                       ? (await defaultAccount.getTezosWallet()).address
                       : await defaultAccount.getETHAddress();
@@ -258,7 +279,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
     if (mounted) {
       Navigator.of(context).pushNamedAndRemoveUntil(
         AppRouter.homePage,
-            (route) => false,
+        (route) => false,
       );
     }
   }
