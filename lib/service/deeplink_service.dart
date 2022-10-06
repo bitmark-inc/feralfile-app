@@ -161,14 +161,9 @@ class DeeplinkServiceImpl extends DeeplinkService {
 
   Future<bool> _handleBranchDeeplink(String link) async {
     log.info("[DeeplinkService] _handleBranchDeeplink");
-
-    final branchDeepLinks = [
-      "https://autonomy-app.app.link",
-      "https://autonomy-app-alternate.app.link",
-      "https://link.autonomy.io",
-    ];
-
-    if (branchDeepLinks.any((prefix) => link.startsWith(prefix))) {
+    //star
+    memoryValues.airdropFFExhibitionId.value = '';
+    if (Constants.branchDeepLinks.any((prefix) => link.startsWith(prefix))) {
       final response = await _branchApi.getParams(Environment.branchKey, link);
       _handleBranchDeeplinkData(response["data"]);
       return true;
@@ -185,6 +180,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
           log.info("[DeeplinkService] _linkFeralFileToken $tokenId");
           _linkFeralFileToken(tokenId);
         }
+        memoryValues.airdropFFExhibitionId.value = null;
         break;
       case "FeralFile_AirDrop":
         final String? exhibitionId = data["exhibition_id"];
@@ -202,6 +198,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
           _claimFFAirdropToken(exhibitionId);
         }
         break;
+      default:
+        memoryValues.airdropFFExhibitionId.value = null;
     }
   }
 
@@ -241,7 +239,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
           _navigationService.openClaimTokenPage(exhibition);
         }
       } else {
-        memoryValues.airdropFFExhibitionId = exhibitionId;
+        memoryValues.airdropFFExhibitionId.value = exhibitionId;
       }
     } catch (e) {
       debugPrint("[DeeplinkService] _claimFFAirdropToken error $e");

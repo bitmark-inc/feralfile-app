@@ -198,7 +198,7 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
         exhibitionId: exhibitionId,
         address: address,
       );
-      memoryValues.airdropFFExhibitionId = null;
+      memoryValues.airdropFFExhibitionId.value = null;
     } catch (e) {
       log.info("[SelectAccountPage] Claim token failed. $e");
       if (e is AirdropExpired) {
@@ -222,7 +222,7 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
     if (!mounted) return;
     Navigator.of(context).pushNamedAndRemoveUntil(
       AppRouter.homePage,
-          (route) => false,
+      (route) => false,
     );
   }
 }

@@ -243,7 +243,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
               text: "decline".tr(),
               enabled: !_processing,
               onPress: () {
-                memoryValues.airdropFFExhibitionId = null;
+                memoryValues.airdropFFExhibitionId.value = null;
                 Navigator.of(context).pop(false);
               },
             ),
@@ -260,7 +260,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
         exhibitionId: widget.exhibition.id,
         address: receiveAddress,
       );
-      memoryValues.airdropFFExhibitionId = null;
+      memoryValues.airdropFFExhibitionId.value = null;
     } catch (e) {
       log.info("[ClaimTokenPage] Claim token failed. $e");
       if (e is AirdropExpired) {

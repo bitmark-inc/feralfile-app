@@ -18,6 +18,7 @@ import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/migration/migration_util.dart';
 import 'package:autonomy_flutter/util/notification_util.dart';
+import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
@@ -64,7 +65,7 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
       await _configurationService.removeAll();
 
       _authService.reset();
-      memoryValues = MemoryValues();
+      memoryValues = MemoryValues(airdropFFExhibitionId: ValueNotifier(null));
 
       emit(ForgetExistState(state.isChecked, false));
     });

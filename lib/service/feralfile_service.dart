@@ -191,16 +191,15 @@ class FeralFileServiceImpl extends FeralFileService {
   }
 
   @override
-  Future<bool> claimToken({
-    required String exhibitionId,
-    String? address,
-    bool delayed = false,
-    Future<bool> Function(Exhibition)? onConfirm
-  }) async {
+  Future<bool> claimToken(
+      {required String exhibitionId,
+      String? address,
+      bool delayed = false,
+      Future<bool> Function(Exhibition)? onConfirm}) async {
     log.info(
         "[FeralFileService] Claim token - exhibitionId: $exhibitionId, delayed: $delayed");
     if (delayed) {
-      memoryValues.airdropFFExhibitionId = exhibitionId;
+      memoryValues.airdropFFExhibitionId.value = exhibitionId;
       return false;
     }
 

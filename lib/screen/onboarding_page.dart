@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
 import 'dart:developer';
 
 import 'package:autonomy_flutter/common/injector.dart';
@@ -12,6 +13,7 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/router/router_bloc.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
@@ -23,6 +25,8 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:uni_links/uni_links.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 
 class OnboardingPage extends StatefulWidget {
   const OnboardingPage({Key? key}) : super(key: key);
@@ -32,14 +36,70 @@ class OnboardingPage extends StatefulWidget {
 }
 
 class _OnboardingPageState extends State<OnboardingPage> {
-
   bool _processing = false;
+  bool fromBranchLink = false;
+
+  @override
+  void initState() {
+    super.initState();
+    handleBranchLink();
+  }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     log("DefineViewRoutingEvent");
     context.read<RouterBloc>().add(DefineViewRoutingEvent());
+  }
+
+  void handleBranchLink() async {
+    final initialLink = await getInitialLink();
+    final isBranchLink = initialLink != null &&
+        Constants.branchDeepLinks
+            .any((prefix) => initialLink.startsWith(prefix));
+
+    if (isBranchLink) {
+      setState(() {
+        fromBranchLink = true;
+      });
+      final timer = Timer.periodic(const Duration(seconds: 10), (timer) {
+        timer.cancel();
+        setState(() {
+          fromBranchLink = false;
+        });
+      });
+      memoryValues.airdropFFExhibitionId.addListener(() async {
+        if (memoryValues.airdropFFExhibitionId.value == null) {
+          setState(() {
+            fromBranchLink = false;
+          });
+          return;
+        }
+        final exhibitionId = memoryValues.airdropFFExhibitionId.value;
+        if (exhibitionId != null && exhibitionId.isNotEmpty) {
+          final exhibition =
+              await injector<FeralFileService>().getExhibition(exhibitionId);
+          final endTime = exhibition.airdropInfo?.endedAt;
+
+          timer.cancel();
+
+          if (exhibition.airdropInfo == null ||
+              (endTime != null && endTime.isBefore(DateTime.now()))) {
+            injector.get<NavigationService>().showAirdropExpired();
+            setState(() {
+              fromBranchLink = false;
+            });
+            return;
+          }
+
+          if (!mounted) return;
+          Navigator.of(context).pushNamed(
+            AppRouter.claimFeralfileTokenPage,
+            arguments: exhibition,
+          );
+        }
+      });
+    }
   }
 
   // @override
@@ -108,23 +168,28 @@ class _OnboardingPageState extends State<OnboardingPage> {
           ),
           Container(
             margin: edgeInsets,
-            child: Column(mainAxisAlignment: MainAxisAlignment.end, children: [
-              state.onboardingStep != OnboardingStep.undefined
-                  ? privacyView(context)
-                  : const SizedBox(),
-              const SizedBox(height: 32.0),
-              _getStartupButton(state),
-            ]),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: fromBranchLink
+                  ? [
+                      Center(
+                          child: Text(
+                        tr('loading...').toUpperCase(),
+                        style: theme.textTheme.ibmBlackNormal14,
+                      ))
+                    ]
+                  : [
+                      state.onboardingStep != OnboardingStep.undefined
+                          ? privacyView(context)
+                          : const SizedBox(),
+                      const SizedBox(height: 32.0),
+                      _getStartupButton(state),
+                    ],
+            ),
           )
         ]);
       },
     ));
-  }
-
-  void _setProcessing(bool processing) {
-    setState(() {
-      _processing = processing;
-    });
   }
 
   Future _gotoOwnGalleryPage() async {
@@ -144,28 +209,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                 text: "start".tr().toUpperCase(),
                 key: const Key("start_button"),
                 onPress: () async {
-                  final exhibitionId = memoryValues.airdropFFExhibitionId;
-                  if (exhibitionId != null) {
-                    try {
-                      _setProcessing(true);
-                      final exhibition = await injector<FeralFileService>()
-                          .getExhibition(exhibitionId);
-                      if (!mounted) return;
-                      final claimed = await Navigator.of(context).pushNamed(
-                        AppRouter.claimFeralfileTokenPage,
-                        arguments: exhibition,
-                      );
-                      if (claimed == false) {
-                        _gotoOwnGalleryPage();
-                      }
-                    } catch (e) {
-                      _gotoOwnGalleryPage();
-                    } finally {
-                      _setProcessing(false);
-                    }
-                  } else {
-                    _gotoOwnGalleryPage();
-                  }
+                  _gotoOwnGalleryPage();
                 },
               ),
             )
