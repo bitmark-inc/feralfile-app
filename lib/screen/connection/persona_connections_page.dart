@@ -193,19 +193,20 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "address".tr(),
+          widget.payload.type.source,
           style: theme.textTheme.headline1,
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 40),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text("receive".tr(), style: theme.textTheme.headline4),
+                Text("address".tr(), style: theme.textTheme.headline4),
               ],
             ),
+            const SizedBox(height: 16),
             Row(
               children: [
                 Expanded(
