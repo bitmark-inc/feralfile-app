@@ -57,105 +57,122 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(
-              height: 52,
-            ),
-            Text(
-              "congratulations".tr(),
-              style: theme.primaryTextTheme.headline1,
-            ),
-            const SizedBox(
-              height: 40,
-            ),
-            RichText(
-              text: TextSpan(
-                text: "you_can_receive_free_gift_from".tr(),
-                style: theme.primaryTextTheme.bodyText1,
-                children: [
-                  TextSpan(
-                    text: "MoMA",
-                    style: theme.primaryTextTheme.bodyText1
-                        ?.copyWith(fontWeight: FontWeight.w700),
-                  ),
-                  TextSpan(
-                    text: ".",
-                    style: theme.primaryTextTheme.bodyText1,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(
-              height: 24,
-            ),
-            GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              child: Stack(
-                alignment: AlignmentDirectional.center,
-                children: [
-                  Transform.translate(
-                    offset: const Offset(1, 0),
-                    child: ClipPath(
-                      clipper: AutonomyTopRightRectangleClipper(),
-                      child: CachedNetworkImage(
-                        fit: BoxFit.fitWidth,
-                        imageUrl: artworkThumbnail,
-                        width: 264,
-                        height: 264,
+            Expanded(
+              child: NotificationListener<OverscrollIndicatorNotification>(
+                onNotification: (overScroll) {
+                  overScroll.disallowIndicator();
+                  return false;
+                },
+                child: ListView(
+                  shrinkWrap: true,
+                  children: [
+                    const SizedBox(
+                      height: 52,
+                    ),
+                    Text(
+                      "congratulations".tr(),
+                      style: theme.primaryTextTheme.headline1,
+                    ),
+                    const SizedBox(
+                      height: 40,
+                    ),
+                    RichText(
+                      text: TextSpan(
+                        text: "you_can_receive_free_gift_from".tr(),
+                        style: theme.primaryTextTheme.bodyText1,
+                        children: [
+                          TextSpan(
+                            text: "MoMA",
+                            style: theme.primaryTextTheme.bodyText1
+                                ?.copyWith(fontWeight: FontWeight.w700),
+                          ),
+                          TextSpan(
+                            text: ".",
+                            style: theme.primaryTextTheme.bodyText1,
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                  Image.asset("assets/images/ribbon.png"),
-                ],
-              ),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => PreviewTokenClaim(
-                      artistName: artistName,
-                      title: artwork?.title ?? widget.exhibition.title,
-                      artworkThumbnail: artworkThumbnail,
+                    const SizedBox(
+                      height: 24,
                     ),
-                  ),
-                );
-              },
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      child: Stack(
+                        alignment: AlignmentDirectional.center,
+                        children: [
+                          Transform.translate(
+                            offset: const Offset(1, 0),
+                            child: ClipPath(
+                              clipper: AutonomyTopRightRectangleClipper(),
+                              child: CachedNetworkImage(
+                                fit: BoxFit.cover,
+                                imageUrl: artworkThumbnail,
+                                width: 264,
+                                height: 264,
+                              ),
+                            ),
+                          ),
+                          Image.asset("assets/images/ribbon.png"),
+                        ],
+                      ),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => PreviewTokenClaim(
+                              artistName: artistName,
+                              title: artwork?.title ?? widget.exhibition.title,
+                              artworkThumbnail: artworkThumbnail,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(
+                      height: 24,
+                    ),
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      child: Text(
+                        artwork?.title ?? widget.exhibition.title,
+                        style: makeLinkStyle(
+                            theme.primaryTextTheme.bodyText1!.copyWith(
+                          fontWeight: FontWeight.w700,
+                        )),
+                      ),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => PreviewTokenClaim(
+                              artistName: artistName,
+                              title: artwork?.title ?? widget.exhibition.title,
+                              artworkThumbnail: artworkThumbnail,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    Text(
+                      "by $artistName",
+                      style: theme.primaryTextTheme.bodyText1,
+                    ),
+                    const SizedBox(
+                      height: 20,
+                    ),
+                    Text(
+                      "accept_ownership_desc".tr(),
+                      style: theme.primaryTextTheme.bodyText1,
+                    ),
+                    const Expanded(child: SizedBox()),
+                  ],
+                ),
+              ),
             ),
             const SizedBox(
               height: 24,
             ),
-            GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              child: Text(
-                artwork?.title ?? widget.exhibition.title,
-                style: makeLinkStyle(theme.primaryTextTheme.bodyText1!.copyWith(
-                  fontWeight: FontWeight.w700,
-                )),
-              ),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => PreviewTokenClaim(
-                      artistName: artistName,
-                      title: artwork?.title ?? widget.exhibition.title,
-                      artworkThumbnail: artworkThumbnail,
-                    ),
-                  ),
-                );
-              },
-            ),
-            Text(
-              "by $artistName",
-              style: theme.primaryTextTheme.bodyText1,
-            ),
-            const SizedBox(
-              height: 20,
-            ),
-            Text(
-              "accept_ownership_desc".tr(),
-              style: theme.primaryTextTheme.bodyText1,
-            ),
-            const Expanded(child: SizedBox()),
             RichText(
               text: TextSpan(
                 text: "airdrop_accept_privacy_policy".tr(),

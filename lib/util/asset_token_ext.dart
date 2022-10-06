@@ -131,6 +131,7 @@ String _refineToCloudflareURL(String url, String thumbnailID, String variant) {
 AssetToken createPendingAssetToken({
   required String indexerId,
   required String owner,
+  String? source,
 }) {
   return AssetToken(
     artistName: null,
@@ -155,7 +156,7 @@ AssetToken createPendingAssetToken({
     mimeType: null,
     mintedAt: null,
     previewURL: null,
-    source: null,
+    source: source,
     sourceURL: null,
     thumbnailID: null,
     thumbnailURL: null,

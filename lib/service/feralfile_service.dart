@@ -237,7 +237,13 @@ class FeralFileServiceImpl extends FeralFileService {
       final indexer = injector<TokensService>();
       await indexer.reindexAddresses([receiver]);
       indexer.setCustomTokens(
-        [createPendingAssetToken(indexerId: indexerId, owner: receiver)],
+        [
+          createPendingAssetToken(
+            indexerId: indexerId,
+            owner: receiver,
+            source: "feralfile",
+          )
+        ],
       );
       return true;
     } else {

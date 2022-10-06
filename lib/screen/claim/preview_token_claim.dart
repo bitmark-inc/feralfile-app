@@ -140,7 +140,10 @@ class _PreviewTokenClaimState extends State<PreviewTokenClaim>
               ),
               Expanded(
                 child: widget.artworkThumbnail != null
-                    ? CachedNetworkImage(imageUrl: widget.artworkThumbnail!)
+                    ? CachedNetworkImage(
+                        imageUrl: widget.artworkThumbnail!,
+                        fit: BoxFit.contain,
+                      )
                     : Container(),
               )
             ],

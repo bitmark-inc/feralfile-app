@@ -243,11 +243,11 @@ class DeeplinkServiceImpl extends DeeplinkService {
         final endTime = exhibition.airdropInfo?.endedAt;
         if (exhibition.airdropInfo == null ||
             (endTime != null && endTime.isBefore(DateTime.now()))) {
-          _navigationService.showAirdropExpired();
+          await _navigationService.showAirdropExpired();
         } else {
           await _navigationService.openClaimTokenPage(exhibition);
-          currentExhibitionId = null;
         }
+        currentExhibitionId = null;
       } else {
         memoryValues.airdropFFExhibitionId.value = exhibitionId;
         await Future.delayed(const Duration(seconds: 5), () {
@@ -256,6 +256,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
       }
     } catch (e) {
       debugPrint("[DeeplinkService] _claimFFAirdropToken error $e");
+      currentExhibitionId = null;
     }
   }
 }
