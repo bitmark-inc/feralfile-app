@@ -90,14 +90,14 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
               height: 24,
             ),
             Text(
-              "Where do you want to receive your gift?",
+              "where_do_want_to_receive_gift".tr(),
               style: theme.textTheme.headline1,
             ),
             const SizedBox(
               height: 40,
             ),
             Text(
-              "This artwork has been minted on the Tezos blockchain. Select your Tezos account.",
+              "claim_airdrop_select_account_desc".tr(),
               style: theme.textTheme.bodyText1,
             ),
             const SizedBox(
@@ -107,7 +107,7 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
             AuFilledButton(
                 isProcessing: _processing,
                 enabled: !_processing,
-                text: "CONFIRM",
+                text: "confirm".tr(),
                 onPress: _selectedAccount == null
                     ? null
                     : () async {

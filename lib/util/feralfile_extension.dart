@@ -5,7 +5,7 @@ extension FeralfileErrorExt on FeralfileError {
   String get dialogTitle {
     switch (code) {
       case 5011:
-        return "Already accepted";
+        return "already_accepted".tr();
       default:
         return "error".tr();
     }
@@ -14,7 +14,7 @@ extension FeralfileErrorExt on FeralfileError {
   String get dialogMessage {
     switch (code) {
       case 5011:
-        return "You have already claimed your gift edition. The offer is valid only one time.";
+        return "claimed_error_message".tr();
       default:
         return message;
     }

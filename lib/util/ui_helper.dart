@@ -10,7 +10,6 @@ import 'dart:async';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_box_view.dart';
 import 'package:autonomy_flutter/screen/survey/survey.dart';
@@ -387,12 +386,12 @@ class UIHelper {
     final theme = Theme.of(context);
     return UIHelper.showDialog(
       context,
-      "Expired",
+      "expired2".tr(),
       Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            "The QR code you tried to scan is now expired. It is no longer possible to redeem your gift edition.",
+            "qr_expired_message".tr(),
             style: theme.primaryTextTheme.bodyText1,
           ),
           const SizedBox(
