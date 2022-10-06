@@ -6,20 +6,18 @@
 //
 
 import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
-import 'package:autonomy_flutter/screen/global_receive/receive_detail_page.dart';
-import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/tezos_transaction_list_view.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_state.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/view/au_outlined_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:libauk_dart/libauk_dart.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 class WalletDetailPage extends StatefulWidget {
   final WalletDetailsPayload payload;
@@ -54,7 +52,6 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
 
   @override
   Widget build(BuildContext context) {
-    double safeAreaBottom = MediaQuery.of(context).padding.bottom;
     final cryptoType = widget.payload.type;
     final wallet = widget.payload.wallet;
     context
@@ -69,17 +66,12 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
         },
       ),
       body: BlocConsumer<WalletDetailBloc, WalletDetailState>(
-          listener: (context, state) async {
-        context
-            .read<AccountsBloc>()
-            .add(FindAccount(wallet.uuid, state.address, cryptoType));
-      }, builder: (context, state) {
+          listener: (context, state) async {},
+          builder: (context, state) {
         return Container(
-          margin: EdgeInsets.only(
-              top: 16.0,
-              left: 16.0,
-              right: 16.0,
-              bottom: MediaQuery.of(context).padding.bottom),
+          margin: const EdgeInsets.only(
+            top: 16.0,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -112,50 +104,36 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                     : Container(),
               ),
               const SizedBox(height: 10),
-              Row(
-                children: [
-                  Expanded(
-                    child: AuOutlinedButton(
-                      text: "send".tr(),
-                      onPress: () {
-                        Navigator.of(context).pushNamed(SendCryptoPage.tag,
-                            arguments: SendData(widget.payload.wallet,
-                                widget.payload.type, null));
-                      },
-                    ),
-                  ),
-                  const SizedBox(
-                    width: 16.0,
-                  ),
-                  Expanded(
-                    child: BlocConsumer<AccountsBloc, AccountsState>(
-                      listener: (context, accountState) async {},
-                      builder: (context, accountState) {
-                        final account = accountState.accounts?.firstWhere(
-                            (element) =>
-                                element.blockchain == cryptoType.source);
-                        return AuOutlinedButton(
-                          text: "receive".tr(),
-                          onPress: () {
-                            if (account != null &&
-                                account.accountNumber.isNotEmpty) {
-                              Navigator.of(context).pushNamed(
-                                  GlobalReceiveDetailPage.tag,
-                                  arguments: account);
-                            }
-                          },
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: safeAreaBottom > 0 ? 40 : 16),
+              widget.payload.type == CryptoType.XTZ
+                  ? GestureDetector(
+                      onTap: () => launchUrlString(_txURL(state.address)),
+                      child: Container(
+                        alignment: Alignment.bottomCenter,
+                        padding: const EdgeInsets.fromLTRB(0, 18, 0, 24),
+                        color: AppColor.secondaryDimGreyBackground,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text("powered_by_tzkt".tr().toUpperCase(),
+                                style: theme.textTheme.button),
+                            const SizedBox(
+                              width: 4,
+                            ),
+                            SvgPicture.asset("assets/images/external_link.svg"),
+                          ],
+                        ),
+                      ),
+                    )
+                  : Container(),
             ],
           ),
         );
       }),
     );
+  }
+
+  String _txURL(String address) {
+    return "https://tzkt.io/$address/operations";
   }
 }
 

@@ -12,12 +12,14 @@ import 'package:autonomy_flutter/screen/bloc/ethereum/ethereum_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
 import 'package:autonomy_flutter/screen/global_receive/receive_detail_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
+import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
+import 'package:autonomy_flutter/view/au_outlined_button.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -62,6 +64,7 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
         context.read<TezosBloc>().add(GetTezosAddressEvent(personUUID));
         break;
       case CryptoType.BITMARK:
+      case CryptoType.UNKNOWN:
         // do nothing
         break;
     }
@@ -100,6 +103,7 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
         context.read<ConnectionsBloc>().add(GetXTZConnectionsEvent(personUUID));
         break;
       case CryptoType.BITMARK:
+      case CryptoType.UNKNOWN:
         // do nothing
         break;
     }
@@ -107,6 +111,7 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
 
   @override
   Widget build(BuildContext context) {
+    double safeAreaBottom = MediaQuery.of(context).padding.bottom;
     return Scaffold(
       appBar: getBackAppBar(
         context,
@@ -133,7 +138,46 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
                   ],
                 ),
               ),
-            )
+            ),
+            Row(
+              children: [
+                Expanded(
+                  child: AuOutlinedButton(
+                    text: "send".tr(),
+                    onPress: () {
+                      Navigator.of(context).pushNamed(SendCryptoPage.tag,
+                          arguments: SendData(LibAukDart.getWallet(widget.payload.personaUUID),
+                              widget.payload.type, null));
+                    },
+                  ),
+                ),
+                const SizedBox(
+                  width: 16.0,
+                ),
+                Expanded(
+                  child: BlocConsumer<AccountsBloc, AccountsState>(
+                    listener: (context, accountState) async {},
+                    builder: (context, accountState) {
+                      final account = accountState.accounts?.firstWhere(
+                              (element) =>
+                          element.blockchain == widget.payload.type.source);
+                      return AuOutlinedButton(
+                        text: "receive".tr(),
+                        onPress: () {
+                          if (account != null &&
+                              account.accountNumber.isNotEmpty) {
+                            Navigator.of(context).pushNamed(
+                                GlobalReceiveDetailPage.tag,
+                                arguments: account);
+                          }
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: safeAreaBottom > 0 ? 24 : 0),
           ],
         ),
       ),
@@ -160,23 +204,6 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text("receive".tr(), style: theme.textTheme.headline4),
-                BlocBuilder<AccountsBloc, AccountsState>(
-                    builder: (context, state) {
-                  final account = state.accounts?[0];
-                  return Container(
-                    alignment: Alignment.center,
-                    child: IconButton(
-                      onPressed: () {
-                        if (account != null) {
-                          Navigator.of(context).pushNamed(
-                              GlobalReceiveDetailPage.tag,
-                              arguments: account);
-                        }
-                      },
-                      icon: SvgPicture.asset("assets/images/iconQr.svg"),
-                    ),
-                  );
-                }),
               ],
             ),
             Row(
@@ -322,7 +349,7 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
                 scanItem = ScannerItem.BEACON_CONNECT;
                 break;
               case CryptoType.BITMARK:
-                // TODO: Handle this case.
+              case CryptoType.UNKNOWN:
                 break;
             }
 
