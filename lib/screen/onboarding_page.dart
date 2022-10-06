@@ -25,8 +25,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
-import 'package:uni_links/uni_links.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 
 class OnboardingPage extends StatefulWidget {
   const OnboardingPage({Key? key}) : super(key: key);
@@ -53,53 +51,54 @@ class _OnboardingPageState extends State<OnboardingPage> {
   }
 
   void handleBranchLink() async {
-    final initialLink = await getInitialLink();
-    final isBranchLink = initialLink != null &&
-        Constants.branchDeepLinks
-            .any((prefix) => initialLink.startsWith(prefix));
+    setState(() {
+      fromBranchLink = true;
+    });
 
-    if (isBranchLink) {
-      setState(() {
-        fromBranchLink = true;
-      });
-      final timer = Timer.periodic(const Duration(seconds: 10), (timer) {
-        timer.cancel();
+    Future.delayed(const Duration(seconds: 2), () {
+      final id = memoryValues.airdropFFExhibitionId.value;
+      if (id == null || id.isEmpty) {
         setState(() {
           fromBranchLink = false;
         });
-      });
-      memoryValues.airdropFFExhibitionId.addListener(() async {
-        if (memoryValues.airdropFFExhibitionId.value == null) {
+      }
+    });
+
+    String? currentExhibitionId;
+    memoryValues.airdropFFExhibitionId.addListener(() async {
+      final exhibitionId = memoryValues.airdropFFExhibitionId.value;
+      if (currentExhibitionId == exhibitionId) return;
+      if (exhibitionId != null && exhibitionId.isNotEmpty) {
+        currentExhibitionId = exhibitionId;
+        setState(() {
+          fromBranchLink = true;
+        });
+        final exhibition =
+        await injector<FeralFileService>().getExhibition(exhibitionId);
+        final endTime = exhibition.airdropInfo?.endedAt;
+
+        if (exhibition.airdropInfo == null ||
+            (endTime != null && endTime.isBefore(DateTime.now()))) {
+          await injector.get<NavigationService>().showAirdropExpired();
           setState(() {
             fromBranchLink = false;
+            currentExhibitionId = null;
           });
           return;
         }
-        final exhibitionId = memoryValues.airdropFFExhibitionId.value;
-        if (exhibitionId != null && exhibitionId.isNotEmpty) {
-          final exhibition =
-              await injector<FeralFileService>().getExhibition(exhibitionId);
-          final endTime = exhibition.airdropInfo?.endedAt;
 
-          timer.cancel();
+        if (!mounted) return;
+        await Navigator.of(context).pushNamed(
+          AppRouter.claimFeralfileTokenPage,
+          arguments: exhibition,
+        );
+        currentExhibitionId = null;
 
-          if (exhibition.airdropInfo == null ||
-              (endTime != null && endTime.isBefore(DateTime.now()))) {
-            injector.get<NavigationService>().showAirdropExpired();
-            setState(() {
-              fromBranchLink = false;
-            });
-            return;
-          }
-
-          if (!mounted) return;
-          Navigator.of(context).pushNamed(
-            AppRouter.claimFeralfileTokenPage,
-            arguments: exhibition,
-          );
-        }
-      });
-    }
+        setState(() {
+          fromBranchLink = false;
+        });
+      }
+    });
   }
 
   // @override

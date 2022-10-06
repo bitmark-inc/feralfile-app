@@ -39,6 +39,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
   final NavigationService _navigationService;
   final BranchApi _branchApi;
 
+  String? currentExhibitionId;
+
   DeeplinkServiceImpl(
     this._configurationService,
     this._walletConnectService,
@@ -226,20 +228,31 @@ class DeeplinkServiceImpl extends DeeplinkService {
   Future _claimFFAirdropToken(String exhibitionId) async {
     log.info(
         "[DeeplinkService] Claim FF Airdrop token. Exhibition $exhibitionId");
+    if (currentExhibitionId == exhibitionId) {
+      return;
+    }
     try {
+      currentExhibitionId = exhibitionId;
       final doneOnboarding = _configurationService.isDoneOnboarding();
       if (doneOnboarding) {
-        _navigationService.popUntilHomeOrSettings();
-        final exhibition = await _feralFileService.getExhibition(exhibitionId);
+        final exhibitionFuture = _feralFileService.getExhibition(exhibitionId);
+        await Future.delayed(const Duration(seconds: 2), () {
+          _navigationService.popUntilHomeOrSettings();
+        });
+        final exhibition = await exhibitionFuture;
         final endTime = exhibition.airdropInfo?.endedAt;
         if (exhibition.airdropInfo == null ||
             (endTime != null && endTime.isBefore(DateTime.now()))) {
           _navigationService.showAirdropExpired();
         } else {
-          _navigationService.openClaimTokenPage(exhibition);
+          await _navigationService.openClaimTokenPage(exhibition);
+          currentExhibitionId = null;
         }
       } else {
         memoryValues.airdropFFExhibitionId.value = exhibitionId;
+        await Future.delayed(const Duration(seconds: 5), () {
+          currentExhibitionId = null;
+        });
       }
     } catch (e) {
       debugPrint("[DeeplinkService] _claimFFAirdropToken error $e");

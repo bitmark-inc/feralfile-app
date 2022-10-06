@@ -50,22 +50,26 @@ class NavigationService {
     }
   }
 
-  void showAirdropExpired() {
+  Future showAirdropExpired() async {
     log.info("NavigationService.showAirdropExpired");
     if (navigatorKey.currentState?.mounted == true &&
         navigatorKey.currentContext != null) {
-      UIHelper.showAirdropExpired(navigatorKey.currentContext!);
+      await UIHelper.showAirdropExpired(navigatorKey.currentContext!);
+    } else {
+      Future.value(0);
     }
   }
 
-  void openClaimTokenPage(Exhibition exhibition) {
+  Future openClaimTokenPage(Exhibition exhibition) async {
     log.info("NavigationService.openClaimTokenPage");
     if (navigatorKey.currentState?.mounted == true &&
         navigatorKey.currentContext != null) {
-      navigatorKey.currentState?.pushNamed(
+      await navigatorKey.currentState?.pushNamed(
         AppRouter.claimFeralfileTokenPage,
         arguments: exhibition,
       );
+    } else {
+      Future.value(0);
     }
   }
 
