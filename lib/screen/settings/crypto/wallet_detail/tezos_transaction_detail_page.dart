@@ -194,9 +194,7 @@ class TezosTXDetailPage extends StatelessWidget {
                 ),
                 children: <TextSpan>[
                   TextSpan(
-                      text: 'view_on'.tr(), style: theme.textTheme.headline4),
-                  TextSpan(
-                      text: 'tzkt.io',
+                      text: "powered_by_tzkt".tr(),
                       style: theme.textTheme.headline4
                           ?.copyWith(decoration: TextDecoration.underline)),
                 ],
