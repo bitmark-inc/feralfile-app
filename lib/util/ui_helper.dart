@@ -382,6 +382,34 @@ class UIHelper {
         autoDismissAfter: 5);
   }
 
+  static Future showExhibitionNotStarted(BuildContext context) async {
+    final theme = Theme.of(context);
+    return UIHelper.showDialog(
+      context,
+      "The show has not started",
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            "Please scan the QR code at the start time of airdrop.",
+            style: theme.primaryTextTheme.bodyText1,
+          ),
+          const SizedBox(
+            height: 40,
+          ),
+          AuFilledButton(
+            text: "close".tr(),
+            onPress: () {
+              Navigator.of(context).pop();
+            },
+            textStyle: theme.primaryTextTheme.button,
+          ),
+        ],
+      ),
+      isDismissible: true,
+    );
+  }
+
   static Future showAirdropExpired(BuildContext context) async {
     final theme = Theme.of(context);
     return UIHelper.showDialog(

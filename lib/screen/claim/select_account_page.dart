@@ -215,6 +215,7 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
           "close".tr(),
         );
       }
+      memoryValues.airdropFFExhibitionId.value = null;
     } finally {
       _setProcessingState(false);
     }

@@ -240,11 +240,18 @@ class DeeplinkServiceImpl extends DeeplinkService {
           _navigationService.popUntilHomeOrSettings();
         });
         final exhibition = await exhibitionFuture;
+        final exhibitionNotStarted =
+            exhibition.exhibitionStartAt.isAfter(DateTime.now());
         final endTime = exhibition.airdropInfo?.endedAt;
-        if (exhibition.airdropInfo == null ||
+        if (exhibitionNotStarted) {
+          await _navigationService.showExhibitionNotStarted();
+        } else if (exhibition.airdropInfo == null ||
             (endTime != null && endTime.isBefore(DateTime.now()))) {
           await _navigationService.showAirdropExpired();
         } else {
+          Future.delayed(const Duration(seconds: 5), () {
+            currentExhibitionId = null;
+          });
           await _navigationService.openClaimTokenPage(exhibition);
         }
         currentExhibitionId = null;

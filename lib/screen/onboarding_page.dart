@@ -75,6 +75,17 @@ class _OnboardingPageState extends State<OnboardingPage> {
         });
         final exhibition =
         await injector<FeralFileService>().getExhibition(exhibitionId);
+
+        if (exhibition.exhibitionStartAt.isAfter(DateTime.now())) {
+          await injector.get<NavigationService>().showExhibitionNotStarted();
+          setState(() {
+            fromBranchLink = false;
+            currentExhibitionId = null;
+            memoryValues.airdropFFExhibitionId.value = null;
+          });
+          return;
+        }
+
         final endTime = exhibition.airdropInfo?.endedAt;
 
         if (exhibition.airdropInfo == null ||
@@ -83,6 +94,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
           setState(() {
             fromBranchLink = false;
             currentExhibitionId = null;
+            memoryValues.airdropFFExhibitionId.value = null;
           });
           return;
         }

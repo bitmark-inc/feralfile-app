@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/gateway/tzkt_api.dart';
 import 'package:autonomy_flutter/model/tzkt_operation.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -202,6 +203,7 @@ class PendingTokenService {
   }
 
   Future<bool> checkPendingTezosTokens(String owner, {int? maxRetries}) async {
+    if (Environment.appTestnetConfig) return false;
     log.info("[PendingTokenService] Check pending Tezos tokens: $owner");
     int retryCount = 0;
     final pendingTokens = List<AssetToken>.empty(growable: true);

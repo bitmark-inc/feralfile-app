@@ -165,7 +165,6 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                       "accept_ownership_desc".tr(),
                       style: theme.primaryTextTheme.bodyText1,
                     ),
-                    const Expanded(child: SizedBox()),
                   ],
                 ),
               ),

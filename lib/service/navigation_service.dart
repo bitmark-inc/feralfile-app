@@ -50,6 +50,16 @@ class NavigationService {
     }
   }
 
+  Future showExhibitionNotStarted() async {
+    log.info("NavigationService.showExhibitionNotStarted");
+    if (navigatorKey.currentState?.mounted == true &&
+        navigatorKey.currentContext != null) {
+      await UIHelper.showExhibitionNotStarted(navigatorKey.currentContext!);
+    } else {
+      Future.value(0);
+    }
+  }
+
   Future showAirdropExpired() async {
     log.info("NavigationService.showAirdropExpired");
     if (navigatorKey.currentState?.mounted == true &&

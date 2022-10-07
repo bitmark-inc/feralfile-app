@@ -64,6 +64,8 @@ class WyreWallet {
 class Exhibition {
   final String id;
   final String title;
+  final DateTime exhibitionStartAt;
+  final DateTime exhibitionEndAt;
   final String coverURI;
   final String thumbnailCoverURI;
   final String saleModel;
@@ -76,6 +78,8 @@ class Exhibition {
     this.id,
     this.airdropInfo,
     this.title,
+    this.exhibitionStartAt,
+    this.exhibitionEndAt,
     this.coverURI,
     this.thumbnailCoverURI,
     this.artists,

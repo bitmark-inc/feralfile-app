@@ -44,6 +44,8 @@ Exhibition _$ExhibitionFromJson(Map<String, dynamic> json) => Exhibition(
           ? null
           : AirdropInfo.fromJson(json['airdropInfo'] as Map<String, dynamic>),
       json['title'] as String,
+      DateTime.parse(json['exhibitionStartAt'] as String),
+      DateTime.parse(json['exhibitionEndAt'] as String),
       json['coverURI'] as String,
       json['thumbnailCoverURI'] as String,
       (json['artists'] as List<dynamic>)
@@ -60,6 +62,8 @@ Map<String, dynamic> _$ExhibitionToJson(Exhibition instance) =>
     <String, dynamic>{
       'id': instance.id,
       'title': instance.title,
+      'exhibitionStartAt': instance.exhibitionStartAt.toIso8601String(),
+      'exhibitionEndAt': instance.exhibitionEndAt.toIso8601String(),
       'coverURI': instance.coverURI,
       'thumbnailCoverURI': instance.thumbnailCoverURI,
       'saleModel': instance.saleModel,
