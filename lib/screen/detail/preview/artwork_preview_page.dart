@@ -77,6 +77,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
 
   static final List<AUCastDevice> _defaultCastDevices =
       Platform.isIOS ? [AUCastDevice(AUCastDeviceType.Airplay)] : [];
+  final keyboardManagerKey = GlobalKey<KeyboardManagerWidgetState>();
 
   final Future<List<CastDevice>> _castDevicesFuture =
       CastDiscoveryService().search();
@@ -147,6 +148,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
 
   Future _moveToInfo(AssetToken? asset) async {
     if (asset == null) return;
+    keyboardManagerKey.currentState?.hideKeyboard();
     final isImmediateInfoViewEnabled =
         injector<ConfigurationService>().isImmediateInfoViewEnabled();
 
@@ -494,6 +496,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     final theme = Theme.of(context);
     return Scaffold(
       backgroundColor: theme.colorScheme.primary,
+      resizeToAvoidBottomInset: false,
       body: BlocConsumer<ArtworkPreviewBloc, ArtworkPreviewState>(
         builder: (context, state) {
           AssetToken? assetToken;
@@ -516,6 +519,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                     onClickInfo: () => _moveToInfo(assetToken),
                     onClickFullScreen: onClickFullScreen,
                     onClickCast: (assetToken) => onCastTap(assetToken),
+                    keyboardManagerKey: keyboardManagerKey,
                   ),
                 ),
                 Expanded(
@@ -527,6 +531,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                       final currentId = widget.payload.ids[value];
                       _bloc.add(ArtworkPreviewGetAssetTokenEvent(currentId));
                       _stopAllChromecastDevices();
+                      keyboardManagerKey.currentState?.hideKeyboard();
                     },
                     controller: controller,
                     itemCount: widget.payload.ids.length,
@@ -552,12 +557,14 @@ class ControlView extends StatelessWidget {
   final VoidCallback? onClickFullScreen;
   final Function(AssetToken?)? onClickCast;
   final VoidCallback? onClickInfo;
+  final Key? keyboardManagerKey;
   const ControlView({
     Key? key,
     this.assetToken,
     this.onClickFullScreen,
     this.onClickCast,
     this.onClickInfo,
+    this.keyboardManagerKey,
   }) : super(key: key);
 
   @override
@@ -627,6 +634,19 @@ class ControlView extends StatelessWidget {
                 ],
               ),
             ),
+          ),
+          Visibility(
+            visible: (assetToken?.medium == 'software' ||
+                    (assetToken?.medium?.isEmpty ?? true)) &&
+                Platform.isAndroid,
+            child: KeyboardManagerWidget(
+              key: keyboardManagerKey,
+            ),
+          ),
+          Visibility(
+            visible: assetToken?.medium == 'software' ||
+                (assetToken?.medium?.isEmpty ?? true),
+            child: const SizedBox(width: 8),
           ),
           CastButton(
             assetToken: assetToken,
@@ -736,5 +756,61 @@ class FullscreenIntroPopup extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class KeyboardManagerWidget extends StatefulWidget {
+  const KeyboardManagerWidget({Key? key}) : super(key: key);
+
+  @override
+  State<KeyboardManagerWidget> createState() => KeyboardManagerWidgetState();
+}
+
+class KeyboardManagerWidgetState extends State<KeyboardManagerWidget> {
+  bool _isShowKeyboard = false;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  void showKeyboard() async {
+    await SystemChannels.textInput.invokeMethod('TextInput.show');
+    setState(() {
+      _isShowKeyboard = true;
+    });
+  }
+
+  void hideKeyboard() async {
+    await SystemChannels.textInput.invokeMethod('TextInput.hide');
+    setState(() {
+      _isShowKeyboard = false;
+    });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    SystemChannels.textInput.invokeMethod('TextInput.hide');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return _isShowKeyboard
+        ? IconButton(
+            icon: Icon(
+              Icons.keyboard_alt_outlined,
+              color: theme.colorScheme.secondary,
+            ),
+            onPressed: hideKeyboard,
+          )
+        : IconButton(
+            icon: Icon(
+              Icons.keyboard_alt_rounded,
+              color: theme.colorScheme.secondary,
+            ),
+            onPressed: showKeyboard,
+          );
   }
 }

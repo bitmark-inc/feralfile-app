@@ -448,7 +448,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       setState(() {
         String lastMessage = "";
         if (issueDetails.messages.isNotEmpty) {
-          lastMessage = issueDetails.messages[0].message ?? "";
+          lastMessage = issueDetails.messages[0].message;
         }
 
         _status = issueDetails.issue.status;
@@ -768,7 +768,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   }
 
   int getRating(String text) {
-    if (text.startsWith(STAR_RATING)){
+    if (text.startsWith(STAR_RATING)) {
       final rating = int.tryParse(text.replacePrefix(STAR_RATING, ""));
       if (rating != null && rating > 0 && rating <= 5) {
         return rating;

@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_sta
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:nft_collection/nft_collection.dart';
