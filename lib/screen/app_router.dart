@@ -534,9 +534,6 @@ class AppRouter {
                         create: (_) => WalletDetailBloc(
                             injector(), injector(), injector())),
                     BlocProvider(create: (_) => TZKTTransactionBloc()),
-                    BlocProvider(
-                        create: (_) => AccountsBloc(
-                            injector(), injector(),injector(),injector(), injector())),
                   ],
                   child: WalletDetailPage(
                       payload: settings.arguments as WalletDetailsPayload),

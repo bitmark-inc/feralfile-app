@@ -85,47 +85,50 @@ class _TezosTXListViewState extends State<TezosTXListView> {
               }
             },
             builder: (context, state) {
-              return CustomScrollView(
-                slivers: [
-                  PagedSliverList.separated(
-                    pagingController: _pagingController,
-                    builderDelegate:
-                        PagedChildBuilderDelegate<TZKTTransactionInterface>(
-                      animateTransitions: true,
-                      newPageErrorIndicatorBuilder: (context) {
-                        return Container(
-                          padding: const EdgeInsets.only(top: 30),
-                          child: Text("unable_load_tzkt".tr(),
-                              style: theme.textTheme.bodyText1),
-                        );
-                      },
-                      noItemsFoundIndicatorBuilder: (context) {
-                        return Container(
-                          padding: const EdgeInsets.only(top: 30),
-                          child: Text("transaction_appear_hear".tr(),
-                              style: theme.textTheme.bodyText1),
-                        );
-                      },
-                      itemBuilder: (context, item, index) {
-                        return GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          child: TezosTXRowView(
-                              tx: item, currentAddress: widget.address),
-                          onTap: () => Navigator.of(context).pushNamed(
-                            AppRouter.tezosTXDetailPage,
-                            arguments: {
-                              "current_address": widget.address,
-                              "tx": item,
-                            },
-                          ),
-                        );
+              return Padding(
+                padding: const EdgeInsets.only(right: 16.0, left: 16.0),
+                child: CustomScrollView(
+                  slivers: [
+                    PagedSliverList.separated(
+                      pagingController: _pagingController,
+                      builderDelegate:
+                          PagedChildBuilderDelegate<TZKTTransactionInterface>(
+                        animateTransitions: true,
+                        newPageErrorIndicatorBuilder: (context) {
+                          return Container(
+                            padding: const EdgeInsets.only(top: 30),
+                            child: Text("unable_load_tzkt".tr(),
+                                style: theme.textTheme.bodyText1),
+                          );
+                        },
+                        noItemsFoundIndicatorBuilder: (context) {
+                          return Container(
+                            padding: const EdgeInsets.only(top: 30),
+                            child: Text("transaction_appear_hear".tr(),
+                                style: theme.textTheme.bodyText1),
+                          );
+                        },
+                        itemBuilder: (context, item, index) {
+                          return GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            child: TezosTXRowView(
+                                tx: item, currentAddress: widget.address),
+                            onTap: () => Navigator.of(context).pushNamed(
+                              AppRouter.tezosTXDetailPage,
+                              arguments: {
+                                "current_address": widget.address,
+                                "tx": item,
+                              },
+                            ),
+                          );
+                        },
+                      ),
+                      separatorBuilder: (context, index) {
+                        return const Divider();
                       },
                     ),
-                    separatorBuilder: (context, index) {
-                      return const Divider();
-                    },
-                  ),
-                ],
+                  ],
+                ),
               );
             },
           );
