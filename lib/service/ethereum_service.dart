@@ -89,7 +89,7 @@ class EthereumServiceImpl extends EthereumService {
   @override
   Future<String> signPersonalMessage(
       WalletStorage wallet, Uint8List message) async {
-    return await wallet.signPersonalMessage(message);
+    return await wallet.ethSignPersonalMessage(message);
   }
 
   @override
@@ -104,7 +104,7 @@ class EthereumServiceImpl extends EthereumService {
             gasPrice.getInWei;
     final chainId = Environment.appTestnetConfig ? 4 : 1;
 
-    final signedTransaction = await wallet.signTransaction(
+    final signedTransaction = await wallet.ethSignTransaction(
         nonce: nonce,
         gasPrice: gasPrice.getInWei,
         gasLimit: gasLimit,

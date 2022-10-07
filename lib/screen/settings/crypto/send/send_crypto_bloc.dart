@@ -61,8 +61,7 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
           }
           break;
         case CryptoType.XTZ:
-          final tezosWallet = await event.wallet.getTezosWallet();
-          final address = tezosWallet.address;
+          final address = await event.wallet.getTezosAddress();
           final balance = await _tezosService.getBalance(address);
 
           newState.balance = BigInt.from(balance);
@@ -181,10 +180,11 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
         case CryptoType.XTZ:
           final wallet = state.wallet;
           if (wallet == null) return;
-          final tezosWallet = await wallet.getTezosWallet();
           try {
             final tezosFee = await _tezosService.estimateFee(
-                tezosWallet, event.address, event.amount.toInt());
+                await wallet.getTezosPublicKey(),
+                event.address,
+                event.amount.toInt());
             fee = BigInt.from(tezosFee);
           } on TezartNodeError catch (err) {
             UIHelper.showInfoDialog(

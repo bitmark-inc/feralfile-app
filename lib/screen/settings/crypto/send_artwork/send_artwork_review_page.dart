@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
+import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -247,20 +248,20 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                                         injector<TezosService>();
                                     final tokenId = asset.tokenId!;
 
-                                    final tezosWallet = await widget
-                                        .payload.wallet
-                                        .getTezosWallet();
+                                    final wallet = widget.payload.wallet;
+                                    final address =
+                                        await wallet.getTezosAddress();
                                     final operation = await tezosService
                                         .getFa2TransferOperation(
                                             widget
                                                 .payload.asset.contractAddress!,
-                                            tezosWallet.address,
+                                            address,
                                             widget.payload.address,
                                             int.parse(tokenId),
                                             widget.payload.quantity);
                                     final opHash = await tezosService
                                         .sendOperationTransaction(
-                                            tezosWallet, [operation]);
+                                            wallet, [operation]);
                                     final exchangeRateXTZ = 1 /
                                         (double.tryParse(widget
                                                 .payload.exchangeRate.xtz) ??
@@ -280,7 +281,7 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                                       timestamp: DateTime.now(),
                                       type: 'transaction',
                                       sender: TZKTActor(
-                                        address: tezosWallet.address,
+                                        address: address,
                                       ),
                                       target: TZKTActor(
                                         address: widget.payload.address,
@@ -290,7 +291,7 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                                         id: int.parse(tokenId),
                                         level: 0,
                                         from: TZKTActor(
-                                          address: tezosWallet.address,
+                                          address: address,
                                         ),
                                         to: TZKTActor(
                                           address: widget.payload.address,

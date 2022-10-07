@@ -491,7 +491,7 @@ class AccountServiceImpl extends AccountService {
       if (ethAddress.isEmpty) continue;
 
       addresses.add(ethAddress);
-      addresses.add((await personaWallet.getTezosWallet()).address);
+      addresses.add(await personaWallet.getTezosAddress());
       addresses.add(await personaWallet.getBitmarkAddress());
     }
 
@@ -520,7 +520,7 @@ class AccountServiceImpl extends AccountService {
 
       if (ethAddress.isEmpty) continue;
       hiddenAddresses.add(ethAddress);
-      hiddenAddresses.add((await personaWallet.getTezosWallet()).address);
+      hiddenAddresses.add(await personaWallet.getTezosAddress());
       hiddenAddresses.add(await personaWallet.getBitmarkAddress());
     }
 
@@ -559,7 +559,7 @@ class AccountServiceImpl extends AccountService {
       if (ethAddress.isEmpty) continue;
 
       addresses.add(ethAddress);
-      addresses.add((await personaWallet.getTezosWallet()).address);
+      addresses.add(await personaWallet.getTezosAddress());
       addresses.add(await personaWallet.getBitmarkAddress());
     }
 

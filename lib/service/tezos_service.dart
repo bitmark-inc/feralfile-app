@@ -12,27 +12,26 @@ import 'dart:typed_data';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:tezart/src/crypto/crypto.dart' as crypto;
 import 'package:tezart/src/crypto/crypto.dart' show Prefixes;
 import 'package:tezart/tezart.dart';
 
 abstract class TezosService {
-  Future<String> getPublicKey(TezosWallet wallet);
-
   Future<int> getBalance(String address);
 
   Future<int> estimateOperationFee(
-      TezosWallet wallet, List<Operation> operations);
+      String publicKey, List<Operation> operations);
 
-  Future<int> estimateFee(TezosWallet wallet, String to, int amount);
+  Future<int> estimateFee(String publicKey, String to, int amount);
 
   Future<String?> sendOperationTransaction(
-      TezosWallet wallet, List<Operation> operations);
+      WalletStorage wallet, List<Operation> operations);
 
-  Future<String?> sendTransaction(TezosWallet wallet, String to, int amount);
+  Future<String?> sendTransaction(WalletStorage wallet, String to, int amount);
 
-  Future<String> signMessage(TezosWallet wallet, Uint8List message);
+  Future<String> signMessage(WalletStorage wallet, Uint8List message);
 
   Future<Operation> getFa2TransferOperation(
       String contract, String from, String to, int tokenId, int quantity);
@@ -52,14 +51,6 @@ class TezosServiceImpl extends TezosService {
   TezosServiceImpl(this._tezartClient);
 
   @override
-  Future<String> getPublicKey(TezosWallet wallet) async {
-    return crypto.encodeWithPrefix(
-      prefix: Prefixes.edpk,
-      bytes: wallet.publicKey,
-    );
-  }
-
-  @override
   Future<int> getBalance(String address) {
     log.info("TezosService.getBalance: $address");
     return _retryOnNodeError<int>((client) async {
@@ -69,20 +60,20 @@ class TezosServiceImpl extends TezosService {
 
   @override
   Future<int> estimateOperationFee(
-      TezosWallet wallet, List<Operation> operations) async {
+      String publicKey, List<Operation> operations) async {
     log.info("TezosService.estimateOperationFee");
 
     return _retryOnNodeError<int>((client) async {
-      final keystore = _getKeystore(wallet);
-
-      var operationList =
-          OperationsList(source: keystore, rpcInterface: client.rpcInterface);
+      var operationList = OperationsList(
+          publicKey: publicKey,
+          rpcInterface: client.rpcInterface);
 
       for (var element in operations) {
         operationList.appendOperation(element);
       }
 
-      final isReveal = await client.isKeyRevealed(keystore.address);
+      final isReveal =
+          await client.isKeyRevealed(publicKey.publicKeyToTezosAddress());
       if (!isReveal) {
         operationList.prependOperation(RevealOperation());
       }
@@ -97,38 +88,38 @@ class TezosServiceImpl extends TezosService {
 
   @override
   Future<String?> sendOperationTransaction(
-      TezosWallet wallet, List<Operation> operations) async {
+      WalletStorage wallet, List<Operation> operations) async {
     log.info("TezosService.sendOperationTransaction");
 
     return _retryOnNodeError<String?>((client) async {
-      final keystore = _getKeystore(wallet);
-
-      var operationList =
-          OperationsList(source: keystore, rpcInterface: client.rpcInterface);
+      var operationList = OperationsList(
+          publicKey: await wallet.getTezosPublicKey(),
+          rpcInterface: client.rpcInterface);
 
       for (var element in operations) {
         operationList.appendOperation(element);
       }
 
-      final isReveal = await client.isKeyRevealed(keystore.address);
+      final isReveal =
+          await client.isKeyRevealed(await wallet.getTezosAddress());
       if (!isReveal) {
         operationList.prependOperation(RevealOperation());
       }
 
-      await operationList.execute();
+      await operationList
+          .execute((forgedHex) => wallet.tezosSignTransaction(forgedHex));
 
       return operationList.result.id;
     });
   }
 
   @override
-  Future<int> estimateFee(TezosWallet wallet, String to, int amount) async {
+  Future<int> estimateFee(String publicKey, String to, int amount) async {
     log.info("TezosService.estimateFee: $to, $amount");
 
     return _retryOnNodeError<int>((client) async {
-      final keystore = _getKeystore(wallet);
       final operation = await client.transferOperation(
-        source: keystore,
+        publicKey: publicKey,
         destination: to,
         amount: amount,
       );
@@ -142,28 +133,25 @@ class TezosServiceImpl extends TezosService {
 
   @override
   Future<String?> sendTransaction(
-      TezosWallet wallet, String to, int amount) async {
+      WalletStorage wallet, String to, int amount) async {
     log.info("TezosService.sendTransaction: $to, $amount");
     return _retryOnNodeError<String?>((client) async {
-      final keystore = _getKeystore(wallet);
       final operation = await client.transferOperation(
-        source: keystore,
+        publicKey: await wallet.getTezosPublicKey(),
         destination: to,
         amount: amount,
       );
-      await operation.execute();
-
+      await operation
+          .execute((forgedHex) => wallet.tezosSignTransaction(forgedHex));
       return operation.result.id;
     });
   }
 
   @override
-  Future<String> signMessage(TezosWallet wallet, Uint8List message) async {
-    final keystore = _getKeystore(wallet);
+  Future<String> signMessage(WalletStorage wallet, Uint8List message) async {
+    final signature = await wallet.tezosSignMessage(message);
 
-    final signature = keystore.signBytes(message);
-
-    return signature.edsig;
+    return crypto.encodeWithPrefix(prefix: Prefixes.edsig, bytes: signature);
   }
 
   @override
@@ -198,17 +186,6 @@ class TezosServiceImpl extends TezosService {
         destination: contract,
         entrypoint: "transfer",
         params: params);
-  }
-
-  Keystore _getKeystore(TezosWallet wallet) {
-    final secretKey = crypto.secretKeyBytesFromSeedBytes(wallet.secretKey);
-
-    final secretString = crypto.encodeWithPrefix(
-      prefix: Prefixes.edsk,
-      bytes: Uint8List.fromList(secretKey.toList()),
-    );
-
-    return Keystore.fromSecretKey(secretString);
   }
 
   Future<T> _retryOnNodeError<T>(Future<T> Function(TezartClient) func) async {

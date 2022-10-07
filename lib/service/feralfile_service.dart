@@ -164,7 +164,7 @@ class FeralFileServiceImpl extends FeralFileService {
         (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
     final message = Secret.ffAuthorizationPrefix + timestamp;
     final signature = await wallet
-        .signPersonalMessage(Uint8List.fromList(utf8.encode(message)));
+        .ethSignPersonalMessage(Uint8List.fromList(utf8.encode(message)));
     final rawToken = "$address|$message|$signature";
     final bytes = utf8.encode(rawToken);
     return base64.encode(bytes);

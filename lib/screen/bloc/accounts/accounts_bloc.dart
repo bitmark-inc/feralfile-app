@@ -120,7 +120,7 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
       for (var persona in personas) {
         final bitmarkAddress = await persona.wallet().getBitmarkAddress();
         final ethAddress = await persona.wallet().getETHEip55Address();
-        final xtzAddress = (await persona.wallet().getTezosWallet()).address;
+        final xtzAddress = (await persona.wallet().getTezosAddress());
         var name = await persona.wallet().getName();
 
         if (name.isEmpty) {
@@ -311,9 +311,8 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
 
         for (var persona in personas) {
           final wallet = persona.wallet();
-          final tzWallet = await wallet.getTezosWallet();
           final ethAddress = await wallet.getETHEip55Address();
-          final tzAddress = tzWallet.address;
+          final tzAddress = await wallet.getTezosAddress();
 
           addresses.add(ethAddress);
           addresses.add(tzAddress);

@@ -36,7 +36,7 @@ class AutonomyServiceImpl extends AutonomyService {
 
     for (var persona in personas) {
       addresses.add(await persona.wallet().getETHEip55Address());
-      addresses.add((await persona.wallet().getTezosWallet()).address);
+      addresses.add(await persona.wallet().getTezosAddress());
       addresses.add(await persona.wallet().getBitmarkAddress());
     }
 
