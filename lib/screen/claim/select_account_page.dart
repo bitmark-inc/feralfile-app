@@ -201,20 +201,7 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
       memoryValues.airdropFFExhibitionId.value = null;
     } catch (e) {
       log.info("[SelectAccountPage] Claim token failed. $e");
-      if (e is AirdropExpired) {
-        await UIHelper.showAirdropExpired(context);
-      } else if (e is DioError) {
-        final ffError = e.error as FeralfileError?;
-        final message = ffError != null
-            ? ffError.dialogMessage
-            : "${e.response?.data ?? e.message}";
-        await showErrorDialog(
-          context,
-          ffError?.dialogTitle ?? "error".tr(),
-          message,
-          "close".tr(),
-        );
-      }
+      await UIHelper.showClaimTokenError(context, e);
       memoryValues.airdropFFExhibitionId.value = null;
     } finally {
       _setProcessingState(false);

@@ -10,6 +10,7 @@ import 'dart:async';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_box_view.dart';
 import 'package:autonomy_flutter/screen/survey/survey.dart';
@@ -17,7 +18,9 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
+import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
@@ -25,6 +28,7 @@ import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -384,14 +388,15 @@ class UIHelper {
 
   static Future showExhibitionNotStarted(BuildContext context) async {
     final theme = Theme.of(context);
+    final error = FeralfileError(5006, "");
     return UIHelper.showDialog(
       context,
-      "The show has not started",
+      error.dialogTitle,
       Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            "Please scan the QR code at the start time of airdrop.",
+            error.dialogMessage,
             style: theme.primaryTextTheme.bodyText1,
           ),
           const SizedBox(
@@ -412,14 +417,15 @@ class UIHelper {
 
   static Future showAirdropExpired(BuildContext context) async {
     final theme = Theme.of(context);
+    final error = FeralfileError(5011, "");
     return UIHelper.showDialog(
       context,
-      "expired2".tr(),
+      error.dialogTitle,
       Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            "qr_expired_message".tr(),
+            error.dialogMessage,
             style: theme.primaryTextTheme.bodyText1,
           ),
           const SizedBox(
@@ -436,6 +442,35 @@ class UIHelper {
       ),
       isDismissible: true,
     );
+  }
+
+  static Future showNoRemainingAirdropToken(BuildContext context) async {
+    final error = FeralfileError(5013, "");
+    return showErrorDialog(
+      context,
+      error.dialogTitle,
+      error.dialogMessage,
+      "close".tr(),
+    );
+  }
+
+  static Future showClaimTokenError(BuildContext context, Object e) async {
+    if (e is AirdropExpired) {
+      await showAirdropExpired(context);
+    } else if (e is DioError) {
+      final ffError = e.error as FeralfileError?;
+      final message = ffError != null
+          ? ffError.dialogMessage
+          : "${e.response?.data ?? e.message}";
+      await showErrorDialog(
+        context,
+        ffError?.dialogTitle ?? "error".tr(),
+        message,
+        "close".tr(),
+      );
+    } else if (e is NoRemainingToken) {
+      await showNoRemainingAirdropToken(context);
+    }
   }
 
   // MARK: - Connection

@@ -70,6 +70,16 @@ class NavigationService {
     }
   }
 
+  Future showNoRemainingToken() async {
+    log.info("NavigationService.showNoRemainingToken");
+    if (navigatorKey.currentState?.mounted == true &&
+        navigatorKey.currentContext != null) {
+      await UIHelper.showNoRemainingAirdropToken(navigatorKey.currentContext!);
+    } else {
+      Future.value(0);
+    }
+  }
+
   Future openClaimTokenPage(Exhibition exhibition) async {
     log.info("NavigationService.openClaimTokenPage");
     if (navigatorKey.currentState?.mounted == true &&

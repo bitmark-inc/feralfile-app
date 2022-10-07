@@ -99,6 +99,16 @@ class _OnboardingPageState extends State<OnboardingPage> {
           return;
         }
 
+        if (exhibition.airdropInfo?.remainAmount == 0) {
+          await injector.get<NavigationService>().showNoRemainingToken();
+          setState(() {
+            fromBranchLink = false;
+            currentExhibitionId = null;
+            memoryValues.airdropFFExhibitionId.value = null;
+          });
+          return;
+        }
+
         if (!mounted) return;
         await Navigator.of(context).pushNamed(
           AppRouter.claimFeralfileTokenPage,

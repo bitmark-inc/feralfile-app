@@ -8,8 +8,6 @@ import 'package:autonomy_flutter/screen/claim/select_account_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
-import 'package:autonomy_flutter/util/custom_exception.dart';
-import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -18,7 +16,6 @@ import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
-import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -279,20 +276,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
       memoryValues.airdropFFExhibitionId.value = null;
     } catch (e) {
       log.info("[ClaimTokenPage] Claim token failed. $e");
-      if (e is AirdropExpired) {
-        await UIHelper.showAirdropExpired(context);
-      } else if (e is DioError) {
-        final ffError = e.error as FeralfileError?;
-        final message = ffError != null
-            ? "[${ffError.code}] ${ffError.message}"
-            : "${e.response?.data ?? e.message}";
-        await showErrorDialog(
-          context,
-          "error".tr(),
-          message,
-          "close".tr(),
-        );
-      }
+      await UIHelper.showClaimTokenError(context, e);
     }
     setState(() {
       _processing = false;
