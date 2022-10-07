@@ -640,6 +640,7 @@ class ControlView extends StatelessWidget {
               color: theme.colorScheme.secondary,
               size: 32,
             ),
+            tooltip: "fullScreen",
           ),
           IconButton(
             onPressed: () => Navigator.of(context).pop(),
