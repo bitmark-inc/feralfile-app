@@ -229,19 +229,14 @@ class FeralFileServiceImpl extends FeralFileService {
         "address": receiver,
       };
       final response = await _feralFileApi.claimToken(exhibitionId, body);
-      final prefix = exhibition.airdropInfo?.blockchain.toLowerCase() == "tezos"
-          ? "tez"
-          : "eth";
-      final indexerId =
-          "$prefix-${exhibition.airdropInfo?.contractAddress}-${response.result.editionID}";
       final indexer = injector<TokensService>();
       await indexer.reindexAddresses([receiver]);
       indexer.setCustomTokens(
         [
           createPendingAssetToken(
-            indexerId: indexerId,
+            exhibition: exhibition,
             owner: receiver,
-            source: "feralfile",
+            tokenId: response.result.editionID,
           )
         ],
       );

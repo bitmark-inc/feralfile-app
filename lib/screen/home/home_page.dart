@@ -31,19 +31,17 @@ import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
-import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/pending_token_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/penrose_top_bar_view.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -58,7 +56,6 @@ import 'package:nft_collection/nft_collection.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:wallet_connect/models/wc_peer_meta.dart';
-import 'package:metric_client/metric_client.dart';
 
 class HomePage extends StatefulWidget {
   static const tag = "home";
@@ -317,7 +314,10 @@ class _HomePageState extends State<HomePage>
       return b.lastUpdateTime.compareTo(a.lastUpdateTime);
     });
 
-    final tokenIDs = tokens.map((element) => element.id).toList();
+    final tokenIDs = tokens
+        .where((e) => e.pending != true)
+        .map((element) => element.id)
+        .toList();
 
     const int cellPerRowPhone = 3;
     const int cellPerRowTablet = 6;
@@ -350,7 +350,9 @@ class _HomePageState extends State<HomePage>
 
             return GestureDetector(
               child: asset.pending == true
-                  ? const PendingTokenWidget()
+                  ? PendingTokenWidget(
+                      thumbnail: asset.galleryThumbnailURL,
+                    )
                   : tokenGalleryThumbnailWidget(
                       context,
                       asset,
@@ -359,7 +361,10 @@ class _HomePageState extends State<HomePage>
               onTap: () {
                 if (asset.pending == true) return;
 
-                final index = tokens.indexOf(asset);
+                final index = tokens
+                    .where((e) => e.pending != true)
+                    .toList()
+                    .indexOf(asset);
                 final payload = ArtworkDetailPayload(tokenIDs, index);
 
                 if (injector<ConfigurationService>()

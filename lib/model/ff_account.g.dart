@@ -46,6 +46,7 @@ Exhibition _$ExhibitionFromJson(Map<String, dynamic> json) => Exhibition(
       json['title'] as String,
       DateTime.parse(json['exhibitionStartAt'] as String),
       DateTime.parse(json['exhibitionEndAt'] as String),
+      json['maxEdition'] as int,
       json['coverURI'] as String,
       json['thumbnailCoverURI'] as String,
       (json['artists'] as List<dynamic>)
@@ -53,6 +54,9 @@ Exhibition _$ExhibitionFromJson(Map<String, dynamic> json) => Exhibition(
           .toList(),
       (json['artworks'] as List<dynamic>)
           .map((e) => FFArtwork.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      (json['contracts'] as List<dynamic>)
+          .map((e) => FFContract.fromJson(e as Map<String, dynamic>))
           .toList(),
       json['saleModel'] as String,
       json['mintBlockchain'] as String,
@@ -64,12 +68,14 @@ Map<String, dynamic> _$ExhibitionToJson(Exhibition instance) =>
       'title': instance.title,
       'exhibitionStartAt': instance.exhibitionStartAt.toIso8601String(),
       'exhibitionEndAt': instance.exhibitionEndAt.toIso8601String(),
+      'maxEdition': instance.maxEdition,
       'coverURI': instance.coverURI,
       'thumbnailCoverURI': instance.thumbnailCoverURI,
       'saleModel': instance.saleModel,
       'mintBlockchain': instance.mintBlockchain,
       'artists': instance.artists,
       'artworks': instance.artworks,
+      'contracts': instance.contracts,
       'airdropInfo': instance.airdropInfo,
     };
 
@@ -125,6 +131,19 @@ Map<String, dynamic> _$FFArtworkToJson(FFArtwork instance) => <String, dynamic>{
       'description': instance.description,
       'thumbnailFileURI': instance.thumbnailFileURI,
       'galleryThumbnailFileURI': instance.galleryThumbnailFileURI,
+    };
+
+FFContract _$FFContractFromJson(Map<String, dynamic> json) => FFContract(
+      json['name'] as String,
+      json['blockchainType'] as String,
+      json['address'] as String,
+    );
+
+Map<String, dynamic> _$FFContractToJson(FFContract instance) =>
+    <String, dynamic>{
+      'name': instance.name,
+      'blockchainType': instance.blockchainType,
+      'address': instance.address,
     };
 
 AirdropInfo _$AirdropInfoFromJson(Map<String, dynamic> json) => AirdropInfo(

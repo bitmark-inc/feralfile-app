@@ -206,7 +206,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                 final blockchain =
                     widget.exhibition.mintBlockchain.capitalize();
                 final accountService = injector<AccountService>();
-                final addresses = await accountService.getAllAddresses();
+                final addresses = await accountService.getAddress(blockchain);
 
                 String? address;
                 if (addresses.isEmpty) {
@@ -218,6 +218,8 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                   address = blockchain == "Tezos"
                       ? (await defaultAccount.getTezosWallet()).address
                       : await defaultAccount.getETHAddress();
+                } else if (addresses.length == 1) {
+                  address = addresses.first;
                 } else {
                   if (!mounted) return;
                   final account = await Navigator.of(context).pushNamed(
@@ -277,6 +279,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
     } catch (e) {
       log.info("[ClaimTokenPage] Claim token failed. $e");
       await UIHelper.showClaimTokenError(context, e);
+      memoryValues.airdropFFExhibitionId.value = null;
     }
     setState(() {
       _processing = false;

@@ -83,6 +83,7 @@ abstract class AccountService {
   bool isLinkedAccountHiddenInGallery(String address);
 
   Future<List<String>> getAllAddresses();
+  Future<List<String>> getAddress(String blockchain);
   Future<List<String>> getHiddenAddresses();
   Future<List<String>> getShowedAddresses();
   Future<String> authorizeToViewer();
@@ -501,6 +502,43 @@ class AccountServiceImpl extends AccountService {
     for (final linkedAccount in linkedAccounts) {
       addresses.addAll(linkedAccount.accountNumbers);
     }
+
+    return addresses;
+  }
+
+  @override
+  Future<List<String>> getAddress(String blockchain) async {
+    final addresses = <String>[];
+    // Full accounts
+    final personas = await _cloudDB.personaDao.getPersonas();
+    for (var persona in personas) {
+      final personaWallet = persona.wallet();
+      switch (blockchain.toLowerCase()) {
+        case "tezos":
+          addresses.add((await personaWallet.getTezosWallet()).address);
+          break;
+        case "ethereum":
+          final address = await personaWallet.getETHEip55Address();
+          if (address.isNotEmpty) {
+            addresses.add(address);
+          }
+          break;
+        case "bitmark":
+          addresses.add(await personaWallet.getBitmarkAddress());
+          break;
+      }
+    }
+
+    // Linked accounts.
+    // Currently, only support tezos blockchain.
+    final linkedAccounts =
+        await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
+    final linkedAddresses = linkedAccounts
+        .where((e) =>
+            e.connectionType == ConnectionType.walletBeacon.rawValue ||
+            e.connectionType == ConnectionType.beaconP2PPeer.rawValue)
+        .map((e) => e.accountNumber);
+    addresses.addAll(linkedAddresses);
 
     return addresses;
   }

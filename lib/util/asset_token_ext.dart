@@ -3,8 +3,10 @@ import 'dart:io';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
+import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
+import 'package:collection/collection.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/models/asset_token.dart';
 
@@ -129,14 +131,22 @@ String _refineToCloudflareURL(String url, String thumbnailID, String variant) {
 }
 
 AssetToken createPendingAssetToken({
-  required String indexerId,
+  required Exhibition exhibition,
   required String owner,
-  String? source,
+  required String tokenId,
 }) {
+  final prefix = exhibition.airdropInfo?.blockchain.toLowerCase() == "tezos"
+      ? "tez"
+      : "eth";
+  final indexerId =
+      "$prefix-${exhibition.airdropInfo?.contractAddress}-$tokenId";
+  final artist = exhibition.artists.firstOrNull;
+  final artwork = exhibition.artworks.firstOrNull;
+  final contract = exhibition.contracts.firstOrNull;
   return AssetToken(
-    artistName: null,
+    artistName: artist?.fullName ?? artist?.alias,
     artistURL: null,
-    artistID: null,
+    artistID: artist?.id,
     assetData: null,
     assetID: null,
     assetURL: null,
@@ -146,22 +156,22 @@ AssetToken createPendingAssetToken({
     blockchainUrl: null,
     fungible: false,
     contractType: null,
-    tokenId: null,
-    contractAddress: null,
-    desc: null,
+    tokenId: tokenId,
+    contractAddress: contract?.address,
+    desc: artwork?.description,
     edition: 0,
     id: indexerId,
-    maxEdition: 1,
+    maxEdition: exhibition.maxEdition,
     medium: null,
     mimeType: null,
     mintedAt: null,
-    previewURL: null,
-    source: source,
+    previewURL: exhibition.getThumbnailURL(),
+    source: "feralfile-airdrop",
     sourceURL: null,
     thumbnailID: null,
-    thumbnailURL: null,
-    galleryThumbnailURL: null,
-    title: "",
+    thumbnailURL: exhibition.getThumbnailURL(),
+    galleryThumbnailURL: exhibition.getThumbnailURL(),
+    title: exhibition.title,
     ownerAddress: owner,
     owners: {
       owner: 1,

@@ -66,12 +66,14 @@ class Exhibition {
   final String title;
   final DateTime exhibitionStartAt;
   final DateTime exhibitionEndAt;
+  final int maxEdition;
   final String coverURI;
   final String thumbnailCoverURI;
   final String saleModel;
   final String mintBlockchain;
   final List<FFArtist> artists;
   final List<FFArtwork> artworks;
+  final List<FFContract> contracts;
   final AirdropInfo? airdropInfo;
 
   Exhibition(
@@ -80,10 +82,12 @@ class Exhibition {
     this.title,
     this.exhibitionStartAt,
     this.exhibitionEndAt,
+    this.maxEdition,
     this.coverURI,
     this.thumbnailCoverURI,
     this.artists,
     this.artworks,
+    this.contracts,
     this.saleModel,
     this.mintBlockchain,
   );
@@ -174,6 +178,20 @@ class FFArtwork {
       _$FFArtworkFromJson(json);
 
   Map<String, dynamic> toJson() => _$FFArtworkToJson(this);
+}
+
+@JsonSerializable()
+class FFContract {
+  final String name;
+  final String blockchainType;
+  final String address;
+
+  FFContract(this.name, this.blockchainType, this.address,);
+
+  factory FFContract.fromJson(Map<String, dynamic> json) =>
+      _$FFContractFromJson(json);
+
+  Map<String, dynamic> toJson() => _$FFContractToJson(this);
 }
 
 @JsonSerializable()

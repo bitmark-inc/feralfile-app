@@ -42,24 +42,41 @@ String getEditionSubTitle(AssetToken token) {
 }
 
 class PendingTokenWidget extends StatelessWidget {
-  const PendingTokenWidget({Key? key}) : super(key: key);
+  final String? thumbnail;
+
+  const PendingTokenWidget({Key? key, this.thumbnail}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return ClipPath(
       clipper: AutonomyTopRightRectangleClipper(),
       child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 12.8,
-          vertical: 19.26,
-        ),
         color: AppColor.secondaryDimGreyBackground,
-        child: const Align(
-          alignment: Alignment.bottomLeft,
-          child: JumpingDots(
-            color: AppColor.secondaryDimGrey,
-            radius: 3.2,
-          ),
+        child: Stack(
+          children: [
+            if (thumbnail?.isNotEmpty == true) ...[
+              SizedBox(
+                width: double.infinity,
+                height: double.infinity,
+                child: CachedNetworkImage(
+                  imageUrl: thumbnail!,
+                  fit: BoxFit.cover,
+                ),
+              )
+            ],
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 12.8,
+                vertical: 19.26,
+              ),
+              child: const Align(
+                  alignment: Alignment.bottomLeft,
+                  child: JumpingDots(
+                    color: AppColor.secondaryDimGrey,
+                    radius: 3.2,
+                  )),
+            )
+          ],
         ),
       ),
     );
