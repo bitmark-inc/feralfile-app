@@ -110,7 +110,7 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
                         ]),
                   )),
               SizedBox(
-                  height: 22,
+                  height: 25,
                   child: Container(
                       alignment: Alignment.center,
                       child: _copied

@@ -33,6 +33,7 @@ class DraftCustomerSupport {
   DateTime createdAt;
   String reportIssueType;
   String mutedMessages;
+  int rating;
 
   DraftCustomerSupport({
     required this.uuid,
@@ -42,6 +43,7 @@ class DraftCustomerSupport {
     required this.createdAt,
     required this.reportIssueType,
     this.mutedMessages = '',
+    this.rating = 0,
   });
 }
 
@@ -55,11 +57,13 @@ class DraftCustomerSupportData {
   String? text;
   List<LocalAttachment>? attachments;
   String? title;
+  int rating;
 
   DraftCustomerSupportData({
     this.text,
     this.attachments,
     this.title,
+    this.rating = 0,
   });
 
   factory DraftCustomerSupportData.fromJson(Map<String, dynamic> json) =>

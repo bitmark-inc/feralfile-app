@@ -21,6 +21,7 @@ class Issue {
   DateTime timestamp;
   int total;
   int unread;
+  int rating;
   @JsonKey(name: 'last_message')
   Message? lastMessage;
   // only on local
@@ -37,6 +38,7 @@ class Issue {
     required this.unread,
     required this.lastMessage,
     this.draft,
+    required this.rating,
   });
 
   factory Issue.fromJson(Map<String, dynamic> json) => _$IssueFromJson(json);
@@ -90,7 +92,7 @@ class ReceiveAttachment {
 
   Map<String, dynamic> toJson() => _$ReceiveAttachmentToJson(this);
 
-  // Because logs are big and aren't valueable for user. I don't store  the local logs files
+  // Because logs are big and aren't valuable for user. I don't store  the local logs files
   // I join the size of file inside the attachment's title
   static List<dynamic> extractSizeAndRealTitle(String title) {
     final fileInfos = title.split('_');

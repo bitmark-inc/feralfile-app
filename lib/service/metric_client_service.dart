@@ -8,6 +8,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:crypto/crypto.dart';
+import 'package:flutter/foundation.dart';
 import 'package:metric_client/metric_client.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
@@ -68,7 +69,9 @@ class MetricClientService {
   }
 
   Future<void> sendAndClearMetrics() async {
-    await MetricClient.sendMetrics();
+    if (!kDebugMode) {
+      await MetricClient.sendMetrics();
+    }
     await MetricClient.clear();
   }
 }
