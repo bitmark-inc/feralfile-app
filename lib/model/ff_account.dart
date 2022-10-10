@@ -159,6 +159,7 @@ class FFArtwork {
   final String description;
   final String? thumbnailFileURI;
   final String? galleryThumbnailFileURI;
+  final DateTime? createdAt;
 
   FFArtwork(
     this.id,
@@ -168,6 +169,7 @@ class FFArtwork {
     this.description,
     this.thumbnailFileURI,
     this.galleryThumbnailFileURI,
+    this.createdAt,
   );
 
   String getThumbnailURL() {

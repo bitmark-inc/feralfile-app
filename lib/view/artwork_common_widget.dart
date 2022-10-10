@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/screen/detail/report_rendering_issue/any_problem_nft_widget.dart';
 import 'package:autonomy_flutter/screen/detail/report_rendering_issue/report_rendering_issue_widget.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -886,7 +887,7 @@ Widget artworkDetailsProvenanceSectionNotEmpty(
   );
 }
 
-Widget _artworkRightView(BuildContext context) {
+Widget _artworkRightView(BuildContext context, {TextStyle? linkStyle}) {
   final theme = Theme.of(context);
 
   return Column(
@@ -906,27 +907,48 @@ Widget _artworkRightView(BuildContext context) {
         style: theme.textButtonNoPadding,
         onPressed: () => launchUrl(
             Uri.parse("https://feralfile.com/docs/artist-collector-rights")),
-        child: Text("learn_artist".tr(),
-            style: theme.textTheme.linkStyle.copyWith(
-              fontWeight: FontWeight.w500,
-            )),
+        child: Text(
+          "learn_artist".tr(),
+          style: linkStyle ??
+              theme.textTheme.linkStyle.copyWith(
+                fontWeight: FontWeight.w500,
+              ),
+        ),
       ),
       const SizedBox(height: 23.0),
       _artworkRightItem(context, "download".tr(), "download_text".tr()),
-      const Divider(height: 32.0),
+      const Divider(
+        height: 32.0,
+        color: AppColor.secondarySpanishGrey,
+      ),
       _artworkRightItem(context, "display".tr(), "display_text".tr()),
-      const Divider(height: 32.0),
+      const Divider(
+        height: 32.0,
+        color: AppColor.secondarySpanishGrey,
+      ),
       _artworkRightItem(context, "authenticate".tr(), "authenticate_text".tr()),
-      const Divider(height: 32.0),
+      const Divider(
+        height: 32.0,
+        color: AppColor.secondarySpanishGrey,
+      ),
       _artworkRightItem(
           context, "loan_or_lease".tr(), "loan_or_lease_text".tr()),
-      const Divider(height: 32.0),
+      const Divider(
+        height: 32.0,
+        color: AppColor.secondarySpanishGrey,
+      ),
       _artworkRightItem(
           context, "resell_or_transfer".tr(), "resell_or_transfer_text".tr()),
-      const Divider(height: 32.0),
+      const Divider(
+        height: 32.0,
+        color: AppColor.secondarySpanishGrey,
+      ),
       _artworkRightItem(
           context, "remain_anonymous".tr(), "remain_anonymous_text".tr()),
-      const Divider(height: 32.0),
+      const Divider(
+        height: 32.0,
+        color: AppColor.secondarySpanishGrey,
+      ),
       _artworkRightItem(context, "respect_artist_right".tr(),
           "respect_artist_right_text".tr()),
     ],
@@ -1043,4 +1065,110 @@ Widget previewCloseIcon(BuildContext context) {
     icon: closeIcon(color: theme.colorScheme.secondary),
     tooltip: "CloseArtwork",
   );
+}
+
+class ArtworkRightWidget extends StatelessWidget {
+  const ArtworkRightWidget({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final linkStyle = Theme.of(context).primaryTextTheme.linkStyle.copyWith(
+          color: Colors.white,
+          decorationColor: Colors.white,
+        );
+    return _artworkRightView(context, linkStyle: linkStyle);
+  }
+}
+
+class FeralfileArtworkDetailsMetadataSection extends StatelessWidget {
+  final Exhibition exhibition;
+
+  const FeralfileArtworkDetailsMetadataSection({
+    Key? key,
+    required this.exhibition,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final artwork = exhibition.artworks.firstOrNull;
+    final artist = exhibition.artists.firstOrNull;
+    final df = DateFormat('yyyy-MMM-dd hh:mm');
+    final mintDate = artwork?.createdAt;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "metadata".tr(),
+          style: theme.textTheme.headline2,
+        ),
+        const SizedBox(height: 23.0),
+        _rowItem(context, "title".tr(), artwork?.title),
+        const Divider(
+          height: 32.0,
+          color: AppColor.secondarySpanishGrey,
+        ),
+        _rowItem(
+          context,
+          "artist".tr(),
+          artist?.fullName ?? artist?.alias,
+        ),
+        const Divider(
+          height: 32.0,
+          color: AppColor.secondarySpanishGrey,
+        ),
+        _rowItem(
+          context,
+          "edition_number".tr(),
+          "${exhibition.maxEdition - (exhibition.airdropInfo as int? ?? 0) + 1}",
+        ),
+        const Divider(
+          height: 32.0,
+          color: AppColor.secondarySpanishGrey,
+        ),
+        _rowItem(
+          context,
+          "edition_size".tr(),
+          exhibition.maxEdition.toString(),
+        ),
+        const Divider(
+          height: 32.0,
+          color: AppColor.secondarySpanishGrey,
+        ),
+        _rowItem(
+          context,
+          "token".tr(),
+          "Feral File",
+        ),
+        const Divider(
+          height: 32.0,
+          color: AppColor.secondarySpanishGrey,
+        ),
+        _rowItem(
+          context,
+          "contract".tr(),
+          "Tezos",
+        ),
+        const Divider(
+          height: 32.0,
+          color: AppColor.secondarySpanishGrey,
+        ),
+        _rowItem(
+          context,
+          "medium".tr(),
+          artwork?.medium ?? "",
+        ),
+        const Divider(
+          height: 32.0,
+          color: AppColor.secondarySpanishGrey,
+        ),
+        _rowItem(
+          context,
+          "date_minted".tr(),
+          mintDate != null ? df.format(mintDate).toUpperCase() : null,
+          maxLines: 1,
+        ),
+      ],
+    );
+  }
 }

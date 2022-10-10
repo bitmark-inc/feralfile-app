@@ -121,6 +121,9 @@ FFArtwork _$FFArtworkFromJson(Map<String, dynamic> json) => FFArtwork(
       json['description'] as String,
       json['thumbnailFileURI'] as String?,
       json['galleryThumbnailFileURI'] as String?,
+      json['createdAt'] == null
+          ? null
+          : DateTime.parse(json['createdAt'] as String),
     );
 
 Map<String, dynamic> _$FFArtworkToJson(FFArtwork instance) => <String, dynamic>{
@@ -131,6 +134,7 @@ Map<String, dynamic> _$FFArtworkToJson(FFArtwork instance) => <String, dynamic>{
       'description': instance.description,
       'thumbnailFileURI': instance.thumbnailFileURI,
       'galleryThumbnailFileURI': instance.galleryThumbnailFileURI,
+      'createdAt': instance.createdAt?.toIso8601String(),
     };
 
 FFContract _$FFContractFromJson(Map<String, dynamic> json) => FFContract(

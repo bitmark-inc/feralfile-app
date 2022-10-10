@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -64,7 +65,19 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                   shrinkWrap: true,
                   children: [
                     const SizedBox(
-                      height: 52,
+                      height: 16,
+                    ),
+                    Column(
+                      children: [
+                        Text(
+                          "autonomy".tr(),
+                          style: theme.primaryTextTheme.bodyText1
+                              ?.copyWith(fontWeight: FontWeight.w600),
+                        )
+                      ],
+                    ),
+                    const SizedBox(
+                      height: 36,
                     ),
                     Text(
                       "congratulations".tr(),
@@ -162,36 +175,52 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                       "accept_ownership_desc".tr(),
                       style: theme.primaryTextTheme.bodyText1,
                     ),
+                    const SizedBox(
+                      height: 40,
+                    ),
+                    Theme(
+                      data: theme.copyWith(textTheme: theme.primaryTextTheme),
+                      child: const ArtworkRightWidget(),
+                    ),
+                    const SizedBox(
+                      height: 40,
+                    ),
+                    Theme(
+                      data: theme.copyWith(textTheme: theme.primaryTextTheme),
+                      child: FeralfileArtworkDetailsMetadataSection(
+                        exhibition: widget.exhibition,
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 24,
+                    ),
+                    RichText(
+                      text: TextSpan(
+                        text: "airdrop_accept_privacy_policy".tr(),
+                        style: theme.primaryTextTheme.bodyText1?.copyWith(fontSize: 14),
+                        children: [
+                          TextSpan(
+                              text: "airdrop_privacy_policy".tr(),
+                              style: makeLinkStyle(theme.primaryTextTheme.bodyText1!
+                                  .copyWith(fontSize: 14, fontWeight: FontWeight.bold)),
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () {
+                                  _openPrivacyPolicy();
+                                }),
+                          TextSpan(
+                            text: ".",
+                            style: theme.primaryTextTheme.bodyText1
+                                ?.copyWith(fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
             ),
             const SizedBox(
-              height: 24,
-            ),
-            RichText(
-              text: TextSpan(
-                text: "airdrop_accept_privacy_policy".tr(),
-                style: theme.primaryTextTheme.bodyText1?.copyWith(fontSize: 12),
-                children: [
-                  TextSpan(
-                      text: "airdrop_privacy_policy".tr(),
-                      style: makeLinkStyle(theme.primaryTextTheme.bodyText1!
-                          .copyWith(fontSize: 12, fontWeight: FontWeight.bold)),
-                      recognizer: TapGestureRecognizer()
-                        ..onTap = () {
-                          _openPrivacyPolicy();
-                        }),
-                  TextSpan(
-                    text: ".",
-                    style: theme.primaryTextTheme.bodyText1
-                        ?.copyWith(fontSize: 12),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(
-              height: 24,
+              height: 40,
             ),
             AuFilledButton(
               text: "accept_ownership".tr(),
