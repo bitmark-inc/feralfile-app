@@ -30,7 +30,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:get_it/get_it.dart';
-import 'package:metric_client/metric_client.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_rendering/nft_rendering.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -206,8 +205,6 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          SvgPicture.asset("assets/images/iconInfo.svg",
-              color: AppColor.secondarySpanishGrey),
           const SizedBox(width: 13),
           Expanded(
             child: Column(
