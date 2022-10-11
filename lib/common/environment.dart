@@ -16,6 +16,9 @@ class Environment {
   static String get web3RpcURL =>
       appTestnetConfig ? web3RpcTestnetURL : web3RpcMainnetURL;
 
+  static int get web3ChainId =>
+      appTestnetConfig ? web3TestnetChainId : web3MainnetChainId;
+
   static String get tezosNodeClientURL =>
       appTestnetConfig ? tezosNodeClientTestnetURL : tezosNodeClientMainnetURL;
 
@@ -42,8 +45,14 @@ class Environment {
   static String get web3RpcMainnetURL =>
       dotenv.env['WEB3_RPC_MAINNET_URL'] ?? '';
 
+  static int get web3MainnetChainId =>
+      int.tryParse(dotenv.env['WEB3_MAINNET_CHAIN_ID'] ?? "1") ?? 1;
+
   static String get web3RpcTestnetURL =>
       dotenv.env['WEB3_RPC_TESTNET_URL'] ?? '';
+
+  static int get web3TestnetChainId =>
+      int.tryParse(dotenv.env['WEB3_TESTNET_CHAIN_ID'] ?? "5") ?? 5;
 
   static String get tezosNodeClientMainnetURL =>
       dotenv.env['TEZOS_NODE_CLIENT_MAINNET_URL'] ?? '';
