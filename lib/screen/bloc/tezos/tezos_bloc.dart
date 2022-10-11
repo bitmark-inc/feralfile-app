@@ -8,6 +8,7 @@
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
+import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 
 part 'tezos_state.dart';
 
@@ -17,9 +18,8 @@ class TezosBloc extends AuBloc<TezosEvent, TezosState> {
   TezosBloc(this._tezosService) : super(TezosState(null, {})) {
     on<GetTezosAddressEvent>((event, emit) async {
       if (state.personaAddresses?[event.uuid] != null) return;
-      final tezosWallet =
-          await Persona.newPersona(uuid: event.uuid).wallet().getTezosWallet();
-      final address = tezosWallet.address;
+      final address =
+          await Persona.newPersona(uuid: event.uuid).wallet().getTezosAddress();
       var personaAddresses = state.personaAddresses ?? {};
       personaAddresses[event.uuid] = address;
 
@@ -36,9 +36,8 @@ class TezosBloc extends AuBloc<TezosEvent, TezosState> {
     });
 
     on<GetTezosBalanceWithUUIDEvent>((event, emit) async {
-      final tezosWallet =
-          await Persona.newPersona(uuid: event.uuid).wallet().getTezosWallet();
-      final address = tezosWallet.address;
+      final address =
+          await Persona.newPersona(uuid: event.uuid).wallet().getTezosAddress();
 
       final balance = await _tezosService.getBalance(address);
 

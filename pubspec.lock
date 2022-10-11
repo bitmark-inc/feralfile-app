@@ -1014,8 +1014,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "3ab410b0bf16472990759776d0206b3e0fac2b7e"
-      resolved-ref: "3ab410b0bf16472990759776d0206b3e0fac2b7e"
+      ref: fe109599472c5c9518d03001784b0a51bf24f644
+      resolved-ref: fe109599472c5c9518d03001784b0a51bf24f644
       url: "https://github.com/autonomy-system/libauk-dart.git"
     source: git
     version: "0.0.1"
@@ -1897,8 +1897,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "3a749ff828b55ce59cbc3675386cf16fae3fb96c"
-      resolved-ref: "3a749ff828b55ce59cbc3675386cf16fae3fb96c"
+      ref: "336d935c5f376afc0a21dac9c7061d3cdee6c047"
+      resolved-ref: "336d935c5f376afc0a21dac9c7061d3cdee6c047"
       url: "https://github.com/autonomy-system/tezart.git"
     source: git
     version: "2.0.4"

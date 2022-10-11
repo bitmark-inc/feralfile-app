@@ -24,6 +24,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -153,16 +154,16 @@ class _WCConnectPageState extends State<WCConnectPage>
     }
 
     if (beaconRequest != null) {
-      final tezosWallet = await selectedPersona!.wallet().getTezosWallet();
-      final publicKey =
-          await injector<TezosService>().getPublicKey(tezosWallet);
+      final wallet = selectedPersona!.wallet();
+      final publicKey = await wallet.getTezosPublicKey();
+      final address = await wallet.getTezosAddress();
       await injector<TezosBeaconService>().permissionResponse(
         selectedPersona!.uuid,
         beaconRequest.id,
         publicKey,
-        tezosWallet.address,
+        address,
       );
-      payloadAddress = tezosWallet.address;
+      payloadAddress = address;
       payloadType = CryptoType.XTZ;
     }
 

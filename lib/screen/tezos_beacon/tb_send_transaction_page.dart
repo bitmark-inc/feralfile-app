@@ -16,10 +16,11 @@ import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
-import 'package:collection/collection.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -27,7 +28,6 @@ import 'package:libauk_dart/libauk_dart.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:tezart/tezart.dart';
-import 'package:autonomy_flutter/view/responsive.dart';
 
 class TBSendTransactionPage extends StatefulWidget {
   static const String tag = 'tb_send_transaction';
@@ -43,7 +43,7 @@ class TBSendTransactionPage extends StatefulWidget {
 
 class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
   int? _fee;
-  TezosWallet? _currentWallet;
+  WalletStorage? _currentWallet;
   bool _isSending = false;
 
   @override
@@ -54,11 +54,14 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
 
   Future fetchPersona() async {
     final personas = await injector<CloudDatabase>().personaDao.getPersonas();
-    final wallets = await Future.wait(
-        personas.map((e) => LibAukDart.getWallet(e.uuid).getTezosWallet()));
-
-    final currentWallet = wallets.firstWhereOrNull(
-        (element) => element.address == widget.request.sourceAddress);
+    WalletStorage? currentWallet;
+    for (final persona in personas) {
+      final address = await persona.wallet().getTezosAddress();
+      if (address == widget.request.sourceAddress) {
+        currentWallet = persona.wallet();
+        break;
+      }
+    }
 
     if (currentWallet == null) {
       injector<TezosBeaconService>().signResponse(widget.request.id, null);
@@ -74,10 +77,10 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
     });
   }
 
-  Future _estimateFee(TezosWallet wallet) async {
+  Future _estimateFee(WalletStorage wallet) async {
     try {
-      final fee = await injector<TezosService>()
-          .estimateOperationFee(wallet, widget.request.operations!);
+      final fee = await injector<TezosService>().estimateOperationFee(
+          await wallet.getTezosPublicKey(), widget.request.operations!);
       setState(() {
         _fee = fee;
       });

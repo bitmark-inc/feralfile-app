@@ -19,8 +19,8 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:rxdart/rxdart.dart';
 import 'package:nft_collection/models/asset_token.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:tezart/tezart.dart';
 import 'package:web3dart/web3dart.dart';
 
@@ -58,8 +58,7 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
           newState.isValid = _isValid(newState);
           break;
         case CryptoType.XTZ:
-          final tezosWallet = await event.wallet.getTezosWallet();
-          final address = tezosWallet.address;
+          final address = await event.wallet.getTezosAddress();
           final balance = await _tezosService.getBalance(address);
 
           newState.balance = BigInt.from(balance);
@@ -105,7 +104,8 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
         switch (type) {
           case CryptoType.ETH:
             try {
-              final address = EthereumAddress.fromHex(event.address, enforceEip55: true);
+              final address =
+                  EthereumAddress.fromHex(event.address, enforceEip55: true);
               newState.address = address.hexEip55;
               newState.isAddressError = false;
 
@@ -166,15 +166,15 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
         case CryptoType.XTZ:
           final wallet = state.wallet;
           if (wallet == null) return;
-          final tezosWallet = await wallet.getTezosWallet();
           try {
             final operation = await _tezosService.getFa2TransferOperation(
                 event.contractAddress,
-                tezosWallet.address,
+                await wallet.getTezosAddress(),
                 event.address,
                 int.parse(event.tokenId),
                 event.quantity);
-            final tezosFee = await _tezosService.estimateOperationFee(tezosWallet, [operation]);
+            final tezosFee = await _tezosService.estimateOperationFee(
+                await wallet.getTezosPublicKey(), [operation]);
             fee = BigInt.from(tezosFee);
           } on TezartNodeError catch (err) {
             if (!emit.isDone) {

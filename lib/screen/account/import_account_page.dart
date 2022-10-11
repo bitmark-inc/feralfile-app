@@ -131,7 +131,7 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
       // SideEffect: pre-fetch tokens
       injector<TokensService>().fetchTokensForAddresses([
         (await persona.wallet().getETHEip55Address()),
-        (await persona.wallet().getTezosWallet()).address,
+        (await persona.wallet().getTezosAddress()),
         (await persona.wallet().getBitmarkAddress()),
       ]);
 

@@ -5,8 +5,10 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
+import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/models/asset_token.dart';
+import 'package:tezart/src/crypto/crypto.dart' as crypto;
 
 extension AssetTokenExtension on AssetToken {
   static final Map<String, Map<String, String>> _tokenUrlMap = {
@@ -42,7 +44,7 @@ extension AssetTokenExtension on AssetToken {
       if (blockchain == "ethereum") {
         address = await persona.wallet().getETHAddress();
       } else {
-        address = (await persona.wallet().getTezosWallet()).address;
+        address = (await persona.wallet().getTezosAddress());
       }
       if (owners.containsKey(address)) {
         wallet = persona.wallet();

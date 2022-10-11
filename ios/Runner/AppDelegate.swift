@@ -51,18 +51,22 @@ import Sentry
                 LibAukChannelHandler.shared.isWalletCreated(call: call, result: result)
             case "getETHAddress":
                 LibAukChannelHandler.shared.getETHAddress(call: call, result: result)
-            case "signPersonalMessage":
+            case "ethSignPersonalMessage":
                 LibAukChannelHandler.shared.signPersonalMessage(call: call, result: result)
             case "exportMnemonicWords":
                 LibAukChannelHandler.shared.exportMnemonicWords(call: call, result: result)
-            case "signTransaction":
+            case "ethSignTransaction":
                 LibAukChannelHandler.shared.signTransaction(call: call, result: result)
             case "encryptFile":
                 LibAukChannelHandler.shared.encryptFile(call: call, result: result)
             case "decryptFile":
                 LibAukChannelHandler.shared.decryptFile(call: call, result: result)
-            case "getTezosWallet":
-                LibAukChannelHandler.shared.getTezosWallet(call: call, result: result)
+            case "getTezosPublicKey":
+                LibAukChannelHandler.shared.getTezosPublicKey(call: call, result: result)
+            case "tezosSignMessage":
+                LibAukChannelHandler.shared.tezosSign(call: call, result: result)
+            case "tezosSignTransaction":
+                LibAukChannelHandler.shared.tezosSignTransaction(call: call, result: result)
             case "getBitmarkAddress":
                 LibAukChannelHandler.shared.getBitmarkAddress(call: call, result: result)
             case "removeKeys":

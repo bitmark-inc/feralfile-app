@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
+import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -44,11 +45,14 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
 
   Future fetchPersona() async {
     final personas = await injector<CloudDatabase>().personaDao.getPersonas();
-    final wallets = await Future.wait(
-        personas.map((e) => LibAukDart.getWallet(e.uuid).getTezosWallet()));
-
-    final currentWallet = wallets.firstWhereOrNull(
-        (element) => element.address == widget.request.sourceAddress);
+    WalletStorage? currentWallet;
+    for (final persona in personas) {
+      final address = await persona.wallet().getTezosAddress();
+      if (address == widget.request.sourceAddress) {
+        currentWallet = persona.wallet();
+        break;
+      }
+    }
 
     if (currentWallet == null) {
       injector<TezosBeaconService>().signResponse(widget.request.id, null);
@@ -57,10 +61,8 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
       return;
     }
 
-    final currentPersona =
-        LibAukDart.getWallet(personas[wallets.indexOf(currentWallet)].uuid);
     setState(() {
-      _currentPersona = currentPersona;
+      _currentPersona = currentWallet;
     });
   }
 
@@ -135,10 +137,8 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
                       text: "sign".tr().toUpperCase(),
                       onPress: _currentPersona != null
                           ? () => withDebounce(() async {
-                                final wallet =
-                                    await _currentPersona!.getTezosWallet();
                                 final signature = await injector<TezosService>()
-                                    .signMessage(wallet, message);
+                                    .signMessage(_currentPersona!, message);
                                 injector<TezosBeaconService>()
                                     .signResponse(widget.request.id, signature);
                                 if (!mounted) return;

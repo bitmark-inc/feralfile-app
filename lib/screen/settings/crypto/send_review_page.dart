@@ -170,20 +170,16 @@ class _SendReviewPageState extends State<SendReviewPage> {
                                     Navigator.of(context).pop(txHash);
                                     break;
                                   case CryptoType.XTZ:
-                                    final tezosWallet = await widget
-                                        .payload.wallet
-                                        .getTezosWallet();
                                     final sig = await injector<TezosService>()
                                         .sendTransaction(
-                                            tezosWallet,
+                                            widget.payload.wallet,
                                             widget.payload.address,
                                             widget.payload.amount.toInt());
 
                                     if (!mounted) return;
                                     Navigator.of(context).pop(sig);
                                     break;
-                                  case CryptoType.BITMARK:
-                                    // TODO: Handle this case.
+                                  default:
                                     break;
                                 }
 
