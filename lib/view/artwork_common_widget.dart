@@ -1120,7 +1120,7 @@ class FeralfileArtworkDetailsMetadataSection extends StatelessWidget {
         _rowItem(
           context,
           "edition_number".tr(),
-          "${exhibition.maxEdition - (exhibition.airdropInfo as int? ?? 0) + 1}",
+          "${exhibition.maxEdition - (exhibition.airdropInfo?.remainAmount ?? 0) + 1}",
         ),
         const Divider(
           height: 32.0,
