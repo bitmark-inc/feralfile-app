@@ -11,10 +11,12 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/badge_view.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -88,7 +90,7 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
     }
 
     final breakpoint =
-        widget.style == PenroseTopBarViewStyle.settings ? 25 : 80;
+    widget.style == PenroseTopBarViewStyle.settings ? 25 : 80;
 
     if (widget.scrollController.offset > breakpoint) {
       if (Platform.isIOS) {
@@ -213,9 +215,37 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
             },
             icon: isInSettingsPage
                 ? closeIcon()
-                : SvgPicture.asset('assets/images/userOutlinedIcon.svg'),
+                : _settingIcon(),
           ),
         ),
+      ],
+    );
+  }
+
+  Widget _settingIcon() {
+    final configService = injector<ConfigurationService>();
+    final hasPendingSettings = configService.hasPendingSettings() ||
+        configService.shouldShowSubscriptionHint();
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        SvgPicture.asset('assets/images/userOutlinedIcon.svg'),
+        if (hasPendingSettings) ...[
+          Positioned(
+              top: -1,
+              left: 14,
+              child: Align(
+                alignment: Alignment.topRight,
+                child: Container(
+                  width: 10,
+                  height: 10,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppColor.red,
+                  ),
+                ),
+              )),
+        ]
       ],
     );
   }
