@@ -6,6 +6,7 @@
 //
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
@@ -13,6 +14,7 @@ import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/blockchain.dart';
+import 'package:autonomy_flutter/model/view_list.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
@@ -47,6 +49,7 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/penrose_top_bar_view.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_flutter/view/view_list.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -337,10 +340,22 @@ class _HomePageState extends State<HomePage>
     List<Widget> sources;
     sources = [
       SliverToBoxAdapter(
-          child: Container(
-        padding: const EdgeInsets.fromLTRB(0, 72, 0, 48),
-        child: autonomyLogo,
-      )),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(0, 72, 0, 48),
+          child: autonomyLogo,
+        ),
+      ),
+      SliverToBoxAdapter(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(10, 30, 10, 30),
+          child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                  children: []
+              )
+          ),
+        ),
+      ),
       SliverGrid(
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: cellPerRow,
@@ -584,5 +599,23 @@ class _HomePageState extends State<HomePage>
     await metricClient.sendAndClearMetrics();
     _cloudBackup();
     FileLogger.shrinkLogFileIfNeeded();
+  }
+
+  Widget _viewListBar() {
+    return ListView(
+      children: [
+        SizedBox(
+          height: 100.0,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            children: <Widget>[
+              const Text("hi"),
+              Text("hi"),
+              Text("hi"),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 }
