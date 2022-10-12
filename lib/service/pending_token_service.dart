@@ -210,11 +210,21 @@ class PendingTokenService {
     do {
       await Future.delayed(_getRetryDelayDuration(retryCount));
       final operations = await _tzktApi.getTokenTransfer(
-        to: owner,
+        anyOf: owner,
         sort: "timestamp",
-        limit: 3,
+        limit: 5,
       );
-      final tokens = operations
+      final transfers = <TZKTTokenTransfer>[];
+      for (final operation in operations.reversed) {
+        if (operation.to?.address == owner) {
+          transfers.add(operation);
+        } else if (operation.from?.address == owner) {
+          transfers.removeWhere((e) =>
+              e.token?.tokenId == operation.token?.tokenId &&
+              e.token?.contract?.address == operation.token?.contract?.address);
+        }
+      }
+      final tokens = transfers
           .where((e) =>
               !_tezosContractBlacklist.contains(e.token?.contract?.address))
           .map((e) => e.token?.toAssetToken(owner, DateTime.now()))
@@ -226,6 +236,8 @@ class PendingTokenService {
       if (pendingTokens.isNotEmpty) {
         log.info(
             "[PendingTokenService] Found ${pendingTokens.length} new tokens.");
+        log.info(
+            "[PendingTokenService] Pending IDs: ${pendingTokens.map((e) => e.id).toList()}");
         break;
       } else {
         log.info("[PendingTokenService] Not found any new tokens.");
