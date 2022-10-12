@@ -102,7 +102,7 @@ class EthereumServiceImpl extends EthereumService {
     gasLimit ??=
         (await estimateFee(wallet, to, EtherAmount.inWei(value), data)) ~/
             gasPrice.getInWei;
-    final chainId = Environment.appTestnetConfig ? 4 : 1;
+    final chainId = Environment.web3ChainId;
 
     final signedTransaction = await wallet.ethSignTransaction(
         nonce: nonce,
