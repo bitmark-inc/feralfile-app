@@ -361,7 +361,9 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
                               text: '${event.actionRepresentation} ',
                             ),
                             TextSpan(
-                              text: asset.title.isEmpty ? 'nft' : asset.title,
+                              text: asset.title.isEmpty
+                                  ? 'nft'
+                                  : '${asset.title} ',
                               style: ResponsiveLayout.isMobile
                                   ? theme.textTheme.atlasWhiteItalic12
                                   : theme.textTheme.atlasWhiteItalic14,
