@@ -47,7 +47,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
     }
     final theme = Theme.of(context);
     const edgeInsets =
-        EdgeInsets.only(top: 135.0, bottom: 32.0, left: 16.0, right: 16.0);
+        EdgeInsets.only(top: 120.0, bottom: 32.0, left: 16.0, right: 16.0);
 
     return Scaffold(
         body: BlocConsumer<RouterBloc, RouterState>(
@@ -86,10 +86,13 @@ class _OnboardingPageState extends State<OnboardingPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Text(
-                        "autonomy".tr(),
-                        textAlign: TextAlign.center,
-                        style: theme.textTheme.largeTitle,
+                      FittedBox(
+                        child: Text(
+                          "autonomy".tr(),
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.largeTitle,
+                          maxLines: 1,
+                        ),
                       ),
                     ],
                   ),
