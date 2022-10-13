@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/screen/detail/report_rendering_issue/any_problem_nft_widget.dart';
 import 'package:autonomy_flutter/screen/detail/report_rendering_issue/report_rendering_issue_widget.dart';
@@ -9,6 +10,7 @@ import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
+import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -1049,7 +1051,10 @@ Widget _rowItem(
             ),
             if (onValueTap != null) ...[
               const SizedBox(width: 8.0),
-              SvgPicture.asset('assets/images/iconForward.svg'),
+              SvgPicture.asset(
+                'assets/images/iconForward.svg',
+                color: theme.textTheme.bodyText1?.color,
+              ),
             ]
           ],
         ),
@@ -1093,6 +1098,7 @@ class FeralfileArtworkDetailsMetadataSection extends StatelessWidget {
     final theme = Theme.of(context);
     final artwork = exhibition.artworks.firstOrNull;
     final artist = exhibition.artists.firstOrNull;
+    final contract = exhibition.contracts.firstOrNull;
     final df = DateFormat('yyyy-MMM-dd hh:mm');
     final mintDate = artwork?.createdAt;
     return Column(
@@ -1112,15 +1118,7 @@ class FeralfileArtworkDetailsMetadataSection extends StatelessWidget {
           context,
           "artist".tr(),
           artist?.fullName ?? artist?.alias,
-        ),
-        const Divider(
-          height: 32.0,
-          color: AppColor.secondarySpanishGrey,
-        ),
-        _rowItem(
-          context,
-          "edition_number".tr(),
-          "${exhibition.maxEdition - (exhibition.airdropInfo?.remainAmount ?? 0) + 1}",
+          tapLink: "${Environment.feralFileAPIURL}/profiles/${artist?.id}",
         ),
         const Divider(
           height: 32.0,
@@ -1139,6 +1137,7 @@ class FeralfileArtworkDetailsMetadataSection extends StatelessWidget {
           context,
           "token".tr(),
           "Feral File",
+          tapLink: "${Environment.feralFileAPIURL}/artworks/${artwork?.id}",
         ),
         const Divider(
           height: 32.0,
@@ -1147,7 +1146,8 @@ class FeralfileArtworkDetailsMetadataSection extends StatelessWidget {
         _rowItem(
           context,
           "contract".tr(),
-          "Tezos",
+          contract?.blockchainType.capitalize() ?? '',
+          tapLink: contract?.getBlockChainUrl(),
         ),
         const Divider(
           height: 32.0,
@@ -1156,7 +1156,7 @@ class FeralfileArtworkDetailsMetadataSection extends StatelessWidget {
         _rowItem(
           context,
           "medium".tr(),
-          artwork?.medium ?? "",
+          artwork?.medium.capitalize() ?? "",
         ),
         const Divider(
           height: 32.0,

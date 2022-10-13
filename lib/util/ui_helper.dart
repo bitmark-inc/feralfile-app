@@ -386,18 +386,36 @@ class UIHelper {
         autoDismissAfter: 5);
   }
 
-  static Future showExhibitionNotStarted(BuildContext context) async {
+  static Future showExhibitionNotStarted(
+    BuildContext context, {
+    required DateTime startTime,
+  }) async {
     final theme = Theme.of(context);
-    final error = FeralfileError(5006, "");
+    final df = DateFormat("yyyy-MMM-dd hh:mm");
     return UIHelper.showDialog(
       context,
-      error.dialogTitle,
+      "Coming soon",
       Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            error.dialogMessage,
-            style: theme.primaryTextTheme.bodyText1,
+          RichText(
+            text: TextSpan(
+              text:
+                  "The show has not started. Please scan the QR code at the start time of airdrop on\n",
+              style: theme.primaryTextTheme.bodyText1,
+              children: [
+                TextSpan(
+                  text: df.format(startTime).toUpperCase(),
+                  style: theme.primaryTextTheme.bodyText1?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                TextSpan(
+                  text: ".",
+                  style: theme.primaryTextTheme.bodyText1,
+                ),
+              ],
+            ),
           ),
           const SizedBox(
             height: 40,

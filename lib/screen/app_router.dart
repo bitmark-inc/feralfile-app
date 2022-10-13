@@ -43,6 +43,7 @@ import 'package:autonomy_flutter/screen/bloc/tzkt_transaction/tzkt_transaction_b
 import 'package:autonomy_flutter/screen/bug_bounty_page.dart';
 import 'package:autonomy_flutter/screen/claim/claim_token_page.dart';
 import 'package:autonomy_flutter/screen/claim/select_account_page.dart';
+import 'package:autonomy_flutter/screen/claim/token_detail_page.dart';
 import 'package:autonomy_flutter/screen/cloud/cloud_android_page.dart';
 import 'package:autonomy_flutter/screen/cloud/cloud_page.dart';
 import 'package:autonomy_flutter/screen/connection/connection_details_page.dart';
@@ -164,6 +165,7 @@ class AppRouter {
   static const sendArtworkReviewPage = 'send_artwork_review_page';
   static const claimFeralfileTokenPage = 'claim_feralfile_token_page';
   static const claimSelectAccountPage = 'claim_select_account_page';
+  static const airdropTokenDetailPage = 'airdrop_token_detail_page';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final ethereumBloc = EthereumBloc(injector());
@@ -846,6 +848,15 @@ class AppRouter {
             settings: settings,
             builder: (context) {
               return ClaimTokenPage(
+                exhibition: settings.arguments as Exhibition,
+              );
+            });
+
+      case airdropTokenDetailPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) {
+              return TokenDetailPage(
                 exhibition: settings.arguments as Exhibition,
               );
             });

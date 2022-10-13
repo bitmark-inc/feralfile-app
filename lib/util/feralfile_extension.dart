@@ -1,3 +1,4 @@
+import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:easy_localization/easy_localization.dart';
 
@@ -30,5 +31,27 @@ extension FeralfileErrorExt on FeralfileError {
       default:
         return message;
     }
+  }
+}
+
+extension FFContractExt on FFContract {
+  String? getBlockChainUrl() {
+    final network = Environment.appTestnetConfig ? "TESTNET" : "MAINNET";
+    String? url;
+    switch ("${network}_$blockchainType") {
+      case "MAINNET_ethereum":
+        url = "https://etherscan.io/address/$address";
+        break;
+
+      case "TESTNET_ethereum":
+        url = "https://rinkeby.etherscan.io/address/$address}";
+        break;
+
+      case "MAINNET_tezos":
+      case "TESTNET_tezos":
+        url = "https://tzkt.io/$address";
+        break;
+    }
+    return url;
   }
 }

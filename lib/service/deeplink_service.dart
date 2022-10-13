@@ -28,7 +28,7 @@ import 'package:uni_links/uni_links.dart';
 abstract class DeeplinkService {
   Future setup();
 
-  void handleDeeplink(String? link);
+  void handleDeeplink(String? link, {Duration delay});
 }
 
 class DeeplinkServiceImpl extends DeeplinkService {
@@ -74,7 +74,10 @@ class DeeplinkServiceImpl extends DeeplinkService {
   }
 
   @override
-  void handleDeeplink(String? link) {
+  void handleDeeplink(
+    String? link, {
+    Duration delay = const Duration(seconds: 2),
+  }) {
     // return for case when FeralFile pass empty deeplink to return Autonomy
     if (link == "autonomy://") return;
 
@@ -82,7 +85,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
 
     log.info("[DeeplinkService] receive deeplink $link");
 
-    Timer.periodic(const Duration(seconds: 2), (timer) async {
+    Timer.periodic(delay, (timer) async {
       timer.cancel();
       _handleDappConnectDeeplink(link) ||
           _handleFeralFileDeeplink(link) ||
@@ -244,7 +247,9 @@ class DeeplinkServiceImpl extends DeeplinkService {
             exhibition.exhibitionStartAt.isAfter(DateTime.now());
         final endTime = exhibition.airdropInfo?.endedAt;
         if (exhibitionNotStarted) {
-          await _navigationService.showExhibitionNotStarted();
+          await _navigationService.showExhibitionNotStarted(
+            startTime: exhibition.exhibitionStartAt,
+          );
         } else if (exhibition.airdropInfo == null ||
             (endTime != null && endTime.isBefore(DateTime.now()))) {
           await _navigationService.showAirdropExpired();
