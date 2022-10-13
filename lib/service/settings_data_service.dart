@@ -47,7 +47,6 @@ class SettingsDataServiceImpl implements SettingsDataService {
   Future backup() async {
     log.info('[SettingsDataService][Start] backup');
     final addresses = await _accountService.getShowedAddresses();
-    if (addresses.isEmpty) return;
 
     _numberOfCallingBackups += 1;
 
