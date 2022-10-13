@@ -61,6 +61,7 @@ class _WCConnectPageState extends State<WCConnectPage>
   List<Persona>? personas;
   bool generatedPersona = false;
   final metricClient = injector.get<MetricClientService>();
+  bool _isAccountSelected = false;
 
   @override
   void initState() {
@@ -373,6 +374,7 @@ class _WCConnectPageState extends State<WCConnectPage>
   Widget _selectPersonaWidget(List<Persona> personas) {
     bool hasRadio = personas.length > 1;
     final theme = Theme.of(context);
+    if (!hasRadio) _isAccountSelected = true;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -412,6 +414,7 @@ class _WCConnectPageState extends State<WCConnectPage>
                                       onChanged: (Persona? value) {
                                         setState(() {
                                           selectedPersona = value;
+                                          _isAccountSelected = true;
                                         });
                                       },
                                     ),
@@ -430,7 +433,9 @@ class _WCConnectPageState extends State<WCConnectPage>
             Expanded(
               child: AuFilledButton(
                 text: "connect".tr().toUpperCase(),
-                onPress: () => withDebounce(() => _approve()),
+                onPress: _isAccountSelected
+                    ? () => withDebounce(() => _approve())
+                    : null,
               ),
             )
           ],
