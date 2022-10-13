@@ -19,6 +19,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/util/migration/migration_util.dart';
 import 'package:autonomy_flutter/util/notification_util.dart';
+import 'package:nft_collection/database/nft_collection_database.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
@@ -28,6 +29,7 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
   final IAPApi _iapApi;
   final CloudDatabase _cloudDatabase;
   final AppDatabase _appDatabase;
+  final NftCollectionDatabase _nftCollectionDatabase;
   final ConfigurationService _configurationService;
   final FeedService _feedService;
 
@@ -38,6 +40,7 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
       this._iapApi,
       this._cloudDatabase,
       this._appDatabase,
+      this._nftCollectionDatabase,
       this._configurationService,
       this._feedService)
       : super(ForgetExistState(false, null)) {
@@ -64,6 +67,7 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
 
       await _cloudDatabase.removeAll();
       await _appDatabase.removeAll();
+      await _nftCollectionDatabase.removeAll();
       await _configurationService.removeAll();
 
       _authService.reset();

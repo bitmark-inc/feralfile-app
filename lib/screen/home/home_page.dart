@@ -56,7 +56,6 @@ import 'package:nft_collection/nft_collection.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:wallet_connect/models/wc_peer_meta.dart';
-import 'package:metric_client/metric_client.dart';
 
 class HomePage extends StatefulWidget {
   static const tag = "home";
@@ -144,6 +143,7 @@ class _HomePageState extends State<HomePage>
     WidgetsBinding.instance.removeObserver(this);
     routeObserver.unsubscribe(this);
     _fgbgSubscription?.cancel();
+    _controller.dispose();
     super.dispose();
   }
 
