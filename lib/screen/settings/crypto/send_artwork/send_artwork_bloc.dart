@@ -171,7 +171,7 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
                 event.contractAddress,
                 await wallet.getTezosAddress(),
                 event.address,
-                int.parse(event.tokenId),
+                event.tokenId,
                 event.quantity);
             final tezosFee = await _tezosService.estimateOperationFee(
                 await wallet.getTezosPublicKey(), [operation]);

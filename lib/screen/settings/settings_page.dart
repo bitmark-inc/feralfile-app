@@ -283,7 +283,7 @@ class _SettingsPageState extends State<SettingsPage>
       "forget_exist".tr(),
       BlocProvider(
         create: (_) => ForgetExistBloc(injector(), injector(), injector(),
-            injector(), injector(), injector(), injector()),
+            injector(), injector(), injector(), injector(), injector()),
         child: const ForgetExistView(),
       ),
     );

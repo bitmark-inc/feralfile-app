@@ -257,7 +257,7 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                                                 .payload.asset.contractAddress!,
                                             address,
                                             widget.payload.address,
-                                            int.parse(tokenId),
+                                            tokenId,
                                             widget.payload.quantity);
                                     final opHash = await tezosService
                                         .sendOperationTransaction(
@@ -273,7 +273,7 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                                       gasLimit: 0,
                                       hash: opHash ?? '',
                                       gasUsed: 0,
-                                      id: int.parse(tokenId),
+                                      id: 0,
                                       level: 0,
                                       quote: TZKTQuote(
                                         usd: exchangeRateXTZ,
@@ -288,7 +288,7 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                                       ),
                                       amount: widget.payload.fee.toInt(),
                                     )..tokenTransfer = TZKTTokenTransfer(
-                                        id: int.parse(tokenId),
+                                        id: 0,
                                         level: 0,
                                         from: TZKTActor(
                                           address: address,
@@ -301,7 +301,7 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                                             widget.payload.quantity.toString(),
                                         token: TZKTToken(
                                           tokenId: tokenId,
-                                          id: int.parse(tokenId),
+                                          id: 0,
                                           contract: TZKTActor(
                                               address: widget.payload.asset
                                                       .contractAddress ??

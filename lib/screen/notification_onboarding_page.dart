@@ -46,16 +46,16 @@ class _NotificationOnboardingPageState
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Text(
+              "notifications".tr(),
+              style: theme.textTheme.headline1,
+            ),
+            const SizedBox(height: 30),
             Expanded(
               child: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      "notifications".tr(),
-                      style: theme.textTheme.headline1,
-                    ),
-                    const SizedBox(height: 30),
                     Markdown(
                       data: "grant_permission_when".tr(),
                       /*'''
@@ -67,16 +67,18 @@ class _NotificationOnboardingPageState
                        */
                       softLineBreak: true,
                       padding: const EdgeInsets.only(bottom: 50),
+                      physics: const NeverScrollableScrollPhysics(),
                       shrinkWrap: true,
                       styleSheet:
                           markDownLightStyle(context).copyWith(blockSpacing: 8),
                     ),
                     Center(
-                        child: Padding(
-                      padding: const EdgeInsets.only(left: 25),
-                      child: SvgPicture.asset(
-                          'assets/images/notification_onboarding.svg'),
-                    ))
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 25),
+                        child: SvgPicture.asset(
+                            'assets/images/notification_onboarding.svg'),
+                      ),
+                    )
                   ],
                 ),
               ),
