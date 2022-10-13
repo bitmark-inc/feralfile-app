@@ -637,6 +637,7 @@ class ControlView extends StatelessWidget {
           ),
           Visibility(
             visible: (assetToken?.medium == 'software' ||
+                    assetToken?.medium == 'other' ||
                     (assetToken?.medium?.isEmpty ?? true)) &&
                 Platform.isAndroid,
             child: KeyboardManagerWidget(
