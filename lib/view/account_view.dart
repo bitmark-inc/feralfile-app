@@ -117,13 +117,15 @@ Widget accountItem(BuildContext context, Account account,
           ),
         ],
       ),
-      rightWidget: Visibility(
-        visible: isHideGalleryEnabled,
-        child: Icon(
-          Icons.visibility_off_outlined,
-          color: theme.colorScheme.surface,
-        ),
-      ),
+      rightWidget: context.widget.toString().contains("AccountsView")
+          ? Visibility(
+              visible: isHideGalleryEnabled,
+              child: Icon(
+                Icons.visibility_off_outlined,
+                color: theme.colorScheme.surface,
+              ),
+            )
+          : const SizedBox(),
       onTap: onPersonaTap,
     );
   }
