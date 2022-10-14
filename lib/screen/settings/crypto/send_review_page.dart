@@ -6,6 +6,7 @@
 //
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/tzkt_operation.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
@@ -13,6 +14,7 @@ import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/biometrics_util.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
+import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -126,7 +128,10 @@ class _SendReviewPageState extends State<SendReviewPage> {
                   children: [
                     Expanded(
                       child: AuFilledButton(
-                        text: "send".tr(),
+                        text: _isSending
+                            ? "sending".tr().toUpperCase()
+                            : "sendH".tr(),
+                        isProcessing: _isSending,
                         onPress: _isSending
                             ? null
                             : () async {
@@ -170,18 +175,46 @@ class _SendReviewPageState extends State<SendReviewPage> {
                                     Navigator.of(context).pop(txHash);
                                     break;
                                   case CryptoType.XTZ:
-                                    final sig = await injector<TezosService>()
+                                    final opHash = await injector<TezosService>()
                                         .sendTransaction(
                                             widget.payload.wallet,
                                             widget.payload.address,
                                             widget.payload.amount.toInt());
-
+                                    final exchangeRateXTZ = 1 /
+                                        (double.tryParse(widget
+                                            .payload.exchangeRate.xtz) ??
+                                            0);
+                                    final tx = TZKTOperation(
+                                      bakerFee: widget.payload.fee.toInt(),
+                                      block: '',
+                                      counter: 0,
+                                      gasLimit: 0,
+                                      hash: opHash ?? '',
+                                      gasUsed: 0,
+                                      id: 0,
+                                      level: 0,
+                                      quote: TZKTQuote(
+                                        usd: exchangeRateXTZ,
+                                      ),
+                                      timestamp: DateTime.now(),
+                                      type: 'transaction',
+                                      target: TZKTActor(
+                                        address: widget.payload.address,
+                                      ),
+                                      amount: widget.payload.amount.toInt(),
+                                    );
                                     if (!mounted) return;
-                                    Navigator.of(context).pop(sig);
+                                    final payload = {
+                                      "isTezos": true,
+                                      "hash": opHash,
+                                      "tx": tx,
+                                    };
+                                    Navigator.of(context).pop(payload);
                                     break;
                                   default:
                                     break;
                                 }
+
 
                                 setState(() {
                                   _isSending = false;

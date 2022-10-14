@@ -31,6 +31,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 
+import '../../model/tzkt_operation.dart';
 import '../../view/responsive.dart';
 
 class PersonaConnectionsPage extends StatefulWidget {
@@ -144,10 +145,35 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
                 Expanded(
                   child: AuOutlinedButton(
                     text: "send".tr(),
-                    onPress: () {
-                      Navigator.of(context).pushNamed(SendCryptoPage.tag,
+                    onPress: () async {
+                      final payload = await Navigator.of(context).pushNamed(SendCryptoPage.tag,
                           arguments: SendData(LibAukDart.getWallet(widget.payload.personaUUID),
-                              widget.payload.type, null));
+                              widget.payload.type, null)) as Map?;
+                      if (payload == null || !payload["isTezos"]) {
+                        return;
+                      }
+
+                      if (!mounted) return;
+                      final tx = payload['tx'] as TZKTOperation;
+                      tx.sender = TZKTActor(
+                      address: widget.payload.address
+                      );
+                      UIHelper.showMessageAction(
+                        context,
+                        'success'.tr(),
+                        'send_success_des'.tr(),
+                        onAction: () {
+                          Navigator.of(context).pop();
+                          Navigator.of(context).pushNamed(
+                            AppRouter.tezosTXDetailPage,
+                            arguments: {
+                              "current_address": tx.sender?.address,
+                              "tx": tx,
+                            },
+                          );
+                        },
+                        actionButton: 'see_transaction_detail'.tr().toUpperCase(),
+                      );
                     },
                   ),
                 ),
