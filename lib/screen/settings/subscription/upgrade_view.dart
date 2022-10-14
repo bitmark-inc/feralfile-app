@@ -72,7 +72,10 @@ class UpgradesView extends StatelessWidget {
                 "thank_support".tr(args: [_subscriptionsManagementLocation]),
                 //"Thank you for your support. Manage your subscription in $_subscriptionsManagementLocation",
                 style: theme.textTheme.bodyText1),
+            const SizedBox(height: 10.0),
+            _benefit(context),
           ],
+
         );
       case IAPProductStatus.trial:
         final df = DateFormat("yyyy-MMM-dd");
@@ -88,6 +91,8 @@ class UpgradesView extends StatelessWidget {
                 "you_will_be_charged".tr(namedArgs: {"price":state.productDetails?.price ?? "4.99usd".tr(),"date":trialExpireDate,"location":_subscriptionsManagementLocation}),
                 //"You will be charged ${state.productDetails?.price ?? "US\$4.99"}/month starting $trialExpireDate. To cancel your subscription, go to $_subscriptionsManagementLocation",
                 style: theme.textTheme.bodyText1),
+            const SizedBox(height: 10.0),
+            _benefit(context),
           ],
         );
       case IAPProductStatus.loading:
@@ -141,6 +146,27 @@ class UpgradesView extends StatelessWidget {
             //"Error when loading your subscription.",
             style: theme.textTheme.headline4);
     }
+  }
+
+  static _benefit(BuildContext context){
+    final theme = Theme.of(context);
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(width: 2),
+        Icon(
+          CupertinoIcons.checkmark,
+          color: theme.colorScheme.primary,
+          size: 16,
+        ),
+        const SizedBox(width: 16.0),
+        Expanded(
+          child: Text(
+              "view_collection_tv".tr(),
+              style: theme.textTheme.bodyText1),
+        ),
+      ],
+    );
   }
 
   static showSubscriptionDialog(BuildContext context, String? price,
