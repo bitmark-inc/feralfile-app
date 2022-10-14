@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_box_view.dart';
 import 'package:autonomy_flutter/screen/survey/survey.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -38,11 +39,13 @@ const SHOW_DIALOG_DURATION = Duration(seconds: 2);
 const SHORT_SHOW_DIALOG_DURATION = Duration(seconds: 1);
 
 void doneOnboarding(BuildContext context) async {
+  injector<IAPService>().restore();
+  injector<ConfigurationService>().setPendingSettings(true);
   injector<ConfigurationService>().setDoneOnboarding(true);
   Navigator.of(context)
       .pushNamedAndRemoveUntil(AppRouter.homePage, (route) => false);
 
-  await askForNotification();
+  // await askForNotification();
   // Future.delayed(
   //     SHORT_SHOW_DIALOG_DURATION, () => showSurveysNotification(context));
 }

@@ -33,7 +33,7 @@ class PreferenceView extends StatelessWidget {
             "preferences".tr(),
             style: theme.textTheme.headline1,
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 40),
           _preferenceItem(
             context,
             'immediate_info_view'.tr(),
@@ -68,18 +68,16 @@ class PreferenceView extends StatelessWidget {
           ),
           addDivider(),
           _preferenceItem(
-            context,
-            "notifications".tr(),
-            "receive_notification".tr(),
-            //"Receive notifications when you get new NFTs, signing requests, or customer support messages.",
-            state.isNotificationEnabled,
-            (value) {
-              final newState = state.copyWith(isNotificationEnabled: value);
-              context
-                  .read<PreferencesBloc>()
-                  .add(PreferenceUpdateEvent(newState));
-            },
-          ),
+              context,
+              "notifications".tr(),
+              "receive_notification".tr(),
+              //"Receive notifications when you get new NFTs, signing requests, or customer support messages.",
+              state.isNotificationEnabled, (value) {
+            final newState = state.copyWith(isNotificationEnabled: value);
+            context
+                .read<PreferencesBloc>()
+                .add(PreferenceUpdateEvent(newState));
+          }, pendingSetting: state.hasPendingSettings),
           addDivider(),
           _preferenceItemWithBuilder(
             context,
@@ -105,8 +103,8 @@ class PreferenceView extends StatelessWidget {
                           AppRouter.githubDocPage,
                           arguments: {
                             "document": "protect_your_usage_data.md",
-                            "title": "how_protect_data"
-                                .tr() // "How we protect your usage data"
+                            "title": "how_protect_data".tr()
+                            // "How we protect your usage data"
                           },
                         )),
               ],
@@ -144,8 +142,14 @@ class PreferenceView extends StatelessWidget {
     });
   }
 
-  Widget _preferenceItem(BuildContext context, String title, String description,
-      bool isEnabled, ValueChanged<bool> onChanged) {
+  Widget _preferenceItem(
+    BuildContext context,
+    String title,
+    String description,
+    bool isEnabled,
+    ValueChanged<bool> onChanged, {
+    bool pendingSetting = false,
+  }) {
     final theme = Theme.of(context);
 
     return Column(
@@ -154,7 +158,24 @@ class PreferenceView extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(title, style: theme.textTheme.headline4),
+            Row(
+              children: [
+                Text(title, style: theme.textTheme.headline4),
+                if (pendingSetting) ...[
+                  const SizedBox(
+                    width: 7,
+                  ),
+                  Container(
+                    width: 10,
+                    height: 10,
+                    decoration: const BoxDecoration(
+                      color: AppColor.red,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ],
+              ],
+            ),
             CupertinoSwitch(
               value: isEnabled,
               onChanged: onChanged,
