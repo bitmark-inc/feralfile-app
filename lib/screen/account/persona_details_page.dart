@@ -21,6 +21,7 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
+import 'package:autonomy_theme/style/colors.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -88,12 +89,14 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
   @override
   Widget build(BuildContext context) {
     final uuid = widget.persona.uuid;
+    final isDefaultAccount = widget.persona.defaultAccount == 1;
 
     return Scaffold(
       appBar: getBackAppBar(
         context,
         title: widget.persona.name,
         onBack: () => Navigator.of(context).pop(),
+        isDefaultAccount: isDefaultAccount,
       ),
       body: Container(
         margin: ResponsiveLayout.pageEdgeInsets,
@@ -101,6 +104,14 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              isDefaultAccount
+              ? Column(
+                children: [
+                  _defaultAccount(context),
+                  const SizedBox(height: 16),
+                ],
+              )
+              : const SizedBox(),
               _addressesSection(uuid),
               const SizedBox(height: 40),
               _preferencesSection(),
@@ -304,5 +315,25 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
                 arguments: words.split(" "));
           }),
     ]);
+  }
+
+  Widget _defaultAccount(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      alignment: Alignment.topCenter,
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+      color: AppColor.secondaryDimGreyBackground,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SvgPicture.asset("assets/images/icon_verified.svg"),
+          const SizedBox(
+            width: 6.5,
+          ),
+          Text("this_is_base_account".tr(),
+              style: theme.textTheme.headline5?.copyWith(fontSize: 14)),
+        ],
+      ),
+    );
   }
 }

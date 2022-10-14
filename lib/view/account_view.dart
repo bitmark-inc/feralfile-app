@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -107,7 +108,7 @@ Widget accountItem(BuildContext context, Account account,
     return TappableForwardRow(
       leftWidget: Row(
         children: [
-          accountLogo(account),
+          accountLogo(context, account),
           const SizedBox(width: 16),
           Text(
             account.name.isNotEmpty
@@ -136,7 +137,7 @@ Widget accountItem(BuildContext context, Account account,
     return TappableForwardRow(
       leftWidget: Row(
         children: [
-          accountLogo(account),
+          accountLogo(context, account),
           const SizedBox(width: 16),
           Text(
             connection.name.isNotEmpty
@@ -228,12 +229,23 @@ String _blockchainName(String? blockchain) {
   }
 }
 
-Widget accountLogo(Account account) {
+Widget accountLogo(BuildContext context, Account account) {
   if (account.persona != null) {
     return SizedBox(
-        width: 24,
-        height: 24,
-        child: Image.asset("assets/images/autonomyIcon.png"));
+      width: 24,
+      height: 24,
+      child: Stack(
+        children: [
+          Image.asset("assets/images/autonomyIcon.png"),
+          Align(
+            alignment: Alignment.topRight,
+            child: account.persona?.defaultAccount == 1 && context.widget.toString().contains("AccountsView")
+                ? SvgPicture.asset("assets/images/icon_verified.svg")
+                : const SizedBox(),
+          ),
+        ],
+      ),
+    );
   }
 
   final connection = account.connections?.first;
