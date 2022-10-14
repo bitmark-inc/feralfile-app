@@ -370,7 +370,7 @@ class AccountServiceImpl extends AccountService {
   Future setHidePersonaInGallery(String personaUUID, bool isEnabled) async {
     await _configurationService
         .setHidePersonaInGallery([personaUUID], isEnabled);
-    injector<SettingsDataService>().backup();
+    await injector<SettingsDataService>().backup();
   }
 
   @override

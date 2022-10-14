@@ -37,6 +37,10 @@ abstract class ConfigurationService {
   bool isDoneOnboarding();
   Future<void> setPendingSettings(bool value);
   bool hasPendingSettings();
+  bool shouldShowSubscriptionHint();
+  Future setShouldShowSubscriptionHint(bool value);
+  DateTime? getLastTimeAskForSubscription();
+  Future setLastTimeAskForSubscription(DateTime date);
   Future<void> setDoneOnboardingOnce(bool value);
   bool isDoneOnboardingOnce();
   Future<void> setFullscreenIntroEnable(bool value);
@@ -108,6 +112,10 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_FULLSCREEN_INTRO = "fullscreen_intro";
   static const String KEY_DONE_ONBOARING = "done_onboarding";
   static const String KEY_PENDING_SETTINGS = "has_pending_settings";
+  static const String KEY_SHOULD_SHOW_SUBSCRIPTION_HINT =
+      "should_show_subscription_hint";
+  static const String KEY_LAST_TIME_ASK_SUBSCRIPTION =
+      "last_time_ask_subscription";
   static const String KEY_DONE_ONBOARING_ONCE = "done_onboarding_once";
   static const String KEY_HIDDEN_PERSONAS_IN_GALLERY =
       'hidden_personas_in_gallery';
@@ -264,11 +272,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  bool isDoneOnboardingOnce() {
-    return _preferences.getBool(KEY_DONE_ONBOARING_ONCE) ?? false;
-  }
-
-  @override
   bool hasPendingSettings() {
     return _preferences.getBool(KEY_PENDING_SETTINGS) ?? false;
   }
@@ -276,6 +279,11 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   Future<void> setPendingSettings(bool value) async {
     await _preferences.setBool(KEY_PENDING_SETTINGS, value);
+  }
+
+  @override
+  bool isDoneOnboardingOnce() {
+    return _preferences.getBool(KEY_DONE_ONBOARING_ONCE) ?? false;
   }
 
   @override
@@ -447,6 +455,30 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   int getLastTimeOpenFeed() {
     return _preferences.getInt(KEY_LAST_TIME_OPEN_FEED) ?? 0;
+  }
+
+  @override
+  bool shouldShowSubscriptionHint() {
+    return _preferences.getBool(KEY_SHOULD_SHOW_SUBSCRIPTION_HINT) ?? true;
+  }
+
+  @override
+  Future setShouldShowSubscriptionHint(bool value) async {
+    await _preferences.setBool(KEY_SHOULD_SHOW_SUBSCRIPTION_HINT, value);
+  }
+
+  @override
+  DateTime? getLastTimeAskForSubscription() {
+    final d = _preferences.getInt(KEY_LAST_TIME_ASK_SUBSCRIPTION);
+    return d != null ? DateTime.fromMillisecondsSinceEpoch(d) : null;
+  }
+
+  @override
+  Future setLastTimeAskForSubscription(DateTime date) async {
+    await _preferences.setInt(
+      KEY_LAST_TIME_ASK_SUBSCRIPTION,
+      date.millisecondsSinceEpoch,
+    );
   }
 
   @override

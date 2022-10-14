@@ -20,6 +20,7 @@ import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
+import 'package:autonomy_flutter/screen/settings/subscription/upgrade_view.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
@@ -143,6 +144,7 @@ class _HomePageState extends State<HomePage>
     WidgetsBinding.instance.removeObserver(this);
     routeObserver.unsubscribe(this);
     _fgbgSubscription?.cancel();
+    _controller.dispose();
     super.dispose();
   }
 
@@ -527,6 +529,7 @@ class _HomePageState extends State<HomePage>
       addresses.where((address) => address.startsWith("tz")).forEach((address) {
         pendingTokenService.checkPendingTezosTokens(address, maxRetries: 1);
       });
+      _subscriptionNotify();
     });
 
     injector<VersionService>().checkForUpdate();
@@ -543,6 +546,36 @@ class _HomePageState extends State<HomePage>
 
     injector<CustomerSupportService>().getIssues();
     injector<CustomerSupportService>().processMessages();
+  }
+
+  Future _subscriptionNotify() async {
+    final configService = injector<ConfigurationService>();
+    final iapService = injector<IAPService>();
+
+    if (configService.isNotificationEnabled() != true ||
+        await iapService.isSubscribed() ||
+        !configService.shouldShowSubscriptionHint() ||
+        configService
+                .getLastTimeAskForSubscription()
+                ?.isAfter(DateTime.now().subtract(const Duration(days: 2))) ==
+            true) {
+      return;
+    }
+
+    log.info("[HomePage] Show subscription notification");
+    await configService.setLastTimeAskForSubscription(DateTime.now());
+    const key = Key("subscription");
+    showInfoNotification(
+      key,
+      "subscription_hint".tr(),
+      duration: const Duration(seconds: 5),
+      openHandler: () {
+        UpgradesView.showSubscriptionDialog(context, null, null, () {
+          hideOverlay(key);
+          context.read<UpgradesBloc>().add(UpgradePurchaseEvent());
+        });
+      },
+    );
   }
 
   void _handleBackground() async {

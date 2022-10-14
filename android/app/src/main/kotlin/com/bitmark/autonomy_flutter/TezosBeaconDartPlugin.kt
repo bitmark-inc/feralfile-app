@@ -650,7 +650,7 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
         FileLogger.log("TezosBeaconDartPlugin", "removePeer")
         CoroutineScope(Dispatchers.IO).launch {
             val peer = jsonKT.decodeFromString(
-                Peer.serializer(),
+                P2pPeer.serializer(),
                 peerJson
             )
             beaconClient?.removePeers(peer)

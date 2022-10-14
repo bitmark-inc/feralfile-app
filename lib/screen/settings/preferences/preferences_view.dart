@@ -70,19 +70,16 @@ class PreferenceView extends StatelessWidget {
           ),
           addDivider(),
           _preferenceItem(
-            context,
-            "notifications".tr(),
-            "receive_notification".tr(),
-            //"Receive notifications when you get new NFTs, signing requests, or customer support messages.",
-            state.isNotificationEnabled,
-            (value) {
-              final newState = state.copyWith(isNotificationEnabled: value);
-              context
-                  .read<PreferencesBloc>()
-                  .add(PreferenceUpdateEvent(newState));
-            },
-            pendingSetting: state.hasPendingSettings
-          ),
+              context,
+              "notifications".tr(),
+              "receive_notification".tr(),
+              //"Receive notifications when you get new NFTs, signing requests, or customer support messages.",
+              state.isNotificationEnabled, (value) {
+            final newState = state.copyWith(isNotificationEnabled: value);
+            context
+                .read<PreferencesBloc>()
+                .add(PreferenceUpdateEvent(newState));
+          }, pendingSetting: state.hasPendingSettings),
           addDivider(),
           _preferenceItemWithBuilder(
             context,
@@ -108,8 +105,8 @@ class PreferenceView extends StatelessWidget {
                           AppRouter.githubDocPage,
                           arguments: {
                             "document": "protect_your_usage_data.md",
-                            "title": "how_protect_data"
-                                .tr() // "How we protect your usage data"
+                            "title": "how_protect_data".tr()
+                            // "How we protect your usage data"
                           },
                         )),
               ],

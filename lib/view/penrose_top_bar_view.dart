@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -91,7 +92,7 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
     }
 
     final breakpoint =
-        widget.style == PenroseTopBarViewStyle.settings ? 25 : 80;
+    widget.style == PenroseTopBarViewStyle.settings ? 25 : 80;
 
     if (widget.scrollController.offset > breakpoint) {
       if (Platform.isIOS) {
@@ -224,8 +225,9 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
   }
 
   Widget _settingIcon() {
-    final hasPendingSettings =
-        injector<ConfigurationService>().hasPendingSettings();
+    final configService = injector<ConfigurationService>();
+    final hasPendingSettings = configService.hasPendingSettings() ||
+        configService.shouldShowSubscriptionHint();
     return Stack(
       clipBehavior: Clip.none,
       children: [

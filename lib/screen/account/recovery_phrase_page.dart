@@ -5,10 +5,15 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:io';
+
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 class RecoveryPhrasePage extends StatelessWidget {
@@ -20,6 +25,8 @@ class RecoveryPhrasePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final itemsEachRow = words.length ~/ 2;
     final theme = Theme.of(context);
+    final customLinkStyle =
+        theme.textTheme.linkStyle.copyWith(fontWeight: FontWeight.bold);
 
     return Scaffold(
       appBar: getBackAppBar(
@@ -51,10 +58,33 @@ class RecoveryPhrasePage extends StatelessWidget {
                             text: 'yrp_we’ve_safely'.tr(),
                             //'We’ve safely and securely backed up your recovery phrase to your',
                           ),
-                          TextSpan(
-                              text: 'icloud_keychain'.tr(),
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.bold)),
+                          Platform.isIOS
+                              ? TextSpan(
+                                  text: 'icloud_keychain'.tr(),
+                                  style: customLinkStyle,
+                                  recognizer: TapGestureRecognizer()
+                                    ..onTap = () => Navigator.of(context)
+                                            .pushNamed(AppRouter.githubDocPage,
+                                                arguments: {
+                                              "prefix":
+                                                  "/bitmark-inc/autonomy.io/main/apps/docs/",
+                                              "document": "security-ios.md",
+                                              "title": ""
+                                            }),
+                                )
+                              : TextSpan(
+                                  text: 'android_block_store'.tr(),
+                                  style: customLinkStyle,
+                                  recognizer: TapGestureRecognizer()
+                                    ..onTap = () => Navigator.of(context)
+                                            .pushNamed(AppRouter.githubDocPage,
+                                                arguments: {
+                                              "prefix":
+                                                  "/bitmark-inc/autonomy.io/main/apps/docs/",
+                                              "document": "security-android.md",
+                                              "title": ""
+                                            }),
+                                ),
                           TextSpan(
                             text: 'yrp_you_may_also'.tr(),
                             //'. You may also back it up to use it in another BIP-39 standard wallet:',

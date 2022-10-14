@@ -20,16 +20,15 @@ import 'package:autonomy_flutter/service/cloud_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
-import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/eula_privacy.dart';
 import 'package:autonomy_flutter/view/penrose_top_bar_view.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
-import 'package:easy_localization/easy_localization.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -146,7 +145,9 @@ class _SettingsPageState extends State<SettingsPage>
                     const SizedBox(height: 40),
                     BlocProvider(
                       create: (_) => PreferencesBloc(injector()),
-                      child: PreferenceView(key: _preferenceKey,),
+                      child: PreferenceView(
+                        key: _preferenceKey,
+                      ),
                     ),
                     const SizedBox(height: 40.0),
                     BlocProvider.value(
@@ -263,7 +264,7 @@ class _SettingsPageState extends State<SettingsPage>
                   final top =
                       viewport.getOffsetToReveal(renderObject, 0.0).offset;
                   final offset = notification.metrics.pixels;
-                  if (offset > (top + (bottom - top) / 3)) {
+                  if (offset > 2 * (top + (bottom - top) / 3)) {
                     _clearPendingSettings();
                   }
                 }
@@ -283,6 +284,7 @@ class _SettingsPageState extends State<SettingsPage>
   void _clearPendingSettings() {
     if (!_pendingSettingsCleared) {
       injector<ConfigurationService>().setPendingSettings(false);
+      injector<ConfigurationService>().setShouldShowSubscriptionHint(false);
       _pendingSettingsCleared = true;
     }
   }
@@ -315,8 +317,16 @@ class _SettingsPageState extends State<SettingsPage>
       context,
       "forget_exist".tr(),
       BlocProvider(
-        create: (_) => ForgetExistBloc(injector(), injector(), injector(),
-            injector(), injector(), injector(), injector(), injector()),
+        create: (_) => ForgetExistBloc(
+            injector(),
+            injector(),
+            injector(),
+            injector(),
+            injector(),
+            injector(),
+            injector<NftCollectionBloc>().database,
+            injector(),
+            injector()),
         child: const ForgetExistView(),
       ),
     );

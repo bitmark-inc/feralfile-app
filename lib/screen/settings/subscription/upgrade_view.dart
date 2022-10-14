@@ -7,13 +7,16 @@
 
 import 'dart:io';
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:autonomy_theme/style/style.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -108,6 +111,19 @@ class UpgradesView extends StatelessWidget {
             children: [
               Row(children: [
                 Text("h_subscribe".tr(), style: theme.textTheme.headline4),
+                if (injector<ConfigurationService>().shouldShowSubscriptionHint()) ...[
+                  const SizedBox(
+                    width: 7,
+                  ),
+                  Container(
+                    width: 10,
+                    height: 10,
+                    decoration: const BoxDecoration(
+                      color: AppColor.red,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ],
                 const Spacer(),
                 SvgPicture.asset('assets/images/iconForward.svg'),
               ]),
@@ -196,5 +212,6 @@ class UpgradesView extends StatelessWidget {
         ],
       ),
     );
+    injector<ConfigurationService>().setShouldShowSubscriptionHint(false);
   }
 }
