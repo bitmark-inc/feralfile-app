@@ -183,7 +183,7 @@ class _SendReviewPageState extends State<SendReviewPage> {
                                     final exchangeRateXTZ = 1 /
                                         (double.tryParse(widget
                                             .payload.exchangeRate.xtz) ??
-                                            0);
+                                            1);
                                     final tx = TZKTOperation(
                                       bakerFee: widget.payload.fee.toInt(),
                                       block: '',
