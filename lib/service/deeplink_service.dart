@@ -254,7 +254,9 @@ class DeeplinkServiceImpl extends DeeplinkService {
             (endTime != null && endTime.isBefore(DateTime.now()))) {
           await _navigationService.showAirdropExpired();
         } else if (exhibition.airdropInfo?.remainAmount == 0) {
-          await _navigationService.showNoRemainingToken();
+          await _navigationService.showNoRemainingToken(
+            exhibition: exhibition,
+          );
         } else {
           Future.delayed(const Duration(seconds: 5), () {
             currentExhibitionId = null;

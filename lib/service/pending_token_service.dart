@@ -103,6 +103,7 @@ extension FilterEventExt on FilterEvent {
         },
         lastActivityTime: timestamp,
         pending: true,
+        initialSaleModel: null,
       );
       return token;
     }
@@ -151,6 +152,7 @@ extension TZKTTokenExtension on TZKTToken {
       },
       lastActivityTime: timestamp,
       pending: true,
+      initialSaleModel: null,
     );
   }
 }

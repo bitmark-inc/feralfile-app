@@ -244,6 +244,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                     arguments: SelectAccountPageArgs(
                       blockchain,
                       widget.exhibition.id,
+                      widget.exhibition,
                     ),
                   ) as Account?;
                   final wallet = account?.persona?.wallet();
@@ -295,7 +296,11 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
       memoryValues.airdropFFExhibitionId.value = null;
     } catch (e) {
       log.info("[ClaimTokenPage] Claim token failed. $e");
-      await UIHelper.showClaimTokenError(context, e);
+      await UIHelper.showClaimTokenError(
+        context,
+        e,
+        exhibition: widget.exhibition,
+      );
       memoryValues.airdropFFExhibitionId.value = null;
     }
     setState(() {

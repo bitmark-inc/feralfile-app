@@ -29,6 +29,10 @@ extension AssetTokenExtension on AssetToken {
     return galleryThumbnailURL != null;
   }
 
+  bool get isAirdrop {
+    return initialSaleModel?.toLowerCase() == "airdrop";
+  }
+
   String? get tokenURL {
     final network = Environment.appTestnetConfig ? "TEST" : "MAIN";
     final url = _tokenUrlMap[network]?[blockchain]
@@ -183,5 +187,6 @@ AssetToken createPendingAssetToken({
     },
     lastActivityTime: DateTime.now(),
     pending: true,
+    initialSaleModel: "airdrop",
   );
 }

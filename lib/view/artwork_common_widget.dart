@@ -749,7 +749,7 @@ Widget artworkDetailsMetadataSection(
         context,
         "token".tr(),
         polishSource(asset.source ?? ""),
-        tapLink: asset.assetURL,
+        tapLink: asset.isAirdrop ? null : asset.assetURL,
         forceSafariVC: true,
       ),
       const Divider(height: 32.0),
@@ -1137,7 +1137,7 @@ class FeralfileArtworkDetailsMetadataSection extends StatelessWidget {
           context,
           "token".tr(),
           "Feral File",
-          tapLink: "${Environment.feralFileAPIURL}/artworks/${artwork?.id}",
+          tapLink: null, // "${Environment.feralFileAPIURL}/artworks/${artwork?.id}"
         ),
         const Divider(
           height: 32.0,

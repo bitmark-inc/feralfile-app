@@ -8,11 +8,11 @@ extension FeralfileErrorExt on FeralfileError {
       case 5006:
         return "Too soon";
       case 5011:
-        return "expired2".tr();
+        return "Too late";
       case 5013:
         return "Out of token";
       case 5014:
-        return "already_accepted".tr();
+        return "Just once";
       default:
         return "error".tr();
     }
@@ -23,13 +23,25 @@ extension FeralfileErrorExt on FeralfileError {
       case 5006:
         return "It is not yet possible to redeem this gift edition.";
       case 5011:
-        return "qr_expired_message".tr();
+        return "It is no longer possible to redeem this gift edition.";
       case 5013:
         return "Sorry, the tokens have been delivered to all fastest users.";
       case 5014:
-        return "claimed_error_message".tr();
+        return "You have already accepted your gift edition.";
       default:
         return message;
+    }
+  }
+
+  String getDialogTitle({required Exhibition exhibition}) {
+    return dialogTitle;
+  }
+
+  String getDialogMessage({required Exhibition exhibition}) {
+    if (code == 5013 && exhibition.maxEdition < 0) {
+      return "We are running out of tokens. Come back later.";
+    } else {
+      return dialogMessage;
     }
   }
 }

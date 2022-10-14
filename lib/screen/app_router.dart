@@ -871,6 +871,7 @@ class AppRouter {
                 child: SelectAccountPage(
                   exhibitionId: args.exhibitionId,
                   blockchain: args.blockchain,
+                  exhibition: args.exhibition,
                 ),
               );
             });

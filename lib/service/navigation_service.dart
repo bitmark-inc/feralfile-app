@@ -75,11 +75,16 @@ class NavigationService {
     }
   }
 
-  Future showNoRemainingToken() async {
+  Future showNoRemainingToken({
+    required Exhibition exhibition,
+  }) async {
     log.info("NavigationService.showNoRemainingToken");
     if (navigatorKey.currentState?.mounted == true &&
         navigatorKey.currentContext != null) {
-      await UIHelper.showNoRemainingAirdropToken(navigatorKey.currentContext!);
+      await UIHelper.showNoRemainingAirdropToken(
+        navigatorKey.currentContext!,
+        exhibition: exhibition,
+      );
     } else {
       Future.value(0);
     }

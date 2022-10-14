@@ -1,5 +1,6 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
@@ -19,20 +20,23 @@ class SelectAccountPageArgs {
   // If exhibitionId is not null, claim token after confirmed, otherwise, return selected account.
   final String? exhibitionId;
 
-  SelectAccountPageArgs(
-    this.blockchain,
-    this.exhibitionId,
-  );
+  final Exhibition exhibition;
+
+  SelectAccountPageArgs(this.blockchain,
+      this.exhibitionId,
+      this.exhibition,);
 }
 
 class SelectAccountPage extends StatefulWidget {
   final String? exhibitionId;
   final String? blockchain;
+  final Exhibition exhibition;
 
   const SelectAccountPage({
     Key? key,
     this.exhibitionId,
     this.blockchain,
+    required this.exhibition,
   }) : super(key: key);
 
   @override
@@ -196,7 +200,7 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
       memoryValues.airdropFFExhibitionId.value = null;
     } catch (e) {
       log.info("[SelectAccountPage] Claim token failed. $e");
-      await UIHelper.showClaimTokenError(context, e);
+      await UIHelper.showClaimTokenError(context, e, exhibition: widget.exhibition);
       memoryValues.airdropFFExhibitionId.value = null;
     } finally {
       _setProcessingState(false);

@@ -102,7 +102,9 @@ class _OnboardingPageState extends State<OnboardingPage> {
         }
 
         if (exhibition.airdropInfo?.remainAmount == 0) {
-          await injector.get<NavigationService>().showNoRemainingToken();
+          await injector.get<NavigationService>().showNoRemainingToken(
+                exhibition: exhibition,
+              );
           setState(() {
             fromBranchLink = false;
             currentExhibitionId = null;
