@@ -180,7 +180,7 @@ class _AccountsViewState extends State<AccountsView> {
       padding: const EdgeInsets.symmetric(vertical: 16),
       child: Row(
         children: [
-          accountLogo(account),
+          accountLogo(context, account),
           const SizedBox(width: 16),
           Expanded(
             child: TextField(
