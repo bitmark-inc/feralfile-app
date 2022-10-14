@@ -265,7 +265,7 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                                     final exchangeRateXTZ = 1 /
                                         (double.tryParse(widget
                                                 .payload.exchangeRate.xtz) ??
-                                            0);
+                                            1);
                                     final tx = TZKTOperation(
                                       bakerFee: 0,
                                       block: '',

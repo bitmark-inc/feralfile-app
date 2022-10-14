@@ -197,12 +197,14 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                                     state.amount!,
                                     state.fee!,
                                     state.exchangeRate);
-                                final txHash = await Navigator.of(context)
+                                final txPayload = await Navigator.of(context)
                                     .pushNamed(SendReviewPage.tag,
-                                        arguments: payload);
-                                if (txHash != null && txHash is String) {
+                                        arguments: payload) as Map?;
+                                if (txPayload != null &&
+                                    txPayload["hash"] != null &&
+                                    txPayload["hash"] is String) {
                                   if (!mounted) return;
-                                  Navigator.of(context).pop();
+                                  Navigator.of(context).pop(txPayload);
                                 }
                               }
                             : null,
