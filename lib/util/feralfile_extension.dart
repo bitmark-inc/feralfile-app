@@ -61,3 +61,10 @@ extension FFArtistExt on FFArtist {
     return fullName.isNotEmpty ? fullName : alias;
   }
 }
+
+extension AirdropInfoExt on AirdropInfo {
+  String getTokenIndexerId(String tokenId) {
+    final prefix = blockchain.toLowerCase() == "tezos" ? "tez" : "eth";
+    return "$prefix-$contractAddress-$tokenId";
+  }
+}

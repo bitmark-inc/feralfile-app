@@ -203,6 +203,7 @@ class AirdropInfo {
   final int remainAmount;
   final String? artworkTitle;
   final String? artist;
+  final String? giftGiver;
   final DateTime? endedAt;
 
   AirdropInfo(
@@ -211,6 +212,7 @@ class AirdropInfo {
     this.remainAmount,
     this.artworkTitle,
     this.artist,
+    this.giftGiver,
     this.endedAt,
   );
 

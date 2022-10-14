@@ -45,6 +45,13 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
         artist?.fullName.isNotEmpty == true ? artist?.fullName : artist?.alias;
     final artworkThumbnail =
         artwork?.getThumbnailURL() ?? widget.exhibition.getThumbnailURL();
+    String giftGiver =
+        widget.exhibition.airdropInfo?.giftGiver?.replaceAll(" ", "\u00A0") ??
+            "";
+    String giftIntro = "you_can_receive_free_gift".tr();
+    if (giftGiver.trim().isNotEmpty) {
+      giftIntro += " ${'from'.tr().toLowerCase()} ";
+    }
     double safeAreaTop = MediaQuery.of(context).padding.top;
     final theme = Theme.of(context);
     return Scaffold(
@@ -86,12 +93,14 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                       height: 40,
                     ),
                     RichText(
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       text: TextSpan(
-                        text: "you_can_receive_free_gift_from".tr(),
+                        text: giftIntro,
                         style: theme.primaryTextTheme.bodyText1,
                         children: [
                           TextSpan(
-                            text: "MoMA",
+                            text: giftGiver,
                             style: theme.primaryTextTheme.bodyText1
                                 ?.copyWith(fontWeight: FontWeight.w700),
                           ),

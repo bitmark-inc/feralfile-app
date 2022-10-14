@@ -5,6 +5,8 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/datetime_ext.dart';
+import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:collection/collection.dart';
 import 'package:libauk_dart/libauk_dart.dart';
@@ -21,6 +23,11 @@ extension AssetTokenExtension on AssetToken {
       "tezos": "https://tzkt.io/{contract}/tokens/{tokenId}/transfers"
     }
   };
+
+  bool get hasMetadata {
+    // FIXME
+    return galleryThumbnailURL != null;
+  }
 
   String? get tokenURL {
     final network = Environment.appTestnetConfig ? "TEST" : "MAIN";
@@ -135,11 +142,7 @@ AssetToken createPendingAssetToken({
   required String owner,
   required String tokenId,
 }) {
-  final prefix = exhibition.airdropInfo?.blockchain.toLowerCase() == "tezos"
-      ? "tez"
-      : "eth";
-  final indexerId =
-      "$prefix-${exhibition.airdropInfo?.contractAddress}-$tokenId";
+  final indexerId = exhibition.airdropInfo?.getTokenIndexerId(tokenId);
   final artist = exhibition.artists.firstOrNull;
   final artwork = exhibition.artworks.firstOrNull;
   final contract = exhibition.contracts.firstOrNull;
@@ -160,11 +163,13 @@ AssetToken createPendingAssetToken({
     contractAddress: contract?.address,
     desc: artwork?.description,
     edition: 0,
-    id: indexerId,
+    id: indexerId ?? "",
     maxEdition: exhibition.maxEdition,
     medium: null,
     mimeType: null,
-    mintedAt: null,
+    mintedAt: artwork?.createdAt != null
+        ? dateFormatterYMDHM.format(artwork!.createdAt!).toUpperCase()
+        : null,
     previewURL: exhibition.getThumbnailURL(),
     source: "feralfile-airdrop",
     sourceURL: null,

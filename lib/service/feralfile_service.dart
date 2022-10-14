@@ -22,12 +22,15 @@ import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
+import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:metric_client/metric_client.dart';
+import 'package:nft_collection/data/api/indexer_api.dart';
+import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:nft_collection/services/tokens_service.dart';
 
@@ -231,18 +234,51 @@ class FeralFileServiceImpl extends FeralFileService {
       final response = await _feralFileApi.claimToken(exhibitionId, body);
       final indexer = injector<TokensService>();
       await indexer.reindexAddresses([receiver]);
-      indexer.setCustomTokens(
-        [
-          createPendingAssetToken(
-            exhibition: exhibition,
-            owner: receiver,
-            tokenId: response.result.editionID,
-          )
-        ],
+
+      final indexerId =
+          exhibition.airdropInfo!.getTokenIndexerId(response.result.editionID);
+      final tokens = await _fetchTokens(
+        indexerId: indexerId,
+        receiver: receiver,
       );
+      if (tokens.isNotEmpty) {
+        await indexer.setCustomTokens(tokens);
+      } else {
+        await indexer.setCustomTokens(
+          [
+            createPendingAssetToken(
+              exhibition: exhibition,
+              owner: receiver,
+              tokenId: response.result.editionID,
+            )
+          ],
+        );
+      }
       return true;
     } else {
       throw NoRemainingToken();
+    }
+  }
+
+  Future<List<AssetToken>> _fetchTokens({
+    required String indexerId,
+    required String receiver,
+  }) async {
+    try {
+      final indexerApi = injector<IndexerApi>();
+      final assets = await indexerApi.getNftTokens({
+        "ids": [indexerId]
+      });
+      final tokens = assets
+          .map((e) => AssetToken.fromAsset(e))
+          .map((e) => e
+            ..pending = true
+            ..owners.putIfAbsent(receiver, () => 1)
+            ..lastActivityTime = DateTime.now())
+          .toList();
+      return tokens;
+    } catch (e) {
+      return [];
     }
   }
 }

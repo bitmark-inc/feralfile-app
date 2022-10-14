@@ -104,7 +104,7 @@ class _PreviewTokenClaimState extends State<PreviewTokenClaim>
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Text(
-                                      widget.exhibition.title ?? '',
+                                      widget.exhibition.title,
                                       overflow: TextOverflow.ellipsis,
                                       style: ResponsiveLayout.isMobile
                                           ? theme.textTheme.atlasWhiteBold12

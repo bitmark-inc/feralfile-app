@@ -71,7 +71,7 @@ class _TokenDetailPageState extends State<TokenDetailPage> {
               Padding(
                 padding: ResponsiveLayout.getPadding,
                 child: Text(
-                  artwork.description ?? '',
+                  artwork.description,
                   style: theme.primaryTextTheme.bodyText1,
                 ),
               ),

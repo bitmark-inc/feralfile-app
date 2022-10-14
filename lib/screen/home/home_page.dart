@@ -39,6 +39,7 @@ import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -317,7 +318,7 @@ class _HomePageState extends State<HomePage>
     });
 
     final tokenIDs = tokens
-        .where((e) => e.pending != true)
+        .where((e) => e.pending != true || e.hasMetadata)
         .map((element) => element.id)
         .toList();
 
@@ -351,7 +352,7 @@ class _HomePageState extends State<HomePage>
             final asset = tokens[index];
 
             return GestureDetector(
-              child: asset.pending == true
+              child: asset.pending == true && !asset.hasMetadata
                   ? PendingTokenWidget(
                       thumbnail: asset.galleryThumbnailURL,
                     )
@@ -361,10 +362,10 @@ class _HomePageState extends State<HomePage>
                       _cachedImageSize,
                     ),
               onTap: () {
-                if (asset.pending == true) return;
+                if (asset.pending == true && !asset.hasMetadata) return;
 
                 final index = tokens
-                    .where((e) => e.pending != true)
+                    .where((e) => e.pending != true || e.hasMetadata)
                     .toList()
                     .indexOf(asset);
                 final payload = ArtworkDetailPayload(tokenIDs, index);
