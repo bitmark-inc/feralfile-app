@@ -28,7 +28,7 @@ AppBar getBackAppBar(BuildContext context,
     leadingWidth: 0.0,
     toolbarHeight: isDefaultAccount ? 34 : null,
     title: Padding(
-      padding: isDefaultAccount ? const EdgeInsets.only(top: 24) : const EdgeInsets.all(0),
+      padding: isDefaultAccount ? const EdgeInsets.only(top: 24, bottom: 8) : const EdgeInsets.all(0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
