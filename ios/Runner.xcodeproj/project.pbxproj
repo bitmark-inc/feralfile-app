@@ -1971,7 +1971,7 @@
 			repositoryURL = "https://github.com/autonomy-system/beacon-ios-sdk";
 			requirement = {
 				kind = revision;
-				revision = 6f8f8d74e393677ba47766b9dccdddeccba1ece0;
+				revision = 798f2e9e99f6fd1fda1259e9dcc192d2989dc1d8;
 			};
 		};
 		766DF4602849FCD700731ADE /* XCRemoteSwiftPackageReference "swift-log" */ = {
