@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -114,9 +115,7 @@ class _PreviewTokenClaimState extends State<PreviewTokenClaim>
                                         const SizedBox(height: 4.0),
                                         Text(
                                           "by".tr(args: [
-                                            artist?.fullName ??
-                                                artist?.alias ??
-                                                ''
+                                            artist?.getDisplayName() ?? ""
                                           ]).trim(),
                                           overflow: TextOverflow.ellipsis,
                                           style:

@@ -6,6 +6,7 @@
 //
 
 import 'package:autonomy_flutter/model/ff_account.dart';
+import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -33,7 +34,6 @@ class _TokenDetailPageState extends State<TokenDetailPage> {
     final theme = Theme.of(context);
     final artwork = widget.exhibition.artworks.firstOrNull;
     final artist = widget.exhibition.artists.firstOrNull;
-
     return Scaffold(
         appBar: _appBar(
           context,
@@ -56,8 +56,7 @@ class _TokenDetailPageState extends State<TokenDetailPage> {
               Padding(
                 padding: ResponsiveLayout.getPadding,
                 child: Text(
-                  "by".tr(
-                      args: [artist?.fullName ?? artist?.alias ?? '']).trim(),
+                  "by".tr(args: [artist?.getDisplayName() ?? ""]).trim(),
                   style:
                       theme.primaryTextTheme.headline4?.copyWith(fontSize: 18),
                 ),

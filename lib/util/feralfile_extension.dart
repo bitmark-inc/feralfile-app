@@ -55,3 +55,9 @@ extension FFContractExt on FFContract {
     return url;
   }
 }
+
+extension FFArtistExt on FFArtist {
+  String getDisplayName() {
+    return fullName.isNotEmpty ? fullName : alias;
+  }
+}
