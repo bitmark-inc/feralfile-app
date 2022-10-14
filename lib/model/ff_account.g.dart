@@ -47,8 +47,8 @@ Exhibition _$ExhibitionFromJson(Map<String, dynamic> json) => Exhibition(
       DateTime.parse(json['exhibitionStartAt'] as String),
       DateTime.parse(json['exhibitionEndAt'] as String),
       json['maxEdition'] as int,
-      json['coverURI'] as String,
-      json['thumbnailCoverURI'] as String,
+      json['coverURI'] as String?,
+      json['thumbnailCoverURI'] as String?,
       (json['artists'] as List<dynamic>)
           .map((e) => FFArtist.fromJson(e as Map<String, dynamic>))
           .toList(),

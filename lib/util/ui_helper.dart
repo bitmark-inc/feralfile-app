@@ -391,31 +391,16 @@ class UIHelper {
     required DateTime startTime,
   }) async {
     final theme = Theme.of(context);
-    final df = DateFormat("yyyy-MMM-dd hh:mm");
+    final error = FeralfileError(5006, "");
     return UIHelper.showDialog(
       context,
-      "Coming soon",
+      error.dialogTitle,
       Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          RichText(
-            text: TextSpan(
-              text:
-                  "The show has not started. Please scan the QR code at the start time of airdrop on\n",
-              style: theme.primaryTextTheme.bodyText1,
-              children: [
-                TextSpan(
-                  text: df.format(startTime).toUpperCase(),
-                  style: theme.primaryTextTheme.bodyText1?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                TextSpan(
-                  text: ".",
-                  style: theme.primaryTextTheme.bodyText1,
-                ),
-              ],
-            ),
+          Text(
+            error.dialogMessage,
+            style: theme.primaryTextTheme.bodyText1,
           ),
           const SizedBox(
             height: 40,

@@ -21,7 +21,7 @@ extension FeralfileErrorExt on FeralfileError {
   String get dialogMessage {
     switch (code) {
       case 5006:
-        return "The show has not started. Please scan the QR code at the start time of airdrop.";
+        return "It is not yet possible to redeem this gift edition.";
       case 5011:
         return "qr_expired_message".tr();
       case 5013:

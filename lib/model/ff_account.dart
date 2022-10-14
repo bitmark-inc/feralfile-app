@@ -67,8 +67,8 @@ class Exhibition {
   final DateTime exhibitionStartAt;
   final DateTime exhibitionEndAt;
   final int maxEdition;
-  final String coverURI;
-  final String thumbnailCoverURI;
+  final String? coverURI;
+  final String? thumbnailCoverURI;
   final String saleModel;
   final String mintBlockchain;
   final List<FFArtist> artists;
@@ -173,7 +173,7 @@ class FFArtwork {
   );
 
   String getThumbnailURL() {
-    return "${Environment.feralFileAssetURL}/$galleryThumbnailFileURI";
+    return "${Environment.feralFileAssetURL}/${galleryThumbnailFileURI ?? thumbnailFileURI}";
   }
 
   factory FFArtwork.fromJson(Map<String, dynamic> json) =>
