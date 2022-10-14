@@ -64,12 +64,7 @@ class BeOwnGalleryPage extends StatelessWidget {
                   child: AuFilledButton(
                     text: "continue".tr().toUpperCase(),
                     onPress: () async {
-                      if (await injector<IAPService>().isSubscribed()) {
-                        await newAccountPageOrSkipInCondition(context);
-                      } else {
-                        await Navigator.of(context)
-                            .pushNamed(AppRouter.moreAutonomyPage);
-                      }
+                      await newAccountPageOrSkipInCondition(context);
                     },
                   ),
                 ),

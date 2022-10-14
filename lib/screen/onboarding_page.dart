@@ -62,7 +62,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
             } catch (_) {
               // just ignore this so that user can go through onboarding
             }
-            await askForNotification();
+            // await askForNotification();
             await injector<VersionService>().checkForUpdate();
             // hide code show surveys issues/1459
             // await Future.delayed(SHORT_SHOW_DIALOG_DURATION,
