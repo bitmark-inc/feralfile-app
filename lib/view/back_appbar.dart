@@ -14,7 +14,8 @@ AppBar getBackAppBar(BuildContext context,
     {String backTitle = "BACK",
     String title = "",
     required Function()? onBack,
-    Function()? action}) {
+    Function()? action,
+    bool isDefaultAccount = false}) {
   final theme = Theme.of(context);
   
   return AppBar(
@@ -25,53 +26,57 @@ AppBar getBackAppBar(BuildContext context,
     ),
     leading: const SizedBox(),
     leadingWidth: 0.0,
-    title: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        GestureDetector(
-          behavior: HitTestBehavior.translucent,
-          onTap: onBack,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(0, 7, 18, 8),
-            child: Row(
-              children: [
-                if (onBack != null) ...[
-                  Row(
-                    children: [
-                      SvgPicture.asset('assets/images/nav-arrow-left.svg'),
-                      const SizedBox(width: 7),
-                      Text(
-                        backTitle,
-                        style: theme.textTheme.button,
-                      ),
-                    ],
-                  ),
-                ] else ...[
-                  const SizedBox(width: 60),
+    toolbarHeight: isDefaultAccount ? 34 : null,
+    title: Padding(
+      padding: isDefaultAccount ? const EdgeInsets.only(top: 24) : const EdgeInsets.all(0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onTap: onBack,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(0, 7, 18, 8),
+              child: Row(
+                children: [
+                  if (onBack != null) ...[
+                    Row(
+                      children: [
+                        SvgPicture.asset('assets/images/nav-arrow-left.svg'),
+                        const SizedBox(width: 7),
+                        Text(
+                          backTitle,
+                          style: theme.textTheme.button,
+                        ),
+                      ],
+                    ),
+                  ] else ...[
+                    const SizedBox(width: 60),
+                  ],
                 ],
-              ],
+              ),
             ),
           ),
-        ),
-        Expanded(
-          child: Text(
-            title,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.button,
-            textAlign: TextAlign.center,
+          Expanded(
+            child: Text(
+              title,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.button,
+              textAlign: TextAlign.center,
+            ),
           ),
-        ),
-        action != null
-            ? IconButton(
-                tooltip: "AppbarAction",
-                constraints: const BoxConstraints(maxWidth: 36.0),
-                onPressed: action,
-                icon: Icon(
-                  Icons.more_horiz,
-                  color: theme.colorScheme.primary,
-                ))
-            : const SizedBox(width: 60),
-      ],
+          action != null
+              ? IconButton(
+                  tooltip: "AppbarAction",
+                  constraints: const BoxConstraints(maxWidth: 36.0),
+                  onPressed: action,
+                  icon: Icon(
+                    Icons.more_horiz,
+                    color: theme.colorScheme.primary,
+                  ))
+              : const SizedBox(width: 60),
+        ],
+      ),
     ),
     backgroundColor: Colors.transparent,
     shadowColor: Colors.transparent,
@@ -113,81 +118,6 @@ AppBar getCloseAppBar(BuildContext context,
           ),
         ),
         const SizedBox(width: 60),
-      ],
-    ),
-    backgroundColor: Colors.transparent,
-    shadowColor: Colors.transparent,
-    elevation: 0,
-  );
-}
-
-AppBar getDefaultAppBar(BuildContext context,
-    {String backTitle = "BACK",
-      String title = "",
-      required Function()? onBack,
-      Function()? action,
-      Widget? bottomWidget}) {
-  final theme = Theme.of(context);
-  return AppBar(
-    systemOverlayStyle: SystemUiOverlayStyle(
-      statusBarColor: theme.colorScheme.secondary,
-      statusBarIconBrightness: Brightness.dark,
-      statusBarBrightness: Brightness.light,
-    ),
-    leading: const SizedBox(),
-    leadingWidth: 0.0,
-    toolbarHeight: 34,
-    title: Column(
-      children: [
-        const SizedBox(height: 24,),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            GestureDetector(
-              behavior: HitTestBehavior.translucent,
-              onTap: onBack,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(0, 7, 18, 8),
-                child: Row(
-                  children: [
-                    if (onBack != null) ...[
-                      Row(
-                        children: [
-                          SvgPicture.asset('assets/images/nav-arrow-left.svg'),
-                          const SizedBox(width: 7),
-                          Text(
-                            backTitle,
-                            style: theme.textTheme.button,
-                          ),
-                        ],
-                      ),
-                    ] else ...[
-                      const SizedBox(width: 60),
-                    ],
-                  ],
-                ),
-              ),
-            ),
-            Expanded(
-              child: Text(
-                title,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.button,
-                textAlign: TextAlign.center,
-              ),
-            ),
-            action != null
-                ? IconButton(
-                tooltip: "AppbarAction",
-                constraints: const BoxConstraints(maxWidth: 36.0),
-                onPressed: action,
-                icon: Icon(
-                  Icons.more_horiz,
-                  color: theme.colorScheme.primary,
-                ))
-                : const SizedBox(width: 60),
-          ],
-        ),
       ],
     ),
     backgroundColor: Colors.transparent,

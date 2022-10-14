@@ -92,15 +92,11 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
     final isDefaultAccount = widget.persona.defaultAccount == 1;
 
     return Scaffold(
-      appBar: isDefaultAccount ?  getDefaultAppBar(
+      appBar: getBackAppBar(
         context,
         title: widget.persona.name,
         onBack: () => Navigator.of(context).pop(),
-      )
-      : getBackAppBar(
-        context,
-        title: widget.persona.name,
-        onBack: () => Navigator.of(context).pop(),
+        isDefaultAccount: isDefaultAccount,
       ),
       body: Container(
         margin: ResponsiveLayout.pageEdgeInsets,
