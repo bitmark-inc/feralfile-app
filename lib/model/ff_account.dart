@@ -66,27 +66,26 @@ class Exhibition {
   final String title;
   final DateTime exhibitionStartAt;
   final DateTime exhibitionEndAt;
-  final int maxEdition;
   final String? coverURI;
   final String? thumbnailCoverURI;
-  final String saleModel;
   final String mintBlockchain;
   final List<FFArtist> artists;
   final List<FFArtwork> artworks;
   final List<FFContract> contracts;
+  // FIXME: support multiple airdrop artworks in a exhibition?
+  @JsonKey(ignore: true)
+  FFArtwork? airdropArtwork;
 
   Exhibition(
     this.id,
     this.title,
     this.exhibitionStartAt,
     this.exhibitionEndAt,
-    this.maxEdition,
     this.coverURI,
     this.thumbnailCoverURI,
     this.artists,
     this.artworks,
     this.contracts,
-    this.saleModel,
     this.mintBlockchain,
   );
 
@@ -104,14 +103,14 @@ class Exhibition {
     return airdropArtwork?.airdropInfo;
   }
 
-  FFArtwork? get airdropArtwork {
-    return artworks.firstWhereOrNull((e) => e.isAirdropArtwork);
+  // Airdrop token max edition.
+  int get maxEdition {
+    return airdropArtwork?.settings?.maxEdition ?? 0;
   }
 
   FFContract? get airdropContract {
-    final airdropInfo = airdropArtwork?.airdropInfo;
-    return contracts
-        .firstWhereOrNull((e) => e.address == airdropInfo?.contractAddress);
+    final contractAddress = airdropArtwork?.airdropInfo?.contractAddress;
+    return contracts.firstWhereOrNull((e) => e.address == contractAddress);
   }
 
   String getThumbnailURL() {
@@ -203,10 +202,25 @@ class FFArtwork {
 }
 
 @JsonSerializable()
+class FFArtworkResponse {
+  final FFArtwork result;
+
+  FFArtworkResponse(
+    this.result,
+  );
+
+  factory FFArtworkResponse.fromJson(Map<String, dynamic> json) =>
+      _$FFArtworkResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$FFArtworkResponseToJson(this);
+}
+
+@JsonSerializable()
 class FFArtworkSettings {
+  final int maxEdition;
   final String? saleModel;
 
-  FFArtworkSettings(this.saleModel);
+  FFArtworkSettings(this.saleModel, this.maxEdition);
 
   factory FFArtworkSettings.fromJson(Map<String, dynamic> json) =>
       _$FFArtworkSettingsFromJson(json);
@@ -233,18 +247,20 @@ class AirdropInfo {
   final String contractAddress;
   final String blockchain;
   final int remainAmount;
+  final String? artworkId; // TODO: rename?
   final String? artworkTitle;
   final String? artist;
-  final String? giftGiver;
+  final String? gifter;
   final DateTime? endedAt;
 
   AirdropInfo(
     this.contractAddress,
     this.blockchain,
     this.remainAmount,
+    this.artworkId,
     this.artworkTitle,
     this.artist,
-    this.giftGiver,
+    this.gifter,
     this.endedAt,
   );
 

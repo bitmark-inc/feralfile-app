@@ -239,7 +239,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
       final doneOnboarding = _configurationService.isDoneOnboarding();
       if (doneOnboarding) {
         final exhibitionFuture = _feralFileService.getExhibition(exhibitionId);
-        await Future.delayed(const Duration(seconds: 2), () {
+        await Future.delayed(const Duration(seconds: 1), () {
           _navigationService.popUntilHomeOrSettings();
         });
         final exhibition = await exhibitionFuture;

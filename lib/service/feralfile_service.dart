@@ -190,7 +190,16 @@ class FeralFileServiceImpl extends FeralFileService {
   @override
   Future<Exhibition> getExhibition(String id) async {
     final resp = await _feralFileApi.getExhibition(id);
-    return resp.result;
+    final exhibition = resp.result;
+    final airdropArtworkId = exhibition.artworks
+        .firstWhereOrNull(
+            (e) => e.settings?.saleModel?.toLowerCase() == "airdrop")
+        ?.id;
+    if (airdropArtworkId != null) {
+      final airdropArtwork = await _feralFileApi.getArtwork(airdropArtworkId);
+      exhibition.airdropArtwork = airdropArtwork.result;
+    }
+    return exhibition;
   }
 
   @override
@@ -206,7 +215,7 @@ class FeralFileServiceImpl extends FeralFileService {
       return false;
     }
 
-    final exhibition = (await _feralFileApi.getExhibition(exhibitionId)).result;
+    final exhibition = await getExhibition(exhibitionId);
 
     if (exhibition.airdropInfo == null ||
         exhibition.airdropInfo?.endedAt?.isBefore(DateTime.now()) == true) {
@@ -231,7 +240,8 @@ class FeralFileServiceImpl extends FeralFileService {
         "signature": signature,
         "address": receiver,
       };
-      final response = await _feralFileApi.claimToken(exhibitionId, body);
+      final artworkId = exhibition.airdropArtwork?.id ?? "";
+      final response = await _feralFileApi.claimArtwork(artworkId, body);
       final indexer = injector<TokensService>();
       await indexer.reindexAddresses([receiver]);
 

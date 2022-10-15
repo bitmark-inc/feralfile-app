@@ -46,10 +46,10 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
     final artistName = artist?.getDisplayName();
     final artworkThumbnail =
         artwork?.getThumbnailURL() ?? exhibition.getThumbnailURL();
-    String giftGiver =
-        exhibition.airdropInfo?.giftGiver?.replaceAll(" ", "\u00A0") ?? "";
+    String gifter =
+        exhibition.airdropInfo?.gifter?.replaceAll(" ", "\u00A0") ?? "";
     String giftIntro = "you_can_receive_free_gift".tr();
-    if (giftGiver.trim().isNotEmpty) {
+    if (gifter.trim().isNotEmpty) {
       giftIntro += " ${'from'.tr().toLowerCase()} ";
     }
     double safeAreaTop = MediaQuery.of(context).padding.top;
@@ -100,7 +100,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                         style: theme.primaryTextTheme.bodyText1,
                         children: [
                           TextSpan(
-                            text: giftGiver,
+                            text: gifter,
                             style: theme.primaryTextTheme.bodyText1
                                 ?.copyWith(fontWeight: FontWeight.w700),
                           ),

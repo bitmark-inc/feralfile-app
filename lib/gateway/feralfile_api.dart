@@ -33,4 +33,13 @@ abstract class FeralFileApi {
     @Path("exhibitionId") String exhibitionId,
     @Body() Map<String, dynamic> body,
   );
+
+  @GET("/api/artworks/{artworkId}")
+  Future<FFArtworkResponse> getArtwork(@Path("artworkId") String artworkId);
+
+  @POST("/api/artworks/{artworkId}/claim")
+  Future<TokenClaimResponse> claimArtwork(
+    @Path("artworkId") String artworkId,
+    @Body() Map<String, dynamic> body,
+  );
 }

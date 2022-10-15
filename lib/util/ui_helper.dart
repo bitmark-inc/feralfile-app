@@ -423,7 +423,7 @@ class UIHelper {
 
   static Future showAirdropExpired(BuildContext context) async {
     final theme = Theme.of(context);
-    final error = FeralfileError(5011, "");
+    final error = FeralfileError(3007, "");
     return UIHelper.showDialog(
       context,
       error.dialogTitle,
@@ -454,7 +454,7 @@ class UIHelper {
     BuildContext context, {
     required Exhibition exhibition,
   }) async {
-    final error = FeralfileError(5013, "");
+    final error = FeralfileError(3009, "");
     return showErrorDialog(
       context,
       error.getDialogTitle(exhibition: exhibition),

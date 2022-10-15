@@ -7,11 +7,11 @@ extension FeralfileErrorExt on FeralfileError {
     switch (code) {
       case 5006:
         return "Too soon";
-      case 5011:
+      case 3007:
         return "Too late";
-      case 5013:
+      case 3009:
         return "Out of token";
-      case 5014:
+      case 3010:
         return "Just once";
       default:
         return "error".tr();
@@ -22,11 +22,11 @@ extension FeralfileErrorExt on FeralfileError {
     switch (code) {
       case 5006:
         return "It is not yet possible to redeem this gift edition.";
-      case 5011:
+      case 3007:
         return "It is no longer possible to redeem this gift edition.";
-      case 5013:
+      case 3009:
         return "Sorry, the tokens have been delivered to all fastest users.";
-      case 5014:
+      case 3010:
         return "You have already accepted your gift edition.";
       default:
         return message;
@@ -38,7 +38,7 @@ extension FeralfileErrorExt on FeralfileError {
   }
 
   String getDialogMessage({required Exhibition exhibition}) {
-    if (code == 5013 && exhibition.maxEdition < 0) {
+    if (code == 3009 && exhibition.maxEdition < 0) {
       return "We are running out of tokens. Come back later.";
     } else {
       return dialogMessage;

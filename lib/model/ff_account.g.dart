@@ -43,7 +43,6 @@ Exhibition _$ExhibitionFromJson(Map<String, dynamic> json) => Exhibition(
       json['title'] as String,
       DateTime.parse(json['exhibitionStartAt'] as String),
       DateTime.parse(json['exhibitionEndAt'] as String),
-      json['maxEdition'] as int,
       json['coverURI'] as String?,
       json['thumbnailCoverURI'] as String?,
       (json['artists'] as List<dynamic>)
@@ -55,7 +54,6 @@ Exhibition _$ExhibitionFromJson(Map<String, dynamic> json) => Exhibition(
       (json['contracts'] as List<dynamic>)
           .map((e) => FFContract.fromJson(e as Map<String, dynamic>))
           .toList(),
-      json['saleModel'] as String,
       json['mintBlockchain'] as String,
     );
 
@@ -65,10 +63,8 @@ Map<String, dynamic> _$ExhibitionToJson(Exhibition instance) =>
       'title': instance.title,
       'exhibitionStartAt': instance.exhibitionStartAt.toIso8601String(),
       'exhibitionEndAt': instance.exhibitionEndAt.toIso8601String(),
-      'maxEdition': instance.maxEdition,
       'coverURI': instance.coverURI,
       'thumbnailCoverURI': instance.thumbnailCoverURI,
-      'saleModel': instance.saleModel,
       'mintBlockchain': instance.mintBlockchain,
       'artists': instance.artists,
       'artworks': instance.artworks,
@@ -142,13 +138,25 @@ Map<String, dynamic> _$FFArtworkToJson(FFArtwork instance) => <String, dynamic>{
       'createdAt': instance.createdAt?.toIso8601String(),
     };
 
+FFArtworkResponse _$FFArtworkResponseFromJson(Map<String, dynamic> json) =>
+    FFArtworkResponse(
+      FFArtwork.fromJson(json['result'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$FFArtworkResponseToJson(FFArtworkResponse instance) =>
+    <String, dynamic>{
+      'result': instance.result,
+    };
+
 FFArtworkSettings _$FFArtworkSettingsFromJson(Map<String, dynamic> json) =>
     FFArtworkSettings(
       json['saleModel'] as String?,
+      json['maxEdition'] as int,
     );
 
 Map<String, dynamic> _$FFArtworkSettingsToJson(FFArtworkSettings instance) =>
     <String, dynamic>{
+      'maxEdition': instance.maxEdition,
       'saleModel': instance.saleModel,
     };
 
@@ -169,9 +177,10 @@ AirdropInfo _$AirdropInfoFromJson(Map<String, dynamic> json) => AirdropInfo(
       json['contractAddress'] as String,
       json['blockchain'] as String,
       json['remainAmount'] as int,
+      json['artworkId'] as String?,
       json['artworkTitle'] as String?,
       json['artist'] as String?,
-      json['giftGiver'] as String?,
+      json['gifter'] as String?,
       json['endedAt'] == null
           ? null
           : DateTime.parse(json['endedAt'] as String),
@@ -182,9 +191,10 @@ Map<String, dynamic> _$AirdropInfoToJson(AirdropInfo instance) =>
       'contractAddress': instance.contractAddress,
       'blockchain': instance.blockchain,
       'remainAmount': instance.remainAmount,
+      'artworkId': instance.artworkId,
       'artworkTitle': instance.artworkTitle,
       'artist': instance.artist,
-      'giftGiver': instance.giftGiver,
+      'gifter': instance.gifter,
       'endedAt': instance.endedAt?.toIso8601String(),
     };
 
