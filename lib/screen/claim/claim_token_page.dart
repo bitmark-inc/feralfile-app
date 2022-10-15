@@ -8,6 +8,7 @@ import 'package:autonomy_flutter/screen/claim/select_account_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
+import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -39,15 +40,14 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
 
   @override
   Widget build(BuildContext context) {
-    final artwork = widget.exhibition.artworks.firstOrNull;
-    final artist = widget.exhibition.getArtist(artwork);
-    final artistName =
-        artist?.fullName.isNotEmpty == true ? artist?.fullName : artist?.alias;
+    final exhibition = widget.exhibition;
+    final artwork = exhibition.airdropArtwork;
+    final artist = exhibition.getArtist(artwork);
+    final artistName = artist?.getDisplayName();
     final artworkThumbnail =
-        artwork?.getThumbnailURL() ?? widget.exhibition.getThumbnailURL();
+        artwork?.getThumbnailURL() ?? exhibition.getThumbnailURL();
     String giftGiver =
-        widget.exhibition.airdropInfo?.giftGiver?.replaceAll(" ", "\u00A0") ??
-            "";
+        exhibition.airdropInfo?.giftGiver?.replaceAll(" ", "\u00A0") ?? "";
     String giftIntro = "you_can_receive_free_gift".tr();
     if (giftGiver.trim().isNotEmpty) {
       giftIntro += " ${'from'.tr().toLowerCase()} ";

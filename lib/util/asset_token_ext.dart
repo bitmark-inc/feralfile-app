@@ -147,9 +147,9 @@ AssetToken createPendingAssetToken({
   required String tokenId,
 }) {
   final indexerId = exhibition.airdropInfo?.getTokenIndexerId(tokenId);
-  final artist = exhibition.artists.firstOrNull;
-  final artwork = exhibition.artworks.firstOrNull;
-  final contract = exhibition.contracts.firstOrNull;
+  final artwork = exhibition.airdropArtwork;
+  final artist = exhibition.getArtist(artwork);
+  final contract = exhibition.airdropContract;
   return AssetToken(
     artistName: artist?.fullName ?? artist?.alias,
     artistURL: null,

@@ -1096,9 +1096,9 @@ class FeralfileArtworkDetailsMetadataSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final artwork = exhibition.artworks.firstOrNull;
-    final artist = exhibition.artists.firstOrNull;
-    final contract = exhibition.contracts.firstOrNull;
+    final artwork = exhibition.airdropArtwork;
+    final artist = exhibition.getArtist(artwork);
+    final contract = exhibition.airdropContract;
     final df = DateFormat('yyyy-MMM-dd hh:mm');
     final mintDate = artwork?.createdAt;
     return Column(

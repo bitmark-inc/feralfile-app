@@ -74,11 +74,9 @@ class Exhibition {
   final List<FFArtist> artists;
   final List<FFArtwork> artworks;
   final List<FFContract> contracts;
-  final AirdropInfo? airdropInfo;
 
   Exhibition(
     this.id,
-    this.airdropInfo,
     this.title,
     this.exhibitionStartAt,
     this.exhibitionEndAt,
@@ -100,6 +98,20 @@ class Exhibition {
   FFArtist? getArtist(FFArtwork? artwork) {
     final artistId = artwork?.artistID;
     return artists.firstWhereOrNull((artist) => artist.id == artistId);
+  }
+
+  AirdropInfo? get airdropInfo {
+    return airdropArtwork?.airdropInfo;
+  }
+
+  FFArtwork? get airdropArtwork {
+    return artworks.firstWhereOrNull((e) => e.isAirdropArtwork);
+  }
+
+  FFContract? get airdropContract {
+    final airdropInfo = airdropArtwork?.airdropInfo;
+    return contracts
+        .firstWhereOrNull((e) => e.address == airdropInfo?.contractAddress);
   }
 
   String getThumbnailURL() {
@@ -159,6 +171,8 @@ class FFArtwork {
   final String description;
   final String? thumbnailFileURI;
   final String? galleryThumbnailFileURI;
+  final FFArtworkSettings? settings;
+  final AirdropInfo? airdropInfo;
   final DateTime? createdAt;
 
   FFArtwork(
@@ -169,6 +183,8 @@ class FFArtwork {
     this.description,
     this.thumbnailFileURI,
     this.galleryThumbnailFileURI,
+    this.settings,
+    this.airdropInfo,
     this.createdAt,
   );
 
@@ -176,10 +192,26 @@ class FFArtwork {
     return "${Environment.feralFileAssetURL}/${galleryThumbnailFileURI ?? thumbnailFileURI}";
   }
 
+  bool get isAirdropArtwork {
+    return settings?.saleModel?.toLowerCase() == "airdrop";
+  }
+
   factory FFArtwork.fromJson(Map<String, dynamic> json) =>
       _$FFArtworkFromJson(json);
 
   Map<String, dynamic> toJson() => _$FFArtworkToJson(this);
+}
+
+@JsonSerializable()
+class FFArtworkSettings {
+  final String? saleModel;
+
+  FFArtworkSettings(this.saleModel);
+
+  factory FFArtworkSettings.fromJson(Map<String, dynamic> json) =>
+      _$FFArtworkSettingsFromJson(json);
+
+  Map<String, dynamic> toJson() => _$FFArtworkSettingsToJson(this);
 }
 
 @JsonSerializable()
@@ -280,4 +312,9 @@ class FeralfileError {
       _$FeralfileErrorFromJson(json);
 
   Map<String, dynamic> toJson() => _$FeralfileErrorToJson(this);
+
+  @override
+  String toString() {
+    return 'FeralfileError{code: $code, message: $message}';
+  }
 }

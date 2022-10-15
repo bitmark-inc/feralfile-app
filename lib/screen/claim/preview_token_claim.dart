@@ -67,8 +67,9 @@ class _PreviewTokenClaimState extends State<PreviewTokenClaim>
   Widget build(BuildContext context) {
     final safeAreaTop = MediaQuery.of(context).padding.top;
     final theme = Theme.of(context);
-    final artist = widget.exhibition.artists.firstOrNull;
-    final artwork = widget.exhibition.artworks.firstOrNull;
+    final exhibition = widget.exhibition;
+    final artwork = exhibition.airdropArtwork;
+    final artist = exhibition.getArtist(artwork);
     return Scaffold(
         backgroundColor: theme.colorScheme.primary,
         body: SafeArea(

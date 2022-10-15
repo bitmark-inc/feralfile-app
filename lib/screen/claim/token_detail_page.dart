@@ -10,7 +10,6 @@ import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -32,8 +31,9 @@ class _TokenDetailPageState extends State<TokenDetailPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final artwork = widget.exhibition.artworks.firstOrNull;
-    final artist = widget.exhibition.artists.firstOrNull;
+    final exhibition = widget.exhibition;
+    final artwork = exhibition.airdropArtwork;
+    final artist = exhibition.getArtist(artwork);
     return Scaffold(
         appBar: _appBar(
           context,
@@ -64,14 +64,15 @@ class _TokenDetailPageState extends State<TokenDetailPage> {
               const SizedBox(height: 15.0),
               // Show artwork here.
               CachedNetworkImage(
-                imageUrl: artwork!.getThumbnailURL(),
+                imageUrl:
+                    artwork?.getThumbnailURL() ?? exhibition.getThumbnailURL(),
                 fit: BoxFit.fitWidth,
               ),
               const SizedBox(height: 24.0),
               Padding(
                 padding: ResponsiveLayout.getPadding,
                 child: Text(
-                  artwork.description,
+                  artwork?.description ?? "",
                   style: theme.primaryTextTheme.bodyText1,
                 ),
               ),

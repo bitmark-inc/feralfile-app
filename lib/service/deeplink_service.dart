@@ -271,7 +271,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
         });
       }
     } catch (e) {
-      debugPrint("[DeeplinkService] _claimFFAirdropToken error $e");
+      log.info("[DeeplinkService] _claimFFAirdropToken error $e");
       currentExhibitionId = null;
     }
   }

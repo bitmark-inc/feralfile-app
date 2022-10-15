@@ -40,9 +40,6 @@ Map<String, dynamic> _$WyreWalletToJson(WyreWallet instance) =>
 
 Exhibition _$ExhibitionFromJson(Map<String, dynamic> json) => Exhibition(
       json['id'] as String,
-      json['airdropInfo'] == null
-          ? null
-          : AirdropInfo.fromJson(json['airdropInfo'] as Map<String, dynamic>),
       json['title'] as String,
       DateTime.parse(json['exhibitionStartAt'] as String),
       DateTime.parse(json['exhibitionEndAt'] as String),
@@ -76,7 +73,6 @@ Map<String, dynamic> _$ExhibitionToJson(Exhibition instance) =>
       'artists': instance.artists,
       'artworks': instance.artworks,
       'contracts': instance.contracts,
-      'airdropInfo': instance.airdropInfo,
     };
 
 ExhibitionResponse _$ExhibitionResponseFromJson(Map<String, dynamic> json) =>
@@ -121,6 +117,13 @@ FFArtwork _$FFArtworkFromJson(Map<String, dynamic> json) => FFArtwork(
       json['description'] as String,
       json['thumbnailFileURI'] as String?,
       json['galleryThumbnailFileURI'] as String?,
+      json['settings'] == null
+          ? null
+          : FFArtworkSettings.fromJson(
+              json['settings'] as Map<String, dynamic>),
+      json['airdropInfo'] == null
+          ? null
+          : AirdropInfo.fromJson(json['airdropInfo'] as Map<String, dynamic>),
       json['createdAt'] == null
           ? null
           : DateTime.parse(json['createdAt'] as String),
@@ -134,7 +137,19 @@ Map<String, dynamic> _$FFArtworkToJson(FFArtwork instance) => <String, dynamic>{
       'description': instance.description,
       'thumbnailFileURI': instance.thumbnailFileURI,
       'galleryThumbnailFileURI': instance.galleryThumbnailFileURI,
+      'settings': instance.settings,
+      'airdropInfo': instance.airdropInfo,
       'createdAt': instance.createdAt?.toIso8601String(),
+    };
+
+FFArtworkSettings _$FFArtworkSettingsFromJson(Map<String, dynamic> json) =>
+    FFArtworkSettings(
+      json['saleModel'] as String?,
+    );
+
+Map<String, dynamic> _$FFArtworkSettingsToJson(FFArtworkSettings instance) =>
+    <String, dynamic>{
+      'saleModel': instance.saleModel,
     };
 
 FFContract _$FFContractFromJson(Map<String, dynamic> json) => FFContract(
