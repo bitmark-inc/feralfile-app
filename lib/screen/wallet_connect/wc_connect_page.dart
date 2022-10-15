@@ -119,7 +119,7 @@ class _WCConnectPageState extends State<WCConnectPage>
       final address = await injector<EthereumService>()
           .getETHAddress(selectedPersona!.wallet());
 
-      final chainId = Environment.appTestnetConfig ? 4 : 1;
+      final chainId = Environment.web3ChainId;
 
       final approvedAddresses = [address];
       log.info(

@@ -75,7 +75,7 @@ class _TVConnectPageState extends State<TVConnectPage>
     final authorizedKeypair =
         await injector<AccountService>().authorizeToViewer();
 
-    final chainId = Environment.appTestnetConfig ? 4 : 1;
+    final chainId = Environment.web3ChainId;
 
     final isApproveSuccess = await injector<WalletConnectService>()
         .approveSession(const Uuid().v4(), widget.wcConnectArgs.peerMeta,
