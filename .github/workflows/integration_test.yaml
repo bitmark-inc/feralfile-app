@@ -58,6 +58,13 @@ jobs:
           echo TEZOS_FAUCET_URL=${{ secrets.TEZOS_FAUCET_URL }} >> .env
           echo TEZOS_FAUCET_AUTH_TOKEN=${{ secrets.TEZOS_FAUCET_AUTH_TOKEN }} >> .env
 
+          echo SEED_TO_PURCHASE_ARTWORK=${{ secrets.SEED_TO_PURCHASE_ARTWORK }} >> .env
+          echo SEED_TO_RESTORE_ACCOUNT=${{ secrets.SEED_TO_RESTORE_ACCOUNT }} >> .env
+          echo SEED_TO_RESTORE_ANOTHER_ACCOUNT=${{ secrets.SEED_TO_RESTORE_ANOTHER_ACCOUNT }} >> .env
+          echo SEEDS_TO_RESTORE_FULLACCOUNT=${{ secrets.SEEDS_TO_RESTORE_FULLACCOUNT }} >> .env
+          echo SEED_TO_RESTORE_KUKAI=${{ secrets.SEED_TO_RESTORE_KUKAI }} >> .env
+          echo SEED_TO_RESTORE_TEMPLE=${{ secrets.SEED_TO_RESTORE_TEMPLE }} >> .env
+
           cat .env
 
 
