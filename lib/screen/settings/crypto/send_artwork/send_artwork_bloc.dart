@@ -104,8 +104,7 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
         switch (type) {
           case CryptoType.ETH:
             try {
-              final address =
-                  EthereumAddress.fromHex(event.address, enforceEip55: true);
+              final address = EthereumAddress.fromHex(event.address);
               newState.address = address.hexEip55;
               newState.isAddressError = false;
 
