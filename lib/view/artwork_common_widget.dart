@@ -771,9 +771,6 @@ Widget tokenOwnership(
   if (ownedTokens == 0) {
     ownedTokens = addresses.contains(asset.ownerAddress) ? 1 : 0;
   }
-  final sharedPercentage = ownedTokens / (asset.maxEdition ?? 1) * 100;
-  final nf = NumberFormat("###.##");
-  final sharedPctText = nf.format(sharedPercentage);
 
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
@@ -784,17 +781,15 @@ Widget tokenOwnership(
       ),
       const SizedBox(height: 23.0),
       Text(
-        "how_many_shares_you_own".tr(),
+        "how_many_editions_you_own".tr(),
         style: theme.textTheme.bodyText1,
       ),
       const SizedBox(height: 16.0),
-      _rowItem(context, "total_token_supply".tr(), "${asset.maxEdition}",
+      _rowItem(context, "editions".tr(), "${asset.maxEdition}",
           tapLink: asset.tokenURL, forceSafariVC: true),
       const Divider(height: 32.0),
-      _rowItem(context, "tokens_you_own".tr(), "$ownedTokens",
+      _rowItem(context, "owned".tr(), "$ownedTokens",
           tapLink: asset.tokenURL, forceSafariVC: true),
-      const Divider(height: 32.0),
-      _rowItem(context, "your_share_of_total".tr(), "$sharedPctText%"),
     ],
   );
 }
