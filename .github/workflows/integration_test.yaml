@@ -64,6 +64,7 @@ jobs:
           echo SEEDS_TO_RESTORE_FULLACCOUNT=${{ secrets.SEEDS_TO_RESTORE_FULLACCOUNT }} >> .env
           echo SEED_TO_RESTORE_KUKAI=${{ secrets.SEED_TO_RESTORE_KUKAI }} >> .env
           echo SEED_TO_RESTORE_TEMPLE=${{ secrets.SEED_TO_RESTORE_TEMPLE }} >> .env
+          echo SEED_TO_RESTORE_ACCOUNT_BUY_NFT=${{ secrets.SEED_TO_RESTORE_ACCOUNT_BUY_NFT }} >> .env
 
           cat .env
 
