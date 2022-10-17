@@ -9,6 +9,7 @@ import 'dart:core';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -85,6 +86,7 @@ class FileLogger {
 
   static Future log(LogRecord record) async {
     final text = '${record.toString()}\n';
+    debugPrint(text);
     return _lock.synchronized(() async {
       await _logFile.writeAsString("${record.time}: $text",
           mode: FileMode.append, flush: true);
