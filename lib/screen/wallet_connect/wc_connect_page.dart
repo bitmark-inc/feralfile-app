@@ -171,6 +171,7 @@ class _WCConnectPageState extends State<WCConnectPage>
       personaUUID: selectedPersona!.uuid,
       address: payloadAddress,
       type: payloadType,
+      personaName: selectedPersona!.name
     );
 
     if (!mounted) return;
