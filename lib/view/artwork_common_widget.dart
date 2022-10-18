@@ -41,7 +41,10 @@ import '../common/injector.dart';
 
 String getEditionSubTitle(AssetToken token) {
   if (token.edition == 0) return "";
-  return " (${token.edition}/${token.maxEdition})";
+  return token.maxEdition != null && token.maxEdition! >= 1
+      ? tr('edition_of',
+          args: [token.edition.toString(), token.maxEdition.toString()])
+      : '(${tr('edition')} ${token.edition})';
 }
 
 class PendingTokenWidget extends StatelessWidget {
@@ -1137,7 +1140,8 @@ class FeralfileArtworkDetailsMetadataSection extends StatelessWidget {
           context,
           "token".tr(),
           "Feral File",
-          tapLink: null, // "${Environment.feralFileAPIURL}/artworks/${artwork?.id}"
+          tapLink:
+              null, // "${Environment.feralFileAPIURL}/artworks/${artwork?.id}"
         ),
         const Divider(
           height: 32.0,

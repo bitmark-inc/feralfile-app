@@ -85,9 +85,12 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                     const SizedBox(
                       height: 24,
                     ),
-                    Text(
-                      "congratulations".tr(),
-                      style: theme.primaryTextTheme.headline1,
+                    FittedBox(
+                      child: Text(
+                        "congratulations".tr(),
+                        style: theme.primaryTextTheme.headline1,
+                        maxLines: 1,
+                      ),
                     ),
                     const SizedBox(
                       height: 40,
@@ -185,12 +188,15 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                     RichText(
                       text: TextSpan(
                         text: "airdrop_accept_privacy_policy".tr(),
-                        style: theme.primaryTextTheme.bodyText1?.copyWith(fontSize: 14),
+                        style: theme.primaryTextTheme.bodyText1
+                            ?.copyWith(fontSize: 14),
                         children: [
                           TextSpan(
                               text: "airdrop_privacy_policy".tr(),
-                              style: makeLinkStyle(theme.primaryTextTheme.bodyText1!
-                                  .copyWith(fontSize: 14, fontWeight: FontWeight.bold)),
+                              style: makeLinkStyle(
+                                  theme.primaryTextTheme.bodyText1!.copyWith(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold)),
                               recognizer: TapGestureRecognizer()
                                 ..onTap = () {
                                   _openPrivacyPolicy();
