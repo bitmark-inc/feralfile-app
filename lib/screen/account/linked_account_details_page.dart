@@ -218,8 +218,7 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
                       balanceString: e.cryptoType != CryptoType.UNKNOWN
                           ? _balances[e.address] ?? '-- ${e.cryptoType.code}'
                           : ""),
-                  const SizedBox(height: 15),
-                  addOnlyDivider(),
+                  e == contextedAddresses.last ? const SizedBox() : addDivider(),
                 ],
               ),
             ),

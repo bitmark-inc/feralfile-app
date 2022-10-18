@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/model/tzkt_operation.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -178,6 +179,10 @@ class TezosTXDetailPage extends StatelessWidget {
 
   Widget _viewOnTZKT(BuildContext context, TZKTOperation tx) {
     final theme = Theme.of(context);
+    final customLinkStyle = theme.textTheme.linkStyle.copyWith(
+        fontSize: 16,
+        fontWeight: FontWeight.w700,
+    );
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -195,8 +200,7 @@ class TezosTXDetailPage extends StatelessWidget {
                 children: <TextSpan>[
                   TextSpan(
                       text: "powered_by_tzkt".tr(),
-                      style: theme.textTheme.headline4
-                          ?.copyWith(decoration: TextDecoration.underline)),
+                      style: customLinkStyle,),
                 ],
               ),
             ),

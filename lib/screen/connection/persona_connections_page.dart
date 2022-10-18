@@ -45,7 +45,6 @@ class PersonaConnectionsPage extends StatefulWidget {
 
 class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
     with RouteAware, WidgetsBindingObserver {
-
   @override
   void initState() {
     super.initState();
@@ -115,7 +114,7 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
     return Scaffold(
       appBar: getBackAppBar(
         context,
-        title: widget.payload.type.source.toUpperCase(),
+        title: widget.payload.personaName,
         onBack: () {
           Navigator.of(context).pop();
         },
@@ -139,44 +138,51 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
                 ),
               ),
             ),
-            Row(
-              children: [
-                Expanded(
-                  child: AuOutlinedButton(
-                    text: "send".tr(),
-                    onPress: () {
-                      Navigator.of(context).pushNamed(SendCryptoPage.tag,
-                          arguments: SendData(LibAukDart.getWallet(widget.payload.personaUUID),
-                              widget.payload.type, null));
-                    },
+            if (widget.payload.type == CryptoType.ETH ||
+                widget.payload.type == CryptoType.XTZ) ...[
+              Row(
+                children: [
+                  Expanded(
+                    child: AuOutlinedButton(
+                      text: "send".tr(),
+                      onPress: () {
+                        Navigator.of(context).pushNamed(SendCryptoPage.tag,
+                            arguments: SendData(
+                                LibAukDart.getWallet(
+                                    widget.payload.personaUUID),
+                                widget.payload.type,
+                                null));
+                      },
+                    ),
                   ),
-                ),
-                const SizedBox(
-                  width: 16.0,
-                ),
-                Expanded(
-                  child: BlocConsumer<AccountsBloc, AccountsState>(
-                    listener: (context, accountState) async {},
-                    builder: (context, accountState) {
-                      final account = accountState.accounts?.firstWhere(
-                              (element) =>
-                          element.blockchain == widget.payload.type.source);
-                      return AuOutlinedButton(
-                        text: "receive".tr(),
-                        onPress: () {
-                          if (account != null &&
-                              account.accountNumber.isNotEmpty) {
-                            Navigator.of(context).pushNamed(
-                                GlobalReceiveDetailPage.tag,
-                                arguments: account);
-                          }
-                        },
-                      );
-                    },
+                  const SizedBox(
+                    width: 16.0,
                   ),
-                ),
-              ],
-            ),
+                  Expanded(
+                    child: BlocConsumer<AccountsBloc, AccountsState>(
+                      listener: (context, accountState) async {},
+                      builder: (context, accountState) {
+                        final account = accountState.accounts?.firstWhere(
+                            (element) =>
+                                element.blockchain ==
+                                widget.payload.type.source);
+                        return AuOutlinedButton(
+                          text: "receive".tr(),
+                          onPress: () {
+                            if (account != null &&
+                                account.accountNumber.isNotEmpty) {
+                              Navigator.of(context).pushNamed(
+                                  GlobalReceiveDetailPage.tag,
+                                  arguments: account);
+                            }
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              )
+            ],
             SizedBox(height: safeAreaBottom > 0 ? 24 : 0),
           ],
         ),
@@ -212,8 +218,10 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
                 Expanded(
                   child: GestureDetector(
                     onTap: () async {
-                      showInfoNotification(const Key("address"), "copied_to_clipboard".tr());
-                      Clipboard.setData(ClipboardData(text: widget.payload.address));
+                      showInfoNotification(
+                          const Key("address"), "copied_to_clipboard".tr());
+                      Clipboard.setData(
+                          ClipboardData(text: widget.payload.address));
                     },
                     child: Text(
                       address,
@@ -223,7 +231,8 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
                 ),
               ],
             ),
-            addDivider(),
+            if (widget.payload.type == CryptoType.ETH ||
+                widget.payload.type == CryptoType.XTZ) ...[addDivider()],
             if (widget.payload.type == CryptoType.ETH) ...[
               BlocBuilder<EthereumBloc, EthereumState>(
                   builder: (context, state) {
@@ -251,7 +260,6 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
       ],
     );
   }
-
 
   Widget _historyRow({String balance = ""}) {
     final theme = Theme.of(context);
@@ -384,10 +392,12 @@ class PersonaConnectionsPayload {
   final String personaUUID;
   final String address;
   final CryptoType type;
+  final String personaName;
 
   PersonaConnectionsPayload({
     required this.personaUUID,
     required this.address,
     required this.type,
+    required this.personaName,
   });
 }
