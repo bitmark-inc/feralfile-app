@@ -195,6 +195,8 @@ class WalletConnectService {
               isSubscribed) {
             _navigationService.navigateTo(AppRouter.tvConnectPage,
                 arguments: WCConnectPageArgs(id, peerMeta));
+            injector<WalletConnectService>()
+                .approveRequest(peerMeta, id, 'ScanSuccess');
           } else {
             //rejectRequest(peerMeta, id);
             _configurationService.setTVConnectData(peerMeta, id);
