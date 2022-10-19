@@ -18,7 +18,7 @@ on:
         type: boolean
         default: false
         required: false
-        description: Network is Testnet
+        description: Using testnet (Default staging)
 
 jobs:
   fastlane-deploy:
@@ -52,7 +52,7 @@ jobs:
       - name: Create env file
         run: |
           touch .env
-          echo INDEXER_MAINNET_API_URL=${{ secrets.INDEXER_MAINNET_API_URL }} >> .env
+          echo INDEXER_MAINNET_API_URL=${{ secrets.INDEXER_STAGING_API_URL }} >> .env
           echo INDEXER_TESTNET_API_URL=${{ secrets.INDEXER_TESTNET_API_URL }} >> .env
           echo WEB3_RPC_MAINNET_URL=${{ secrets.WEB3_RPC_MAINNET_URL }} >> .env
           echo WEB3_RPC_TESTNET_URL=${{ secrets.WEB3_RPC_TESTNET_URL }} >> .env
@@ -67,11 +67,11 @@ jobs:
           echo CONNECT_WEBSOCKET_MAINNET_URL=${{ secrets.CONNECT_WEBSOCKET_MAINNET_URL }} >> .env
           echo CONNECT_WEBSOCKET_TESTNET_URL=${{ secrets.CONNECT_WEBSOCKET_TESTNET_URL }} >> .env
 
-          echo AUTONOMY_AUTH_URL=${{ secrets.AUTONOMY_AUTH_DEV_URL }} >> .env
-          echo CUSTOMER_SUPPORT_URL=${{ secrets.CUSTOMER_SUPPORT_DEV_URL }} >> .env
+          ${{ github.event.inputs.testnet }} && echo AUTONOMY_AUTH_URL=${{ secrets.AUTONOMY_AUTH_DEV_URL }} || echo AUTONOMY_AUTH_URL=${{ secrets.AUTONOMY_AUTH_STAGING_URL }} >> .env
+          ${{ github.event.inputs.testnet }} && echo CUSTOMER_SUPPORT_URL=${{ secrets.CUSTOMER_SUPPORT_URL }} || echo AUTONOMY_AUTH_URL=${{ secrets.CUSTOMER_SUPPORT_STAGING_URL }} >> .env
+          ${{ github.event.inputs.testnet }} && echo RENDERING_REPORT_URL=${{ secrets.RENDERING_REPORT_DEV_URL }} || echo AUTONOMY_AUTH_URL=${{ secrets.RENDERING_REPORT_STAGING_URL }} >> .env
+          ${{ github.event.inputs.testnet }} && echo FEED_URL=${{ secrets.FEED_DEV_URL }} || echo AUTONOMY_AUTH_URL=${{ secrets.FEED_STAGING_URL }} >> .env
           echo CURRENCY_EXCHANGE_URL=${{ secrets.CURRENCY_EXCHANGE_URL }} >> .env
-          echo RENDERING_REPORT_URL=${{ secrets.RENDERING_REPORT_DEV_URL }} >> .env
-          echo FEED_URL=${{ secrets.FEED_DEV_URL }} >> .env
           echo AUTONOMY_PUBDOC_URL=${{ secrets.AUTONOMY_PUBDOC_URL }} >> .env
           echo AUTONOMY_IPFS_PREFIX=${{ secrets.AUTONOMY_IPFS_PREFIX_DEV }} >> .env
 
