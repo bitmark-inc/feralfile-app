@@ -2132,8 +2132,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "60919193f36ae4f026dfdebe929d1a1ab0d23d29"
-      resolved-ref: "60919193f36ae4f026dfdebe929d1a1ab0d23d29"
+      ref: f36e652fd8ebc2fe20c087d68775ed6451f48496
+      resolved-ref: f36e652fd8ebc2fe20c087d68775ed6451f48496
       url: "https://github.com/autonomy-system/wallet-connect-dart.git"
     source: git
     version: "1.0.2"
