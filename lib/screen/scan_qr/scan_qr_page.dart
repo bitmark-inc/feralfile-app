@@ -256,7 +256,10 @@ class _ScanQRPageState extends State<ScanQRPage> with RouteAware {
       if (DEEP_LINKS.any((prefix) => code.startsWith(prefix))) {
         controller.dispose();
         Navigator.pop(context);
-        injector<DeeplinkService>().handleDeeplink(code);
+        injector<DeeplinkService>().handleDeeplink(
+          code,
+          delay: const Duration(milliseconds: 100),
+        );
         return;
       }
 

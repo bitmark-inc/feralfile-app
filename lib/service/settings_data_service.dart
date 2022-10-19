@@ -74,7 +74,7 @@ class SettingsDataServiceImpl implements SettingsDataService {
 
     String dir = (await getTemporaryDirectory()).path;
     File backupFile = File('$dir/$_filename');
-    await backupFile.writeAsBytes(dataBytes);
+    await backupFile.writeAsBytes(dataBytes, flush: true);
 
     var isSuccess = false;
     while (!isSuccess) {

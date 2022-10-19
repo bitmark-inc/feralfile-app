@@ -6,6 +6,7 @@
 //
 
 import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/connections/connections_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/ethereum/ethereum_bloc.dart';
@@ -17,15 +18,14 @@ import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_det
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:autonomy_flutter/view/au_outlined_button.dart';
+import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -46,7 +46,6 @@ class PersonaConnectionsPage extends StatefulWidget {
 
 class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
     with RouteAware, WidgetsBindingObserver {
-
   @override
   void initState() {
     super.initState();
@@ -116,7 +115,7 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
     return Scaffold(
       appBar: getBackAppBar(
         context,
-        title: widget.payload.type.source.toUpperCase(),
+        title: widget.payload.personaName,
         onBack: () {
           Navigator.of(context).pop();
         },
@@ -140,69 +139,76 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
                 ),
               ),
             ),
-            Row(
-              children: [
-                Expanded(
-                  child: AuOutlinedButton(
-                    text: "send".tr(),
-                    onPress: () async {
-                      final payload = await Navigator.of(context).pushNamed(SendCryptoPage.tag,
-                          arguments: SendData(LibAukDart.getWallet(widget.payload.personaUUID),
-                              widget.payload.type, null)) as Map?;
-                      if (payload == null || !payload["isTezos"]) {
-                        return;
-                      }
+            if (widget.payload.type == CryptoType.ETH ||
+                widget.payload.type == CryptoType.XTZ) ...[
+              Row(
+                children: [
+                  Expanded(
+                    child: AuOutlinedButton(
+                      text: "send".tr(),
+                      onPress: () async {
+                        final payload = await Navigator.of(context).pushNamed(
+                            SendCryptoPage.tag,
+                            arguments: SendData(
+                                LibAukDart.getWallet(
+                                    widget.payload.personaUUID),
+                                widget.payload.type,
+                                null)) as Map?;
+                        if (payload == null || !payload["isTezos"]) {
+                          return;
+                        }
 
-                      if (!mounted) return;
-                      final tx = payload['tx'] as TZKTOperation;
-                      tx.sender = TZKTActor(
-                      address: widget.payload.address
-                      );
-                      UIHelper.showMessageAction(
-                        context,
-                        'success'.tr(),
-                        'send_success_des'.tr(),
-                        onAction: () {
-                          Navigator.of(context).pop();
-                          Navigator.of(context).pushNamed(
-                            AppRouter.tezosTXDetailPage,
-                            arguments: {
-                              "current_address": tx.sender?.address,
-                              "tx": tx,
-                            },
-                          );
-                        },
-                        actionButton: 'see_transaction_detail'.tr().toUpperCase(),
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(
-                  width: 16.0,
-                ),
-                Expanded(
-                  child: BlocConsumer<AccountsBloc, AccountsState>(
-                    listener: (context, accountState) async {},
-                    builder: (context, accountState) {
-                      final account = accountState.accounts?.firstWhere(
-                              (element) =>
-                          element.blockchain == widget.payload.type.source);
-                      return AuOutlinedButton(
-                        text: "receive".tr(),
-                        onPress: () {
-                          if (account != null &&
-                              account.accountNumber.isNotEmpty) {
+                        if (!mounted) return;
+                        final tx = payload['tx'] as TZKTOperation;
+                        tx.sender = TZKTActor(address: widget.payload.address);
+                        UIHelper.showMessageAction(
+                          context,
+                          'success'.tr(),
+                          'send_success_des'.tr(),
+                          onAction: () {
+                            Navigator.of(context).pop();
                             Navigator.of(context).pushNamed(
-                                GlobalReceiveDetailPage.tag,
-                                arguments: account);
-                          }
-                        },
-                      );
-                    },
+                              AppRouter.tezosTXDetailPage,
+                              arguments: {
+                                "current_address": tx.sender?.address,
+                                "tx": tx,
+                              },
+                            );
+                          },
+                          actionButton:
+                              'see_transaction_detail'.tr().toUpperCase(),
+                        );
+                      },
+                    ),
                   ),
-                ),
-              ],
-            ),
+                  const SizedBox(
+                    width: 16.0,
+                  ),
+                  Expanded(
+                    child: BlocConsumer<AccountsBloc, AccountsState>(
+                      listener: (context, accountState) async {},
+                      builder: (context, accountState) {
+                        final account = accountState.accounts?.firstWhere(
+                            (element) =>
+                                element.blockchain ==
+                                widget.payload.type.source);
+                        return AuOutlinedButton(
+                          text: "receive".tr(),
+                          onPress: () {
+                            if (account != null &&
+                                account.accountNumber.isNotEmpty) {
+                              Navigator.of(context).pushNamed(
+                                  GlobalReceiveDetailPage.tag,
+                                  arguments: account);
+                            }
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              )
+            ],
             SizedBox(height: safeAreaBottom > 0 ? 24 : 0),
           ],
         ),
@@ -238,8 +244,10 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
                 Expanded(
                   child: GestureDetector(
                     onTap: () async {
-                      showInfoNotification(const Key("address"), "copied_to_clipboard".tr());
-                      Clipboard.setData(ClipboardData(text: widget.payload.address));
+                      showInfoNotification(
+                          const Key("address"), "copied_to_clipboard".tr());
+                      Clipboard.setData(
+                          ClipboardData(text: widget.payload.address));
                     },
                     child: Text(
                       address,
@@ -249,7 +257,8 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
                 ),
               ],
             ),
-            addDivider(),
+            if (widget.payload.type == CryptoType.ETH ||
+                widget.payload.type == CryptoType.XTZ) ...[addDivider()],
             if (widget.payload.type == CryptoType.ETH) ...[
               BlocBuilder<EthereumBloc, EthereumState>(
                   builder: (context, state) {
@@ -277,7 +286,6 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
       ],
     );
   }
-
 
   Widget _historyRow({String balance = ""}) {
     final theme = Theme.of(context);
@@ -410,10 +418,12 @@ class PersonaConnectionsPayload {
   final String personaUUID;
   final String address;
   final CryptoType type;
+  final String personaName;
 
   PersonaConnectionsPayload({
     required this.personaUUID,
     required this.address,
     required this.type,
+    required this.personaName,
   });
 }

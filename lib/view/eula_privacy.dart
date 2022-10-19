@@ -26,19 +26,19 @@ Widget privacyView(BuildContext context) {
         children: [
           Text(
             "believe_transparency".tr(),
-            style: theme.textTheme.atlasBlackBold12,
+            style: theme.textTheme.atlasBlackBold14,
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
                 "autonomy_is_".tr(),
-                style: theme.textTheme.atlasBlackNormal12,
+                style: theme.textTheme.atlasBlackNormal14,
               ),
               GestureDetector(
                 child: Text(
                   "open_source".tr(),
-                  style: customLinkStyle,
+                  style: customLinkStyle.copyWith(fontSize: 14),
                 ),
                 onTap: () =>
                     launchUrl(uri, mode: LaunchMode.externalApplication),
@@ -51,7 +51,7 @@ Widget privacyView(BuildContext context) {
       GestureDetector(
         child: Text(
           "privacy_policy".tr(),
-          style: customLinkStyle,
+          style: customLinkStyle.copyWith(fontSize: 14),
         ),
         onTap: () => Navigator.of(context)
             .pushNamed(AppRouter.githubDocPage, arguments: {
@@ -63,4 +63,3 @@ Widget privacyView(BuildContext context) {
     ],
   );
 }
-

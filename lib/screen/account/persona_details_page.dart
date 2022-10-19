@@ -223,6 +223,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
           personaUUID: widget.persona.uuid,
           address: address,
           type: type,
+          personaName: widget.persona.name,
         );
         Navigator.of(context)
             .pushNamed(AppRouter.personaConnectionsPage, arguments: payload);

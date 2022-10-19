@@ -16,17 +16,23 @@ import 'package:autonomy_flutter/gateway/feralfile_api.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/asset_price.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
+import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
+import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:metric_client/metric_client.dart';
+import 'package:nft_collection/data/api/indexer_api.dart';
+import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/nft_collection.dart';
+import 'package:nft_collection/services/tokens_service.dart';
 
 // TODO:
 abstract class FeralFileService {
@@ -39,17 +45,28 @@ abstract class FeralFileService {
   Future<FFAccount> getWeb3Account(WalletStorage wallet);
 
   Future<List<AssetPrice>> getAssetPrices(List<String> ids);
+
+  Future<Exhibition> getExhibition(String id);
+
+  Future<bool> claimToken({
+    required String exhibitionId,
+    String? address,
+    bool delayed = false,
+    Future<bool> Function(Exhibition)? onConfirm,
+  });
 }
 
 class FeralFileServiceImpl extends FeralFileService {
   final ConfigurationService _configurationService;
   final CloudDatabase _cloudDB;
   final FeralFileApi _feralFileApi;
+  final AccountService _accountService;
 
   FeralFileServiceImpl(
     this._configurationService,
     this._cloudDB,
     this._feralFileApi,
+    this._accountService,
   );
 
   @override
@@ -168,5 +185,110 @@ class FeralFileServiceImpl extends FeralFileService {
     final rawToken = "$address|$message|$signature";
     final bytes = utf8.encode(rawToken);
     return base64.encode(bytes);
+  }
+
+  @override
+  Future<Exhibition> getExhibition(String id) async {
+    final resp = await _feralFileApi.getExhibition(id);
+    final exhibition = resp.result;
+    final airdropArtworkId = exhibition.artworks
+        .firstWhereOrNull(
+            (e) => e.settings?.saleModel?.toLowerCase() == "airdrop")
+        ?.id;
+    if (airdropArtworkId != null) {
+      final airdropArtwork = await _feralFileApi.getArtwork(airdropArtworkId);
+      exhibition.airdropArtwork = airdropArtwork.result;
+    }
+    return exhibition;
+  }
+
+  @override
+  Future<bool> claimToken(
+      {required String exhibitionId,
+      String? address,
+      bool delayed = false,
+      Future<bool> Function(Exhibition)? onConfirm}) async {
+    log.info(
+        "[FeralFileService] Claim token - exhibitionId: $exhibitionId, delayed: $delayed");
+    if (delayed) {
+      memoryValues.airdropFFExhibitionId.value = exhibitionId;
+      return false;
+    }
+
+    final exhibition = await getExhibition(exhibitionId);
+
+    if (exhibition.airdropInfo == null ||
+        exhibition.airdropInfo?.endedAt?.isBefore(DateTime.now()) == true) {
+      throw AirdropExpired();
+    }
+
+    if ((exhibition.airdropInfo?.remainAmount ?? 0) > 0) {
+      final accepted = await onConfirm?.call(exhibition) ?? true;
+      if (!accepted) {
+        log.info("[FeralFileService] User refused claim token");
+        return false;
+      }
+      final wallet = await _accountService.getDefaultAccount();
+      final message =
+          (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
+      final accountDID = await wallet.getAccountDID();
+      final signature = await wallet.getAccountDIDSignature(message);
+      final receiver = address ?? await wallet.getTezosAddress();
+      Map<String, dynamic> body = {
+        "claimer": accountDID,
+        "timestamp": message,
+        "signature": signature,
+        "address": receiver,
+      };
+      final artworkId = exhibition.airdropArtwork?.id ?? "";
+      final response = await _feralFileApi.claimArtwork(artworkId, body);
+      final indexer = injector<TokensService>();
+      await indexer.reindexAddresses([receiver]);
+
+      final indexerId =
+          exhibition.airdropInfo!.getTokenIndexerId(response.result.editionID);
+      final tokens = await _fetchTokens(
+        indexerId: indexerId,
+        receiver: receiver,
+      );
+      if (tokens.isNotEmpty) {
+        await indexer.setCustomTokens(tokens);
+      } else {
+        await indexer.setCustomTokens(
+          [
+            createPendingAssetToken(
+              exhibition: exhibition,
+              owner: receiver,
+              tokenId: response.result.editionID,
+            )
+          ],
+        );
+      }
+      return true;
+    } else {
+      throw NoRemainingToken();
+    }
+  }
+
+  Future<List<AssetToken>> _fetchTokens({
+    required String indexerId,
+    required String receiver,
+  }) async {
+    try {
+      final indexerApi = injector<IndexerApi>();
+      final assets = await indexerApi.getNftTokens({
+        "ids": [indexerId]
+      });
+      final tokens = assets
+          .map((e) => AssetToken.fromAsset(e))
+          .map((e) => e
+            ..pending = true
+            ..owners.putIfAbsent(receiver, () => 1)
+            ..lastActivityTime = DateTime.now())
+          .toList();
+      return tokens;
+    } catch (e) {
+      return [];
+    }
   }
 }

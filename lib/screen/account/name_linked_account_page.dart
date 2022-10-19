@@ -110,8 +110,9 @@ class _NameLinkedAccountPageState extends State<NameLinkedAccountPage> {
 
   void _doneNaming() {
     if (injector<ConfigurationService>().isDoneOnboarding()) {
-      Navigator.of(context)
-          .popUntil((route) => route.settings.name == AppRouter.settingsPage);
+      Navigator.of(context).popUntil((route) =>
+          route.settings.name == AppRouter.settingsPage ||
+          route.settings.name == AppRouter.claimSelectAccountPage);
     } else {
       Navigator.of(context).pushNamedAndRemoveUntil(
           AppRouter.accountsPreviewPage, (route) => false);

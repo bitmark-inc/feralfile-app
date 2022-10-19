@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:autonomy_flutter/common/environment.dart';
+import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/screen/detail/report_rendering_issue/any_problem_nft_widget.dart';
 import 'package:autonomy_flutter/screen/detail/report_rendering_issue/report_rendering_issue_widget.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -8,6 +10,7 @@ import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
+import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -38,28 +41,48 @@ import '../common/injector.dart';
 
 String getEditionSubTitle(AssetToken token) {
   if (token.edition == 0) return "";
-  return " (${token.edition}/${token.maxEdition})";
+  return token.maxEdition != null && token.maxEdition! >= 1
+      ? tr('edition_of',
+          args: [token.edition.toString(), token.maxEdition.toString()])
+      : '(${tr('edition')} ${token.edition})';
 }
 
 class PendingTokenWidget extends StatelessWidget {
-  const PendingTokenWidget({Key? key}) : super(key: key);
+  final String? thumbnail;
+
+  const PendingTokenWidget({Key? key, this.thumbnail}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return ClipPath(
       clipper: AutonomyTopRightRectangleClipper(),
       child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 12.8,
-          vertical: 19.26,
-        ),
         color: AppColor.secondaryDimGreyBackground,
-        child: const Align(
-          alignment: Alignment.bottomLeft,
-          child: JumpingDots(
-            color: AppColor.secondaryDimGrey,
-            radius: 3.2,
-          ),
+        child: Stack(
+          children: [
+            if (thumbnail?.isNotEmpty == true) ...[
+              SizedBox(
+                width: double.infinity,
+                height: double.infinity,
+                child: CachedNetworkImage(
+                  imageUrl: thumbnail!,
+                  fit: BoxFit.cover,
+                ),
+              )
+            ],
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 12.8,
+                vertical: 19.26,
+              ),
+              child: const Align(
+                  alignment: Alignment.bottomLeft,
+                  child: JumpingDots(
+                    color: AppColor.secondaryDimGrey,
+                    radius: 3.2,
+                  )),
+            )
+          ],
         ),
       ),
     );
@@ -729,7 +752,7 @@ Widget artworkDetailsMetadataSection(
         context,
         "token".tr(),
         polishSource(asset.source ?? ""),
-        tapLink: asset.assetURL,
+        tapLink: asset.isAirdrop ? null : asset.assetURL,
         forceSafariVC: true,
       ),
       const Divider(height: 32.0),
@@ -864,7 +887,7 @@ Widget artworkDetailsProvenanceSectionNotEmpty(
   );
 }
 
-Widget _artworkRightView(BuildContext context) {
+Widget _artworkRightView(BuildContext context, {TextStyle? linkStyle}) {
   final theme = Theme.of(context);
 
   return Column(
@@ -884,27 +907,48 @@ Widget _artworkRightView(BuildContext context) {
         style: theme.textButtonNoPadding,
         onPressed: () => launchUrl(
             Uri.parse("https://feralfile.com/docs/artist-collector-rights")),
-        child: Text("learn_artist".tr(),
-            style: theme.textTheme.linkStyle.copyWith(
-              fontWeight: FontWeight.w500,
-            )),
+        child: Text(
+          "learn_artist".tr(),
+          style: linkStyle ??
+              theme.textTheme.linkStyle.copyWith(
+                fontWeight: FontWeight.w500,
+              ),
+        ),
       ),
       const SizedBox(height: 23.0),
       _artworkRightItem(context, "download".tr(), "download_text".tr()),
-      const Divider(height: 32.0),
+      const Divider(
+        height: 32.0,
+        color: AppColor.secondarySpanishGrey,
+      ),
       _artworkRightItem(context, "display".tr(), "display_text".tr()),
-      const Divider(height: 32.0),
+      const Divider(
+        height: 32.0,
+        color: AppColor.secondarySpanishGrey,
+      ),
       _artworkRightItem(context, "authenticate".tr(), "authenticate_text".tr()),
-      const Divider(height: 32.0),
+      const Divider(
+        height: 32.0,
+        color: AppColor.secondarySpanishGrey,
+      ),
       _artworkRightItem(
           context, "loan_or_lease".tr(), "loan_or_lease_text".tr()),
-      const Divider(height: 32.0),
+      const Divider(
+        height: 32.0,
+        color: AppColor.secondarySpanishGrey,
+      ),
       _artworkRightItem(
           context, "resell_or_transfer".tr(), "resell_or_transfer_text".tr()),
-      const Divider(height: 32.0),
+      const Divider(
+        height: 32.0,
+        color: AppColor.secondarySpanishGrey,
+      ),
       _artworkRightItem(
           context, "remain_anonymous".tr(), "remain_anonymous_text".tr()),
-      const Divider(height: 32.0),
+      const Divider(
+        height: 32.0,
+        color: AppColor.secondarySpanishGrey,
+      ),
       _artworkRightItem(context, "respect_artist_right".tr(),
           "respect_artist_right_text".tr()),
     ],
@@ -1005,7 +1049,10 @@ Widget _rowItem(
             ),
             if (onValueTap != null) ...[
               const SizedBox(width: 8.0),
-              SvgPicture.asset('assets/images/iconForward.svg'),
+              SvgPicture.asset(
+                'assets/images/iconForward.svg',
+                color: theme.textTheme.bodyText1?.color,
+              ),
             ]
           ],
         ),
@@ -1021,4 +1068,106 @@ Widget previewCloseIcon(BuildContext context) {
     icon: closeIcon(color: theme.colorScheme.secondary),
     tooltip: "CloseArtwork",
   );
+}
+
+class ArtworkRightWidget extends StatelessWidget {
+  const ArtworkRightWidget({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final linkStyle = Theme.of(context).primaryTextTheme.linkStyle.copyWith(
+          color: Colors.white,
+          decorationColor: Colors.white,
+        );
+    return _artworkRightView(context, linkStyle: linkStyle);
+  }
+}
+
+class FeralfileArtworkDetailsMetadataSection extends StatelessWidget {
+  final Exhibition exhibition;
+
+  const FeralfileArtworkDetailsMetadataSection({
+    Key? key,
+    required this.exhibition,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final artwork = exhibition.airdropArtwork;
+    final artist = exhibition.getArtist(artwork);
+    final contract = exhibition.airdropContract;
+    final df = DateFormat('yyyy-MMM-dd hh:mm');
+    final mintDate = artwork?.createdAt;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "metadata".tr(),
+          style: theme.textTheme.headline2,
+        ),
+        const SizedBox(height: 23.0),
+        _rowItem(context, "title".tr(), artwork?.title),
+        const Divider(
+          height: 32.0,
+          color: AppColor.secondarySpanishGrey,
+        ),
+        _rowItem(
+          context,
+          "artist".tr(),
+          artist?.getDisplayName(),
+          tapLink: "${Environment.feralFileAPIURL}/profiles/${artist?.id}",
+        ),
+        const Divider(
+          height: 32.0,
+          color: AppColor.secondarySpanishGrey,
+        ),
+        _rowItem(
+          context,
+          "edition_size".tr(),
+          exhibition.maxEdition.toString(),
+        ),
+        const Divider(
+          height: 32.0,
+          color: AppColor.secondarySpanishGrey,
+        ),
+        _rowItem(
+          context,
+          "token".tr(),
+          "Feral File",
+          tapLink:
+              null, // "${Environment.feralFileAPIURL}/artworks/${artwork?.id}"
+        ),
+        const Divider(
+          height: 32.0,
+          color: AppColor.secondarySpanishGrey,
+        ),
+        _rowItem(
+          context,
+          "contract".tr(),
+          contract?.blockchainType.capitalize() ?? '',
+          tapLink: contract?.getBlockChainUrl(),
+        ),
+        const Divider(
+          height: 32.0,
+          color: AppColor.secondarySpanishGrey,
+        ),
+        _rowItem(
+          context,
+          "medium".tr(),
+          artwork?.medium.capitalize() ?? "",
+        ),
+        const Divider(
+          height: 32.0,
+          color: AppColor.secondarySpanishGrey,
+        ),
+        _rowItem(
+          context,
+          "date_minted".tr(),
+          mintDate != null ? df.format(mintDate).toUpperCase() : null,
+          maxLines: 1,
+        ),
+      ],
+    );
+  }
 }

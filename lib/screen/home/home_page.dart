@@ -32,13 +32,14 @@ import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
-import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/pending_token_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -316,7 +317,10 @@ class _HomePageState extends State<HomePage>
       return b.lastUpdateTime.compareTo(a.lastUpdateTime);
     });
 
-    final tokenIDs = tokens.map((element) => element.id).toList();
+    final tokenIDs = tokens
+        .where((e) => e.pending != true || e.hasMetadata)
+        .map((element) => element.id)
+        .toList();
 
     const int cellPerRowPhone = 3;
     const int cellPerRowTablet = 6;
@@ -348,17 +352,22 @@ class _HomePageState extends State<HomePage>
             final asset = tokens[index];
 
             return GestureDetector(
-              child: asset.pending == true
-                  ? const PendingTokenWidget()
+              child: asset.pending == true && !asset.hasMetadata
+                  ? PendingTokenWidget(
+                      thumbnail: asset.galleryThumbnailURL,
+                    )
                   : tokenGalleryThumbnailWidget(
                       context,
                       asset,
                       _cachedImageSize,
                     ),
               onTap: () {
-                if (asset.pending == true) return;
+                if (asset.pending == true && !asset.hasMetadata) return;
 
-                final index = tokens.indexOf(asset);
+                final index = tokens
+                    .where((e) => e.pending != true || e.hasMetadata)
+                    .toList()
+                    .indexOf(asset);
                 final payload = ArtworkDetailPayload(tokenIDs, index);
 
                 if (injector<ConfigurationService>()

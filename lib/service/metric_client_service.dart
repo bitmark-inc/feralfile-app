@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:autonomy_flutter/common/environment.dart';
@@ -69,9 +70,13 @@ class MetricClientService {
   }
 
   Future<void> sendAndClearMetrics() async {
-    if (!kDebugMode) {
-      await MetricClient.sendMetrics();
+    try {
+      if (!kDebugMode) {
+        await MetricClient.sendMetrics();
+      }
+      await MetricClient.clear();
+    } catch (e) {
+      log(e.toString());
     }
-    await MetricClient.clear();
   }
 }
