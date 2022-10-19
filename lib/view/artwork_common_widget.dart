@@ -790,9 +790,12 @@ Widget tokenOwnership(
     BuildContext context, AssetToken asset, List<String> addresses) {
   final theme = Theme.of(context);
 
-  int ownedTokens = addresses.map((address) => asset.owners[address] ?? 0).sum;
+  int ownedTokens = asset.balance ?? 0;
   if (ownedTokens == 0) {
-    ownedTokens = addresses.contains(asset.ownerAddress) ? 1 : 0;
+    ownedTokens = addresses.map((address) => asset.owners[address] ?? 0).sum;
+    if (ownedTokens == 0) {
+      ownedTokens = addresses.contains(asset.ownerAddress) ? 1 : 0;
+    }
   }
 
   return Column(

@@ -98,6 +98,7 @@ extension FilterEventExt on FilterEvent {
         galleryThumbnailURL: null,
         title: "",
         ownerAddress: owner,
+        balance: 0,
         owners: {
           owner: 1,
         },
@@ -146,6 +147,7 @@ extension TZKTTokenExtension on TZKTToken {
       thumbnailURL: metadata?["thumbnailUri"],
       galleryThumbnailURL: metadata?["thumbnailUri"],
       title: metadata?["name"] ?? "",
+      balance: 0,
       ownerAddress: owner,
       owners: {
         owner: 1,
