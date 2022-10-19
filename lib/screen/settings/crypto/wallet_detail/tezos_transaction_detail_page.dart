@@ -39,15 +39,13 @@ class TezosTXDetailPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final DateFormat formatter = dateFormatterYMDHM;
+    double safeAreaBottom = MediaQuery.of(context).padding.bottom;
 
     return Scaffold(
       appBar: getBackAppBar(context, onBack: () => Navigator.of(context).pop()),
       body: Container(
         margin: EdgeInsets.only(
-            top: 16.0,
-            left: 16.0,
-            right: 16.0,
-            bottom: MediaQuery.of(context).padding.bottom),
+            top: 16.0, left: 16.0, right: 16.0, bottom: safeAreaBottom + 6),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
