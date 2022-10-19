@@ -38,7 +38,8 @@ class BeaconConnectService {
                 with: .init(
                     name: Constant.appname,
                     blockchains: [Tezos.factory, Substrate.factory],
-                    connections: [try Transport.P2P.Matrix.connection()]
+                    connections: [try Transport.P2P.Matrix.connection()],
+                    secureStorage: UserDefaultsSecureStorage(userDefaults: .standard, accessGroup: Constant.keychainGroup)
                 )
             ) { result in
                 switch result {
