@@ -330,6 +330,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                     );
                   },
                   actionButton: 'see_transaction_detail'.tr().toUpperCase(),
+                  closeButton: "close".tr().toUpperCase(),
                 );
               },
             ),
