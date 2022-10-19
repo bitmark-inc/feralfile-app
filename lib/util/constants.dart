@@ -23,7 +23,8 @@ const KNOWN_BUGS_LINK = 'https://github.com/orgs/bitmark-inc/projects/16';
 const USER_TEST_CALENDAR_LINK =
     'https://calendly.com/anais-bitmark/usertesting';
 const FF_TOKEN_DEEPLINK_PREFIX = 'https://autonomy.io/apps/feralfile?token=';
-const AUTONOMY_CLIENT_GITHUB_LINK = "https://github.com/bitmark-inc/autonomy-client";
+const AUTONOMY_CLIENT_GITHUB_LINK =
+    "https://github.com/bitmark-inc/autonomy-client";
 const DEEP_LINKS = [
   "autonomy://",
   "https://autonomy.io",
@@ -32,7 +33,6 @@ const DEEP_LINKS = [
   "https://autonomy-app-alternate.app.link",
   "https://link.autonomy.io",
 ];
-
 
 Future<bool> isAppCenterBuild() async {
   final PackageInfo info = await PackageInfo.fromPlatform();
@@ -212,4 +212,9 @@ class Constants {
   static const paddingMobile = EdgeInsets.symmetric(horizontal: 14);
   static const paddingTablet = EdgeInsets.symmetric(horizontal: 20);
   static const paddingTabletLandScape = EdgeInsets.symmetric(horizontal: 32);
+  static const branchDeepLinks = [
+    "https://autonomy-app.app.link",
+    "https://autonomy-app-alternate.app.link",
+    "https://link.autonomy.io",
+  ];
 }

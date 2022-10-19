@@ -5,11 +5,15 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
 import 'dart:developer';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/router/router_bloc.dart';
+import 'package:autonomy_flutter/service/feralfile_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
@@ -30,11 +34,97 @@ class OnboardingPage extends StatefulWidget {
 }
 
 class _OnboardingPageState extends State<OnboardingPage> {
+  bool _processing = false;
+  bool fromBranchLink = false;
+
+  @override
+  void initState() {
+    super.initState();
+    handleBranchLink();
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     log("DefineViewRoutingEvent");
     context.read<RouterBloc>().add(DefineViewRoutingEvent());
+  }
+
+  void handleBranchLink() async {
+    setState(() {
+      fromBranchLink = true;
+    });
+
+    Future.delayed(const Duration(seconds: 2), () {
+      final id = memoryValues.airdropFFExhibitionId.value;
+      if (id == null || id.isEmpty) {
+        setState(() {
+          fromBranchLink = false;
+        });
+      }
+    });
+
+    String? currentExhibitionId;
+    memoryValues.airdropFFExhibitionId.addListener(() async {
+      final exhibitionId = memoryValues.airdropFFExhibitionId.value;
+      if (currentExhibitionId == exhibitionId) return;
+      if (exhibitionId != null && exhibitionId.isNotEmpty) {
+        currentExhibitionId = exhibitionId;
+        setState(() {
+          fromBranchLink = true;
+        });
+        final exhibition =
+        await injector<FeralFileService>().getExhibition(exhibitionId);
+
+        if (exhibition.exhibitionStartAt.isAfter(DateTime.now())) {
+          await injector.get<NavigationService>().showExhibitionNotStarted(
+                startTime: exhibition.exhibitionStartAt,
+              );
+          setState(() {
+            fromBranchLink = false;
+            currentExhibitionId = null;
+            memoryValues.airdropFFExhibitionId.value = null;
+          });
+          return;
+        }
+
+        final endTime = exhibition.airdropInfo?.endedAt;
+
+        if (exhibition.airdropInfo == null ||
+            (endTime != null && endTime.isBefore(DateTime.now()))) {
+          await injector.get<NavigationService>().showAirdropExpired();
+          setState(() {
+            fromBranchLink = false;
+            currentExhibitionId = null;
+            memoryValues.airdropFFExhibitionId.value = null;
+          });
+          return;
+        }
+
+        if (exhibition.airdropInfo?.remainAmount == 0) {
+          await injector.get<NavigationService>().showNoRemainingToken(
+                exhibition: exhibition,
+              );
+          setState(() {
+            fromBranchLink = false;
+            currentExhibitionId = null;
+            memoryValues.airdropFFExhibitionId.value = null;
+          });
+          return;
+        }
+
+        if (!mounted) return;
+        await Navigator.of(context).pushNamed(
+          AppRouter.claimFeralfileTokenPage,
+          arguments: exhibition,
+        );
+        currentExhibitionId = null;
+
+        setState(() {
+          fromBranchLink = false;
+        });
+      }
+    });
   }
 
   // @override
@@ -106,17 +196,33 @@ class _OnboardingPageState extends State<OnboardingPage> {
           ),
           Container(
             margin: edgeInsets,
-            child: Column(mainAxisAlignment: MainAxisAlignment.end, children: [
-              state.onboardingStep != OnboardingStep.undefined
-                  ? privacyView(context)
-                  : const SizedBox(),
-              const SizedBox(height: 32.0),
-              _getStartupButton(state),
-            ]),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: fromBranchLink
+                  ? [
+                      Center(
+                          child: Text(
+                        tr('loading...').toUpperCase(),
+                        style: theme.textTheme.ibmBlackNormal14,
+                      ))
+                    ]
+                  : [
+                      state.onboardingStep != OnboardingStep.undefined
+                          ? privacyView(context)
+                          : const SizedBox(),
+                      const SizedBox(height: 32.0),
+                      _getStartupButton(state),
+                    ],
+            ),
           )
         ]);
       },
     ));
+  }
+
+  Future _gotoOwnGalleryPage() async {
+    if (!mounted) return;
+    return Navigator.of(context).pushNamed(AppRouter.beOwnGalleryPage);
   }
 
   Widget _getStartupButton(RouterState state) {
@@ -126,10 +232,12 @@ class _OnboardingPageState extends State<OnboardingPage> {
           children: [
             Expanded(
               child: AuFilledButton(
+                isProcessing: _processing,
+                enabled: !_processing,
                 text: "start".tr().toUpperCase(),
                 key: const Key("start_button"),
-                onPress: () {
-                  Navigator.of(context).pushNamed(AppRouter.beOwnGalleryPage);
+                onPress: () async {
+                  _gotoOwnGalleryPage();
                 },
               ),
             )

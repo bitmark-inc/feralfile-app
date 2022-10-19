@@ -264,7 +264,7 @@ class _SettingsPageState extends State<SettingsPage>
                   final top =
                       viewport.getOffsetToReveal(renderObject, 0.0).offset;
                   final offset = notification.metrics.pixels;
-                  if (offset > (top + (bottom - top) / 3)) {
+                  if (offset > 2 * (top + (bottom - top) / 3)) {
                     _clearPendingSettings();
                   }
                 }
@@ -284,6 +284,7 @@ class _SettingsPageState extends State<SettingsPage>
   void _clearPendingSettings() {
     if (!_pendingSettingsCleared) {
       injector<ConfigurationService>().setPendingSettings(false);
+      injector<ConfigurationService>().setShouldShowSubscriptionHint(false);
       _pendingSettingsCleared = true;
     }
   }

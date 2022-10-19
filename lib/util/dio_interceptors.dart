@@ -5,15 +5,19 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
+import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/util/isolated_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'dart:convert';
 
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:web3dart/crypto.dart';
 
 class LoggingInterceptor extends Interceptor {
   LoggingInterceptor();
@@ -149,5 +153,40 @@ class QuickAuthInterceptor extends Interceptor {
       RequestOptions options, RequestInterceptorHandler handler) async {
     options.headers["Authorization"] = "Bearer $jwtToken";
     return handler.next(options);
+  }
+}
+
+class FeralfileAuthInterceptor extends Interceptor {
+  @override
+  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
+    if (options.headers["X-Api-Signature"] == null &&
+        options.method.toUpperCase() == "POST") {
+      final timestamp =
+          (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
+      final canonicalString = List<String>.of([
+        options.uri.toString(),
+        json.encode(options.data),
+        timestamp,
+      ]).join("|");
+      final hmacSha256 =
+          Hmac(sha256, utf8.encode(Environment.feralFileSecretKey));
+      final digest = hmacSha256.convert(utf8.encode(canonicalString));
+      final sig = bytesToHex(digest.bytes);
+      options.headers["X-Api-Signature"] = "t=$timestamp,s=$sig";
+    }
+    handler.next(options);
+  }
+
+  @override
+  void onError(DioError err, ErrorInterceptorHandler handler) {
+    try {
+      final errorBody = err.response?.data as Map<String, dynamic>;
+      err.error = FeralfileError.fromJson(errorBody["error"]);
+    } catch (e) {
+      log.info(
+          "[FeralfileAuthInterceptor] Can't parse error. ${err.response?.data}");
+    } finally {
+      handler.next(err);
+    }
   }
 }

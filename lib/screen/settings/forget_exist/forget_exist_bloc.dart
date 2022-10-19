@@ -19,6 +19,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/util/migration/migration_util.dart';
 import 'package:autonomy_flutter/util/notification_util.dart';
+import 'package:flutter/material.dart';
 import 'package:nft_collection/database/nft_collection_database.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
@@ -72,7 +73,7 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
 
       _authService.reset();
       _feedService.unviewedCount.value = 0;
-      memoryValues = MemoryValues();
+      memoryValues = MemoryValues(airdropFFExhibitionId: ValueNotifier(null));
 
       emit(ForgetExistState(state.isChecked, false));
     });

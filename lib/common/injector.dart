@@ -216,8 +216,8 @@ Future<void> setup() async {
       () => Web3Client(Environment.web3RpcURL, injector()));
   injector.registerLazySingleton(
       () => TezartClient(Environment.tezosNodeClientURL));
-  injector.registerLazySingleton<FeralFileApi>(
-      () => FeralFileApi(dio, baseUrl: Environment.feralFileAPIURL));
+  injector.registerLazySingleton<FeralFileApi>(() =>
+      FeralFileApi(_feralFileDio(), baseUrl: Environment.feralFileAPIURL));
   injector.registerLazySingleton<BitmarkApi>(
       () => BitmarkApi(dio, baseUrl: Environment.bitmarkAPIURL));
   injector.registerLazySingleton<IndexerApi>(
@@ -236,6 +236,7 @@ Future<void> setup() async {
         injector(),
         injector(),
         injector(),
+        injector(),
       ));
 
   injector.registerLazySingleton<DeeplinkService>(() => DeeplinkServiceImpl(
@@ -247,6 +248,27 @@ Future<void> setup() async {
         injector(),
         nftBloc.database.assetDao,
       ));
+}
+
+Dio _feralFileDio() {
+  final dio = Dio(); // Default a dio instance
+  dio.interceptors.add(LoggingInterceptor());
+  dio.interceptors.add(FeralfileAuthInterceptor());
+  dio.interceptors.add(RetryInterceptor(
+    dio: dio,
+    logPrint: (message) {
+      log.warning("[request retry] $message");
+    },
+    retryDelays: const [
+      // set delays between retries
+      Duration(seconds: 1),
+      Duration(seconds: 2),
+      Duration(seconds: 3),
+    ],
+  ));
+  (dio.transformer as DefaultTransformer).jsonDecodeCallback = parseJson;
+  dio.addSentry(captureFailedRequests: true);
+  return dio;
 }
 
 parseJson(String text) {

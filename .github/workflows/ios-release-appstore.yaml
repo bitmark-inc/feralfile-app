@@ -62,6 +62,10 @@ jobs:
           echo BITMARK_API_TESTNET_URL=${{ secrets.BITMARK_API_TESTNET_URL }} >> .env
           echo FERAL_FILE_API_MAINNET_URL=${{ secrets.FERAL_FILE_API_MAINNET_URL }} >> .env
           echo FERAL_FILE_API_TESTNET_URL=${{ secrets.FERAL_FILE_API_TESTNET_URL }} >> .env
+          echo FERAL_FILE_SECRET_KEY_TESTNET=${{ secrets.FERAL_FILE_SECRET_KEY_TESTNET }} >> .env
+          echo FERAL_FILE_SECRET_KEY_MAINNET=${{ secrets.FERAL_FILE_SECRET_KEY_MAINNET }} >> .env
+          echo FERAL_FILE_ASSET_URL_TESTNET=${{ secrets.FERAL_FILE_ASSET_URL_TESTNET }} >> .env
+          echo FERAL_FILE_ASSET_URL_MAINNET=${{ secrets.FERAL_FILE_ASSET_URL_MAINNET }} >> .env
           echo EXTENSION_SUPPORT_MAINNET_URL=${{ secrets.EXTENSION_SUPPORT_MAINNET_URL }} >> .env
           echo EXTENSION_SUPPORT_TESTNET_URL=${{ secrets.EXTENSION_SUPPORT_TESTNET_URL }} >> .env
           echo CONNECT_WEBSOCKET_MAINNET_URL=${{ secrets.CONNECT_WEBSOCKET_MAINNET_URL }} >> .env
@@ -82,6 +86,7 @@ jobs:
           echo AUTONOMY_SHARD_SERVICE=${{ secrets.AUTONOMY_SHARD_SERVICE }} >> .env
           echo METRIC_ENDPOINT=${{ secrets.METRIC_ENDPOINT }} >> .env
           echo METRIC_SECRET_KEY=${{ secrets.METRIC_SECRET_KEY }} >> .env
+          echo BRANCH_KEY=${{ secrets.BRANCH_KEY }} >> .env
 
           echo APP_TESTNET_CONFIG=${{ github.event.inputs.testnet }} >> .env
           cat .env
