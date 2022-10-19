@@ -355,6 +355,7 @@ class _HomePageState extends State<HomePage>
               child: asset.pending == true && !asset.hasMetadata
                   ? PendingTokenWidget(
                       thumbnail: asset.galleryThumbnailURL,
+                      tokenId: asset.tokenId,
                     )
                   : tokenGalleryThumbnailWidget(
                       context,

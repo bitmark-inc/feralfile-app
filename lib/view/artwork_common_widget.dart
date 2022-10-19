@@ -49,40 +49,43 @@ String getEditionSubTitle(AssetToken token) {
 
 class PendingTokenWidget extends StatelessWidget {
   final String? thumbnail;
-
-  const PendingTokenWidget({Key? key, this.thumbnail}) : super(key: key);
+  final String? tokenId;
+  const PendingTokenWidget({Key? key, this.thumbnail, this.tokenId}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return ClipPath(
-      clipper: AutonomyTopRightRectangleClipper(),
-      child: Container(
-        color: AppColor.secondaryDimGreyBackground,
-        child: Stack(
-          children: [
-            if (thumbnail?.isNotEmpty == true) ...[
-              SizedBox(
-                width: double.infinity,
-                height: double.infinity,
-                child: CachedNetworkImage(
-                  imageUrl: thumbnail!,
-                  fit: BoxFit.cover,
+    return Semantics(
+      label: "pending$tokenId",
+      child: ClipPath(
+        clipper: AutonomyTopRightRectangleClipper(),
+        child: Container(
+          color: AppColor.secondaryDimGreyBackground,
+          child: Stack(
+            children: [
+              if (thumbnail?.isNotEmpty == true) ...[
+                SizedBox(
+                  width: double.infinity,
+                  height: double.infinity,
+                  child: CachedNetworkImage(
+                    imageUrl: thumbnail!,
+                    fit: BoxFit.cover,
+                  ),
+                )
+              ],
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12.8,
+                  vertical: 19.26,
                 ),
+                child: const Align(
+                    alignment: Alignment.bottomLeft,
+                    child: JumpingDots(
+                      color: AppColor.secondaryDimGrey,
+                      radius: 3.2,
+                    )),
               )
             ],
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 12.8,
-                vertical: 19.26,
-              ),
-              child: const Align(
-                  alignment: Alignment.bottomLeft,
-                  child: JumpingDots(
-                    color: AppColor.secondaryDimGrey,
-                    radius: 3.2,
-                  )),
-            )
-          ],
+          ),
         ),
       ),
     );
@@ -187,36 +190,39 @@ Widget tokenGalleryThumbnailWidget(
         return cached;
       });
 
-  return Hero(
-    tag: token.id,
-    key: const Key('Artwork_Thumbnail'),
-    child: ext == ".svg"
-        ? SvgImage(
-            url: thumbnailUrl,
-            loadingWidgetBuilder: (_) => const GalleryThumbnailPlaceholder(),
-            errorWidgetBuilder: (_) => const GalleryThumbnailErrorWidget(),
-            unsupportWidgetBuilder: (context) =>
-                const GalleryUnSupportThumbnailWidget(),
-          )
-        : CachedNetworkImage(
-            imageUrl: thumbnailUrl,
-            fadeInDuration: Duration.zero,
-            fit: BoxFit.cover,
-            memCacheHeight: cachedImageSize,
-            memCacheWidth: cachedImageSize,
-            maxWidthDiskCache: cachedImageSize,
-            maxHeightDiskCache: cachedImageSize,
-            cacheManager: cacheManager,
-            placeholder: (context, index) => FutureBuilder<bool>(
-                future: cachingState,
-                builder: (context, snapshot) {
-                  return GalleryThumbnailPlaceholder(
-                    loading: !(snapshot.data ?? true),
-                  );
-                }),
-            errorWidget: (context, url, error) =>
-                const GalleryThumbnailErrorWidget(),
-          ),
+  return Semantics(
+    label: token.title,
+    child: Hero(
+      tag: token.id,
+      key: const Key('Artwork_Thumbnail'),
+      child: ext == ".svg"
+          ? SvgImage(
+              url: thumbnailUrl,
+              loadingWidgetBuilder: (_) => const GalleryThumbnailPlaceholder(),
+              errorWidgetBuilder: (_) => const GalleryThumbnailErrorWidget(),
+              unsupportWidgetBuilder: (context) =>
+                  const GalleryUnSupportThumbnailWidget(),
+            )
+          : CachedNetworkImage(
+              imageUrl: thumbnailUrl,
+              fadeInDuration: Duration.zero,
+              fit: BoxFit.cover,
+              memCacheHeight: cachedImageSize,
+              memCacheWidth: cachedImageSize,
+              maxWidthDiskCache: cachedImageSize,
+              maxHeightDiskCache: cachedImageSize,
+              cacheManager: cacheManager,
+              placeholder: (context, index) => FutureBuilder<bool>(
+                  future: cachingState,
+                  builder: (context, snapshot) {
+                    return GalleryThumbnailPlaceholder(
+                      loading: !(snapshot.data ?? true),
+                    );
+                  }),
+              errorWidget: (context, url, error) =>
+                  const GalleryThumbnailErrorWidget(),
+            ),
+    ),
   );
 }
 
