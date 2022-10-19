@@ -135,7 +135,7 @@ class BackupService {
         final tempFilePath =
             "${(await getTemporaryDirectory()).path}/$_dbEncryptedFileName";
         final tempFile = File(tempFilePath);
-        await tempFile.writeAsBytes(resp.bodyBytes);
+        await tempFile.writeAsBytes(resp.bodyBytes, flush: true);
         final dbFilePath = await sqfliteDatabaseFactory.getDatabasePath(dbName);
         await account.decryptFile(
           inputPath: tempFilePath,

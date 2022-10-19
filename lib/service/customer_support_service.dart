@@ -400,7 +400,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
 
     File file = File(filePath);
     await file.create(recursive: true);
-    await file.writeAsBytes(bytes);
+    await file.writeAsBytes(bytes, flush: true);
     log.info('[done] storeFile $filename');
     return file.path;
   }
