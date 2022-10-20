@@ -16,10 +16,10 @@ extension AssetTokenExtension on AssetToken {
   static final Map<String, Map<String, String>> _tokenUrlMap = {
     "MAIN": {
       "ethereum": "https://etherscan.io/token/{contract}?a={tokenId}",
-      "tezos": "https://goerli.tzkt.io/{contract}/tokens/{tokenId}/transfers"
+      "tezos": "https://tzkt.io/{contract}/tokens/{tokenId}/transfers"
     },
     "TEST": {
-      "ethereum": "https://rinkeby.etherscan.io/token/{contract}?a={tokenId}",
+      "ethereum": "https://goerli.etherscan.io/token/{contract}?a={tokenId}",
       "tezos": "https://kathmandunet.tzkt.io/{contract}/tokens/{tokenId}/transfers"
     }
   };
