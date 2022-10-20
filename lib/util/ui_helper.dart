@@ -194,7 +194,6 @@ class UIHelper {
               color: theme.colorScheme.secondary,
               textStyle: theme.textTheme.button,
             ),
-            const SizedBox(height: 15),
           ],
           Row(
             children: [

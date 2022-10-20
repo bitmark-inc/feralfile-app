@@ -39,15 +39,13 @@ class TezosTXDetailPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final DateFormat formatter = dateFormatterYMDHM;
+    double safeAreaBottom = MediaQuery.of(context).padding.bottom;
 
     return Scaffold(
       appBar: getBackAppBar(context, onBack: () => Navigator.of(context).pop()),
       body: Container(
         margin: EdgeInsets.only(
-            top: 16.0,
-            left: 16.0,
-            right: 16.0,
-            bottom: MediaQuery.of(context).padding.bottom),
+            top: 16.0, left: 16.0, right: 16.0, bottom: safeAreaBottom + 6),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -93,8 +91,8 @@ class TezosTXDetailPage extends StatelessWidget {
           _transactionInfo(context, "contract".tr(),
               tx_.token?.contract?.alias ?? tx_.token?.contract?.address),
           _transactionInfo(context, "status".tr(), tx_.transactionStatus()),
-          _transactionInfo(
-              context, "date".tr(), formatter.format(tx_.getTimeStamp()).toUpperCase()),
+          _transactionInfo(context, "date".tr(),
+              formatter.format(tx_.getTimeStamp()).toUpperCase()),
           _transactionInfo(context, "token_id".tr(), tx_.token?.tokenId),
           _transactionInfo(context, "token_amount".tr(), tx_.amount),
           if (hasFee) ...[
@@ -129,8 +127,8 @@ class TezosTXDetailPage extends StatelessWidget {
                 : _transactionInfo(context, "from".tr(), tx_.sender?.address),
           ],
           _transactionInfo(context, "status".tr(), tx.transactionStatus()),
-          _transactionInfo(
-              context, "date".tr(), formatter.format(tx.getTimeStamp()).toUpperCase()),
+          _transactionInfo(context, "date".tr(),
+              formatter.format(tx.getTimeStamp()).toUpperCase()),
           if (tx_.type == "transaction")
             _transactionInfo(context, "amount".tr(), _transactionAmount(tx_)),
           if (tx_.sender?.address == currentAddress) ...[
@@ -163,7 +161,8 @@ class TezosTXDetailPage extends StatelessWidget {
                 Text(
                   detail,
                   textAlign: TextAlign.right,
-                  style: theme.textTheme.subtitle1,
+                  style: theme.textTheme.subtitle1
+                      ?.copyWith(color: AppColor.secondaryDimGrey),
                 ),
             ],
           ),
@@ -180,8 +179,8 @@ class TezosTXDetailPage extends StatelessWidget {
   Widget _viewOnTZKT(BuildContext context, TZKTOperation tx) {
     final theme = Theme.of(context);
     final customLinkStyle = theme.textTheme.linkStyle.copyWith(
-        fontSize: 16,
-        fontWeight: FontWeight.w700,
+      fontSize: 16,
+      fontWeight: FontWeight.w700,
     );
 
     return GestureDetector(
@@ -199,8 +198,9 @@ class TezosTXDetailPage extends StatelessWidget {
                 ),
                 children: <TextSpan>[
                   TextSpan(
-                      text: "powered_by_tzkt".tr(),
-                      style: customLinkStyle,),
+                    text: "powered_by_tzkt".tr(),
+                    style: customLinkStyle,
+                  ),
                 ],
               ),
             ),

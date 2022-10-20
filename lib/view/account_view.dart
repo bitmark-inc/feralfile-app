@@ -234,11 +234,13 @@ String _blockchainName(String? blockchain) {
 Widget accountLogo(BuildContext context, Account account) {
   if (account.persona != null) {
     return SizedBox(
-      width: 24,
-      height: 24,
+      width: 26,
+      height: 30,
       child: Stack(
         children: [
-          Image.asset("assets/images/autonomyIcon.png"),
+          Align(
+            alignment: Alignment.centerLeft,
+              child: Image.asset("assets/images/autonomyIcon.png")),
           Align(
             alignment: Alignment.topRight,
             child: account.persona?.defaultAccount == 1 && context.widget.toString().contains("AccountsView")

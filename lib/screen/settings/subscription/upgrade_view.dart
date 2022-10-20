@@ -169,13 +169,14 @@ class UpgradesView extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(width: 2),
-        Icon(
-          CupertinoIcons.checkmark,
-          color: theme.colorScheme.primary,
-          size: 16,
+        const SizedBox(width: 6),
+        Column(
+          children: [
+            const SizedBox(height: 6),
+            SvgPicture.asset("assets/images/icon_checkMark.svg"),
+          ],
         ),
-        const SizedBox(width: 16.0),
+        const SizedBox(width: 12.0),
         Expanded(
           child: Text(
               "view_collection_tv".tr(),

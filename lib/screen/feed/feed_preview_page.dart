@@ -205,7 +205,6 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const SizedBox(width: 13),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
