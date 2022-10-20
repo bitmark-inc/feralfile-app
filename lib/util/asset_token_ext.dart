@@ -181,6 +181,7 @@ AssetToken createPendingAssetToken({
     thumbnailURL: exhibition.getThumbnailURL(),
     galleryThumbnailURL: exhibition.getThumbnailURL(),
     title: exhibition.title,
+    balance: 0,
     ownerAddress: owner,
     owners: {
       owner: 1,
