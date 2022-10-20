@@ -192,6 +192,8 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
         asset?.medium == "image" ||
         asset?.mimeType?.startsWith("audio/") == true;
 
+    keyboardManagerKey.currentState?.hideKeyboard();
+
     if (!canCast) {
       return UIHelper.showUnavailableCastDialog(
         context: context,
