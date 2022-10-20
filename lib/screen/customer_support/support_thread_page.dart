@@ -576,10 +576,14 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   }
 
   Future _addAppLogs() async {
+    const fileMaxSize = 1024 * 1024;
     final file = await log_util.getLogFile();
     final bytes = await file.readAsBytes();
     final auditBytes = await injector<AuditService>().export();
-    final combinedBytes = bytes + auditBytes;
+    var combinedBytes = bytes + auditBytes;
+    if (combinedBytes.length > fileMaxSize) {
+      combinedBytes = combinedBytes.sublist(combinedBytes.length - fileMaxSize);
+    }
     final filename =
         "${combinedBytes.length}_${DateTime.now().microsecondsSinceEpoch}.logs";
 

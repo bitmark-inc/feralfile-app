@@ -139,7 +139,7 @@ class VersionService {
                   onPress: () {
                     final uri = Uri.tryParse(link);
                     if (uri != null) {
-                      launchUrl(uri, mode: LaunchMode.inAppWebView);
+                      launchUrl(uri, mode: LaunchMode.externalApplication);
                     }
                   },
                   color: theme.colorScheme.secondary,
