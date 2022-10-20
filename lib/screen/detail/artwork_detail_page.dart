@@ -112,7 +112,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
               if (artistName != null && artistName.isNotEmpty) {
                 subTitle = "by".tr(args: [artistName]);
               }
-              subTitle += getEditionSubTitle(asset);
 
               return SingleChildScrollView(
                 controller: _scrollController,
@@ -128,15 +127,32 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                       ),
                     ),
                     const SizedBox(height: 8.0),
-                    if (subTitle.isNotEmpty) ...[
-                      Padding(
-                        padding: ResponsiveLayout.getPadding,
-                        child: Text(
-                          subTitle,
-                          style: theme.textTheme.headline3,
-                        ),
+                    Padding(
+                      padding: ResponsiveLayout.getPadding,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.baseline,
+                        textBaseline: TextBaseline.alphabetic,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              subTitle,
+                              style: theme.textTheme.headline3?.copyWith(
+                                fontSize: 18,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(
+                            width: 8,
+                          ),
+                          Text(
+                            getEditionSubTitle(asset),
+                            style: theme.textTheme.headline5?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                     const SizedBox(height: 16.0),
                     GestureDetector(
                         child: TokenThumbnailWidget(

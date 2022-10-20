@@ -149,37 +149,51 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
                           token!.title,
                           style: theme.textTheme.headline1,
                         ),
-                        if (artistName != null && artistName.isNotEmpty) ...[
-                          const SizedBox(height: 4),
-                          RichText(
-                              text: TextSpan(
-                                  style: theme.textTheme.headline3,
-                                  children: [
-                                TextSpan(text: "by".tr(args: [""])),
-                                if (token!.artistID != null) ...[
-                                  TextSpan(
-                                    text: artistName,
-                                    recognizer: TapGestureRecognizer()
-                                      ..onTap = () => Navigator.of(context)
-                                          .pushNamed(AppRouter.galleryPage,
-                                              arguments: GalleryPagePayload(
-                                                address: token!.artistID!,
-                                                artistName: artistName,
-                                                artistURL: token!.artistURL,
-                                              )),
-                                    style: makeLinkStyle(
-                                        theme.textTheme.headline3!),
-                                  ),
-                                ] else ...[
-                                  TextSpan(
-                                    text: artistName,
-                                  )
-                                ],
-                                if (editionSubTitle.isNotEmpty) ...[
-                                  TextSpan(text: editionSubTitle)
-                                ]
-                              ]))
-                        ],
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.baseline,
+                          textBaseline: TextBaseline.alphabetic,
+                          children: [
+                            if (artistName?.isNotEmpty == true) ...[
+                              Expanded(
+                                  child: RichText(
+                                      text: TextSpan(
+                                          style: theme.textTheme.headline3,
+                                          children: [
+                                    TextSpan(text: "by".tr(args: [""])),
+                                    if (token!.artistID != null) ...[
+                                      TextSpan(
+                                        text: artistName,
+                                        recognizer: TapGestureRecognizer()
+                                          ..onTap = () => Navigator.of(context)
+                                              .pushNamed(AppRouter.galleryPage,
+                                                  arguments: GalleryPagePayload(
+                                                    address: token!.artistID!,
+                                                    artistName: artistName!,
+                                                    artistURL: token!.artistURL,
+                                                  )),
+                                        style: makeLinkStyle(
+                                            theme.textTheme.headline3!),
+                                      ),
+                                    ] else ...[
+                                      TextSpan(
+                                        text: artistName,
+                                      )
+                                    ],
+                                  ]))),
+                            ] else ...[
+                              const Expanded(child: SizedBox())
+                            ],
+                            const SizedBox(
+                              width: 8,
+                            ),
+                            Text(
+                              editionSubTitle,
+                              style: theme.textTheme.headline5?.copyWith(
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
                         const SizedBox(height: 15),
                       ],
                     ),

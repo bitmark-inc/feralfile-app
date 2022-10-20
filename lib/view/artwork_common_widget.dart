@@ -44,7 +44,7 @@ String getEditionSubTitle(AssetToken token) {
   return token.maxEdition != null && token.maxEdition! >= 1
       ? tr('edition_of',
           args: [token.edition.toString(), token.maxEdition.toString()])
-      : '(${tr('edition')} ${token.edition})';
+      : '${tr('edition')} ${token.edition}';
 }
 
 class PendingTokenWidget extends StatelessWidget {
@@ -807,7 +807,7 @@ Widget tokenOwnership(
       ),
       const SizedBox(height: 23.0),
       Text(
-        "how_many_shares_you_own".tr(),
+        "how_many_editions_you_own".tr(),
         style: theme.textTheme.bodyText1,
       ),
       const SizedBox(height: 16.0),
@@ -1123,15 +1123,17 @@ class FeralfileArtworkDetailsMetadataSection extends StatelessWidget {
           artist?.getDisplayName(),
           tapLink: "${Environment.feralFileAPIURL}/profiles/${artist?.id}",
         ),
-        const Divider(
-          height: 32.0,
-          color: AppColor.secondarySpanishGrey,
-        ),
-        _rowItem(
-          context,
-          "edition_size".tr(),
-          exhibition.maxEdition.toString(),
-        ),
+        if (exhibition.maxEdition > 0) ...[
+          const Divider(
+            height: 32.0,
+            color: AppColor.secondarySpanishGrey,
+          ),
+          _rowItem(
+            context,
+            "edition_size".tr(),
+            exhibition.maxEdition.toString(),
+          ),
+        ],
         const Divider(
           height: 32.0,
           color: AppColor.secondarySpanishGrey,
