@@ -20,29 +20,28 @@ import 'package:autonomy_flutter/screen/settings/subscription/upgrade_box_view.d
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cast/cast.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_to_airplay/flutter_to_airplay.dart';
-import 'package:metric_client/metric_client.dart';
 import 'package:mime/mime.dart';
 import 'package:nft_collection/models/asset_token.dart';
-import 'package:autonomy_flutter/util/string_ext.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
-import 'package:easy_localization/easy_localization.dart';
 import 'package:nft_rendering/nft_rendering.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shake/shake.dart';
 import 'package:wakelock/wakelock.dart';
-import 'package:autonomy_flutter/util/asset_token_ext.dart';
 
 enum AUCastDeviceType { Airplay, Chromecast }
 
@@ -87,8 +86,8 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   void initState() {
     controller = PageController(initialPage: widget.payload.currentIndex);
     _bloc = context.read<ArtworkPreviewBloc>();
-    final currentId = widget.payload.ids[widget.payload.currentIndex];
-    _bloc.add(ArtworkPreviewGetAssetTokenEvent(currentId));
+    final currentIdentity = widget.payload.identities[widget.payload.currentIndex];
+    _bloc.add(ArtworkPreviewGetAssetTokenEvent(currentIdentity));
     super.initState();
   }
 
@@ -152,7 +151,8 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     final isImmediateInfoViewEnabled =
         injector<ConfigurationService>().isImmediateInfoViewEnabled();
 
-    final currentIndex = widget.payload.ids.indexOf(asset.id);
+    final currentIndex = widget.payload.identities.indexWhere((element) =>
+        element.id == asset.id && element.owner == asset.ownerAddress);
     if (isImmediateInfoViewEnabled &&
         currentIndex == widget.payload.currentIndex) {
       Navigator.of(context).pop();
@@ -530,16 +530,16 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                         ? const NeverScrollableScrollPhysics()
                         : null,
                     onPageChanged: (value) {
-                      final currentId = widget.payload.ids[value];
+                      final currentId = widget.payload.identities[value];
                       _bloc.add(ArtworkPreviewGetAssetTokenEvent(currentId));
                       _stopAllChromecastDevices();
                       keyboardManagerKey.currentState?.hideKeyboard();
                     },
                     controller: controller,
-                    itemCount: widget.payload.ids.length,
+                    itemCount: widget.payload.identities.length,
                     itemBuilder: (context, index) => Center(
                       child: ArtworkPreviewWidget(
-                        id: widget.payload.ids[index],
+                        identity: widget.payload.identities[index],
                       ),
                     ),
                   ),
@@ -560,6 +560,7 @@ class ControlView extends StatelessWidget {
   final Function(AssetToken?)? onClickCast;
   final VoidCallback? onClickInfo;
   final Key? keyboardManagerKey;
+
   const ControlView({
     Key? key,
     this.assetToken,
@@ -679,6 +680,7 @@ class ControlView extends StatelessWidget {
 class CastButton extends StatelessWidget {
   final AssetToken? assetToken;
   final VoidCallback? onCastTap;
+
   const CastButton({Key? key, this.assetToken, this.onCastTap})
       : super(key: key);
 

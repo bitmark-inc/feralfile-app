@@ -17,7 +17,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_rendering/nft_rendering.dart';
 
@@ -62,7 +61,8 @@ class _HiddenArtworksPageState extends State<HiddenArtworksPage> {
   Widget _assetsWidget(List<AssetToken> tokens) {
     final theme = Theme.of(context);
 
-    final tokenIDs = tokens.map((e) => e.id).toList();
+    final artworkIdentities =
+        tokens.map((e) => ArtworkIdentity(e.id, e.ownerAddress)).toList();
     const int cellPerRowPhone = 3;
     const int cellPerRowTablet = 6;
     const double cellSpacing = 3.0;
@@ -126,8 +126,10 @@ class _HiddenArtworksPageState extends State<HiddenArtworksPage> {
                           ),
                   ),
                   onTap: () {
-                    final index = tokenIDs.indexOf(asset.id);
-                    final payload = ArtworkDetailPayload(tokenIDs, index);
+                    final index = artworkIdentities.indexWhere((element) =>
+                        element.id == asset.id &&
+                        element.owner == asset.ownerAddress);
+                    final payload = ArtworkDetailPayload(artworkIdentities, index);
 
                     if (injector<ConfigurationService>()
                         .isImmediateInfoViewEnabled()) {

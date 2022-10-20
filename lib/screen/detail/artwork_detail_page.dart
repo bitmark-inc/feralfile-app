@@ -57,7 +57,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     super.initState();
 
     context.read<ArtworkDetailBloc>().add(ArtworkDetailGetInfoEvent(
-        widget.payload.ids[widget.payload.currentIndex]));
+        widget.payload.identities[widget.payload.currentIndex]));
     context.read<AccountsBloc>().add(FetchAllAddressesEvent());
     context.read<AccountsBloc>().add(GetAccountsEvent());
   }
@@ -68,7 +68,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     await metricClient.addEvent(
       "view_artwork_detail",
       data: {
-        "id": widget.payload.ids[widget.payload.currentIndex],
+        "id": widget.payload.identities[widget.payload.currentIndex],
       },
     );
   }
@@ -353,18 +353,25 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
 }
 
 class ArtworkDetailPayload {
-  final List<String> ids;
+  final List<ArtworkIdentity> identities;
   final int currentIndex;
 
-  ArtworkDetailPayload(this.ids, this.currentIndex);
+  ArtworkDetailPayload(this.identities, this.currentIndex);
 
   ArtworkDetailPayload copyWith({
-    List<String>? ids,
+    List<ArtworkIdentity>? ids,
     int? currentIndex,
   }) {
     return ArtworkDetailPayload(
-      ids ?? this.ids,
+      ids ?? this.identities,
       currentIndex ?? this.currentIndex,
     );
   }
+}
+
+class ArtworkIdentity {
+  final String id;
+  final String owner;
+
+  ArtworkIdentity(this.id, this.owner);
 }

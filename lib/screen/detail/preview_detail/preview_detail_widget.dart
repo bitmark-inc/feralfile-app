@@ -6,26 +6,23 @@
 //
 
 import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:nft_rendering/nft_rendering.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 
-// ignore: depend_on_referenced_packages
-import 'package:path/path.dart' as p;
-
 class ArtworkPreviewWidget extends StatefulWidget {
-  final String id;
+  final ArtworkIdentity identity;
   const ArtworkPreviewWidget({
     Key? key,
-    required this.id,
+    required this.identity,
   }) : super(key: key);
 
   @override
@@ -42,7 +39,7 @@ class _ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
 
   @override
   void initState() {
-    bloc.add(ArtworkPreviewDetailGetAssetTokenEvent(widget.id));
+    bloc.add(ArtworkPreviewDetailGetAssetTokenEvent(widget.identity));
     WidgetsBinding.instance.addObserver(this);
     super.initState();
   }

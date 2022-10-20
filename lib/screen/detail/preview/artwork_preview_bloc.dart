@@ -21,7 +21,7 @@ class ArtworkPreviewBloc
   ArtworkPreviewBloc(this._assetTokenDao, this._configurationService)
       : super(ArtworkPreviewLoadingState()) {
     on<ArtworkPreviewGetAssetTokenEvent>((event, emit) async {
-      final asset = await _assetTokenDao.findAssetTokenById(event.id);
+      final asset = await _assetTokenDao.findAssetTokenByIdAndOwner(event.identity.id, event.identity.owner);
       if (state is ArtworkPreviewLoadedState) {
         final currentState = state as ArtworkPreviewLoadedState;
         emit(currentState.copyWith(asset: asset));

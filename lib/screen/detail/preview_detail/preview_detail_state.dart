@@ -5,14 +5,15 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:nft_collection/models/asset_token.dart';
 
 abstract class ArtworkPreviewDetailEvent {}
 
 class ArtworkPreviewDetailGetAssetTokenEvent extends ArtworkPreviewDetailEvent {
-  final String id;
+  final ArtworkIdentity identity;
 
-  ArtworkPreviewDetailGetAssetTokenEvent(this.id);
+  ArtworkPreviewDetailGetAssetTokenEvent(this.identity);
 }
 
 abstract class ArtworkPreviewDetailState {

@@ -6,15 +6,16 @@
 //
 
 import 'package:autonomy_flutter/model/asset_price.dart';
+import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/provenance.dart';
 
 abstract class ArtworkDetailEvent {}
 
 class ArtworkDetailGetInfoEvent extends ArtworkDetailEvent {
-  final String id;
+  final ArtworkIdentity identity;
 
-  ArtworkDetailGetInfoEvent(this.id);
+  ArtworkDetailGetInfoEvent(this.identity);
 }
 
 class ArtworkDetailState {

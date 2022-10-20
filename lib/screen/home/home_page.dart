@@ -317,9 +317,9 @@ class _HomePageState extends State<HomePage>
       return b.lastUpdateTime.compareTo(a.lastUpdateTime);
     });
 
-    final tokenIDs = tokens
+    final accountIdentities = tokens
         .where((e) => e.pending != true || e.hasMetadata)
-        .map((element) => element.id)
+        .map((element) => ArtworkIdentity(element.id, element.ownerAddress))
         .toList();
 
     const int cellPerRowPhone = 3;
@@ -368,7 +368,7 @@ class _HomePageState extends State<HomePage>
                     .where((e) => e.pending != true || e.hasMetadata)
                     .toList()
                     .indexOf(asset);
-                final payload = ArtworkDetailPayload(tokenIDs, index);
+                final payload = ArtworkDetailPayload(accountIdentities, index);
 
                 if (injector<ConfigurationService>()
                     .isImmediateInfoViewEnabled()) {

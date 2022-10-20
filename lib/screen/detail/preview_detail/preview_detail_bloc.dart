@@ -18,7 +18,7 @@ class ArtworkPreviewDetailBloc
   ArtworkPreviewDetailBloc(this._assetTokenDao, this._configurationService)
       : super(ArtworkPreviewDetailLoadingState()) {
     on<ArtworkPreviewDetailGetAssetTokenEvent>((event, emit) async {
-      final asset = await _assetTokenDao.findAssetTokenById(event.id);
+      final asset = await _assetTokenDao.findAssetTokenByIdAndOwner(event.identity.id, event.identity.owner);
       emit(ArtworkPreviewDetailLoadedState(asset: asset));
     });
   }
