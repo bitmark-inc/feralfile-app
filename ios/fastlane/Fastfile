@@ -25,6 +25,15 @@ platform :ios do
 		appcenter_build = appcenter_info["build_number"]
 		return appcenter_build
 	end
+	def get_max_appcenter_test_build
+		appcenter_info = appcenter_fetch_version_number(
+			api_token: ENV["APPCENTER_API_TOKEN"],
+			owner_name: "support-zzd0-28",
+			app_name: "Autonomy-iOS-Test"
+		)
+		appcenter_build = appcenter_info["build_number"]
+		return appcenter_build
+	end
 
 	desc "Run unit tests"
 	lane :test do
@@ -103,7 +112,47 @@ platform :ios do
     	)
 	end
 
-	lane :ciappcenter do
+    lane :build_appcenter_test do
+		old_build_number = 0
+		next_build_number = old_build_number.to_i + 1
+		increment_build_number(build_number: next_build_number)
+		app_identifier = 'com.bitmark.autonomy.inhouse'
+
+		increment_version_number(
+  			version_number: ENV["APP_VERSION"]
+		)
+
+		build_app(
+			scheme: "inhouse",
+			export_method: "enterprise",
+			workspace: "Runner.xcworkspace",
+			cloned_source_packages_path: "SourcePackages",
+			include_bitcode: false,
+			clean: false,
+			export_options: {
+				method: "enterprise",
+				provisioningProfiles: {
+					"com.bitmark.autonomy.inhouse": "Autonomy Inhouse",
+					"com.bitmark.autonomy.inhouse.notification": "Autonomy Inhouse Notification",
+				},
+				iCloudContainerEnvironment: 'Production'
+			},
+			configuration: "Release-inhouse",
+			skip_profile_detection: true,
+			output_directory: "./ipas")
+
+		appcenter_upload(
+			api_token: ENV["APPCENTER_API_TOKEN"],
+			owner_name: "support-zzd0-28",
+			app_name: "Autonomy-iOS-Test",
+			destinations: "Bitmark Internal Testers,Collaborators",
+			release_notes: ENV["RELEASE_NOTES"],
+			notify_testers: true)
+	end
+
+	lane :ciappcenter do |options|
+	    env = options[:env]
+
 		keychainName = "TravisKeychain"
 	  	keychainPath = "keychains/keychain-db"
 		keychainPassword = SecureRandom.base64
@@ -127,7 +176,11 @@ platform :ios do
 		install_provisioning_profile(path: "fastlane/provisioning_profiles/Autonomy_Inhouse.mobileprovision")
 		install_provisioning_profile(path: "fastlane/provisioning_profiles/Autonomy_Inhouse_Notification.mobileprovision")
 
-		build_appcenter
+        if env == 'test'
+		    build_appcenter_test
+        else
+		    build_appcenter
+        end
 
 		delete_keychain(
 			name: keychainName

@@ -3,17 +3,12 @@ on:
   # Enable manual run
   workflow_dispatch:
     inputs:
-      lane:
-        type: choice
-        description: 'Fastlane lane to use'
-        required: true
-        options:
-        - ciappcenter
-        - citestflight
-        default: 'ciappcenter'
       version:
           description: 'App version'
           required: true
+      message:
+        description: Change logs
+        required: false
       testnet:
         type: boolean
         default: false
@@ -126,12 +121,13 @@ jobs:
           SENTRY_AUTH: ${{ secrets.SENTRY_AUTH }}
           APPCENTER_API_TOKEN: ${{ secrets.APPCENTER_API_TOKEN }}
           APP_VERSION: ${{ github.event.inputs.version }}
+          RELEASE_NOTES: ${{ github.event.inputs.message }}
 
         run: |
           git clone git@github.com:bitmark-inc/mobile-signing-key-vault.git --depth 1
           echo $JSON_FILE >> key.json
           bundle exec fastlane install_plugins
           echo "APP_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
-          bundle exec fastlane ${{ github.event.inputs.lane || 'ciappcenter' }}
+          bundle exec fastlane ciappcenter env:${{ github.event.inputs.testnet && 'test' || 'main' }}
 
         working-directory: ios
