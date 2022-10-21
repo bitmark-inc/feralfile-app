@@ -55,7 +55,7 @@ class PendingTokenWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Semantics(
-      label: "pending$tokenId",
+      label: "pending: $tokenId",
       child: ClipPath(
         clipper: AutonomyTopRightRectangleClipper(),
         child: Container(
