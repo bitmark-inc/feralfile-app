@@ -26,7 +26,10 @@ abstract class FeralFileApi {
       @Body() Map<String, List<String>> body);
 
   @GET("/api/exhibitions/{exhibitionId}")
-  Future<ExhibitionResponse> getExhibition(@Path("exhibitionId") String exhibitionId);
+  Future<ExhibitionResponse> getExhibition(
+    @Path("exhibitionId") String exhibitionId, {
+    @Query("includeArtwork") bool includeArtwork = true,
+  });
 
   @POST("/api/exhibitions/{exhibitionId}/claim")
   Future<TokenClaimResponse> claimToken(

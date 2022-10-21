@@ -58,9 +58,12 @@ class _FeralFileApi implements FeralFileApi {
   }
 
   @override
-  Future<ExhibitionResponse> getExhibition(exhibitionId) async {
+  Future<ExhibitionResponse> getExhibition(exhibitionId,
+      {includeArtwork = true}) async {
     const _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      r'includeArtwork': includeArtwork
+    };
     final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
     final _result = await _dio.fetch<Map<String, dynamic>>(
