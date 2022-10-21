@@ -6,6 +6,7 @@
 //
 
 import 'dart:collection';
+import 'dart:convert';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
@@ -68,7 +69,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     await metricClient.addEvent(
       "view_artwork_detail",
       data: {
-        "id": widget.payload.identities[widget.payload.currentIndex],
+        "id": jsonEncode(widget.payload.identities[widget.payload.currentIndex]),
       },
     );
   }
