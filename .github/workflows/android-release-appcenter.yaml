@@ -92,7 +92,7 @@ jobs:
         with:
           token: ${{ secrets.APPCENTER_API_TOKEN }}
           path: build/app/outputs/flutter-apk/app-inhouse-release.apk
-          app: ${{ github.event.inputs.testnet }} && 'support-zzd0-28/Autonomy-Android-Test' || 'support-zzd0-28/Autonomy-Android-1'
+          app: ${{ !github.event.inputs.testnet && 'support-zzd0-28/Autonomy-Android-1' || 'support-zzd0-28/Autonomy-Android-Test' }}
           silent: false
           group: 'Collaborators,Bitmark Internal Testers'
           release_notes: ${{ github.event.inputs.message }}
