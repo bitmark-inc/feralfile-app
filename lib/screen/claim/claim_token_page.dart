@@ -58,7 +58,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
     return Scaffold(
       backgroundColor: theme.colorScheme.primary,
       body: Container(
-        padding: EdgeInsets.fromLTRB(14, safeAreaTop, 14, 14),
+        padding: const EdgeInsets.fromLTRB(14, 28, 14, 40),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -67,9 +67,8 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
               child: Center(
                 child: Text(
                   "autonomy".tr(),
-                  style: theme.primaryTextTheme.bodyText1?.copyWith(
+                  style: theme.primaryTextTheme.subtitle1?.copyWith(
                     fontWeight: FontWeight.w600,
-                    fontSize: 14,
                   ),
                 ),
               ),
@@ -81,6 +80,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                   return false;
                 },
                 child: ListView(
+                  padding: const EdgeInsets.all(0),
                   shrinkWrap: true,
                   children: [
                     const SizedBox(
@@ -118,36 +118,38 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                     const SizedBox(
                       height: 16,
                     ),
-                    GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      child: Stack(
-                        alignment: AlignmentDirectional.center,
-                        children: [
-                          Transform.translate(
-                            offset: const Offset(1, 0),
-                            child: ClipPath(
-                              clipper: AutonomyTopRightRectangleClipper(),
-                              child: CachedNetworkImage(
-                                fit: BoxFit.cover,
-                                imageUrl: artworkThumbnail,
-                                width: 264,
-                                height: 264,
+                    FittedBox(
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        child: Stack(
+                          alignment: AlignmentDirectional.center,
+                          children: [
+                            Transform.translate(
+                              offset: const Offset(1, 0),
+                              child: ClipPath(
+                                clipper: AutonomyTopRightRectangleClipper(),
+                                child: CachedNetworkImage(
+                                  fit: BoxFit.cover,
+                                  imageUrl: artworkThumbnail,
+                                  width: 264,
+                                  height: 264,
+                                ),
                               ),
                             ),
-                          ),
-                          Image.asset("assets/images/ribbon.png"),
-                        ],
-                      ),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => PreviewTokenClaim(
-                              exhibition: widget.exhibition,
+                            Image.asset("assets/images/ribbon.png"),
+                          ],
+                        ),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => PreviewTokenClaim(
+                                exhibition: widget.exhibition,
+                              ),
                             ),
-                          ),
-                        );
-                      },
+                          );
+                        },
+                      ),
                     ),
                     const SizedBox(
                       height: 16,
@@ -196,7 +198,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                               text: "airdrop_privacy_policy".tr(),
                               style: makeLinkStyle(
                                   theme.primaryTextTheme.bodyText1!.copyWith(
-                                      fontSize: 14,
+                                      fontSize: 12,
                                       fontWeight: FontWeight.bold)),
                               recognizer: TapGestureRecognizer()
                                 ..onTap = () {

@@ -51,8 +51,8 @@ Exhibition _$ExhibitionFromJson(Map<String, dynamic> json) => Exhibition(
       (json['artworks'] as List<dynamic>)
           .map((e) => FFArtwork.fromJson(e as Map<String, dynamic>))
           .toList(),
-      (json['contracts'] as List<dynamic>)
-          .map((e) => FFContract.fromJson(e as Map<String, dynamic>))
+      (json['contracts'] as List<dynamic>?)
+          ?.map((e) => FFContract.fromJson(e as Map<String, dynamic>))
           .toList(),
       json['mintBlockchain'] as String,
     );

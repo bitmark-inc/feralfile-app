@@ -58,68 +58,76 @@ class _OnboardingPageState extends State<OnboardingPage> {
     Future.delayed(const Duration(seconds: 2), () {
       final id = memoryValues.airdropFFExhibitionId.value;
       if (id == null || id.isEmpty) {
-        setState(() {
-          fromBranchLink = false;
-        });
+        if (mounted) {
+          setState(() {
+            fromBranchLink = false;
+          });
+        }
       }
     });
 
     String? currentExhibitionId;
     memoryValues.airdropFFExhibitionId.addListener(() async {
-      final exhibitionId = memoryValues.airdropFFExhibitionId.value;
-      if (currentExhibitionId == exhibitionId) return;
-      if (exhibitionId != null && exhibitionId.isNotEmpty) {
-        currentExhibitionId = exhibitionId;
-        setState(() {
-          fromBranchLink = true;
-        });
-        final exhibition =
-        await injector<FeralFileService>().getExhibition(exhibitionId);
+      try {
+        final exhibitionId = memoryValues.airdropFFExhibitionId.value;
+        if (currentExhibitionId == exhibitionId) return;
+        if (exhibitionId != null && exhibitionId.isNotEmpty) {
+          currentExhibitionId = exhibitionId;
+          setState(() {
+            fromBranchLink = true;
+          });
+          final exhibition =
+              await injector<FeralFileService>().getExhibition(exhibitionId);
 
-        if (exhibition.exhibitionStartAt.isAfter(DateTime.now())) {
-          await injector.get<NavigationService>().showExhibitionNotStarted(
-                startTime: exhibition.exhibitionStartAt,
-              );
+          if (exhibition.exhibitionStartAt.isAfter(DateTime.now())) {
+            await injector.get<NavigationService>().showExhibitionNotStarted(
+                  startTime: exhibition.exhibitionStartAt,
+                );
+            setState(() {
+              fromBranchLink = false;
+              currentExhibitionId = null;
+              memoryValues.airdropFFExhibitionId.value = null;
+            });
+            return;
+          }
+
+          final endTime = exhibition.airdropInfo?.endedAt;
+
+          if (exhibition.airdropInfo == null ||
+              (endTime != null && endTime.isBefore(DateTime.now()))) {
+            await injector.get<NavigationService>().showAirdropExpired();
+            setState(() {
+              fromBranchLink = false;
+              currentExhibitionId = null;
+              memoryValues.airdropFFExhibitionId.value = null;
+            });
+            return;
+          }
+
+          if (exhibition.airdropInfo?.remainAmount == 0) {
+            await injector.get<NavigationService>().showNoRemainingToken(
+                  exhibition: exhibition,
+                );
+            setState(() {
+              fromBranchLink = false;
+              currentExhibitionId = null;
+              memoryValues.airdropFFExhibitionId.value = null;
+            });
+            return;
+          }
+
+          if (!mounted) return;
+          await Navigator.of(context).pushNamed(
+            AppRouter.claimFeralfileTokenPage,
+            arguments: exhibition,
+          );
+          currentExhibitionId = null;
+
           setState(() {
             fromBranchLink = false;
-            currentExhibitionId = null;
-            memoryValues.airdropFFExhibitionId.value = null;
           });
-          return;
         }
-
-        final endTime = exhibition.airdropInfo?.endedAt;
-
-        if (exhibition.airdropInfo == null ||
-            (endTime != null && endTime.isBefore(DateTime.now()))) {
-          await injector.get<NavigationService>().showAirdropExpired();
-          setState(() {
-            fromBranchLink = false;
-            currentExhibitionId = null;
-            memoryValues.airdropFFExhibitionId.value = null;
-          });
-          return;
-        }
-
-        if (exhibition.airdropInfo?.remainAmount == 0) {
-          await injector.get<NavigationService>().showNoRemainingToken(
-                exhibition: exhibition,
-              );
-          setState(() {
-            fromBranchLink = false;
-            currentExhibitionId = null;
-            memoryValues.airdropFFExhibitionId.value = null;
-          });
-          return;
-        }
-
-        if (!mounted) return;
-        await Navigator.of(context).pushNamed(
-          AppRouter.claimFeralfileTokenPage,
-          arguments: exhibition,
-        );
-        currentExhibitionId = null;
-
+      } catch (e) {
         setState(() {
           fromBranchLink = false;
         });

@@ -103,13 +103,12 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                     ? TezosTXListView(address: state.address)
                     : Container(),
               ),
-              const SizedBox(height: 10),
               widget.payload.type == CryptoType.XTZ
                   ? GestureDetector(
                       onTap: () => launchUrlString(_txURL(state.address)),
                       child: Container(
                         alignment: Alignment.bottomCenter,
-                        padding: const EdgeInsets.fromLTRB(0, 18, 0, 24),
+                        padding: const EdgeInsets.fromLTRB(0, 17, 0, 20),
                         color: AppColor.secondaryDimGreyBackground,
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,

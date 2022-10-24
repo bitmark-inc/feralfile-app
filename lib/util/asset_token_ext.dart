@@ -128,10 +128,14 @@ String _replaceIPFSPreviewURL(String url, String medium) {
     return url;
   }
 
+  url =
+      url.replacePrefix(IPFS_PREFIX, "${Environment.autonomyIpfsPrefix}/ipfs/");
   return url.replacePrefix(DEFAULT_IPFS_PREFIX, Environment.autonomyIpfsPrefix);
 }
 
 String _replaceIPFS(String url) {
+  url =
+      url.replacePrefix(IPFS_PREFIX, "${Environment.autonomyIpfsPrefix}/ipfs/");
   return url.replacePrefix(DEFAULT_IPFS_PREFIX, Environment.autonomyIpfsPrefix);
 }
 

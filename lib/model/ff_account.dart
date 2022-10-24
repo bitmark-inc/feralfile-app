@@ -71,7 +71,7 @@ class Exhibition {
   final String mintBlockchain;
   final List<FFArtist> artists;
   final List<FFArtwork> artworks;
-  final List<FFContract> contracts;
+  final List<FFContract>? contracts;
   // FIXME: support multiple airdrop artworks in a exhibition?
   @JsonKey(ignore: true)
   FFArtwork? airdropArtwork;
@@ -110,7 +110,7 @@ class Exhibition {
 
   FFContract? get airdropContract {
     final contractAddress = airdropArtwork?.airdropInfo?.contractAddress;
-    return contracts.firstWhereOrNull((e) => e.address == contractAddress);
+    return contracts?.firstWhereOrNull((e) => e.address == contractAddress);
   }
 
   String getThumbnailURL() {
