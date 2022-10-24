@@ -14,6 +14,7 @@ const CLOUDFLAREIMAGEURLPREFIX =
     'https://imagedelivery.net/iCRs13uicXIPOWrnuHbaKA/';
 const AUTONOMY_TV_PEER_NAME = 'Autonomy TV';
 const DEFAULT_IPFS_PREFIX = 'https://ipfs.io';
+const IPFS_PREFIX = "ipfs://";
 const CLOUDFLARE_IPFS_PREFIX = 'https://cloudflare-ipfs.com';
 const EMPTY_ISSUE_MESSAGE = 'NO MESSAGE BODY WAS PROVIDED';
 const RATING_MESSAGE_START = "### Customer support rating\n";
