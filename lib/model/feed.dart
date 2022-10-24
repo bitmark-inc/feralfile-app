@@ -100,6 +100,10 @@ class FeedEvent {
       _$FeedEventFromJson(json);
 
   Map<String, dynamic> toJson() => _$FeedEventToJson(this);
+
+  String get uniqueKey {
+    return "${chain}_${contract}_${tokenID}_$recipient";
+  }
 }
 
 extension FeedEventHelpers on FeedEvent {
