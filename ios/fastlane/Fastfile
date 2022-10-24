@@ -113,7 +113,7 @@ platform :ios do
 	end
 
     lane :build_appcenter_test do
-		old_build_number = 0
+		old_build_number = get_max_appcenter_test_build
 		next_build_number = old_build_number.to_i + 1
 		increment_build_number(build_number: next_build_number)
 		app_identifier = 'com.bitmark.autonomy.inhouse'
