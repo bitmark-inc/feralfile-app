@@ -10,6 +10,7 @@ import 'dart:convert';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/sent_artwork.dart';
 import 'package:autonomy_flutter/model/tzkt_operation.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
@@ -37,7 +38,9 @@ import 'package:metric_client/metric_client.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/provenance.dart';
 import 'package:nft_collection/nft_collection.dart';
+
 part 'artwork_detail_page.g.dart';
+
 class ArtworkDetailPage extends StatefulWidget {
   final ArtworkDetailPayload payload;
 
@@ -70,7 +73,8 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     await metricClient.addEvent(
       "view_artwork_detail",
       data: {
-        "id": jsonEncode(widget.payload.identities[widget.payload.currentIndex]),
+        "id":
+        jsonEncode(widget.payload.identities[widget.payload.currentIndex]),
       },
     );
   }
@@ -91,24 +95,27 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
               }),
           body: BlocConsumer<ArtworkDetailBloc, ArtworkDetailState>(
               listener: (context, state) {
-            final identitiesList =
+                final identitiesList =
                 state.provenances.map((e) => e.owner).toList();
-            if (state.asset?.artistName != null &&
-                state.asset!.artistName!.length > 20) {
-              identitiesList.add(state.asset!.artistName!);
-            }
-            setState(() {
-              currentAsset = state.asset;
-            });
+                if (state.asset?.artistName != null &&
+                    state.asset!.artistName!.length > 20) {
+                  identitiesList.add(state.asset!.artistName!);
+                }
+                setState(() {
+                  currentAsset = state.asset;
+                });
 
-            context.read<IdentityBloc>().add(GetIdentityEvent(identitiesList));
-          }, builder: (context, state) {
+                context.read<IdentityBloc>().add(
+                    GetIdentityEvent(identitiesList));
+              }, builder: (context, state) {
             if (state.asset != null) {
-              final identityState = context.watch<IdentityBloc>().state;
+              final identityState = context
+                  .watch<IdentityBloc>()
+                  .state;
               final asset = state.asset!;
 
               final artistName =
-                  asset.artistName?.toIdentityOrMask(identityState.identityMap);
+              asset.artistName?.toIdentityOrMask(identityState.identityMap);
 
               var subTitle = "";
               if (artistName != null && artistName.isNotEmpty) {
@@ -221,11 +228,12 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                                     context, asset, addresses);
                               },
                             ),
-                          ] else ...[
-                            state.provenances.isNotEmpty
-                                ? _provenanceView(context, state.provenances)
-                                : const SizedBox()
-                          ],
+                          ] else
+                            ...[
+                              state.provenances.isNotEmpty
+                                  ? _provenanceView(context, state.provenances)
+                                  : const SizedBox()
+                            ],
                           const SizedBox(height: 80.0),
                         ],
                       ),
@@ -256,14 +264,15 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
       builder: (context, identityState) =>
           BlocBuilder<AccountsBloc, AccountsState>(
               builder: (context, accountsState) {
-        final event = accountsState.event;
-        if (event != null && event is FetchAllAddressesSuccessEvent) {
-          _accountNumberHash = HashSet.of(event.addresses);
-        }
+                final event = accountsState.event;
+                if (event != null && event is FetchAllAddressesSuccessEvent) {
+                  _accountNumberHash = HashSet.of(event.addresses);
+                }
 
-        return artworkDetailsProvenanceSectionNotEmpty(context, provenances,
-            _accountNumberHash, identityState.identityMap);
-      }),
+                return artworkDetailsProvenanceSectionNotEmpty(
+                    context, provenances,
+                    _accountNumberHash, identityState.identityMap);
+              }),
     );
   }
 
@@ -314,10 +323,10 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
               Navigator.of(context).pop();
               UIHelper.showHideArtworkResultDialog(context, !isHidden,
                   onOK: () {
-                Navigator.of(context).popUntil((route) =>
+                    Navigator.of(context).popUntil((route) =>
                     route.settings.name == AppRouter.homePage ||
-                    route.settings.name == AppRouter.homePageNoTransition);
-              });
+                        route.settings.name == AppRouter.homePageNoTransition);
+                  });
             },
           ),
           if (ownerWallet != null) ...[
@@ -339,6 +348,12 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
 
                 if (!mounted) return;
                 final tx = payload['tx'] as TZKTOperation;
+                final isSentAll = payload['isSentAll'] as bool;
+                if (isSentAll) {
+                  injector<ConfigurationService>().updateRecentlySentToken([
+                    SentArtwork(asset.id, asset.ownerAddress, DateTime.now())
+                  ]);
+                }
                 UIHelper.showMessageAction(
                   context,
                   'success'.tr(),
@@ -350,11 +365,17 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                       arguments: {
                         "current_address": tx.sender?.address,
                         "tx": tx,
+                        "isBackHome": isSentAll,
                       },
                     );
                   },
                   actionButton: 'see_transaction_detail'.tr().toUpperCase(),
                   closeButton: "close".tr().toUpperCase(),
+                  onClose: () =>
+                  isSentAll
+                      ? Navigator.of(context).popAndPushNamed(
+                    AppRouter.homePage,)
+                      : null,
                 );
               },
             ),
@@ -405,6 +426,3 @@ class ArtworkIdentity {
 
   Map<String, dynamic> toJson() => _$ArtworkIdentityToJson(this);
 }
-
-
-

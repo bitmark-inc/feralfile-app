@@ -211,10 +211,19 @@ class _HomePageState extends State<HomePage>
             builder: (context, state) {
       final hiddenTokens =
           injector<ConfigurationService>().getTempStorageHiddenTokenIDs();
+      final sentArtworks =
+          injector<ConfigurationService>().getRecentlySentToken();
+      final expiredTime = DateTime.now()
+          .subtract(ConfigurationServiceImpl.SENT_ARTWORK_HIDE_TIME);
       return NftCollectionGrid(
         state: state.state,
         tokens: state.tokens
-            .where((element) => !hiddenTokens.contains(element.id))
+            .where((element) =>
+                !hiddenTokens.contains(element.id) &&
+                !sentArtworks.any((e) => e.isHide(
+                    tokenID: element.id,
+                    address: element.ownerAddress,
+                    timestamp: expiredTime)))
             .toList(),
         loadingIndicatorBuilder: _loadingView,
         emptyGalleryViewBuilder: _emptyGallery,
