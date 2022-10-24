@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
+import 'package:autonomy_flutter/util/iterable_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:collection/collection.dart';
@@ -34,7 +35,10 @@ abstract class FeedService {
 
   Future refreshFollowings(List<String> artistIds);
 
-  Future<AppFeedData> fetchFeeds(FeedNext? next);
+  Future<AppFeedData> fetchFeeds(
+    FeedNext? next, {
+    List<String> ignoredTokenIds,
+  });
 
   Future<List<AssetToken>> fetchTokensByIndexerID(List<String> indexerIDs);
 
@@ -173,7 +177,10 @@ class FeedServiceImpl extends FeedService {
   }
 
   @override
-  Future<AppFeedData> fetchFeeds(FeedNext? next) async {
+  Future<AppFeedData> fetchFeeds(
+    FeedNext? next, {
+    List<String> ignoredTokenIds = const [],
+  }) async {
     await startIsolateOrWait();
 
     final uuid = const Uuid().v4();
@@ -182,8 +189,14 @@ class FeedServiceImpl extends FeedService {
 
     log.info("[FeedFollowService] start FETCH_FEEDS");
     final isTestnet = await isAppCenterBuild();
-    _sendPort!
-        .send([FETCH_FEEDS, uuid, isTestnet, next?.serial, next?.timestamp]);
+    _sendPort!.send([
+      FETCH_FEEDS,
+      uuid,
+      isTestnet,
+      next?.serial,
+      next?.timestamp,
+      ignoredTokenIds,
+    ]);
 
     return completer.future;
   }
@@ -271,7 +284,7 @@ class FeedServiceImpl extends FeedService {
           break;
 
         case FETCH_FEEDS:
-          _fetchFeeds(message[1], message[2], message[3], message[4]);
+          _fetchFeeds(message[1], message[2], message[3], message[4], message[5]);
           break;
 
         case FETCH_TOKENS_BY_INDEXIDS:
@@ -349,11 +362,23 @@ class FeedServiceImpl extends FeedService {
   }
 
   static void _fetchFeeds(
-      String uuid, bool isTestnet, String? serial, String? timestamp) async {
+    String uuid,
+    bool isTestnet,
+    String? serial,
+    String? timestamp,
+    List<String> ignoredTokenIds,
+  ) async {
     try {
       const count = 50;
       final feedData = await injector<FeedApi>()
           .getFeeds(isTestnet, count, serial, timestamp);
+
+      final next = feedData.events.length < count ? null : feedData.next;
+
+      feedData.events = feedData.events
+          .distinctBy(keyOf: (e) => e.uniqueKey)
+          .whereNot((e) => ignoredTokenIds.contains(e.indexerID))
+          .toList();
 
       List<String> indexerIDs = [];
       for (var feed in feedData.events) {
@@ -365,8 +390,6 @@ class FeedServiceImpl extends FeedService {
       final tokens = (await indexerAPI.getNftTokens({"ids": indexerIDs}))
           .map((e) => AssetToken.fromAsset(e))
           .toList();
-
-      final next = feedData.events.length < count ? null : feedData.next;
 
       // Get missing tokens
       final eventsWithMissingToken = feedData.events.where(

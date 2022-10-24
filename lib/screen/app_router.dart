@@ -587,7 +587,13 @@ class AppRouter {
             settings: settings,
             child: MultiBlocProvider(
               providers: [
-                BlocProvider(create: (_) => FeedBloc(injector(), injector())),
+                BlocProvider(
+                  create: (_) => FeedBloc(
+                    injector(),
+                    injector(),
+                    nftCollectionBloc.database.assetDao,
+                  ),
+                ),
                 BlocProvider(
                     create: (_) =>
                         IdentityBloc(injector<AppDatabase>(), injector())),
