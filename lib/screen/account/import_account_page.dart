@@ -17,6 +17,7 @@ import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:nft_collection/services/tokens_service.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -157,7 +158,10 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
         isError = true;
       });
     } catch (exception) {
-      Sentry.captureException(exception);
+      if (!(exception is PlatformException &&
+          exception.code == "importKey error")) {
+        Sentry.captureException(exception);
+      }
       UIHelper.hideInfoDialog(context);
       setState(() {
         isError = true;
