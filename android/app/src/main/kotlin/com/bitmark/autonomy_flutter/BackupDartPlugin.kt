@@ -85,16 +85,27 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler {
                 val storeBytesDataBuilder = StoreBytesData.Builder()
                     .setBytes(backupJson.toByteArray(Charsets.UTF_8))
 
-                client.storeBytes(storeBytesDataBuilder.build())
-                    .addOnSuccessListener {
-                        result.success("")
+                client.isEndToEndEncryptionAvailable
+                    .addOnSuccessListener { isE2EEAvailable ->
+                        if (isE2EEAvailable) {
+                            storeBytesDataBuilder.setShouldBackupToCloud(true)
+                        }
+                        client.storeBytes(storeBytesDataBuilder.build())
+                            .addOnSuccessListener {
+                                result.success("")
+                            }
+                            .addOnFailureListener { e ->
+                                Log.e("BackupDartPlugin", e.message ?: "")
+                                result.error("backupKeys error", e.message, e)
+                            }
                     }
-                    .addOnFailureListener { e ->
-                        Log.e("BackupDartPlugin", e.message ?: "")
-                        result.error("backupKeys error", e.message, e)
+                    .addOnFailureListener {
+                        //Block store not available
+                        Log.e("BackupDartPlugin", it.message ?: "")
+                        result.error("backupKeys error", it.message, it)
                     }
             }, {
-                it.printStackTrace()
+                Log.e("BackupDartPlugin", it.message ?: "")
                 result.error("backupKeys error", it.message, it)
             })
             .let { disposables.add(it) }
@@ -119,7 +130,11 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler {
                                     if (!isCreated) {
                                         LibAuk.getInstance()
                                             .getStorage(UUID.fromString(account.uuid), context)
-                                            .importKey(account.mnemonic.split(" "), account.name, Date())
+                                            .importKey(
+                                                account.mnemonic.split(" "),
+                                                account.name,
+                                                Date()
+                                            )
                                     } else {
                                         Completable.complete()
                                     }
