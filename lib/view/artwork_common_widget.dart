@@ -1042,17 +1042,20 @@ Widget _rowItem(
             Expanded(
               child: GestureDetector(
                 onTap: onValueTap,
-                child: Text(
-                  value ?? '',
-                  textAlign: TextAlign.end,
-                  maxLines: maxLines,
-                  softWrap: true,
-                  overflow: TextOverflow.ellipsis,
-                  style: onValueTap != null
-                      ? theme.textTheme.subtitle1
-                      : ResponsiveLayout.isMobile
-                          ? theme.textTheme.ibmGreyMediumNormal16
-                          : theme.textTheme.ibmGreyMediumNormal20,
+                child: Semantics(
+                  label: name,
+                  child: Text(
+                    value ?? '',
+                    textAlign: TextAlign.end,
+                    maxLines: maxLines,
+                    softWrap: true,
+                    overflow: TextOverflow.ellipsis,
+                    style: onValueTap != null
+                        ? theme.textTheme.subtitle1
+                        : ResponsiveLayout.isMobile
+                            ? theme.textTheme.ibmGreyMediumNormal16
+                            : theme.textTheme.ibmGreyMediumNormal20,
+                  ),
                 ),
               ),
             ),
