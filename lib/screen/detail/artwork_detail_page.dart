@@ -123,9 +123,12 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                     const SizedBox(height: 16.0),
                     Padding(
                       padding: ResponsiveLayout.getPadding,
-                      child: Text(
-                        asset.title,
-                        style: theme.textTheme.headline1,
+                      child: Semantics(
+                        label: 'Title',
+                        child: Text(
+                          asset.title,
+                          style: theme.textTheme.headline1,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 8.0),
@@ -198,9 +201,12 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                             ),
                           ),
                           const SizedBox(height: 40.0),
-                          Text(
-                            unescape.convert(asset.desc ?? ""),
-                            style: theme.textTheme.bodyText1,
+                          Semantics(
+                            label: 'Desc',
+                            child: Text(
+                              unescape.convert(asset.desc ?? ""),
+                              style: theme.textTheme.bodyText1,
+                            ),
                           ),
                           artworkDetailsRightSection(context, asset),
                           const SizedBox(height: 40.0),
