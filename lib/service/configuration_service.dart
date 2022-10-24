@@ -197,7 +197,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
       'recently_sent_token_mainnet';
   static const String KEY_READ_RELEASE_NOTES_VERSION =
       'read_release_notes_version';
-  static const Duration SENT_ARTWORK_HIDE_TIME = Duration(minutes: 1);
+  static const Duration SENT_ARTWORK_HIDE_TIME = Duration(minutes: 10);
   static const String KEY_FINISHED_SURVEYS = "finished_surveys";
   static const String KEY_IMMEDIATE_INFOVIEW = 'immediate_infoview';
   static const String ACCOUNT_HMAC_SECRET = "account_hmac_secret";
