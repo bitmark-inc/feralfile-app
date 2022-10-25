@@ -185,10 +185,15 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                           const SizedBox(height: 40.0),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.baseline,
+                            textBaseline: TextBaseline.alphabetic,
                             children: [
                               Text(
                                 "title".tr(),
                                 style: theme.textTheme.headline4,
+                              ),
+                              const SizedBox(
+                                width: 20,
                               ),
                               Expanded(
                                 child: Text(
@@ -199,20 +204,22 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                               ),
                             ],
                           ),
-                          const Divider(height: 32),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "artist".tr(),
-                                style: theme.textTheme.headline4,
-                              ),
-                              Text(
-                                artistName ?? "",
-                                style: theme.textTheme.bodyText2,
-                              ),
-                            ],
-                          ),
+                          if (artistName?.isNotEmpty == true) ...[
+                            const Divider(height: 32),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  "artist".tr(),
+                                  style: theme.textTheme.headline4,
+                                ),
+                                Text(
+                                  artistName ?? "",
+                                  style: theme.textTheme.bodyText2,
+                                ),
+                              ],
+                            ),
+                          ],
                           const Divider(height: 32),
                           if (widget.payload.asset.fungible == true) ...[
                             Row(
@@ -256,7 +263,9 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                                   style: theme.textTheme.headline4,
                                 ),
                                 Text(
-                                  "${asset.edition}/${asset.maxEdition}",
+                                  (asset.maxEdition ?? 0) > 0
+                                      ? "${asset.edition}/${asset.maxEdition}"
+                                      : "${asset.edition}",
                                   style: theme.textTheme.bodyText2,
                                 ),
                               ],
