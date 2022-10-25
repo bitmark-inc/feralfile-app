@@ -15,11 +15,11 @@ class BiometricAuthenticationViewController: UIViewController {
         let img: UIImage?
         let imgView: UIImageView
     #if prod
-        img = UIImage(named: "penrose")
+        img = UIImage(named: "moma")
         imgView = UIImageView(image: img)
         imgView.frame.size = CGSize(width: 143, height: 143)
     #else
-        img = UIImage(named: "penrose-black")
+        img = UIImage(named: "moma")
         imgView = UIImageView(image: img)
          imgView.frame.size = CGSize(width: 165, height: 215)
     #endif
