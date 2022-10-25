@@ -70,6 +70,8 @@ jobs:
           echo SEED_TO_RESTORE_KUKAI=${{ secrets.SEED_TO_RESTORE_KUKAI }} >> .env
           echo SEED_TO_RESTORE_TEMPLE=${{ secrets.SEED_TO_RESTORE_TEMPLE }} >> .env
           echo SEED_TO_RESTORE_ACCOUNT_BUY_NFT=${{ secrets.SEED_TO_RESTORE_ACCOUNT_BUY_NFT }} >> .env
+          echo AUTO_TEST_PLATFORM=android >> .env
+          echo AUTO_TEST_PROFILE=GalaxyA52s5G >> .env
 
           cat .env
 
