@@ -45,7 +45,6 @@ import 'package:autonomy_flutter/service/wallet_connect_dapp_service/wallet_conn
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/au_file_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
-import 'package:autonomy_flutter/util/au_cached_manager.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
 import 'package:autonomy_flutter/util/isolated_util.dart';
 import 'package:autonomy_flutter/util/log.dart';

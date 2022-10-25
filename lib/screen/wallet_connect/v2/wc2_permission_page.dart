@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -131,7 +132,7 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
         elevation: 0,
       ),
       body: Container(
-        margin: pageEdgeInsetsWithSubmitButton,
+        margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(
             "Request data".tr(),
