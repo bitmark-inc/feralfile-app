@@ -165,7 +165,7 @@ class TezosTXDetailPage extends StatelessWidget {
               if (detail != null)
                 Text(
                   detail,
-                  textAlign: TextAlign.right,
+                  textAlign: TextAlign.left,
                   style: theme.textTheme.subtitle1
                       ?.copyWith(color: AppColor.secondaryDimGrey),
                 ),
