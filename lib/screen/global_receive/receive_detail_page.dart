@@ -55,7 +55,7 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
       body: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         Expanded(
             child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          padding: ResponsiveLayout.getPadding,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -110,7 +110,7 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
                         ]),
                   )),
               SizedBox(
-                  height: 22,
+                  height: 25,
                   child: Container(
                       alignment: Alignment.center,
                       child: _copied

@@ -37,7 +37,7 @@ class ConnectionDetailsPage extends StatelessWidget {
         },
       ),
       body: Container(
-        margin: pageEdgeInsetsWithSubmitButton,
+        margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -140,7 +140,8 @@ class ConnectionDetailsPage extends StatelessWidget {
                           ),
                           TextSpan(
                               text: 'autonomyL'.tr(),
-                              style: TextStyle(fontWeight: FontWeight.bold)),
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold)),
                           TextSpan(
                             text: 'from_all_rights_on'.tr(),
                           ),

@@ -30,7 +30,7 @@ class AccessMethodPage extends StatelessWidget {
         },
       ),
       body: Container(
-        margin: pageEdgeInsets,
+        margin: ResponsiveLayout.pageEdgeInsets,
         child: Column(children: [
           Expanded(
               child: SingleChildScrollView(
@@ -40,6 +40,38 @@ class AccessMethodPage extends StatelessWidget {
                 "access_method".tr(),
                 style: theme.textTheme.headline1,
               ),
+              addTitleSpace(),
+              if (walletApp == 'WalletApp.MetaMask') ...[
+                Container(
+                  color: AppColor.chatPrimaryColor,
+                  child: Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'important'.tr(),
+                          style: theme.textTheme.atlasGreyBold14,
+                        ),
+                        const SizedBox(
+                          height: 5,
+                        ),
+                        RichText(
+                          text: TextSpan(
+                              text: 'autonomy_currently'.tr(),
+                              children: [
+                                TextSpan(
+                                    text: '${'ethereum_mainnet'.tr()}. ',
+                                    style: theme.textTheme.atlasBlackBold14),
+                                TextSpan(text: 'all_other_evm_networks'.tr()),
+                              ],
+                              style: theme.textTheme.atlasBlackNormal14),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
               addTitleSpace(),
               _linkAccount(context),
               addDivider(),
@@ -63,58 +95,6 @@ class AccessMethodPage extends StatelessWidget {
               "li_view_your_nfts".tr(args: [walletApp.split('.').last]),
               style: theme.textTheme.bodyText1,
             ),
-            if (walletApp == 'WalletApp.MetaMask') ...[
-              const SizedBox(height: 8),
-              Text(
-                'supported_networks'.tr(),
-                style: ResponsiveLayout.isMobile
-                    ? theme.textTheme.atlasBlackNormal14
-                    : theme.textTheme.atlasBlackNormal16,
-              ),
-              const SizedBox(height: 3),
-              RichText(
-                text: TextSpan(
-                  text: ' •  ',
-                  style: ResponsiveLayout.isMobile
-                      ? theme.textTheme.atlasBlackNormal14
-                      : theme.textTheme.atlasBlackNormal16,
-                  children: [
-                    TextSpan(text: 'ethereum_mainnet'.tr()),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 3),
-              Text(
-                'unsupported_networks'.tr(),
-                style: ResponsiveLayout.isMobile
-                    ? theme.textTheme.atlasBlackNormal14
-                    : theme.textTheme.atlasBlackNormal16,
-              ),
-              const SizedBox(height: 3),
-              RichText(
-                text: TextSpan(
-                  text: ' •  ',
-                  style: ResponsiveLayout.isMobile
-                      ? theme.textTheme.atlasBlackNormal14
-                      : theme.textTheme.atlasBlackNormal16,
-                  children: [
-                    TextSpan(text: 'polygon'.tr()),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 3),
-              RichText(
-                text: TextSpan(
-                  text: ' •  ',
-                  style: ResponsiveLayout.isMobile
-                      ? theme.textTheme.atlasBlackNormal14
-                      : theme.textTheme.atlasBlackNormal16,
-                  children: [
-                    TextSpan(text: 'binance_smart_chain'.tr()),
-                  ],
-                ),
-              ),
-            ],
           ],
         ),
         onTap: () {

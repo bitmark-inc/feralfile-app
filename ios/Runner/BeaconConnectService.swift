@@ -38,7 +38,8 @@ class BeaconConnectService {
                 with: .init(
                     name: Constant.appname,
                     blockchains: [Tezos.factory, Substrate.factory],
-                    connections: [try Transport.P2P.Matrix.connection()]
+                    connections: [try Transport.P2P.Matrix.connection()],
+                    secureStorage: UserDefaultsSecureStorage(userDefaults: .standard, accessGroup: Constant.keychainGroup)
                 )
             ) { result in
                 switch result {
@@ -186,6 +187,31 @@ class BeaconConnectService {
                 case .success(_):
                     logger.info("[TezosBeaconService] Peer removed")
                     promise(.success(()))
+
+                case let .failure(error):
+                    promise(.failure(error))
+                }
+            }
+        }
+        .eraseToAnyPublisher()
+    }
+    
+    func cleanupSession(_ retainIds: [String]) -> AnyPublisher<Void, Error> {
+        return Future<Void, Error> { [self] (promise) in
+            self.beaconClient?.getPeers { result in
+                switch result {
+                case .success(let peers):
+                    let retainPeers = peers.filter { peer in !retainIds.contains(peer.id ?? "") }
+                    self.beaconClient?.remove(retainPeers) { removeResult in
+                        switch removeResult {
+                        case .success(_):
+                            logger.info("[TezosBeaconService] cleanupSession retainIds: \(retainIds)")
+                            promise(.success(()))
+
+                        case let .failure(error):
+                            promise(.failure(error))
+                        }
+                    }
 
                 case let .failure(error):
                     promise(.failure(error))

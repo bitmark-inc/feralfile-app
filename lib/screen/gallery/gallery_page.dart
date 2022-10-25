@@ -173,7 +173,7 @@ class _GalleryPageState extends State<GalleryPage> {
           ),
           delegate: SliverChildBuilderDelegate(
             (BuildContext context, int index) {
-              return placeholder();
+              return placeholder(context);
             },
             childCount: 15,
           ),

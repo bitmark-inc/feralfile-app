@@ -93,7 +93,6 @@ class LibAukChannelHandler {
             }, receiveValue: { isCreated in
                 result([
                     "error": 0,
-                    "msg": "isWalletCreated success",
                     "data": isCreated,
                 ])
             })
@@ -108,7 +107,6 @@ class LibAukChannelHandler {
         
         result([
             "error": 0,
-            "msg": "getName success",
             "data": address
         ])
     }
@@ -126,7 +124,6 @@ class LibAukChannelHandler {
             }, receiveValue: { (accountDID) in
                 result([
                     "error": 0,
-                    "msg": "exportMnemonicWords success",
                     "data": accountDID,
                 ])
             })
@@ -148,7 +145,6 @@ class LibAukChannelHandler {
             }, receiveValue: { (signature) in
                 result([
                     "error": 0,
-                    "msg": "exportMnemonicWords success",
                     "data": signature,
                 ])
             })
@@ -163,7 +159,6 @@ class LibAukChannelHandler {
         
         result([
             "error": 0,
-            "msg": "getETHAddress success",
             "data": address
         ])
     }
@@ -174,7 +169,7 @@ class LibAukChannelHandler {
         let message = args["message"] as! FlutterStandardTypedData
 
         LibAuk.shared.storage(for: UUID(uuidString: uuid)!)
-            .sign(message: [UInt8](message.data.personalSignedMessageData))
+            .ethSign(message: [UInt8](message.data.personalSignedMessageData))
             .sink(receiveCompletion: { (completion) in
                 if let error = completion.error {
                     result(ErrorHandler.handle(error: error))
@@ -183,7 +178,6 @@ class LibAukChannelHandler {
             }, receiveValue: { (v, r, s) in
                 result([
                     "error": 0,
-                    "msg": "exportMnemonicWords success",
                     "data": "0x" + r.toHexString() + s.toHexString() + String(v + 27, radix: 16),
                 ])
             })
@@ -212,7 +206,7 @@ class LibAukChannelHandler {
         
 
         LibAuk.shared.storage(for: UUID(uuidString: uuid)!)
-            .signTransaction(transaction: transaction, chainId: EthereumQuantity(quantity: BigUInt(chainId)))
+            .ethSignTransaction(transaction: transaction, chainId: EthereumQuantity(quantity: BigUInt(chainId)))
             .sink(receiveCompletion: { (completion) in
                 if let error = completion.error {
                     result(ErrorHandler.handle(error: error))
@@ -221,7 +215,6 @@ class LibAukChannelHandler {
                 let bytes: [UInt8] = try! RLPEncoder().encode(signedTx.rlp())
                 result([
                     "error": 0,
-                    "msg": "exportMnemonicWords success",
                     "data": Data(bytes),
                 ])
             })
@@ -240,30 +233,109 @@ class LibAukChannelHandler {
             }, receiveValue: { words in
                 result([
                     "error": 0,
-                    "msg": "exportMnemonicWords success",
                     "data": words.joined(separator: " "),
                 ])
             })
             .store(in: &cancelBag)
     }
     
-    func getTezosWallet(call: FlutterMethodCall, result: @escaping FlutterResult) {
+    func getTezosPublicKey(call: FlutterMethodCall, result: @escaping FlutterResult) {
         let args: NSDictionary = call.arguments as! NSDictionary
         let uuid: String = args["uuid"] as! String
 
-        LibAuk.shared.storage(for: UUID(uuidString: uuid)!).getTezosWallet()
+        LibAuk.shared.storage(for: UUID(uuidString: uuid)!).getTezosPublicKey()
             .sink(receiveCompletion: { (completion) in
                 if let error = completion.error {
                     result(ErrorHandler.handle(error: error))
                 }
-            }, receiveValue: { wallet in
-                let hdWallet = wallet as! HDWallet
+            }, receiveValue: { publicKey in
                 result([
                     "error": 0,
-                    "msg": "getTezosWallet success",
-                    "address": wallet.address,
-                    "secretKey": hdWallet.privateKey.data,
-                    "publicKey": hdWallet.publicKey.data,
+                    "data": publicKey,
+                ])
+            })
+            .store(in: &cancelBag)
+    }
+    
+    func tezosSign(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args: NSDictionary = call.arguments as! NSDictionary
+        let uuid: String = args["uuid"] as! String
+        let message = args["message"] as! FlutterStandardTypedData
+
+        LibAuk.shared.storage(for: UUID(uuidString: uuid)!)
+            .tezosSign(message: message.data)
+            .sink(receiveCompletion: { (completion) in
+                if let error = completion.error {
+                    result(ErrorHandler.handle(error: error))
+                }
+
+            }, receiveValue: { bytes in
+                result([
+                    "error": 0,
+                    "data": FlutterStandardTypedData(bytes: Data(bytes)),
+                ])
+            })
+            .store(in: &cancelBag)
+    }
+    
+    func tezosSignTransaction(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args: NSDictionary = call.arguments as! NSDictionary
+        let uuid: String = args["uuid"] as! String
+        let forgedHex = args["forgedHex"] as! String
+
+        LibAuk.shared.storage(for: UUID(uuidString: uuid)!)
+            .tezosSignTransaction(forgedHex: forgedHex)
+            .sink(receiveCompletion: { (completion) in
+                if let error = completion.error {
+                    result(ErrorHandler.handle(error: error))
+                }
+
+            }, receiveValue: { bytes in
+                result([
+                    "error": 0,
+                    "data": FlutterStandardTypedData(bytes: Data(bytes)),
+                ])
+            })
+            .store(in: &cancelBag)
+    }
+
+    func encryptFile(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args: NSDictionary = call.arguments as! NSDictionary
+        let uuid: String = args["uuid"] as! String
+        let inputPath: String = args["inputPath"] as! String
+        let outputPath: String = args["outputPath"] as! String
+
+        LibAuk.shared.storage(for: UUID(uuidString: uuid)!)
+            .encryptFile(inputPath: inputPath, outputPath: outputPath)
+            .sink(receiveCompletion: { (completion) in
+                if let error = completion.error {
+                    result(ErrorHandler.handle(error: error))
+                }
+            }, receiveValue: { output in
+                result([
+                    "error": 0,
+                    "data": output as! String,
+                ])
+            })
+            .store(in: &cancelBag)
+    }
+
+    func decryptFile(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args: NSDictionary = call.arguments as! NSDictionary
+        let uuid: String = args["uuid"] as! String
+        let inputPath: String = args["inputPath"] as! String
+        let outputPath: String = args["outputPath"] as! String
+
+        LibAuk.shared.storage(for: UUID(uuidString: uuid)!)
+            .decryptFile(inputPath: inputPath, outputPath: outputPath)
+            .sink(receiveCompletion: { (completion) in
+                if let error = completion.error {
+                    result(ErrorHandler.handle(error: error))
+                }
+            }, receiveValue: { output in
+                result([
+                    "error": 0,
+                    "data": output as! String,
                 ])
             })
             .store(in: &cancelBag)
@@ -281,7 +353,6 @@ class LibAukChannelHandler {
             }, receiveValue: { address in
                 result([
                     "error": 0,
-                    "msg": "getBitmarkAddress success",
                     "data": address,
                 ])
             })

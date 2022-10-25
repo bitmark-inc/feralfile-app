@@ -5,15 +5,17 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/gateway/tzkt_api.dart';
 import 'package:autonomy_flutter/model/tzkt_operation.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/tezos_transaction_row_view.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
+
+import '../../../bloc/tzkt_transaction/tzkt_transaction_bloc.dart';
+import '../../../bloc/tzkt_transaction/tzkt_transaction_state.dart';
 
 class TezosTXListView extends StatefulWidget {
   final String address;
@@ -26,49 +28,26 @@ class TezosTXListView extends StatefulWidget {
 
 class _TezosTXListViewState extends State<TezosTXListView> {
   static const _pageSize = 40;
+  late final TZKTTransactionBloc tzktBloc;
 
-  final PagingController<int, TZKTOperation> _pagingController =
+  final PagingController<int, TZKTTransactionInterface> _pagingController =
       PagingController(firstPageKey: 0, invisibleItemsThreshold: 10);
 
   @override
   void initState() {
-    _pagingController.addPageRequestListener((pageKey) {
-      _fetchPage(pageKey);
-    });
+    tzktBloc = context.read<TZKTTransactionBloc>();
+    _pagingController.addPageRequestListener(
+      (pageKey) {
+        tzktBloc.add(
+          GetPageNewItems(
+              address: widget.address,
+              initiator: widget.address,
+              pageSize: _pageSize,
+              pageKey: pageKey),
+        );
+      },
+    );
     super.initState();
-  }
-
-  Future<void> _fetchPage(int pageKey) async {
-    final address = widget.address;
-
-    if (address.isEmpty) return;
-
-    try {
-      final newItems = await injector<TZKTApi>().getOperations(
-        address,
-        type: "transaction,origination,reveal",
-        limit: _pageSize,
-        lastId: pageKey > 0 ? pageKey : null,
-        initiator: address,
-      );
-
-      final isLastPage = newItems.length < _pageSize;
-      if (isLastPage) {
-        _pagingController.appendLastPage(newItems);
-      } else {
-        final nextPageKey = newItems.last.id;
-        _pagingController.appendPage(newItems, nextPageKey);
-      }
-    } catch (error) {
-      _pagingController.error = error;
-      showErrorDialog(
-          context,
-          "😵",
-          "unable_load_tzkt".tr(),
-          "try_again".tr(), () {
-        _fetchPage(pageKey);
-      });
-    }
   }
 
   @override
@@ -76,46 +55,82 @@ class _TezosTXListViewState extends State<TezosTXListView> {
     final theme = Theme.of(context);
     return widget.address.isEmpty
         ? const SizedBox()
-        : CustomScrollView(
-            slivers: [
-              PagedSliverList.separated(
-                  pagingController: _pagingController,
-                  builderDelegate: PagedChildBuilderDelegate<TZKTOperation>(
-                    animateTransitions: true,
-                    newPageErrorIndicatorBuilder: (context) {
-                      return Container(
-                        padding: const EdgeInsets.only(top: 30),
-                        child: Text(
-                            "unable_load_tzkt".tr(),
-                            style: theme.textTheme.bodyText1),
-                      );
-                    },
-                    noItemsFoundIndicatorBuilder: (context) {
-                      return Container(
-                        padding: const EdgeInsets.only(top: 30),
-                        child: Text("transaction_appear_hear".tr(),
-                            style: theme.textTheme.bodyText1),
-                      );
-                    },
-                    itemBuilder: (context, item, index) {
-                      return GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        child: TezosTXRowView(
-                            tx: item, currentAddress: widget.address),
-                        onTap: () => Navigator.of(context).pushNamed(
-                          AppRouter.tezosTXDetailPage,
-                          arguments: {
-                            "current_address": widget.address,
-                            "tx": item,
-                          },
-                        ),
-                      );
-                    },
-                  ),
-                  separatorBuilder: (context, index) {
-                    return const Divider();
-                  })
-            ],
+        : BlocConsumer<TZKTTransactionBloc, TZKTTransactionState>(
+            listener: (context, state) {
+              try {
+                bool isLastPage = state.isLastPage ?? false;
+                final newItems = state.newItems;
+                if (isLastPage) {
+                  _pagingController.appendLastPage(newItems);
+                } else {
+                  final nextPageKey = state.newItems.last.getID();
+                  _pagingController.appendPage(state.newItems, nextPageKey);
+                }
+              } catch (error) {
+                _pagingController.error = error;
+                showErrorDialog(
+                  context,
+                  "😵",
+                  "unable_load_tzkt".tr(),
+                  "try_again".tr(),
+                  () {
+                    tzktBloc.add(GetPageNewItems(
+                        address: widget.address,
+                        initiator: widget.address,
+                        pageSize: _pageSize,
+                        pageKey: _pagingController.nextPageKey ??
+                            _pagingController.firstPageKey));
+                  },
+                );
+              }
+            },
+            builder: (context, state) {
+              return Padding(
+                padding: const EdgeInsets.only(right: 16.0, left: 16.0),
+                child: CustomScrollView(
+                  slivers: [
+                    PagedSliverList.separated(
+                      pagingController: _pagingController,
+                      builderDelegate:
+                          PagedChildBuilderDelegate<TZKTTransactionInterface>(
+                        animateTransitions: true,
+                        newPageErrorIndicatorBuilder: (context) {
+                          return Container(
+                            padding: const EdgeInsets.only(top: 30),
+                            child: Text("unable_load_tzkt".tr(),
+                                style: theme.textTheme.bodyText1),
+                          );
+                        },
+                        noItemsFoundIndicatorBuilder: (context) {
+                          return Container(
+                            padding: const EdgeInsets.only(top: 30),
+                            child: Text("transaction_appear_hear".tr(),
+                                style: theme.textTheme.bodyText1),
+                          );
+                        },
+                        itemBuilder: (context, item, index) {
+                          return GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            child: TezosTXRowView(
+                                tx: item, currentAddress: widget.address),
+                            onTap: () => Navigator.of(context).pushNamed(
+                              AppRouter.tezosTXDetailPage,
+                              arguments: {
+                                "current_address": widget.address,
+                                "tx": item,
+                              },
+                            ),
+                          );
+                        },
+                      ),
+                      separatorBuilder: (context, index) {
+                        return const Divider();
+                      },
+                    ),
+                  ],
+                ),
+              );
+            },
           );
   }
 }

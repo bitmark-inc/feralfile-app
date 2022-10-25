@@ -18,6 +18,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
+import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:tezart/tezart.dart';
 import 'package:web3dart/web3dart.dart';
@@ -60,8 +61,7 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
           }
           break;
         case CryptoType.XTZ:
-          final tezosWallet = await event.wallet.getTezosWallet();
-          final address = tezosWallet.address;
+          final address = await event.wallet.getTezosAddress();
           final balance = await _tezosService.getBalance(address);
 
           newState.balance = BigInt.from(balance);
@@ -98,7 +98,7 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
             }
             break;
           case CryptoType.XTZ:
-            if (event.address.startsWith("tz")) {
+            if (event.address.isValidTezosAddress) {
               newState.address = event.address;
               newState.isAddressError = false;
 
@@ -179,10 +179,11 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
         case CryptoType.XTZ:
           final wallet = state.wallet;
           if (wallet == null) return;
-          final tezosWallet = await wallet.getTezosWallet();
           try {
             final tezosFee = await _tezosService.estimateFee(
-                tezosWallet, event.address, event.amount.toInt());
+                await wallet.getTezosPublicKey(),
+                event.address,
+                event.amount.toInt());
             fee = BigInt.from(tezosFee);
           } on TezartNodeError catch (err) {
             UIHelper.showInfoDialog(

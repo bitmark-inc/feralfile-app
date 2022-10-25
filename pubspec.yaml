@@ -23,8 +23,6 @@ environment:
 dependencies:
   after_layout: ^1.2.0
   async: ^2.8.2
-  aws_cognito_identity_api: ^1.2.0
-  aws_firehose_api: ^1.2.0
   bubble: ^1.2.1
   cached_network_image: ^3.2.1
   cast: ^1.1.0
@@ -46,6 +44,7 @@ dependencies:
     git:
       url: https://github.com/autonomy-system/flutter_blue.git
       ref: 4f1f28c7bab5596afa6fa175f81c3a953f7c993f
+  flutter_cache_manager: ^3.3.0
   flutter_chat_types: ^3.3.1
   flutter_chat_ui: ^1.6.4
   flutter_dotenv: ^5.0.2
@@ -59,10 +58,7 @@ dependencies:
   flutter_markdown: ^0.6.9
   flutter_native_splash: ^2.0.5
   flutter_slidable: ^1.2.0
-  flutter_svg:
-    git:
-      url: https://github.com/autonomy-system/flutter_svg.git
-      ref: dfe0828aec39169276cc2722e016a2dbaa95baee
+  flutter_svg: ^1.1.5
   flutter_to_airplay:
     git:
       url: https://github.com/autonomy-system/flutter_to_airplay.git
@@ -78,10 +74,11 @@ dependencies:
   infinite_scroll_pagination: ^3.2.0
   intl: ^0.17.0
   jiffy: ^5.0.0
+  flutter_keyboard_visibility: ^5.3.0
   libauk_dart:
     git:
       url: https://github.com/autonomy-system/libauk-dart.git
-      ref: edd3354bf2db2394a3ba1bb8a3202b5035e9177e
+      ref: 4e9a90910ab451183ea49dec540d1a65c45a903d
   local_auth: ^2.1.0
   logging: ^1.0.2
   mime: ^1.0.1
@@ -89,7 +86,7 @@ dependencies:
   nft_rendering:
     git:
       url: https://github.com/autonomy-system/nft-rendering.git
-      ref: v1.0.5
+      ref: v1.0.11
   onesignal_flutter: ^3.3.0
   open_settings: ^2.0.2
   overlay_support: ^2.0.0
@@ -111,7 +108,7 @@ dependencies:
   tezart:
     git:
       url: https://github.com/autonomy-system/tezart.git
-      ref: v1.0.3
+      ref: 336d935c5f376afc0a21dac9c7061d3cdee6c047
   uni_links: ^0.5.1
   url_launcher: ^6.0.20
   uuid: ^3.0.5
@@ -120,7 +117,7 @@ dependencies:
   wallet_connect:
     git:
       url: https://github.com/autonomy-system/wallet-connect-dart.git
-      ref: 60919193f36ae4f026dfdebe929d1a1ab0d23d29
+      ref: f36e652fd8ebc2fe20c087d68775ed6451f48496
   web3dart: ^2.3.3
   web_socket_channel: ^2.1.0
   webview_flutter: ^3.0.0
@@ -129,16 +126,26 @@ dependencies:
   autonomy_theme:
     git:
       url: https://github.com/bitmark-inc/autonomy-client-shared-theme.git
-      ref: main
+      ref: 1.0.4
+
   easy_localization: ^3.0.1
   rxdart: ^0.26.0
   in_app_review: ^2.0.4
   nft_collection:
     git:
       url: https://github.com/autonomy-system/nft-collection
-      ref: c1a54986e50d8853bbb277277d39f4b7e435bca0
+      ref: 0db770f54f20ca6622d1e5052787e4105898f713
+  flutter_branch_sdk: ^6.1.0
+  flutter_rating_bar: ^4.0.1
+  metric_client:
+    git:
+      url: https://github.com/autonomy-system/metric-client-dart
+      ref: ec37709d6f7a3901e3bd4238ba178205a88f6261
+  dotenv: ^4.0.1
 
 dependency_overrides:
+  cached_network_image: 3.2.1
+  syncfusion_flutter_pdfviewer: 20.2.46-beta
   # Error using when import photo_view from dependencies:
   # https://stackoverflow.com/questions/70404718/error-with-photoview-looking-up-a-deactivated-widgets-ancestor-is-unsafe/71010204#71010204
   photo_view:
@@ -155,6 +162,7 @@ dev_dependencies:
     sdk: flutter
   integration_test:
     sdk: flutter
+  appium_driver: ^0.5.2
   json_serializable: null
   mockito: null
   retrofit_generator: null

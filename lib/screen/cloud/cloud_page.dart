@@ -17,6 +17,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 
 class CloudPage extends StatelessWidget {
   final String section;
@@ -46,7 +47,7 @@ class CloudPage extends StatelessWidget {
         valueListenable: injector<CloudService>().isAvailableNotifier,
         builder: (BuildContext context, bool isAvailable, Widget? child) {
           return Container(
-            margin: pageEdgeInsetsWithSubmitButton,
+            margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -56,7 +57,9 @@ class CloudPage extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            isAvailable ? "backed_up".tr() : "sign_in_to_icloud".tr(),
+                            isAvailable
+                                ? "backed_up".tr()
+                                : "sign_in_to_icloud".tr(),
                             style: theme.textTheme.headline1,
                           ),
                           addTitleSpace(),
@@ -110,22 +113,16 @@ class CloudPage extends StatelessWidget {
         } else {
           return Column(
             children: [
+              AuFilledButton(
+                onPress: () => openAppSettings(),
+                text: "open_icloud_setting".tr(),
+              ),
               TextButton(
-                onPressed: () => openAppSettings(),
                 child: Text(
-                  "open_icloud_setting".tr(),
+                  "continue_without_icloud".tr().toUpperCase(),
                   style: theme.textTheme.button,
                 ),
-              ),
-              Row(
-                children: [
-                  Expanded(
-                    child: AuFilledButton(
-                      text: "continue_without_icloud".tr().toUpperCase(),
-                      onPress: () => _continue(context),
-                    ),
-                  ),
-                ],
+                onPressed: () => _continue(context),
               ),
             ],
           );
@@ -155,6 +152,7 @@ class CloudPage extends StatelessWidget {
   void _continue(BuildContext context) {
     if (injector<ConfigurationService>().isDoneOnboarding()) {
       Navigator.of(context).popUntil((route) =>
+          route.settings.name == AppRouter.claimSelectAccountPage ||
           route.settings.name == AppRouter.settingsPage ||
           route.settings.name == AppRouter.wcConnectPage ||
           route.settings.name == AppRouter.homePage ||

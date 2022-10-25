@@ -21,17 +21,17 @@ class ArtworkDetailBloc extends AuBloc<ArtworkDetailEvent, ArtworkDetailState> {
       this._feralFileService, this._assetTokenDao, this._provenanceDao)
       : super(ArtworkDetailState(provenances: [])) {
     on<ArtworkDetailGetInfoEvent>((event, emit) async {
-      final asset = await _assetTokenDao.findAssetTokenById(event.id);
+      final asset = await _assetTokenDao.findAssetTokenByIdAndOwner(event.identity.id, event.identity.owner);
       final provenances =
-          await _provenanceDao.findProvenanceByTokenID(event.id);
+          await _provenanceDao.findProvenanceByTokenID(event.identity.id);
 
       emit(ArtworkDetailState(asset: asset, provenances: []));
 
       List<AssetPrice> assetPrices = [];
 
-      if (event.id.startsWith('bmk--')) {
+      if (event.identity.id.startsWith('bmk--')) {
         assetPrices = await _feralFileService
-            .getAssetPrices([event.id.replaceAll("bmk--", "")]);
+            .getAssetPrices([event.identity.id.replaceAll("bmk--", "")]);
       }
 
       emit(ArtworkDetailState(

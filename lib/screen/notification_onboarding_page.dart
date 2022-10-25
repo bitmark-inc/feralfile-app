@@ -19,9 +19,17 @@ import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 
-class NotificationOnboardingPage extends StatelessWidget {
+class NotificationOnboardingPage extends StatefulWidget {
   const NotificationOnboardingPage({Key? key}) : super(key: key);
 
+  @override
+  State<NotificationOnboardingPage> createState() =>
+      _NotificationOnboardingPageState();
+}
+
+class _NotificationOnboardingPageState
+    extends State<NotificationOnboardingPage> {
+  bool _isEnableNoti = false;
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -38,19 +46,18 @@ class NotificationOnboardingPage extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Text(
+              "notifications".tr(),
+              style: theme.textTheme.headline1,
+            ),
+            const SizedBox(height: 30),
             Expanded(
               child: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      "notifications".tr(),
-                      style: theme.textTheme.headline1,
-                    ),
-                    const SizedBox(height: 30),
                     Markdown(
-                      data:
-                      "grant_permission_when".tr(),
+                      data: "grant_permission_when".tr(),
                       /*'''
 **Grant Autonomy permission to notify you when:** 
 * An NFT is added to your collection or someone sends you an NFT
@@ -60,16 +67,18 @@ class NotificationOnboardingPage extends StatelessWidget {
                        */
                       softLineBreak: true,
                       padding: const EdgeInsets.only(bottom: 50),
+                      physics: const NeverScrollableScrollPhysics(),
                       shrinkWrap: true,
                       styleSheet:
                           markDownLightStyle(context).copyWith(blockSpacing: 8),
                     ),
                     Center(
-                        child: Padding(
-                      padding: const EdgeInsets.only(left: 25),
-                      child: SvgPicture.asset(
-                          'assets/images/notification_onboarding.svg'),
-                    ))
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 25),
+                        child: SvgPicture.asset(
+                            'assets/images/notification_onboarding.svg'),
+                      ),
+                    )
                   ],
                 ),
               ),
@@ -78,6 +87,7 @@ class NotificationOnboardingPage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 AuFilledButton(
+                  isProcessing: _isEnableNoti,
                   text: "enable_noti".tr().toUpperCase(),
                   onPress: () async {
                     if (Platform.isIOS &&
@@ -85,8 +95,15 @@ class NotificationOnboardingPage extends StatelessWidget {
                             .promptUserForPushNotificationPermission()) {
                       return;
                     }
+                    setState(() {
+                      _isEnableNoti = true;
+                    });
+                    await registerPushNotifications();
+                    setState(() {
+                      _isEnableNoti = false;
+                    });
+                    if (!mounted) return;
                     Navigator.of(context).pop();
-                    registerPushNotifications();
                   },
                 ),
                 TextButton(

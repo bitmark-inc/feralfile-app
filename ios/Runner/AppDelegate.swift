@@ -54,14 +54,22 @@ import Starscream
                 LibAukChannelHandler.shared.isWalletCreated(call: call, result: result)
             case "getETHAddress":
                 LibAukChannelHandler.shared.getETHAddress(call: call, result: result)
-            case "signPersonalMessage":
+            case "ethSignPersonalMessage":
                 LibAukChannelHandler.shared.signPersonalMessage(call: call, result: result)
             case "exportMnemonicWords":
                 LibAukChannelHandler.shared.exportMnemonicWords(call: call, result: result)
-            case "signTransaction":
+            case "ethSignTransaction":
                 LibAukChannelHandler.shared.signTransaction(call: call, result: result)
-            case "getTezosWallet":
-                LibAukChannelHandler.shared.getTezosWallet(call: call, result: result)
+            case "encryptFile":
+                LibAukChannelHandler.shared.encryptFile(call: call, result: result)
+            case "decryptFile":
+                LibAukChannelHandler.shared.decryptFile(call: call, result: result)
+            case "getTezosPublicKey":
+                LibAukChannelHandler.shared.getTezosPublicKey(call: call, result: result)
+            case "tezosSignMessage":
+                LibAukChannelHandler.shared.tezosSign(call: call, result: result)
+            case "tezosSignTransaction":
+                LibAukChannelHandler.shared.tezosSignTransaction(call: call, result: result)
             case "getBitmarkAddress":
                 LibAukChannelHandler.shared.getBitmarkAddress(call: call, result: result)
             case "removeKeys":
@@ -108,6 +116,8 @@ import Starscream
                 BeaconChannelHandler.shared.addPeer(call: call, result: result)
             case "removePeer":
                 BeaconChannelHandler.shared.removePeer(call: call, result: result)
+            case "cleanup":
+                BeaconChannelHandler.shared.cleanupSessions(call: call, result: result)
             case "response":
                 BeaconChannelHandler.shared.response(call: call, result: result)
             case "pause":

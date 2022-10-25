@@ -15,7 +15,6 @@ import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/debouce_util.dart';
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -24,6 +23,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:wallet_connect/models/wc_peer_meta.dart';
 import 'package:web3dart/crypto.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 
 class WCSignMessagePage extends StatefulWidget {
   static const String tag = 'wc_sign_message';
@@ -43,56 +43,63 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
     final messageInUtf8 = utf8.decode(message, allowMalformed: true);
     final theme = Theme.of(context);
 
-    return Scaffold(
-      appBar: getBackAppBar(
-        context,
-        onBack: () {
-          injector<WalletConnectService>()
-              .rejectRequest(widget.args.peerMeta, widget.args.id);
-          Navigator.of(context).pop();
-        },
-      ),
-      body: Container(
-        margin: pageEdgeInsetsWithSubmitButton,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 8.0),
-                    Text(
-                      "h_confirm".tr(),
-                      style: theme.textTheme.headline1,
-                    ),
-                    const SizedBox(height: 40.0),
-                    Text(
-                      "connection".tr(),
-                      style: theme.textTheme.headline4,
-                    ),
-                    const SizedBox(height: 16.0),
-                    Text(
-                      widget.args.peerMeta.name,
-                      style: theme.textTheme.bodyText2,
-                    ),
-                    const Divider(height: 32),
-                    Text(
-                      "message".tr(),
-                      style: theme.textTheme.headline4,
-                    ),
-                    const SizedBox(height: 16.0),
-                    Text(
-                      messageInUtf8,
-                      style: theme.textTheme.bodyText2,
-                    ),
-                  ],
+    return WillPopScope(
+      onWillPop: () async {
+        injector<WalletConnectService>()
+            .rejectRequest(widget.args.peerMeta, widget.args.id);
+        return true;
+      },
+      child: Scaffold(
+        appBar: getBackAppBar(
+          context,
+          onBack: () {
+            injector<WalletConnectService>()
+                .rejectRequest(widget.args.peerMeta, widget.args.id);
+            Navigator.of(context).pop();
+          },
+        ),
+        body: Container(
+          margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 8.0),
+                      Text(
+                        "h_confirm".tr(),
+                        style: theme.textTheme.headline1,
+                      ),
+                      const SizedBox(height: 40.0),
+                      Text(
+                        "connection".tr(),
+                        style: theme.textTheme.headline4,
+                      ),
+                      const SizedBox(height: 16.0),
+                      Text(
+                        widget.args.peerMeta.name,
+                        style: theme.textTheme.bodyText2,
+                      ),
+                      const Divider(height: 32),
+                      Text(
+                        "message".tr(),
+                        style: theme.textTheme.headline4,
+                      ),
+                      const SizedBox(height: 16.0),
+                      Text(
+                        messageInUtf8,
+                        style: theme.textTheme.bodyText2,
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            _signButton(context, message, messageInUtf8),
-          ],
+              _signButton(context, message, messageInUtf8),
+            ],
+          ),
         ),
       ),
     );
@@ -102,9 +109,12 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
       BuildContext pageContext, Uint8List message, String messageInUtf8) {
     return BlocConsumer<FeralfileBloc, FeralFileState>(
         listener: (context, state) {
-      final event = state.event;
-      if (event == null) return;
+      if (state.event != null) {
+        Navigator.of(context).pop();
+      }
 
+      /***
+       * Temporary ignore checking state with FF, will remove in the future
       if (event is LinkAccountSuccess) {
         Navigator.of(context).pop();
         return;
@@ -131,6 +141,7 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
               route.settings.name == AppRouter.homePageNoTransition);
         });
       }
+       */
     }, builder: (context, state) {
       return Row(
         children: [
@@ -149,22 +160,20 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
                 if (!mounted) return;
 
                 if (widget.args.peerMeta.url.contains("feralfile")) {
-                  if (messageInUtf8.contains(
-                      "ff_request_connect".tr())) {
+                  if (messageInUtf8.contains("ff_request_connect".tr())) {
                     context.read<FeralfileBloc>().add(LinkFFWeb3AccountEvent(
                         widget.args.topic,
                         widget.args.peerMeta.url,
                         wallet,
                         true));
-                  } else if (messageInUtf8.contains(
-                      "ff_request_auth".tr())) {
+                  } else if (messageInUtf8.contains("ff_request_auth".tr())) {
                     context.read<FeralfileBloc>().add(LinkFFWeb3AccountEvent(
                         widget.args.topic,
                         widget.args.peerMeta.url,
                         wallet,
                         false));
-                  } else if (messageInUtf8.contains(
-                      "ff_request_auth_dis".tr())) {
+                  } else if (messageInUtf8
+                      .contains("ff_request_auth_dis".tr())) {
                     final matched =
                         RegExp("Wallet address:\\n(0[xX][0-9a-fA-F]+)\\n")
                             .firstMatch(messageInUtf8);

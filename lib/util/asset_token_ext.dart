@@ -3,8 +3,12 @@ import 'dart:io';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
+import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/datetime_ext.dart';
+import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
+import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/models/asset_token.dart';
 
@@ -15,10 +19,19 @@ extension AssetTokenExtension on AssetToken {
       "tezos": "https://tzkt.io/{contract}/tokens/{tokenId}/transfers"
     },
     "TEST": {
-      "ethereum": "https://rinkeby.etherscan.io/token/{contract}?a={tokenId}",
-      "tezos": "https://tzkt.io/{contract}/tokens/{tokenId}/transfers"
+      "ethereum": "https://goerli.etherscan.io/token/{contract}?a={tokenId}",
+      "tezos": "https://kathmandunet.tzkt.io/{contract}/tokens/{tokenId}/transfers"
     }
   };
+
+  bool get hasMetadata {
+    // FIXME
+    return galleryThumbnailURL != null;
+  }
+
+  bool get isAirdrop {
+    return initialSaleModel?.toLowerCase() == "airdrop";
+  }
 
   String? get tokenURL {
     final network = Environment.appTestnetConfig ? "TEST" : "MAIN";
@@ -42,9 +55,9 @@ extension AssetTokenExtension on AssetToken {
       if (blockchain == "ethereum") {
         address = await persona.wallet().getETHAddress();
       } else {
-        address = (await persona.wallet().getTezosWallet()).address;
+        address = (await persona.wallet().getTezosAddress());
       }
-      if (address == ownerAddress) {
+      if (owners.containsKey(address)) {
         wallet = persona.wallet();
         break;
       }
@@ -115,10 +128,14 @@ String _replaceIPFSPreviewURL(String url, String medium) {
     return url;
   }
 
+  url =
+      url.replacePrefix(IPFS_PREFIX, "${Environment.autonomyIpfsPrefix}/ipfs/");
   return url.replacePrefix(DEFAULT_IPFS_PREFIX, Environment.autonomyIpfsPrefix);
 }
 
 String _replaceIPFS(String url) {
+  url =
+      url.replacePrefix(IPFS_PREFIX, "${Environment.autonomyIpfsPrefix}/ipfs/");
   return url.replacePrefix(DEFAULT_IPFS_PREFIX, Environment.autonomyIpfsPrefix);
 }
 
@@ -126,4 +143,55 @@ String _refineToCloudflareURL(String url, String thumbnailID, String variant) {
   return thumbnailID.isEmpty
       ? _replaceIPFS(url)
       : "$CLOUDFLAREIMAGEURLPREFIX$thumbnailID/$variant";
+}
+
+AssetToken createPendingAssetToken({
+  required Exhibition exhibition,
+  required String owner,
+  required String tokenId,
+}) {
+  final indexerId = exhibition.airdropInfo?.getTokenIndexerId(tokenId);
+  final artwork = exhibition.airdropArtwork;
+  final artist = exhibition.getArtist(artwork);
+  final contract = exhibition.airdropContract;
+  return AssetToken(
+    artistName: artist?.fullName ?? artist?.alias,
+    artistURL: null,
+    artistID: artist?.id,
+    assetData: null,
+    assetID: null,
+    assetURL: null,
+    basePrice: null,
+    baseCurrency: null,
+    blockchain: "tezos",
+    blockchainUrl: null,
+    fungible: false,
+    contractType: null,
+    tokenId: tokenId,
+    contractAddress: contract?.address,
+    desc: artwork?.description,
+    edition: 0,
+    id: indexerId ?? "",
+    maxEdition: exhibition.maxEdition,
+    medium: null,
+    mimeType: null,
+    mintedAt: artwork?.createdAt != null
+        ? dateFormatterYMDHM.format(artwork!.createdAt!).toUpperCase()
+        : null,
+    previewURL: exhibition.getThumbnailURL(),
+    source: "feralfile-airdrop",
+    sourceURL: null,
+    thumbnailID: null,
+    thumbnailURL: exhibition.getThumbnailURL(),
+    galleryThumbnailURL: exhibition.getThumbnailURL(),
+    title: exhibition.title,
+    balance: 0,
+    ownerAddress: owner,
+    owners: {
+      owner: 1,
+    },
+    lastActivityTime: DateTime.now(),
+    pending: true,
+    initialSaleModel: "airdrop",
+  );
 }

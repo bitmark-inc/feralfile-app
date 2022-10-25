@@ -47,7 +47,6 @@ class SettingsDataServiceImpl implements SettingsDataService {
   Future backup() async {
     log.info('[SettingsDataService][Start] backup');
     final addresses = await _accountService.getShowedAddresses();
-    if (addresses.isEmpty) return;
 
     _numberOfCallingBackups += 1;
 
@@ -75,7 +74,7 @@ class SettingsDataServiceImpl implements SettingsDataService {
 
     String dir = (await getTemporaryDirectory()).path;
     File backupFile = File('$dir/$_filename');
-    await backupFile.writeAsBytes(dataBytes);
+    await backupFile.writeAsBytes(dataBytes, flush: true);
 
     var isSuccess = false;
     while (!isSuccess) {

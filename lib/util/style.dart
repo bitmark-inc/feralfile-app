@@ -38,33 +38,37 @@ MarkdownStyleSheet markDownBlackStyle(BuildContext context) {
 MarkdownStyleSheet markDownStyle(BuildContext context, Color textColor) {
   final theme = Theme.of(context);
   final bodyText2 = ResponsiveLayout.isMobile
-      ? theme.textTheme.ibmGreyNormal16
-      : theme.textTheme.ibmGreyNormal20;
+      ? theme.textTheme.ibmGreyNormal16.copyWith(color: textColor)
+      : theme.textTheme.ibmGreyNormal20.copyWith(color: textColor);
   return MarkdownStyleSheet(
-    a: const TextStyle(
+    a: TextStyle(
       fontFamily: AppTheme.atlasGrotesk,
-      color: AppColor.primaryBlack,
-      decoration: TextDecoration.underline,
+      color: Colors.transparent,
       fontWeight: FontWeight.w500,
+      shadows: [Shadow(color: textColor, offset: const Offset(0, -1))],
+      decoration: TextDecoration.underline,
+      decorationStyle: TextDecorationStyle.solid,
+      decorationColor: textColor,
+      decorationThickness: 1,
     ),
     p: theme.textTheme.bodyText1?.copyWith(color: textColor),
     pPadding: const EdgeInsets.only(bottom: 15),
     code: bodyText2.copyWith(backgroundColor: Colors.transparent),
-    h1: theme.textTheme.headline1,
+    h1: theme.textTheme.headline1?.copyWith(color: textColor),
     h1Padding: const EdgeInsets.only(bottom: 40),
-    h2: theme.textTheme.headline4,
+    h2: theme.textTheme.headline4?.copyWith(color: textColor),
     h2Padding: EdgeInsets.zero,
-    h3: theme.textTheme.headline3,
+    h3: theme.textTheme.headline3?.copyWith(color: textColor),
     h3Padding: EdgeInsets.zero,
-    h4: theme.textTheme.headline4,
+    h4: theme.textTheme.headline4?.copyWith(color: textColor),
     h4Padding: EdgeInsets.zero,
-    h5: theme.textTheme.subtitle2,
+    h5: theme.textTheme.subtitle2?.copyWith(color: textColor),
     h5Padding: EdgeInsets.zero,
-    h6: theme.textTheme.headline6,
+    h6: theme.textTheme.headline6?.copyWith(color: textColor),
     h6Padding: EdgeInsets.zero,
-    em: const TextStyle(fontStyle: FontStyle.italic),
-    strong: const TextStyle(fontWeight: FontWeight.bold),
-    del: const TextStyle(decoration: TextDecoration.lineThrough),
+    em: TextStyle(fontStyle: FontStyle.italic, color: textColor),
+    strong: TextStyle(fontWeight: FontWeight.bold, color: textColor),
+    del: TextStyle(decoration: TextDecoration.lineThrough, color: textColor),
     blockquote: bodyText2,
     img: bodyText2,
     checkbox: bodyText2.copyWith(color: theme.colorScheme.secondary),
@@ -162,11 +166,6 @@ Widget closeIcon({Color color = Colors.black}) {
     height: 32,
   );
 }
-
-const pageEdgeInsets =
-    EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0, bottom: 20.0);
-const pageEdgeInsetsWithSubmitButton = EdgeInsets.fromLTRB(16, 16, 16, 32);
-const pageEdgeInsetsNotBottom = EdgeInsets.fromLTRB(16, 16, 16, 0);
 
 var grantPermissions = [
   "view_account".tr(),

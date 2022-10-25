@@ -5,30 +5,39 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_box_view.dart';
 import 'package:autonomy_flutter/screen/survey/survey.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
+import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
-import 'package:intl/intl.dart';
 import 'package:jiffy/jiffy.dart';
+import 'package:nft_collection/models/asset_token.dart';
 import 'package:share/share.dart';
+import 'package:wallet_connect/models/wc_peer_meta.dart';
 
 enum ActionState { notRequested, loading, error, done }
 
@@ -36,11 +45,13 @@ const SHOW_DIALOG_DURATION = Duration(seconds: 2);
 const SHORT_SHOW_DIALOG_DURATION = Duration(seconds: 1);
 
 void doneOnboarding(BuildContext context) async {
+  injector<IAPService>().restore();
+  injector<ConfigurationService>().setPendingSettings(true);
   injector<ConfigurationService>().setDoneOnboarding(true);
   Navigator.of(context)
       .pushNamedAndRemoveUntil(AppRouter.homePage, (route) => false);
 
-  await askForNotification();
+  // await askForNotification();
   // Future.delayed(
   //     SHORT_SHOW_DIALOG_DURATION, () => showSurveysNotification(context));
 }
@@ -108,39 +119,101 @@ class UIHelper {
     }
 
     await showModalBottomSheet<dynamic>(
-        context: context,
-        isDismissible: isDismissible,
-        backgroundColor: Colors.transparent,
-        enableDrag: false,
-        constraints: BoxConstraints(
-            maxWidth: ResponsiveLayout.isMobile
-                ? double.infinity
-                : Constants.maxWidthModalTablet),
-        isScrollControlled: true,
-        builder: (context) {
-          return Container(
-            color: Colors.transparent,
-            child: ClipPath(
-              clipper: AutonomyTopRightRectangleClipper(),
-              child: Container(
-                color: theme.colorScheme.primary,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 32),
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(title, style: theme.primaryTextTheme.headline1),
-                      const SizedBox(height: 40),
-                      content,
-                    ],
-                  ),
+      context: context,
+      isDismissible: isDismissible,
+      backgroundColor: Colors.transparent,
+      enableDrag: false,
+      constraints: BoxConstraints(
+          maxWidth: ResponsiveLayout.isMobile
+              ? double.infinity
+              : Constants.maxWidthModalTablet),
+      isScrollControlled: true,
+      builder: (context) {
+        return Container(
+          color: Colors.transparent,
+          child: ClipPath(
+            clipper: AutonomyTopRightRectangleClipper(),
+            child: Container(
+              color: theme.colorScheme.primary,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 32),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: theme.primaryTextTheme.headline1),
+                    const SizedBox(height: 40),
+                    content,
+                  ],
                 ),
               ),
             ),
-          );
-        });
+          ),
+        );
+      },
+    );
+  }
+
+  static Future<void> showMessageAction(
+    BuildContext context,
+    String title,
+    String description, {
+    bool isDismissible = false,
+    int autoDismissAfter = 0,
+    String? closeButton,
+    Function? onClose,
+    FeedbackType? feedback = FeedbackType.selection,
+    String? actionButton,
+    Function? onAction,
+  }) async {
+    log.info("[UIHelper] showInfoDialog: $title, $description");
+    final theme = Theme.of(context);
+
+    if (autoDismissAfter > 0) {
+      Future.delayed(
+          Duration(seconds: autoDismissAfter), () => hideInfoDialog(context));
+    }
+
+    await showDialog(
+      context,
+      title,
+      SizedBox(
+        width: double.infinity,
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          if (description.isNotEmpty) ...[
+            Text(
+              description,
+              style: theme.primaryTextTheme.bodyText1,
+            ),
+          ],
+          const SizedBox(height: 40),
+          if (onAction != null) ...[
+            AuFilledButton(
+              onPress: () => onAction.call(),
+              text: actionButton ?? '',
+              color: theme.colorScheme.secondary,
+              textStyle: theme.textTheme.button,
+            ),
+          ],
+          Row(
+            children: [
+              Expanded(
+                child: TextButton(
+                  onPressed: () => onClose ?? Navigator.pop(context),
+                  child: Text(
+                    closeButton ?? 'cancel'.tr(),
+                    style: theme.primaryTextTheme.button,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 15),
+        ]),
+      ),
+      isDismissible: isDismissible,
+      feedback: feedback,
+    );
   }
 
   static Future<void> showInfoDialog(
@@ -158,10 +231,11 @@ class UIHelper {
     }
 
     await showDialog(
-        context,
-        title,
-        Column(
-          mainAxisSize: MainAxisSize.min,
+      context,
+      title,
+      SizedBox(
+        width: double.infinity,
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (description.isNotEmpty) ...[
@@ -190,8 +264,10 @@ class UIHelper {
             ]
           ],
         ),
-        isDismissible: isDismissible,
-        feedback: feedback);
+      ),
+      isDismissible: isDismissible,
+      feedback: feedback,
+    );
   }
 
   static hideInfoDialog(BuildContext context) {
@@ -204,31 +280,79 @@ class UIHelper {
   static Future<void> showLinkRequestedDialog(BuildContext context) {
     final theme = Theme.of(context);
     return showDialog(
-        context,
-        'link_requested'.tr(),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            RichText(
-              text: TextSpan(children: [
-                TextSpan(
-                  style: theme.primaryTextTheme.bodyText1,
-                  text: "au_sent_survey".tr(),
+      context,
+      'link_requested'.tr(),
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          RichText(
+            text: TextSpan(children: [
+              TextSpan(
+                style: theme.primaryTextTheme.bodyText1,
+                text: "au_sent_survey".tr(),
+              ),
+              TextSpan(
+                style: theme.primaryTextTheme.headline4,
+                text: "feral_file".tr(),
+              ),
+              TextSpan(
+                style: theme.primaryTextTheme.bodyText1,
+                text: "in_your_mobile".tr(),
+              ),
+            ]),
+          ),
+          const SizedBox(height: 67),
+        ],
+      ),
+      isDismissible: true,
+    );
+  }
+
+  static Future<void> showUnavailableCastDialog({
+    required BuildContext context,
+    Function()? dontShowAgain,
+    AssetToken? assetToken,
+  }) {
+    final theme = Theme.of(context);
+    final isPDFArtwork = assetToken?.mimeType == 'application/pdf';
+    return showDialog(
+      context,
+      'unavailable_cast'.tr(),
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                Icons.cast,
+                color: theme.disableColor,
+              ),
+              const SizedBox(
+                width: 17,
+              ),
+              Expanded(
+                child: Text(
+                  isPDFArtwork
+                      ? 'unavailable_cast_pdf_des'.tr()
+                      : 'unavailable_cast_interactive_des'.tr(),
+                  style: theme.textTheme.atlasDimgreyBold16,
                 ),
-                TextSpan(
-                  style: theme.primaryTextTheme.headline4,
-                  text: "feral_file".tr(),
-                ),
-                TextSpan(
-                  style: theme.primaryTextTheme.bodyText1,
-                  text: "in_your_mobile".tr(),
-                ),
-              ]),
-            ),
-            const SizedBox(height: 67),
-          ],
-        ),
-        isDismissible: true);
+              )
+            ],
+          ),
+          const SizedBox(height: 40),
+          AuFilledButton(
+            text: 'ok'.tr(),
+            onPress: () => Navigator.pop(context),
+            textStyle: theme.textTheme.button,
+            color: theme.colorScheme.secondary,
+          ),
+          const SizedBox(height: 10),
+        ],
+      ),
+      isDismissible: true,
+    );
   }
 
   static Future showFFAccountLinked(BuildContext context, String alias,
@@ -262,6 +386,106 @@ class UIHelper {
         ),
         isDismissible: true,
         autoDismissAfter: 5);
+  }
+
+  static Future showExhibitionNotStarted(
+    BuildContext context, {
+    required DateTime startTime,
+  }) async {
+    final theme = Theme.of(context);
+    final error = FeralfileError(5006, "");
+    return UIHelper.showDialog(
+      context,
+      error.dialogTitle,
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            error.dialogMessage,
+            style: theme.primaryTextTheme.bodyText1,
+          ),
+          const SizedBox(
+            height: 40,
+          ),
+          AuFilledButton(
+            text: "close".tr(),
+            onPress: () {
+              Navigator.of(context).pop();
+            },
+            textStyle: theme.primaryTextTheme.button,
+          ),
+        ],
+      ),
+      isDismissible: true,
+    );
+  }
+
+  static Future showAirdropExpired(BuildContext context) async {
+    final theme = Theme.of(context);
+    final error = FeralfileError(3007, "");
+    return UIHelper.showDialog(
+      context,
+      error.dialogTitle,
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            error.dialogMessage,
+            style: theme.primaryTextTheme.bodyText1,
+          ),
+          const SizedBox(
+            height: 40,
+          ),
+          AuFilledButton(
+            text: "close".tr(),
+            onPress: () {
+              Navigator.of(context).pop();
+            },
+            textStyle: theme.primaryTextTheme.button,
+          ),
+        ],
+      ),
+      isDismissible: true,
+    );
+  }
+
+  static Future showNoRemainingAirdropToken(
+    BuildContext context, {
+    required Exhibition exhibition,
+  }) async {
+    final error = FeralfileError(3009, "");
+    return showErrorDialog(
+      context,
+      error.getDialogTitle(exhibition: exhibition),
+      error.getDialogMessage(exhibition: exhibition),
+      "close".tr(),
+    );
+  }
+
+  static Future showClaimTokenError(
+    BuildContext context,
+    Object e, {
+    required Exhibition exhibition,
+  }) async {
+    if (e is AirdropExpired) {
+      await showAirdropExpired(context);
+    } else if (e is DioError) {
+      final ffError = e.error as FeralfileError?;
+      final message = ffError != null
+          ? ffError.getDialogMessage(exhibition: exhibition)
+          : "${e.response?.data ?? e.message}";
+      await showErrorDialog(
+        context,
+        ffError?.getDialogTitle(exhibition: exhibition) ?? "error".tr(),
+        message,
+        "close".tr(),
+      );
+    } else if (e is NoRemainingToken) {
+      await showNoRemainingAirdropToken(
+        context,
+        exhibition: exhibition,
+      );
+    }
   }
 
   // MARK: - Connection
@@ -431,8 +655,8 @@ class UIHelper {
                   child: AuFilledButton(
                     text: "ok".tr(),
                     onPress: onOK,
-                    color: theme.primaryColor,
-                    textStyle: theme.primaryTextTheme.button,
+                    color: theme.colorScheme.secondary,
+                    textStyle: theme.textTheme.button,
                   ),
                 ),
               ],
@@ -490,6 +714,82 @@ class UIHelper {
         )));
   }
 
+  static showConnectionSuccess(
+    BuildContext context, {
+    required Function() onClose,
+  }) {
+    final theme = Theme.of(context);
+
+    showDialog(
+      context,
+      'connected'.tr(),
+      Flexible(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'connect_TV_success_des'.tr(),
+              style: theme.primaryTextTheme.bodyText1,
+            ),
+            const SizedBox(
+              height: 40,
+            ),
+            Row(
+              children: [
+                Expanded(
+                  child: AuFilledButton(
+                    text: "close".tr(),
+                    onPress: onClose,
+                    color: theme.colorScheme.secondary,
+                    textStyle: theme.textTheme.button,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 15),
+          ],
+        ),
+      ),
+    );
+  }
+
+  static showConnectionFaild(
+    BuildContext context, {
+    required Function() onClose,
+  }) {
+    final theme = Theme.of(context);
+
+    showDialog(
+      context,
+      'expired'.tr(),
+      Flexible(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'expired_des'.tr(),
+              style: theme.primaryTextTheme.bodyText1,
+            ),
+            const SizedBox(
+              height: 40,
+            ),
+            Row(
+              children: [
+                Expanded(
+                  child: AuFilledButton(
+                    text: "close".tr(),
+                    onPress: onClose,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 15),
+          ],
+        ),
+      ),
+    );
+  }
+
   static showAccountLinked(
       BuildContext context, Connection connection, String walletName) {
     UIHelper.showInfoDialog(context, "account_linked".tr(),
@@ -525,37 +825,43 @@ class UIHelper {
         isDismissible: true, autoDismissAfter: 3);
   }
 
-  static Future showFeatureRequiresSubscriptionDialog(
-      BuildContext context, PremiumFeature feature) {
+  static Future showFeatureRequiresSubscriptionDialog(BuildContext context,
+      PremiumFeature feature, WCPeerMeta peerMeta, int id) {
     final theme = Theme.of(context);
 
     return showDialog(
-        context,
-        "h_subscribe".tr(),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text("require_subs".tr(), style: theme.primaryTextTheme.bodyText1),
-            const SizedBox(height: 40),
-            UpgradeBoxView.getMoreAutonomyWidget(theme, feature),
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                Expanded(
-                  child: TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: Text(
-                      "cancel".tr(),
-                      style: theme.primaryTextTheme.button,
-                    ),
+      context,
+      "h_subscribe".tr(),
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text("require_subs".tr(), style: theme.primaryTextTheme.bodyText1),
+          const SizedBox(height: 40),
+          UpgradeBoxView.getMoreAutonomyWidget(theme, feature,
+              peerMeta: peerMeta, id: id),
+          const SizedBox(height: 24),
+          Row(
+            children: [
+              Expanded(
+                child: TextButton(
+                  onPressed: () {
+                    injector<WalletConnectService>()
+                        .rejectRequest(peerMeta, id);
+                    injector<ConfigurationService>().deleteTVConnectData();
+                    Navigator.pop(context);
+                  },
+                  child: Text(
+                    "cancel".tr(),
+                    style: theme.primaryTextTheme.button,
                   ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 20),
-          ],
-        ),
-        isDismissible: true);
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+        ],
+      ),
+    );
   }
 }
 
@@ -623,33 +929,4 @@ wantMoreSecurityWidget(BuildContext context, WalletApp walletApp) {
 
 String getDateTimeRepresentation(DateTime dateTime) {
   return Jiffy(dateTime).fromNow();
-}
-
-// From chat_ui/util
-String getVerboseDateTimeRepresentation(
-  DateTime dateTime, {
-  DateFormat? dateFormat,
-  String? dateLocale,
-  DateFormat? timeFormat,
-}) {
-  final formattedDate = dateFormat != null
-      ? dateFormat.format(dateTime)
-      : DateFormat.MMMd(dateLocale).format(dateTime);
-  final formattedTime = timeFormat != null
-      ? timeFormat.format(dateTime)
-      : DateFormat.Hm(dateLocale).format(dateTime);
-  final localDateTime = dateTime.toLocal();
-  final now = DateTime.now();
-
-  if (localDateTime.day == now.day &&
-      localDateTime.month == now.month &&
-      localDateTime.year == now.year) {
-    return formattedTime;
-  }
-
-  if (Jiffy(localDateTime).week == Jiffy(now).week) {
-    return Jiffy(localDateTime).format("EE");
-  }
-
-  return '$formattedDate, $formattedTime';
 }

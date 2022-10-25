@@ -28,6 +28,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:url_launcher/url_launcher_string.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 
 class LinkAccountPage extends StatefulWidget {
   const LinkAccountPage({Key? key}) : super(key: key);
@@ -71,7 +72,7 @@ class _LinkAccountPageState extends State<LinkAccountPage>
         },
       ),
       body: Container(
-        margin: pageEdgeInsets.copyWith(bottom: 0),
+        margin: ResponsiveLayout.pageEdgeInsetsNotBottom,
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -125,7 +126,7 @@ class _LinkAccountPageState extends State<LinkAccountPage>
               final url =
                   '${Environment.feralFileAPIURL}/exhibitions?callbackUrl=autonomy%3A%2F%2F&wc=$wcURI';
 
-              await launchUrlString(url, mode: LaunchMode.externalApplication);
+              await launchUrlString(url, mode: LaunchMode.inAppWebView);
 
               if (!mounted) return;
               UIHelper.showLinkRequestedDialog(context);
@@ -218,7 +219,8 @@ class _LinkAccountPageState extends State<LinkAccountPage>
               children: [
                 Image.asset("assets/images/tezos_wallet.png"),
                 const SizedBox(width: 16),
-                Text("other_tezos_wallets".tr(), style: theme.textTheme.headline4),
+                Text("other_tezos_wallets".tr(),
+                    style: theme.textTheme.headline4),
               ],
             ),
             onTap: () async {
@@ -328,7 +330,8 @@ class _LinkAccountPageState extends State<LinkAccountPage>
           await injector<AccountService>().linkETHWallet(session);
 
       // SideEffect: pre-fetch tokens
-      injector<NftCollectionBloc>().tokensService
+      injector<NftCollectionBloc>()
+          .tokensService
           .fetchTokensForAddresses(linkedAccount.accountNumbers);
 
       final walletName =

@@ -17,9 +17,10 @@ import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
+import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:rxdart/rxdart.dart';
 import 'package:nft_collection/models/asset_token.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:tezart/tezart.dart';
 import 'package:web3dart/web3dart.dart';
 
@@ -57,8 +58,7 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
           newState.isValid = _isValid(newState);
           break;
         case CryptoType.XTZ:
-          final tezosWallet = await event.wallet.getTezosWallet();
-          final address = tezosWallet.address;
+          final address = await event.wallet.getTezosAddress();
           final balance = await _tezosService.getBalance(address);
 
           newState.balance = BigInt.from(balance);
@@ -78,6 +78,7 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
       newState.quantity = event.quantity;
       newState.isQuantityError =
           event.quantity <= 0 || event.quantity > event.maxQuantity;
+      newState.isEstimating = false;
       newState.fee = null;
       newState.isValid = _isValid(newState);
       emit(newState);
@@ -92,9 +93,12 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
     });
 
     on<AddressChangedEvent>((event, emit) async {
+      log.info("AddressChangedEvent: ${event.address}");
       final newState = state.clone();
       newState.isScanQR = event.address.isEmpty;
       newState.isAddressError = false;
+      newState.isEstimating = false;
+      newState.fee = null;
 
       if (event.address.isNotEmpty) {
         switch (type) {
@@ -111,7 +115,7 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
             }
             break;
           case CryptoType.XTZ:
-            if (event.address.startsWith("tz")) {
+            if (event.address.isValidTezosAddress) {
               newState.address = event.address;
               newState.isAddressError = false;
 
@@ -124,14 +128,18 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
           default:
             break;
         }
+      } else {
+        newState.isAddressError = true;
+        newState.address = "";
       }
-
+      newState.isValid = _isValid(newState);
       cachedAddress = newState.address;
       emit(newState);
     });
 
     on<EstimateFeeEvent>((event, emit) async {
       log.info("[SendArtworkBloc] Estimate fee: ${event.quantity}");
+      emit(state.copyWith(isEstimating: true));
 
       BigInt? fee;
       switch (type) {
@@ -157,43 +165,44 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
         case CryptoType.XTZ:
           final wallet = state.wallet;
           if (wallet == null) return;
-          final tezosWallet = await wallet.getTezosWallet();
           try {
             final operation = await _tezosService.getFa2TransferOperation(
                 event.contractAddress,
-                tezosWallet.address,
+                await wallet.getTezosAddress(),
                 event.address,
-                int.parse(event.tokenId),
+                event.tokenId,
                 event.quantity);
-            final tezosFee = await _tezosService.estimateOperationFee(tezosWallet, [operation]);
+            final tezosFee = await _tezosService.estimateOperationFee(
+                await wallet.getTezosPublicKey(), [operation]);
             fee = BigInt.from(tezosFee);
           } on TezartNodeError catch (err) {
-            UIHelper.showInfoDialog(
-              injector<NavigationService>().navigatorKey.currentContext!,
-              "estimation_failed".tr(),
-              getTezosErrorMessage(err),
-              isDismissible: true,
-            );
+            if (!emit.isDone) {
+              UIHelper.showInfoDialog(
+                injector<NavigationService>().navigatorKey.currentContext!,
+                "estimation_failed".tr(),
+                getTezosErrorMessage(err),
+                isDismissible: true,
+              );
+            }
           } catch (err) {
-            showErrorDialogFromException(err);
+            if (!emit.isDone) {
+              showErrorDialogFromException(err);
+            }
           }
           break;
         default:
           break;
       }
 
-      if (state.quantity == event.quantity && state.address == event.address) {
+      if (!emit.isDone) {
         final newState = state.clone();
         newState.fee = fee;
-        newState.balance = cachedBalance;
-        newState.address = cachedAddress;
-        newState.quantity = event.quantity;
+        newState.isEstimating = false;
         newState.isValid = _isValid(newState);
         emit(newState);
       }
     }, transformer: (events, mapper) {
       return events
-          .distinct()
           .debounceTime(const Duration(milliseconds: 300))
           .switchMap(mapper);
     });

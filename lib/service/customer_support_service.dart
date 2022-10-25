@@ -52,6 +52,7 @@ abstract class CustomerSupportService {
   Future<String> getStoredDirectory();
   Future<String> storeFile(String filename, List<int> bytes);
   Future reopen(String issueID);
+  Future rateIssue(String issueID, int rating);
 
   Future<String> createRenderingIssueReport(
     AssetToken token,
@@ -120,6 +121,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
         unread: 0,
         lastMessage: null,
         draft: draft,
+        rating: draft.rating,
       );
       issues.add(draftIssue);
     }
@@ -398,7 +400,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
 
     File file = File(filePath);
     await file.create(recursive: true);
-    await file.writeAsBytes(bytes);
+    await file.writeAsBytes(bytes, flush: true);
     log.info('[done] storeFile $filename');
     return file.path;
   }
@@ -407,6 +409,12 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
   Future reopen(String issueID) async {
     return _customerSupportApi.reOpenIssue(issueID);
   }
+
+  @override
+  Future rateIssue(String issueID, int rating) async {
+    return _customerSupportApi.rateIssue(issueID, rating);
+  }
+
 
   @override
   Future reportIPFSLoadingError(AssetToken token) async {

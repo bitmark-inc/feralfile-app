@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/model/wc2_proposal.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
+import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/screen/account/access_method_page.dart';
 import 'package:autonomy_flutter/screen/account/accounts_preview_page.dart';
 import 'package:autonomy_flutter/screen/account/add_account_page.dart';
@@ -40,7 +41,11 @@ import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/router/router_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
+import 'package:autonomy_flutter/screen/bloc/tzkt_transaction/tzkt_transaction_bloc.dart';
 import 'package:autonomy_flutter/screen/bug_bounty_page.dart';
+import 'package:autonomy_flutter/screen/claim/claim_token_page.dart';
+import 'package:autonomy_flutter/screen/claim/select_account_page.dart';
+import 'package:autonomy_flutter/screen/claim/token_detail_page.dart';
 import 'package:autonomy_flutter/screen/cloud/cloud_android_page.dart';
 import 'package:autonomy_flutter/screen/cloud/cloud_page.dart';
 import 'package:autonomy_flutter/screen/connection/connection_details_page.dart';
@@ -70,7 +75,6 @@ import 'package:autonomy_flutter/screen/onboarding_page.dart';
 import 'package:autonomy_flutter/screen/participate_user_test_page.dart';
 import 'package:autonomy_flutter/screen/release_notes_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
-import 'package:autonomy_flutter/screen/settings/crypto/receive_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_bloc.dart';
@@ -163,6 +167,9 @@ class AppRouter {
   static const githubDocPage = 'github_doc_page';
   static const sendArtworkPage = 'send_artwork_page';
   static const sendArtworkReviewPage = 'send_artwork_review_page';
+  static const claimFeralfileTokenPage = 'claim_feralfile_token_page';
+  static const claimSelectAccountPage = 'claim_select_account_page';
+  static const airdropTokenDetailPage = 'airdrop_token_detail_page';
   static const wc2ConnectPage = 'wc2_connect_page';
   static const wc2PermissionPage = 'wc2_permission_page';
 
@@ -201,6 +208,11 @@ class AppRouter {
                     BlocProvider(
                         create: (_) => IdentityBloc(injector(), injector())),
                     BlocProvider.value(value: nftCollectionBloc),
+                    BlocProvider(
+                        create: (_) => UpgradesBloc(
+                          injector(),
+                          injector(),
+                        )),
                   ],
                   child: const HomePage(),
                 ),
@@ -219,6 +231,11 @@ class AppRouter {
                     BlocProvider(
                         create: (_) => IdentityBloc(injector(), injector())),
                     BlocProvider.value(value: nftCollectionBloc),
+                    BlocProvider(
+                        create: (_) => UpgradesBloc(
+                          injector(),
+                          injector(),
+                        )),
                   ],
                   child: const HomePage(),
                 ));
@@ -481,14 +498,21 @@ class AppRouter {
       case personaConnectionsPage:
         return CupertinoPageRoute(
             settings: settings,
-            builder: (context) => BlocProvider(
-                create: (_) => ConnectionsBloc(
-                      injector<CloudDatabase>(),
-                      injector(),
-                      injector(),
-                    ),
-                child: PersonaConnectionsPage(
-                    payload: settings.arguments as PersonaConnectionsPayload)));
+            builder: (context) => MultiBlocProvider(
+                    providers: [
+                      BlocProvider.value(value: accountsBloc),
+                      BlocProvider.value(value: ethereumBloc),
+                      BlocProvider.value(value: tezosBloc),
+                      BlocProvider.value(
+                          value: ConnectionsBloc(
+                        injector<CloudDatabase>(),
+                        injector(),
+                        injector(),
+                      ))
+                    ],
+                    child: PersonaConnectionsPage(
+                        payload:
+                            settings.arguments as PersonaConnectionsPayload)));
 
       case connectionDetailsPage:
         return CupertinoPageRoute(
@@ -517,17 +541,16 @@ class AppRouter {
       case walletDetailsPage:
         return CupertinoPageRoute(
             settings: settings,
-            builder: (context) => BlocProvider(
-                  create: (_) =>
-                      WalletDetailBloc(injector(), injector(), injector()),
+            builder: (context) => MultiBlocProvider(
+                  providers: [
+                    BlocProvider(
+                        create: (_) => WalletDetailBloc(
+                            injector(), injector(), injector())),
+                    BlocProvider(create: (_) => TZKTTransactionBloc()),
+                  ],
                   child: WalletDetailPage(
                       payload: settings.arguments as WalletDetailsPayload),
                 ));
-      case ReceivePage.tag:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) =>
-                ReceivePage(payload: settings.arguments as WalletPayload));
       case SendCryptoPage.tag:
         return CupertinoPageRoute(
             settings: settings,
@@ -825,6 +848,40 @@ class AppRouter {
                   child: SendArtworkReviewPage(
                       payload: settings.arguments as SendArtworkReviewPayload),
                 ));
+
+      case claimFeralfileTokenPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) {
+              return ClaimTokenPage(
+                exhibition: settings.arguments as Exhibition,
+              );
+            });
+
+      case airdropTokenDetailPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) {
+              return TokenDetailPage(
+                exhibition: settings.arguments as Exhibition,
+              );
+            });
+
+      case claimSelectAccountPage:
+        final args = settings.arguments as SelectAccountPageArgs;
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) {
+              return BlocProvider.value(
+                value: accountsBloc,
+                child: SelectAccountPage(
+                  exhibitionId: args.exhibitionId,
+                  blockchain: args.blockchain,
+                  exhibition: args.exhibition,
+                ),
+              );
+            });
+
 
       case wc2ConnectPage:
         return CupertinoPageRoute(

@@ -16,9 +16,9 @@ import 'package:autonomy_flutter/model/connection_supports.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
-import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 
@@ -120,7 +120,7 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
       for (var persona in personas) {
         final bitmarkAddress = await persona.wallet().getBitmarkAddress();
         final ethAddress = await persona.wallet().getETHEip55Address();
-        final xtzAddress = (await persona.wallet().getTezosWallet()).address;
+        final xtzAddress = (await persona.wallet().getTezosAddress());
         var name = await persona.wallet().getName();
 
         if (name.isEmpty) {
@@ -283,10 +283,12 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
       _cloudDB.connectionDao.insertConnection(newConnection);
       emit(state.setEvent(LinkAccountSuccess(newConnection)));
 
-      injector<AWSService>().storeEventWithDeviceData(
+      final metricClient = injector.get<MetricClientService>();
+
+      await metricClient.addEvent(
         "link_ledger",
         data: {"blockchain": event.blockchain},
-        hashingData: {"address": event.address},
+        hashedData: {"address": event.address},
       );
 
       add(GetAccountsEvent());
@@ -309,9 +311,8 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
 
         for (var persona in personas) {
           final wallet = persona.wallet();
-          final tzWallet = await wallet.getTezosWallet();
           final ethAddress = await wallet.getETHEip55Address();
-          final tzAddress = tzWallet.address;
+          final tzAddress = await wallet.getTezosAddress();
 
           addresses.add(ethAddress);
           addresses.add(tzAddress);
@@ -331,6 +332,21 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
       await Future.delayed(const Duration(milliseconds: 500), () {
         emit(newState.setEvent(null));
       });
+    });
+
+    on<FindAccount>((event, emit) async {
+      final persona = await _cloudDB.personaDao.findById(event.personaUUID);
+      List<Account> accounts = [];
+      if (persona != null) {
+        accounts.add(Account(
+            key: persona.uuid,
+            persona: persona,
+            name: persona.name,
+            blockchain: event.type.source,
+            accountNumber: event.address,
+            createdAt: persona.createdAt));
+      }
+      emit(AccountsState(accounts: accounts));
     });
   }
 

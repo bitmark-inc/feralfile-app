@@ -16,8 +16,11 @@ import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/util/migration/migration_util.dart';
 import 'package:autonomy_flutter/util/notification_util.dart';
+import 'package:flutter/material.dart';
+import 'package:nft_collection/database/nft_collection_database.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
@@ -27,7 +30,9 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
   final IAPApi _iapApi;
   final CloudDatabase _cloudDatabase;
   final AppDatabase _appDatabase;
+  final NftCollectionDatabase _nftCollectionDatabase;
   final ConfigurationService _configurationService;
+  final FeedService _feedService;
 
   ForgetExistBloc(
       this._authService,
@@ -36,7 +41,9 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
       this._iapApi,
       this._cloudDatabase,
       this._appDatabase,
-      this._configurationService)
+      this._nftCollectionDatabase,
+      this._configurationService,
+      this._feedService)
       : super(ForgetExistState(false, null)) {
     on<UpdateCheckEvent>((event, emit) async {
       emit(ForgetExistState(event.isChecked, state.isProcessing));
@@ -61,10 +68,12 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
 
       await _cloudDatabase.removeAll();
       await _appDatabase.removeAll();
+      await _nftCollectionDatabase.removeAll();
       await _configurationService.removeAll();
 
       _authService.reset();
-      memoryValues = MemoryValues();
+      _feedService.unviewedCount.value = 0;
+      memoryValues = MemoryValues(airdropFFExhibitionId: ValueNotifier(null));
 
       emit(ForgetExistState(state.isChecked, false));
     });

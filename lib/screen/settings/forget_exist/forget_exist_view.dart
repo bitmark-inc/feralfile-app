@@ -46,11 +46,10 @@ class ForgetExistView extends StatelessWidget {
                     children: <TextSpan>[
                       TextSpan(
                           text: "action_irrevocable".tr(),
-                          style: TextStyle(fontWeight: FontWeight.bold)),
+                          style: const TextStyle(fontWeight: FontWeight.bold)),
                       TextSpan(
-                        text:
-                            "accounts_delete".tr(),
-                            //" Your accounts and data from your device and your cloud backup will be deleted. Autonomy will not be able to help you recover access.",
+                        text: "accounts_delete".tr(),
+                        //" Your accounts and data from your device and your cloud backup will be deleted. Autonomy will not be able to help you recover access.",
                       ),
                     ],
                   ),
@@ -93,40 +92,45 @@ class ForgetExistView extends StatelessWidget {
           const SizedBox(
             height: 16,
           ),
-          Row(
-            children: [
-              RoundCheckBox(
-                size: 24.0,
-                borderColor: theme.colorScheme.secondary,
-                uncheckedColor: theme.colorScheme.primary,
-                checkedColor: theme.colorScheme.secondary,
-                isChecked: state.isChecked,
-                checkedWidget: Icon(
-                  CupertinoIcons.checkmark,
-                  color: theme.colorScheme.primary,
-                  size: 14,
+          GestureDetector(
+            onTap: () => context
+                .read<ForgetExistBloc>()
+                .add(UpdateCheckEvent(!state.isChecked)),
+            child: Row(
+              children: [
+                RoundCheckBox(
+                  size: 24.0,
+                  borderColor: theme.colorScheme.secondary,
+                  uncheckedColor: theme.colorScheme.primary,
+                  checkedColor: theme.colorScheme.secondary,
+                  isChecked: state.isChecked,
+                  checkedWidget: Icon(
+                    CupertinoIcons.checkmark,
+                    color: theme.colorScheme.primary,
+                    size: 14,
+                  ),
+                  onTap: (bool? value) {
+                    context
+                        .read<ForgetExistBloc>()
+                        .add(UpdateCheckEvent(value ?? false));
+                  },
                 ),
-                // checkedColor: Colors,
-                onTap: (bool? value) {
-                  context
-                      .read<ForgetExistBloc>()
-                      .add(UpdateCheckEvent(value ?? false));
-                },
-              ),
-              const SizedBox(width: 15),
-              Expanded(
-                  child: Text(
-                    "i_understand".tr(),
-                //"I understand that this action cannot be undone.",
-                style: theme.primaryTextTheme.headline5,
-              )),
-            ],
+                const SizedBox(width: 15),
+                Expanded(
+                    child: Text(
+                  "i_understand".tr(),
+                  //"I understand that this action cannot be undone.",
+                  style: theme.primaryTextTheme.headline5,
+                )),
+              ],
+            ),
           ),
           const SizedBox(
             height: 40,
           ),
           AuFilledButton(
-            text: state.isProcessing == true ? "forgetting".tr() : "confirm".tr(),
+            text:
+                state.isProcessing == true ? "forgetting".tr() : "confirm".tr(),
             enabled: state.isProcessing == null && state.isChecked,
             onPress: () {
               context.read<ForgetExistBloc>().add(ConfirmForgetExistEvent());

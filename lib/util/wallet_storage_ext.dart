@@ -9,6 +9,7 @@ import 'package:collection/collection.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:web3dart/credentials.dart';
+import 'package:tezart/src/crypto/crypto.dart' as crypto;
 
 extension StringExtension on WalletStorage {
   Future<String> getETHEip55Address() async {
@@ -25,19 +26,27 @@ extension StringHelper on String {
   String getETHEip55Address() {
     return EthereumAddress.fromHex(this).hexEip55;
   }
-}
+
+  String publicKeyToTezosAddress() {
+    return crypto.addressFromPublicKey(this);
+  }}
 
 extension WalletStorageExtension on WalletStorage {
   Future getOwnedQuantity(AssetToken token) async {
     final addresses = [
       await getBitmarkAddress(),
       await getETHEip55Address(),
-      (await getTezosWallet()).address
+      await getTezosAddress(),
     ];
     if (token.fungible == true && token.owners.isNotEmpty) {
       return addresses.map((e) => token.owners[e] ?? 0).sum;
     } else {
       return addresses.contains(token.ownerAddress) ? 1 : 0;
     }
+  }
+
+  Future getTezosAddress() async {
+    final publicKey = await getTezosPublicKey();
+    return crypto.addressFromPublicKey(publicKey);
   }
 }

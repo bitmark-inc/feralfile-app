@@ -8,12 +8,12 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 
 class BeOwnGalleryPage extends StatelessWidget {
   const BeOwnGalleryPage({Key? key}) : super(key: key);
@@ -30,7 +30,7 @@ class BeOwnGalleryPage extends StatelessWidget {
         },
       ),
       body: Container(
-        margin: pageEdgeInsetsWithSubmitButton,
+        margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -64,12 +64,7 @@ class BeOwnGalleryPage extends StatelessWidget {
                   child: AuFilledButton(
                     text: "continue".tr().toUpperCase(),
                     onPress: () async {
-                      if (await injector<IAPService>().isSubscribed()) {
-                        await newAccountPageOrSkipInCondition(context);
-                      } else {
-                        await Navigator.of(context)
-                            .pushNamed(AppRouter.moreAutonomyPage);
-                      }
+                      await newAccountPageOrSkipInCondition(context);
                     },
                   ),
                 ),

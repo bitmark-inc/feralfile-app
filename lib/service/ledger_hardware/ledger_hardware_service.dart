@@ -69,12 +69,14 @@ class LedgerHardwareService {
     await stopScanning();
     await ledger.device.connect();
     List<BluetoothService> services = await ledger.device.discoverServices();
-    await Future.forEach(services, (s) async {
-      final service = s as BluetoothService;
+
+    for (var s in services) {
+      final service = s;
       if (service.uuid == Guid(serviceUuid)) {
         await ledger.connect(service);
       }
-    });
+    }
+
     ledger.isConnected = (ledger.notifyCharacteristic != null &&
         ledger.writeCMDCharacteristic != null &&
         ledger.writeCharacteristic != null);

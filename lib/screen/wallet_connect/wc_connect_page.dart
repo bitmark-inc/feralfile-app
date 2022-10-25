@@ -9,13 +9,11 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/screen/connection/persona_connections_page.dart';
-import 'package:autonomy_flutter/service/aws_service.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
@@ -26,6 +24,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -33,7 +32,9 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:metric_client/metric_client.dart';
 import 'package:wallet_connect/models/wc_peer_meta.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 
 /*
  Because WalletConnect & TezosBeacon are using same logic:
@@ -60,6 +61,8 @@ class _WCConnectPageState extends State<WCConnectPage>
   Persona? selectedPersona;
   List<Persona>? personas;
   bool generatedPersona = false;
+  final metricClient = injector.get<MetricClientService>();
+  bool _isAccountSelected = false;
 
   @override
   void initState() {
@@ -116,7 +119,7 @@ class _WCConnectPageState extends State<WCConnectPage>
       final address = await injector<EthereumService>()
           .getETHAddress(selectedPersona!.wallet());
 
-      final chainId = Environment.appTestnetConfig ? 4 : 1;
+      final chainId = Environment.web3ChainId;
 
       final approvedAddresses = [address];
       log.info(
@@ -136,11 +139,11 @@ class _WCConnectPageState extends State<WCConnectPage>
       }
 
       if (wcConnectArgs.peerMeta.name == AUTONOMY_TV_PEER_NAME) {
-        injector<AWSService>().storeEventWithDeviceData(
+        await metricClient.addEvent(
           "connect_autonomy_display",
         );
       } else {
-        injector<AWSService>().storeEventWithDeviceData(
+        await metricClient.addEvent(
           "connect_external",
           data: {
             "method": "wallet_connect",
@@ -152,16 +155,16 @@ class _WCConnectPageState extends State<WCConnectPage>
     }
 
     if (beaconRequest != null) {
-      final tezosWallet = await selectedPersona!.wallet().getTezosWallet();
-      final publicKey = await injector<TezosService>()
-          .getPublicKey(tezosWallet);
+      final wallet = selectedPersona!.wallet();
+      final publicKey = await wallet.getTezosPublicKey();
+      final address = await wallet.getTezosAddress();
       await injector<TezosBeaconService>().permissionResponse(
         selectedPersona!.uuid,
         beaconRequest.id,
         publicKey,
-        tezosWallet.address,
+        address,
       );
-      payloadAddress = tezosWallet.address;
+      payloadAddress = address;
       payloadType = CryptoType.XTZ;
     }
 
@@ -169,6 +172,7 @@ class _WCConnectPageState extends State<WCConnectPage>
       personaUUID: selectedPersona!.uuid,
       address: payloadAddress,
       type: payloadType,
+      personaName: selectedPersona!.name
     );
 
     if (!mounted) return;
@@ -181,7 +185,7 @@ class _WCConnectPageState extends State<WCConnectPage>
           arguments: payload);
     }
 
-    injector<AWSService>().storeEventWithDeviceData(
+    await metricClient.addEvent(
       "connect_external",
       data: {
         "method": "tezos_beacon",
@@ -199,67 +203,74 @@ class _WCConnectPageState extends State<WCConnectPage>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Scaffold(
-      appBar: getBackAppBar(
-        context,
-        onBack: () => _reject(),
-      ),
-      body: Container(
-        margin: pageEdgeInsetsWithSubmitButton,
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(
-            "connect".tr(),
-            style: theme.textTheme.headline1,
-          ),
-          const SizedBox(height: 24.0),
-          _appInfo(),
-          const SizedBox(height: 24.0),
-          Padding(
-            padding: const EdgeInsets.only(left: 10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ...grantPermissions
-                    .map(
-                      (permission) => Text("• $permission",
-                          style: theme.textTheme.bodyText1),
-                    )
-                    .toList(),
-              ],
+    return WillPopScope(
+      onWillPop: () async {
+        _reject();
+        return true;
+      },
+      child: Scaffold(
+        appBar: getBackAppBar(
+          context,
+          onBack: () => _reject(),
+        ),
+        body: Container(
+          margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(
+              "connect".tr(),
+              style: theme.textTheme.headline1,
             ),
-          ),
-          const SizedBox(height: 40),
-          BlocConsumer<PersonaBloc, PersonaState>(listener: (context, state) {
-            var statePersonas = state.personas;
-            if (statePersonas == null) return;
+            const SizedBox(height: 24.0),
+            _appInfo(),
+            const SizedBox(height: 24.0),
+            Padding(
+              padding: const EdgeInsets.only(left: 10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ...grantPermissions
+                      .map(
+                        (permission) => Text("• $permission",
+                            style: theme.textTheme.bodyText1),
+                      )
+                      .toList(),
+                ],
+              ),
+            ),
+            const SizedBox(height: 40),
+            BlocConsumer<PersonaBloc, PersonaState>(listener: (context, state) {
+              var statePersonas = state.personas;
+              if (statePersonas == null) return;
 
-            final scopedPersonaUUID = memoryValues.scopedPersona;
-            if (scopedPersonaUUID != null) {
-              final scopedPersona = statePersonas
-                  .firstWhere((element) => element.uuid == scopedPersonaUUID);
-              statePersonas = [scopedPersona];
-            }
+              final scopedPersonaUUID = memoryValues.scopedPersona;
+              if (scopedPersonaUUID != null) {
+                final scopedPersona = statePersonas
+                    .firstWhere((element) => element.uuid == scopedPersonaUUID);
+                statePersonas = [scopedPersona];
+              }
 
-            if (statePersonas.length == 1) {
+              if (statePersonas.length == 1) {
+                setState(() {
+                  selectedPersona = statePersonas?.first;
+                });
+              }
+
               setState(() {
-                selectedPersona = statePersonas?.first;
+                personas = statePersonas;
               });
-            }
+            }, builder: (context, state) {
+              final statePersonas = personas;
+              if (statePersonas == null) return const SizedBox();
 
-            setState(() {
-              personas = statePersonas;
-            });
-          }, builder: (context, state) {
-            final statePersonas = personas;
-            if (statePersonas == null) return const SizedBox();
-
-            if (statePersonas.isEmpty) {
-              return Expanded(child: _suggestToCreatePersona());
-            } else {
-              return Expanded(child: _selectPersonaWidget(statePersonas));
-            }
-          }),
-        ]),
+              if (statePersonas.isEmpty) {
+                return Expanded(child: _suggestToCreatePersona());
+              } else {
+                return Expanded(child: _selectPersonaWidget(statePersonas));
+              }
+            }),
+          ]),
+        ),
       ),
     );
   }
@@ -365,12 +376,13 @@ class _WCConnectPageState extends State<WCConnectPage>
   Widget _selectPersonaWidget(List<Persona> personas) {
     bool hasRadio = personas.length > 1;
     final theme = Theme.of(context);
+    if (!hasRadio) _isAccountSelected = true;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "select_grand_access".tr(),//"Select an account to grant access:",
+          "select_grand_access".tr(), //"Select an account to grant access:",
           style: theme.textTheme.headline4,
         ),
         const SizedBox(height: 16.0),
@@ -404,6 +416,7 @@ class _WCConnectPageState extends State<WCConnectPage>
                                       onChanged: (Persona? value) {
                                         setState(() {
                                           selectedPersona = value;
+                                          _isAccountSelected = true;
                                         });
                                       },
                                     ),
@@ -422,7 +435,9 @@ class _WCConnectPageState extends State<WCConnectPage>
             Expanded(
               child: AuFilledButton(
                 text: "connect".tr().toUpperCase(),
-                onPress: () => withDebounce(() => _approve()),
+                onPress: _isAccountSelected
+                    ? () => withDebounce(() => _approve())
+                    : null,
               ),
             )
           ],
@@ -460,8 +475,7 @@ class _WCConnectPageState extends State<WCConnectPage>
             Expanded(
               child: Column(
                 children: [
-                  Text(
-                      "require_full_account".tr(),
+                  Text("require_full_account".tr(),
                       //'This service requires a full Autonomy account to connect to the dapp.',
                       style: theme.textTheme.bodyText1),
                   const SizedBox(height: 24),
@@ -471,8 +485,7 @@ class _WCConnectPageState extends State<WCConnectPage>
                     style: theme.textTheme.headline4,
                   ),
                   const SizedBox(height: 24),
-                  Text(
-                      "newly_account_will".tr(),
+                  Text("newly_account_will".tr(),
                       //'The newly generated account would also get an address for each of the chains that we support.',
                       style: theme.textTheme.bodyText1),
                 ],

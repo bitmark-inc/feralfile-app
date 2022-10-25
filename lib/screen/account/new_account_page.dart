@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -32,8 +33,7 @@ class NewAccountPage extends StatelessWidget {
             : null,
       ),
       body: Container(
-        margin: const EdgeInsets.only(
-            top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
+        margin: ResponsiveLayout.pageEdgeInsets,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -51,8 +51,8 @@ class NewAccountPage extends StatelessWidget {
                       spacing: 16,
                       runSpacing: 16,
                       children: [
-                        _optionItem(context, "yes".tr(),
-                            "ad_i_already_have".tr(),
+                        _optionItem(
+                            context, "yes".tr(), "ad_i_already_have".tr(),
                             //"I already have NFTs in other wallets that I want to view with Autonomy.",
                             onTap: () {
                           Navigator.of(context)
@@ -96,8 +96,7 @@ class NewAccountPage extends StatelessWidget {
         }
       },
       builder: (context, state) {
-        return _optionItem(context, "no".tr(),
-            "ne_make_a_new_account".tr(),
+        return _optionItem(context, "no".tr(), "ne_make_a_new_account".tr(),
             //"Make a new account with addresses you can use to collect or receive NFTs on Ethereum, Feral File, and Tezos.",
             onTap: () {
           if (state.createAccountState == ActionState.loading) return;

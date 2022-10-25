@@ -22,6 +22,7 @@ class PreferenceState {
   final bool isAnalyticEnabled;
   final String authMethodName;
   final bool hasHiddenArtworks;
+  final bool hasPendingSettings;
 
   PreferenceState(
     this.isImmediateInfoViewEnabled,
@@ -30,6 +31,7 @@ class PreferenceState {
     this.isAnalyticEnabled,
     this.authMethodName,
     this.hasHiddenArtworks,
+    this.hasPendingSettings,
   );
 
   PreferenceState copyWith({
@@ -39,6 +41,7 @@ class PreferenceState {
     bool? isAnalyticEnabled,
     String? authMethodName,
     bool? hasHiddenArtworks,
+    bool? hasPendingSettings,
   }) {
     return PreferenceState(
       isImmediateInfoViewEnabled ?? this.isImmediateInfoViewEnabled,
@@ -47,6 +50,7 @@ class PreferenceState {
       isAnalyticEnabled ?? this.isAnalyticEnabled,
       authMethodName ?? this.authMethodName,
       hasHiddenArtworks ?? this.hasHiddenArtworks,
+      hasPendingSettings ?? this.hasPendingSettings,
     );
   }
 }

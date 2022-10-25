@@ -7,13 +7,16 @@
 
 import 'dart:io';
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:autonomy_theme/style/style.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -72,7 +75,10 @@ class UpgradesView extends StatelessWidget {
                 "thank_support".tr(args: [_subscriptionsManagementLocation]),
                 //"Thank you for your support. Manage your subscription in $_subscriptionsManagementLocation",
                 style: theme.textTheme.bodyText1),
+            const SizedBox(height: 10.0),
+            _benefit(context),
           ],
+
         );
       case IAPProductStatus.trial:
         final df = DateFormat("yyyy-MMM-dd");
@@ -88,6 +94,8 @@ class UpgradesView extends StatelessWidget {
                 "you_will_be_charged".tr(namedArgs: {"price":state.productDetails?.price ?? "4.99usd".tr(),"date":trialExpireDate,"location":_subscriptionsManagementLocation}),
                 //"You will be charged ${state.productDetails?.price ?? "US\$4.99"}/month starting $trialExpireDate. To cancel your subscription, go to $_subscriptionsManagementLocation",
                 style: theme.textTheme.bodyText1),
+            const SizedBox(height: 10.0),
+            _benefit(context),
           ],
         );
       case IAPProductStatus.loading:
@@ -108,6 +116,19 @@ class UpgradesView extends StatelessWidget {
             children: [
               Row(children: [
                 Text("h_subscribe".tr(), style: theme.textTheme.headline4),
+                if (injector<ConfigurationService>().shouldShowSubscriptionHint()) ...[
+                  const SizedBox(
+                    width: 7,
+                  ),
+                  Container(
+                    width: 10,
+                    height: 10,
+                    decoration: const BoxDecoration(
+                      color: AppColor.red,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ],
                 const Spacer(),
                 SvgPicture.asset('assets/images/iconForward.svg'),
               ]),
@@ -115,7 +136,6 @@ class UpgradesView extends StatelessWidget {
               ...[
                 "view_collection_tv".tr(),
                 //"View your collection on TV and projectors.",
-                "priority_support".tr()
               ]
                   .map((item) => Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -144,8 +164,31 @@ class UpgradesView extends StatelessWidget {
     }
   }
 
+  static _benefit(BuildContext context){
+    final theme = Theme.of(context);
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(width: 6),
+        Column(
+          children: [
+            const SizedBox(height: 6),
+            SvgPicture.asset("assets/images/icon_checkMark.svg"),
+          ],
+        ),
+        const SizedBox(width: 12.0),
+        Expanded(
+          child: Text(
+              "view_collection_tv".tr(),
+              style: theme.textTheme.bodyText1),
+        ),
+      ],
+    );
+  }
+
   static showSubscriptionDialog(BuildContext context, String? price,
-      PremiumFeature? feature, Function()? onPressSubscribe) {
+      PremiumFeature? feature, Function()? onPressSubscribe,
+      {Function? onCancel}) {
     final theme = Theme.of(context);
 
     UIHelper.showDialog(
@@ -184,7 +227,10 @@ class UpgradesView extends StatelessWidget {
             textStyle: theme.textTheme.button,
           ),
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () {
+              onCancel?.call();
+              Navigator.of(context).pop();
+            },
             child: Text(
               "not_now".tr(),
               style: theme.primaryTextTheme.button,
@@ -193,5 +239,6 @@ class UpgradesView extends StatelessWidget {
         ],
       ),
     );
+    injector<ConfigurationService>().setShouldShowSubscriptionHint(false);
   }
 }

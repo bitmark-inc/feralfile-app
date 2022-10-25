@@ -18,19 +18,28 @@ import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dar
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
+import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
+import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
+import 'package:autonomy_flutter/screen/settings/subscription/upgrade_view.dart';
+import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
-import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/service/pending_token_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
+import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
+import 'package:autonomy_flutter/service/wallet_connect_service.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -48,6 +57,7 @@ import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:wallet_connect/models/wc_peer_meta.dart';
 
 class HomePage extends StatefulWidget {
   static const tag = "home";
@@ -62,6 +72,7 @@ class _HomePageState extends State<HomePage>
     with RouteAware, WidgetsBindingObserver, AfterLayoutMixin<HomePage> {
   StreamSubscription<FGBGType>? _fgbgSubscription;
   late ScrollController _controller;
+  late MetricClientService metricClient;
   int _cachedImageSize = 0;
 
   Future<List<String>> getAddresses() async {
@@ -81,6 +92,7 @@ class _HomePageState extends State<HomePage>
   @override
   void initState() {
     super.initState();
+    metricClient = injector.get<MetricClientService>();
     _checkForKeySync();
     WidgetsBinding.instance.addObserver(this);
     _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
@@ -111,6 +123,7 @@ class _HomePageState extends State<HomePage>
     });
     injector<IAPService>().setup();
     memoryValues.inGalleryView = true;
+    injector<TezosBeaconService>().cleanup();
   }
 
   @override
@@ -132,6 +145,7 @@ class _HomePageState extends State<HomePage>
     WidgetsBinding.instance.removeObserver(this);
     routeObserver.unsubscribe(this);
     _fgbgSubscription?.cancel();
+    _controller.dispose();
     super.dispose();
   }
 
@@ -183,8 +197,7 @@ class _HomePageState extends State<HomePage>
             hashedAddresses &&
         tokens.any((asset) =>
             asset.blockchain == Blockchain.TEZOS.name.toLowerCase())) {
-      await injector<AWSService>()
-          .storeEventWithDeviceData("collection_has_tezos");
+      await metricClient.addEvent("collection_has_tezos");
       injector<ConfigurationService>()
           .setSentTezosArtworkMetric(hashedAddresses);
     }
@@ -192,6 +205,7 @@ class _HomePageState extends State<HomePage>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final contentWidget =
         BlocConsumer<NftCollectionBloc, NftCollectionBlocState>(
             builder: (context, state) {
@@ -200,7 +214,6 @@ class _HomePageState extends State<HomePage>
       return NftCollectionGrid(
         state: state.state,
         tokens: state.tokens
-            .where((value) => value.source != 'feralfile')
             .where((element) => !hiddenTokens.contains(element.id))
             .toList(),
         loadingIndicatorBuilder: _loadingView,
@@ -215,17 +228,37 @@ class _HomePageState extends State<HomePage>
       }
     });
 
-    return PrimaryScrollController(
-      controller: _controller,
-      child: Scaffold(
-        body: Stack(
-          children: [
-            contentWidget,
-            PenroseTopBarView(
-              _controller,
-              PenroseTopBarViewStyle.main,
-            ),
-          ],
+    return BlocListener<UpgradesBloc, UpgradeState>(
+      listener: (context, state) {
+        ConfigurationService config = injector<ConfigurationService>();
+        WCPeerMeta? peerMeta = config.getTVConnectPeerMeta();
+        int? id = config.getTVConnectID();
+        if (peerMeta != null || id != null) {
+          if (state.status == IAPProductStatus.trial ||
+              state.status == IAPProductStatus.completed) {
+            injector<NavigationService>().navigateTo(AppRouter.tvConnectPage,
+                arguments: WCConnectPageArgs(id!, peerMeta!));
+            config.deleteTVConnectData();
+          } else if (state.status != IAPProductStatus.loading &&
+              state.status != IAPProductStatus.pending) {
+            injector<WalletConnectService>().rejectRequest(peerMeta!, id!);
+            config.deleteTVConnectData();
+          }
+        }
+      },
+      child: PrimaryScrollController(
+        controller: _controller,
+        child: Scaffold(
+          backgroundColor: theme.backgroundColor,
+          body: Stack(
+            children: [
+              contentWidget,
+              PenroseTopBarView(
+                _controller,
+                PenroseTopBarViewStyle.main,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -248,7 +281,7 @@ class _HomePageState extends State<HomePage>
     final theme = Theme.of(context);
 
     return ListView(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      padding: ResponsiveLayout.getPadding,
       children: [
         Container(
           padding: const EdgeInsets.fromLTRB(0, 72, 0, 48),
@@ -275,16 +308,19 @@ class _HomePageState extends State<HomePage>
 
       if (aSource == INDEXER_UNKNOWN_SOURCE &&
           bSource == INDEXER_UNKNOWN_SOURCE) {
-        return b.lastActivityTime.compareTo(a.lastActivityTime);
+        return b.lastUpdateTime.compareTo(a.lastUpdateTime);
       }
 
       if (aSource == INDEXER_UNKNOWN_SOURCE) return 1;
       if (bSource == INDEXER_UNKNOWN_SOURCE) return -1;
 
-      return b.lastActivityTime.compareTo(a.lastActivityTime);
+      return b.lastUpdateTime.compareTo(a.lastUpdateTime);
     });
 
-    final tokenIDs = tokens.map((element) => element.id).toList();
+    final accountIdentities = tokens
+        .where((e) => e.pending != true || e.hasMetadata)
+        .map((element) => ArtworkIdentity(element.id, element.ownerAddress))
+        .toList();
 
     const int cellPerRowPhone = 3;
     const int cellPerRowTablet = 6;
@@ -316,11 +352,24 @@ class _HomePageState extends State<HomePage>
             final asset = tokens[index];
 
             return GestureDetector(
-              child:
-                  tokenGalleryThumbnailWidget(context, asset, _cachedImageSize),
+              child: asset.pending == true && !asset.hasMetadata
+                  ? PendingTokenWidget(
+                      thumbnail: asset.galleryThumbnailURL,
+                      tokenId: asset.tokenId,
+                    )
+                  : tokenGalleryThumbnailWidget(
+                      context,
+                      asset,
+                      _cachedImageSize,
+                    ),
               onTap: () {
-                final index = tokens.indexOf(asset);
-                final payload = ArtworkDetailPayload(tokenIDs, index);
+                if (asset.pending == true && !asset.hasMetadata) return;
+
+                final index = tokens
+                    .where((e) => e.pending != true || e.hasMetadata)
+                    .toList()
+                    .indexOf(asset);
+                final payload = ArtworkDetailPayload(accountIdentities, index);
 
                 if (injector<ConfigurationService>()
                     .isImmediateInfoViewEnabled()) {
@@ -346,8 +395,9 @@ class _HomePageState extends State<HomePage>
   }
 
   Future<void> _cloudBackup() async {
+    final accountService = injector<AccountService>();
     final backup = injector<BackupService>();
-    await backup.backupCloudDatabase();
+    await backup.backupCloudDatabase(await accountService.getDefaultAccount());
   }
 
   Future<void> _checkForKeySync() async {
@@ -397,6 +447,10 @@ class _HomePageState extends State<HomePage>
               RefreshTokenEvent(addresses: addresses, debugTokens: indexerIds));
         });
         break;
+      case "artwork_created":
+      case "artwork_received":
+        injector<FeedService>().checkNewFeeds();
+        break;
     }
 
     showNotifications(context, event.notification,
@@ -432,6 +486,16 @@ class _HomePageState extends State<HomePage>
             arguments:
                 DetailIssuePayload(reportIssueType: "", issueID: issueID));
         break;
+
+      case "artwork_created":
+      case "artwork_received":
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          AppRouter.feedPreviewPage,
+          ((route) =>
+              route.settings.name == AppRouter.homePage ||
+              route.settings.name == AppRouter.homePageNoTransition),
+        );
+        break;
       default:
         log.warning("unhandled notification type: $notificationType");
         break;
@@ -462,8 +526,12 @@ class _HomePageState extends State<HomePage>
       nftBloc.add(
           RefreshTokenEvent(addresses: addresses, debugTokens: manualTokenIds));
       nftBloc.add(RequestIndexEvent(addresses));
-      await injector<AWSService>()
-          .storeEventWithDeviceData("device_foreground");
+      await metricClient.addEvent("device_foreground");
+      final pendingTokenService = injector<PendingTokenService>();
+      addresses.where((address) => address.startsWith("tz")).forEach((address) {
+        pendingTokenService.checkPendingTezosTokens(address, maxRetries: 1);
+      });
+      _subscriptionNotify();
     });
 
     injector<VersionService>().checkForUpdate();
@@ -472,14 +540,49 @@ class _HomePageState extends State<HomePage>
     final jwtToken =
         (await injector<AuthService>().getAuthToken(forceRefresh: true))
             .jwtToken;
-    injector<FeedService>().refreshJWTToken(jwtToken);
+
+    final feedService = injector<FeedService>();
+    feedService
+        .refreshJWTToken(jwtToken)
+        .then((value) => feedService.checkNewFeeds());
 
     injector<CustomerSupportService>().getIssues();
     injector<CustomerSupportService>().processMessages();
   }
 
-  void _handleBackground() {
-    injector<AWSService>().storeEventWithDeviceData("device_background");
+  Future _subscriptionNotify() async {
+    final configService = injector<ConfigurationService>();
+    final iapService = injector<IAPService>();
+
+    if (configService.isNotificationEnabled() != true ||
+        await iapService.isSubscribed() ||
+        !configService.shouldShowSubscriptionHint() ||
+        configService
+                .getLastTimeAskForSubscription()
+                ?.isAfter(DateTime.now().subtract(const Duration(days: 2))) ==
+            true) {
+      return;
+    }
+
+    log.info("[HomePage] Show subscription notification");
+    await configService.setLastTimeAskForSubscription(DateTime.now());
+    const key = Key("subscription");
+    showInfoNotification(
+      key,
+      "subscription_hint".tr(),
+      duration: const Duration(seconds: 5),
+      openHandler: () {
+        UpgradesView.showSubscriptionDialog(context, null, null, () {
+          hideOverlay(key);
+          context.read<UpgradesBloc>().add(UpgradePurchaseEvent());
+        });
+      },
+    );
+  }
+
+  void _handleBackground() async {
+    await metricClient.addEvent("device_background");
+    await metricClient.sendAndClearMetrics();
     _cloudBackup();
     FileLogger.shrinkLogFileIfNeeded();
   }

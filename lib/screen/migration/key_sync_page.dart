@@ -41,7 +41,7 @@ class KeySyncPage extends StatelessWidget {
             },
           ),
           body: Container(
-            margin: pageEdgeInsets,
+            margin: ResponsiveLayout.pageEdgeInsets,
             child: Column(
               children: [
                 Expanded(
@@ -55,7 +55,7 @@ class KeySyncPage extends StatelessWidget {
                         ),
                         const SizedBox(height: 40),
                         Text(
-                          "conflict_keychain".tr(),
+                          "conflict_keychains".tr(),
                           //"We have detected a conflict of keychains.",
                           style: theme.textTheme.headline4,
                         ),

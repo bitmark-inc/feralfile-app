@@ -7,6 +7,8 @@
 
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:wallet_connect/wallet_connect.dart';
+
 
 class SystemException implements Exception {
   final String reason;
@@ -25,12 +27,19 @@ class LinkingFailedException  implements Exception {}
 
 class RequiredPremiumFeature implements Exception {
   final PremiumFeature feature;
-
+  final WCPeerMeta peerMeta;
+  final int id;
   RequiredPremiumFeature({
     required this.feature,
+    required this.peerMeta,
+    required this.id,
   });
 }
 
 class InvalidDeeplink implements Exception {}
 
 class FailedFetchBackupVersion implements Exception {}
+
+class NoRemainingToken implements Exception {}
+
+class AirdropExpired implements Exception {}

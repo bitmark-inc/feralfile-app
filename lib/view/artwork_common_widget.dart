@@ -1,127 +1,484 @@
+import 'dart:async';
 import 'dart:collection';
 
-import 'package:autonomy_flutter/model/asset_price.dart';
+import 'package:autonomy_flutter/common/environment.dart';
+import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/screen/detail/report_rendering_issue/any_problem_nft_widget.dart';
 import 'package:autonomy_flutter/screen/detail/report_rendering_issue/report_rendering_issue_widget.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
-import 'package:autonomy_flutter/util/au_cached_manager.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
+import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:autonomy_flutter/view/jumping_dot.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
-import 'package:intl/intl.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/provenance.dart';
 import 'package:nft_rendering/nft_rendering.dart';
 
 // ignore: depend_on_referenced_packages
 import 'package:path/path.dart' as p;
+import 'package:share/share.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 
 import '../common/injector.dart';
 
 String getEditionSubTitle(AssetToken token) {
   if (token.edition == 0) return "";
-  return " (${token.edition}/${token.maxEdition})";
+  return token.maxEdition != null && token.maxEdition! >= 1
+      ? tr('edition_of',
+          args: [token.edition.toString(), token.maxEdition.toString()])
+      : '${tr('edition')} ${token.edition}';
 }
 
-Widget tokenThumbnailWidget(BuildContext context, AssetToken token) {
-  final ext = p.extension(token.getThumbnailUrl() ?? "");
-  final screenWidth = MediaQuery.of(context).size.width;
+class PendingTokenWidget extends StatelessWidget {
+  final String? thumbnail;
+  final String? tokenId;
+  const PendingTokenWidget({Key? key, this.thumbnail, this.tokenId}) : super(key: key);
 
-  return Hero(
-    tag: token.id,
-    child: ext == ".svg"
-        ? Center(
-            child: SvgPicture.network(token.getThumbnailUrl() ?? "",
-                placeholderBuilder: (context) => placeholder()))
-        : CachedNetworkImage(
-            imageUrl: token.getThumbnailUrl() ?? "",
-            width: double.infinity,
-            memCacheWidth: (screenWidth * 3).floor(),
-            maxWidthDiskCache: (screenWidth * 3).floor(),
-            cacheManager: injector<AUCacheManager>(),
-            placeholder: (context, url) => placeholder(),
-            placeholderFadeInDuration: const Duration(milliseconds: 300),
-            fit: BoxFit.cover,
-            errorWidget: (context, url, error) => Container(
-              color: const Color.fromRGBO(227, 227, 227, 1),
-              padding: const EdgeInsets.symmetric(vertical: 133),
-              child: brokenTokenWidget(context, token),
-            ),
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: "pending: $tokenId",
+      child: ClipPath(
+        clipper: AutonomyTopRightRectangleClipper(),
+        child: Container(
+          color: AppColor.secondaryDimGreyBackground,
+          child: Stack(
+            children: [
+              if (thumbnail?.isNotEmpty == true) ...[
+                SizedBox(
+                  width: double.infinity,
+                  height: double.infinity,
+                  child: CachedNetworkImage(
+                    imageUrl: thumbnail!,
+                    fit: BoxFit.cover,
+                  ),
+                )
+              ],
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12.8,
+                  vertical: 19.26,
+                ),
+                child: const Align(
+                    alignment: Alignment.bottomLeft,
+                    child: JumpingDots(
+                      color: AppColor.secondaryDimGrey,
+                      radius: 3.2,
+                    )),
+              )
+            ],
           ),
-  );
+        ),
+      ),
+    );
+  }
 }
+
+class TokenThumbnailWidget extends StatelessWidget {
+  final AssetToken token;
+  final Function? onHideArtwork;
+
+  const TokenThumbnailWidget({
+    Key? key,
+    required this.token,
+    this.onHideArtwork,
+  }) : super(key: key);
+
+  Widget _buildContent(
+      {required String ext,
+      required double screenWidth,
+      required int attempt}) {
+    final thumbnailUrl = token.getThumbnailUrl();
+    if (thumbnailUrl == null || thumbnailUrl.isEmpty) {
+      return const AspectRatio(
+        aspectRatio: 1,
+        child: GalleryNoThumbnailWidget(),
+      );
+    }
+
+    return Hero(
+      tag: token.id,
+      child: ext == ".svg"
+          ? Center(
+              child: SvgImage(
+                url: thumbnailUrl,
+                fallbackToWebView: true,
+                loadingWidgetBuilder: (context) => placeholder(context),
+                errorWidgetBuilder: (_) => const GalleryThumbnailErrorWidget(),
+                unsupportWidgetBuilder: (context) => GalleryUnSupportWidget(
+                  onHideArtwork: () => onHideArtwork?.call(),
+                ),
+              ),
+            )
+          : CachedNetworkImage(
+              imageUrl: attempt > 0
+                  ? "${token.getThumbnailUrl() ?? ''}?t=$attempt"
+                  : token.getThumbnailUrl() ?? "",
+              width: double.infinity,
+              memCacheWidth: (screenWidth * 3).floor(),
+              maxWidthDiskCache: (screenWidth * 3).floor(),
+              cacheManager: injector<CacheManager>(),
+              placeholder: (context, url) => placeholder(context),
+              placeholderFadeInDuration: const Duration(milliseconds: 300),
+              fit: BoxFit.cover,
+              errorWidget: (context, url, error) => AspectRatio(
+                aspectRatio: 1,
+                child: Container(
+                  color: const Color.fromRGBO(227, 227, 227, 1),
+                  padding: const EdgeInsets.symmetric(vertical: 133),
+                  child: BrokenTokenWidget(token: token),
+                ),
+              ),
+            ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ext = p.extension(token.getThumbnailUrl() ?? "");
+    final screenWidth = MediaQuery.of(context).size.width;
+    return BlocProvider(
+      create: (_) => RetryCubit(),
+      child: BlocBuilder<RetryCubit, int>(
+        builder: (context, state) => _buildContent(
+          ext: ext,
+          screenWidth: screenWidth,
+          attempt: state,
+        ),
+      ),
+    );
+  }
+}
+
+final Map<String, Future<bool>> _cachingStates = {};
 
 Widget tokenGalleryThumbnailWidget(
     BuildContext context, AssetToken token, int cachedImageSize) {
-  final ext = p.extension(token.getThumbnailUrl() ?? "");
+  final thumbnailUrl = token.getGalleryThumbnailUrl();
+  if (thumbnailUrl == null || thumbnailUrl.isEmpty) {
+    return const GalleryNoThumbnailWidget();
+  }
 
-  return Hero(
-    tag: token.id,
-    key: Key('Artwork_Thumbnail'),
-    child: ext == ".svg"
-        ? SvgPicture.network(token.getGalleryThumbnailUrl()!,
-            placeholderBuilder: (context) =>
-                Container(color: const Color.fromRGBO(227, 227, 227, 1)))
-        : CachedNetworkImage(
-            imageUrl: token.getGalleryThumbnailUrl()!,
-            fit: BoxFit.cover,
-            memCacheHeight: cachedImageSize,
-            memCacheWidth: cachedImageSize,
-            maxWidthDiskCache: cachedImageSize,
-            maxHeightDiskCache: cachedImageSize,
-            cacheManager: injector<AUCacheManager>(),
-            placeholder: (context, index) =>
-                Container(color: const Color.fromRGBO(227, 227, 227, 1)),
-            errorWidget: (context, url, error) => Container(
-                color: const Color.fromRGBO(227, 227, 227, 1),
-                child: Center(
-                  child: SvgPicture.asset(
-                    'assets/images/image_error.svg',
-                    width: 75,
-                    height: 75,
-                  ),
-                )),
-          ),
-  );
-}
+  final ext = p.extension(thumbnailUrl);
 
-Widget placeholder() {
-  return AspectRatio(
-    aspectRatio: 1,
-    child: Container(color: const Color.fromRGBO(227, 227, 227, 1)),
-  );
-}
+  final cacheManager = injector<CacheManager>();
 
-Widget reportNFTProblemContainer(
-    AssetToken? token, bool isShowingArtwortReportProblemContainer) {
-  if (token == null) return const SizedBox();
-  return AnimatedContainer(
-    duration: const Duration(milliseconds: 300),
-    height: isShowingArtwortReportProblemContainer ? 62 : 0,
-    child: AnyProblemNFTWidget(
-      asset: token,
-      // theme: AuThemeManager.get(AppTheme.anyProblemNFTTheme),
+  Future<bool> cachingState = _cachingStates[thumbnailUrl] ??
+      cacheManager.store.retrieveCacheData(thumbnailUrl).then((cachedObject) {
+        final cached = cachedObject != null;
+        if (cached) {
+          _cachingStates[thumbnailUrl] = Future.value(true);
+        }
+        return cached;
+      });
+
+  return Semantics(
+    label: token.title,
+    child: Hero(
+      tag: token.id,
+      key: const Key('Artwork_Thumbnail'),
+      child: ext == ".svg"
+          ? SvgImage(
+              url: thumbnailUrl,
+              loadingWidgetBuilder: (_) => const GalleryThumbnailPlaceholder(),
+              errorWidgetBuilder: (_) => const GalleryThumbnailErrorWidget(),
+              unsupportWidgetBuilder: (context) =>
+                  const GalleryUnSupportThumbnailWidget(),
+            )
+          : CachedNetworkImage(
+              imageUrl: thumbnailUrl,
+              fadeInDuration: Duration.zero,
+              fit: BoxFit.cover,
+              memCacheHeight: cachedImageSize,
+              memCacheWidth: cachedImageSize,
+              maxWidthDiskCache: cachedImageSize,
+              maxHeightDiskCache: cachedImageSize,
+              cacheManager: cacheManager,
+              placeholder: (context, index) => FutureBuilder<bool>(
+                  future: cachingState,
+                  builder: (context, snapshot) {
+                    return GalleryThumbnailPlaceholder(
+                      loading: !(snapshot.data ?? true),
+                    );
+                  }),
+              errorWidget: (context, url, error) =>
+                  const GalleryThumbnailErrorWidget(),
+            ),
     ),
   );
 }
 
-INFTRenderingWidget buildRenderingWidget(
-    BuildContext context, AssetToken token) {
+class GalleryUnSupportWidget extends StatelessWidget {
+  final String type;
+  final Function()? onHideArtwork;
+
+  const GalleryUnSupportWidget(
+      {Key? key, this.type = '.svg', this.onHideArtwork})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final size = MediaQuery.of(context).size;
+    return ClipPath(
+      clipper: AutonomyTopRightRectangleClipper(),
+      child: Container(
+        width: size.width,
+        height: size.width,
+        padding: const EdgeInsets.all(13),
+        color: const Color.fromRGBO(227, 227, 227, 1),
+        child: Stack(
+          children: [
+            Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'unsupported_token'.tr(),
+                    style: theme.textTheme.atlasGreyNormal14,
+                  ),
+                  Visibility(
+                    visible: onHideArtwork != null,
+                    child: GestureDetector(
+                      onTap: onHideArtwork,
+                      child: Text(
+                        'hide_it_from_collection'.tr(),
+                        style: theme.textTheme.atlasGreyNormal14.copyWith(
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Align(
+              alignment: AlignmentDirectional.bottomStart,
+              child: Text(
+                type.toUpperCase(),
+                style: theme.textTheme.ibmGreyNormal12,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class GalleryUnSupportThumbnailWidget extends StatelessWidget {
+  final String type;
+
+  const GalleryUnSupportThumbnailWidget({Key? key, this.type = '.svg'})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final size = MediaQuery.of(context).size;
+    return ClipPath(
+      clipper: AutonomyTopRightRectangleClipper(),
+      child: Container(
+        width: size.width,
+        height: size.width,
+        padding: const EdgeInsets.all(13),
+        color: const Color.fromRGBO(227, 227, 227, 1),
+        child: Align(
+          alignment: AlignmentDirectional.bottomStart,
+          child: Text(
+            type.toUpperCase(),
+            style: theme.textTheme.ibmGreyNormal12,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class GalleryThumbnailErrorWidget extends StatelessWidget {
+  const GalleryThumbnailErrorWidget({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return ClipPath(
+      clipper: AutonomyTopRightRectangleClipper(),
+      child: Container(
+        padding: const EdgeInsets.all(13.0),
+        color: const Color.fromRGBO(227, 227, 227, 1),
+        child: Align(
+          alignment: AlignmentDirectional.bottomStart,
+          child: Text(
+            'IPFS!',
+            style: theme.textTheme.ibmGreyNormal12,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class GalleryNoThumbnailWidget extends StatelessWidget {
+  const GalleryNoThumbnailWidget({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    return ClipPath(
+      clipper: AutonomyTopRightRectangleClipper(),
+      child: Container(
+        padding: const EdgeInsets.all(15.0),
+        height: size.width,
+        width: size.width,
+        color: Colors.black,
+      ),
+    );
+  }
+}
+
+class GalleryThumbnailPlaceholder extends StatelessWidget {
+  final bool loading;
+
+  const GalleryThumbnailPlaceholder({
+    Key? key,
+    this.loading = true,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return AspectRatio(
+      aspectRatio: 1,
+      child: ClipPath(
+        clipper: loading ? AutonomyTopRightRectangleClipper() : null,
+        child: Container(
+          padding: const EdgeInsets.all(13),
+          color: const Color.fromRGBO(227, 227, 227, 1),
+          child: Visibility(
+            visible: loading,
+            child: Align(
+              alignment: AlignmentDirectional.bottomStart,
+              child: loadingIndicator(
+                size: 13,
+                valueColor: theme.colorScheme.primary,
+                backgroundColor: theme.colorScheme.primary.withOpacity(0.5),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+Widget placeholder(BuildContext context) {
+  final theme = Theme.of(context);
+  return AspectRatio(
+    aspectRatio: 1,
+    child: Container(
+      color: const Color.fromRGBO(227, 227, 227, 1),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            loadingIndicator(valueColor: theme.colorScheme.primary),
+            const SizedBox(
+              height: 12,
+            ),
+            Text(
+              "loading...".tr(),
+              style: ResponsiveLayout.isMobile
+                  ? theme.textTheme.atlasGreyNormal12
+                  : theme.textTheme.atlasGreyNormal14,
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+class ReportButton extends StatefulWidget {
+  final AssetToken? token;
+  final ScrollController scrollController;
+
+  const ReportButton({
+    Key? key,
+    this.token,
+    required this.scrollController,
+  }) : super(key: key);
+
+  @override
+  State<ReportButton> createState() => _ReportButtonState();
+}
+
+class _ReportButtonState extends State<ReportButton> {
+  bool isShowingArtwortReportProblemContainer = true;
+
+  _scrollListener() {
+    /*
+    So we see it like that when we are at the top of the page.
+    When we start scrolling down it disappears and we see it again attached at the bottom of the page.
+    And if we scroll all the way up again, we would display again it attached down the screen
+    https://www.figma.com/file/Ze71GH9ZmZlJwtPjeHYZpc?node-id=51:5175#159199971
+    */
+    if (widget.scrollController.offset > 80) {
+      setState(() {
+        isShowingArtwortReportProblemContainer = false;
+      });
+    } else {
+      setState(() {
+        isShowingArtwortReportProblemContainer = true;
+      });
+    }
+
+    if (widget.scrollController.position.pixels + 100 >=
+        widget.scrollController.position.maxScrollExtent) {
+      setState(() {
+        isShowingArtwortReportProblemContainer = true;
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    widget.scrollController.addListener(_scrollListener);
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.token == null) return const SizedBox();
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      height: isShowingArtwortReportProblemContainer ? 62 : 0,
+      child: AnyProblemNFTWidget(
+        asset: widget.token!,
+      ),
+    );
+  }
+}
+
+INFTRenderingWidget buildRenderingWidget(BuildContext context, AssetToken token,
+    {int? attempt}) {
   String mimeType = "";
   switch (token.medium) {
     case "image":
@@ -147,42 +504,71 @@ INFTRenderingWidget buildRenderingWidget(
   final renderingWidget = typesOfNFTRenderingWidget(mimeType);
 
   renderingWidget.setRenderWidgetBuilder(RenderingWidgetBuilder(
-    previewURL: token.getPreviewUrl(),
+    previewURL: attempt == null
+        ? token.getPreviewUrl()
+        : "${token.getPreviewUrl()}?t=$attempt",
     thumbnailURL: token.getThumbnailUrl(),
     loadingWidget: previewPlaceholder(context),
-    errorWidget: brokenTokenWidget(context, token),
-    cacheManager: injector<AUCacheManager>(),
+    errorWidget: BrokenTokenWidget(token: token),
+    cacheManager: injector<CacheManager>(),
   ));
 
   return renderingWidget;
 }
 
-Widget brokenTokenWidget(BuildContext context, AssetToken token) {
-  injector<CustomerSupportService>().reportIPFSLoadingError(token);
-  final theme = Theme.of(context);
-  return Center(
-    child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-      Text(
-        "ipfs_failed".tr(),
-        style: ResponsiveLayout.isMobile
-            ? theme.textTheme.atlasGreyNormal12
-            : theme.textTheme.atlasGreyNormal14,
-      ),
-      TextButton(
-        onPressed: () => showReportIssueDialog(context, token),
-        style: TextButton.styleFrom(
-            minimumSize: Size.zero,
-            padding: const EdgeInsets.all(8),
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap),
-        child: Text('report_issue'.tr(),
-            style: makeLinkStyle(
-              ResponsiveLayout.isMobile
-                  ? theme.textTheme.atlasGreyNormal12
-                  : theme.textTheme.atlasGreyNormal14,
-            )),
-      ),
-    ]),
-  );
+class RetryCubit extends Cubit<int> {
+  RetryCubit() : super(0);
+
+  void refresh() {
+    emit(state + 1);
+  }
+}
+
+class BrokenTokenWidget extends StatefulWidget {
+  final AssetToken token;
+
+  const BrokenTokenWidget({Key? key, required this.token}) : super(key: key);
+
+  @override
+  State<StatefulWidget> createState() {
+    return _BrokenTokenWidgetState();
+  }
+}
+
+class _BrokenTokenWidgetState extends State<BrokenTokenWidget> {
+  @override
+  void initState() {
+    injector<CustomerSupportService>().reportIPFSLoadingError(widget.token);
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Center(
+      child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+        Text(
+          "unable_to_load_artwork_preview_from_ipfs".tr(),
+          style: ResponsiveLayout.isMobile
+              ? theme.textTheme.atlasGreyNormal12
+              : theme.textTheme.atlasGreyNormal14,
+        ),
+        TextButton(
+          onPressed: () => context.read<RetryCubit>().refresh(),
+          style: TextButton.styleFrom(
+              minimumSize: Size.zero,
+              padding: const EdgeInsets.all(8),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+          child: Text("please_try_again".tr(),
+              style: makeLinkStyle(
+                ResponsiveLayout.isMobile
+                    ? theme.textTheme.atlasGreyNormal12
+                    : theme.textTheme.atlasGreyNormal14,
+              )),
+        ),
+      ]),
+    );
+  }
 }
 
 void showReportIssueDialog(BuildContext context, AssetToken token) {
@@ -201,28 +587,25 @@ void _showReportRenderingDialogSuccess(BuildContext context, String githubURL) {
   final theme = Theme.of(context);
   UIHelper.showDialog(
     context,
-    'report_received'.tr(),
+    'share_with_artist'.tr(),
     Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           "thank_for_report".tr(),
-          style: theme.textTheme.bodyText1,
+          style: theme.primaryTextTheme.bodyText1,
         ),
         const SizedBox(height: 40),
         Row(
           children: [
             Expanded(
               child: AuFilledButton(
-                icon: SvgPicture.asset('assets/images/external_link.svg'),
-                text: "view_issue_status".tr(),
+                text: "share".tr(),
                 onPress: () {
-                  final uri = Uri.tryParse(githubURL);
-                  if (uri != null) {
-                    launchUrl(uri, mode: LaunchMode.inAppWebView);
-                  }
-                  Navigator.of(context).pop();
+                  Share.share(githubURL).then((value) {
+                    Navigator.of(context).pop();
+                  });
                 },
                 color: theme.colorScheme.secondary,
                 textStyle: theme.textTheme.button,
@@ -235,7 +618,7 @@ void _showReportRenderingDialogSuccess(BuildContext context, String githubURL) {
           child: TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
-              'close'.tr(),
+              'cancel'.tr(),
               style: theme.primaryTextTheme.button,
             ),
           ),
@@ -251,7 +634,23 @@ void _showReportRenderingDialogSuccess(BuildContext context, String githubURL) {
 Widget previewPlaceholder(BuildContext context) {
   final theme = Theme.of(context);
   return Center(
-    child: loadingIndicator(valueColor: theme.colorScheme.secondary),
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        loadingIndicator(
+            valueColor: theme.colorScheme.secondary,
+            backgroundColor: theme.colorScheme.secondary.withOpacity(0.5)),
+        const SizedBox(
+          height: 13,
+        ),
+        Text(
+          "loading...".tr(),
+          style: ResponsiveLayout.isMobile
+              ? theme.textTheme.atlasGreyNormal12
+              : theme.textTheme.atlasGreyNormal14,
+        ),
+      ],
+    ),
   );
 }
 
@@ -322,7 +721,7 @@ Widget artworkDetailsMetadataSection(
         "metadata".tr(),
         style: theme.textTheme.headline2,
       ),
-      const SizedBox(height: 16.0),
+      const SizedBox(height: 23.0),
       _rowItem(context, "title".tr(), asset.title),
       if (artistName != null) ...[
         const Divider(height: 32.0),
@@ -333,15 +732,21 @@ Widget artworkDetailsMetadataSection(
           // some FF's artist set multiple links
           // Discussion thread: https://bitmark.slack.com/archives/C01EPPD07HU/p1648698027564299
           tapLink: asset.artistURL?.split(" & ").first,
-          forceSafariVC: false,
+          forceSafariVC: true,
         ),
       ],
-      (asset.maxEdition ?? 0) > 0
+      (asset.fungible == false)
           ? Column(
               children: [
                 const Divider(height: 32.0),
                 _rowItem(
                     context, "edition_number".tr(), asset.edition.toString()),
+              ],
+            )
+          : const SizedBox(),
+      (asset.maxEdition ?? 0) > 0
+          ? Column(
+              children: [
                 const Divider(height: 32.0),
                 _rowItem(
                     context, "edition_size".tr(), asset.maxEdition.toString()),
@@ -353,8 +758,8 @@ Widget artworkDetailsMetadataSection(
         context,
         "token".tr(),
         polishSource(asset.source ?? ""),
-        tapLink: asset.assetURL,
-        forceSafariVC: false,
+        tapLink: asset.isAirdrop ? null : asset.assetURL,
+        forceSafariVC: true,
       ),
       const Divider(height: 32.0),
       _rowItem(
@@ -362,17 +767,19 @@ Widget artworkDetailsMetadataSection(
         "contract".tr(),
         asset.blockchain.capitalize(),
         tapLink: asset.getBlockchainUrl(),
-        forceSafariVC: false,
+        forceSafariVC: true,
       ),
       const Divider(height: 32.0),
       _rowItem(context, "medium".tr(), asset.medium?.capitalize()),
       const Divider(height: 32.0),
       _rowItem(
-          context,
-          "date_minted".tr(),
-          asset.mintedAt != null
-              ? localTimeStringFromISO8601(asset.mintedAt!)
-              : null),
+        context,
+        "date_minted".tr(),
+        asset.mintedAt != null
+            ? localTimeStringFromISO8601(asset.mintedAt!)
+            : null,
+        maxLines: 1,
+      ),
       asset.assetData != null && asset.assetData!.isNotEmpty
           ? Column(
               children: [
@@ -389,13 +796,13 @@ Widget tokenOwnership(
     BuildContext context, AssetToken asset, List<String> addresses) {
   final theme = Theme.of(context);
 
-  int ownedTokens = addresses.map((address) => asset.owners[address] ?? 0).sum;
+  int ownedTokens = asset.balance ?? 0;
   if (ownedTokens == 0) {
-    ownedTokens = addresses.contains(asset.ownerAddress) ? 1 : 0;
+    ownedTokens = addresses.map((address) => asset.owners[address] ?? 0).sum;
+    if (ownedTokens == 0) {
+      ownedTokens = addresses.contains(asset.ownerAddress) ? 1 : 0;
+    }
   }
-  final sharedPercentage = ownedTokens / (asset.maxEdition ?? 1) * 100;
-  final nf = NumberFormat("###.##");
-  final sharedPctText = nf.format(sharedPercentage);
 
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
@@ -406,17 +813,15 @@ Widget tokenOwnership(
       ),
       const SizedBox(height: 23.0),
       Text(
-        "how_many_shares_you_own".tr(),
+        "how_many_editions_you_own".tr(),
         style: theme.textTheme.bodyText1,
       ),
       const SizedBox(height: 16.0),
-      _rowItem(context, "total_token_supply".tr(), "${asset.maxEdition}",
-          tapLink: asset.tokenURL),
+      _rowItem(context, "editions".tr(), "${asset.maxEdition}",
+          tapLink: asset.tokenURL, forceSafariVC: true),
       const Divider(height: 32.0),
-      _rowItem(context, "tokens_you_own".tr(), "$ownedTokens",
-          tapLink: asset.tokenURL),
-      const Divider(height: 32.0),
-      _rowItem(context, "your_share_of_total".tr(), "$sharedPctText%"),
+      _rowItem(context, "owned".tr(), "$ownedTokens",
+          tapLink: asset.tokenURL, forceSafariVC: true),
     ],
   );
 }
@@ -448,13 +853,39 @@ Widget artworkDetailsProvenanceSectionNotEmpty(
             return Column(
               children: [
                 _rowItem(
-                    context, provenanceTitle, localTimeString(el.timestamp),
-                    subTitle: el.blockchain.toUpperCase(),
-                    tapLink: el.txURL,
-                    onNameTap: () => identity != null
-                        ? UIHelper.showIdentityDetailDialog(context,
-                            name: identity, address: el.owner)
-                        : null),
+                  context,
+                  provenanceTitle,
+                  localTimeString(el.timestamp),
+                  subTitle: el.blockchain.toUpperCase(),
+                  tapLink: el.txURL,
+                  onNameTap: () => identity != null
+                      ? UIHelper.showIdentityDetailDialog(context,
+                          name: identity, address: el.owner)
+                      : null,
+                  forceSafariVC: true,
+                  title: Row(
+                    children: [
+                      Flexible(
+                        child: FittedBox(
+                          child: Text(
+                            identityTitle ?? '',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.headline4,
+                          ),
+                        ),
+                      ),
+                      Visibility(
+                        visible: youAddresses.contains(el.owner),
+                        child: Text(
+                          "_you".tr(),
+                          style: theme.textTheme.headline4,
+                        ),
+                      ),
+                    ],
+                  ),
+                  maxLines: 1,
+                ),
                 const Divider(height: 32.0),
               ],
             );
@@ -465,7 +896,7 @@ Widget artworkDetailsProvenanceSectionNotEmpty(
   );
 }
 
-Widget _artworkRightView(BuildContext context) {
+Widget _artworkRightView(BuildContext context, {TextStyle? linkStyle}) {
   final theme = Theme.of(context);
 
   return Column(
@@ -475,7 +906,7 @@ Widget _artworkRightView(BuildContext context) {
         "rights".tr(),
         style: theme.textTheme.headline2,
       ),
-      const SizedBox(height: 16.0),
+      const SizedBox(height: 23.0),
       Text(
         "ff_protect".tr(),
         style: theme.textTheme.bodyText1,
@@ -485,83 +916,50 @@ Widget _artworkRightView(BuildContext context) {
         style: theme.textButtonNoPadding,
         onPressed: () => launchUrl(
             Uri.parse("https://feralfile.com/docs/artist-collector-rights")),
-        child: Text("learn_artist".tr(),
-            style: theme.textTheme.linkStyle.copyWith(
-              fontWeight: FontWeight.w500,
-            )),
+        child: Text(
+          "learn_artist".tr(),
+          style: linkStyle ??
+              theme.textTheme.linkStyle.copyWith(
+                fontWeight: FontWeight.w500,
+              ),
+        ),
       ),
       const SizedBox(height: 23.0),
       _artworkRightItem(context, "download".tr(), "download_text".tr()),
-      const Divider(height: 32.0),
+      const Divider(
+        height: 32.0,
+        color: AppColor.secondarySpanishGrey,
+      ),
       _artworkRightItem(context, "display".tr(), "display_text".tr()),
-      const Divider(height: 32.0),
+      const Divider(
+        height: 32.0,
+        color: AppColor.secondarySpanishGrey,
+      ),
       _artworkRightItem(context, "authenticate".tr(), "authenticate_text".tr()),
-      const Divider(height: 32.0),
+      const Divider(
+        height: 32.0,
+        color: AppColor.secondarySpanishGrey,
+      ),
       _artworkRightItem(
           context, "loan_or_lease".tr(), "loan_or_lease_text".tr()),
-      const Divider(height: 32.0),
+      const Divider(
+        height: 32.0,
+        color: AppColor.secondarySpanishGrey,
+      ),
       _artworkRightItem(
           context, "resell_or_transfer".tr(), "resell_or_transfer_text".tr()),
-      const Divider(height: 32.0),
+      const Divider(
+        height: 32.0,
+        color: AppColor.secondarySpanishGrey,
+      ),
       _artworkRightItem(
           context, "remain_anonymous".tr(), "remain_anonymous_text".tr()),
-      const Divider(height: 32.0),
+      const Divider(
+        height: 32.0,
+        color: AppColor.secondarySpanishGrey,
+      ),
       _artworkRightItem(context, "respect_artist_right".tr(),
           "respect_artist_right_text".tr()),
-    ],
-  );
-}
-
-Widget _valueView(
-    BuildContext context, AssetToken asset, AssetPrice? assetPrice) {
-  var changedPriceText = "";
-  var roiText = "";
-  if (assetPrice != null && assetPrice.minPrice != 0) {
-    final changedPrice = assetPrice.minPrice - assetPrice.purchasedPrice;
-    changedPriceText =
-        "${changedPrice >= 0 ? "+" : ""}${changedPrice.toStringAsFixed(2)} ${assetPrice.currency.toUpperCase()}";
-
-    if (assetPrice.purchasedPrice == 0) {
-      roiText = "+100%";
-    } else {
-      final roi = (changedPrice / assetPrice.purchasedPrice) * 100;
-      roiText = "${roi >= 0 ? "+" : ""}${roi.toStringAsFixed(2)}%";
-    }
-  }
-  final theme = Theme.of(context);
-
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        "value".tr(),
-        style: theme.textTheme.headline2,
-      ),
-      if (assetPrice != null) ...[
-        const SizedBox(height: 16.0),
-        _rowItem(context, "purchase_price".tr(),
-            "${assetPrice.purchasedPrice.toStringAsFixed(2)} ${assetPrice.currency.toUpperCase()}")
-      ],
-      if (assetPrice != null &&
-          assetPrice.listingPrice > 0 &&
-          assetPrice.onSale == true) ...[
-        const Divider(height: 32.0),
-        _rowItem(context, "list_resale".tr(),
-            "${assetPrice.listingPrice.toStringAsFixed(2)} ${assetPrice.currency.toUpperCase()}"),
-      ],
-      if (assetPrice != null && assetPrice.minPrice != 0) ...[
-        const Divider(height: 32.0),
-        _rowItem(context, "esti_floor".tr(),
-            "${assetPrice.minPrice.toStringAsFixed(2)} ${assetPrice.currency.toUpperCase()}"),
-      ],
-      if (changedPriceText.isNotEmpty) ...[
-        const Divider(height: 32.0),
-        _rowItem(context, "change_usd".tr(), changedPriceText),
-      ],
-      if (roiText.isNotEmpty) ...[
-        const Divider(height: 32.0),
-        _rowItem(context, "roi".tr(), roiText),
-      ],
     ],
   );
 }
@@ -570,6 +968,7 @@ Widget _artworkRightItem(BuildContext context, String name, String body) {
   final theme = Theme.of(context);
 
   return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       Row(
         children: [
@@ -589,12 +988,18 @@ Widget _artworkRightItem(BuildContext context, String name, String body) {
   );
 }
 
-Widget _rowItem(BuildContext context, String name, String? value,
-    {String? subTitle,
-    Function()? onNameTap,
-    String? tapLink,
-    bool? forceSafariVC,
-    Function()? onValueTap}) {
+Widget _rowItem(
+  BuildContext context,
+  String name,
+  String? value, {
+  String? subTitle,
+  Function()? onNameTap,
+  String? tapLink,
+  bool? forceSafariVC,
+  Function()? onValueTap,
+  Widget? title,
+  int maxLines = 2,
+}) {
   if (onValueTap == null && tapLink != null) {
     final uri = Uri.parse(tapLink);
     onValueTap = () => launchUrl(uri,
@@ -606,49 +1011,60 @@ Widget _rowItem(BuildContext context, String name, String? value,
 
   return Row(
     crossAxisAlignment: CrossAxisAlignment.start,
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
     children: [
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          GestureDetector(
-            onTap: onNameTap,
-            child: Text(name, style: theme.textTheme.headline4),
-          ),
-          if (subTitle != null) ...[
-            const SizedBox(height: 2),
-            Text(
-              subTitle,
-              style: ResponsiveLayout.isMobile
-                  ? theme.textTheme.atlasBlackBold12
-                  : theme.textTheme.atlasBlackBold14,
+      Flexible(
+        flex: 3,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            GestureDetector(
+              onTap: onNameTap,
+              child: title ?? Text(name, style: theme.textTheme.headline4),
             ),
-          ]
-        ],
+            if (subTitle != null) ...[
+              const SizedBox(height: 2),
+              Text(
+                subTitle,
+                style: ResponsiveLayout.isMobile
+                    ? theme.textTheme.atlasBlackBold12
+                    : theme.textTheme.atlasBlackBold14,
+              ),
+            ]
+          ],
+        ),
       ),
-      Expanded(
+      Flexible(
+        flex: 4,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             Expanded(
               child: GestureDetector(
                 onTap: onValueTap,
-                child: Text(
-                  value ?? '',
-                  textAlign: TextAlign.end,
-                  maxLines: 2,
-                  softWrap: true,
-                  overflow: TextOverflow.ellipsis,
-                  style: onValueTap != null
-                      ? theme.textTheme.subtitle1
-                      : ResponsiveLayout.isMobile
-                          ? theme.textTheme.ibmGreyMediumNormal16
-                          : theme.textTheme.ibmGreyMediumNormal20,
+                child: Semantics(
+                  label: name,
+                  child: Text(
+                    value ?? '',
+                    textAlign: TextAlign.end,
+                    maxLines: maxLines,
+                    softWrap: true,
+                    overflow: TextOverflow.ellipsis,
+                    style: onValueTap != null
+                        ? theme.textTheme.subtitle1
+                        : ResponsiveLayout.isMobile
+                            ? theme.textTheme.ibmGreyMediumNormal16
+                            : theme.textTheme.ibmGreyMediumNormal20,
+                  ),
                 ),
               ),
             ),
             if (onValueTap != null) ...[
               const SizedBox(width: 8.0),
-              SvgPicture.asset('assets/images/iconForward.svg'),
+              SvgPicture.asset(
+                'assets/images/iconForward.svg',
+                color: theme.textTheme.bodyText1?.color,
+              ),
             ]
           ],
         ),
@@ -664,4 +1080,108 @@ Widget previewCloseIcon(BuildContext context) {
     icon: closeIcon(color: theme.colorScheme.secondary),
     tooltip: "CloseArtwork",
   );
+}
+
+class ArtworkRightWidget extends StatelessWidget {
+  const ArtworkRightWidget({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final linkStyle = Theme.of(context).primaryTextTheme.linkStyle.copyWith(
+          color: Colors.white,
+          decorationColor: Colors.white,
+        );
+    return _artworkRightView(context, linkStyle: linkStyle);
+  }
+}
+
+class FeralfileArtworkDetailsMetadataSection extends StatelessWidget {
+  final Exhibition exhibition;
+
+  const FeralfileArtworkDetailsMetadataSection({
+    Key? key,
+    required this.exhibition,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final artwork = exhibition.airdropArtwork;
+    final artist = exhibition.getArtist(artwork);
+    final contract = exhibition.airdropContract;
+    final df = DateFormat('yyyy-MMM-dd hh:mm');
+    final mintDate = artwork?.createdAt;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "metadata".tr(),
+          style: theme.textTheme.headline2,
+        ),
+        const SizedBox(height: 23.0),
+        _rowItem(context, "title".tr(), artwork?.title),
+        const Divider(
+          height: 32.0,
+          color: AppColor.secondarySpanishGrey,
+        ),
+        _rowItem(
+          context,
+          "artist".tr(),
+          artist?.getDisplayName(),
+          tapLink: "${Environment.feralFileAPIURL}/profiles/${artist?.id}",
+        ),
+        if (exhibition.maxEdition > 0) ...[
+          const Divider(
+            height: 32.0,
+            color: AppColor.secondarySpanishGrey,
+          ),
+          _rowItem(
+            context,
+            "edition_size".tr(),
+            exhibition.maxEdition.toString(),
+          ),
+        ],
+        const Divider(
+          height: 32.0,
+          color: AppColor.secondarySpanishGrey,
+        ),
+        _rowItem(
+          context,
+          "token".tr(),
+          "Feral File",
+          tapLink:
+              null, // "${Environment.feralFileAPIURL}/artworks/${artwork?.id}"
+        ),
+        const Divider(
+          height: 32.0,
+          color: AppColor.secondarySpanishGrey,
+        ),
+        _rowItem(
+          context,
+          "contract".tr(),
+          contract?.blockchainType.capitalize() ?? '',
+          tapLink: contract?.getBlockChainUrl(),
+        ),
+        const Divider(
+          height: 32.0,
+          color: AppColor.secondarySpanishGrey,
+        ),
+        _rowItem(
+          context,
+          "medium".tr(),
+          artwork?.medium.capitalize() ?? "",
+        ),
+        const Divider(
+          height: 32.0,
+          color: AppColor.secondarySpanishGrey,
+        ),
+        _rowItem(
+          context,
+          "date_minted".tr(),
+          mintDate != null ? df.format(mintDate).toUpperCase() : null,
+          maxLines: 1,
+        ),
+      ],
+    );
+  }
 }

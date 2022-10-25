@@ -17,8 +17,10 @@ import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:nft_collection/services/tokens_service.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 
 class ImportAccountPage extends StatefulWidget {
   const ImportAccountPage({Key? key}) : super(key: key);
@@ -44,7 +46,7 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
         },
       ),
       body: Container(
-        margin: pageEdgeInsetsWithSubmitButton,
+        margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -75,9 +77,8 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
                         children: [
                           AuTextField(
                             title: "",
-                            placeholder:
-                                "enter_recovery_phrase".tr(),
-                                //"Enter recovery phrase with each word separated by a space",
+                            placeholder: "enter_recovery_phrase".tr(),
+                            //"Enter recovery phrase with each word separated by a space",
                             keyboardType: TextInputType.multiline,
                             expanded: true,
                             maxLines: null,
@@ -131,7 +132,7 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
       // SideEffect: pre-fetch tokens
       injector<TokensService>().fetchTokensForAddresses([
         (await persona.wallet().getETHEip55Address()),
-        (await persona.wallet().getTezosWallet()).address,
+        (await persona.wallet().getTezosAddress()),
         (await persona.wallet().getBitmarkAddress()),
       ]);
 
@@ -157,7 +158,10 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
         isError = true;
       });
     } catch (exception) {
-      Sentry.captureException(exception);
+      if (!(exception is PlatformException &&
+          exception.code == "importKey error")) {
+        Sentry.captureException(exception);
+      }
       UIHelper.hideInfoDialog(context);
       setState(() {
         isError = true;

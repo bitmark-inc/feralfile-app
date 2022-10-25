@@ -17,6 +17,7 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -74,8 +75,7 @@ class _NamePersonaPageState extends State<NamePersonaPage> {
           }
         },
         child: Container(
-          margin: const EdgeInsets.only(
-              top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
+          margin: ResponsiveLayout.pageEdgeInsets,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

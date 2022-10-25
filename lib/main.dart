@@ -13,17 +13,18 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/deeplink_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
-import 'package:autonomy_flutter/util/au_cached_manager.dart';
+import 'package:autonomy_flutter/util/au_file_service.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_flutter/view/user_agent_utils.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:floor/floor.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -33,8 +34,10 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:overlay_support/overlay_support.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:metric_client/metric_client.dart';
 
 void main() async {
   await dotenv.load();
@@ -59,7 +62,7 @@ void main() async {
     await FlutterDownloader.initialize();
     await Hive.initFlutter();
     FlutterDownloader.registerCallback(downloadCallback);
-    AUCacheManager().setup();
+    await AuFileService().setup();
 
     OneSignal.shared.setLogLevel(OSLogLevel.error, OSLogLevel.none);
     OneSignal.shared.setAppId(Environment.onesignalAppID);
@@ -96,7 +99,13 @@ void main() async {
 
 _setupApp() async {
   await setup();
-  await injector<AWSService>().initServices();
+  final root = await getTemporaryDirectory();
+
+  await DeviceInfo.instance.init();
+
+  final metricClient = injector.get<MetricClientService>();
+  metricClient.initService();
+
   final countOpenApp = injector<ConfigurationService>().countOpenApp() ?? 0;
   injector<ConfigurationService>().setCountOpenApp(countOpenApp + 1);
 
@@ -115,6 +124,11 @@ _setupApp() async {
     }
   });
   FlutterNativeSplash.remove();
+
+  //safe delay to wait for onboarding finished
+  Future.delayed(const Duration(seconds: 2), () {
+    injector<DeeplinkService>().setup();
+  });
 }
 
 Future<void> _deleteLocalDatabase() async {
@@ -162,13 +176,14 @@ class AutonomyApp extends StatelessWidget {
 final RouteObserver<ModalRoute<void>> routeObserver =
     RouteObserver<ModalRoute<void>>();
 
-var memoryValues = MemoryValues();
+var memoryValues = MemoryValues(airdropFFExhibitionId: ValueNotifier(null));
 
 class MemoryValues {
   String? scopedPersona;
   String? viewingSupportThreadIssueID;
   DateTime? inForegroundAt;
   bool inGalleryView;
+  ValueNotifier<String?> airdropFFExhibitionId;
   List<Connection>? linkedFFConnections = [];
 
   MemoryValues({
@@ -176,13 +191,17 @@ class MemoryValues {
     this.viewingSupportThreadIssueID,
     this.inForegroundAt,
     this.inGalleryView = true,
+    required this.airdropFFExhibitionId,
     this.linkedFFConnections,
   });
 
   MemoryValues copyWith({
     String? scopedPersona,
   }) {
-    return MemoryValues(scopedPersona: scopedPersona ?? this.scopedPersona);
+    return MemoryValues(
+      scopedPersona: scopedPersona ?? this.scopedPersona,
+      airdropFFExhibitionId: airdropFFExhibitionId,
+    );
   }
 }
 

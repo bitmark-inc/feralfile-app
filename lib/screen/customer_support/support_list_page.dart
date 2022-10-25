@@ -13,10 +13,11 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/util/rand.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -95,7 +96,7 @@ class _SupportListPageState extends State<SupportListPage>
     return CustomScrollView(slivers: [
       SliverToBoxAdapter(
         child: Container(
-            padding: pageEdgeInsets.copyWith(bottom: 40),
+            padding: ResponsiveLayout.pageEdgeInsets.copyWith(bottom: 40),
             child: Text(
               "support_history".tr(),
               style: theme.textTheme.headline1,
@@ -105,9 +106,15 @@ class _SupportListPageState extends State<SupportListPage>
         delegate: SliverChildBuilderDelegate(
           (context, index) {
             final issue = issues[index];
+            final status = issue.status;
+            final lastMessage = getLastMessage(issue);
+            final isRated = (lastMessage.contains(STAR_RATING) ||
+                    lastMessage.contains(RATING_MESSAGE_START)) &&
+                issue.rating > 0;
             bool hasDivider = (index < issues.length - 1);
             return Padding(
-              padding: EdgeInsets.symmetric(horizontal: pageEdgeInsets.left),
+              padding: EdgeInsets.symmetric(
+                  horizontal: ResponsiveLayout.pageEdgeInsets.left),
               child: GestureDetector(
                 behavior: HitTestBehavior.translucent,
                 child: _contentRow(issue, hasDivider),
@@ -115,7 +122,9 @@ class _SupportListPageState extends State<SupportListPage>
                     AppRouter.supportThreadPage,
                     arguments: DetailIssuePayload(
                         reportIssueType: issue.reportIssueType,
-                        issueID: issue.issueID)),
+                        issueID: issue.issueID,
+                        status: status,
+                        isRated: isRated)),
               ),
             );
           },
@@ -171,9 +180,7 @@ class _SupportListPageState extends State<SupportListPage>
         Padding(
           padding: const EdgeInsets.only(right: 14),
           child: Text(
-            issue.status == "closed"
-                ? "issue_resolved".tr()//"Issue resolved.\nOur team thanks you for helping us improve Autonomy."
-                : getLastMessage(issue),
+            getPreviewMessage(issue),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: theme.textTheme.bodyText1,
@@ -188,9 +195,19 @@ class _SupportListPageState extends State<SupportListPage>
     );
   }
 
+  String getPreviewMessage(Issue issue) {
+    final lastMessage = getLastMessage(issue);
+    if (issue.status == "closed") {
+      if (lastMessage.contains(RATING_MESSAGE_START))
+        return lastMessage.substring(RATING_MESSAGE_START.length);
+      if (lastMessage.contains(STAR_RATING)) return "care_to_share".tr();
+      return "rate_issue".tr();
+    }
+    return lastMessage;
+  }
+
   String getLastMessage(Issue issue) {
     var lastMessage = issue.lastMessage;
-
     if (issue.draft != null) {
       final draft = issue.draft!;
       final draftData = draft.draftData;
@@ -223,14 +240,16 @@ class _SupportListPageState extends State<SupportListPage>
     if (lastMessage.filteredMessage.isNotEmpty) {
       return lastMessage.filteredMessage;
     }
-
+    if (lastMessage.attachments.isEmpty) return "";
     final attachment = lastMessage.attachments.last;
     final attachmentTitle =
         ReceiveAttachment.extractSizeAndRealTitle(attachment.title)[1];
     if (attachment.contentType.contains('image')) {
-      return "image_sent".tr(args: [attachmentTitle]);//'Image sent: $attachmentTitle';
+      return "image_sent"
+          .tr(args: [attachmentTitle]); //'Image sent: $attachmentTitle';
     } else {
-      return "file_sent".tr(args: [attachmentTitle]);//'File sent: $attachmentTitle';
+      return "file_sent"
+          .tr(args: [attachmentTitle]); //'File sent: $attachmentTitle';
     }
   }
 }

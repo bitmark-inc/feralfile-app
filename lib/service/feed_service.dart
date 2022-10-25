@@ -13,12 +13,14 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/feed_api.dart';
 import 'package:autonomy_flutter/model/feed.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:nft_collection/data/api/indexer_api.dart';
 import 'package:nft_collection/models/asset_token.dart';
@@ -26,6 +28,10 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:uuid/uuid.dart';
 
 abstract class FeedService {
+  ValueNotifier<int> get unviewedCount;
+
+  Future checkNewFeeds();
+
   Future refreshFollowings(List<String> artistIds);
 
   Future<AppFeedData> fetchFeeds(FeedNext? next);
@@ -82,7 +88,6 @@ class AppFeedData {
 }
 
 class FeedServiceImpl extends FeedService {
-
   static const REFRESH_FOLLOWINGS = 'REFRESH_FOLLOWINGS';
   static const FETCH_FEEDS = 'FETCH_FEEDS';
   static const FETCH_TOKENS_BY_INDEXIDS = 'FETCH_TOKENS_BY_INDEXIDS';
@@ -93,6 +98,11 @@ class FeedServiceImpl extends FeedService {
   final Map<String, Completer<List<AssetToken>>>
       _fetchTokensByIndexerIDCompleters = {};
 
+  @override
+  ValueNotifier<int> unviewedCount = ValueNotifier(0);
+
+  final ConfigurationService _configurationService;
+
   SendPort? _sendPort;
   ReceivePort? _receivePort;
   Isolate? _isolate;
@@ -100,6 +110,8 @@ class FeedServiceImpl extends FeedService {
   static SendPort? _isolateSendPort;
 
   Future<void> get isolateReady => _isolateReady.future;
+
+  FeedServiceImpl(this._configurationService);
 
   Future<void> start() async {
     if (_sendPort != null) return;
@@ -146,6 +158,18 @@ class FeedServiceImpl extends FeedService {
     _sendPort!.send([REFRESH_FOLLOWINGS, uuid, followings]);
 
     return completer.future;
+  }
+
+  @override
+  Future checkNewFeeds() async {
+    final service = injector<FeedApi>();
+    final isTestnet = await isAppCenterBuild();
+    final feedData = await service.getFeeds(isTestnet, 10, null, null);
+    final lastTimeOpenFeed = _configurationService.getLastTimeOpenFeed();
+    final newEvents = feedData.events.where(
+        (event) => event.timestamp.millisecondsSinceEpoch > lastTimeOpenFeed);
+    log.info("[FeedService] ${newEvents.length} unread feeds");
+    unviewedCount.value = newEvents.length;
   }
 
   @override
@@ -342,7 +366,7 @@ class FeedServiceImpl extends FeedService {
           .map((e) => AssetToken.fromAsset(e))
           .toList();
 
-      final next = feedData.events.length < 50 ? null : feedData.next;
+      final next = feedData.events.length < count ? null : feedData.next;
 
       // Get missing tokens
       final eventsWithMissingToken = feedData.events.where(
@@ -350,18 +374,6 @@ class FeedServiceImpl extends FeedService {
             tokens.firstWhereOrNull((token) => token.id == event.indexerID) ==
             null,
       );
-
-      // RequestIndex for missing tokens
-      for (final event in eventsWithMissingToken) {
-        log.info(
-            "RequestIndexOne ${event.recipient} - ${event.contract} - ${event.tokenID}");
-        indexerAPI.requestIndexOne({
-          "owner": event.recipient,
-          "contract": event.contract,
-          "tokenID": event.tokenID,
-          "dryrun": false,
-        });
-      }
 
       final missingTokenIDs =
           eventsWithMissingToken.map((e) => e.indexerID).toList();

@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -49,8 +50,7 @@ class _NameLinkedAccountPageState extends State<NameLinkedAccountPage> {
         onBack: null,
       ),
       body: Container(
-        margin:
-            const EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
+        margin: ResponsiveLayout.pageEdgeInsets,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -110,8 +110,9 @@ class _NameLinkedAccountPageState extends State<NameLinkedAccountPage> {
 
   void _doneNaming() {
     if (injector<ConfigurationService>().isDoneOnboarding()) {
-      Navigator.of(context)
-          .popUntil((route) => route.settings.name == AppRouter.settingsPage);
+      Navigator.of(context).popUntil((route) =>
+          route.settings.name == AppRouter.settingsPage ||
+          route.settings.name == AppRouter.claimSelectAccountPage);
     } else {
       Navigator.of(context).pushNamedAndRemoveUntil(
           AppRouter.accountsPreviewPage, (route) => false);

@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 
 class LinkManuallyPage extends StatefulWidget {
   final String type;
@@ -27,6 +28,7 @@ class LinkManuallyPage extends StatefulWidget {
 
 class _LinkManuallyPageState extends State<LinkManuallyPage> {
   final TextEditingController _addressController = TextEditingController();
+  bool _linkEnabled = false;
 
   String get title {
     switch (widget.type) {
@@ -42,9 +44,11 @@ class _LinkManuallyPageState extends State<LinkManuallyPage> {
   String get description {
     switch (widget.type) {
       case 'address':
-        return 'to_manually_input_a'.tr();//"To manually input an address (Debug only)."
+        return 'to_manually_input_a'
+            .tr(); //"To manually input an address (Debug only)."
       case 'indexerTokenID':
-        return 'to_manually_input_ti'.tr();//"To manually input an indexer TokenID (Debug only)."
+        return 'to_manually_input_ti'
+            .tr(); //"To manually input an indexer TokenID (Debug only)."
       default:
         return '';
     }
@@ -59,7 +63,7 @@ class _LinkManuallyPageState extends State<LinkManuallyPage> {
         onBack: () => Navigator.of(context).pop(),
       ),
       body: Container(
-        margin: pageEdgeInsetsWithSubmitButton,
+        margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -82,6 +86,9 @@ class _LinkManuallyPageState extends State<LinkManuallyPage> {
                       title: "",
                       placeholder: "paste".tr(args: [widget.type]),
                       controller: _addressController,
+                      onChanged: (value) => setState(() {
+                        _linkEnabled = value.trim().isNotEmpty;
+                      }),
                     ),
                   ],
                 ),
@@ -92,6 +99,7 @@ class _LinkManuallyPageState extends State<LinkManuallyPage> {
                 Expanded(
                   child: AuFilledButton(
                     text: "link".tr().toUpperCase(),
+                    enabled: _linkEnabled,
                     onPress: () => _link(),
                   ),
                 ),
@@ -107,18 +115,18 @@ class _LinkManuallyPageState extends State<LinkManuallyPage> {
     switch (widget.type) {
       case 'address':
         await injector<AccountService>()
-            .linkManuallyAddress(_addressController.text);
+            .linkManuallyAddress(_addressController.text.trim());
         if (!mounted) return;
-        UIHelper.showInfoDialog(
-            context, 'account_linked'.tr(), 'autonomy_has_linked_your_address'.tr());
+        UIHelper.showInfoDialog(context, 'account_linked'.tr(),
+            'autonomy_has_linked_your_address'.tr());
         break;
 
       case 'indexerTokenID':
         await injector<AccountService>()
-            .linkIndexerTokenID(_addressController.text);
+            .linkIndexerTokenID(_addressController.text.trim());
         if (!mounted) return;
-        UIHelper.showInfoDialog(
-            context, 'account_linked'.tr(), 'autonomy_has_linked_your_address'.tr());
+        UIHelper.showInfoDialog(context, 'account_linked'.tr(),
+            'autonomy_has_linked_your_address'.tr());
         break;
 
       default:

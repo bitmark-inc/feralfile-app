@@ -5,11 +5,15 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
 import 'dart:developer';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/router/router_bloc.dart';
+import 'package:autonomy_flutter/service/feralfile_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
@@ -30,11 +34,105 @@ class OnboardingPage extends StatefulWidget {
 }
 
 class _OnboardingPageState extends State<OnboardingPage> {
+  bool _processing = false;
+  bool fromBranchLink = false;
+
+  @override
+  void initState() {
+    super.initState();
+    handleBranchLink();
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     log("DefineViewRoutingEvent");
     context.read<RouterBloc>().add(DefineViewRoutingEvent());
+  }
+
+  void handleBranchLink() async {
+    setState(() {
+      fromBranchLink = true;
+    });
+
+    Future.delayed(const Duration(seconds: 2), () {
+      final id = memoryValues.airdropFFExhibitionId.value;
+      if (id == null || id.isEmpty) {
+        if (mounted) {
+          setState(() {
+            fromBranchLink = false;
+          });
+        }
+      }
+    });
+
+    String? currentExhibitionId;
+    memoryValues.airdropFFExhibitionId.addListener(() async {
+      try {
+        final exhibitionId = memoryValues.airdropFFExhibitionId.value;
+        if (currentExhibitionId == exhibitionId) return;
+        if (exhibitionId != null && exhibitionId.isNotEmpty) {
+          currentExhibitionId = exhibitionId;
+          setState(() {
+            fromBranchLink = true;
+          });
+          final exhibition =
+              await injector<FeralFileService>().getExhibition(exhibitionId);
+
+          if (exhibition.exhibitionStartAt.isAfter(DateTime.now())) {
+            await injector.get<NavigationService>().showExhibitionNotStarted(
+                  startTime: exhibition.exhibitionStartAt,
+                );
+            setState(() {
+              fromBranchLink = false;
+              currentExhibitionId = null;
+              memoryValues.airdropFFExhibitionId.value = null;
+            });
+            return;
+          }
+
+          final endTime = exhibition.airdropInfo?.endedAt;
+
+          if (exhibition.airdropInfo == null ||
+              (endTime != null && endTime.isBefore(DateTime.now()))) {
+            await injector.get<NavigationService>().showAirdropExpired();
+            setState(() {
+              fromBranchLink = false;
+              currentExhibitionId = null;
+              memoryValues.airdropFFExhibitionId.value = null;
+            });
+            return;
+          }
+
+          if (exhibition.airdropInfo?.remainAmount == 0) {
+            await injector.get<NavigationService>().showNoRemainingToken(
+                  exhibition: exhibition,
+                );
+            setState(() {
+              fromBranchLink = false;
+              currentExhibitionId = null;
+              memoryValues.airdropFFExhibitionId.value = null;
+            });
+            return;
+          }
+
+          if (!mounted) return;
+          await Navigator.of(context).pushNamed(
+            AppRouter.claimFeralfileTokenPage,
+            arguments: exhibition,
+          );
+          currentExhibitionId = null;
+
+          setState(() {
+            fromBranchLink = false;
+          });
+        }
+      } catch (e) {
+        setState(() {
+          fromBranchLink = false;
+        });
+      }
+    });
   }
 
   // @override
@@ -47,7 +145,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
     }
     final theme = Theme.of(context);
     const edgeInsets =
-        EdgeInsets.only(top: 135.0, bottom: 32.0, left: 16.0, right: 16.0);
+        EdgeInsets.only(top: 120.0, bottom: 32.0, left: 16.0, right: 16.0);
 
     return Scaffold(
         body: BlocConsumer<RouterBloc, RouterState>(
@@ -62,7 +160,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
             } catch (_) {
               // just ignore this so that user can go through onboarding
             }
-            await askForNotification();
+            // await askForNotification();
             await injector<VersionService>().checkForUpdate();
             // hide code show surveys issues/1459
             // await Future.delayed(SHORT_SHOW_DIALOG_DURATION,
@@ -86,10 +184,13 @@ class _OnboardingPageState extends State<OnboardingPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Text(
-                        "autonomy".tr(),
-                        textAlign: TextAlign.center,
-                        style: theme.textTheme.largeTitle,
+                      FittedBox(
+                        child: Text(
+                          "autonomy".tr(),
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.largeTitle,
+                          maxLines: 1,
+                        ),
                       ),
                     ],
                   ),
@@ -103,17 +204,33 @@ class _OnboardingPageState extends State<OnboardingPage> {
           ),
           Container(
             margin: edgeInsets,
-            child: Column(mainAxisAlignment: MainAxisAlignment.end, children: [
-              state.onboardingStep != OnboardingStep.undefined
-                  ? eulaAndPrivacyView(context)
-                  : const SizedBox(),
-              const SizedBox(height: 32.0),
-              _getStartupButton(state),
-            ]),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: fromBranchLink
+                  ? [
+                      Center(
+                          child: Text(
+                        tr('loading...').toUpperCase(),
+                        style: theme.textTheme.ibmBlackNormal14,
+                      ))
+                    ]
+                  : [
+                      state.onboardingStep != OnboardingStep.undefined
+                          ? privacyView(context)
+                          : const SizedBox(),
+                      const SizedBox(height: 32.0),
+                      _getStartupButton(state),
+                    ],
+            ),
           )
         ]);
       },
     ));
+  }
+
+  Future _gotoOwnGalleryPage() async {
+    if (!mounted) return;
+    return Navigator.of(context).pushNamed(AppRouter.beOwnGalleryPage);
   }
 
   Widget _getStartupButton(RouterState state) {
@@ -123,9 +240,12 @@ class _OnboardingPageState extends State<OnboardingPage> {
           children: [
             Expanded(
               child: AuFilledButton(
+                isProcessing: _processing,
+                enabled: !_processing,
                 text: "start".tr().toUpperCase(),
-                onPress: () {
-                  Navigator.of(context).pushNamed(AppRouter.beOwnGalleryPage);
+                key: const Key("start_button"),
+                onPress: () async {
+                  _gotoOwnGalleryPage();
                 },
               ),
             )
@@ -137,6 +257,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
             Expanded(
               child: AuFilledButton(
                 text: "restore".tr().toUpperCase(),
+                key: const Key("restore_button"),
                 onPress: !state.isLoading
                     ? () {
                         context.read<RouterBloc>().add(

@@ -7,6 +7,9 @@
 
 import 'dart:async';
 
+import 'package:autonomy_flutter/common/environment.dart';
+import 'package:autonomy_flutter/gateway/branch_api.dart';
+import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -17,11 +20,15 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:collection/collection.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_branch_sdk/flutter_branch_sdk.dart';
 import 'package:uni_links/uni_links.dart';
 
 abstract class DeeplinkService {
   Future setup();
+
+  void handleDeeplink(String? link, {Duration delay});
 }
 
 class DeeplinkServiceImpl extends DeeplinkService {
@@ -30,6 +37,9 @@ class DeeplinkServiceImpl extends DeeplinkService {
   final TezosBeaconService _tezosBeaconService;
   final FeralFileService _feralFileService;
   final NavigationService _navigationService;
+  final BranchApi _branchApi;
+
+  String? currentExhibitionId;
 
   DeeplinkServiceImpl(
     this._configurationService,
@@ -37,21 +47,37 @@ class DeeplinkServiceImpl extends DeeplinkService {
     this._tezosBeaconService,
     this._feralFileService,
     this._navigationService,
+    this._branchApi,
   );
 
   @override
   Future setup() async {
+    FlutterBranchSdk.initSession().listen((data) {
+      log.info("[DeeplinkService] _handleFeralFileDeeplink with Branch");
+
+      if (data["+clicked_branch_link"] == true) {
+        _handleBranchDeeplinkData(data);
+      }
+    }, onError: (error) {
+      log.warning(
+          '[DeeplinkService] InitBranchSession error: ${error.toString()}');
+    });
+
     try {
       final initialLink = await getInitialLink();
-      _handleDeeplink(initialLink);
+      handleDeeplink(initialLink);
 
-      linkStream.listen(_handleDeeplink);
+      linkStream.listen(handleDeeplink);
     } on PlatformException {
       //Ignore
     }
   }
 
-  void _handleDeeplink(String? link) async {
+  @override
+  void handleDeeplink(
+    String? link, {
+    Duration delay = const Duration(seconds: 2),
+  }) {
     // return for case when FeralFile pass empty deeplink to return Autonomy
     if (link == "autonomy://") return;
 
@@ -59,9 +85,11 @@ class DeeplinkServiceImpl extends DeeplinkService {
 
     log.info("[DeeplinkService] receive deeplink $link");
 
-    Timer.periodic(const Duration(seconds: 2), (timer) async {
+    Timer.periodic(delay, (timer) async {
       timer.cancel();
-      _handleDappConnectDeeplink(link) || await _handleFeralFileDeeplink(link);
+      _handleDappConnectDeeplink(link) ||
+          _handleFeralFileDeeplink(link) ||
+          await _handleBranchDeeplink(link);
     });
   }
 
@@ -125,31 +153,126 @@ class DeeplinkServiceImpl extends DeeplinkService {
     return false;
   }
 
-  Future<bool> _handleFeralFileDeeplink(String link) async {
+  bool _handleFeralFileDeeplink(String link) {
     log.info("[DeeplinkService] _handleFeralFileDeeplink");
 
     if (link.startsWith(FF_TOKEN_DEEPLINK_PREFIX)) {
-      final doneOnboarding = _configurationService.isDoneOnboarding();
-
-      final connection = await _feralFileService.linkFF(
-        link.replacePrefix(FF_TOKEN_DEEPLINK_PREFIX, ""),
-        delayLink: !doneOnboarding,
-      );
-
-      if (doneOnboarding) {
-        _navigationService.showFFAccountLinked(connection.name);
-
-        await Future.delayed(SHORT_SHOW_DIALOG_DURATION, () {
-          _navigationService.popUntilHomeOrSettings();
-        });
-      } else {
-        _navigationService.showFFAccountLinked(connection.name,
-            inOnboarding: true);
-      }
-
+      _linkFeralFileToken(link.replacePrefix(FF_TOKEN_DEEPLINK_PREFIX, ""));
       return true;
     }
 
     return false;
+  }
+
+  Future<bool> _handleBranchDeeplink(String link) async {
+    log.info("[DeeplinkService] _handleBranchDeeplink");
+    //star
+    memoryValues.airdropFFExhibitionId.value = '';
+    if (Constants.branchDeepLinks.any((prefix) => link.startsWith(prefix))) {
+      final response = await _branchApi.getParams(Environment.branchKey, link);
+      _handleBranchDeeplinkData(response["data"]);
+      return true;
+    }
+    return false;
+  }
+
+  void _handleBranchDeeplinkData(Map<dynamic, dynamic> data) {
+    final source = data["source"];
+    switch (source) {
+      case "FeralFile":
+        final String? tokenId = data["token_id"];
+        if (tokenId != null) {
+          log.info("[DeeplinkService] _linkFeralFileToken $tokenId");
+          _linkFeralFileToken(tokenId);
+        }
+        memoryValues.airdropFFExhibitionId.value = null;
+        break;
+      case "FeralFile_AirDrop":
+        final String? exhibitionId = data["exhibition_id"];
+        final String? expiredAt = data["expired_at"];
+
+        if (expiredAt != null &&
+            DateTime.now().isAfter(DateTime.fromMillisecondsSinceEpoch(
+                int.tryParse(expiredAt) ?? 0))) {
+          log.info("[DeeplinkService] FeralFile Airdrop expired");
+          _navigationService.showAirdropExpired();
+          break;
+        }
+
+        if (exhibitionId != null) {
+          _claimFFAirdropToken(exhibitionId);
+        }
+        break;
+      default:
+        memoryValues.airdropFFExhibitionId.value = null;
+    }
+  }
+
+  Future<void> _linkFeralFileToken(String tokenId) async {
+    final doneOnboarding = _configurationService.isDoneOnboarding();
+
+    final connection = await _feralFileService.linkFF(
+      tokenId,
+      delayLink: !doneOnboarding,
+    );
+
+    if (doneOnboarding) {
+      _navigationService.showFFAccountLinked(connection.name);
+
+      await Future.delayed(SHORT_SHOW_DIALOG_DURATION, () {
+        _navigationService.popUntilHomeOrSettings();
+      });
+    } else {
+      _navigationService.showFFAccountLinked(connection.name,
+          inOnboarding: true);
+    }
+  }
+
+  Future _claimFFAirdropToken(String exhibitionId) async {
+    log.info(
+        "[DeeplinkService] Claim FF Airdrop token. Exhibition $exhibitionId");
+    if (currentExhibitionId == exhibitionId) {
+      return;
+    }
+    try {
+      currentExhibitionId = exhibitionId;
+      final doneOnboarding = _configurationService.isDoneOnboarding();
+      if (doneOnboarding) {
+        final exhibitionFuture = _feralFileService.getExhibition(exhibitionId);
+        await Future.delayed(const Duration(seconds: 1), () {
+          _navigationService.popUntilHomeOrSettings();
+        });
+        final exhibition = await exhibitionFuture;
+        final exhibitionNotStarted =
+            exhibition.exhibitionStartAt.isAfter(DateTime.now());
+        final endTime = exhibition.airdropInfo?.endedAt;
+        if (exhibitionNotStarted) {
+          await _navigationService.showExhibitionNotStarted(
+            startTime: exhibition.exhibitionStartAt,
+          );
+        } else if (exhibition.airdropInfo == null ||
+            (endTime != null && endTime.isBefore(DateTime.now()))) {
+          await _navigationService.showAirdropExpired();
+        } else if (exhibition.airdropInfo?.remainAmount == 0) {
+          await _navigationService.showNoRemainingToken(
+            exhibition: exhibition,
+          );
+        } else {
+          Future.delayed(const Duration(seconds: 5), () {
+            currentExhibitionId = null;
+          });
+          await _navigationService.openClaimTokenPage(exhibition);
+        }
+        currentExhibitionId = null;
+      } else {
+        memoryValues.airdropFFExhibitionId.value = exhibitionId;
+        await Future.delayed(const Duration(seconds: 5), () {
+          currentExhibitionId = null;
+        });
+      }
+    } catch (e) {
+      log.info("[DeeplinkService] _claimFFAirdropToken error $e");
+      currentExhibitionId = null;
+    }
   }
 }

@@ -45,8 +45,7 @@ class WalletDetailBloc extends AuBloc<WalletDetailEvent, WalletDetailState> {
                   .toStringAsPrecision(2)} USD";
           break;
         case CryptoType.XTZ:
-          final tezosWallet = await event.wallet.getTezosWallet();
-          final address = tezosWallet.address;
+          final address = await event.wallet.getTezosAddress();
           emit(state.copyWith(address: address));
 
           final balance = await _tezosService.getBalance(address);

@@ -38,8 +38,7 @@ class _LinkBeaconConnectPageState extends State<LinkBeaconConnectPage> {
         },
       ),
       body: Container(
-        margin: const EdgeInsets.only(
-            top: 16.0, left: 16.0, right: 16.0, bottom: 20.0),
+        margin: ResponsiveLayout.pageEdgeInsets,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

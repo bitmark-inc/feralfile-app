@@ -8,15 +8,18 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
-import 'package:autonomy_flutter/util/au_cached_manager.dart';
+import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/svg.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:nft_collection/models/asset_token.dart';
+import 'package:nft_rendering/nft_rendering.dart';
+
 // ignore: depend_on_referenced_packages
 import 'package:path/path.dart' as p;
 
@@ -58,7 +61,8 @@ class _HiddenArtworksPageState extends State<HiddenArtworksPage> {
   Widget _assetsWidget(List<AssetToken> tokens) {
     final theme = Theme.of(context);
 
-    final tokenIDs = tokens.map((e) => e.id).toList();
+    final artworkIdentities =
+        tokens.map((e) => ArtworkIdentity(e.id, e.ownerAddress)).toList();
     const int cellPerRowPhone = 3;
     const int cellPerRowTablet = 6;
     const double cellSpacing = 3.0;
@@ -97,34 +101,46 @@ class _HiddenArtworksPageState extends State<HiddenArtworksPage> {
                   child: Hero(
                     tag: asset.id,
                     child: ext == ".svg"
-                        ? SvgPicture.network(asset.getGalleryThumbnailUrl()!)
+                        ? SvgImage(
+                            url: asset.getGalleryThumbnailUrl()!,
+                            loadingWidgetBuilder: (_) =>
+                                const GalleryThumbnailPlaceholder(),
+                            errorWidgetBuilder: (_) =>
+                                const GalleryThumbnailErrorWidget(),
+                            unsupportWidgetBuilder: (context) =>
+                                const GalleryUnSupportThumbnailWidget(),
+                          )
                         : CachedNetworkImage(
                             imageUrl: asset.getGalleryThumbnailUrl()!,
                             fit: BoxFit.cover,
                             memCacheHeight: _cachedImageSize,
                             memCacheWidth: _cachedImageSize,
-                            cacheManager: injector<AUCacheManager>(),
-                            placeholder: (context, index) => Container(
-                                color: const Color.fromRGBO(227, 227, 227, 1)),
-                            placeholderFadeInDuration:
-                                const Duration(milliseconds: 300),
-                            errorWidget: (context, url, error) => Container(
-                                color: const Color.fromRGBO(227, 227, 227, 1),
-                                child: Center(
-                                  child: SvgPicture.asset(
-                                    'assets/images/image_error.svg',
-                                    width: 75,
-                                    height: 75,
-                                  ),
-                                )),
+                            cacheManager: injector<CacheManager>(),
+                            placeholder: (context, index) =>
+                                const GalleryThumbnailPlaceholder(),
+                            errorWidget: (context, url, error) =>
+                                const GalleryThumbnailErrorWidget(),
+                            placeholderFadeInDuration: const Duration(
+                              milliseconds: 300,
+                            ),
                           ),
                   ),
                   onTap: () {
-                    final index = tokenIDs.indexOf(asset.id);
-                    final payload = ArtworkDetailPayload(tokenIDs, index);
-                    Navigator.of(context).pushNamed(
-                        AppRouter.artworkPreviewPage,
-                        arguments: payload);
+                    final index = artworkIdentities.indexWhere((element) =>
+                        element.id == asset.id &&
+                        element.owner == asset.ownerAddress);
+                    final payload = ArtworkDetailPayload(artworkIdentities, index);
+
+                    if (injector<ConfigurationService>()
+                        .isImmediateInfoViewEnabled()) {
+                      Navigator.of(context).pushNamed(
+                          AppRouter.artworkDetailsPage,
+                          arguments: payload);
+                    } else {
+                      Navigator.of(context).pushNamed(
+                          AppRouter.artworkPreviewPage,
+                          arguments: payload);
+                    }
                   },
                 );
               },

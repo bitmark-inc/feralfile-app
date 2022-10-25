@@ -40,6 +40,10 @@ class TezosBeaconChannel {
     await _channel.invokeMethod('removePeer', {'peer': peerJSON});
   }
 
+  Future cleanup(List<String> ids) async {
+    await _channel.invokeMethod('cleanup', {'retain_ids': ids});
+  }
+
   Future permissionResponse(
       String id, String? publicKey, String? address) async {
     await _channel.invokeMethod(
@@ -143,8 +147,8 @@ class TezosBeaconChannel {
                   final String destination = element["destination"] ?? "";
                   final String amount = element["amount"] ?? "0";
                   final String? entrypoint = element["entrypoint"];
-                  final dynamic parameters =
-                      json.decode(json.encode(element["parameters"]));
+                  final dynamic parameters = element["parameters"] != null ?
+                      json.decode(json.encode(element["parameters"])) : null;
 
                   final operation = TransactionOperation(
                       amount: int.parse(amount),

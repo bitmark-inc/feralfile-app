@@ -5,27 +5,27 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:collection/collection.dart';
-import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:nft_collection/nft_collection.dart';
-import 'package:share/share.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/screen/bloc/feralfile/feralfile_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
+import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:collection/collection.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:nft_collection/nft_collection.dart';
 
 class LinkedAccountDetailsPage extends StatefulWidget {
   final Connection connection;
@@ -121,6 +121,10 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
           fetchXtzBalance(tezosAddress);
         }
         break;
+      case "manuallyAddress":
+        contextedAddresses.add(ContextedAddress(
+            CryptoType.UNKNOWN, widget.connection.accountNumber));
+        break;
 
       default:
         break;
@@ -173,14 +177,12 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
         onBack: () => Navigator.of(context).pop(),
       ),
       body: Container(
-        margin: pageEdgeInsets,
+        margin: ResponsiveLayout.pageEdgeInsets,
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _addressesSection(),
-              const SizedBox(height: 40),
-              _cryptoSection(),
               const SizedBox(height: 40),
               _preferencesSection(),
               const SizedBox(height: 40),
@@ -204,16 +206,19 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
               : "linked_address".tr(),
           style: theme.textTheme.headline1,
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 24),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ...contextedAddresses.map(
               (e) => Column(
                 children: [
-                  _addressRow(e.cryptoType, address: e.address),
-                  const SizedBox(height: 15),
-                  addOnlyDivider(),
+                  _addressRow(e.cryptoType,
+                      address: e.address,
+                      balanceString: e.cryptoType != CryptoType.UNKNOWN
+                          ? _balances[e.address] ?? '-- ${e.cryptoType.code}'
+                          : ""),
+                  e == contextedAddresses.last ? const SizedBox() : addDivider(),
                 ],
               ),
             ),
@@ -223,84 +228,38 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
     );
   }
 
-  Widget _cryptoSection() {
+  Widget _addressRow(CryptoType type,
+      {required String address, required balanceString}) {
     final theme = Theme.of(context);
-    if (contextedAddresses.isEmpty) return const SizedBox();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          "crypto".tr(),
-          style: theme.textTheme.headline1,
-        ),
-        const SizedBox(height: 24),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ...contextedAddresses.map(
-              (e) {
-                return Column(
-                  children: [
-                    _balanceRow(e.cryptoType,
-                        balanceString:
-                            _balances[e.address] ?? '-- ${e.cryptoType.code}'),
-                    if (e != contextedAddresses.last) ...[
-                      addDivider(),
-                    ]
-                  ],
-                );
-              },
-            )
-          ],
-        ),
-        const SizedBox(height: 16),
-      ],
-    );
-  }
-
-  Widget _addressRow(CryptoType type, {required String address}) {
-    final theme = Theme.of(context);
+    final balanceStyle = theme.textTheme.subtitle1;
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Text(type.source, style: theme.textTheme.headline4),
-          TextButton(
-            onPressed: () => Share.share(address),
-            style: const ButtonStyle(alignment: Alignment.centerRight),
-            child: Text(
-              "share".tr(),
-              style: ResponsiveLayout.isMobile
-                  ? theme.textTheme.atlasBlackBold12
-                  : theme.textTheme.atlasBlackBold14,
-            ),
-          )
+          Text(balanceString, style: balanceStyle),
         ],
       ),
+      const SizedBox(height: 16),
       Row(
         children: [
           Expanded(
-            child: Text(
-              address,
-              style: theme.textTheme.subtitle1,
+            child: GestureDetector(
+              onTap: () async {
+                showInfoNotification(
+                    const Key("address"), "copied_to_clipboard".tr());
+                Clipboard.setData(ClipboardData(text: address));
+              },
+              child: Text(
+                address,
+                style: theme.textTheme.subtitle1,
+              ),
             ),
           ),
         ],
       )
     ]);
-  }
-
-  Widget _balanceRow(CryptoType type, {required String balanceString}) {
-    final theme = Theme.of(context);
-    final balanceStyle = theme.textTheme.subtitle1;
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(type.fullCode, style: theme.textTheme.headline4),
-        Text(balanceString, style: balanceStyle),
-      ],
-    );
   }
 
   Widget _preferencesSection() {
@@ -342,8 +301,8 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
           ),
           const SizedBox(height: 14),
           Text(
-            "do_not_show_nft"
-                .tr(), //"Do not show this account's NFTs in the collection view."
+            "do_not_show_nft".tr(),
+            //"Do not show this account's NFTs in the collection view."
             style: theme.textTheme.bodyText1,
           ),
         ],

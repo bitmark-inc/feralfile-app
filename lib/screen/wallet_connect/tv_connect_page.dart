@@ -14,7 +14,9 @@ import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/debouce_util.dart';
-import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/error_handler.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -73,92 +75,112 @@ class _TVConnectPageState extends State<TVConnectPage>
     final authorizedKeypair =
         await injector<AccountService>().authorizeToViewer();
 
-    final chainId = Environment.appTestnetConfig ? 4 : 1;
+    final chainId = Environment.web3ChainId;
 
-    await injector<WalletConnectService>().approveSession(const Uuid().v4(),
-        widget.wcConnectArgs.peerMeta, [authorizedKeypair], chainId);
+    final isApproveSuccess = await injector<WalletConnectService>()
+        .approveSession(const Uuid().v4(), widget.wcConnectArgs.peerMeta,
+            [authorizedKeypair], chainId);
 
     if (!mounted) return;
-    Navigator.of(context).pop();
+    if (!isApproveSuccess) {
+      await UIHelper.showConnectionFaild(
+        context,
+        onClose: () {
+          UIHelper.hideInfoDialog(context);
+          Navigator.of(context).pop();
+        },
+      );
+      return;
+    }
+    await UIHelper.showConnectionSuccess(
+      context,
+      onClose: () {
+        UIHelper.hideInfoDialog(context);
+        Navigator.of(context).pop();
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
-    return Scaffold(
-      backgroundColor: theme.colorScheme.primary,
-      appBar: AppBar(
-        leading: const SizedBox(),
-        leadingWidth: 0.0,
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            GestureDetector(
-              behavior: HitTestBehavior.translucent,
-              onTap: () => _reject(),
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(0, 7, 18, 8),
-                child: Row(
-                  children: [
-                    Row(
-                      children: [
-                        SvgPicture.asset(
-                          'assets/images/nav-arrow-left.svg',
-                          color: theme.colorScheme.secondary,
-                        ),
-                        const SizedBox(width: 7),
-                        Text(
-                          "back".tr(),
-                          style: theme.primaryTextTheme.button,
-                        ),
-                      ],
-                    ),
-                  ],
+    return WillPopScope(
+      onWillPop: () async {
+        _reject();
+        return true;
+      },
+      child: Scaffold(
+        backgroundColor: theme.colorScheme.primary,
+        appBar: AppBar(
+          leading: const SizedBox(),
+          leadingWidth: 0.0,
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onTap: () => _reject(),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 7, 18, 8),
+                  child: Row(
+                    children: [
+                      Row(
+                        children: [
+                          SvgPicture.asset(
+                            'assets/images/nav-arrow-left.svg',
+                            color: theme.colorScheme.secondary,
+                          ),
+                          const SizedBox(width: 7),
+                          Text(
+                            "back".tr(),
+                            style: theme.primaryTextTheme.button,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
-        ),
-        backgroundColor: Colors.transparent,
-        shadowColor: Colors.transparent,
-        elevation: 0,
-      ),
-      body: Container(
-        margin: pageEdgeInsetsWithSubmitButton,
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(
-            "connect_au_viewer".tr(),
-            style: theme.primaryTextTheme.headline1,
-          ),
-          const SizedBox(height: 24),
-          Text("set_up_gallery".tr(),
-              //"Instantly set up your personal NFT art gallery on TVs and projectors anywhere you go.",
-              style: theme.primaryTextTheme.bodyText1),
-          Divider(
-            height: 64,
-            color: theme.colorScheme.secondary,
-          ),
-          Text("viewer_request_to".tr(), //"Autonomy Viewer is requesting to: ",
-              style: theme.primaryTextTheme.bodyText1),
-          const SizedBox(height: 8),
-          Text(
-              "view_collections".tr(), //"• View your Autonomy NFT collections",
-              style: theme.primaryTextTheme.bodyText1),
-          const Expanded(child: SizedBox()),
-          Row(
-            children: [
-              Expanded(
-                child: AuFilledButton(
-                  text: "Authorize".tr().toUpperCase(),
-                  onPress: () => withDebounce(() => _approve()),
-                  color: theme.colorScheme.secondary,
-                  textStyle: theme.textTheme.button,
-                ),
-              )
             ],
-          )
-        ]),
+          ),
+          backgroundColor: Colors.transparent,
+          shadowColor: Colors.transparent,
+          elevation: 0,
+        ),
+        body: Container(
+          margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(
+              "connect_au_viewer".tr(),
+              style: theme.primaryTextTheme.headline1,
+            ),
+            const SizedBox(height: 24),
+            Text("set_up_gallery".tr(),
+                style: theme.primaryTextTheme.bodyText1),
+            const SizedBox(
+              height: 32,
+            ),
+            Text("viewer_request_to".tr(),
+                style: theme.primaryTextTheme.bodyText1),
+            const SizedBox(height: 8),
+            Text("view_collections".tr(),
+                style: theme.primaryTextTheme.bodyText1),
+            const Expanded(child: SizedBox()),
+            Row(
+              children: [
+                Expanded(
+                  child: AuFilledButton(
+                    text: "Authorize".tr().toUpperCase(),
+                    onPress: () => withDebounce(() => _approve()),
+                    color: theme.colorScheme.secondary,
+                    textStyle: theme.textTheme.button,
+                  ),
+                )
+              ],
+            )
+          ]),
+        ),
       ),
     );
   }

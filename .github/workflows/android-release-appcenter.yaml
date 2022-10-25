@@ -15,7 +15,7 @@ on:
         type: boolean
         default: false
         required: false
-        description: Network is Testnet
+        description: Using testnet (Default staging)
 jobs:
   build:
     runs-on: macos-latest
@@ -33,6 +33,8 @@ jobs:
         run: |
           echo "FLUTTER_VERSION_NAME=${{ github.event.inputs.version }}" >> $GITHUB_ENV
           echo "FLUTTER_VERSION_CODE=${{ github.event.inputs.build-number }}" >> $GITHUB_ENV
+          echo "BRANCH_KEY=${{ secrets.BRANCH_KEY }}" >> $GITHUB_ENV
+          echo "BRANCH_KEY_TEST=${{ secrets.BRANCH_KEY_TEST }}" >> $GITHUB_ENV
 
       - uses: webfactory/ssh-agent@v0.5.4
         with:
@@ -41,7 +43,7 @@ jobs:
       - name: Create env file
         run: |
           touch .env
-          echo INDEXER_MAINNET_API_URL=${{ secrets.INDEXER_MAINNET_API_URL }} >> .env
+          echo INDEXER_MAINNET_API_URL=${{ secrets.INDEXER_STAGING_API_URL }} >> .env
           echo INDEXER_TESTNET_API_URL=${{ secrets.INDEXER_TESTNET_API_URL }} >> .env
           echo WEB3_RPC_MAINNET_URL=${{ secrets.WEB3_RPC_MAINNET_URL }} >> .env
           echo WEB3_RPC_TESTNET_URL=${{ secrets.WEB3_RPC_TESTNET_URL }} >> .env
@@ -51,16 +53,20 @@ jobs:
           echo BITMARK_API_TESTNET_URL=${{ secrets.BITMARK_API_TESTNET_URL }} >> .env
           echo FERAL_FILE_API_MAINNET_URL=${{ secrets.FERAL_FILE_API_MAINNET_URL }} >> .env
           echo FERAL_FILE_API_TESTNET_URL=${{ secrets.FERAL_FILE_API_TESTNET_URL }} >> .env
+          echo FERAL_FILE_SECRET_KEY_TESTNET=${{ secrets.FERAL_FILE_SECRET_KEY_TESTNET }} >> .env
+          echo FERAL_FILE_SECRET_KEY_MAINNET=${{ secrets.FERAL_FILE_SECRET_KEY_MAINNET }} >> .env
+          echo FERAL_FILE_ASSET_URL_TESTNET=${{ secrets.FERAL_FILE_ASSET_URL_TESTNET }} >> .env
+          echo FERAL_FILE_ASSET_URL_MAINNET=${{ secrets.FERAL_FILE_ASSET_URL_MAINNET }} >> .env
           echo EXTENSION_SUPPORT_MAINNET_URL=${{ secrets.EXTENSION_SUPPORT_MAINNET_URL }} >> .env
           echo EXTENSION_SUPPORT_TESTNET_URL=${{ secrets.EXTENSION_SUPPORT_TESTNET_URL }} >> .env
           echo CONNECT_WEBSOCKET_MAINNET_URL=${{ secrets.CONNECT_WEBSOCKET_MAINNET_URL }} >> .env
           echo CONNECT_WEBSOCKET_TESTNET_URL=${{ secrets.CONNECT_WEBSOCKET_TESTNET_URL }} >> .env
 
-          echo AUTONOMY_AUTH_URL=${{ secrets.AUTONOMY_AUTH_DEV_URL }} >> .env
-          echo CUSTOMER_SUPPORT_URL=${{ secrets.CUSTOMER_SUPPORT_DEV_URL }} >> .env
+          ${{ github.event.inputs.testnet }} && echo AUTONOMY_AUTH_URL=${{ secrets.AUTONOMY_AUTH_DEV_URL }} || echo AUTONOMY_AUTH_URL=${{ secrets.AUTONOMY_AUTH_STAGING_URL }} >> .env
+          ${{ github.event.inputs.testnet }} && echo CUSTOMER_SUPPORT_URL=${{ secrets.CUSTOMER_SUPPORT_URL }} || echo AUTONOMY_AUTH_URL=${{ secrets.CUSTOMER_SUPPORT_STAGING_URL }} >> .env
+          ${{ github.event.inputs.testnet }} && echo RENDERING_REPORT_URL=${{ secrets.RENDERING_REPORT_DEV_URL }} || echo AUTONOMY_AUTH_URL=${{ secrets.RENDERING_REPORT_STAGING_URL }} >> .env
+          ${{ github.event.inputs.testnet }} && echo FEED_URL=${{ secrets.FEED_DEV_URL }} || echo AUTONOMY_AUTH_URL=${{ secrets.FEED_STAGING_URL }} >> .env
           echo CURRENCY_EXCHANGE_URL=${{ secrets.CURRENCY_EXCHANGE_URL }} >> .env
-          echo RENDERING_REPORT_URL=${{ secrets.RENDERING_REPORT_DEV_URL }} >> .env
-          echo FEED_URL=${{ secrets.FEED_DEV_URL }} >> .env
           echo AUTONOMY_PUBDOC_URL=${{ secrets.AUTONOMY_PUBDOC_URL }} >> .env
           echo AUTONOMY_IPFS_PREFIX=${{ secrets.AUTONOMY_IPFS_PREFIX_DEV }} >> .env
 
@@ -69,12 +75,15 @@ jobs:
           echo ONESIGNAL_APP_ID=${{ secrets.ONESIGNAL_APP_ID }} >> .env
           echo AWS_IDENTITY_POOL_ID=${{ secrets.AWS_IDENTITY_POOL_ID }} >> .env
           echo AUTONOMY_SHARD_SERVICE=${{ secrets.AUTONOMY_SHARD_SERVICE }} >> .env
+          echo METRIC_ENDPOINT=${{ secrets.METRIC_ENDPOINT }} >> .env
+          echo METRIC_SECRET_KEY=${{ secrets.METRIC_SECRET_KEY }} >> .env
+          echo BRANCH_KEY=${{ secrets.BRANCH_KEY }} >> .env
 
           echo APP_TESTNET_CONFIG=${{ github.event.inputs.testnet }} >> .env
           cat .env
 
       - name: Submoudles update
-        run: git submodule update --init --recursive
+        run: git -c submodule.auto-test.update=none submodule update --init --recursive
       - run: flutter pub cache repair
       - run: flutter pub get
       - run: flutter build apk --flavor inhouse
@@ -83,7 +92,7 @@ jobs:
         with:
           token: ${{ secrets.APPCENTER_API_TOKEN }}
           path: build/app/outputs/flutter-apk/app-inhouse-release.apk
-          app: support-zzd0-28/Autonomy-Android-1
-          silent: true
-          group: 'Collaborators,Bitmark Internal Testers,Android Testers'
+          app: ${{ !github.event.inputs.testnet && 'support-zzd0-28/Autonomy-Android-1' || 'support-zzd0-28/Autonomy-Android-Test' }}
+          silent: false
+          group: 'Collaborators,Bitmark Internal Testers'
           release_notes: ${{ github.event.inputs.message }}

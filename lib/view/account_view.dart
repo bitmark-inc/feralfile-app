@@ -5,13 +5,16 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/global_receive/receive_detail_page.dart';
+import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -100,37 +103,69 @@ Widget accountItem(BuildContext context, Account account,
   final theme = Theme.of(context);
   final persona = account.persona;
   if (persona != null) {
+    final isHideGalleryEnabled =
+        injector<AccountService>().isPersonaHiddenInGallery(persona.uuid);
     return TappableForwardRow(
-        leftWidget: Row(
-          children: [
-            accountLogo(account),
-            const SizedBox(width: 16),
-            Text(
-                account.name.isNotEmpty
-                    ? account.name.maskIfNeeded()
-                    : account.accountNumber.mask(4),
-                style: theme.textTheme.headline4),
-          ],
-        ),
-        onTap: onPersonaTap);
+      leftWidget: Row(
+        children: [
+          accountLogo(context, account),
+          const SizedBox(width: 16),
+          Text(
+            account.name.isNotEmpty
+                ? account.name.maskIfNeeded()
+                : account.accountNumber.mask(4),
+            style: theme.textTheme.headline4,
+          ),
+        ],
+      ),
+      rightWidget: context.widget.toString().contains("AccountsView")
+          ? Visibility(
+              visible: isHideGalleryEnabled,
+              child: Icon(
+                Icons.visibility_off_outlined,
+                color: theme.colorScheme.surface,
+              ),
+            )
+          : const SizedBox(),
+      onTap: onPersonaTap,
+    );
   }
 
   final connection = account.connections?.first;
+
   if (connection != null) {
+    final isHideGalleryEnabled = injector<AccountService>()
+        .isLinkedAccountHiddenInGallery(connection.hiddenGalleryKey);
     return TappableForwardRow(
-        leftWidget: Row(
-          children: [
-            accountLogo(account),
-            const SizedBox(width: 16),
-            Text(
-                connection.name.isNotEmpty
-                    ? connection.name.maskIfNeeded()
-                    : connection.accountNumber.mask(4),
-                style: theme.textTheme.headline4),
-          ],
-        ),
-        rightWidget: _linkedBox(context),
-        onTap: onConnectionTap);
+      leftWidget: Row(
+        children: [
+          accountLogo(context, account),
+          const SizedBox(width: 16),
+          Text(
+            connection.name.isNotEmpty
+                ? connection.name.maskIfNeeded()
+                : connection.accountNumber.mask(4),
+            style: theme.textTheme.headline4,
+          ),
+        ],
+      ),
+      rightWidget: Row(
+        children: [
+          Visibility(
+            visible: isHideGalleryEnabled,
+            child: Icon(
+              Icons.visibility_off_outlined,
+              color: theme.colorScheme.surface,
+            ),
+          ),
+          const SizedBox(
+            width: 10,
+          ),
+          _linkedBox(context),
+        ],
+      ),
+      onTap: onConnectionTap,
+    );
   }
 
   return const SizedBox();
@@ -150,7 +185,7 @@ Widget _blockchainAddressView(
         const SizedBox(width: 8),
         Text(
           _blockchainName(account.blockchain),
-          style: theme.textTheme.headline5,
+          style: theme.textTheme.atlasBlackBold12,
         ),
         const SizedBox(width: 8),
         Text(
@@ -196,12 +231,25 @@ String _blockchainName(String? blockchain) {
   }
 }
 
-Widget accountLogo(Account account) {
+Widget accountLogo(BuildContext context, Account account) {
   if (account.persona != null) {
     return SizedBox(
-        width: 24,
-        height: 24,
-        child: Image.asset("assets/images/autonomyIcon.png"));
+      width: 26,
+      height: 30,
+      child: Stack(
+        children: [
+          Align(
+            alignment: Alignment.centerLeft,
+              child: Image.asset("assets/images/autonomyIcon.png")),
+          Align(
+            alignment: Alignment.topRight,
+            child: account.persona?.defaultAccount == 1 && context.widget.toString().contains("AccountsView")
+                ? SvgPicture.asset("assets/images/icon_verified.svg")
+                : const SizedBox(),
+          ),
+        ],
+      ),
+    );
   }
 
   final connection = account.connections?.first;

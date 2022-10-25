@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 const INDEXER_TOKENS_MAXIMUM = 50;
@@ -13,12 +14,26 @@ const CLOUDFLAREIMAGEURLPREFIX =
     'https://imagedelivery.net/iCRs13uicXIPOWrnuHbaKA/';
 const AUTONOMY_TV_PEER_NAME = 'Autonomy TV';
 const DEFAULT_IPFS_PREFIX = 'https://ipfs.io';
+const IPFS_PREFIX = "ipfs://";
 const CLOUDFLARE_IPFS_PREFIX = 'https://cloudflare-ipfs.com';
 const EMPTY_ISSUE_MESSAGE = 'NO MESSAGE BODY WAS PROVIDED';
+const RATING_MESSAGE_START = "### Customer support rating\n";
+const MUTE_RATING_MESSAGE = "MUTE_RATING_MESSAGE";
+const STAR_RATING = "###STAR#RATING#";
 const KNOWN_BUGS_LINK = 'https://github.com/orgs/bitmark-inc/projects/16';
 const USER_TEST_CALENDAR_LINK =
     'https://calendly.com/anais-bitmark/usertesting';
 const FF_TOKEN_DEEPLINK_PREFIX = 'https://autonomy.io/apps/feralfile?token=';
+const AUTONOMY_CLIENT_GITHUB_LINK =
+    "https://github.com/bitmark-inc/autonomy-client";
+const DEEP_LINKS = [
+  "autonomy://",
+  "https://autonomy.io",
+  "https://au.bitmark.com",
+  "https://autonomy-app.app.link",
+  "https://autonomy-app-alternate.app.link",
+  "https://link.autonomy.io",
+];
 
 Future<bool> isAppCenterBuild() async {
   final PackageInfo info = await PackageInfo.fromPlatform();
@@ -144,6 +159,7 @@ enum CryptoType {
   ETH,
   XTZ,
   BITMARK,
+  UNKNOWN,
 }
 
 extension CryptoTypeHelpers on CryptoType {
@@ -155,6 +171,8 @@ extension CryptoTypeHelpers on CryptoType {
         return "XTZ";
       case CryptoType.BITMARK:
         return "USDC";
+      case CryptoType.UNKNOWN:
+        return "";
     }
   }
 
@@ -166,6 +184,8 @@ extension CryptoTypeHelpers on CryptoType {
         return "Tezos (XTZ)";
       case CryptoType.BITMARK:
         return "USD Coin (USDC)";
+      case CryptoType.UNKNOWN:
+        return "";
     }
   }
 
@@ -177,6 +197,8 @@ extension CryptoTypeHelpers on CryptoType {
         return "Tezos";
       case CryptoType.BITMARK:
         return "Bitmark";
+      case CryptoType.UNKNOWN:
+        return "Unknown";
     }
   }
 }
@@ -186,6 +208,14 @@ class Constants {
   static const durationToReview = Duration(days: 30);
   // Responsive
   static const kTabletBreakpoint = 480;
-  static const kDesktopBreakpoint = 1024;
+  static const kDesktopBreakpoint = 1025;
   static const maxWidthModalTablet = 387.0;
+  static const paddingMobile = EdgeInsets.symmetric(horizontal: 14);
+  static const paddingTablet = EdgeInsets.symmetric(horizontal: 20);
+  static const paddingTabletLandScape = EdgeInsets.symmetric(horizontal: 32);
+  static const branchDeepLinks = [
+    "https://autonomy-app.app.link",
+    "https://autonomy-app-alternate.app.link",
+    "https://link.autonomy.io",
+  ];
 }

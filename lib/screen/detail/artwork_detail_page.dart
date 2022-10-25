@@ -6,17 +6,19 @@
 //
 
 import 'dart:collection';
+import 'dart:convert';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/tzkt_operation.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_page.dart';
-import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -25,14 +27,17 @@ import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/au_outlined_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:html_unescape/html_unescape.dart';
+import 'package:json_annotation/json_annotation.dart';
+import 'package:metric_client/metric_client.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/provenance.dart';
 import 'package:nft_collection/nft_collection.dart';
-
+part 'artwork_detail_page.g.dart';
 class ArtworkDetailPage extends StatefulWidget {
   final ArtworkDetailPayload payload;
 
@@ -45,51 +50,29 @@ class ArtworkDetailPage extends StatefulWidget {
 class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     with AfterLayoutMixin<ArtworkDetailPage> {
   late ScrollController _scrollController;
-  bool _showArtwortReportProblemContainer = true;
   HashSet<String> _accountNumberHash = HashSet.identity();
   AssetToken? currentAsset;
 
   @override
   void initState() {
     _scrollController = ScrollController();
-    _scrollController.addListener(_scrollListener);
     super.initState();
 
     context.read<ArtworkDetailBloc>().add(ArtworkDetailGetInfoEvent(
-        widget.payload.ids[widget.payload.currentIndex]));
+        widget.payload.identities[widget.payload.currentIndex]));
     context.read<AccountsBloc>().add(FetchAllAddressesEvent());
     context.read<AccountsBloc>().add(GetAccountsEvent());
   }
 
-  _scrollListener() {
-    /*
-    So we see it like that when we are at the top of the page. 
-    When we start scrolling down it disappears and we see it again attached at the bottom of the page.
-    And if we scroll all the way up again, we would display again it attached down the screen
-    https://www.figma.com/file/Ze71GH9ZmZlJwtPjeHYZpc?node-id=51:5175#159199971
-    */
-    if (_scrollController.offset > 80) {
-      setState(() {
-        _showArtwortReportProblemContainer = false;
-      });
-    } else {
-      setState(() {
-        _showArtwortReportProblemContainer = true;
-      });
-    }
-
-    if (_scrollController.position.pixels + 100 >=
-        _scrollController.position.maxScrollExtent) {
-      setState(() {
-        _showArtwortReportProblemContainer = true;
-      });
-    }
-  }
-
   @override
-  void afterFirstLayout(BuildContext context) {
-    injector<AWSService>().storeEventWithDeviceData("view_artwork_detail",
-        data: {"id": widget.payload.ids[widget.payload.currentIndex]});
+  void afterFirstLayout(BuildContext context) async {
+    final metricClient = injector.get<MetricClientService>();
+    await metricClient.addEvent(
+      "view_artwork_detail",
+      data: {
+        "id": jsonEncode(widget.payload.identities[widget.payload.currentIndex]),
+      },
+    );
   }
 
   @override
@@ -129,9 +112,8 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
 
               var subTitle = "";
               if (artistName != null && artistName.isNotEmpty) {
-                subTitle = "by".tr(args: [artistName]) ;
+                subTitle = "by".tr(args: [artistName]);
               }
-              subTitle += getEditionSubTitle(asset);
 
               return SingleChildScrollView(
                 controller: _scrollController,
@@ -140,25 +122,50 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                   children: [
                     const SizedBox(height: 16.0),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Text(
-                        asset.title,
-                        style: theme.textTheme.headline1,
+                      padding: ResponsiveLayout.getPadding,
+                      child: Semantics(
+                        label: 'Title',
+                        child: Text(
+                          asset.title,
+                          style: theme.textTheme.headline1,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 8.0),
-                    if (subTitle.isNotEmpty) ...[
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Text(
-                          subTitle,
-                          style: theme.textTheme.headline3,
-                        ),
+                    Padding(
+                      padding: ResponsiveLayout.getPadding,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.baseline,
+                        textBaseline: TextBaseline.alphabetic,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              subTitle,
+                              style: theme.textTheme.headline3?.copyWith(
+                                fontSize: 18,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(
+                            width: 8,
+                          ),
+                          Text(
+                            getEditionSubTitle(asset),
+                            style: theme.textTheme.headline5?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                     const SizedBox(height: 16.0),
                     GestureDetector(
-                        child: tokenThumbnailWidget(context, asset),
+                        child: TokenThumbnailWidget(
+                          token: asset,
+                          onHideArtwork: () {
+                            _showArtworkOptionsDialog(asset);
+                          },
+                        ),
                         onTap: () {
                           if (injector<ConfigurationService>()
                               .isImmediateInfoViewEnabled()) {
@@ -172,7 +179,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                     debugInfoWidget(context, currentAsset),
                     const SizedBox(height: 16.0),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      padding: ResponsiveLayout.getPadding,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -194,9 +201,12 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                             ),
                           ),
                           const SizedBox(height: 40.0),
-                          Text(
-                            unescape.convert(asset.desc ?? ""),
-                            style: theme.textTheme.bodyText1,
+                          Semantics(
+                            label: 'Desc',
+                            child: Text(
+                              unescape.convert(asset.desc ?? ""),
+                              style: theme.textTheme.bodyText1,
+                            ),
                           ),
                           artworkDetailsRightSection(context, asset),
                           const SizedBox(height: 40.0),
@@ -232,8 +242,10 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
           bottom: 0,
           left: 0,
           right: 0,
-          child: reportNFTProblemContainer(
-              currentAsset, _showArtwortReportProblemContainer),
+          child: ReportButton(
+            token: currentAsset,
+            scrollController: _scrollController,
+          ),
         ),
       ],
     );
@@ -293,8 +305,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
             title: isHidden ? 'unhide_aw'.tr() : 'hide_aw'.tr(),
             onTap: () async {
               await injector<ConfigurationService>()
-                  .updateTempStorageHiddenTokenIDs(
-                      [asset.id], !isHidden);
+                  .updateTempStorageHiddenTokenIDs([asset.id], !isHidden);
               injector<SettingsDataService>().backup();
 
               if (!mounted) return;
@@ -318,9 +329,33 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
             optionRow(
               title: "send_artwork".tr(),
               onTap: () async {
-                Navigator.of(context).popAndPushNamed(AppRouter.sendArtworkPage,
+                final payload = await Navigator.of(context).popAndPushNamed(
+                    AppRouter.sendArtworkPage,
                     arguments: SendArtworkPayload(asset, ownerWallet,
-                        await ownerWallet.getOwnedQuantity(asset)));
+                        await ownerWallet.getOwnedQuantity(asset))) as Map?;
+                if (payload == null || !payload["isTezos"]) {
+                  return;
+                }
+
+                if (!mounted) return;
+                final tx = payload['tx'] as TZKTOperation;
+                UIHelper.showMessageAction(
+                  context,
+                  'success'.tr(),
+                  'send_success_des'.tr(),
+                  onAction: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pushNamed(
+                      AppRouter.tezosTXDetailPage,
+                      arguments: {
+                        "current_address": tx.sender?.address,
+                        "tx": tx,
+                      },
+                    );
+                  },
+                  actionButton: 'see_transaction_detail'.tr().toUpperCase(),
+                  closeButton: "close".tr().toUpperCase(),
+                );
               },
             ),
             const SizedBox(
@@ -342,18 +377,34 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
 }
 
 class ArtworkDetailPayload {
-  final List<String> ids;
+  final List<ArtworkIdentity> identities;
   final int currentIndex;
 
-  ArtworkDetailPayload(this.ids, this.currentIndex);
+  ArtworkDetailPayload(this.identities, this.currentIndex);
 
   ArtworkDetailPayload copyWith({
-    List<String>? ids,
+    List<ArtworkIdentity>? ids,
     int? currentIndex,
   }) {
     return ArtworkDetailPayload(
-      ids ?? this.ids,
+      ids ?? this.identities,
       currentIndex ?? this.currentIndex,
     );
   }
 }
+
+@JsonSerializable()
+class ArtworkIdentity {
+  final String id;
+  final String owner;
+
+  ArtworkIdentity(this.id, this.owner);
+
+  factory ArtworkIdentity.fromJson(Map<String, dynamic> json) =>
+      _$ArtworkIdentityFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ArtworkIdentityToJson(this);
+}
+
+
+

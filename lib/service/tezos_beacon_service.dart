@@ -9,6 +9,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/model/connection_supports.dart';
@@ -18,13 +19,14 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_sign_message_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
-import 'package:autonomy_flutter/service/aws_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 
 class TezosBeaconService implements BeaconHandler {
@@ -57,8 +59,18 @@ class TezosBeaconService implements BeaconHandler {
   }
 
   Future addPeer(String link) async {
-    final peer = await _beaconChannel.addPeer(link);
-    _currentPeer = peer;
+    const maxRetries = 3;
+    var retryCount = 0;
+    do {
+      try {
+        final peer = await _beaconChannel.addPeer(link);
+        _currentPeer = peer;
+        retryCount = maxRetries;
+      } catch (_) {
+        retryCount++;
+        await Future.delayed(const Duration(seconds: 1));
+      }
+    } while (retryCount < maxRetries);
   }
 
   Future removePeer(P2PPeer peer) async {
@@ -120,10 +132,7 @@ class TezosBeaconService implements BeaconHandler {
     if (alreadyLinkedAccount != null) {
       _navigationService.hideInfoDialog();
       _navigationService.showErrorDialog(
-          ErrorEvent(
-              null,
-              "already_linked".tr(),
-              "al_you’ve_already".tr(),
+          ErrorEvent(null, "already_linked".tr(), "al_you’ve_already".tr(),
               ErrorItemState.seeAccount), defaultAction: () {
         _navigationService.navigateTo(AppRouter.linkedAccountDetailsPage,
             arguments: alreadyLinkedAccount);
@@ -141,10 +150,11 @@ class TezosBeaconService implements BeaconHandler {
     );
 
     await injector<CloudDatabase>().connectionDao.insertConnection(connection);
+    final metricClient = injector.get<MetricClientService>();
 
-    injector<AWSService>().storeEventWithDeviceData(
+    await metricClient.addEvent(
       "link_tezos_beacon",
-      hashingData: {"address": tezosConnection.address},
+      hashedData: {"address": tezosConnection.address},
     );
 
     _navigationService.hideInfoDialog();
@@ -156,11 +166,13 @@ class TezosBeaconService implements BeaconHandler {
   void onRequestedPermission(Peer peer) {
     log.info("TezosBeaconService: ${peer.toJson()}");
     UIHelper.showInfoDialog(
-        _navigationService.navigatorKey.currentContext!,
-        "link_requested".tr(),
-        "autonomy_has_sent".tr(args: [peer.name]));
-        //"Autonomy has sent a request to ${peer.name} to link to your account."
-         //   " Please open the wallet and authorize the request. ");
+      _navigationService.navigatorKey.currentContext!,
+      "link_requested".tr(),
+      "autonomy_has_sent".tr(args: [peer.name]),
+      isDismissible: true,
+    );
+    //"Autonomy has sent a request to ${peer.name} to link to your account."
+    //   " Please open the wallet and authorize the request. ");
   }
 
   Future<Connection> onPostMessageLinked(
@@ -192,5 +204,17 @@ class TezosBeaconService implements BeaconHandler {
 
     if (existingConnections.isEmpty) return null;
     return existingConnections.first;
+  }
+
+  Future cleanup() async {
+    final connections = await _cloudDB.connectionDao
+        .getConnectionsByType(ConnectionType.beaconP2PPeer.rawValue);
+
+    final ids = connections
+        .map((e) => e.beaconConnectConnection?.peer.id)
+        .whereNotNull()
+        .toList();
+
+    _beaconChannel.cleanup(ids);
   }
 }

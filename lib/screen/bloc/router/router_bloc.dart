@@ -10,7 +10,6 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
-import 'package:autonomy_flutter/service/aws_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
@@ -33,21 +32,11 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
     return personas.isNotEmpty || connections.isNotEmpty;
   }
 
-  RouterBloc(
-      this._configurationService,
-      this._backupService,
-      this._accountService,
-      this._cloudDB,
-      this._iapService,
-      this._auditService)
+  RouterBloc(this._configurationService, this._backupService,
+      this._accountService, this._cloudDB, this._iapService, this._auditService)
       : super(RouterState(onboardingStep: OnboardingStep.undefined)) {
-    final migrationUtil = MigrationUtil(
-        _configurationService,
-        _cloudDB,
-        _accountService,
-        _iapService,
-        _auditService,
-        _backupService);
+    final migrationUtil = MigrationUtil(_configurationService, _cloudDB,
+        _accountService, _iapService, _auditService, _backupService);
 
     on<DefineViewRoutingEvent>((event, emit) async {
       if (state.onboardingStep != OnboardingStep.undefined) return;
@@ -69,8 +58,6 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
       if (await hasAccounts()) {
         final backupVersion = await _backupService
             .fetchBackupVersion(await _accountService.getDefaultAccount());
-
-        await injector<AWSService>().initServices();
 
         if (backupVersion.isNotEmpty) {
           log.info("[DefineViewRoutingEvent] have backup version");

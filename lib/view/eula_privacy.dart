@@ -6,40 +6,52 @@
 //
 
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:url_launcher/url_launcher.dart';
 
-Widget eulaAndPrivacyView(BuildContext context) {
+Widget privacyView(BuildContext context) {
   final theme = Theme.of(context);
   final customLinkStyle = theme.textTheme.linkStyle.copyWith(
     fontSize: 12,
     fontWeight: FontWeight.w500,
   );
+  final Uri uri = Uri.parse(AUTONOMY_CLIENT_GITHUB_LINK);
 
-  return Row(
-    mainAxisAlignment: MainAxisAlignment.center,
+  return Column(
     children: [
-      GestureDetector(
-        child: Text(
-          "eula".tr(),
-          style: customLinkStyle,
-        ),
-        onTap: () => Navigator.of(context)
-            .pushNamed(AppRouter.githubDocPage, arguments: {
-          "prefix": "/bitmark-inc/autonomy.io/main/apps/docs/",
-          "document": "eula.md",
-          "title": ""
-        }),
+      Column(
+        children: [
+          Text(
+            "believe_transparency".tr(),
+            style: theme.textTheme.atlasBlackBold14,
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                "autonomy_is_".tr(),
+                style: theme.textTheme.atlasBlackNormal14,
+              ),
+              GestureDetector(
+                child: Text(
+                  "open_source".tr(),
+                  style: customLinkStyle.copyWith(fontSize: 14),
+                ),
+                onTap: () =>
+                    launchUrl(uri, mode: LaunchMode.externalApplication),
+              ),
+            ],
+          ),
+        ],
       ),
-      Text(
-        "_and".tr(),
-        style: theme.textTheme.headline5,
-      ),
+      const SizedBox(height: 16),
       GestureDetector(
         child: Text(
           "privacy_policy".tr(),
-          style: customLinkStyle,
+          style: customLinkStyle.copyWith(fontSize: 14),
         ),
         onTap: () => Navigator.of(context)
             .pushNamed(AppRouter.githubDocPage, arguments: {

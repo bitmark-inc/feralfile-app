@@ -38,7 +38,6 @@ class FeedArtworkDetailsPage extends StatefulWidget {
 
 class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
   late ScrollController _scrollController;
-  bool _showArtwortReportProblemContainer = true;
   late FeedEvent feedEvent;
   AssetToken? token;
   HashSet<String> _accountNumberHash = HashSet.identity();
@@ -46,41 +45,19 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
   @override
   void initState() {
     _scrollController = ScrollController();
-    _scrollController.addListener(_scrollListener);
     fetchIdentities();
     super.initState();
   }
 
-  _scrollListener() {
-    /*
-    So we see it like that when we are at the top of the page. 
-    When we start scrolling down it disappears and we see it again attached at the bottom of the page.
-    And if we scroll all the way up again, we would display again it attached down the screen
-    https://www.figma.com/file/Ze71GH9ZmZlJwtPjeHYZpc?node-id=51:5175#159199971
-    */
-    if (_scrollController.offset > 80) {
-      setState(() {
-        _showArtwortReportProblemContainer = false;
-      });
-    } else {
-      setState(() {
-        _showArtwortReportProblemContainer = true;
-      });
-    }
-
-    if (_scrollController.position.pixels + 100 >=
-        _scrollController.position.maxScrollExtent) {
-      setState(() {
-        _showArtwortReportProblemContainer = true;
-      });
-    }
-  }
-
   void fetchIdentities() {
     final state = context.read<FeedBloc>().state;
+    final currentIndex = state.viewingIndex ?? 0;
+    final currentToken = state.feedTokens?[currentIndex];
+    final currentFeedEvent = state.feedEvents?[currentIndex];
+
     final neededIdentities = [
-      state.viewingToken?.artistName ?? '',
-      state.viewingFeedEvent?.recipient ?? ''
+      currentToken?.artistName ?? '',
+      currentFeedEvent?.recipient ?? ''
     ];
     neededIdentities.removeWhere((element) => element == '');
 
@@ -103,12 +80,15 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
             onBack: () => Navigator.of(context).pop(),
           ),
           body: BlocBuilder<FeedBloc, FeedState>(builder: (context, state) {
-            if (state.viewingFeedEvent == null || state.viewingToken == null) {
+            final currentIndex = state.viewingIndex ?? 0;
+            final currentToken = state.feedTokens?[currentIndex];
+            final currentFeedEvent = state.feedEvents?[currentIndex];
+            if (currentFeedEvent == null || currentToken == null) {
               return const SizedBox();
             }
 
-            feedEvent = state.viewingFeedEvent!;
-            token = state.viewingToken!;
+            feedEvent = currentFeedEvent;
+            token = currentToken;
 
             final identityState = context.watch<IdentityBloc>().state;
             final followingName = feedEvent.recipient
@@ -124,7 +104,7 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    padding: ResponsiveLayout.getPadding,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -169,47 +149,63 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
                           token!.title,
                           style: theme.textTheme.headline1,
                         ),
-                        if (artistName != null && artistName.isNotEmpty) ...[
-                          const SizedBox(height: 4),
-                          RichText(
-                              text: TextSpan(
-                                  style: theme.textTheme.headline3,
-                                  children: [
-                                TextSpan(text: "by".tr(args: [""])),
-                                if (token!.artistID != null) ...[
-                                  TextSpan(
-                                    text: artistName,
-                                    recognizer: TapGestureRecognizer()
-                                      ..onTap = () => Navigator.of(context)
-                                          .pushNamed(AppRouter.galleryPage,
-                                              arguments: GalleryPagePayload(
-                                                address: token!.artistID!,
-                                                artistName: artistName,
-                                                artistURL: token!.artistURL,
-                                              )),
-                                    style: makeLinkStyle(
-                                        theme.textTheme.headline3!),
-                                  ),
-                                ] else ...[
-                                  TextSpan(
-                                    text: artistName,
-                                  )
-                                ],
-                                if (editionSubTitle.isNotEmpty) ...[
-                                  TextSpan(text: editionSubTitle)
-                                ]
-                              ]))
-                        ],
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.baseline,
+                          textBaseline: TextBaseline.alphabetic,
+                          children: [
+                            if (artistName?.isNotEmpty == true) ...[
+                              Expanded(
+                                  child: RichText(
+                                      text: TextSpan(
+                                          style: theme.textTheme.headline3,
+                                          children: [
+                                    TextSpan(text: "by".tr(args: [""])),
+                                    if (token!.artistID != null) ...[
+                                      TextSpan(
+                                        text: artistName,
+                                        recognizer: TapGestureRecognizer()
+                                          ..onTap = () => Navigator.of(context)
+                                              .pushNamed(AppRouter.galleryPage,
+                                                  arguments: GalleryPagePayload(
+                                                    address: token!.artistID!,
+                                                    artistName: artistName!,
+                                                    artistURL: token!.artistURL,
+                                                  )),
+                                        style: makeLinkStyle(
+                                            theme.textTheme.headline3!),
+                                      ),
+                                    ] else ...[
+                                      TextSpan(
+                                        text: artistName,
+                                      )
+                                    ],
+                                  ]))),
+                            ] else ...[
+                              const Expanded(child: SizedBox())
+                            ],
+                            const SizedBox(
+                              width: 8,
+                            ),
+                            Text(
+                              editionSubTitle,
+                              style: theme.textTheme.headline5?.copyWith(
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
                         const SizedBox(height: 15),
                       ],
                     ),
                   ),
                   GestureDetector(
-                    child: tokenThumbnailWidget(context, token!),
+                    child: TokenThumbnailWidget(
+                      token: token!,
+                    ),
                     onTap: () => Navigator.of(context).pop(),
                   ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    padding: ResponsiveLayout.getPadding,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -248,8 +244,10 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
           bottom: 0,
           left: 0,
           right: 0,
-          child: reportNFTProblemContainer(
-              token, _showArtwortReportProblemContainer),
+          child: ReportButton(
+            token: token,
+            scrollController: _scrollController,
+          ),
         ),
       ],
     );

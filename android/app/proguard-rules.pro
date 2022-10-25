@@ -39,3 +39,6 @@ com.bitmark.autonomy_flutter.**
 -keepnames class <1>$$serializer { # -keepnames suffices; class is kept when serializer() is kept.
     static <1>$$serializer INSTANCE;
 }
+
+# https://help.branch.io/developers-hub/docs/android-basic-integration
+-keep class com.google.android.gms.** { *; }

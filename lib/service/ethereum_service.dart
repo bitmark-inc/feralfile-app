@@ -89,7 +89,7 @@ class EthereumServiceImpl extends EthereumService {
   @override
   Future<String> signPersonalMessage(
       WalletStorage wallet, Uint8List message) async {
-    return await wallet.signPersonalMessage(message);
+    return await wallet.ethSignPersonalMessage(message);
   }
 
   @override
@@ -102,9 +102,9 @@ class EthereumServiceImpl extends EthereumService {
     gasLimit ??=
         (await estimateFee(wallet, to, EtherAmount.inWei(value), data)) ~/
             gasPrice.getInWei;
-    final chainId = Environment.appTestnetConfig ? 4 : 1;
+    final chainId = Environment.web3ChainId;
 
-    final signedTransaction = await wallet.signTransaction(
+    final signedTransaction = await wallet.ethSignTransaction(
         nonce: nonce,
         gasPrice: gasPrice.getInWei,
         gasLimit: gasLimit,
@@ -160,7 +160,13 @@ class EthereumServiceImpl extends EthereumService {
     final transaction = Transaction.callContract(
       contract: contract,
       function: _transferFrom(),
-      parameters: [from, to, [BigInt.parse(tokenId, radix: 10)], [quantity], "0x0"],
+      parameters: [
+        from,
+        to,
+        [BigInt.parse(tokenId, radix: 10)],
+        [BigInt.from(quantity)],
+        Uint8List.fromList([0]),
+      ],
       from: from,
       gasPrice: gasPrice,
       nonce: nonce,

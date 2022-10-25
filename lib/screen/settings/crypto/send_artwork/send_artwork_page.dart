@@ -20,6 +20,7 @@ import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/models/asset_token.dart';
@@ -37,8 +38,13 @@ class SendArtworkPage extends StatefulWidget {
 
 class _SendArtworkPageState extends State<SendArtworkPage> {
   final TextEditingController _addressController = TextEditingController();
-  final TextEditingController _quantityController = TextEditingController(text: "1");
+  final TextEditingController _quantityController =
+      TextEditingController(text: "1");
   final feeWidgetKey = GlobalKey();
+  final _reviewButtonVisible =
+      ValueNotifier(!KeyboardVisibilityController().isVisible);
+
+  final _focusNode = FocusNode();
 
   @override
   void initState() {
@@ -52,6 +58,16 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
           .read<IdentityBloc>()
           .add(GetIdentityEvent([widget.payload.asset.artistName!]));
     }
+
+    KeyboardVisibilityController().onChange.listen((keyboardVisible) async {
+      await Future.delayed(Duration(milliseconds: keyboardVisible ? 0 : 150),
+          () => _reviewButtonVisible.value = !keyboardVisible);
+    });
+    _focusNode.addListener(() {
+      if (!_focusNode.hasFocus) {
+        _onQuantityUpdated();
+      }
+    });
   }
 
   int get _quantity {
@@ -66,6 +82,11 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
   }
 
   void _onQuantityUpdated() {
+    if (_quantity < 1) {
+      _quantityController.text = "1";
+    } else if (_quantity > widget.payload.ownedQuantity) {
+      _quantityController.text = "${widget.payload.ownedQuantity}";
+    }
     context.read<SendArtworkBloc>().add(QuantityUpdateEvent(
         quantity: _quantity, maxQuantity: widget.payload.ownedQuantity));
   }
@@ -84,6 +105,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
           constraints: const BoxConstraints(minWidth: 30, maxWidth: 90),
           child: IntrinsicWidth(
             child: TextField(
+              focusNode: _focusNode,
               controller: _quantityController,
               decoration: const InputDecoration(border: InputBorder.none),
               textAlign: TextAlign.center,
@@ -94,7 +116,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                   color: hasError ? const Color(0xFFa1200a) : Colors.black),
               textAlignVertical: TextAlignVertical.center,
               keyboardType: TextInputType.number,
-              onChanged: (_) => _onQuantityUpdated(),
+              onSubmitted: (value) => _onQuantityUpdated(),
             ),
           ),
         ),
@@ -106,6 +128,14 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
             )),
       ],
     );
+  }
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    _quantityController.dispose();
+    _addressController.dispose();
+    super.dispose();
   }
 
   @override
@@ -134,11 +164,12 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
             }
           }, builder: (context, state) {
             return Container(
-              margin: EdgeInsets.only(
-                  top: 16.0,
-                  left: 16.0,
-                  right: 16.0,
-                  bottom: MediaQuery.of(context).padding.bottom),
+              margin: const EdgeInsets.only(
+                top: 16.0,
+                left: 16.0,
+                right: 16.0,
+                bottom: 40.0,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -197,7 +228,10 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                                 ),
                               ],
                             ),
-                            const Divider(height: 32),
+                            const SizedBox(
+                              height: 8.0,
+                            ),
+                            const Divider(),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
@@ -205,9 +239,12 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                                   "quantity_to_send".tr(),
                                   style: theme.textTheme.headline4,
                                 ),
-                                _quantityInputField(
-                                    maxQuantity: maxQuantity,
-                                    hasError: state.isQuantityError),
+                                Transform.translate(
+                                  offset: const Offset(16, 0),
+                                  child: _quantityInputField(
+                                      maxQuantity: maxQuantity,
+                                      hasError: state.isQuantityError),
+                                )
                               ],
                             ),
                           ] else ...[
@@ -225,11 +262,12 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                               ],
                             ),
                           ],
-                          const SizedBox(height: 32.0),
+                          const SizedBox(height: 16.0),
                           AuTextField(
                             title: "to".tr(),
                             placeholder: "paste_or_scan_address".tr(),
                             controller: _addressController,
+                            isError: state.isAddressError,
                             suffix: IconButton(
                               icon: SvgPicture.asset(state.isScanQR
                                   ? "assets/images/iconQr.svg"
@@ -257,55 +295,82 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                                 }
                               },
                             ),
-                            onChanged: (value) {
-                              context.read<SendArtworkBloc>().add(
-                                  AddressChangedEvent(_addressController.text));
+                            onSubmit: (value) {
+                              if (value != state.address) {
+                                context.read<SendArtworkBloc>().add(
+                                      AddressChangedEvent(
+                                        _addressController.text,
+                                      ),
+                                    );
+                              }
                             },
                           ),
                           const SizedBox(height: 8.0),
+                          Visibility(
+                            visible: state.isEstimating,
+                            child: Row(
+                              children: [
+                                Text("gas_fee".tr(),
+                                    style: theme.textTheme.headline5),
+                                Text("calculating...".tr(),
+                                    style: theme.textTheme.headline5),
+                              ],
+                            ),
+                          ),
                           Text(_gasFee(state),
                               key: feeWidgetKey,
                               style: theme.textTheme.headline5),
-                          const SizedBox(height: 24.0),
+                          const SizedBox(height: 16.0),
                         ],
                       ),
                     ),
                   ),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: AuFilledButton(
-                          text: "review".tr(),
-                          onPress: state.isValid
-                              ? () async {
-                                  final txHash = await Navigator.of(context)
-                                      .pushNamed(
-                                          AppRouter.sendArtworkReviewPage,
-                                          arguments: SendArtworkReviewPayload(
-                                              asset,
-                                              widget.payload.wallet,
-                                              state.address!,
-                                              state.fee!,
-                                              state.exchangeRate,
-                                              widget.payload.ownedQuantity,
-                                              state.quantity));
-                                  if (txHash != null && txHash is String) {
-                                    if (!mounted) return;
-                                    Navigator.of(context).pop();
-                                  }
-                                }
-                              : null,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16.0),
+                  ValueListenableBuilder<bool>(
+                      valueListenable: _reviewButtonVisible,
+                      builder: (context, visible, child) {
+                        return Visibility(
+                          visible: visible,
+                          child: _reviewButton(asset, state),
+                        );
+                      }),
                 ],
               ),
             );
           }),
         ],
       ),
+    );
+  }
+
+  Widget _reviewButton(AssetToken asset, SendArtworkState state) {
+    return Row(
+      children: [
+        Expanded(
+          child: AuFilledButton(
+            text: "review".tr(),
+            onPress: state.isValid
+                ? () async {
+                    final payload = await Navigator.of(context).pushNamed(
+                        AppRouter.sendArtworkReviewPage,
+                        arguments: SendArtworkReviewPayload(
+                            asset,
+                            widget.payload.wallet,
+                            state.address!,
+                            state.fee!,
+                            state.exchangeRate,
+                            _quantity,
+                            state.quantity)) as Map?;
+                    if (payload != null &&
+                        payload["hash"] != null &&
+                        payload["hash"] is String) {
+                      if (!mounted) return;
+                      Navigator.of(context).pop(payload);
+                    }
+                  }
+                : null,
+          ),
+        ),
+      ],
     );
   }
 
