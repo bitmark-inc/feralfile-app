@@ -5,19 +5,21 @@
 //  Created by Ho Hien on 23/08/2022.
 //
 
+import WalletConnectPairing
 import WalletConnectSign
 import WalletConnectUtils
+import JSONRPC
 
 class WalletConnectService {
     
     static var shared = WalletConnectService()
     
     @MainActor
-    func respondOnApprove(request: Request, response: JSONRPCResponse<AnyCodable>) {
+    func respondOnApprove(request: Request, response: AnyCodable) {
         logger.info("[WALLET] Respond on Sign")
         Task {
             do {
-                try await Sign.instance.respond(topic: request.topic, response: .response(response))
+                try await Sign.instance.respond(topic: request.topic, requestId: request.id ,response: .response(response))
             } catch {
                 logger.info("[DAPP] Respond Error: \(error.localizedDescription)")
             }
@@ -31,10 +33,8 @@ class WalletConnectService {
             do {
                 try await Sign.instance.respond(
                     topic: request.topic,
-                    response: .error(JSONRPCErrorResponse(
-                        id: request.id,
-                        error: JSONRPCErrorResponse.Error(code: 0, message: ""))
-                                    )
+                    requestId: request.id,
+                    response: .error(JSONRPCError(code: 0, message: "", data: nil))
                 )
             } catch {
                 logger.info("[DAPP] Respond Error: \(error.localizedDescription)")
@@ -47,7 +47,7 @@ class WalletConnectService {
         logger.info("[WALLET] Pairing to: \(uri)")
         Task {
             do {
-                try await Sign.instance.pair(uri: uri)
+                try await Sign.instance.pair(uri: WalletConnectURI(string: uri)!)
             } catch {
                 logger.info("[DAPP] Pairing connect error: \(error)")
             }
@@ -75,6 +75,19 @@ class WalletConnectService {
             } catch {
                 logger.info("[DAPP] Reject Session error: \(error)")
             }
+        }
+    }
+
+    @MainActor
+    func getPairings() -> [Pairing] {
+        logger.info("[WALLET] getPairings")
+        return Pair.instance.getPairings()
+    }
+
+    @MainActor
+    func deletePairing(topic: String) throws {
+        Task {
+            try await Pair.instance.disconnect(topic: topic)
         }
     }
 }

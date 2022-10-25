@@ -11,7 +11,13 @@ abstract class PersonaEvent {}
 
 class CreatePersonaEvent extends PersonaEvent {}
 
-class GetListPersonaEvent extends PersonaEvent {}
+class GetListPersonaEvent extends PersonaEvent {
+  final bool useDidKeyForAlias;
+
+  GetListPersonaEvent({
+    this.useDidKeyForAlias = false,
+  });
+}
 
 class ImportPersonaEvent extends PersonaEvent {
   final String words;

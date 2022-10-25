@@ -11,7 +11,6 @@ import android.app.KeyguardManager
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
-import android.util.Log
 import androidx.annotation.NonNull
 import androidx.biometric.BiometricManager
 import io.flutter.embedding.android.FlutterFragmentActivity
@@ -43,6 +42,7 @@ class MainActivity : FlutterFragmentActivity() {
 
         BackupDartPlugin().createChannels(flutterEngine, applicationContext)
         TezosBeaconDartPlugin().createChannels(flutterEngine)
+        flutterEngine.plugins.add(Wc2ConnectPlugin(this.application))
     }
 
     private fun getExistingUuids(): String {

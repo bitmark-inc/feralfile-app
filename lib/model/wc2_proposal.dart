@@ -5,6 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:wallet_connect/wallet_connect.dart';
+
 class Wc2Proposal {
   Wc2Proposal({
     required this.proposer,
@@ -43,6 +45,15 @@ class AppMetadata {
         "url": url,
         "description": description,
       };
+
+  WCPeerMeta toWCPeerMeta() {
+    return WCPeerMeta(
+      name: name,
+      url: url,
+      description: description,
+      icons: icons,
+    );
+  }
 }
 
 class Wc2Namespace {

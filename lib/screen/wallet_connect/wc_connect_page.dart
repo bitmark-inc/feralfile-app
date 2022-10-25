@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/model/wc2_proposal.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/screen/connection/persona_connections_page.dart';
@@ -18,6 +19,7 @@ import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
+import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
@@ -47,10 +49,14 @@ class WCConnectPage extends StatefulWidget {
 
   final WCConnectPageArgs? wcConnectArgs;
   final BeaconRequest? beaconRequest;
+  final Wc2Proposal? wc2Proposal;
 
-  const WCConnectPage(
-      {Key? key, required this.wcConnectArgs, required this.beaconRequest})
-      : super(key: key);
+  const WCConnectPage({
+    Key? key,
+    required this.wcConnectArgs,
+    required this.beaconRequest,
+    required this.wc2Proposal,
+  }) : super(key: key);
 
   @override
   State<WCConnectPage> createState() => _WCConnectPageState();
@@ -67,7 +73,7 @@ class _WCConnectPageState extends State<WCConnectPage>
   @override
   void initState() {
     super.initState();
-    context.read<PersonaBloc>().add(GetListPersonaEvent());
+    context.read<PersonaBloc>().add(GetListPersonaEvent(useDidKeyForAlias: true));
     injector<NavigationService>().setIsWCConnectInShow(true);
   }
 
@@ -81,7 +87,7 @@ class _WCConnectPageState extends State<WCConnectPage>
   @override
   void didPopNext() {
     super.didPopNext();
-    context.read<PersonaBloc>().add(GetListPersonaEvent());
+    context.read<PersonaBloc>().add(GetListPersonaEvent(useDidKeyForAlias: true));
   }
 
   @override
@@ -91,10 +97,21 @@ class _WCConnectPageState extends State<WCConnectPage>
     injector<NavigationService>().setIsWCConnectInShow(false);
   }
 
-  void _reject() {
+  void _reject() async {
+    final wc2Proposal = widget.wc2Proposal;
     final wcConnectArgs = widget.wcConnectArgs;
     final beaconRequest = widget.beaconRequest;
-    if (wcConnectArgs != null) {
+
+    if (wc2Proposal != null) {
+      try {
+        await injector<Wc2Service>().rejectSession(
+          wc2Proposal.id,
+          reason: "User reject",
+        );
+      } catch (e) {
+        log.info("[WCConnectPage] Reject WC2 Proposal $e");
+      }
+    } else if (wcConnectArgs != null) {
       injector<WalletConnectService>().rejectSession(wcConnectArgs.peerMeta);
     }
 
@@ -103,19 +120,29 @@ class _WCConnectPageState extends State<WCConnectPage>
           .permissionResponse(null, beaconRequest.id, null, null);
     }
 
+    if (!mounted) return;
     Navigator.of(context).pop();
   }
 
   Future _approve() async {
     if (selectedPersona == null) return;
 
+    final wc2Proposal = widget.wc2Proposal;
     final wcConnectArgs = widget.wcConnectArgs;
     final beaconRequest = widget.beaconRequest;
 
     late String payloadAddress;
     late CryptoType payloadType;
 
-    if (wcConnectArgs != null) {
+    if (wc2Proposal != null) {
+      final accountDid = await selectedPersona!.wallet().getAccountDID();
+      await injector<Wc2Service>().approveSession(
+        wc2Proposal.id,
+        accountDid: accountDid.substring("did:key:".length),
+      );
+      if (!mounted) return;
+      Navigator.of(context).pop();
+    } else if (wcConnectArgs != null) {
       final address = await injector<EthereumService>()
           .getETHAddress(selectedPersona!.wallet());
 
@@ -213,6 +240,13 @@ class _WCConnectPageState extends State<WCConnectPage>
               .tr(args: [widget.wcConnectArgs!.peerMeta.name]).toUpperCase(),
           frontWidget: SvgPicture.asset("assets/images/checkbox_icon.svg"),
         );
+      } else if (widget.wc2Proposal?.proposer.name != null) {
+        showInfoNotification(
+          const Key("connected"),
+          "connected_to"
+              .tr(args: [widget.wc2Proposal!.proposer.name]).toUpperCase(),
+          frontWidget: SvgPicture.asset("assets/images/checkbox_icon.svg"),
+        );
       }
     }
   }
@@ -298,7 +332,16 @@ class _WCConnectPageState extends State<WCConnectPage>
   }
 
   Widget _appInfo() {
-    if (widget.wcConnectArgs != null) {
+    final wc2Proposer = widget.wc2Proposal?.proposer;
+    if (wc2Proposer != null) {
+      final peer = WCPeerMeta(
+        name: wc2Proposer.name,
+        url: wc2Proposer.url,
+        description: wc2Proposer.description,
+        icons: wc2Proposer.icons,
+      );
+      return _wcAppInfo(peer);
+    } else if (widget.wcConnectArgs != null) {
       return _wcAppInfo(widget.wcConnectArgs!.peerMeta);
     }
 
@@ -418,13 +461,38 @@ class _WCConnectPageState extends State<WCConnectPage>
                             title: Row(
                               children: [
                                 SizedBox(
-                                    width: 24,
-                                    height: 24,
-                                    child: Image.asset(
-                                        "assets/images/moma_logo.png")),
+                                    width: 30,
+                                    height: 32,
+                                  child: Stack(
+                                    children: [
+                                      Align(
+                                        alignment: Alignment.centerLeft,
+                                        child: SizedBox(
+                                          width: 24,
+                                          height: 24,
+                                          child: Image.asset(
+                                              "assets/images/moma_logo.png"),
+                                        ),
+                                      ),
+                                      if (persona.isDefault()) ...[
+                                        Align(
+                                          alignment: Alignment.topRight,
+                                          child: SvgPicture.asset(
+                                            "assets/images/icon_verified_bordered.svg",
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                ),
                                 const SizedBox(width: 16.0),
-                                Text(persona.name,
-                                    style: theme.textTheme.headline4)
+                                Expanded(
+                                  child: Text(
+                                    persona.name,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: theme.textTheme.headline4,
+                                  ),
+                                ),
                               ],
                             ),
                             contentPadding: EdgeInsets.zero,

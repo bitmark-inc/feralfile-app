@@ -768,8 +768,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "0bd6ff556a664d3f8881f1a570f4d2028b7101dd"
-      resolved-ref: "0bd6ff556a664d3f8881f1a570f4d2028b7101dd"
+      ref: "622b2717fd2d0fa70a06e62817b845e2361b100e"
+      resolved-ref: "622b2717fd2d0fa70a06e62817b845e2361b100e"
       url: "https://github.com/autonomy-system/flutter_to_airplay.git"
     source: git
     version: "2.0.2"
@@ -1616,21 +1616,21 @@ packages:
       name: sentry
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "6.14.0"
+    version: "6.13.1"
   sentry_dio:
     dependency: "direct main"
     description:
       name: sentry_dio
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "6.14.0"
+    version: "6.13.1"
   sentry_flutter:
     dependency: "direct main"
     description:
       name: sentry_flutter
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "6.14.0"
+    version: "6.13.1"
   shake:
     dependency: "direct main"
     description:

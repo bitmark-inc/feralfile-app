@@ -5,11 +5,16 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:typed_data';
+
+import 'package:autonomy_flutter/model/wc2_request.dart';
+import 'package:autonomy_flutter/util/wc2_ext.dart';
 import 'package:collection/collection.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:web3dart/credentials.dart';
 import 'package:tezart/src/crypto/crypto.dart' as crypto;
+import 'package:web3dart/crypto.dart';
 
 extension StringExtension on WalletStorage {
   Future<String> getETHEip55Address() async {
@@ -48,5 +53,42 @@ extension WalletStorageExtension on WalletStorage {
   Future getTezosAddress() async {
     final publicKey = await getTezosPublicKey();
     return crypto.addressFromPublicKey(publicKey);
+  }
+
+  Future<String> signMessage({
+    required String chain,
+    required String message,
+  }) async {
+    final msg = Uint8List.fromList(message.codeUnits);
+    switch (chain.caip2Namespace) {
+      case "eip155":
+        return await ethSignPersonalMessage(msg);
+      case "tezos":
+        return bytesToHex(await tezosSignMessage(msg));
+    }
+    throw Exception("Unsupported chain $chain");
+  }
+
+  Future<Wc2Chain?> signPermissionRequest({
+    required String chain,
+    required String message,
+  }) async {
+    final signature = await signMessage(chain: chain, message: message);
+    switch (chain.caip2Namespace) {
+      case "eip155":
+        return Wc2Chain(
+          chain: chain,
+          address: await getETHEip55Address(),
+          signature: signature,
+        );
+      case "tezos":
+        return Wc2Chain(
+          chain: chain,
+          address: await getTezosAddress(),
+          publicKey: await getTezosPublicKey(),
+          signature: signature,
+        );
+    }
+    return null;
   }
 }

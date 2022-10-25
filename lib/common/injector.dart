@@ -243,7 +243,14 @@ Future<void> setup() async {
       ));
 
   injector.registerLazySingleton<DeeplinkService>(() => DeeplinkServiceImpl(
-      injector(), injector(), injector(), injector(), injector(), injector()));
+        injector(),
+        injector(),
+        injector(),
+        injector(),
+        injector(),
+        injector(),
+        injector(),
+      ));
 
   injector.registerLazySingleton<PendingTokenService>(() => PendingTokenService(
         injector(),

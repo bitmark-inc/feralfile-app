@@ -59,12 +59,18 @@ class _Wc2ConnectPageState extends State<Wc2ConnectPage>
   }
 
   void _reject() {
-    injector<Wc2Service>().rejectSession(widget.proposal.id);
+    injector<Wc2Service>().rejectSession(
+      widget.proposal.id,
+      reason: "User reject",
+    );
     Navigator.of(context).pop();
   }
 
   Future _approve() async {
-    await injector<Wc2Service>().approveSession(widget.proposal.id);
+    await injector<Wc2Service>().approveSession(
+      widget.proposal.id,
+      accountDid: "",
+    );
 
     if (!mounted) return;
     Navigator.of(context).pop();

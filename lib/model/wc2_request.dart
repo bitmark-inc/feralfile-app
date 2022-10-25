@@ -5,6 +5,14 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:autonomy_flutter/model/wc2_proposal.dart';
+import 'package:json_annotation/json_annotation.dart';
+
+part 'wc2_request.g.dart';
+
 class Wc2Request {
   Wc2Request({
     required this.id,
@@ -12,6 +20,7 @@ class Wc2Request {
     required this.topic,
     required this.params,
     required this.chainId,
+    required this.proposer,
   });
 
   int id;
@@ -19,13 +28,17 @@ class Wc2Request {
   String topic;
   Map<String, dynamic> params;
   String chainId;
+  AppMetadata? proposer;
 
   factory Wc2Request.fromJson(Map<String, dynamic> json) => Wc2Request(
         id: json["id"],
         method: json["method"],
         topic: json["topic"],
-        params: json["params"],
+        params: Platform.isIOS ? json["params"] : jsonDecode(json["params"]),
         chainId: json["chainId"],
+        proposer: json["proposer"] != null
+            ? AppMetadata.fromJson(json["proposer"])
+            : null,
       );
 
   Map<String, dynamic> toJson() => {
@@ -146,4 +159,69 @@ class Wc2SendRequestParams {
     "address": address,
     "transactions": transactions,
   };
+}
+
+@JsonSerializable()
+class Wc2PermissionResponse {
+  final String signature;
+  final List<Wc2PermissionResult> permissionResults;
+
+  Wc2PermissionResponse({
+    required this.signature,
+    required this.permissionResults,
+  });
+
+  factory Wc2PermissionResponse.fromJson(Map<String, dynamic> json) =>
+      _$Wc2PermissionResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$Wc2PermissionResponseToJson(this);
+}
+
+@JsonSerializable()
+class Wc2PermissionResult {
+  final String type;
+  final Wc2ChainResult result;
+
+  Wc2PermissionResult({
+    required this.type,
+    required this.result,
+  });
+
+  factory Wc2PermissionResult.fromJson(Map<String, dynamic> json) =>
+      _$Wc2PermissionResultFromJson(json);
+
+  Map<String, dynamic> toJson() => _$Wc2PermissionResultToJson(this);
+}
+
+@JsonSerializable()
+class Wc2ChainResult {
+  final List<Wc2Chain> chains;
+
+  Wc2ChainResult({
+    required this.chains,
+  });
+
+  factory Wc2ChainResult.fromJson(Map<String, dynamic> json) =>
+      _$Wc2ChainResultFromJson(json);
+
+  Map<String, dynamic> toJson() => _$Wc2ChainResultToJson(this);
+}
+
+@JsonSerializable()
+class Wc2Chain {
+  final String chain;
+  final String address;
+  final String? publicKey;
+  final String signature;
+
+  Wc2Chain({
+    required this.chain,
+    required this.address,
+    this.publicKey,
+    required this.signature});
+
+  factory Wc2Chain.fromJson(Map<String, dynamic> json) =>
+      _$Wc2ChainFromJson(json);
+
+  Map<String, dynamic> toJson() => _$Wc2ChainToJson(this);
 }

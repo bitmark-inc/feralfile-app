@@ -27,6 +27,7 @@ import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/migration/migration_util.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
+import 'package:autonomy_flutter/util/wc2_ext.dart';
 import 'package:fast_base58/fast_base58.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 // ignore: depend_on_referenced_packages
@@ -43,6 +44,13 @@ import 'wallet_connect_dapp_service/wc_connected_session.dart';
 abstract class AccountService {
   Future<WalletStorage> getDefaultAccount();
   Future<WalletStorage?> getCurrentDefaultAccount();
+
+  Future<WalletStorage?> getAccount(String did);
+
+  Future<WalletStorage> getAccountByAddress({
+    required String chain,
+    required String address,
+  });
 
   Future androidBackupKeys();
 
@@ -179,6 +187,40 @@ class AccountServiceImpl extends AccountService {
     final defaultWallet = personas.first.wallet();
 
     return await defaultWallet.isWalletCreated() ? defaultWallet : null;
+  }
+
+  @override
+  Future<WalletStorage?> getAccount(String did) async {
+    var personas = await _cloudDB.personaDao.getDefaultPersonas();
+    for (Persona p in personas) {
+      if ((await p.wallet().getAccountDID()) == did) {
+        return p.wallet();
+      }
+    }
+    return null;
+  }
+
+  @override
+  Future<WalletStorage> getAccountByAddress({
+    required String chain,
+    required String address,
+  }) async {
+    var personas = await _cloudDB.personaDao.getDefaultPersonas();
+    for (Persona p in personas) {
+      switch (chain.caip2Namespace) {
+        case "eip155":
+          if ((await p.wallet().getETHEip55Address()) == address) {
+            return p.wallet();
+          }
+          break;
+        case "tezos":
+          if ((await p.wallet().getTezosAddress()) == address) {
+            return p.wallet();
+          }
+          break;
+      }
+    }
+    throw Exception("Wallet not found. Chain $chain, address: $address");
   }
 
   Future<WalletStorage> _getDefaultAccount() async {

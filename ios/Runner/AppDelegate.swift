@@ -14,8 +14,10 @@ import KukaiCoreSwift
 import Combine
 import flutter_downloader
 import Sentry
+import WalletConnectPairing
 import WalletConnectSign
 import WalletConnectRelay
+import WalletConnectNetworking
 import Starscream
 
 @UIApplicationMain
@@ -139,12 +141,14 @@ import Starscream
         
 
         let metadata = AppMetadata(
-            name: "Example Wallet",
-            description: "wallet description",
-            url: "example.wallet",
-            icons: ["https://avatars.githubusercontent.com/u/37784886"])
-        Sign.configure(metadata: metadata, projectId: "8ba9ee138960775e5231b70cc5ef1c3a", socketFactory: SocketFactory())
-        try? Sign.instance.cleanup()
+            name: "Autonomy",
+            description: "Autonomy Wallet",
+            url: "https://autonomy.io",
+            icons: [])
+        
+        Networking.configure(projectId: "aaa75d81295bff1e638171384166c7e7", socketFactory: SocketFactory())
+        Pair.configure(metadata: metadata)
+        // try? Sign.instance.cleanup()
 
         let wc2Channel = FlutterMethodChannel(name: "wallet_connect_v2",
                                               binaryMessenger: controller.binaryMessenger)
@@ -162,6 +166,10 @@ import Starscream
                 WC2ChannelHandler.shared.respondOnApprove(call: call, result: result)
             case "respondOnReject":
                 WC2ChannelHandler.shared.respondOnReject(call: call, result: result)
+            case "getPairings":
+                WC2ChannelHandler.shared.getPairings(call: call, result: result)
+            case "deletePairing":
+                WC2ChannelHandler.shared.deletePairing(call: call, result: result)
             default:
                 result(FlutterMethodNotImplemented)
             }

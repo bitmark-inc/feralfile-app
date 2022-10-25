@@ -7,6 +7,7 @@
 
 import 'dart:convert';
 
+import 'package:autonomy_flutter/model/wc2_pairing.dart';
 import 'package:autonomy_flutter/model/wc2_proposal.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -34,9 +35,15 @@ class Wc2Channel {
     });
   }
 
-  Future reject(String proposalId) async {
+  Future reject(
+    String proposalId, {
+    String? reason,
+  }) async {
     await _channel.invokeMethod('reject', {
       'proposal_id': proposalId,
+      if (reason?.isNotEmpty == true) ...{
+        'reason': reason,
+      }
     });
   }
 
@@ -47,8 +54,28 @@ class Wc2Channel {
     });
   }
 
-  Future respondOnReject(String topic) async {
-    await _channel.invokeMethod('respondOnReject', {"topic": topic});
+  Future respondOnReject({
+    required String topic,
+    String? reason,
+  }) async {
+    await _channel.invokeMethod('respondOnReject', {
+      "topic": topic,
+      if (reason?.isNotEmpty == true) ...{
+        "reason": reason,
+      }
+    });
+  }
+
+  Future<List<Wc2Pairing>> getPairings() async {
+    final jsonString = await _channel.invokeMethod("getPairings");
+    final json = jsonDecode(jsonString) as List<dynamic>;
+    return json.map((e) => Wc2Pairing.fromJson(e)).toList();
+  }
+
+  Future deletePairing({required String topic}) async {
+    await _channel.invokeMethod("deletePairing", {
+      "topic": topic,
+    });
   }
 
   void listen() async {

@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/model/p2p_peer.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
+import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import "package:collection/collection.dart";
 import 'package:wallet_connect/wallet_connect.dart';
@@ -20,11 +21,23 @@ part 'connections_state.dart';
 class ConnectionsBloc extends AuBloc<ConnectionsEvent, ConnectionsState> {
   final CloudDatabase _cloudDB;
   final WalletConnectService _walletConnectService;
+  final Wc2Service _wc2Service;
   final TezosBeaconService _tezosBeaconService;
 
+  Future<List<ConnectionItem>> _getWc2Connections() async {
+    final wc2Pairings = await _wc2Service.getPairings();
+    return wc2Pairings.map((e) {
+      final conn = Connection.fromWc2Pairing(e);
+      return ConnectionItem(representative: conn, connections: [conn]);
+    }).toList();
+  }
+
   ConnectionsBloc(
-      this._cloudDB, this._walletConnectService, this._tezosBeaconService)
-      : super(ConnectionsState()) {
+    this._cloudDB,
+    this._walletConnectService,
+    this._wc2Service,
+    this._tezosBeaconService,
+  ) : super(ConnectionsState()) {
     on<GetETHConnectionsEvent>((event, emit) async {
       emit(state.resetConnectionItems());
       final personaUUID = event.personUUID;
@@ -52,6 +65,9 @@ class ConnectionsBloc extends AuBloc<ConnectionsEvent, ConnectionsState> {
               ConnectionItem(representative: conns.first, connections: conns))
           .toList();
 
+      final wc2Connections = await _getWc2Connections();
+      connectionItems.addAll(wc2Connections);
+
       emit(state.copyWith(connectionItems: connectionItems));
     });
 
@@ -77,6 +93,9 @@ class ConnectionsBloc extends AuBloc<ConnectionsEvent, ConnectionsState> {
               ConnectionItem(representative: conns.first, connections: conns))
           .toList();
 
+      final wc2Connections = await _getWc2Connections();
+      connectionItems.addAll(wc2Connections);
+
       emit(state.copyWith(connectionItems: connectionItems));
     });
 
@@ -86,6 +105,11 @@ class ConnectionsBloc extends AuBloc<ConnectionsEvent, ConnectionsState> {
 
       for (var connection in event.connectionItem.connections) {
         await _cloudDB.connectionDao.deleteConnection(connection);
+
+        if (connection.connectionType ==
+            ConnectionType.walletConnect2.rawValue) {
+          await _wc2Service.deletePairing(topic: connection.data);
+        }
 
         final wcPeer = connection.wcConnection?.sessionStore.peerMeta;
         if (wcPeer != null) wcPeers.add(wcPeer);

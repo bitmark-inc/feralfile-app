@@ -405,8 +405,10 @@ class AppRouter {
                           ),
                         ],
                         child: WCConnectPage(
-                            wcConnectArgs: argument as WCConnectPageArgs,
-                            beaconRequest: null)));
+                          wcConnectArgs: argument as WCConnectPageArgs,
+                          beaconRequest: null,
+                          wc2Proposal: null,
+                        )));
 
           case BeaconRequest:
             return CupertinoPageRoute(
@@ -424,8 +426,10 @@ class AppRouter {
                     ),
                   ],
                   child: WCConnectPage(
-                      wcConnectArgs: null,
-                      beaconRequest: argument as BeaconRequest?)),
+                    wcConnectArgs: null,
+                    beaconRequest: argument as BeaconRequest?,
+                    wc2Proposal: null,
+                  )),
             );
 
           default:
@@ -508,6 +512,7 @@ class AppRouter {
                         injector<CloudDatabase>(),
                         injector(),
                         injector(),
+                        injector(),
                       ))
                     ],
                     child: PersonaConnectionsPage(
@@ -520,6 +525,7 @@ class AppRouter {
             builder: (context) => BlocProvider(
                 create: (_) => ConnectionsBloc(
                       injector<CloudDatabase>(),
+                      injector(),
                       injector(),
                       injector(),
                     ),
@@ -906,8 +912,13 @@ class AppRouter {
                     ),
                   ),
                 ],
-                child: Wc2ConnectPage(
-                    proposal: settings.arguments as Wc2Proposal)));
+            child: WCConnectPage(
+              wcConnectArgs: null,
+              beaconRequest: null,
+              wc2Proposal: settings.arguments as Wc2Proposal,
+            ),
+          ),
+        );
 
       case wc2PermissionPage:
         return CupertinoPageRoute(

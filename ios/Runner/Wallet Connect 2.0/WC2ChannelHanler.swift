@@ -31,7 +31,7 @@ class WC2ChannelHandler: NSObject {
         
         WalletConnectService.shared.respondOnApprove(
             request: request,
-            response: JSONRPCResponse<AnyCodable>(id: request.id, result: AnyCodable(response)))
+            response: AnyCodable(response))
         
         result([
             "error": 0
@@ -43,7 +43,7 @@ class WC2ChannelHandler: NSObject {
         let args: NSDictionary = call.arguments as! NSDictionary
         let requestId: Int64 = args["topic"] as! Int64
         
-        guard let request = pendingRequests.last(where: { $0.id == requestId }) else {
+        guard let request = pendingRequests.last(where: { $0.id.right == requestId }) else {
             result(AppError.aborted)
             return
         }
@@ -53,6 +53,35 @@ class WC2ChannelHandler: NSObject {
         result([
             "error": 0
         ])
+    }
+
+    @MainActor
+    func getPairings(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        do {
+            let pairings = WalletConnectService.shared.getPairings();
+            let wc2Pairings = pairings.map { p in
+                Wc2Pairing(topic: p.topic, expiryDate: p.expiryDate.absoluteTime, peer: p.peer)
+            }
+            let data = try JSONEncoder().encode(wc2Pairings)
+            let json = String(data: data, encoding: .utf8)
+            result(json)
+        } catch {
+            result(ErrorHandler.flutterError(error: error, "getPairings error"))
+        }
+    }
+
+    @MainActor
+    func deletePairing(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        do {
+            let args: NSDictionary = call.arguments as! NSDictionary
+            let topic: String = args["topic"] as! String
+            try WalletConnectService.shared.deletePairing(topic: topic)
+            result([
+                "error": 0
+            ])
+        } catch {
+            result(ErrorHandler.flutterError(error: error, "deletePairing error"))
+        }
     }
 
     @MainActor
@@ -104,7 +133,7 @@ class WC2ChannelHandler: NSObject {
         let args: NSDictionary = call.arguments as! NSDictionary
         let proposalId: String = args["proposal_id"] as! String
         
-        WalletConnectService.shared.reject(proposalId: proposalId, reason: .disapprovedChains)
+        WalletConnectService.shared.reject(proposalId: proposalId, reason: .userRejectedChains)
         
         result([
             "error": 0
@@ -173,4 +202,16 @@ extension WC2ChannelHandler: FlutterStreamHandler {
         return nil
     }
 
+}
+
+struct Wc2Pairing : Codable {
+    var topic: String
+    var expiryDate: Double
+    var peer: AppMetadata?
+    
+    init(topic: String, expiryDate: Double, peer: AppMetadata?) {
+        self.topic = topic
+        self.expiryDate = expiryDate
+        self.peer = peer
+    }
 }

@@ -53,7 +53,11 @@ class PersonaBloc extends AuBloc<PersonaEvent, PersonaState> {
       for (var persona in personas) {
         if (persona.name.isEmpty) {
           final address = await persona.wallet().getETHEip55Address();
-          namedPersonas.add(persona.copyWith(name: address.mask(4)));
+          namedPersonas.add(persona.copyWith(
+            name: event.useDidKeyForAlias
+                ? await persona.wallet().getAccountDID()
+                : address.mask(4),
+          ));
         } else {
           namedPersonas.add(persona);
         }

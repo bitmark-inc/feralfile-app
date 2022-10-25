@@ -17,10 +17,12 @@ import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
+import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/util/wallet_connect_ext.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_branch_sdk/flutter_branch_sdk.dart';
@@ -36,6 +38,7 @@ abstract class DeeplinkService {
 class DeeplinkServiceImpl extends DeeplinkService {
   final ConfigurationService _configurationService;
   final WalletConnectService _walletConnectService;
+  final Wc2Service _walletConnect2Service;
   final TezosBeaconService _tezosBeaconService;
   final FeralFileService _feralFileService;
   final NavigationService _navigationService;
@@ -46,6 +49,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
   DeeplinkServiceImpl(
     this._configurationService,
     this._walletConnectService,
+    this._walletConnect2Service,
     this._tezosBeaconService,
     this._feralFileService,
     this._navigationService,
@@ -126,7 +130,11 @@ class DeeplinkServiceImpl extends DeeplinkService {
     if (callingWCPrefix != null) {
       final wcUri = link.substring(callingWCPrefix.length);
       final decodedWcUri = Uri.decodeFull(wcUri);
-      _walletConnectService.connect(decodedWcUri);
+      if (decodedWcUri.isAutonomyConnectUri) {
+        _walletConnect2Service.connect(decodedWcUri);
+      } else {
+        _walletConnectService.connect(decodedWcUri);
+      }
       return true;
     }
 
@@ -141,7 +149,11 @@ class DeeplinkServiceImpl extends DeeplinkService {
     final callingWCDeeplinkPrefix = wcDeeplinkPrefixes
         .firstWhereOrNull((prefix) => link.startsWith(prefix));
     if (callingWCDeeplinkPrefix != null) {
-      _walletConnectService.connect(link);
+      if (link.isAutonomyConnectUri) {
+         _walletConnect2Service.connect(link);
+      } else {
+        _walletConnectService.connect(link);
+      }
       return true;
     }
 
