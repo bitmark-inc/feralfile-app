@@ -30,7 +30,7 @@ Widget accountWithConnectionItem(
           SizedBox(
               width: 24,
               height: 24,
-              child: Image.asset("assets/images/autonomyIcon.png")),
+              child: Image.asset("assets/images/moma_logo.png")),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
@@ -235,7 +235,7 @@ Widget accountLogo(Account account) {
     return SizedBox(
         width: 24,
         height: 24,
-        child: Image.asset("assets/images/autonomyIcon.png"));
+        child: Image.asset("assets/images/moma_logo.png"));
   }
 
   final connection = account.connections?.first;
