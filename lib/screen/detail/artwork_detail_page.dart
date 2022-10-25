@@ -10,6 +10,7 @@ import 'dart:convert';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/sent_artwork.dart';
 import 'package:autonomy_flutter/model/tzkt_operation.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
@@ -37,7 +38,9 @@ import 'package:metric_client/metric_client.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/provenance.dart';
 import 'package:nft_collection/nft_collection.dart';
+
 part 'artwork_detail_page.g.dart';
+
 class ArtworkDetailPage extends StatefulWidget {
   final ArtworkDetailPayload payload;
 
@@ -70,7 +73,8 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     await metricClient.addEvent(
       "view_artwork_detail",
       data: {
-        "id": jsonEncode(widget.payload.identities[widget.payload.currentIndex]),
+        "id":
+            jsonEncode(widget.payload.identities[widget.payload.currentIndex]),
       },
     );
   }
@@ -339,6 +343,19 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
 
                 if (!mounted) return;
                 final tx = payload['tx'] as TZKTOperation;
+                final isSentAll = payload['isSentAll'] as bool;
+                if (isSentAll) {
+                  injector<ConfigurationService>().updateRecentlySentToken([
+                    SentArtwork(asset.id, asset.ownerAddress, DateTime.now())
+                  ]);
+                }
+                if (isHidden) {
+                  await injector<ConfigurationService>()
+                      .updateTempStorageHiddenTokenIDs([asset.id], false);
+                  injector<SettingsDataService>().backup();
+                }
+
+                if (!mounted) return;
                 UIHelper.showMessageAction(
                   context,
                   'success'.tr(),
@@ -350,11 +367,17 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                       arguments: {
                         "current_address": tx.sender?.address,
                         "tx": tx,
+                        "isBackHome": isSentAll,
                       },
                     );
                   },
                   actionButton: 'see_transaction_detail'.tr().toUpperCase(),
                   closeButton: "close".tr().toUpperCase(),
+                  onClose: () => isSentAll
+                      ? Navigator.of(context).popAndPushNamed(
+                          AppRouter.homePage,
+                        )
+                      : null,
                 );
               },
             ),
@@ -405,6 +428,3 @@ class ArtworkIdentity {
 
   Map<String, dynamic> toJson() => _$ArtworkIdentityToJson(this);
 }
-
-
-

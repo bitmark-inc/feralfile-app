@@ -9,7 +9,9 @@ import 'dart:convert';
 
 import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/model/network.dart';
+import 'package:autonomy_flutter/model/sent_artwork.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -18,76 +20,141 @@ import 'package:wallet_connect/wallet_connect.dart';
 
 abstract class ConfigurationService {
   Future<void> setIAPReceipt(String? value);
+
   String? getIAPReceipt();
+
   Future<void> setIAPJWT(JWT? value);
+
   JWT? getIAPJWT();
+
   Future<void> setTVConnectData(WCPeerMeta peerMeta, int id);
+
   Future<void> deleteTVConnectData();
+
   WCPeerMeta? getTVConnectPeerMeta();
+
   int? getTVConnectID();
+
   Future<void> setWCSessions(List<WCSessionStore> value);
+
   List<WCSessionStore> getWCSessions();
+
   Future<void> setDevicePasscodeEnabled(bool value);
+
   bool isDevicePasscodeEnabled();
+
   Future<void> setNotificationEnabled(bool value);
+
   bool? isNotificationEnabled();
+
   Future<void> setAnalyticEnabled(bool value);
+
   bool isAnalyticsEnabled();
+
   Future<void> setDoneOnboarding(bool value);
+
   bool isDoneOnboarding();
+
   Future<void> setPendingSettings(bool value);
+
   bool hasPendingSettings();
+
   bool shouldShowSubscriptionHint();
+
   Future setShouldShowSubscriptionHint(bool value);
+
   DateTime? getLastTimeAskForSubscription();
+
   Future setLastTimeAskForSubscription(DateTime date);
+
   Future<void> setDoneOnboardingOnce(bool value);
+
   bool isDoneOnboardingOnce();
+
   Future<void> setFullscreenIntroEnable(bool value);
+
   bool isFullscreenIntroEnabled();
+
   Future<void> setHidePersonaInGallery(
       List<String> personaUUIDs, bool isEnabled,
       {bool override = false});
+
   List<String> getPersonaUUIDsHiddenInGallery();
+
   bool isPersonaHiddenInGallery(String value);
+
   Future<void> setHideLinkedAccountInGallery(
       List<String> address, bool isEnabled,
       {bool override = false});
+
   List<String> getLinkedAccountsHiddenInGallery();
+
   bool isLinkedAccountHiddenInGallery(String value);
+
   List<String> getTempStorageHiddenTokenIDs({Network? network});
+
   Future updateTempStorageHiddenTokenIDs(List<String> tokenIDs, bool isAdd,
       {Network? network, bool override = false});
+
+  List<SentArtwork> getRecentlySentToken();
+
+  Future updateRecentlySentToken(List<SentArtwork> sentArtwork,
+      {bool override = false});
+
   Future<void> setWCDappSession(String? value);
+
   String? getWCDappSession();
+
   Future<void> setWCDappAccounts(List<String>? value);
+
   List<String>? getWCDappAccounts();
+
   DateTime? getLatestRefreshTokens();
+
   Future<bool> setLatestRefreshTokens(DateTime? value);
+
   Future<void> setReadReleaseNotesInVersion(String version);
+
   String? getReadReleaseNotesVersion();
+
   String? getPreviousBuildNumber();
+
   Future<void> setPreviousBuildNumber(String value);
+
   List<String> getFinishedSurveys();
+
   Future<void> setFinishedSurvey(List<String> surveyNames);
+
   Future<void> setImmediateInfoViewEnabled(bool value);
+
   bool isImmediateInfoViewEnabled();
+
   Future<String> getAccountHMACSecret();
+
   bool isFinishedFeedOnBoarding();
+
   Future<void> setFinishedFeedOnBoarding(bool value);
+
   String? lastRemindReviewDate();
+
   Future<void> setLastRemindReviewDate(String? value);
+
   int? countOpenApp();
+
   Future<void> setCountOpenApp(int? value);
 
   // Feed
   Future<void> setLastTimeOpenFeed(int timestamp);
+
   int getLastTimeOpenFeed();
 
   // ----- App Setting -----
   bool isDemoArtworksMode();
+
   Future<bool> toggleDemoArtworksMode();
+
   bool showTokenDebugInfo();
+
   Future setShowTokenDebugInfo(bool show);
 
   // Do at once
@@ -95,10 +162,12 @@ abstract class ConfigurationService {
   /// to determine a hash value of the current addresses where
   /// the app checked for Tezos artworks
   int? sentTezosArtworkMetricValue();
+
   Future setSentTezosArtworkMetric(int hashedAddresses);
 
   // Reload
   Future<void> reload();
+
   Future<void> removeAll();
 }
 
@@ -123,6 +192,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
       'hidden_linked_accounts_in_gallery';
   static const String KEY_TEMP_STORAGE_HIDDEN_TOKEN_IDS =
       'temp_storage_hidden_token_ids_mainnet';
+  static const String KEY_RECENTLY_SENT_TOKEN =
+      'recently_sent_token_mainnet';
   static const String KEY_READ_RELEASE_NOTES_VERSION =
       'read_release_notes_version';
   static const String KEY_FINISHED_SURVEYS = "finished_surveys";
@@ -190,6 +261,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
       return JWT.fromJson(json);
     }
   }
+
   @override
   Future<void> setTVConnectData(WCPeerMeta peerMeta, int id) async {
     final json = jsonEncode(peerMeta);
@@ -202,8 +274,9 @@ class ConfigurationServiceImpl implements ConfigurationService {
     await _preferences.remove(TV_CONNECT_PEER_META);
     await _preferences.remove(TV_CONNECT_ID);
   }
+
   @override
-  WCPeerMeta? getTVConnectPeerMeta(){
+  WCPeerMeta? getTVConnectPeerMeta() {
     final data = _preferences.getString(TV_CONNECT_PEER_META);
     if (data == null) {
       return null;
@@ -214,7 +287,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  int? getTVConnectID(){
+  int? getTVConnectID() {
     return _preferences.getInt(TV_CONNECT_ID);
   }
 
@@ -405,6 +478,42 @@ class ConfigurationServiceImpl implements ConfigurationService {
       await _preferences.setStringList(
           key, tempHiddenTokenIDs.toSet().toList());
     }
+  }
+
+  @override
+  List<SentArtwork> getRecentlySentToken() {
+    final sentTokensString =
+        _preferences.getStringList(KEY_RECENTLY_SENT_TOKEN) ?? [];
+    return sentTokensString
+        .map((e) => SentArtwork.fromJson(jsonDecode(e)))
+        .toList();
+  }
+
+  @override
+  Future updateRecentlySentToken(List<SentArtwork> sentArtwork,
+      {bool override = false}) async {
+    const key = KEY_RECENTLY_SENT_TOKEN;
+    _removeExpiredSentToken(DateTime.now().subtract(SENT_ARTWORK_HIDE_TIME));
+    final updateTokens =
+        sentArtwork.map((e) => jsonEncode(e.toJson())).toList();
+
+    if (override) {
+      await _preferences.setStringList(key, updateTokens);
+    } else {
+      var sentTokenIDs = _preferences.getStringList(key) ?? [];
+
+      sentTokenIDs.addAll(updateTokens);
+      await _preferences.setStringList(
+          key, sentTokenIDs.toSet().toList());
+    }
+  }
+
+  Future _removeExpiredSentToken(DateTime timestampExpired) async {
+    List<SentArtwork> token = getRecentlySentToken();
+    token
+        .removeWhere((element) => element.timestamp.isBefore(timestampExpired));
+    await _preferences.setStringList(KEY_RECENTLY_SENT_TOKEN,
+        token.map((e) => jsonEncode(e.toJson())).toList());
   }
 
   @override
@@ -615,6 +724,4 @@ class ConfigurationServiceImpl implements ConfigurationService {
     }
     await _preferences.setInt(COUNT_OPEN_APP, value);
   }
-
-
 }

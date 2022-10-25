@@ -199,7 +199,7 @@ class UIHelper {
             children: [
               Expanded(
                 child: TextButton(
-                  onPressed: () => onClose ?? Navigator.pop(context),
+                  onPressed: () => onClose?.call() ?? Navigator.pop(context),
                   child: Text(
                     closeButton ?? 'cancel'.tr(),
                     style: theme.primaryTextTheme.button,

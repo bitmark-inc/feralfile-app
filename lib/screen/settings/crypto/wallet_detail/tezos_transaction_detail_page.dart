@@ -6,6 +6,7 @@
 //
 
 import 'package:autonomy_flutter/model/tzkt_operation.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -21,11 +22,13 @@ const _nanoTEZFactor = 1000000;
 class TezosTXDetailPage extends StatelessWidget {
   final String currentAddress;
   final TZKTTransactionInterface tx;
+  final bool isBackHome;
 
   const TezosTXDetailPage({
     Key? key,
     required this.currentAddress,
     required this.tx,
+    this.isBackHome = false,
   }) : super(key: key);
 
   factory TezosTXDetailPage.fromPayload({
@@ -33,7 +36,7 @@ class TezosTXDetailPage extends StatelessWidget {
     required Map<String, dynamic> payload,
   }) =>
       TezosTXDetailPage(
-          currentAddress: payload["current_address"], tx: payload["tx"]);
+          currentAddress: payload["current_address"], tx: payload["tx"], isBackHome: payload["isBackHome"] ?? false,);
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +45,9 @@ class TezosTXDetailPage extends StatelessWidget {
     double safeAreaBottom = MediaQuery.of(context).padding.bottom;
 
     return Scaffold(
-      appBar: getBackAppBar(context, onBack: () => Navigator.of(context).pop()),
+      appBar: getBackAppBar(context, onBack: () => isBackHome
+          ? Navigator.of(context).pushNamed(AppRouter.homePage)
+          : Navigator.of(context).pop()),
       body: Container(
         margin: EdgeInsets.only(
             top: 16.0, left: 16.0, right: 16.0, bottom: safeAreaBottom + 6),

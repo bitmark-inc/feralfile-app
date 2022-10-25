@@ -35,6 +35,8 @@ const DEEP_LINKS = [
   "https://link.autonomy.io",
 ];
 
+const Duration SENT_ARTWORK_HIDE_TIME = Duration(minutes: 10);
+
 Future<bool> isAppCenterBuild() async {
   final PackageInfo info = await PackageInfo.fromPlatform();
   return info.packageName.contains("inhouse");

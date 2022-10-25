@@ -313,6 +313,7 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                                       "isTezos": true,
                                       "hash": opHash,
                                       "tx": tx,
+                                      "isSentAll": widget.payload.quantity >= widget.payload.ownedTokens
                                     };
                                     Navigator.of(context).pop(payload);
                                   }

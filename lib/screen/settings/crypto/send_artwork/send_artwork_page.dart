@@ -358,7 +358,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                             state.address!,
                             state.fee!,
                             state.exchangeRate,
-                            _quantity,
+                            widget.payload.ownedQuantity ,
                             state.quantity)) as Map?;
                     if (payload != null &&
                         payload["hash"] != null &&
