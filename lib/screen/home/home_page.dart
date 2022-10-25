@@ -59,6 +59,8 @@ import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:wallet_connect/models/wc_peer_meta.dart';
 
+import '../../util/constants.dart';
+
 class HomePage extends StatefulWidget {
   static const tag = "home";
 
@@ -213,14 +215,13 @@ class _HomePageState extends State<HomePage>
           injector<ConfigurationService>().getTempStorageHiddenTokenIDs();
       final sentArtworks =
           injector<ConfigurationService>().getRecentlySentToken();
-      final expiredTime = DateTime.now()
-          .subtract(ConfigurationServiceImpl.SENT_ARTWORK_HIDE_TIME);
+      final expiredTime = DateTime.now().subtract(SENT_ARTWORK_HIDE_TIME);
       return NftCollectionGrid(
         state: state.state,
         tokens: state.tokens
             .where((element) =>
                 !hiddenTokens.contains(element.id) &&
-                !sentArtworks.any((e) => e.isHide(
+                !sentArtworks.any((e) => e.isHidden(
                     tokenID: element.id,
                     address: element.ownerAddress,
                     timestamp: expiredTime)))

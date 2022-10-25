@@ -21,7 +21,7 @@ class SentArtwork {
 
   Map<String, dynamic> toJson() => _$SentArtworkToJson(this);
 
-  bool isHide(
+  bool isHidden(
       {required String tokenID,
       required String address,
       required DateTime timestamp}) {

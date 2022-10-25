@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/model/sent_artwork.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -99,8 +100,6 @@ abstract class ConfigurationService {
 
   Future updateRecentlySentToken(List<SentArtwork> sentArtwork,
       {bool override = false});
-
-  Future removeExpiredSentToken(DateTime timestampExpired);
 
   Future<void> setWCDappSession(String? value);
 
@@ -197,7 +196,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
       'recently_sent_token_mainnet';
   static const String KEY_READ_RELEASE_NOTES_VERSION =
       'read_release_notes_version';
-  static const Duration SENT_ARTWORK_HIDE_TIME = Duration(minutes: 10);
   static const String KEY_FINISHED_SURVEYS = "finished_surveys";
   static const String KEY_IMMEDIATE_INFOVIEW = 'immediate_infoview';
   static const String ACCOUNT_HMAC_SECRET = "account_hmac_secret";
@@ -495,7 +493,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
   Future updateRecentlySentToken(List<SentArtwork> sentArtwork,
       {bool override = false}) async {
     const key = KEY_RECENTLY_SENT_TOKEN;
-    removeExpiredSentToken(DateTime.now().subtract(SENT_ARTWORK_HIDE_TIME));
+    _removeExpiredSentToken(DateTime.now().subtract(SENT_ARTWORK_HIDE_TIME));
     final updateTokens =
         sentArtwork.map((e) => jsonEncode(e.toJson())).toList();
 
@@ -510,8 +508,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
     }
   }
 
-  @override
-  Future removeExpiredSentToken(DateTime timestampExpired) async {
+  Future _removeExpiredSentToken(DateTime timestampExpired) async {
     List<SentArtwork> token = getRecentlySentToken();
     token
         .removeWhere((element) => element.timestamp.isBefore(timestampExpired));
