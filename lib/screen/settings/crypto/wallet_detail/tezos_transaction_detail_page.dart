@@ -36,7 +36,7 @@ class TezosTXDetailPage extends StatelessWidget {
     required Map<String, dynamic> payload,
   }) =>
       TezosTXDetailPage(
-          currentAddress: payload["current_address"], tx: payload["tx"], isBackHome: payload["isBackHome"],);
+          currentAddress: payload["current_address"], tx: payload["tx"], isBackHome: payload["isBackHome"] ?? false,);
 
   @override
   Widget build(BuildContext context) {
