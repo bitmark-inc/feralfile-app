@@ -35,6 +35,7 @@ jobs:
           echo "FLUTTER_VERSION_CODE=${{ github.event.inputs.build-number }}" >> $GITHUB_ENV
           echo "BRANCH_KEY=${{ secrets.BRANCH_KEY }}" >> $GITHUB_ENV
           echo "BRANCH_KEY_TEST=${{ secrets.BRANCH_KEY_TEST }}" >> $GITHUB_ENV
+          ${{ github.event.inputs.testnet }} && echo APPCENTER_APP_ID=support-zzd0-28/Autonomy-Android-Test || echo APPCENTER_APP_ID=support-zzd0-28/Autonomy-Android-1 >> $GITHUB_ENV
 
       - uses: webfactory/ssh-agent@v0.5.4
         with:
@@ -92,7 +93,7 @@ jobs:
         with:
           token: ${{ secrets.APPCENTER_API_TOKEN }}
           path: build/app/outputs/flutter-apk/app-inhouse-release.apk
-          app: ${{ !github.event.inputs.testnet && 'support-zzd0-28/Autonomy-Android-1' || 'support-zzd0-28/Autonomy-Android-Test' }}
+          app: ${{ env.APPCENTER_APP_ID }}
           silent: false
           group: 'Collaborators,Bitmark Internal Testers'
           release_notes: ${{ github.event.inputs.message }}

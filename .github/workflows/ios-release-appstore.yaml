@@ -128,6 +128,6 @@ jobs:
           echo $JSON_FILE >> key.json
           bundle exec fastlane install_plugins
           echo "APP_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
-          bundle exec fastlane ciappcenter env:${{ github.event.inputs.testnet}} && 'test' || 'main'
+          bundle exec fastlane ciappcenter env:${{ github.event.inputs.testnet }} && 'test' || 'main'
 
         working-directory: ios
