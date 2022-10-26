@@ -135,6 +135,11 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE          
           flutter pub run test auto-test/tests/customer_support_test.dart
+      - name: Run Flutter Driver tests for Suite "Check artwork metadata compare with indexer. Other cases check with blockchain we need implement in Unit test"
+        if: success() || failure()
+        run: |
+          cd $GITHUB_WORKSPACE          
+          flutter pub run test auto-test/tests/check_artwork_info_test.dart
       - name: Run Flutter Driver tests for Suite "Check deposit testcases"
         if: success() || failure()
         run: |
