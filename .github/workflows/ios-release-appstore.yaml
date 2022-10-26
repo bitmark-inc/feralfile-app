@@ -66,10 +66,10 @@ jobs:
           echo CONNECT_WEBSOCKET_MAINNET_URL=${{ secrets.CONNECT_WEBSOCKET_MAINNET_URL }} >> .env
           echo CONNECT_WEBSOCKET_TESTNET_URL=${{ secrets.CONNECT_WEBSOCKET_TESTNET_URL }} >> .env
 
-          ${{ github.event.inputs.testnet }} && echo AUTONOMY_AUTH_URL=${{ secrets.AUTONOMY_AUTH_DEV_URL }} || echo AUTONOMY_AUTH_URL=${{ secrets.AUTONOMY_AUTH_STAGING_URL }} >> .env
-          ${{ github.event.inputs.testnet }} && echo CUSTOMER_SUPPORT_URL=${{ secrets.CUSTOMER_SUPPORT_URL }} || echo AUTONOMY_AUTH_URL=${{ secrets.CUSTOMER_SUPPORT_STAGING_URL }} >> .env
-          ${{ github.event.inputs.testnet }} && echo RENDERING_REPORT_URL=${{ secrets.RENDERING_REPORT_DEV_URL }} || echo AUTONOMY_AUTH_URL=${{ secrets.RENDERING_REPORT_STAGING_URL }} >> .env
-          ${{ github.event.inputs.testnet }} && echo FEED_URL=${{ secrets.FEED_DEV_URL }} || echo AUTONOMY_AUTH_URL=${{ secrets.FEED_STAGING_URL }} >> .env
+          ${{ github.event.inputs.testnet == 'true' }} && echo AUTONOMY_AUTH_URL=${{ secrets.AUTONOMY_AUTH_DEV_URL }} || echo AUTONOMY_AUTH_URL=${{ secrets.AUTONOMY_AUTH_STAGING_URL }} >> .env
+          ${{ github.event.inputs.testnet == 'true' }} && echo CUSTOMER_SUPPORT_URL=${{ secrets.CUSTOMER_SUPPORT_URL }} || echo AUTONOMY_AUTH_URL=${{ secrets.CUSTOMER_SUPPORT_STAGING_URL }} >> .env
+          ${{ github.event.inputs.testnet == 'true' }} && echo RENDERING_REPORT_URL=${{ secrets.RENDERING_REPORT_DEV_URL }} || echo AUTONOMY_AUTH_URL=${{ secrets.RENDERING_REPORT_STAGING_URL }} >> .env
+          ${{ github.event.inputs.testnet == 'true' }} && echo FEED_URL=${{ secrets.FEED_DEV_URL }} || echo AUTONOMY_AUTH_URL=${{ secrets.FEED_STAGING_URL }} >> .env
           echo CURRENCY_EXCHANGE_URL=${{ secrets.CURRENCY_EXCHANGE_URL }} >> .env
           echo AUTONOMY_PUBDOC_URL=${{ secrets.AUTONOMY_PUBDOC_URL }} >> .env
           echo AUTONOMY_IPFS_PREFIX=${{ secrets.AUTONOMY_IPFS_PREFIX_DEV }} >> .env
@@ -128,6 +128,6 @@ jobs:
           echo $JSON_FILE >> key.json
           bundle exec fastlane install_plugins
           echo "APP_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
-          bundle exec fastlane ciappcenter env:${{ github.event.inputs.testnet }} && 'test' || 'main'
+          bundle exec fastlane ciappcenter env:${{ github.event.inputs.testnet == 'true' }} && 'test' || 'main'
 
         working-directory: ios
