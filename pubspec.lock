@@ -234,13 +234,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.1"
-  cli_util:
-    dependency: transitive
-    description:
-      name: cli_util
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.3.5"
   clock:
     dependency: transitive
     description:
@@ -633,6 +626,15 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.1.1"
+  flutter_inline_webview_macos:
+    dependency: transitive
+    description:
+      path: "."
+      ref: "1.0.0"
+      resolved-ref: "1890b61932da34fbf05f3615395af62df9224a5c"
+      url: "https://github.com/autonomy-system/flutter_inline_webview_macos"
+    source: git
+    version: "0.0.4"
   flutter_keyboard_visibility:
     dependency: "direct main"
     description:
@@ -654,13 +656,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.0"
-  flutter_launcher_icons:
-    dependency: "direct dev"
-    description:
-      name: flutter_launcher_icons
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.10.0"
   flutter_link_previewer:
     dependency: transitive
     description:
@@ -1188,8 +1183,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: d20ddc0fc33ad43209a0b4708c532817a0563226
-      resolved-ref: d20ddc0fc33ad43209a0b4708c532817a0563226
+      ref: "452f8f71cb79b117304342d123c08b0a7cb5b35a"
+      resolved-ref: "452f8f71cb79b117304342d123c08b0a7cb5b35a"
       url: "https://github.com/autonomy-system/nft-rendering.git"
     source: git
     version: "1.0.9"
@@ -2063,6 +2058,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.3.5"
+  video_player_macos:
+    dependency: transitive
+    description:
+      name: video_player_macos
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.6"
   video_player_platform_interface:
     dependency: transitive
     description:
