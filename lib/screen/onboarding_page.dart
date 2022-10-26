@@ -196,11 +196,11 @@ class _OnboardingPageState extends State<OnboardingPage> {
                   ),
                 )
               : const SizedBox(),
-          SafeArea(
-            child: Center(
-                child: Container(
-                    margin: const EdgeInsets.fromLTRB(0, 0, 0, 0),
-                    child: _logo())),
+          Center(
+            child: Container(
+              margin: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+              child: _logo(),
+            ),
           ),
           Container(
             margin: edgeInsets,
@@ -280,8 +280,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
         future: isAppCenterBuild(),
         builder: (context, snapshot) {
           return Image.asset(snapshot.data == true
-              ? "assets/images/penrose_onboarding_appcenter.png"
-              : "assets/images/penrose_onboarding.png");
+              ? "assets/images/moma_logo.png"
+              : "assets/images/moma_logo.png");
         });
   }
 }

@@ -169,11 +169,10 @@ class _WCConnectPageState extends State<WCConnectPage>
     }
 
     final payload = PersonaConnectionsPayload(
-      personaUUID: selectedPersona!.uuid,
-      address: payloadAddress,
-      type: payloadType,
-      personaName: selectedPersona!.name
-    );
+        personaUUID: selectedPersona!.uuid,
+        address: payloadAddress,
+        type: payloadType,
+        personaName: selectedPersona!.name);
 
     if (!mounted) return;
     if (memoryValues.scopedPersona != null) {
@@ -399,7 +398,7 @@ class _WCConnectPageState extends State<WCConnectPage>
                                     width: 24,
                                     height: 24,
                                     child: Image.asset(
-                                        "assets/images/autonomyIcon.png")),
+                                        "assets/images/moma_logo.png")),
                                 const SizedBox(width: 16.0),
                                 Text(persona.name,
                                     style: theme.textTheme.headline4)

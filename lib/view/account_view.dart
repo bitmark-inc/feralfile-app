@@ -14,7 +14,6 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -31,7 +30,7 @@ Widget accountWithConnectionItem(
           SizedBox(
               width: 24,
               height: 24,
-              child: Image.asset("assets/images/autonomyIcon.png")),
+              child: Image.asset("assets/images/moma_logo.png")),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
@@ -240,7 +239,7 @@ Widget accountLogo(BuildContext context, Account account) {
         children: [
           Align(
             alignment: Alignment.centerLeft,
-              child: Image.asset("assets/images/autonomyIcon.png")),
+              child: Image.asset("assets/images/moma_logo.png")),
           Align(
             alignment: Alignment.topRight,
             child: account.persona?.defaultAccount == 1 && context.widget.toString().contains("AccountsView")
