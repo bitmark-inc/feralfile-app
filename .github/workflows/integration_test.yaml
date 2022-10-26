@@ -25,7 +25,7 @@ jobs:
           touch .env
           echo INDEXER_MAINNET_API_URL=${{ secrets.INDEXER_MAINNET_API_URL }} >> .env
           echo INDEXER_TESTNET_API_URL=${{ secrets.INDEXER_TESTNET_API_URL }} >> .env
-          echo WEB3_RPC_MAINNET_URL=${{ secrets.WEB3_RPC_MAINNET_URL }} >> .env
+          echo WEB3_RPC_MAINNET_URL=${{ secrets.WEB3_RPC_TESTNET_URL }} >> .env
           echo WEB3_RPC_TESTNET_URL=${{ secrets.WEB3_RPC_TESTNET_URL }} >> .env
           echo TEZOS_NODE_CLIENT_MAINNET_URL=${{ secrets.TEZOS_NODE_CLIENT_MAINNET_URL }} >> .env
           echo TEZOS_NODE_CLIENT_TESTNET_URL=${{ secrets.TEZOS_NODE_CLIENT_TESTNET_URL }} >> .env

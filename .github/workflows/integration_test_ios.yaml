@@ -25,7 +25,7 @@ jobs:
           touch .env
           echo INDEXER_MAINNET_API_URL=${{ secrets.INDEXER_MAINNET_API_URL }} >> .env
           echo INDEXER_TESTNET_API_URL=${{ secrets.INDEXER_TESTNET_API_URL }} >> .env
-          echo WEB3_RPC_MAINNET_URL=${{ secrets.WEB3_RPC_MAINNET_URL }} >> .env
+          echo WEB3_RPC_MAINNET_URL=${{ secrets.WEB3_RPC_TESTNET_URL }} >> .env
           echo WEB3_RPC_TESTNET_URL=${{ secrets.WEB3_RPC_TESTNET_URL }} >> .env
           echo TEZOS_NODE_CLIENT_MAINNET_URL=${{ secrets.TEZOS_NODE_CLIENT_MAINNET_URL }} >> .env
           echo TEZOS_NODE_CLIENT_TESTNET_URL=${{ secrets.TEZOS_NODE_CLIENT_TESTNET_URL }} >> .env
@@ -81,7 +81,7 @@ jobs:
       - run: flutter pub cache repair
       - run: flutter pub get 
       # Build app
-      - name: Build to flutter apk inhouse app
+      - name: Build to IPA inhouse app
         run: flutter build ipa --flavor inhouse --export-options-plist ios/ExportOptions-Inhouse.plist
       
       # Run integration test
