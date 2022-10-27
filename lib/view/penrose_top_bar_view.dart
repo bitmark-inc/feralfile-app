@@ -291,24 +291,28 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
           return GestureDetector(
             behavior: HitTestBehavior.translucent,
             key: const Key("customerSupport"),
-            child: Container(
-              padding: const EdgeInsets.fromLTRB(20, 10, 0, 20),
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  SvgPicture.asset("assets/images/iconCustomerSupport.svg"),
-                  if (unreadIssues != 0) ...[
-                    Positioned(
-                        top: -3,
-                        left: 13,
-                        child: Align(
-                          alignment: Alignment.topRight,
-                          child: BadgeView(number: unreadIssues),
-                        )),
-                  ]
-                ],
+            child:
+              Semantics(
+                label: "Customer Support",
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(20, 10, 0, 20),
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      SvgPicture.asset("assets/images/iconCustomerSupport.svg"),
+                      if (unreadIssues != 0) ...[
+                        Positioned(
+                            top: -3,
+                            left: 13,
+                            child: Align(
+                              alignment: Alignment.topRight,
+                              child: BadgeView(number: unreadIssues),
+                            )),
+                      ]
+                    ],
+                  ),
+                )
               ),
-            ),
             onTap: () {
               if (_opacity == 0) return;
               Navigator.of(context).pushNamed(AppRouter.supportCustomerPage);
