@@ -111,13 +111,16 @@ class _AccountsViewState extends State<AccountsView> {
     });
   }
 
-  List<SlidableAction> slidableActions(Account account, bool isDefault) {
+  List<CustomSlidableAction> slidableActions(Account account, bool isDefault) {
     final theme = Theme.of(context);
     var actions = [
-      SlidableAction(
+      CustomSlidableAction(
         backgroundColor: AppColor.secondarySpanishGrey,
         foregroundColor: theme.colorScheme.secondary,
-        icon: CupertinoIcons.pencil,
+        child: Semantics(
+          label: "${account.name}_edit",
+          child: const Icon(CupertinoIcons.pencil)
+        ),
         onPressed: (_) {
           setState(() {
             _nameController.text = account.name;
@@ -128,10 +131,13 @@ class _AccountsViewState extends State<AccountsView> {
     ];
 
     if (!isDefault) {
-      actions.add(SlidableAction(
+      actions.add(CustomSlidableAction(
         backgroundColor: theme.colorScheme.primary,
         foregroundColor: theme.colorScheme.secondary,
-        icon: CupertinoIcons.delete,
+        child: Semantics(
+            label: "${account.name}_delete",
+            child: const Icon(CupertinoIcons.delete)
+        ),
         onPressed: (_) {
           _showDeleteAccountConfirmation(context, account);
         },
