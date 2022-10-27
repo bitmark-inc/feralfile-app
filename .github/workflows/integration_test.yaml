@@ -120,7 +120,7 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE          
           flutter pub run test auto-test/tests/setting_footer_test.dart
-      - name: Run auto tests for Suite "Check artwork details"
+      - name: Run auto tests for Suite "Check artwork preview"
         if: success() || failure()
         run: |
           cd $GITHUB_WORKSPACE          
