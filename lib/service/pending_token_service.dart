@@ -67,7 +67,7 @@ extension FilterEventExt on FilterEvent {
     }
 
     if (contractType != null && tokenId != null) {
-      final indexerId = "eth-${address?.hexEip55}-${tokenId.toRadixString(16)}";
+      final indexerId = "eth-${address?.hexEip55}-$tokenId";
       final token = AssetToken(
         artistName: null,
         artistURL: null,
