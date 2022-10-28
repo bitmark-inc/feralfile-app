@@ -43,7 +43,7 @@ Future<bool> isAppCenterBuild() async {
 }
 
 Future<String> getDemoAccount() async {
-  return await isAppCenterBuild() ? "demo" : "demo2";
+  return await isAppCenterBuild() ? "demo" : "tv";
 }
 
 Future<String> getAppVariant() async {
