@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/main.dart';
@@ -331,8 +332,14 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
           const SizedBox(
             width: 6.5,
           ),
-          Text("this_is_base_account".tr(),
-              style: theme.textTheme.headline5?.copyWith(fontSize: 14)),
+          Expanded(
+            child: AutoSizeText(
+                "this_is_base_account".tr(),
+                style: theme.textTheme.headline5?.copyWith(fontSize: 14),
+                maxFontSize: 14,
+                minFontSize: 8,
+                maxLines: 1,),
+          ),
         ],
       ),
     );
