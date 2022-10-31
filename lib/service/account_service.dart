@@ -101,6 +101,7 @@ class AccountServiceImpl extends AccountService {
   final AutonomyApi _autonomyApi;
 
   final _defaultAccountLock = Lock();
+
   AccountServiceImpl(
     this._cloudDB,
     this._walletConnectService,
@@ -487,6 +488,7 @@ class AccountServiceImpl extends AccountService {
 
     for (var persona in personas) {
       final personaWallet = persona.wallet();
+      if (!await personaWallet.isWalletCreated()) continue;
       final ethAddress = await personaWallet.getETHEip55Address();
 
       if (ethAddress.isEmpty) continue;
@@ -513,6 +515,7 @@ class AccountServiceImpl extends AccountService {
     final personas = await _cloudDB.personaDao.getPersonas();
     for (var persona in personas) {
       final personaWallet = persona.wallet();
+      if (!await personaWallet.isWalletCreated()) continue;
       switch (blockchain.toLowerCase()) {
         case "tezos":
           addresses.add(await personaWallet.getTezosAddress());
@@ -554,6 +557,7 @@ class AccountServiceImpl extends AccountService {
     for (var persona in personas) {
       if (!hiddenPersonaUUIDs.contains(persona.uuid)) continue;
       final personaWallet = persona.wallet();
+      if (!await personaWallet.isWalletCreated()) continue;
       final ethAddress = await personaWallet.getETHEip55Address();
 
       if (ethAddress.isEmpty) continue;
@@ -592,6 +596,7 @@ class AccountServiceImpl extends AccountService {
       if (hiddenPersonaUUIDs.contains(persona.uuid)) continue;
 
       final personaWallet = persona.wallet();
+      if (!await personaWallet.isWalletCreated()) continue;
       final ethAddress = await personaWallet.getETHEip55Address();
 
       if (ethAddress.isEmpty) continue;

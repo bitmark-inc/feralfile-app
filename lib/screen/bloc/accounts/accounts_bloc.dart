@@ -118,6 +118,7 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
       List<CategorizedAccounts> categorizedAccounts = [];
 
       for (var persona in personas) {
+        if (!await persona.wallet().isWalletCreated()) continue;
         final bitmarkAddress = await persona.wallet().getBitmarkAddress();
         final ethAddress = await persona.wallet().getETHEip55Address();
         final xtzAddress = (await persona.wallet().getTezosAddress());
