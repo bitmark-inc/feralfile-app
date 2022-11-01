@@ -10,6 +10,8 @@ import 'dart:async';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/gateway/branch_api.dart';
 import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/model/otp.dart';
+import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -167,7 +169,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
   Future<bool> _handleBranchDeeplink(String link) async {
     log.info("[DeeplinkService] _handleBranchDeeplink");
     //star
-    memoryValues.airdropFFExhibitionId.value = '';
+    memoryValues.airdropFFExhibitionId.value = Pair('', null);
     if (Constants.branchDeepLinks.any((prefix) => link.startsWith(prefix))) {
       final response = await _branchApi.getParams(Environment.branchKey, link);
       _handleBranchDeeplinkData(response["data"]);
@@ -200,7 +202,10 @@ class DeeplinkServiceImpl extends DeeplinkService {
         }
 
         if (exhibitionId != null) {
-          _claimFFAirdropToken(exhibitionId);
+          _claimFFAirdropToken(
+            exhibitionId,
+            otp: _getOtpFromBranchData(data),
+          );
         }
         break;
       default:
@@ -228,9 +233,12 @@ class DeeplinkServiceImpl extends DeeplinkService {
     }
   }
 
-  Future _claimFFAirdropToken(String exhibitionId) async {
+  Future _claimFFAirdropToken(
+    String exhibitionId, {
+    Otp? otp,
+  }) async {
     log.info(
-        "[DeeplinkService] Claim FF Airdrop token. Exhibition $exhibitionId");
+        "[DeeplinkService] Claim FF Airdrop token. Exhibition $exhibitionId, otp: ${otp?.toJson()}");
     if (currentExhibitionId == exhibitionId) {
       return;
     }
@@ -257,15 +265,20 @@ class DeeplinkServiceImpl extends DeeplinkService {
           await _navigationService.showNoRemainingToken(
             exhibition: exhibition,
           );
+        } else if (otp?.isExpired == true) {
+          await _navigationService.showOtpExpired();
         } else {
           Future.delayed(const Duration(seconds: 5), () {
             currentExhibitionId = null;
           });
-          await _navigationService.openClaimTokenPage(exhibition);
+          await _navigationService.openClaimTokenPage(
+            exhibition,
+            otp: otp,
+          );
         }
         currentExhibitionId = null;
       } else {
-        memoryValues.airdropFFExhibitionId.value = exhibitionId;
+        memoryValues.airdropFFExhibitionId.value = Pair(exhibitionId, otp);
         await Future.delayed(const Duration(seconds: 5), () {
           currentExhibitionId = null;
         });
@@ -275,4 +288,16 @@ class DeeplinkServiceImpl extends DeeplinkService {
       currentExhibitionId = null;
     }
   }
+}
+
+Otp? _getOtpFromBranchData(Map<dynamic, dynamic> json) {
+  if (json.containsKey("otp")) {
+    final otp = json["otp"];
+    final expiredAt = int.tryParse(json["otp_expired_at"]);
+    return Otp(
+      otp,
+      expiredAt != null ? DateTime.fromMillisecondsSinceEpoch(expiredAt) : null,
+    );
+  }
+  return null;
 }

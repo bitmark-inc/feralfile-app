@@ -12,6 +12,8 @@ import 'dart:ui';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
+import 'package:autonomy_flutter/model/otp.dart';
+import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
@@ -183,7 +185,7 @@ class MemoryValues {
   String? viewingSupportThreadIssueID;
   DateTime? inForegroundAt;
   bool inGalleryView;
-  ValueNotifier<String?> airdropFFExhibitionId;
+  ValueNotifier<Pair<String, Otp?>?> airdropFFExhibitionId;
   List<Connection>? linkedFFConnections = [];
 
   MemoryValues({
