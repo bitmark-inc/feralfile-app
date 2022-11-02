@@ -283,11 +283,13 @@ class FeralFileServiceImpl extends FeralFileService {
           .map((e) => AssetToken.fromAsset(e))
           .map((e) => e
             ..pending = true
+            ..ownerAddress = receiver
             ..owners.putIfAbsent(receiver, () => 1)
             ..lastActivityTime = DateTime.now())
           .toList();
       return tokens;
     } catch (e) {
+      log.info("[FeralFileService] Fetch token failed ($indexerId) $e");
       return [];
     }
   }
