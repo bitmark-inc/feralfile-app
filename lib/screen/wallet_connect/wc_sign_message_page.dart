@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/debouce_util.dart';
+import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -70,7 +71,7 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
                     children: [
                       const SizedBox(height: 8.0),
                       Text(
-                        "h_confirm".tr(),
+                        "signature_request".tr(),
                         style: theme.textTheme.headline1,
                       ),
                       const SizedBox(height: 40.0),
@@ -191,6 +192,10 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
                 } else {
                   Navigator.of(context).pop();
                 }
+                showInfoNotification(
+                  const Key("signed"),
+                  "signed".tr().toUpperCase(),
+                );
               }),
             ),
           )

@@ -20,6 +20,7 @@ import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/debouce_util.dart';
+import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
@@ -192,6 +193,12 @@ class _WCConnectPageState extends State<WCConnectPage>
         "url": beaconRequest?.sourceAddress ?? "unknown",
       },
     );
+    if (widget.beaconRequest!.appName != null) {
+      showInfoNotification(
+        const Key("connected"),
+        "connected_to".tr(args: [widget.beaconRequest!.appName!]).toUpperCase(),
+      );
+    }
   }
 
   void _navigateWhenConnectFeralFile() {

@@ -143,4 +143,18 @@ class NavigationService {
   void setIsWCConnectInShow(bool appeared) {
     _isWCConnectInShow = appeared;
   }
+
+  void showContactingDialog(){
+    UIHelper.showInfoDialog(
+      navigatorKey.currentContext!,
+      'contacting'.tr().toUpperCase(),
+      'contact_with_dapp'.tr(),
+      closeButton: "cancel".tr(),
+      isDismissible: true,
+      autoDismissAfter: 20,
+      onClose: () {
+        hideInfoDialog();
+      },
+    );
+  }
 }
