@@ -193,10 +193,19 @@ class _WCConnectPageState extends State<WCConnectPage>
         "url": beaconRequest?.sourceAddress ?? "unknown",
       },
     );
-    if (widget.beaconRequest!.appName != null) {
+  }
+
+  Future<void> _approveThenNotify() async {
+    await _approve();
+    if (widget.beaconRequest?.appName != null) {
       showInfoNotification(
         const Key("connected"),
         "connected_to".tr(args: [widget.beaconRequest!.appName!]).toUpperCase(),
+      );
+    } else if (widget.wcConnectArgs?.peerMeta.name != null) {
+      showInfoNotification(
+        const Key("connected"),
+        "connected_to".tr(args: [widget.wcConnectArgs!.peerMeta.name]).toUpperCase(),
       );
     }
   }
@@ -442,7 +451,7 @@ class _WCConnectPageState extends State<WCConnectPage>
               child: AuFilledButton(
                 text: "connect".tr().toUpperCase(),
                 onPress: _isAccountSelected
-                    ? () => withDebounce(() => _approve())
+                    ? () => withDebounce(() => _approveThenNotify())
                     : null,
               ),
             )
