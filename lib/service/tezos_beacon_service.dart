@@ -19,6 +19,7 @@ import 'package:autonomy_flutter/screen/tezos_beacon/tb_send_transaction_page.da
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_sign_message_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/service/mixPanel_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
@@ -100,7 +101,14 @@ class TezosBeaconService implements BeaconHandler {
     }
   }
 
-  Future signResponse(String id, String? signature) {
+  Future signResponse(String id, String? signature) async {
+    if (signature != null) {
+      final mixPanelClient = injector.get<MixPanelClientService>();
+      await mixPanelClient.trackEvent(
+        "Sign",
+        hashedData: {"uuid": id,},
+      );
+    }
     return _beaconChannel.signResponse(id, signature);
   }
 
@@ -157,6 +165,13 @@ class TezosBeaconService implements BeaconHandler {
 
     await metricClient.addEvent(
       "link_tezos_beacon",
+      hashedData: {"address": tezosConnection.address},
+    );
+
+    final mixPanelClient = injector.get<MixPanelClientService>();
+    await mixPanelClient.trackEvent(
+      "connect_external",
+      data: {"type": "Tezos Beacon"},
       hashedData: {"address": tezosConnection.address},
     );
 

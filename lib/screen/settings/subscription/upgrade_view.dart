@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart'
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
+import 'package:autonomy_flutter/service/mixPanel_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -66,6 +67,7 @@ class UpgradesView extends StatelessWidget {
 
     switch (state.status) {
       case IAPProductStatus.completed:
+        injector<MixPanelClientService>().mixpanel.getPeople().set("Subscription", "Subscried");
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -81,6 +83,7 @@ class UpgradesView extends StatelessWidget {
 
         );
       case IAPProductStatus.trial:
+        injector<MixPanelClientService>().mixpanel.getPeople().set("Subscription", "Trial");
         final df = DateFormat("yyyy-MMM-dd");
         final trialExpireDate = df.format(state.trialExpiredDate!);
         return Column(
@@ -107,6 +110,7 @@ class UpgradesView extends StatelessWidget {
         );
       case IAPProductStatus.notPurchased:
       case IAPProductStatus.expired:
+        injector<MixPanelClientService>().mixpanel.getPeople().set("Subscription", "Free");
         return GestureDetector(
           onTap: (() => showSubscriptionDialog(
                   context, state.productDetails?.price, null, (() {

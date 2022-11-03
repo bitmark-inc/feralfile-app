@@ -18,6 +18,7 @@ import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/service/mixPanel_client_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
@@ -133,6 +134,13 @@ class AccountServiceImpl extends AccountService {
     final metricClient = injector.get<MetricClientService>();
     await metricClient
         .addEvent("create_full_account", hashedData: {"id": uuid});
+
+    final mixPanelClient = injector.get<MixPanelClientService>();
+    await mixPanelClient.trackEvent(
+        "create_full_account",
+        data: {"isDefault": isDefault},
+        hashedData: {"id": persona.uuid}
+    );
     _autonomyService.postLinkedAddresses();
 
     return persona;
@@ -160,6 +168,12 @@ class AccountServiceImpl extends AccountService {
     final metricClient = injector.get<MetricClientService>();
     await metricClient
         .addEvent("import_full_account", hashedData: {"id": uuid});
+
+    final mixPanelClient = injector.get<MixPanelClientService>();
+    await mixPanelClient.trackEvent(
+        "import_full_account",
+        hashedData: {"id": persona.uuid}
+    );
     _autonomyService.postLinkedAddresses();
 
     return persona;
@@ -265,6 +279,12 @@ class AccountServiceImpl extends AccountService {
     final metricClient = injector.get<MetricClientService>();
     await metricClient
         .addEvent("delete_full_account", hashedData: {"id": persona.uuid});
+
+    final mixPanelClient = injector.get<MixPanelClientService>();
+    await mixPanelClient.trackEvent(
+        "delete_full_account",
+        hashedData: {"id": persona.uuid}
+    );
   }
 
   @override
@@ -275,6 +295,17 @@ class AccountServiceImpl extends AccountService {
     final metricClient = injector.get<MetricClientService>();
     await metricClient.addEvent("delete_linked_account",
         hashedData: {"address": connection.accountNumber});
+
+    final mixPanelClient = injector.get<MixPanelClientService>();
+    await mixPanelClient.trackEvent(
+        "delete_linked_account",
+        data: {
+          "wallet": connection.appName,
+          "type": "app",
+          "connectionType": connection.connectionType
+        },
+        hashedData: {"address": connection.accountNumber}
+    );
   }
 
   @override
@@ -328,6 +359,17 @@ class AccountServiceImpl extends AccountService {
     final metricClient = injector.get<MetricClientService>();
     await metricClient.addEvent("link_eth_wallet",
         hashedData: {"address": connection.accountNumber});
+
+    final mixPanelClient = injector.get<MixPanelClientService>();
+    await mixPanelClient.trackEvent(
+        "link_wallet",
+        data: {
+          "wallet": connection.appName,
+          "type": "app",
+          "connectionType": connection.connectionType
+        },
+        hashedData: {"address": connection.accountNumber}
+    );
     _autonomyService.postLinkedAddresses();
     return connection;
   }
@@ -353,6 +395,13 @@ class AccountServiceImpl extends AccountService {
     final metricClient = injector.get<MetricClientService>();
     await metricClient.addEvent("link_eth_wallet_browser",
         hashedData: {"address": connection.accountNumber});
+
+    final mixPanelClient = injector.get<MixPanelClientService>();
+    await mixPanelClient.trackEvent(
+        "link_wallet",
+        data: {"wallet": walletApp.name, "type": "browser"},
+        hashedData: {"address": address}
+    );
     _autonomyService.postLinkedAddresses();
     return connection;
   }
@@ -382,6 +431,12 @@ class AccountServiceImpl extends AccountService {
     final metricClient = injector.get<MetricClientService>();
     await metricClient
         .addEvent("hide_linked_account", hashedData: {"address": address});
+
+    final mixPanelClient = injector.get<MixPanelClientService>();
+    await mixPanelClient.trackEvent(
+        "hide_linked_account",
+        hashedData: {"address": address}
+    );
   }
 
   @override

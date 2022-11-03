@@ -11,6 +11,8 @@ import 'dart:typed_data';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/service/mixPanel_client_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/debouce_util.dart';
@@ -58,7 +60,7 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
     }
 
     if (currentWallet == null) {
-      injector<TezosBeaconService>().signResponse(widget.request.id, null);
+      await injector<TezosBeaconService>().signResponse(widget.request.id, null);
       if (!mounted) return;
       Navigator.of(context).pop();
       return;
@@ -82,14 +84,14 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
 
     return WillPopScope(
       onWillPop: () async {
-        injector<TezosBeaconService>().signResponse(widget.request.id, null);
+        await injector<TezosBeaconService>().signResponse(widget.request.id, null);
         return true;
       },
       child: Scaffold(
         appBar: getBackAppBar(
           context,
-          onBack: () {
-            injector<TezosBeaconService>()
+          onBack: () async {
+            await injector<TezosBeaconService>()
                 .signResponse(widget.request.id, null);
             Navigator.of(context).pop();
           },
@@ -142,9 +144,15 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
                           ? () => withDebounce(() async {
                                 final signature = await injector<TezosService>()
                                     .signMessage(_currentPersona!, message);
-                                injector<TezosBeaconService>()
+                                await injector<TezosBeaconService>()
                                     .signResponse(widget.request.id, signature);
                                 if (!mounted) return;
+
+                                final mixPanelClient = injector.get<MixPanelClientService>();
+                                await mixPanelClient.trackEvent(
+                                  "Sign In",
+                                  hashedData: {"uuid": widget.request.id},
+                                );
                                 Navigator.of(context).pop();
                                 final notificationEnable =
                                     injector<ConfigurationService>().isNotificationEnabled() ?? false;

@@ -34,6 +34,7 @@ import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/service/mixPanel_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/pending_token_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
@@ -79,6 +80,7 @@ class _HomePageState extends State<HomePage>
   StreamSubscription<FGBGType>? _fgbgSubscription;
   late ScrollController _controller;
   late MetricClientService metricClient;
+  late MixPanelClientService mixPanelClient;
   int _cachedImageSize = 0;
 
   late List<PlayListModel>? playlists;
@@ -101,6 +103,7 @@ class _HomePageState extends State<HomePage>
   void initState() {
     super.initState();
     metricClient = injector.get<MetricClientService>();
+    mixPanelClient = injector<MixPanelClientService>();
     _checkForKeySync();
     WidgetsBinding.instance.addObserver(this);
     _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
@@ -408,7 +411,7 @@ class _HomePageState extends State<HomePage>
                       asset,
                       _cachedImageSize,
                     ),
-              onTap: () {
+              onTap: () async {
                 if (asset.pending == true && !asset.hasMetadata) return;
 
                 final index = tokens
@@ -425,6 +428,15 @@ class _HomePageState extends State<HomePage>
                   Navigator.of(context).pushNamed(AppRouter.artworkPreviewPage,
                       arguments: payload);
                 }
+
+                await mixPanelClient.trackEvent(
+                  "view_artwork",
+                  hashedData: {
+                    "tokenIndex": index,
+                    "tokenId": asset.tokenId,
+                    "identity": asset.id
+                  }
+                );
               },
             );
           },
@@ -629,6 +641,7 @@ class _HomePageState extends State<HomePage>
   void _handleBackground() async {
     await metricClient.addEvent("device_background");
     await metricClient.sendAndClearMetrics();
+    await mixPanelClient.sendData();
     _cloudBackup();
     FileLogger.shrinkLogFileIfNeeded();
   }

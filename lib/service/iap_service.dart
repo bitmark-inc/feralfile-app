@@ -10,9 +10,11 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/mixPanel_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter/foundation.dart';
@@ -223,11 +225,31 @@ class IAPServiceImpl implements IAPService {
             if (status.isTrial == true) {
               purchases.value[purchaseDetails.productID] =
                   IAPProductStatus.trial;
+              await injector<MixPanelClientService>().trackEvent(
+                  "Trial",
+                    data:{
+                      "productId": purchaseDetails.productID,
+                      "status": purchaseDetails.status.name,
+                    },
+                    hashedData: {
+                      "purchaseId": purchaseDetails.purchaseID,
+                    },
+              );
               trialExpireDates.value[purchaseDetails.productID] =
                   status.expireDate;
             } else {
               purchases.value[purchaseDetails.productID] =
                   IAPProductStatus.completed;
+              await injector<MixPanelClientService>().trackEvent(
+                "Purchased",
+                data:{
+                  "productId": purchaseDetails.productID,
+                  "status": purchaseDetails.status.name,
+                },
+                hashedData: {
+                  "purchaseId": purchaseDetails.purchaseID,
+                },
+              );
             }
             purchases.notifyListeners();
           } else {

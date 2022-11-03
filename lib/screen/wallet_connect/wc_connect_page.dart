@@ -17,6 +17,7 @@ import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/service/mixPanel_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
@@ -66,6 +67,7 @@ class _WCConnectPageState extends State<WCConnectPage>
   List<Persona>? personas;
   bool generatedPersona = false;
   final metricClient = injector.get<MetricClientService>();
+  final mixPanelClient = injector.get<MixPanelClientService>();
   bool _isAccountSelected = false;
 
   @override
@@ -149,8 +151,21 @@ class _WCConnectPageState extends State<WCConnectPage>
         await metricClient.addEvent(
           "connect_autonomy_display",
         );
+        await mixPanelClient.trackEvent(""
+            "connect_autonomy_display"
+        );
+
       } else {
         await metricClient.addEvent(
+          "connect_external",
+          data: {
+            "method": "wallet_connect",
+            "name": wcConnectArgs.peerMeta.name,
+            "url": wcConnectArgs.peerMeta.url,
+          },
+        );
+
+        await mixPanelClient.trackEvent(
           "connect_external",
           data: {
             "method": "wallet_connect",
@@ -202,6 +217,16 @@ class _WCConnectPageState extends State<WCConnectPage>
         "url": beaconRequest?.sourceAddress ?? "unknown",
       },
     );
+
+    await mixPanelClient.trackEvent(
+      "connect_external",
+      data: {
+        "method": "tezos_beacon",
+        "name": beaconRequest?.appName ?? "unknown",
+        "url": beaconRequest?.sourceAddress ?? "unknown",
+      },
+    );
+
   }
 
   Future<void> _approveThenNotify({bool onBoarding = false}) async {

@@ -46,6 +46,7 @@ import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_dapp_service/wallet_connect_dapp_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
+import 'package:autonomy_flutter/service/mixPanel_client_service.dart';
 import 'package:autonomy_flutter/util/au_file_service.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
 import 'package:autonomy_flutter/util/isolated_util.dart';
@@ -142,6 +143,8 @@ Future<void> setup() async {
       () => AutonomyServiceImpl(injector(), injector()));
   injector.registerLazySingleton<MetricClientService>(
       () => MetricClientService(injector()));
+  injector.registerLazySingleton<MixPanelClientService>(
+      () => MixPanelClientService(injector()));
   injector.registerLazySingleton(
       () => WalletConnectService(injector(), injector(), injector()));
   injector.registerLazySingleton<CacheManager>(() => AUImageCacheManage());
