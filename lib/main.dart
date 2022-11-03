@@ -37,7 +37,7 @@ import 'package:overlay_support/overlay_support.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:metric_client/metric_client.dart';
+import 'package:mixpanel_flutter/mixpanel_flutter.dart';
 
 void main() async {
   await dotenv.load();

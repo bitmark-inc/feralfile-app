@@ -8,17 +8,20 @@ import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/device.dart';
+import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:metric_client/metric_client.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:mixpanel_flutter/mixpanel_flutter.dart';
 
 class MetricClientService {
   final AccountService _accountService;
   MetricClientService(this._accountService);
 
   late DeviceConfig _deviceConfig;
+  late Mixpanel mixpanel;
   Future<void> initService() async {
     final root = await getTemporaryDirectory();
     await MetricClient.init(
@@ -42,6 +45,18 @@ class MetricClientService {
       version: packageInfo.version,
       internalBuild: isAppcenterBuild,
     );
+
+    final defaultDID = (await (await _accountService.getCurrentDefaultAccount())
+            ?.getAccountDID()) ??
+        'unknown';
+    final hashedUserID = sha224.convert(utf8.encode(defaultDID)).toString();
+
+    mixpanel = await Mixpanel.init(Environment.mixpanelKey,
+        trackAutomaticEvents: true);
+    mixpanel.setLoggingEnabled(true);
+    mixpanel.setUseIpAddressForGeolocation(true);
+
+    mixpanel.identify(hashedUserID);
   }
 
   Future<void> addEvent(
@@ -67,6 +82,22 @@ class MetricClientService {
       hashedData: hashedData,
       deviceConfig: _deviceConfig,
     );
+
+    // track with Mixpanel
+    if (hashedData.isNotEmpty) {
+      hashedData = hashedData.map((key, value) =>
+          MapEntry(key, sha224.convert(utf8.encode(value)).toString()));
+    }
+    var mixedData = Map<String, dynamic>.from(hashedData);
+    if (message != null) {
+      mixedData['message'] = message;
+    }
+
+    data.forEach((key, value) {
+      mixedData[key] = value;
+    });
+
+    mixpanel.track(name.snakeToCapital(), properties: mixedData);
   }
 
   Future<void> sendAndClearMetrics() async {
@@ -75,6 +106,8 @@ class MetricClientService {
         await MetricClient.sendMetrics();
       }
       await MetricClient.clear();
+
+      mixpanel.flush();
     } catch (e) {
       log(e.toString());
     }

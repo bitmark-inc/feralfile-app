@@ -137,6 +137,8 @@ class Environment {
   static String get metricSecretKey => dotenv.env['METRIC_SECRET_KEY'] ?? '';
 
   static String get branchKey => dotenv.env['BRANCH_KEY'] ?? '';
+
+  static String get mixpanelKey => dotenv.env['MIXPANEL_KEY'] ?? '';
 }
 
 class Secret {
