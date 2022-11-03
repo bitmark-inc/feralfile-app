@@ -9,11 +9,10 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/feralfile/feralfile_bloc.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
-import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
@@ -21,6 +20,7 @@ import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:wallet_connect/models/wc_peer_meta.dart';
 import 'package:web3dart/crypto.dart';
@@ -192,10 +192,15 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
                 } else {
                   Navigator.of(context).pop();
                 }
-                showInfoNotification(
-                  const Key("signed"),
-                  "signed".tr().toUpperCase(),
-                );
+                final notificationEnable =
+                    injector<ConfigurationService>().isNotificationEnabled() ?? false;
+                if (notificationEnable) {
+                  showInfoNotification(
+                    const Key("signed"),
+                    "signed".tr().toUpperCase(),
+                    frontWidget: SvgPicture.asset("assets/images/checkbox_icon.svg"),
+                  );
+                }
               }),
             ),
           )

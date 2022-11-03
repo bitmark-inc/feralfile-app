@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:overlay_support/overlay_support.dart';
+
 // ignore: implementation_imports
 import 'package:overlay_support/src/overlay_state_finder.dart';
 
@@ -30,10 +31,13 @@ class _SimpleNotificationToast extends StatelessWidget {
   const _SimpleNotificationToast(
       {required Key key,
       required this.notification,
-      this.notificationOpenedHandler})
+      this.notificationOpenedHandler,
+      this.frontWidget})
       : super(key: key);
   final String notification;
   final Function()? notificationOpenedHandler;
+  final Widget? frontWidget;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -52,10 +56,19 @@ class _SimpleNotificationToast extends StatelessWidget {
             color: theme.colorScheme.primary.withOpacity(0.8),
             padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
             child: Center(
-                child: Text(
-              notification,
-              textAlign: TextAlign.center,
-              style: theme.primaryTextTheme.button,
+                child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                frontWidget ?? const SizedBox(),
+                SizedBox(
+                  width: frontWidget != null ? 8 : 0,
+                ),
+                Text(
+                  notification,
+                  textAlign: TextAlign.center,
+                  style: theme.primaryTextTheme.button,
+                ),
+              ],
             )),
           ),
         ),
@@ -81,6 +94,7 @@ void showInfoNotification(
   Key key,
   String info, {
   Duration? duration,
+  Widget? frontWidget,
   dynamic Function()? openHandler,
 }) {
   showSimpleNotification(
@@ -88,6 +102,7 @@ void showInfoNotification(
         key: key,
         notification: info,
         notificationOpenedHandler: openHandler,
+        frontWidget: frontWidget,
       ),
       key: key,
       background: Colors.transparent,
