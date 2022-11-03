@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/models/asset_token.dart';
+import 'package:uri/uri.dart';
 
 extension AssetTokenExtension on AssetToken {
   static final Map<String, Map<String, String>> _tokenUrlMap = {
@@ -65,12 +66,28 @@ extension AssetTokenExtension on AssetToken {
     return wallet;
   }
 
-  String? getPreviewUrl() {
-    if (medium == null) {
-      return previewURL;
+  String _multiUniqueUrl(String originUrl) {
+    try {
+      final uri = Uri.parse(originUrl);
+      final builder = UriBuilder.fromUri(uri);
+      builder.queryParameters
+        ..putIfAbsent("edition_index", () => "$edition")
+        ..putIfAbsent("edition_number", () => "$edition")
+        ..putIfAbsent("blockchain", () => blockchain)
+        ..putIfAbsent("token_id", () => "$tokenId")
+        ..putIfAbsent("contract", () => "$contractAddress");
+      return builder.build().toString();
+    } catch (e) {
+      return originUrl;
     }
+  }
+
+  String? getPreviewUrl() {
     if (previewURL != null) {
-      return _replaceIPFSPreviewURL(previewURL!, medium!);
+      final url = medium == null
+          ? previewURL!
+          : _replaceIPFSPreviewURL(previewURL!, medium!);
+      return source?.toLowerCase() == "feralfile" ? _multiUniqueUrl(url) : url;
     }
     return null;
   }

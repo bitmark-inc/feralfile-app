@@ -143,6 +143,7 @@ dependencies:
       ref: ec37709d6f7a3901e3bd4238ba178205a88f6261
   dotenv: ^4.0.1
   auto_size_text: ^3.0.0
+  uri: ^1.0.0
 
 dependency_overrides:
   cached_network_image: 3.2.1
