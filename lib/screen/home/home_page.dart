@@ -143,6 +143,16 @@ class _HomePageState extends State<HomePage>
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.resumed) {
+      // reconnect disconnected sessions
+      injector<WalletConnectService>().initSessions(forced: true);
+      didPopNext();
+    }
+  }
+
+  @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     routeObserver.unsubscribe(this);
