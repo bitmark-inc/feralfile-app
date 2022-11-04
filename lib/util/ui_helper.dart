@@ -462,6 +462,16 @@ class UIHelper {
     );
   }
 
+  static Future showOtpExpired(BuildContext context) async {
+    final error = FeralfileError(3013, "");
+    return showErrorDialog(
+      context,
+      error.dialogTitle,
+      error.dialogMessage,
+      "close".tr(),
+    );
+  }
+
   static Future showClaimTokenError(
     BuildContext context,
     Object e, {
