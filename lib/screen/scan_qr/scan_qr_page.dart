@@ -342,6 +342,7 @@ class _ScanQRPageState extends State<ScanQRPage> with RouteAware {
     controller.dispose();
     injector<TezosBeaconService>().addPeer(code);
     Navigator.of(context).pop();
+    injector<NavigationService>().showContactingDialog();
   }
 
   void _handleFeralFileToken(String code) async {

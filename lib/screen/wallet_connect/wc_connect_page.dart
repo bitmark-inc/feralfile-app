@@ -12,14 +12,15 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/screen/connection/persona_connections_page.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
-import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/debouce_util.dart';
+import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
@@ -32,7 +33,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:metric_client/metric_client.dart';
 import 'package:wallet_connect/models/wc_peer_meta.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 
@@ -192,6 +192,29 @@ class _WCConnectPageState extends State<WCConnectPage>
         "url": beaconRequest?.sourceAddress ?? "unknown",
       },
     );
+  }
+
+  Future<void> _approveThenNotify() async {
+    await _approve();
+    final notificationEnable =
+        injector<ConfigurationService>().isNotificationEnabled() ?? false;
+    if (notificationEnable) {
+      if (widget.beaconRequest?.appName != null) {
+        showInfoNotification(
+          const Key("connected"),
+          "connected_to"
+              .tr(args: [widget.beaconRequest!.appName!]).toUpperCase(),
+          frontWidget: SvgPicture.asset("assets/images/checkbox_icon.svg"),
+        );
+      } else if (widget.wcConnectArgs?.peerMeta.name != null) {
+        showInfoNotification(
+          const Key("connected"),
+          "connected_to"
+              .tr(args: [widget.wcConnectArgs!.peerMeta.name]).toUpperCase(),
+          frontWidget: SvgPicture.asset("assets/images/checkbox_icon.svg"),
+        );
+      }
+    }
   }
 
   void _navigateWhenConnectFeralFile() {
@@ -435,7 +458,7 @@ class _WCConnectPageState extends State<WCConnectPage>
               child: AuFilledButton(
                 text: "connect".tr().toUpperCase(),
                 onPress: _isAccountSelected
-                    ? () => withDebounce(() => _approve())
+                    ? () => withDebounce(() => _approveThenNotify())
                     : null,
               ),
             )
