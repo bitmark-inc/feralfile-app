@@ -47,6 +47,10 @@ class WalletConnectService {
     }
 
     for (var element in wcConnections) {
+      if (wcClients.any((client) => client.session?.topic == element.key)) {
+        continue;
+      }
+
       final WCClient? wcClient = _createWCClient(null, element);
       final sessionStore = element.wcConnection?.sessionStore;
 
@@ -172,16 +176,6 @@ class WalletConnectService {
         wcClients.removeWhere((element) =>
             element.session == null &&
             !(element.remotePeerMeta?.url.contains("feralfile") ?? false));
-
-        if (connection != null) {
-          _cloudDB.connectionDao.deleteConnection(connection);
-        } else {
-          final removingConnection =
-              await _cloudDB.connectionDao.findById(topic);
-          if (removingConnection != null) {
-            _cloudDB.connectionDao.deleteConnection(removingConnection);
-          }
-        }
       },
       onFailure: (error) {
         log.info("WC failed to connect: $error");
