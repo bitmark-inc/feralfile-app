@@ -67,7 +67,7 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
               backupVersion: backupVersion));
           return;
         } else {
-          _configurationService.setDoneOnboarding(true);
+          await _configurationService.setDoneOnboarding(true);
           emit(RouterState(onboardingStep: OnboardingStep.dashboard));
           return;
         }
@@ -90,10 +90,10 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
       final connections =
           await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
       if (personas.isEmpty && connections.isEmpty) {
-        _configurationService.setDoneOnboarding(false);
+        await _configurationService.setDoneOnboarding(false);
         emit(RouterState(onboardingStep: OnboardingStep.startScreen));
       } else {
-        _configurationService.setDoneOnboarding(true);
+        await _configurationService.setDoneOnboarding(true);
         emit(RouterState(onboardingStep: OnboardingStep.dashboard));
       }
       await migrationUtil.migrateIfNeeded();
