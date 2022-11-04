@@ -816,7 +816,7 @@ Widget tokenOwnership(
         "how_many_editions_you_own".tr(),
         style: theme.textTheme.bodyText1,
       ),
-      const SizedBox(height: 16.0),
+      const SizedBox(height: 32.0),
       _rowItem(context, "editions".tr(), "${asset.maxEdition}",
           tapLink: asset.tokenURL, forceSafariVC: true),
       const Divider(height: 32.0),
