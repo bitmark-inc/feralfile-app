@@ -145,16 +145,19 @@ class NavigationService {
   }
 
   void showContactingDialog(){
-    UIHelper.showInfoDialog(
-      navigatorKey.currentContext!,
-      'contacting'.tr().toUpperCase(),
-      'contact_with_dapp'.tr(),
-      closeButton: "cancel".tr(),
-      isDismissible: true,
-      autoDismissAfter: 20,
-      onClose: () {
-        hideInfoDialog();
-      },
-    );
+    if (navigatorKey.currentState?.mounted == true &&
+        navigatorKey.currentContext != null){
+      UIHelper.showInfoDialog(
+        navigatorKey.currentContext!,
+        'contacting'.tr().toUpperCase(),
+        'contact_with_dapp'.tr(),
+        closeButton: "cancel".tr(),
+        isDismissible: true,
+        autoDismissAfter: 20,
+        onClose: () {
+          hideInfoDialog();
+        },
+      );
+    }
   }
 }
