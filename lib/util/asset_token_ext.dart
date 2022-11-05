@@ -180,7 +180,7 @@ AssetToken createPendingAssetToken({
     assetURL: null,
     basePrice: null,
     baseCurrency: null,
-    blockchain: "tezos",
+    blockchain: exhibition.mintBlockchain.toLowerCase(),
     blockchainUrl: null,
     fungible: false,
     contractType: null,

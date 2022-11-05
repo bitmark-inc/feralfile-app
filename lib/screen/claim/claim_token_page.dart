@@ -1,8 +1,8 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
+import 'package:autonomy_flutter/model/otp.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/claim/preview_token_claim.dart';
 import 'package:autonomy_flutter/screen/claim/select_account_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
@@ -17,17 +17,28 @@ import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
+class ClaimTokenPageArgs {
+  final Exhibition exhibition;
+  final Otp? otp;
+
+  ClaimTokenPageArgs({
+    required this.exhibition,
+    this.otp,
+  });
+}
+
 class ClaimTokenPage extends StatefulWidget {
   final Exhibition exhibition;
+  final Otp? otp;
 
   const ClaimTokenPage({
     Key? key,
     required this.exhibition,
+    this.otp,
   }) : super(key: key);
 
   @override
@@ -53,7 +64,6 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
     if (gifter.trim().isNotEmpty) {
       giftIntro += " ${'from'.tr().toLowerCase()} ";
     }
-    double safeAreaTop = MediaQuery.of(context).padding.top;
     final theme = Theme.of(context);
     return Scaffold(
       backgroundColor: theme.colorScheme.primary,
@@ -248,29 +258,14 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                   address = addresses.first;
                 } else {
                   if (!mounted) return;
-                  final account = await Navigator.of(context).pushNamed(
+                  await Navigator.of(context).pushNamed(
                     AppRouter.claimSelectAccountPage,
                     arguments: SelectAccountPageArgs(
                       blockchain,
-                      widget.exhibition.id,
                       widget.exhibition,
+                      widget.otp,
                     ),
-                  ) as Account?;
-                  final wallet = account?.persona?.wallet();
-                  if (wallet != null) {
-                    address = blockchain == "Tezos"
-                        ? await wallet.getTezosAddress()
-                        : await wallet.getETHAddress();
-                  } else if (account?.connections?.isNotEmpty == true) {
-                    final connectionType = blockchain == "Tezos"
-                        ? "walletBeacon"
-                        : "walletConnect";
-                    address = account?.connections
-                        ?.firstWhereOrNull(
-                            (e) => e.connectionType == connectionType)
-                        ?.accountNumber;
-                  }
-                  address ??= account?.accountNumber;
+                  );
                 }
                 if (address != null && mounted) {
                   _claimToken(context, address);
@@ -301,6 +296,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
       await ffService.claimToken(
         exhibitionId: widget.exhibition.id,
         address: receiveAddress,
+        otp: widget.otp,
       );
       memoryValues.airdropFFExhibitionId.value = null;
     } catch (e) {

@@ -8,11 +8,12 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/model/ff_account.dart';
+import 'package:autonomy_flutter/model/otp.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/claim/claim_token_page.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
@@ -113,13 +114,29 @@ class NavigationService {
     }
   }
 
-  Future openClaimTokenPage(Exhibition exhibition) async {
+  Future showOtpExpired() async {
+    log.info("NavigationService.showOtpExpired");
+    if (navigatorKey.currentState?.mounted == true &&
+        navigatorKey.currentContext != null) {
+      await UIHelper.showOtpExpired(navigatorKey.currentContext!);
+    } else {
+      Future.value(0);
+    }
+  }
+
+  Future openClaimTokenPage(
+    Exhibition exhibition, {
+    Otp? otp,
+  }) async {
     log.info("NavigationService.openClaimTokenPage");
     if (navigatorKey.currentState?.mounted == true &&
         navigatorKey.currentContext != null) {
       await navigatorKey.currentState?.pushNamed(
         AppRouter.claimFeralfileTokenPage,
-        arguments: exhibition,
+        arguments: ClaimTokenPageArgs(
+          exhibition: exhibition,
+          otp: otp,
+        ),
       );
     } else {
       Future.value(0);
