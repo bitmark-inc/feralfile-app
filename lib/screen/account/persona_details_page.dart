@@ -337,7 +337,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
                 "this_is_base_account".tr(),
                 style: theme.textTheme.headline5?.copyWith(fontSize: 14),
                 maxFontSize: 14,
-                minFontSize: 8,
+                minFontSize: 1,
                 maxLines: 1,),
           ),
         ],
