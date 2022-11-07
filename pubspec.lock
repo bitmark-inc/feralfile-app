@@ -64,6 +64,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.1.10"
+  auto_size_text:
+    dependency: "direct main"
+    description:
+      name: auto_size_text
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.0.0"
   autonomy_theme:
     dependency: "direct main"
     description:
@@ -1174,8 +1181,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "0db770f54f20ca6622d1e5052787e4105898f713"
-      resolved-ref: "0db770f54f20ca6622d1e5052787e4105898f713"
+      ref: "396f6e9d629d2a828308e00dacab3594da7ea97a"
+      resolved-ref: "396f6e9d629d2a828308e00dacab3594da7ea97a"
       url: "https://github.com/autonomy-system/nft-collection"
     source: git
     version: "0.0.1"
@@ -1183,8 +1190,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "v1.0.11"
-      resolved-ref: e2752294b75eb2ed586b2f087229280a5fccff00
+      ref: "1c225e2307d34d86dd6fc5a174d3ed5fc0668a91"
+      resolved-ref: "1c225e2307d34d86dd6fc5a174d3ed5fc0668a91"
       url: "https://github.com/autonomy-system/nft-rendering.git"
     source: git
     version: "1.0.9"
@@ -1906,8 +1913,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "336d935c5f376afc0a21dac9c7061d3cdee6c047"
-      resolved-ref: "336d935c5f376afc0a21dac9c7061d3cdee6c047"
+      ref: bd4b8db6e3a352590a6e556d31df8aef60db3465
+      resolved-ref: bd4b8db6e3a352590a6e556d31df8aef60db3465
       url: "https://github.com/autonomy-system/tezart.git"
     source: git
     version: "2.0.4"
@@ -1967,6 +1974,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.4"
+  uri:
+    dependency: "direct main"
+    description:
+      name: uri
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.0"
   url_launcher:
     dependency: "direct main"
     description:
@@ -2132,8 +2146,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: f36e652fd8ebc2fe20c087d68775ed6451f48496
-      resolved-ref: f36e652fd8ebc2fe20c087d68775ed6451f48496
+      ref: "763516f2013982c8723e1ab1478f52a5ba0699c8"
+      resolved-ref: "763516f2013982c8723e1ab1478f52a5ba0699c8"
       url: "https://github.com/autonomy-system/wallet-connect-dart.git"
     source: git
     version: "1.0.2"

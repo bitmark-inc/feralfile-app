@@ -126,6 +126,7 @@ android {
 
     packagingOptions {
         exclude '**/lib/libsodiumjni.dylib'
+        pickFirst '**/*.so'
     }
 
     defaultConfig {

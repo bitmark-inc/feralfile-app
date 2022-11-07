@@ -13,6 +13,9 @@ extension FeralfileErrorExt on FeralfileError {
         return "Out of token";
       case 3010:
         return "Just once";
+      case 3013:
+      case 3014:
+        return "One more time";
       default:
         return "error".tr();
     }
@@ -28,6 +31,9 @@ extension FeralfileErrorExt on FeralfileError {
         return "Sorry, the tokens have been delivered to all fastest users.";
       case 3010:
         return "You have already accepted your gift edition.";
+      case 3013:
+      case 3014:
+        return "The validity of the QR code has expired. Please scan the QR code again.";
       default:
         return message;
     }

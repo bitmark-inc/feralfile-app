@@ -24,9 +24,10 @@ const _ethContractBlackList = [
 ];
 
 const _tezosContractBlacklist = [
-  "KT1C9X9s5rpVJGxwVuHEVBLYEdAQ1Qw8QDjH",
-  "KT1GBZmSxmnKJXGMdMLbugPfLyUPmuLSMwKS",
-  "KT1A5P4ejnLix13jtadsfV9GCnXLMNnab8UT",
+  "KT1C9X9s5rpVJGxwVuHEVBLYEdAQ1Qw8QDjH", // TezDAO
+  "KT1GBZmSxmnKJXGMdMLbugPfLyUPmuLSMwKS", // Tezos Domains NameRegistry
+  "KT1A5P4ejnLix13jtadsfV9GCnXLMNnab8UT", // KALAM
+  "KT1AFA2mwNUMNd4SsujE1YYp29vd8BZejyKW", // Hic et nunc DAO
 ];
 
 extension FilterEventExt on FilterEvent {
@@ -67,7 +68,7 @@ extension FilterEventExt on FilterEvent {
     }
 
     if (contractType != null && tokenId != null) {
-      final indexerId = "eth-${address?.hexEip55}-${tokenId.toRadixString(16)}";
+      final indexerId = "eth-${address?.hexEip55}-$tokenId";
       final token = AssetToken(
         artistName: null,
         artistURL: null,
@@ -140,12 +141,12 @@ extension TZKTTokenExtension on TZKTToken {
       medium: null,
       mimeType: metadata?["formats"]?[0]?["mimeType"],
       mintedAt: null,
-      previewURL: metadata?["thumbnailUri"],
+      previewURL: null,
       source: contract?.address,
       sourceURL: null,
       thumbnailID: null,
-      thumbnailURL: metadata?["thumbnailUri"],
-      galleryThumbnailURL: metadata?["thumbnailUri"],
+      thumbnailURL: null,
+      galleryThumbnailURL: null,
       title: metadata?["name"] ?? "",
       balance: 0,
       ownerAddress: owner,
@@ -237,6 +238,18 @@ class PendingTokenService {
           .where((e) => e != null)
           .map((e) => e as AssetToken)
           .toList();
+
+      // Check if pending tokens are transferred out, then remove from local database.
+      final currentPendingTokens = (await _assetTokenDao.findAllPendingTokens())
+          .where((e) => e.ownerAddress == owner);
+      final removedPending = currentPendingTokens.where((e) =>
+          tokens.firstWhereOrNull((element) => e.id == element.id) == null);
+      log.info("[PendingTokenService] Delete transferred out pending tokens: "
+          "${removedPending.map((e) => e.id).toList()}");
+      for (AssetToken token in removedPending) {
+        await _assetTokenDao.deleteAsset(token);
+      }
+
       final newTokens = tokens.where((e) => !ownedTokenIds.contains(e.id)).toList();
       pendingTokens.addAll(newTokens);
       if (pendingTokens.isNotEmpty) {

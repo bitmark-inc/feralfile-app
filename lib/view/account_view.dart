@@ -9,12 +9,12 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/global_receive/receive_detail_page.dart';
+import 'package:autonomy_flutter/screen/settings/connection/accounts_view.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -31,7 +31,7 @@ Widget accountWithConnectionItem(
           SizedBox(
               width: 24,
               height: 24,
-              child: Image.asset("assets/images/autonomyIcon.png")),
+              child: Image.asset("assets/images/moma_logo.png")),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
@@ -118,7 +118,7 @@ Widget accountItem(BuildContext context, Account account,
           ),
         ],
       ),
-      rightWidget: context.widget.toString().contains("AccountsView")
+      rightWidget: context.widget is AccountsView
           ? Visibility(
               visible: isHideGalleryEnabled,
               child: Icon(
@@ -240,10 +240,10 @@ Widget accountLogo(BuildContext context, Account account) {
         children: [
           Align(
             alignment: Alignment.centerLeft,
-              child: Image.asset("assets/images/autonomyIcon.png")),
+              child: Image.asset("assets/images/moma_logo.png")),
           Align(
             alignment: Alignment.topRight,
-            child: account.persona?.defaultAccount == 1 && context.widget.toString().contains("AccountsView")
+            child: account.persona?.defaultAccount == 1 && context.widget is AccountsView
                 ? SvgPicture.asset("assets/images/icon_verified.svg")
                 : const SizedBox(),
           ),

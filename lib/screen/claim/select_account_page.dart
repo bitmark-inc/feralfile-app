@@ -1,6 +1,7 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
+import 'package:autonomy_flutter/model/otp.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
@@ -17,26 +18,27 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 class SelectAccountPageArgs {
   final String? blockchain;
 
-  // If exhibitionId is not null, claim token after confirmed, otherwise, return selected account.
-  final String? exhibitionId;
-
   final Exhibition exhibition;
 
-  SelectAccountPageArgs(this.blockchain,
-      this.exhibitionId,
-      this.exhibition,);
+  final Otp? otp;
+
+  SelectAccountPageArgs(
+    this.blockchain,
+    this.exhibition,
+    this.otp,
+  );
 }
 
 class SelectAccountPage extends StatefulWidget {
-  final String? exhibitionId;
   final String? blockchain;
   final Exhibition exhibition;
+  final Otp? otp;
 
   const SelectAccountPage({
     Key? key,
-    this.exhibitionId,
     this.blockchain,
     required this.exhibition,
+    this.otp,
   }) : super(key: key);
 
   @override
@@ -110,14 +112,11 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
                 onPress: _selectedAccount == null
                     ? null
                     : () async {
-                        if (widget.exhibitionId != null) {
-                          await _claimToken(
-                            _selectedAccount!,
-                            widget.exhibitionId!,
-                          );
-                        } else {
-                          Navigator.of(context).pop(_selectedAccount);
-                        }
+                        await _claimToken(
+                          _selectedAccount!,
+                          widget.exhibition.id,
+                          otp: widget.otp,
+                        );
                       }),
           ],
         ),
@@ -187,8 +186,9 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
 
   Future _claimToken(
     Account account,
-    String exhibitionId,
-  ) async {
+    String exhibitionId, {
+    Otp? otp,
+  }) async {
     try {
       _setProcessingState(true);
       final ffService = injector<FeralFileService>();
@@ -196,6 +196,7 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
       await ffService.claimToken(
         exhibitionId: exhibitionId,
         address: address,
+        otp: otp,
       );
       memoryValues.airdropFFExhibitionId.value = null;
     } catch (e) {

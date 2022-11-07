@@ -36,7 +36,7 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
 
     final to = EthereumAddress.fromHex(widget.args.transaction.to);
     final EtherAmount amount = EtherAmount.fromUnitAndValue(
-        EtherUnit.wei, widget.args.transaction.value);
+        EtherUnit.wei, widget.args.transaction.value ?? 0);
 
     context.read<WCSendTransactionBloc>().add(WCSendTransactionEstimateEvent(
         to, amount, widget.args.transaction.data, widget.args.uuid));
@@ -64,7 +64,7 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
         body: BlocBuilder<WCSendTransactionBloc, WCSendTransactionState>(
           builder: (context, state) {
             final EtherAmount amount = EtherAmount.fromUnitAndValue(
-                EtherUnit.wei, widget.args.transaction.value);
+                EtherUnit.wei, widget.args.transaction.value ?? 0);
             final total =
                 state.fee != null ? state.fee! + amount.getInWei : null;
             return Stack(

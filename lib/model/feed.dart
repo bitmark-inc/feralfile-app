@@ -100,6 +100,10 @@ class FeedEvent {
       _$FeedEventFromJson(json);
 
   Map<String, dynamic> toJson() => _$FeedEventToJson(this);
+
+  String get uniqueKey {
+    return "${chain}_${contract}_${tokenID}_$recipient";
+  }
 }
 
 extension FeedEventHelpers on FeedEvent {
@@ -107,7 +111,7 @@ extension FeedEventHelpers on FeedEvent {
     try {
       switch (chain) {
         case 'ethereum':
-          return "eth-$contract-${BigInt.parse(tokenID).toRadixString(16)}";
+          return "eth-$contract-$tokenID";
         case 'tezos':
           return "tez-$contract-$tokenID";
         case 'bitmark':

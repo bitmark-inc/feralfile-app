@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/router/router_bloc.dart';
+import 'package:autonomy_flutter/screen/claim/claim_token_page.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
@@ -56,7 +57,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
     });
 
     Future.delayed(const Duration(seconds: 2), () {
-      final id = memoryValues.airdropFFExhibitionId.value;
+      final id = memoryValues.airdropFFExhibitionId.value?.first;
       if (id == null || id.isEmpty) {
         if (mounted) {
           setState(() {
@@ -67,9 +68,18 @@ class _OnboardingPageState extends State<OnboardingPage> {
     });
 
     String? currentExhibitionId;
+
+    void _updateDeepLinkState() {
+      setState(() {
+        fromBranchLink = false;
+        currentExhibitionId = null;
+        memoryValues.airdropFFExhibitionId.value = null;
+      });
+    }
+
     memoryValues.airdropFFExhibitionId.addListener(() async {
       try {
-        final exhibitionId = memoryValues.airdropFFExhibitionId.value;
+        final exhibitionId = memoryValues.airdropFFExhibitionId.value?.first;
         if (currentExhibitionId == exhibitionId) return;
         if (exhibitionId != null && exhibitionId.isNotEmpty) {
           currentExhibitionId = exhibitionId;
@@ -83,11 +93,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
             await injector.get<NavigationService>().showExhibitionNotStarted(
                   startTime: exhibition.exhibitionStartAt,
                 );
-            setState(() {
-              fromBranchLink = false;
-              currentExhibitionId = null;
-              memoryValues.airdropFFExhibitionId.value = null;
-            });
+            _updateDeepLinkState();
             return;
           }
 
@@ -96,11 +102,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
           if (exhibition.airdropInfo == null ||
               (endTime != null && endTime.isBefore(DateTime.now()))) {
             await injector.get<NavigationService>().showAirdropExpired();
-            setState(() {
-              fromBranchLink = false;
-              currentExhibitionId = null;
-              memoryValues.airdropFFExhibitionId.value = null;
-            });
+            _updateDeepLinkState();
             return;
           }
 
@@ -108,18 +110,24 @@ class _OnboardingPageState extends State<OnboardingPage> {
             await injector.get<NavigationService>().showNoRemainingToken(
                   exhibition: exhibition,
                 );
-            setState(() {
-              fromBranchLink = false;
-              currentExhibitionId = null;
-              memoryValues.airdropFFExhibitionId.value = null;
-            });
+            _updateDeepLinkState();
+            return;
+          }
+
+          final otp = memoryValues.airdropFFExhibitionId.value?.second;
+          if (otp?.isExpired == true) {
+            await injector.get<NavigationService>().showOtpExpired();
+            _updateDeepLinkState();
             return;
           }
 
           if (!mounted) return;
           await Navigator.of(context).pushNamed(
             AppRouter.claimFeralfileTokenPage,
-            arguments: exhibition,
+            arguments: ClaimTokenPageArgs(
+              exhibition: exhibition,
+              otp: otp
+            ),
           );
           currentExhibitionId = null;
 
@@ -196,11 +204,11 @@ class _OnboardingPageState extends State<OnboardingPage> {
                   ),
                 )
               : const SizedBox(),
-          SafeArea(
-            child: Center(
-                child: Container(
-                    margin: const EdgeInsets.fromLTRB(0, 0, 0, 0),
-                    child: _logo())),
+          Center(
+            child: Container(
+              margin: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+              child: _logo(),
+            ),
           ),
           Container(
             margin: edgeInsets,
@@ -280,8 +288,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
         future: isAppCenterBuild(),
         builder: (context, snapshot) {
           return Image.asset(snapshot.data == true
-              ? "assets/images/penrose_onboarding_appcenter.png"
-              : "assets/images/penrose_onboarding.png");
+              ? "assets/images/moma_logo.png"
+              : "assets/images/moma_logo.png");
         });
   }
 }

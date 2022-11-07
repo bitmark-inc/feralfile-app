@@ -172,7 +172,11 @@ class _SendReviewPageState extends State<SendReviewPage> {
                                                 null);
 
                                     if (!mounted) return;
-                                    Navigator.of(context).pop(txHash);
+                                    final payload = {
+                                      "isTezos": false,
+                                      "hash": txHash,
+                                    };
+                                    Navigator.of(context).pop(payload);
                                     break;
                                   case CryptoType.XTZ:
                                     final opHash = await injector<TezosService>()

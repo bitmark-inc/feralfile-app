@@ -59,6 +59,8 @@ import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:wallet_connect/models/wc_peer_meta.dart';
 
+import '../../util/constants.dart';
+
 class HomePage extends StatefulWidget {
   static const tag = "home";
 
@@ -141,6 +143,16 @@ class _HomePageState extends State<HomePage>
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.resumed) {
+      // reconnect disconnected sessions
+      injector<WalletConnectService>().initSessions(forced: true);
+      didPopNext();
+    }
+  }
+
+  @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     routeObserver.unsubscribe(this);
@@ -211,10 +223,18 @@ class _HomePageState extends State<HomePage>
             builder: (context, state) {
       final hiddenTokens =
           injector<ConfigurationService>().getTempStorageHiddenTokenIDs();
+      final sentArtworks =
+          injector<ConfigurationService>().getRecentlySentToken();
+      final expiredTime = DateTime.now().subtract(SENT_ARTWORK_HIDE_TIME);
       return NftCollectionGrid(
         state: state.state,
         tokens: state.tokens
-            .where((element) => !hiddenTokens.contains(element.id))
+            .where((element) =>
+                !hiddenTokens.contains(element.id) &&
+                !sentArtworks.any((e) => e.isHidden(
+                    tokenID: element.id,
+                    address: element.ownerAddress,
+                    timestamp: expiredTime)))
             .toList(),
         loadingIndicatorBuilder: _loadingView,
         emptyGalleryViewBuilder: _emptyGallery,

@@ -593,7 +593,13 @@ class AppRouter {
             settings: settings,
             child: MultiBlocProvider(
               providers: [
-                BlocProvider(create: (_) => FeedBloc(injector(), injector())),
+                BlocProvider(
+                  create: (_) => FeedBloc(
+                    injector(),
+                    injector(),
+                    nftCollectionBloc.database.assetDao,
+                  ),
+                ),
                 BlocProvider(
                     create: (_) =>
                         IdentityBloc(injector<AppDatabase>(), injector())),
@@ -850,11 +856,13 @@ class AppRouter {
                 ));
 
       case claimFeralfileTokenPage:
+        final args = settings.arguments as ClaimTokenPageArgs;
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) {
               return ClaimTokenPage(
-                exhibition: settings.arguments as Exhibition,
+                exhibition: args.exhibition,
+                otp: args.otp,
               );
             });
 
@@ -875,9 +883,9 @@ class AppRouter {
               return BlocProvider.value(
                 value: accountsBloc,
                 child: SelectAccountPage(
-                  exhibitionId: args.exhibitionId,
                   blockchain: args.blockchain,
                   exhibition: args.exhibition,
+                  otp: args.otp,
                 ),
               );
             });

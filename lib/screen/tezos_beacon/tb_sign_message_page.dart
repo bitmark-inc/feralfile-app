@@ -10,9 +10,11 @@ import 'dart:typed_data';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/debouce_util.dart';
+import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
@@ -21,6 +23,7 @@ import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:web3dart/crypto.dart';
 
@@ -103,7 +106,7 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
                     children: [
                       const SizedBox(height: 8.0),
                       Text(
-                        "h_confirm".tr(),
+                        "signature_request".tr(),
                         style: theme.textTheme.headline1,
                       ),
                       const SizedBox(height: 40.0),
@@ -143,6 +146,15 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
                                     .signResponse(widget.request.id, signature);
                                 if (!mounted) return;
                                 Navigator.of(context).pop();
+                                final notificationEnable =
+                                    injector<ConfigurationService>().isNotificationEnabled() ?? false;
+                                if (notificationEnable) {
+                                  showInfoNotification(
+                                    const Key("signed"),
+                                    "signed".tr().toUpperCase(),
+                                    frontWidget: SvgPicture.asset("assets/images/checkbox_icon.svg"),
+                                  );
+                                }
                               })
                           : null,
                     ),

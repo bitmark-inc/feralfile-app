@@ -199,7 +199,7 @@ class UIHelper {
             children: [
               Expanded(
                 child: TextButton(
-                  onPressed: () => onClose ?? Navigator.pop(context),
+                  onPressed: () => onClose?.call() ?? Navigator.pop(context),
                   child: Text(
                     closeButton ?? 'cancel'.tr(),
                     style: theme.primaryTextTheme.button,
@@ -221,6 +221,7 @@ class UIHelper {
       {bool isDismissible = false,
       int autoDismissAfter = 0,
       String closeButton = "",
+      VoidCallback? onClose,
       FeedbackType? feedback = FeedbackType.selection}) async {
     log.info("[UIHelper] showInfoDialog: $title, $description");
     final theme = Theme.of(context);
@@ -245,13 +246,29 @@ class UIHelper {
               ),
             ],
             const SizedBox(height: 40),
-            if (closeButton.isNotEmpty) ...[
+            if (closeButton.isNotEmpty && onClose == null) ...[
               const SizedBox(height: 16),
               Row(
                 children: [
                   Expanded(
                     child: TextButton(
                       onPressed: () => Navigator.pop(context),
+                      child: Text(
+                        closeButton,
+                        style: theme.primaryTextTheme.button,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 15),
+            ] else if (closeButton.isNotEmpty && onClose != null) ...[
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: onClose,
                       child: Text(
                         closeButton,
                         style: theme.primaryTextTheme.button,
@@ -458,6 +475,16 @@ class UIHelper {
       context,
       error.getDialogTitle(exhibition: exhibition),
       error.getDialogMessage(exhibition: exhibition),
+      "close".tr(),
+    );
+  }
+
+  static Future showOtpExpired(BuildContext context) async {
+    final error = FeralfileError(3013, "");
+    return showErrorDialog(
+      context,
+      error.dialogTitle,
+      error.dialogMessage,
       "close".tr(),
     );
   }

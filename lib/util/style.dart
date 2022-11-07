@@ -137,8 +137,8 @@ Widget get autonomyLogo {
       future: isAppCenterBuild(),
       builder: (context, snapshot) {
         return SvgPicture.asset(snapshot.data == true
-            ? "assets/images/penrose_appcenter.svg"
-            : "assets/images/penrose.svg");
+            ? "assets/images/penrose_moma.svg"
+            : "assets/images/penrose_moma.svg");
       });
 }
 

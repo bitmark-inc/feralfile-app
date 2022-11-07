@@ -16,6 +16,8 @@ import 'package:autonomy_flutter/gateway/feralfile_api.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/asset_price.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
+import 'package:autonomy_flutter/model/otp.dart';
+import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -51,6 +53,7 @@ abstract class FeralFileService {
   Future<bool> claimToken({
     required String exhibitionId,
     String? address,
+    Otp? otp,
     bool delayed = false,
     Future<bool> Function(Exhibition)? onConfirm,
   });
@@ -206,12 +209,13 @@ class FeralFileServiceImpl extends FeralFileService {
   Future<bool> claimToken(
       {required String exhibitionId,
       String? address,
+      Otp? otp,
       bool delayed = false,
       Future<bool> Function(Exhibition)? onConfirm}) async {
     log.info(
         "[FeralFileService] Claim token - exhibitionId: $exhibitionId, delayed: $delayed");
     if (delayed) {
-      memoryValues.airdropFFExhibitionId.value = exhibitionId;
+      memoryValues.airdropFFExhibitionId.value = Pair(exhibitionId, otp);
       return false;
     }
 
@@ -239,6 +243,7 @@ class FeralFileServiceImpl extends FeralFileService {
         "timestamp": message,
         "signature": signature,
         "address": receiver,
+        if (otp != null) ...{"airdropTOTPPasscode": otp.code}
       };
       final artworkId = exhibition.airdropArtwork?.id ?? "";
       final response = await _feralFileApi.claimArtwork(artworkId, body);
@@ -283,11 +288,13 @@ class FeralFileServiceImpl extends FeralFileService {
           .map((e) => AssetToken.fromAsset(e))
           .map((e) => e
             ..pending = true
+            ..ownerAddress = receiver
             ..owners.putIfAbsent(receiver, () => 1)
             ..lastActivityTime = DateTime.now())
           .toList();
       return tokens;
     } catch (e) {
+      log.info("[FeralFileService] Fetch token failed ($indexerId) $e");
       return [];
     }
   }
