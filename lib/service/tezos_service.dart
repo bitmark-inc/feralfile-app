@@ -44,7 +44,6 @@ class TezosServiceImpl extends TezosService {
     TezartClient("https://mainnet.api.tez.ie"),
     TezartClient("https://mainnet.smartpy.io"),
     TezartClient("https://rpc.tzbeta.net"),
-    TezartClient("https://mainnet-tezos.giganode.io"),
     TezartClient("https://mainnet.tezos.marigold.dev"),
   ];
 
