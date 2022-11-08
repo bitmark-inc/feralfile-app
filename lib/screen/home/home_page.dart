@@ -308,11 +308,6 @@ class _HomePageState extends State<HomePage>
           child: autonomyLogo,
         ),
         Text(
-          "collection".tr(),
-          style: theme.textTheme.headline1,
-        ),
-        const SizedBox(height: 24.0),
-        Text(
           "collection_empty_now".tr(),
           //"Your collection is empty for now.",
           style: theme.textTheme.bodyText1,
