@@ -35,6 +35,10 @@
 		63A61E1B27EAD2B3005684DD /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63A61E1A27EAD2B3005684DD /* Logger.swift */; };
 		63A61E1C27EAD383005684DD /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63A61E1A27EAD2B3005684DD /* Logger.swift */; };
 		63CED4A827AE9DFC00699ED5 /* LibAuk in Frameworks */ = {isa = PBXBuildFile; productRef = 63CED4A727AE9DFC00699ED5 /* LibAuk */; };
+		63DEE9E529196AE70075BB0D /* OneSignalExtension.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 63DEE9E429196AE70075BB0D /* OneSignalExtension.xcframework */; };
+		63DEE9E629196AE70075BB0D /* OneSignalExtension.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 63DEE9E429196AE70075BB0D /* OneSignalExtension.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		63DEE9E829196AEC0075BB0D /* OneSignalExtension.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 63DEE9E429196AE70075BB0D /* OneSignalExtension.xcframework */; };
+		63DEE9E929196AEC0075BB0D /* OneSignalExtension.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 63DEE9E429196AE70075BB0D /* OneSignalExtension.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		63F1664B27B2509F00451AAA /* BeaconBlockchainTezos in Frameworks */ = {isa = PBXBuildFile; productRef = 63F1664A27B2509F00451AAA /* BeaconBlockchainTezos */; };
 		63F1664D27B2509F00451AAA /* BeaconClientWallet in Frameworks */ = {isa = PBXBuildFile; productRef = 63F1664C27B2509F00451AAA /* BeaconClientWallet */; };
 		63F1664F27B2509F00451AAA /* BeaconCore in Frameworks */ = {isa = PBXBuildFile; productRef = 63F1664E27B2509F00451AAA /* BeaconCore */; };
@@ -122,6 +126,28 @@
 			name = "Embed App Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		63DEE9E729196AE70075BB0D /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				63DEE9E629196AE70075BB0D /* OneSignalExtension.xcframework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		63DEE9EA29196AED0075BB0D /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				63DEE9E929196AEC0075BB0D /* OneSignalExtension.xcframework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		76F328AA27D1EC1C00C3B9FA /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -181,6 +207,7 @@
 		6399594327B2C36B002653E7 /* LibAukChannelHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibAukChannelHandler.swift; sourceTree = "<group>"; };
 		63A61E1A27EAD2B3005684DD /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 		63BF0E5F27B0270E00E8B299 /* Runner.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Runner.entitlements; sourceTree = "<group>"; };
+		63DEE9E429196AE70075BB0D /* OneSignalExtension.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = OneSignalExtension.xcframework; path = Pods/OneSignalXCFramework/iOS_SDK/OneSignalSDK/OneSignal_Extension/OneSignalExtension.xcframework; sourceTree = "<group>"; };
 		63F1665227B250D600451AAA /* BeaconConnectService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeaconConnectService.swift; sourceTree = "<group>"; };
 		6C01A6A5A05E130639BC8BD1 /* Pods-Runner Inhouse.profile-prd.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner Inhouse.profile-prd.xcconfig"; path = "Target Support Files/Pods-Runner Inhouse/Pods-Runner Inhouse.profile-prd.xcconfig"; sourceTree = "<group>"; };
 		6F7D874ED7E495AB6FAA1943 /* Pods-Runner Inhouse.release-prd.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner Inhouse.release-prd.xcconfig"; path = "Target Support Files/Pods-Runner Inhouse/Pods-Runner Inhouse.release-prd.xcconfig"; sourceTree = "<group>"; };
@@ -240,6 +267,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				63DEE9E529196AE70075BB0D /* OneSignalExtension.xcframework in Frameworks */,
 				172D1BF67736BD327033032A /* Pods_Runner_Inhouse_Notification.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -248,6 +276,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				63DEE9E829196AEC0075BB0D /* OneSignalExtension.xcframework in Frameworks */,
 				271BD52B9B8D3E51B9B24252 /* Pods_Runner_Notification.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -338,6 +367,7 @@
 		48A495939161E7A3DB3133FE /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				63DEE9E429196AE70075BB0D /* OneSignalExtension.xcframework */,
 				58A4B4F527E33A8B001F30D2 /* libsqlite3.tbd */,
 				76F3288727CE585F00C3B9FA /* CloudKit.framework */,
 				A451CD8AF50E41359BCF628F /* Pods_Runner.framework */,
@@ -459,6 +489,7 @@
 				588939B7280525C200FE3313 /* Sources */,
 				588939B8280525C200FE3313 /* Frameworks */,
 				588939B9280525C200FE3313 /* Resources */,
+				63DEE9E729196AE70075BB0D /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -477,6 +508,7 @@
 				588939C828052E3E00FE3313 /* Sources */,
 				588939C928052E3E00FE3313 /* Frameworks */,
 				588939CA28052E3E00FE3313 /* Resources */,
+				63DEE9EA29196AED0075BB0D /* Embed Frameworks */,
 			);
 			buildRules = (
 			);

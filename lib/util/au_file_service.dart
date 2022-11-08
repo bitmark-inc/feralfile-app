@@ -179,7 +179,7 @@ class AuFileService extends FileService {
       final fileName = "${md5.convert(utf8.encode(url))}.${fileInfo.extension}";
       final taskId = await FlutterDownloader.enqueue(
         url: fallbackUrl ?? url,
-        headers: headers,
+        headers: headers ?? {},
         savedDir: _saveDir,
         fileName: fileName,
         showNotification: false,

@@ -51,7 +51,7 @@ dependencies:
   flutter_downloader:
     git:
       url: https://github.com/autonomy-system/flutter_downloader
-      ref: 0b047c6fc539df5e00be03a87ce598e4ef71005f
+      ref: d30d0379b9f6791d77a1b1d8afe5103ad37f4a98
   flutter_email_sender: ^5.1.0
   flutter_fgbg: ^0.2.0
   flutter_image_compress: ^1.1.0
@@ -146,8 +146,6 @@ dependencies:
   uri: ^1.0.0
 
 dependency_overrides:
-  cached_network_image: 3.2.1
-  syncfusion_flutter_pdfviewer: 20.2.46-beta
   # Error using when import photo_view from dependencies:
   # https://stackoverflow.com/questions/70404718/error-with-photoview-looking-up-a-deactivated-widgets-ancestor-is-unsafe/71010204#71010204
   photo_view:
