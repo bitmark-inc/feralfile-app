@@ -67,15 +67,27 @@ extension AssetTokenExtension on AssetToken {
     return wallet;
   }
 
+  String _intToHex(String intValue) {
+    try {
+      final hex = BigInt.parse(intValue, radix: 10).toRadixString(16);
+      return hex.padLeft(64, "0");
+    } catch (e) {
+      return intValue;
+    }
+  }
+
   String _multiUniqueUrl(String originUrl) {
     try {
       final uri = Uri.parse(originUrl);
       final builder = UriBuilder.fromUri(uri);
+      final id = (contractAddress == "KT1F6EKvGq8CKJhgsBy3GUJMSS9KPKn1UD5D")
+          ? _intToHex(tokenId!)
+          : tokenId;
       builder.queryParameters
         ..putIfAbsent("edition_index", () => "$edition")
         ..putIfAbsent("edition_number", () => "$edition")
         ..putIfAbsent("blockchain", () => blockchain)
-        ..putIfAbsent("token_id", () => "$tokenId")
+        ..putIfAbsent("token_id", () => "$id")
         ..putIfAbsent("contract", () => "$contractAddress");
       return builder.build().toString();
     } catch (e) {
