@@ -234,18 +234,39 @@ String _blockchainName(String? blockchain) {
 Widget accountLogo(BuildContext context, Account account) {
   if (account.persona != null) {
     return SizedBox(
-      width: 26,
-      height: 30,
+      width: 29,
+      height: 29,
       child: Stack(
         children: [
-          Align(
+          Container(
+            padding: const EdgeInsets.fromLTRB(0, 4, 4, 0),
             alignment: Alignment.centerLeft,
               child: Image.asset("assets/images/moma_logo.png")),
           Align(
             alignment: Alignment.topRight,
             child: account.persona?.defaultAccount == 1 && context.widget is AccountsView
-                ? SvgPicture.asset("assets/images/icon_verified.svg")
-                : const SizedBox(),
+              ? SizedBox(
+                width: 19,
+                height: 19,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Transform.scale(
+                      scale: 1.45,
+                      child: SvgPicture.asset(
+                        "assets/images/icon_verified.svg",
+                        color: Colors.white,
+                      )
+                    ),
+                    Align(
+                      child: SvgPicture.asset(
+                        "assets/images/icon_verified.svg",
+                      )
+                    ),
+                  ]
+                  ),
+              )
+              : const SizedBox(),
           ),
         ],
       ),
