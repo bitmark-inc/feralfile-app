@@ -31,7 +31,8 @@ extension AssetTokenExtension on AssetToken {
   }
 
   bool get isAirdrop {
-    return initialSaleModel?.toLowerCase() == "airdrop";
+    final saleModel = initialSaleModel?.toLowerCase();
+    return ["airdrop", "shopping_airdrop"].contains(saleModel);
   }
 
   String? get tokenURL {

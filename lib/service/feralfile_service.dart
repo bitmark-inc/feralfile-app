@@ -195,8 +195,7 @@ class FeralFileServiceImpl extends FeralFileService {
     final resp = await _feralFileApi.getExhibition(id);
     final exhibition = resp.result;
     final airdropArtworkId = exhibition.artworks
-        .firstWhereOrNull(
-            (e) => e.settings?.saleModel?.toLowerCase() == "airdrop")
+        .firstWhereOrNull((e) => e.settings?.isAirdrop == true)
         ?.id;
     if (airdropArtworkId != null) {
       final airdropArtwork = await _feralFileApi.getArtwork(airdropArtworkId);

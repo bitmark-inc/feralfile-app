@@ -41,6 +41,26 @@ class NavigationService {
         ?.pushNamed(routeName, arguments: arguments);
   }
 
+  Future<dynamic>? navigateUntil(String routeName,
+      RoutePredicate predicate, {
+        Object? arguments,
+      }) {
+    log.info("NavigationService.navigateTo: $routeName");
+
+    if (routeName == AppRouter.wcConnectPage && _isWCConnectInShow) {
+      log.info("[NavigationService] skip because WCConnectPage is in showing");
+      return null;
+    }
+
+    if (navigatorKey.currentState?.mounted != true ||
+        navigatorKey.currentContext == null) {
+      return null;
+    }
+
+    return navigatorKey.currentState
+        ?.pushNamedAndRemoveUntil(routeName, predicate);
+  }
+
   void showFFAccountLinked(String alias, {bool inOnboarding = false}) {
     log.info("NavigationService.showFFAccountLinked: $alias");
 
@@ -49,6 +69,9 @@ class NavigationService {
       UIHelper.showFFAccountLinked(navigatorKey.currentContext!, alias,
           inOnboarding: inOnboarding);
     }
+  }
+  NavigatorState navigatorState(){
+    return Navigator.of(navigatorKey.currentContext!);
   }
 
   Future showExhibitionNotStarted({
