@@ -1195,8 +1195,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "396f6e9d629d2a828308e00dacab3594da7ea97a"
-      resolved-ref: "396f6e9d629d2a828308e00dacab3594da7ea97a"
+      ref: c857d5ffdec3eb613adb584911487feabac74b68
+      resolved-ref: c857d5ffdec3eb613adb584911487feabac74b68
       url: "https://github.com/autonomy-system/nft-collection"
     source: git
     version: "0.0.1"
@@ -1243,7 +1243,7 @@ packages:
       name: onesignal_flutter
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.4.2"
+    version: "3.4.1"
   open_settings:
     dependency: "direct main"
     description:
