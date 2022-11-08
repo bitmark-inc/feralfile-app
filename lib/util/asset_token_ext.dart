@@ -189,6 +189,7 @@ AssetToken createPendingAssetToken({
     contractAddress: contract?.address,
     desc: artwork?.description,
     edition: 0,
+    editionName: "",
     id: indexerId ?? "",
     maxEdition: exhibition.maxEdition,
     medium: null,
