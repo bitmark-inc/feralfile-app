@@ -50,6 +50,7 @@ What to expect:
 """,*/
                       style: theme.textTheme.bodyText1,
                     ),
+                    const SizedBox(height: 20,),
                     ...[
                       "user_test_will_1"
                           .tr(), //'The user test will be conducted via Zoom.',
