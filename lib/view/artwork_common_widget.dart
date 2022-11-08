@@ -40,6 +40,9 @@ import 'package:url_launcher/url_launcher.dart';
 import '../common/injector.dart';
 
 String getEditionSubTitle(AssetToken token) {
+  if (token.editionName != null && token.editionName != "") {
+    return token.editionName!;
+  }
   if (token.edition == 0) return "";
   return token.maxEdition != null && token.maxEdition! >= 1
       ? tr('edition_of',
@@ -50,7 +53,9 @@ String getEditionSubTitle(AssetToken token) {
 class PendingTokenWidget extends StatelessWidget {
   final String? thumbnail;
   final String? tokenId;
-  const PendingTokenWidget({Key? key, this.thumbnail, this.tokenId}) : super(key: key);
+
+  const PendingTokenWidget({Key? key, this.thumbnail, this.tokenId})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
