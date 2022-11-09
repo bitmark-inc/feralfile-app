@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/pending_token_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
+import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/biometrics_util.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -45,9 +46,11 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
   int? _fee;
   WalletStorage? _currentWallet;
   bool _isSending = false;
+  late Wc2Service _wc2Service;
 
   @override
   void initState() {
+    _wc2Service = injector<Wc2Service>();
     super.initState();
     fetchPersona();
   }
@@ -64,7 +67,15 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
     }
 
     if (currentWallet == null) {
-      injector<TezosBeaconService>().signResponse(widget.request.id, null);
+      final wc2Topic = widget.request.wc2Topic;
+      if (wc2Topic != null) {
+        await _wc2Service.respondOnReject(
+          wc2Topic,
+          reason: "Address ${widget.request.sourceAddress} not found",
+        );
+      } else {
+        injector<TezosBeaconService>().signResponse(widget.request.id, null);
+      }
       if (!mounted) return;
       Navigator.of(context).pop();
       return;
@@ -106,19 +117,34 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
         ? (widget.request.operations!.first.amount ?? 0) + _fee!
         : null;
     final theme = Theme.of(context);
+    final wc2Topic = widget.request.wc2Topic;
 
     return WillPopScope(
       onWillPop: () async {
-        injector<TezosBeaconService>()
-            .operationResponse(widget.request.id, null);
+        if (wc2Topic != null) {
+          _wc2Service.respondOnReject(
+            wc2Topic,
+            reason: "User reject",
+          );
+        } else {
+          injector<TezosBeaconService>()
+              .operationResponse(widget.request.id, null);
+        }
         return true;
       },
       child: Scaffold(
         appBar: getBackAppBar(
           context,
           onBack: () {
-            injector<TezosBeaconService>()
-                .operationResponse(widget.request.id, null);
+            if (wc2Topic != null) {
+              _wc2Service.respondOnReject(
+                wc2Topic,
+                reason: "User reject",
+              );
+            } else {
+              injector<TezosBeaconService>()
+                  .operationResponse(widget.request.id, null);
+            }
             Navigator.of(context).pop();
           },
         ),
@@ -254,9 +280,16 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                                                 _currentWallet!,
                                                 widget.request.operations!);
 
-                                    injector<TezosBeaconService>()
-                                        .operationResponse(
-                                            widget.request.id, txHash);
+                                    if (wc2Topic != null) {
+                                      _wc2Service.respondOnApprove(
+                                        wc2Topic,
+                                        txHash ?? "",
+                                      );
+                                    } else {
+                                      injector<TezosBeaconService>()
+                                          .operationResponse(
+                                          widget.request.id, txHash);
+                                    }
 
                                     final address =
                                         widget.request.sourceAddress;

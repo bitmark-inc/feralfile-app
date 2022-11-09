@@ -490,7 +490,12 @@ class AppRouter {
           settings: settings,
           builder: (context) => BlocProvider(
             create: (_) => WCSendTransactionBloc(
-                injector(), injector(), injector(), injector()),
+              injector(),
+              injector(),
+              injector(),
+              injector(),
+              injector(),
+            ),
             child: WCSendTransactionPage(
                 args: settings.arguments as WCSendTransactionPageArgs),
           ),

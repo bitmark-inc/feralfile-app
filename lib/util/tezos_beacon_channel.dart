@@ -6,7 +6,6 @@
 //
 
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:autonomy_flutter/model/p2p_peer.dart';
 import 'package:autonomy_flutter/model/tezos_connection.dart';
@@ -220,6 +219,16 @@ class BeaconRequest {
   String? payload;
   String? sourceAddress;
 
-  BeaconRequest(this.id, this.senderID, this.version, this.originID, this.type,
-      this.appName, this.icon);
+  String? wc2Topic;
+
+  BeaconRequest(
+    this.id,
+    this.senderID,
+    this.version,
+    this.originID,
+    this.type,
+    this.appName,
+    this.icon, {
+    this.wc2Topic,
+  });
 }

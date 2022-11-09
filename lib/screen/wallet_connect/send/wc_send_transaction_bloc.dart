@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/pending_token_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
+import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/biometrics_util.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -25,11 +26,16 @@ class WCSendTransactionBloc
   final NavigationService _navigationService;
   final EthereumService _ethereumService;
   final WalletConnectService _walletConnectService;
+  final Wc2Service _wc2Service;
   final ConfigurationService _configurationService;
 
-  WCSendTransactionBloc(this._navigationService, this._ethereumService,
-      this._walletConnectService, this._configurationService)
-      : super(WCSendTransactionState()) {
+  WCSendTransactionBloc(
+    this._navigationService,
+    this._ethereumService,
+    this._wc2Service,
+    this._walletConnectService,
+    this._configurationService,
+  ) : super(WCSendTransactionState()) {
     on<WCSendTransactionEstimateEvent>((event, emit) async {
       final WalletStorage persona = LibAukDart.getWallet(event.uuid);
 
@@ -64,8 +70,12 @@ class WCSendTransactionBloc
 
       final txHash = await _ethereumService.sendTransaction(
           persona, event.to, event.value, event.gas, event.data);
-      _walletConnectService.approveRequest(
-          event.peerMeta, event.requestId, txHash);
+      if (event.isWalletConnect2) {
+        _wc2Service.respondOnApprove(event.topic ?? "", txHash);
+      } else {
+        _walletConnectService.approveRequest(
+            event.peerMeta, event.requestId, txHash);
+      }
       injector<PendingTokenService>()
           .checkPendingEthereumTokens(
               await persona.getETHEip55Address(), txHash)
@@ -78,7 +88,11 @@ class WCSendTransactionBloc
     });
 
     on<WCSendTransactionRejectEvent>((event, emit) async {
-      _walletConnectService.rejectRequest(event.peerMeta, event.requestId);
+      if (event.isWalletConnect2) {
+        _wc2Service.rejectSession(event.topic ?? "");
+      } else {
+        _walletConnectService.rejectRequest(event.peerMeta, event.requestId);
+      }
       _navigationService.goBack();
     });
   }

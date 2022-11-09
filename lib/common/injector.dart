@@ -193,8 +193,10 @@ Future<void> setup() async {
 
   injector
       .registerLazySingleton(() => TezosBeaconService(injector(), injector()));
-  injector
-      .registerLazySingleton(() => Wc2Service(injector()));
+  injector.registerLazySingleton(() => Wc2Service(
+        injector(),
+        injector(),
+      ));
   injector.registerLazySingleton<CurrencyExchangeApi>(
       () => CurrencyExchangeApi(dio, baseUrl: Environment.currencyExchangeURL));
   injector.registerLazySingleton<CurrencyService>(

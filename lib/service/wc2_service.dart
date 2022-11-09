@@ -9,11 +9,16 @@ import 'package:autonomy_flutter/model/wc2_pairing.dart';
 import 'package:autonomy_flutter/model/wc2_proposal.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/tezos_beacon/tb_send_transaction_page.dart';
+import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
+import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/wc2_channel.dart';
+import 'package:autonomy_flutter/util/wc2_tezos_ext.dart';
 import 'package:collection/collection.dart';
+import 'package:wallet_connect/models/ethereum/wc_ethereum_transaction.dart';
 
 class Wc2Service extends Wc2Handler {
   static final Set<String> _supportedChains = {
@@ -29,10 +34,14 @@ class Wc2Service extends Wc2Handler {
   };
 
   final NavigationService _navigationService;
+  final AccountService _accountService;
 
   late Wc2Channel _wc2channel;
 
-  Wc2Service(this._navigationService) {
+  Wc2Service(
+    this._navigationService,
+    this._accountService,
+  ) {
     _wc2channel = Wc2Channel(handler: this);
   }
 
@@ -68,6 +77,7 @@ class Wc2Service extends Wc2Handler {
     String topic, {
     String? reason,
   }) async {
+    log.info("[Wc2Service] respondOnReject topic $topic, reason: $reason");
     await _wc2channel.respondOnReject(
       topic: topic,
       reason: reason,
@@ -137,8 +147,49 @@ class Wc2Service extends Wc2Handler {
         arguments: request,
       );
     } else if (request.method == "au_sendTransaction") {
-      // TODO: handle send transaction request
-      // https://github.com/bitmark-inc/autonomy/issues/1630
+      final chain = request.params["chain"];
+      switch (chain.caip2Namespace) {
+        case "eip155":
+          try {
+            final account = await _accountService.getAccountByAddress(
+              chain: request.chainId,
+              address: request.params["address"],
+            );
+            final transactions =
+                request.params["transactions"] as Map<String, dynamic>;
+            final args = WCSendTransactionPageArgs(
+              request.id,
+              request.proposer!.toWCPeerMeta(),
+              WCEthereumTransaction.fromJson(transactions),
+              account.uuid,
+              topic: request.topic,
+              isWalletConnect2: true,
+            );
+            _navigationService.navigateTo(
+              WCSendTransactionPage.tag,
+              arguments: args,
+            );
+          } catch (e) {
+            await respondOnReject(request.topic, reason: "$e");
+          }
+          break;
+        case "tezos":
+          try {
+            final beaconReq = request.toBeaconRequest();
+            _navigationService.navigateTo(
+              TBSendTransactionPage.tag,
+              arguments: beaconReq,
+            );
+          } catch (e) {
+            await respondOnReject(request.topic, reason: "$e");
+          }
+          break;
+        default:
+          await respondOnReject(
+            request.topic,
+            reason: "Chain $chain is not supported",
+          );
+      }
     } else {
       log.info("[Wc2Service] Unsupported method: ${request.method}");
       await respondOnReject(
