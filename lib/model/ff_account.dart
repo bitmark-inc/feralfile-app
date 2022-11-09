@@ -192,7 +192,7 @@ class FFArtwork {
   }
 
   bool get isAirdropArtwork {
-    return settings?.saleModel?.toLowerCase() == "airdrop";
+    return settings?.isAirdrop == true;
   }
 
   factory FFArtwork.fromJson(Map<String, dynamic> json) =>
@@ -226,6 +226,10 @@ class FFArtworkSettings {
       _$FFArtworkSettingsFromJson(json);
 
   Map<String, dynamic> toJson() => _$FFArtworkSettingsToJson(this);
+
+  bool get isAirdrop {
+    return ["airdrop", "shopping_airdrop"].contains(saleModel?.toLowerCase());
+  }
 }
 
 @JsonSerializable()

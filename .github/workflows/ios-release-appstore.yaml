@@ -23,11 +23,11 @@ jobs:
       - name: Clone Flutter repository with master channel
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.0.5'
+          flutter-version: '3.3.7'
           channel: stable
       - uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: '13.4.1'
+          xcode-version: '14.0'
 
       - name: Set env
         run: |

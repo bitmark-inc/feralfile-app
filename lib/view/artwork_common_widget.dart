@@ -40,6 +40,9 @@ import 'package:url_launcher/url_launcher.dart';
 import '../common/injector.dart';
 
 String getEditionSubTitle(AssetToken token) {
+  if (token.editionName != null && token.editionName != "") {
+    return token.editionName!;
+  }
   if (token.edition == 0) return "";
   return token.maxEdition != null && token.maxEdition! >= 1
       ? tr('edition_of',
@@ -50,7 +53,9 @@ String getEditionSubTitle(AssetToken token) {
 class PendingTokenWidget extends StatelessWidget {
   final String? thumbnail;
   final String? tokenId;
-  const PendingTokenWidget({Key? key, this.thumbnail, this.tokenId}) : super(key: key);
+
+  const PendingTokenWidget({Key? key, this.thumbnail, this.tokenId})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -816,7 +821,7 @@ Widget tokenOwnership(
         "how_many_editions_you_own".tr(),
         style: theme.textTheme.bodyText1,
       ),
-      const SizedBox(height: 16.0),
+      const SizedBox(height: 32.0),
       _rowItem(context, "editions".tr(), "${asset.maxEdition}",
           tapLink: asset.tokenURL, forceSafariVC: true),
       const Divider(height: 32.0),

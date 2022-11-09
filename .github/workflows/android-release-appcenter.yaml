@@ -27,7 +27,7 @@ jobs:
           java-version: '11'
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.0.5'
+          flutter-version: '3.3.7'
           channel: stable
       - name: Set env
         run: |
@@ -36,6 +36,7 @@ jobs:
           echo "BRANCH_KEY=${{ secrets.BRANCH_KEY }}" >> $GITHUB_ENV
           echo "BRANCH_KEY_TEST=${{ secrets.BRANCH_KEY_TEST }}" >> $GITHUB_ENV
           ${{ github.event.inputs.testnet == 'true' }} && echo APPCENTER_APP_ID=support-zzd0-28/Autonomy-Android-Test >> $GITHUB_ENV || echo APPCENTER_APP_ID=support-zzd0-28/Autonomy-Android-1 >> $GITHUB_ENV
+          ${{ github.event.inputs.testnet == 'true' }} && echo NAME_SUFFIX=test-${{ github.event.inputs.build-number }} >> $GITHUB_ENV || echo NAME_SUFFIX=main-${{ github.event.inputs.build-number }} >> $GITHUB_ENV
 
       - uses: webfactory/ssh-agent@v0.5.4
         with:
@@ -88,11 +89,12 @@ jobs:
       - run: flutter pub cache repair
       - run: flutter pub get
       - run: flutter build apk --flavor inhouse
+      - run: mv build/app/outputs/flutter-apk/app-inhouse-release.apk build/app/outputs/flutter-apk/app-inhouse-release-${{ env.NAME_SUFFIX }}.apk
       - name: Distribute apk to App Center
         uses: akiojin/appcenter-distribute-github-action@v1
         with:
           token: ${{ secrets.APPCENTER_API_TOKEN }}
-          path: build/app/outputs/flutter-apk/app-inhouse-release.apk
+          path: build/app/outputs/flutter-apk/app-inhouse-release-${{ env.NAME_SUFFIX }}.apk
           app: ${{ env.APPCENTER_APP_ID }}
           silent: false
           group: 'Collaborators,Bitmark Internal Testers'

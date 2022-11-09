@@ -46,10 +46,10 @@ const SHORT_SHOW_DIALOG_DURATION = Duration(seconds: 1);
 
 void doneOnboarding(BuildContext context) async {
   injector<IAPService>().restore();
-  injector<ConfigurationService>().setPendingSettings(true);
-  injector<ConfigurationService>().setDoneOnboarding(true);
-  Navigator.of(context)
-      .pushNamedAndRemoveUntil(AppRouter.homePage, (route) => false);
+  await injector<ConfigurationService>().setPendingSettings(true);
+  await injector<ConfigurationService>().setDoneOnboarding(true);
+  injector<NavigationService>()
+      .navigateUntil(AppRouter.homePage, (route) => false);
 
   // await askForNotification();
   // Future.delayed(

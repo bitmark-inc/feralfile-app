@@ -3,10 +3,10 @@ import 'dart:math';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/gateway/tzkt_api.dart';
 import 'package:autonomy_flutter/model/tzkt_operation.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:collection/collection.dart';
-import 'package:flutter/widgets.dart';
 import 'package:nft_collection/database/dao/asset_token_dao.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/services/tokens_service.dart';
@@ -86,6 +86,7 @@ extension FilterEventExt on FilterEvent {
         contractAddress: address?.hexEip55 ?? "",
         desc: null,
         edition: 0,
+        editionName: "",
         id: indexerId,
         maxEdition: 1,
         medium: null,
@@ -136,6 +137,7 @@ extension TZKTTokenExtension on TZKTToken {
       contractAddress: contract?.address,
       desc: null,
       edition: 0,
+      editionName: "",
       id: "tez-${contract?.address}-$tokenId",
       maxEdition: 1,
       medium: null,
@@ -241,7 +243,8 @@ class PendingTokenService {
 
       // Check if pending tokens are transferred out, then remove from local database.
       final currentPendingTokens = (await _assetTokenDao.findAllPendingTokens())
-          .where((e) => e.ownerAddress == owner);
+          .where((e) => e.ownerAddress == owner)
+          .whereNot((e) => e.isAirdrop);
       final removedPending = currentPendingTokens.where((e) =>
           tokens.firstWhereOrNull((element) => e.id == element.id) == null);
       log.info("[PendingTokenService] Delete transferred out pending tokens: "

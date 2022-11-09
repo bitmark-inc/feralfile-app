@@ -195,6 +195,7 @@
 		6399594327B2C36B002653E7 /* LibAukChannelHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibAukChannelHandler.swift; sourceTree = "<group>"; };
 		63A61E1A27EAD2B3005684DD /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 		63BF0E5F27B0270E00E8B299 /* Runner.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Runner.entitlements; sourceTree = "<group>"; };
+		63DEE9E429196AE70075BB0D /* OneSignalExtension.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = OneSignalExtension.xcframework; path = Pods/OneSignalXCFramework/iOS_SDK/OneSignalSDK/OneSignal_Extension/OneSignalExtension.xcframework; sourceTree = "<group>"; };
 		63F1665227B250D600451AAA /* BeaconConnectService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeaconConnectService.swift; sourceTree = "<group>"; };
 		6C01A6A5A05E130639BC8BD1 /* Pods-Runner Inhouse.profile-prd.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner Inhouse.profile-prd.xcconfig"; path = "Target Support Files/Pods-Runner Inhouse/Pods-Runner Inhouse.profile-prd.xcconfig"; sourceTree = "<group>"; };
 		6F7D874ED7E495AB6FAA1943 /* Pods-Runner Inhouse.release-prd.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner Inhouse.release-prd.xcconfig"; path = "Target Support Files/Pods-Runner Inhouse/Pods-Runner Inhouse.release-prd.xcconfig"; sourceTree = "<group>"; };
@@ -360,6 +361,7 @@
 		48A495939161E7A3DB3133FE /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				63DEE9E429196AE70075BB0D /* OneSignalExtension.xcframework */,
 				58A4B4F527E33A8B001F30D2 /* libsqlite3.tbd */,
 				76F3288727CE585F00C3B9FA /* CloudKit.framework */,
 				A451CD8AF50E41359BCF628F /* Pods_Runner.framework */,
