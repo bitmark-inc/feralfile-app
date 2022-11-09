@@ -18,11 +18,12 @@ import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/models/asset_token.dart';
+import 'package:nft_collection/models/pending_tx_params.dart';
+import 'package:nft_collection/services/tokens_service.dart';
 import 'package:web3dart/web3dart.dart';
 
 class SendArtworkReviewPage extends StatefulWidget {
@@ -266,6 +267,20 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                                         (double.tryParse(widget
                                                 .payload.exchangeRate.xtz) ??
                                             1);
+
+                                    //post pending token to indexer
+                                    if (opHash != null) {
+                                      final pendingTxParams = PendingTxParams(
+                                          asset.id,
+                                          asset.blockchain,
+                                          asset.tokenId ?? "",
+                                          asset.contractAddress ?? "",
+                                          asset.ownerAddress,
+                                          opHash);
+                                      injector<TokensService>()
+                                          .postPendingToken(pendingTxParams);
+                                    }
+
                                     final tx = TZKTOperation(
                                       bakerFee: 0,
                                       block: '',
@@ -313,7 +328,8 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                                       "isTezos": true,
                                       "hash": opHash,
                                       "tx": tx,
-                                      "isSentAll": widget.payload.quantity >= widget.payload.ownedTokens
+                                      "isSentAll": widget.payload.quantity >=
+                                          widget.payload.ownedTokens
                                     };
                                     Navigator.of(context).pop(payload);
                                   }
