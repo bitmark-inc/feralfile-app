@@ -205,19 +205,21 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
         _customerSupportIconWidget(),
         Container(
           padding: const EdgeInsets.fromLTRB(17, 0, 0, 10),
-          child: IconButton(
-            tooltip: "Settings",
-            onPressed: () {
-              if (_opacity == 0) return;
-              if (isInSettingsPage) {
-                Navigator.of(context).pop();
-              } else {
-                Navigator.of(context).pushNamed(AppRouter.settingsPage);
-              }
-            },
-            icon: isInSettingsPage
-                ? closeIcon()
-                : _settingIcon(),
+          child: Semantics(
+            label: "Settings",
+            child: IconButton(
+              onPressed: () {
+                if (_opacity == 0) return;
+                if (isInSettingsPage) {
+                  Navigator.of(context).pop();
+                } else {
+                  Navigator.of(context).pushNamed(AppRouter.settingsPage);
+                }
+              },
+              icon: isInSettingsPage
+                  ? closeIcon()
+                  : _settingIcon(),
+            ),
           ),
         ),
       ],
