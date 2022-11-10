@@ -89,10 +89,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
           final exhibition =
               await injector<FeralFileService>().getExhibition(exhibitionId);
 
-          if (exhibition.exhibitionStartAt.isAfter(DateTime.now())) {
-            await injector.get<NavigationService>().showExhibitionNotStarted(
-                  startTime: exhibition.exhibitionStartAt,
-                );
+          if (exhibition.airdropInfo?.isAirdropStarted != true) {
+            await injector.get<NavigationService>().showAirdropNotStarted();
             _updateDeepLinkState();
             return;
           }

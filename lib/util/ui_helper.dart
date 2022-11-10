@@ -405,10 +405,7 @@ class UIHelper {
         autoDismissAfter: 5);
   }
 
-  static Future showExhibitionNotStarted(
-    BuildContext context, {
-    required DateTime startTime,
-  }) async {
+  static Future showAirdropNotStarted(BuildContext context) async {
     final theme = Theme.of(context);
     final error = FeralfileError(5006, "");
     return UIHelper.showDialog(

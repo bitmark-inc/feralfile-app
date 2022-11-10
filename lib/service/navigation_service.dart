@@ -74,15 +74,12 @@ class NavigationService {
     return Navigator.of(navigatorKey.currentContext!);
   }
 
-  Future showExhibitionNotStarted({
-    required DateTime startTime,
-  }) async {
-    log.info("NavigationService.showExhibitionNotStarted");
+  Future showAirdropNotStarted() async {
+    log.info("NavigationService.showAirdropNotStarted");
     if (navigatorKey.currentState?.mounted == true &&
         navigatorKey.currentContext != null) {
-      await UIHelper.showExhibitionNotStarted(
+      await UIHelper.showAirdropNotStarted(
         navigatorKey.currentContext!,
-        startTime: startTime,
       );
     } else {
       Future.value(0);
