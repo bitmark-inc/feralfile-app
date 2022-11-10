@@ -39,6 +39,7 @@ class _OnboardingPageState extends State<OnboardingPage>
     with TickerProviderStateMixin {
   bool _processing = false;
   bool fromBranchLink = false;
+  bool fromDeeplink = false;
 
   late AnimationController controller;
   late Animation<double> animation;
@@ -61,6 +62,12 @@ class _OnboardingPageState extends State<OnboardingPage>
     super.didChangeDependencies();
     log("DefineViewRoutingEvent");
     context.read<RouterBloc>().add(DefineViewRoutingEvent());
+  }
+
+  void handleDeepLink() async {
+    setState(() {
+      fromDeeplink = true;
+    });
   }
 
   void handleBranchLink() async {

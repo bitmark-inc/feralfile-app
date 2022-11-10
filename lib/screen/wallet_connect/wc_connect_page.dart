@@ -7,11 +7,13 @@
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/screen/connection/persona_connections_page.dart';
+import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -35,6 +37,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:wallet_connect/models/wc_peer_meta.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+
+import '../../service/account_service.dart';
 
 /*
  Because WalletConnect & TezosBeacon are using same logic:
@@ -106,9 +110,8 @@ class _WCConnectPageState extends State<WCConnectPage>
     Navigator.of(context).pop();
   }
 
-  Future _approve() async {
+  Future _approve({bool onBoarding = false}) async {
     if (selectedPersona == null) return;
-
     final wcConnectArgs = widget.wcConnectArgs;
     final beaconRequest = widget.beaconRequest;
 
@@ -132,10 +135,13 @@ class _WCConnectPageState extends State<WCConnectPage>
 
       payloadAddress = address;
       payloadType = CryptoType.ETH;
-
-      if (wcConnectArgs.peerMeta.url.contains("feralfile")) {
-        _navigateWhenConnectFeralFile();
-        return;
+      if (onBoarding){
+        _navigateHome();
+      } else {
+        if (wcConnectArgs.peerMeta.url.contains("feralfile")) {
+          _navigateWhenConnectFeralFile();
+          return;
+        }
       }
 
       if (wcConnectArgs.peerMeta.name == AUTONOMY_TV_PEER_NAME) {
@@ -173,15 +179,18 @@ class _WCConnectPageState extends State<WCConnectPage>
         address: payloadAddress,
         type: payloadType,
         personaName: selectedPersona!.name);
-
     if (!mounted) return;
     if (memoryValues.scopedPersona != null) {
       // from persona details flow
       Navigator.of(context).pop();
     } else {
-      Navigator.of(context).pushReplacementNamed(
-          AppRouter.personaConnectionsPage,
-          arguments: payload);
+      if (onBoarding) {
+        _navigateHome();
+      } else {
+        Navigator.of(context).pushReplacementNamed(
+            AppRouter.personaConnectionsPage,
+            arguments: payload);
+      }
     }
 
     await metricClient.addEvent(
@@ -194,8 +203,8 @@ class _WCConnectPageState extends State<WCConnectPage>
     );
   }
 
-  Future<void> _approveThenNotify() async {
-    await _approve();
+  Future<void> _approveThenNotify({bool onBoarding = false}) async {
+    await _approve(onBoarding: onBoarding);
     final notificationEnable =
         injector<ConfigurationService>().isNotificationEnabled() ?? false;
     if (notificationEnable) {
@@ -219,6 +228,11 @@ class _WCConnectPageState extends State<WCConnectPage>
 
   void _navigateWhenConnectFeralFile() {
     Navigator.of(context).pop();
+  }
+
+  void _navigateHome() {
+    Navigator.of(context).pushReplacementNamed(
+        AppRouter.homePage);
   }
 
   @override
@@ -286,10 +300,11 @@ class _WCConnectPageState extends State<WCConnectPage>
               if (statePersonas == null) return const SizedBox();
 
               if (statePersonas.isEmpty) {
-                return Expanded(child: _suggestToCreatePersona());
+                return Expanded(child: _createAccountAndConnect());
               } else {
-                return Expanded(child: _selectPersonaWidget(statePersonas));
+
               }
+              return Expanded(child: _selectPersonaWidget(statePersonas));
             }),
           ]),
         ),
@@ -424,7 +439,8 @@ class _WCConnectPageState extends State<WCConnectPage>
                                         "assets/images/moma_logo.png")),
                                 const SizedBox(width: 16.0),
                                 Text(persona.name,
-                                    style: theme.textTheme.headline4)
+                                    style: theme.textTheme.headline4,
+                                overflow: TextOverflow.ellipsis,)
                               ],
                             ),
                             contentPadding: EdgeInsets.zero,
@@ -530,6 +546,42 @@ class _WCConnectPageState extends State<WCConnectPage>
         );
       },
     );
+  }
+
+  Widget _createAccountAndConnect(){
+    return Column(
+      children: [
+        const Spacer(),
+        Row(
+          children: [
+            Expanded(
+              child: AuFilledButton(
+                text: "connect".tr().toUpperCase(),
+                onPress: () {
+                  _createAccount();
+                },
+              ),
+            )
+          ],
+        ),
+      ],
+    );
+  }
+
+  _createAccount() async {
+    UIHelper.showInfoDialog(context, "connecting...".tr(),"");
+    final account = await injector<AccountService>().getDefaultAccount();
+    final defaultName = await account.getAccountDID();
+    var persona = await injector<CloudDatabase>().personaDao.findById(account.uuid);
+    persona!.wallet().updateName(defaultName);
+    final namedPersona = persona.copyWith(name: defaultName);
+    await injector<CloudDatabase>().personaDao.updatePersona(namedPersona);
+    await injector<AuditService>().auditPersonaAction('name', namedPersona);
+    injector<ConfigurationService>().setDoneOnboarding(true);
+    injector<ConfigurationService>().setNotificationEnabled(true);
+    selectedPersona = namedPersona;
+    withDebounce(() => _approveThenNotify(onBoarding: true));
+
   }
 }
 
