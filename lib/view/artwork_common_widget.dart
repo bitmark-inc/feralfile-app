@@ -744,8 +744,7 @@ Widget artworkDetailsMetadataSection(
           ? Column(
               children: [
                 const Divider(height: 32.0),
-                _rowItem(
-                    context, "edition_number".tr(), asset.edition.toString()),
+                _getEditionNameRow(context ,asset),
               ],
             )
           : const SizedBox(),
@@ -795,6 +794,13 @@ Widget artworkDetailsMetadataSection(
           : const SizedBox(),
     ],
   );
+}
+
+Widget _getEditionNameRow(BuildContext context, AssetToken asset) {
+  if (asset.editionName != null && asset.editionName != "") {
+    return _rowItem(context, "edition_name".tr(), asset.editionName!);
+  }
+  return _rowItem(context, "edition_number".tr(), asset.edition.toString());
 }
 
 Widget tokenOwnership(
