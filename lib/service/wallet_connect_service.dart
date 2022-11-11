@@ -81,7 +81,7 @@ class WalletConnectService {
     try {
       wcClient.connectNewSession(session: session, peerMeta: peerMeta);
       wcClients.add(wcClient);
-    } catch (_){
+    } catch (_) {
       memoryValues.deepLink.value = null;
     }
   }

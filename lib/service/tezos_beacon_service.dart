@@ -9,7 +9,6 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/model/connection_supports.dart';
@@ -73,7 +72,7 @@ class TezosBeaconService implements BeaconHandler {
         await Future.delayed(const Duration(seconds: 1));
       }
     } while (retryCount < maxRetries);
-    //if (retryCount >= maxRetries) memoryValues.deepLink.value = null;
+    if (retryCount > maxRetries) memoryValues.deepLink.value = null;
   }
 
   Future removePeer(P2PPeer peer) async {

@@ -495,9 +495,7 @@ class _WCConnectPageState extends State<WCConnectPage>
             Expanded(
               child: AuFilledButton(
                 text: "connect".tr().toUpperCase(),
-                onPress: () {
-                  _createAccount();
-                },
+                onPress: () => withDebounce(() => _createAccount()),
               ),
             )
           ],
@@ -506,7 +504,7 @@ class _WCConnectPageState extends State<WCConnectPage>
     );
   }
 
-  _createAccount() async {
+  Future _createAccount() async {
     UIHelper.showInfoDialog(context, "connecting...".tr(), "");
     final account = await injector<AccountService>().getDefaultAccount();
     final defaultName = await account.getAccountDID();
@@ -518,7 +516,7 @@ class _WCConnectPageState extends State<WCConnectPage>
     await injector<AuditService>().auditPersonaAction('name', namedPersona);
     injector<ConfigurationService>().setDoneOnboarding(true);
     selectedPersona = namedPersona;
-    withDebounce(() => _approveThenNotify(onBoarding: true));
+    _approveThenNotify(onBoarding: true);
   }
 }
 

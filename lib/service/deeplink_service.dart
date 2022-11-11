@@ -120,7 +120,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
       "tezos://",
       "autonomy-tezos://",
     ];
-    if (!injector<ConfigurationService>().isDoneOnboarding()) {
+    if (!_configurationService.isDoneOnboarding()) {
       memoryValues.deepLink.value = link;
     }
     // Check Universal Link
