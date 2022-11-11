@@ -55,11 +55,11 @@ extension AssetTokenExtension on AssetToken {
     for (final persona in personas) {
       final String address;
       if (blockchain == "ethereum") {
-        address = await persona.wallet().getETHAddress();
+        address = await persona.wallet().getETHEip55Address();
       } else {
         address = (await persona.wallet().getTezosAddress());
       }
-      if (owners.containsKey(address)) {
+      if (ownerAddress == address) {
         wallet = persona.wallet();
         break;
       }
