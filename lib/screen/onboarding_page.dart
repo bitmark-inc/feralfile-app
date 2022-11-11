@@ -51,7 +51,7 @@ class _OnboardingPageState extends State<OnboardingPage>
   void initState() {
     super.initState();
     controller = AnimationController(duration: _durationAnimation, vsync: this);
-    animation = CurvedAnimation(parent: controller, curve: Curves.bounceInOut);
+    animation = CurvedAnimation(parent: controller, curve: Curves.easeIn);
     controller.forward();
     handleBranchLink();
   }
@@ -216,6 +216,7 @@ class _OnboardingPageState extends State<OnboardingPage>
               children: [
                 SizedBox(
                   height: fixedTop + maxWidthLogo + spaceLogo,
+                  width: widthScreen,
                 ),
                 AnimatedOpacity(
                   opacity: _opacityTween.evaluate(animation),
@@ -227,7 +228,8 @@ class _OnboardingPageState extends State<OnboardingPage>
                   margin: edgeInsets,
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.end,
-                    children: fromBranchLink
+                    children: fromBranchLink ||
+                            state.onboardingStep == OnboardingStep.undefined
                         ? [
                             Center(
                                 child: Text(
@@ -236,9 +238,7 @@ class _OnboardingPageState extends State<OnboardingPage>
                             ))
                           ]
                         : [
-                            state.onboardingStep != OnboardingStep.undefined
-                                ? privacyView(context)
-                                : const SizedBox(),
+                            privacyView(context),
                             const SizedBox(height: 32.0),
                             _getStartupButton(state),
                           ],
