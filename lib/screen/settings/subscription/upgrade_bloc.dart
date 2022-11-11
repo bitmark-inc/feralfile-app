@@ -77,7 +77,7 @@ class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
             _iapService.products.value[productId];
         if (subscriptionProductDetails != null) {
           await _iapService.purchase(subscriptionProductDetails);
-          await injector<MixPanelClientService>().trackEvent(
+          injector<MixPanelClientService>().trackEvent(
               "Subcription",
               data: {"productId": productId}
           );

@@ -148,15 +148,15 @@ class _WCConnectPageState extends State<WCConnectPage>
       }
 
       if (wcConnectArgs.peerMeta.name == AUTONOMY_TV_PEER_NAME) {
-        await metricClient.addEvent(
+        metricClient.addEvent(
           "connect_autonomy_display",
         );
-        await mixPanelClient.trackEvent(""
+        mixPanelClient.trackEvent(""
             "connect_autonomy_display"
         );
 
       } else {
-        await metricClient.addEvent(
+        metricClient.addEvent(
           "connect_external",
           data: {
             "method": "wallet_connect",
@@ -165,7 +165,7 @@ class _WCConnectPageState extends State<WCConnectPage>
           },
         );
 
-        await mixPanelClient.trackEvent(
+        mixPanelClient.trackEvent(
           "connect_external",
           data: {
             "method": "wallet_connect",
@@ -209,7 +209,7 @@ class _WCConnectPageState extends State<WCConnectPage>
       }
     }
 
-    await metricClient.addEvent(
+    metricClient.addEvent(
       "connect_external",
       data: {
         "method": "tezos_beacon",
@@ -218,7 +218,7 @@ class _WCConnectPageState extends State<WCConnectPage>
       },
     );
 
-    await mixPanelClient.trackEvent(
+    mixPanelClient.trackEvent(
       "connect_external",
       data: {
         "method": "tezos_beacon",

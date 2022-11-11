@@ -1,40 +1,20 @@
 import 'dart:convert';
 import 'dart:developer';
-import 'dart:io';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:crypto/crypto.dart';
-import 'package:flutter/foundation.dart';
-import 'package:metric_client/metric_client.dart';
-import 'package:package_info_plus/package_info_plus.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:mixpanel_flutter/mixpanel_flutter.dart';
 
 class MixPanelClientService {
   final AccountService _accountService;
   MixPanelClientService(this._accountService);
 
-  late DeviceConfig _deviceConfig;
   late Mixpanel mixpanel;
   Future<void> initService() async {
-    final deviceID = await getDeviceID() ?? "unknown";
-    final hashedDeviceID = sha224.convert(utf8.encode(deviceID)).toString();
-    final packageInfo = await PackageInfo.fromPlatform();
-    final isAppcenterBuild = await isAppCenterBuild();
-
-    _deviceConfig = DeviceConfig(
-      deviceId: hashedDeviceID,
-      platform: Platform.operatingSystem,
-      version: packageInfo.version,
-      internalBuild: isAppcenterBuild,
-    );
-
     final defaultDID = (await (await _accountService.getCurrentDefaultAccount())
         ?.getAccountDID()) ??
         'unknown';
@@ -53,6 +33,7 @@ class MixPanelClientService {
     mixpanel.identify(hashedUserID);
     mixpanel.getPeople().set("Address", hashedDefaultAddress);
     mixpanel.getPeople().set("Subscription", "Free");
+    mixpanel.registerSuperPropertiesOnce({"client": "Autonomy Wallet",});
   }
 
   Future<void> trackEvent(
@@ -71,7 +52,7 @@ class MixPanelClientService {
     if (hashedData.isNotEmpty) {
       hashedData = hashedData.map((key, value) {
           final salt = DateTime.now().day.toString();
-          final valueWithSalt = "${value}${salt}";
+          final valueWithSalt = "$value$salt";
           return MapEntry(key, sha256.convert(utf8.encode(valueWithSalt)).toString());
       });
     }
@@ -79,8 +60,6 @@ class MixPanelClientService {
     if (message != null) {
       mixedData['message'] = message;
     }
-
-    mixedData["withMetric"] = false;
 
     data.forEach((key, value) {
       mixedData[key] = value;

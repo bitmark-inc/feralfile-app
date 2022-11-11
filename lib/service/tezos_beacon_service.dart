@@ -101,10 +101,10 @@ class TezosBeaconService implements BeaconHandler {
     }
   }
 
-  Future signResponse(String id, String? signature) async {
+  Future signResponse(String id, String? signature) {
     if (signature != null) {
       final mixPanelClient = injector.get<MixPanelClientService>();
-      await mixPanelClient.trackEvent(
+      mixPanelClient.trackEvent(
         "Sign",
         hashedData: {"uuid": id,},
       );
@@ -163,13 +163,13 @@ class TezosBeaconService implements BeaconHandler {
     await injector<CloudDatabase>().connectionDao.insertConnection(connection);
     final metricClient = injector.get<MetricClientService>();
 
-    await metricClient.addEvent(
+    metricClient.addEvent(
       "link_tezos_beacon",
       hashedData: {"address": tezosConnection.address},
     );
 
     final mixPanelClient = injector.get<MixPanelClientService>();
-    await mixPanelClient.trackEvent(
+    mixPanelClient.trackEvent(
       "connect_external",
       data: {"type": "Tezos Beacon"},
       hashedData: {"address": tezosConnection.address},

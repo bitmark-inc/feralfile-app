@@ -149,7 +149,7 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
                                 if (!mounted) return;
 
                                 final mixPanelClient = injector.get<MixPanelClientService>();
-                                await mixPanelClient.trackEvent(
+                                mixPanelClient.trackEvent(
                                   "Sign In",
                                   hashedData: {"uuid": widget.request.id},
                                 );

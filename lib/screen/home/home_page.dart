@@ -411,7 +411,7 @@ class _HomePageState extends State<HomePage>
                       asset,
                       _cachedImageSize,
                     ),
-              onTap: () async {
+              onTap: () {
                 if (asset.pending == true && !asset.hasMetadata) return;
 
                 final index = tokens
@@ -429,10 +429,9 @@ class _HomePageState extends State<HomePage>
                       arguments: payload);
                 }
 
-                await mixPanelClient.trackEvent(
+                mixPanelClient.trackEvent(
                   "view_artwork",
-                  hashedData: {
-                    "tokenIndex": index,
+                  data: {
                     "tokenId": asset.tokenId,
                     "identity": asset.id
                   }
@@ -638,10 +637,10 @@ class _HomePageState extends State<HomePage>
     );
   }
 
-  void _handleBackground() async {
-    await metricClient.addEvent("device_background");
-    await metricClient.sendAndClearMetrics();
-    await mixPanelClient.sendData();
+  void _handleBackground() {
+    metricClient.addEvent("device_background");
+    metricClient.sendAndClearMetrics();
+    mixPanelClient.sendData();
     _cloudBackup();
     FileLogger.shrinkLogFileIfNeeded();
   }

@@ -225,7 +225,7 @@ class IAPServiceImpl implements IAPService {
             if (status.isTrial == true) {
               purchases.value[purchaseDetails.productID] =
                   IAPProductStatus.trial;
-              await injector<MixPanelClientService>().trackEvent(
+              injector<MixPanelClientService>().trackEvent(
                   "Trial",
                     data:{
                       "productId": purchaseDetails.productID,
@@ -240,7 +240,7 @@ class IAPServiceImpl implements IAPService {
             } else {
               purchases.value[purchaseDetails.productID] =
                   IAPProductStatus.completed;
-              await injector<MixPanelClientService>().trackEvent(
+              injector<MixPanelClientService>().trackEvent(
                 "Purchased",
                 data:{
                   "productId": purchaseDetails.productID,

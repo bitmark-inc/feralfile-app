@@ -132,11 +132,11 @@ class AccountServiceImpl extends AccountService {
     await androidBackupKeys();
     await _auditService.auditPersonaAction('create', persona);
     final metricClient = injector.get<MetricClientService>();
-    await metricClient
+    metricClient
         .addEvent("create_full_account", hashedData: {"id": uuid});
 
     final mixPanelClient = injector.get<MixPanelClientService>();
-    await mixPanelClient.trackEvent(
+    mixPanelClient.trackEvent(
         "create_full_account",
         data: {"isDefault": isDefault},
         hashedData: {"id": persona.uuid}
@@ -166,11 +166,11 @@ class AccountServiceImpl extends AccountService {
     await androidBackupKeys();
     await _auditService.auditPersonaAction('import', persona);
     final metricClient = injector.get<MetricClientService>();
-    await metricClient
+    metricClient
         .addEvent("import_full_account", hashedData: {"id": uuid});
 
     final mixPanelClient = injector.get<MixPanelClientService>();
-    await mixPanelClient.trackEvent(
+    mixPanelClient.trackEvent(
         "import_full_account",
         hashedData: {"id": persona.uuid}
     );
@@ -277,11 +277,11 @@ class AccountServiceImpl extends AccountService {
       Sentry.captureException(exception);
     }
     final metricClient = injector.get<MetricClientService>();
-    await metricClient
+    metricClient
         .addEvent("delete_full_account", hashedData: {"id": persona.uuid});
 
     final mixPanelClient = injector.get<MixPanelClientService>();
-    await mixPanelClient.trackEvent(
+    mixPanelClient.trackEvent(
         "delete_full_account",
         hashedData: {"id": persona.uuid}
     );
@@ -293,11 +293,11 @@ class AccountServiceImpl extends AccountService {
     await setHideLinkedAccountInGallery(connection.hiddenGalleryKey, false);
 
     final metricClient = injector.get<MetricClientService>();
-    await metricClient.addEvent("delete_linked_account",
+    metricClient.addEvent("delete_linked_account",
         hashedData: {"address": connection.accountNumber});
 
     final mixPanelClient = injector.get<MixPanelClientService>();
-    await mixPanelClient.trackEvent(
+    mixPanelClient.trackEvent(
         "delete_linked_account",
         data: {
           "wallet": connection.appName,
@@ -357,11 +357,11 @@ class AccountServiceImpl extends AccountService {
 
     await _cloudDB.connectionDao.insertConnection(connection);
     final metricClient = injector.get<MetricClientService>();
-    await metricClient.addEvent("link_eth_wallet",
+    metricClient.addEvent("link_eth_wallet",
         hashedData: {"address": connection.accountNumber});
 
     final mixPanelClient = injector.get<MixPanelClientService>();
-    await mixPanelClient.trackEvent(
+    mixPanelClient.trackEvent(
         "link_wallet",
         data: {
           "wallet": connection.appName,
@@ -393,11 +393,11 @@ class AccountServiceImpl extends AccountService {
 
     await _cloudDB.connectionDao.insertConnection(connection);
     final metricClient = injector.get<MetricClientService>();
-    await metricClient.addEvent("link_eth_wallet_browser",
+    metricClient.addEvent("link_eth_wallet_browser",
         hashedData: {"address": connection.accountNumber});
 
     final mixPanelClient = injector.get<MixPanelClientService>();
-    await mixPanelClient.trackEvent(
+    mixPanelClient.trackEvent(
         "link_wallet",
         data: {"wallet": walletApp.name, "type": "browser"},
         hashedData: {"address": address}
@@ -429,11 +429,11 @@ class AccountServiceImpl extends AccountService {
         .setHideLinkedAccountInGallery([address], isEnabled);
     injector<SettingsDataService>().backup();
     final metricClient = injector.get<MetricClientService>();
-    await metricClient
+    metricClient
         .addEvent("hide_linked_account", hashedData: {"address": address});
 
     final mixPanelClient = injector.get<MixPanelClientService>();
-    await mixPanelClient.trackEvent(
+    mixPanelClient.trackEvent(
         "hide_linked_account",
         hashedData: {"address": address}
     );

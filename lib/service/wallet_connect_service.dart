@@ -212,7 +212,7 @@ class WalletConnectService {
               arguments: WCConnectPageArgs(id, peerMeta));
         }
       },
-      onEthSign: (id, message) async {
+      onEthSign: (id, message) {
         String? uuid = wcConnection?.personaUuid ?? tmpUuids[currentPeerMeta!];
         if (uuid == null ||
             !wcClients.any(
@@ -223,7 +223,7 @@ class WalletConnectService {
                 id, topic, currentPeerMeta!, message.data!, uuid));
 
         final mixPanelClient = injector.get<MixPanelClientService>();
-        await mixPanelClient.trackEvent(
+        mixPanelClient.trackEvent(
             "Sign In",
             data: {"type" : "Eth",},
             hashedData: {"uuid": uuid}
