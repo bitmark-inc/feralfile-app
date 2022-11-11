@@ -145,7 +145,9 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                                   style: theme.textTheme.headline4,
                                 ),
                                 Text(
-                                  "${asset.edition}/${asset.maxEdition}",
+                                  (asset.maxEdition ?? 0) > 0
+                                      ? "${asset.edition}/${asset.maxEdition}"
+                                      : "${asset.edition}",
                                   style: theme.textTheme.bodyText2,
                                 ),
                               ],
