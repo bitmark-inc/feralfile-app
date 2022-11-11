@@ -115,7 +115,6 @@ jobs:
           flutter clean
           flutter pub get
           cd ios/
-          rm -rf Podfile.lock
           pod install
 
       - uses: mathieu-bour/setup-sentry-cli@main
