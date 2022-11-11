@@ -71,12 +71,14 @@ Widget accountWithConnectionItem(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                          connection.name.isNotEmpty
-                              ? connection.name
-                              : "unnamed".tr(),
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.headline4),
+                      Expanded(
+                        child: Text(
+                            connection.name.isNotEmpty
+                                ? connection.name
+                                : "unnamed".tr(),
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.headline4),
+                      ),
                       _linkedBox(context),
                     ]),
                 const SizedBox(height: 8),
