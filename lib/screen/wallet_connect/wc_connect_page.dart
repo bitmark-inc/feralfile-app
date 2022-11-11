@@ -73,6 +73,7 @@ class _WCConnectPageState extends State<WCConnectPage>
     super.initState();
     context.read<PersonaBloc>().add(GetListPersonaEvent());
     injector<NavigationService>().setIsWCConnectInShow(true);
+    memoryValues.deepLink.value = null;
   }
 
   @override
@@ -135,7 +136,7 @@ class _WCConnectPageState extends State<WCConnectPage>
 
       payloadAddress = address;
       payloadType = CryptoType.ETH;
-      if (onBoarding){
+      if (onBoarding) {
         _navigateHome();
       } else {
         if (wcConnectArgs.peerMeta.url.contains("feralfile")) {
@@ -231,8 +232,7 @@ class _WCConnectPageState extends State<WCConnectPage>
   }
 
   void _navigateHome() {
-    Navigator.of(context).pushReplacementNamed(
-        AppRouter.homePage);
+    Navigator.of(context).pushReplacementNamed(AppRouter.homePage);
   }
 
   @override
@@ -301,9 +301,7 @@ class _WCConnectPageState extends State<WCConnectPage>
 
               if (statePersonas.isEmpty) {
                 return Expanded(child: _createAccountAndConnect());
-              } else {
-
-              }
+              } else {}
               return Expanded(child: _selectPersonaWidget(statePersonas));
             }),
           ]),
@@ -438,9 +436,13 @@ class _WCConnectPageState extends State<WCConnectPage>
                                     child: Image.asset(
                                         "assets/images/moma_logo.png")),
                                 const SizedBox(width: 16.0),
-                                Text(persona.name,
+                                Expanded(
+                                  child: Text(
+                                    persona.name,
                                     style: theme.textTheme.headline4,
-                                overflow: TextOverflow.ellipsis,)
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                )
                               ],
                             ),
                             contentPadding: EdgeInsets.zero,
@@ -484,71 +486,7 @@ class _WCConnectPageState extends State<WCConnectPage>
     );
   }
 
-  Widget _suggestToCreatePersona() {
-    final theme = Theme.of(context);
-
-    return BlocConsumer<PersonaBloc, PersonaState>(
-      listener: (context, state) {
-        switch (state.createAccountState) {
-          case ActionState.done:
-            UIHelper.hideInfoDialog(context);
-            UIHelper.showGeneratedPersonaDialog(context, onContinue: () {
-              UIHelper.hideInfoDialog(context);
-              final createdPersona = state.persona;
-              if (createdPersona != null) {
-                Navigator.of(context).pushNamed(AppRouter.namePersonaPage,
-                    arguments: createdPersona.uuid);
-              }
-            });
-            break;
-
-          default:
-            break;
-        }
-      },
-      builder: (context, state) {
-        return Column(
-          children: [
-            // Expanded(
-            Expanded(
-              child: Column(
-                children: [
-                  Text("require_full_account".tr(),
-                      //'This service requires a full Autonomy account to connect to the dapp.',
-                      style: theme.textTheme.bodyText1),
-                  const SizedBox(height: 24),
-                  Text(
-                    "generate_full_account".tr(),
-                    //'Would you like to generate a full Autonomy account?',
-                    style: theme.textTheme.headline4,
-                  ),
-                  const SizedBox(height: 24),
-                  Text("newly_account_will".tr(),
-                      //'The newly generated account would also get an address for each of the chains that we support.',
-                      style: theme.textTheme.bodyText1),
-                ],
-              ),
-            ),
-            // ),
-            Row(
-              children: [
-                Expanded(
-                  child: AuFilledButton(
-                    text: "generate".tr().toUpperCase(),
-                    onPress: () {
-                      context.read<PersonaBloc>().add(CreatePersonaEvent());
-                    },
-                  ),
-                )
-              ],
-            )
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _createAccountAndConnect(){
+  Widget _createAccountAndConnect() {
     return Column(
       children: [
         const Spacer(),
@@ -569,19 +507,18 @@ class _WCConnectPageState extends State<WCConnectPage>
   }
 
   _createAccount() async {
-    UIHelper.showInfoDialog(context, "connecting...".tr(),"");
+    UIHelper.showInfoDialog(context, "connecting...".tr(), "");
     final account = await injector<AccountService>().getDefaultAccount();
     final defaultName = await account.getAccountDID();
-    var persona = await injector<CloudDatabase>().personaDao.findById(account.uuid);
+    var persona =
+        await injector<CloudDatabase>().personaDao.findById(account.uuid);
     persona!.wallet().updateName(defaultName);
     final namedPersona = persona.copyWith(name: defaultName);
     await injector<CloudDatabase>().personaDao.updatePersona(namedPersona);
     await injector<AuditService>().auditPersonaAction('name', namedPersona);
     injector<ConfigurationService>().setDoneOnboarding(true);
-    injector<ConfigurationService>().setNotificationEnabled(true);
     selectedPersona = namedPersona;
     withDebounce(() => _approveThenNotify(onBoarding: true));
-
   }
 }
 

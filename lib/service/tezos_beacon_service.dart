@@ -29,6 +29,8 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 
+import '../main.dart';
+
 class TezosBeaconService implements BeaconHandler {
   final NavigationService _navigationService;
   final CloudDatabase _cloudDB;
@@ -71,6 +73,7 @@ class TezosBeaconService implements BeaconHandler {
         await Future.delayed(const Duration(seconds: 1));
       }
     } while (retryCount < maxRetries);
+    //if (retryCount >= maxRetries) memoryValues.deepLink.value = null;
   }
 
   Future removePeer(P2PPeer peer) async {

@@ -8,6 +8,7 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/environment.dart';
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/branch_api.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/otp.dart';
@@ -95,6 +96,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
   }
 
   bool _handleDappConnectDeeplink(String link) {
+
     log.info("[DeeplinkService] _handleDappConnectDeeplink");
     final wcPrefixes = [
       "https://au.bitmark.com/apps/wc?uri=",
@@ -118,7 +120,9 @@ class DeeplinkServiceImpl extends DeeplinkService {
       "tezos://",
       "autonomy-tezos://",
     ];
-
+    if (!injector<ConfigurationService>().isDoneOnboarding()) {
+      memoryValues.deepLink.value = link;
+    }
     // Check Universal Link
     final callingWCPrefix =
         wcPrefixes.firstWhereOrNull((prefix) => link.startsWith(prefix));
@@ -153,7 +157,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
       }
       return true;
     }
-
+    memoryValues.deepLink.value = null;
     return false;
   }
 

@@ -73,7 +73,9 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
 
       _authService.reset();
       _feedService.unviewedCount.value = 0;
-      memoryValues = MemoryValues(airdropFFExhibitionId: ValueNotifier(null));
+      memoryValues = MemoryValues(
+          airdropFFExhibitionId: ValueNotifier(null),
+          deepLink: ValueNotifier(null));
 
       emit(ForgetExistState(state.isChecked, false));
     });
