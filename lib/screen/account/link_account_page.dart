@@ -78,14 +78,12 @@ class _LinkAccountPageState extends State<LinkAccountPage>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "add_account".tr(),
+                "link_account".tr(),
                 style: theme.textTheme.headline1,
               ),
               addTitleSpace(),
-              _bitmarkLinkView(context),
-              const SizedBox(height: 40),
-              _ethereumLinkView(context),
-              const SizedBox(height: 40),
+              //_bitmarkLinkView(context),
+              //const SizedBox(height: 40),
               _tezosLinkView(context),
               const SizedBox(height: 40),
             ],
@@ -135,18 +133,25 @@ class _LinkAccountPageState extends State<LinkAccountPage>
     );
   }
 
-  Widget _ethereumLinkView(BuildContext context) {
+
+  Widget _tezosLinkView(BuildContext context) {
+    final tezosBeaconService = injector<TezosBeaconService>();
     final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          "ethereum".tr(),
-          style: theme.textTheme.headline4,
-        ),
-        const SizedBox(
-          height: 4,
-        ),
+        TappableForwardRow(
+            leftWidget: Row(
+              children: [
+                Image.asset("assets/images/kukai_wallet.png"),
+                const SizedBox(width: 16),
+                Text("kukai".tr(), style: theme.textTheme.headline4),
+              ],
+            ),
+            onTap: () => Navigator.of(context).pushNamed(AppRouter.linkTezosKukaiPage)),
+        addOnlyDivider(),
+        _linkLedger("Ethereum"),
+        addOnlyDivider(),
         TappableForwardRow(
           leftWidget: Row(
             children: [
@@ -156,10 +161,19 @@ class _LinkAccountPageState extends State<LinkAccountPage>
             ],
           ),
           onTap: () => Navigator.of(context).pushNamed(
-              AppRouter.accessMethodPage,
-              arguments: WalletApp.MetaMask.toString()),
+              AppRouter.linkAppOptionPage,
+              arguments: WalletApp.MetaMask),
         ),
-        _linkLedger("Ethereum"),
+        addOnlyDivider(),
+        TappableForwardRow(
+            leftWidget: Row(
+              children: [
+                Image.asset("assets/images/temple_wallet.png"),
+                const SizedBox(width: 16),
+                Text("temple".tr(), style: theme.textTheme.headline4),
+              ],
+            ),
+            onTap: () => Navigator.of(context).pushNamed(AppRouter.linkTezosTemplePage)),
         addOnlyDivider(),
         TappableForwardRow(
             leftWidget: Row(
@@ -172,47 +186,6 @@ class _LinkAccountPageState extends State<LinkAccountPage>
             ),
             onTap: () => Navigator.of(context)
                 .pushNamed(AppRouter.linkWalletConnectPage)),
-      ],
-    );
-  }
-
-  Widget _tezosLinkView(BuildContext context) {
-    final tezosBeaconService = injector<TezosBeaconService>();
-    final theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          "tezos".tr(),
-          style: theme.textTheme.headline4,
-        ),
-        const SizedBox(
-          height: 20,
-        ),
-        TappableForwardRow(
-            leftWidget: Row(
-              children: [
-                Image.asset("assets/images/kukai_wallet.png"),
-                const SizedBox(width: 16),
-                Text("kukai".tr(), style: theme.textTheme.headline4),
-              ],
-            ),
-            onTap: () => Navigator.of(context).pushNamed(
-                AppRouter.accessMethodPage,
-                arguments: WalletApp.Kukai.toString())),
-        addOnlyDivider(),
-        TappableForwardRow(
-            leftWidget: Row(
-              children: [
-                Image.asset("assets/images/temple_wallet.png"),
-                const SizedBox(width: 16),
-                Text("temple".tr(), style: theme.textTheme.headline4),
-              ],
-            ),
-            onTap: () => Navigator.of(context).pushNamed(
-                AppRouter.accessMethodPage,
-                arguments: WalletApp.Temple.toString())),
-        _linkLedger("Tezos"),
         addOnlyDivider(),
         TappableForwardRow(
             leftWidget: Row(
@@ -249,7 +222,7 @@ class _LinkAccountPageState extends State<LinkAccountPage>
             ),
             onTap: () => Navigator.of(context).pushNamed(
                 AppRouter.linkLedgerWalletPage,
-                arguments: blockchain)),
+                arguments: "blockchain")),
       ],
     );
   }

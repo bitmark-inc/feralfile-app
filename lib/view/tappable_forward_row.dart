@@ -38,7 +38,7 @@ class TappableForwardRow extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          leftWidget ?? const SizedBox(),
+          Expanded(child: leftWidget ?? const SizedBox()),
           Row(
             children: [
               rightWidget ?? const SizedBox(),

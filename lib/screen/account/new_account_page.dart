@@ -56,7 +56,7 @@ class NewAccountPage extends StatelessWidget {
                             //"I already have NFTs in other wallets that I want to view with Autonomy.",
                             onTap: () {
                           Navigator.of(context)
-                              .pushNamed(AppRouter.linkAccountpage);
+                              .pushNamed(AppRouter.accessMethodPage);
                         }),
                         const Divider(
                           height: 1,

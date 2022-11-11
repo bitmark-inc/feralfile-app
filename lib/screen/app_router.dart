@@ -99,6 +99,7 @@ import 'package:autonomy_flutter/screen/wallet_connect/wc_disconnect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -302,18 +303,28 @@ class AppRouter {
       case accessMethodPage:
         return CupertinoPageRoute(
             settings: settings,
-            builder: (context) => BlocProvider(
-                create: (_) => FeralfileBloc.create(),
-                child: AccessMethodPage(
-                  walletApp: settings.arguments as String,
-                )));
+            builder: (context) => MultiBlocProvider(providers: [
+                  BlocProvider(
+                    create: (_) => FeralfileBloc.create(),
+                  ),
+                  BlocProvider(
+                    create: (_) => PersonaBloc(
+                      injector<CloudDatabase>(),
+                      injector(),
+                      injector(),
+                      injector<AuditService>(),
+                    ),
+                  ),
+                ], child: const AccessMethodPage()));
 
       case linkAppOptionPage:
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider(
                 create: (_) => FeralfileBloc.create(),
-                child: const LinkAppOptionsPage()));
+                child: LinkAppOptionsPage(
+                  walletApp: settings.arguments as WalletApp,
+                )));
 
       case linkMetamaskPage:
         return CupertinoPageRoute(

@@ -110,11 +110,14 @@ Widget accountItem(BuildContext context, Account account,
         children: [
           accountLogo(context, account),
           const SizedBox(width: 16),
-          Text(
-            account.name.isNotEmpty
-                ? account.name.maskIfNeeded()
-                : account.accountNumber.mask(4),
-            style: theme.textTheme.headline4,
+          Expanded(
+            child: Text(
+              account.name.isNotEmpty
+                  ? account.name
+                  : account.accountNumber.mask(4),
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.headline4,
+            ),
           ),
         ],
       ),
