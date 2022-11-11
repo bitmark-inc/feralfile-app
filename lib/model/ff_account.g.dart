@@ -181,6 +181,9 @@ AirdropInfo _$AirdropInfoFromJson(Map<String, dynamic> json) => AirdropInfo(
       json['artworkTitle'] as String?,
       json['artist'] as String?,
       json['gifter'] as String?,
+      json['startedAt'] == null
+          ? null
+          : DateTime.parse(json['startedAt'] as String),
       json['endedAt'] == null
           ? null
           : DateTime.parse(json['endedAt'] as String),
@@ -195,6 +198,7 @@ Map<String, dynamic> _$AirdropInfoToJson(AirdropInfo instance) =>
       'artworkTitle': instance.artworkTitle,
       'artist': instance.artist,
       'gifter': instance.gifter,
+      'startedAt': instance.startedAt?.toIso8601String(),
       'endedAt': instance.endedAt?.toIso8601String(),
     };
 

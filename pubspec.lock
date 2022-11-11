@@ -227,6 +227,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.2.1"
+  charcode:
+    dependency: transitive
+    description:
+      name: charcode
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.3.1"
   checked_yaml:
     dependency: transitive
     description:
@@ -1195,8 +1202,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: fcd3a7ece324c72488a5cb2043f16c3c19f220cc
-      resolved-ref: fcd3a7ece324c72488a5cb2043f16c3c19f220cc
+      ref: a150ed38b22b95caf10d213259553d4ba89782b6
+      resolved-ref: a150ed38b22b95caf10d213259553d4ba89782b6
       url: "https://github.com/autonomy-system/nft-collection"
     source: git
     version: "0.0.1"
