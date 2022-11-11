@@ -24,6 +24,7 @@ import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -817,7 +818,7 @@ class UIHelper {
   static showAccountLinked(
       BuildContext context, Connection connection, String walletName) {
     UIHelper.showInfoDialog(context, "account_linked".tr(),
-        "au_receive_auth_nft".tr(args: [walletName]));
+        "autonomy_has_received".tr(args: [walletName, connection.accountNumber.mask(4)]));
 
     Future.delayed(const Duration(seconds: 3), () {
       UIHelper.hideInfoDialog(context);
