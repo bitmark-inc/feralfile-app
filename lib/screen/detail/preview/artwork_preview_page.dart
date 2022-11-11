@@ -498,7 +498,11 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     final theme = Theme.of(context);
     return Scaffold(
       backgroundColor: theme.colorScheme.primary,
-      resizeToAvoidBottomInset: false,
+      // https://github.com/bitmark-inc/autonomy-apps/issues/1901
+      // if resizeToAvoidBottomInset == false, app will crash if rendering some PDF artwork & keyboard is showed.
+      // This issue happen on iOS only.
+      // For iOS, we don't have keyboard for software artwork, so temporary set this to true.
+      resizeToAvoidBottomInset: Platform.isIOS,
       body: BlocConsumer<ArtworkPreviewBloc, ArtworkPreviewState>(
         builder: (context, state) {
           AssetToken? assetToken;
