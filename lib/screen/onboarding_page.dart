@@ -86,6 +86,11 @@ class _OnboardingPageState extends State<OnboardingPage>
         setState(() {
           fromDeeplink = true;
         });
+        Future.delayed(const Duration(seconds: 30), () {
+          setState(() {
+            fromDeeplink = false;
+          });
+        });
       } else {
         setState(() {
           fromDeeplink = false;
@@ -260,7 +265,7 @@ class _OnboardingPageState extends State<OnboardingPage>
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: fromBranchLink ||
-                            state.onboardingStep == OnboardingStep.undefined || fromDeeplink
+                            (state.onboardingStep == OnboardingStep.undefined) || fromDeeplink
                         ? [
                             Center(
                                 child: Text(

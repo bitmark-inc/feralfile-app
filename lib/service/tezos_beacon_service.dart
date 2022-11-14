@@ -66,13 +66,13 @@ class TezosBeaconService implements BeaconHandler {
       try {
         final peer = await _beaconChannel.addPeer(link);
         _currentPeer = peer;
-        retryCount = maxRetries;
+        return;
       } catch (_) {
         retryCount++;
         await Future.delayed(const Duration(seconds: 1));
       }
     } while (retryCount < maxRetries);
-    if (retryCount > maxRetries) memoryValues.deepLink.value = null;
+    if (retryCount >= maxRetries) memoryValues.deepLink.value = null;
   }
 
   Future removePeer(P2PPeer peer) async {
