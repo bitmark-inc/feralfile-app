@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:after_layout/after_layout.dart';
@@ -20,9 +21,11 @@ import 'package:autonomy_flutter/screen/settings/subscription/upgrade_box_view.d
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/service/play_control_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/play_control.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -82,19 +85,50 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
       CastDiscoveryService().search();
   INFTRenderingWidget? _renderingWidget;
 
+  final playControlListen = injector.get<ValueNotifier<PlayControlService>>();
+  List<ArtworkIdentity> tokens = [];
+  Timer? _timer;
+
   @override
   void initState() {
-    controller = PageController(initialPage: widget.payload.currentIndex);
+    tokens = List.from(widget.payload.identities);
+    final initialTokenID = tokens[widget.payload.currentIndex];
+    if (playControlListen.value.isShuffle && widget.payload.isPlaylist) {
+      tokens.shuffle();
+    }
+    final initialPage = tokens.indexOf(initialTokenID);
+
+    controller = PageController(initialPage: initialPage);
     _bloc = context.read<ArtworkPreviewBloc>();
-    final currentIdentity = widget.payload.identities[widget.payload.currentIndex];
+    final currentIdentity = tokens[initialPage];
     _bloc.add(ArtworkPreviewGetAssetTokenEvent(currentIdentity));
     super.initState();
+  }
+
+  setTimer({int? time}) {
+    _timer?.cancel();
+    if (widget.payload.isPlaylist) {
+      final defauftDuration = playControlListen.value.timer == 0
+          ? time ?? 10
+          : playControlListen.value.timer;
+      _timer = Timer.periodic(Duration(seconds: defauftDuration), (timer) {
+        if (playControlListen.value.isLoop &&
+            controller.page?.toInt() == tokens.length - 1) {
+          controller.jumpTo(0);
+        } else {
+          if (controller.page?.toInt() == tokens.length - 1) return;
+          controller.nextPage(
+              duration: const Duration(microseconds: 1), curve: Curves.linear);
+        }
+      });
+    }
   }
 
   @override
   void dispose() {
     disableLandscapeMode();
     Wakelock.disable();
+    _timer?.cancel();
     routeObserver.unsubscribe(this);
     WidgetsBinding.instance.removeObserver(this);
     _stopAllChromecastDevices();
@@ -123,6 +157,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   void didPopNext() {
     enableLandscapeMode();
     Wakelock.enable();
+    setTimer();
     _renderingWidget?.didPopNext();
     super.didPopNext();
   }
@@ -151,7 +186,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     final isImmediateInfoViewEnabled =
         injector<ConfigurationService>().isImmediateInfoViewEnabled();
 
-    final currentIndex = widget.payload.identities.indexWhere((element) =>
+    final currentIndex = tokens.indexWhere((element) =>
         element.id == asset.id && element.owner == asset.ownerAddress);
     if (isImmediateInfoViewEnabled &&
         currentIndex == widget.payload.currentIndex) {
@@ -162,6 +197,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     disableLandscapeMode();
 
     Wakelock.disable();
+    _timer?.cancel();
 
     Navigator.of(context).pushNamed(
       AppRouter.artworkDetailsPage,
@@ -515,35 +551,52 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
             bottom: false,
             left: !isFullScreen,
             right: !isFullScreen,
-            child: Column(
+            child: Stack(
               children: [
-                Visibility(
-                  visible: !isFullScreen,
-                  child: ControlView(
-                    assetToken: assetToken,
-                    onClickInfo: () => _moveToInfo(assetToken),
-                    onClickFullScreen: onClickFullScreen,
-                    onClickCast: (assetToken) => onCastTap(assetToken),
-                    keyboardManagerKey: keyboardManagerKey,
-                  ),
-                ),
-                Expanded(
-                  child: PageView.builder(
-                    physics: isFullScreen
-                        ? const NeverScrollableScrollPhysics()
-                        : null,
-                    onPageChanged: (value) {
-                      final currentId = widget.payload.identities[value];
-                      _bloc.add(ArtworkPreviewGetAssetTokenEvent(currentId));
-                      _stopAllChromecastDevices();
-                      keyboardManagerKey.currentState?.hideKeyboard();
-                    },
-                    controller: controller,
-                    itemCount: widget.payload.identities.length,
-                    itemBuilder: (context, index) => Center(
-                      child: ArtworkPreviewWidget(
-                        identity: widget.payload.identities[index],
+                Column(
+                  children: [
+                    Visibility(
+                      visible: !isFullScreen,
+                      child: ControlView(
+                        assetToken: assetToken,
+                        onClickInfo: () => _moveToInfo(assetToken),
+                        onClickFullScreen: onClickFullScreen,
+                        onClickCast: (assetToken) => onCastTap(assetToken),
+                        keyboardManagerKey: keyboardManagerKey,
                       ),
+                    ),
+                    Expanded(
+                      child: PageView.builder(
+                        physics: isFullScreen
+                            ? const NeverScrollableScrollPhysics()
+                            : null,
+                        onPageChanged: (value) {
+                          final currentId = tokens[value];
+                          _bloc
+                              .add(ArtworkPreviewGetAssetTokenEvent(currentId));
+                          _stopAllChromecastDevices();
+                          keyboardManagerKey.currentState?.hideKeyboard();
+                        },
+                        controller: controller,
+                        itemCount: tokens.length,
+                        itemBuilder: (context, index) => Center(
+                          child: ArtworkPreviewWidget(
+                            identity: tokens[index],
+                            onLoaded: setTimer,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                Visibility(
+                  visible: widget.payload.isPlaylist && !isFullScreen,
+                  child: const Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    child: PlaylistControl(
+                      showPlay: false,
                     ),
                   ),
                 ),

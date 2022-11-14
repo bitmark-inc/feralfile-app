@@ -86,7 +86,7 @@ dependencies:
   nft_rendering:
     git:
       url: https://github.com/autonomy-system/nft-rendering.git
-      ref: 1c225e2307d34d86dd6fc5a174d3ed5fc0668a91
+      ref: 6e4781b4950e2cc81f86a384e1ce63545653c260
   onesignal_flutter: ^3.3.0
   open_settings: ^2.0.2
   overlay_support: ^2.0.0
@@ -126,7 +126,7 @@ dependencies:
   autonomy_theme:
     git:
       url: https://github.com/bitmark-inc/autonomy-client-shared-theme.git
-      ref: 1.0.4
+      ref: 1.0.5
 
   easy_localization: ^3.0.1
   rxdart: ^0.26.0

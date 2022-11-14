@@ -19,6 +19,8 @@ import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/gateway/pubdoc_api.dart';
 import 'package:autonomy_flutter/gateway/rendering_report_api.dart';
 import 'package:autonomy_flutter/gateway/tzkt_api.dart';
+import 'package:autonomy_flutter/screen/add_new_playlist/add_new_playlist_bloc.dart';
+import 'package:autonomy_flutter/screen/view_playlist/view_playlist_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
@@ -37,6 +39,7 @@ import 'package:autonomy_flutter/service/ledger_hardware/ledger_hardware_service
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/pending_token_service.dart';
+import 'package:autonomy_flutter/service/play_control_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
@@ -49,6 +52,7 @@ import 'package:autonomy_flutter/util/isolated_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:dio/dio.dart';
 import 'package:dio_smart_retry/dio_smart_retry.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart';
@@ -74,9 +78,8 @@ Future<void> setup() async {
 
   final sharedPreferences = await SharedPreferences.getInstance();
 
-  final mainnetDB = await $FloorAppDatabase
-      .databaseBuilder('app_database.db')
-      .addMigrations([
+  final mainnetDB =
+      await $FloorAppDatabase.databaseBuilder('app_database.db').addMigrations([
     migrateV1ToV2,
     migrateV2ToV3,
     migrateV3ToV4,
@@ -248,6 +251,11 @@ Future<void> setup() async {
         injector(),
         nftBloc.database.assetDao,
       ));
+  injector.registerFactory<AddNewPlaylistBloc>(() => AddNewPlaylistBloc());
+  injector.registerFactory<ViewPlaylistBloc>(() => ViewPlaylistBloc());
+  injector.registerSingleton<ValueNotifier<PlayControlService>>(
+      ValueNotifier<PlayControlService>(
+          PlayControlService(timer: 0, isLoop: false, isShuffle: false)));
 }
 
 Dio _feralFileDio() {
