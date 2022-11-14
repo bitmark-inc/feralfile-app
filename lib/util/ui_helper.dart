@@ -13,6 +13,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:jiffy/jiffy.dart';
@@ -874,8 +875,11 @@ class UIHelper {
 
   static showAccountLinked(
       BuildContext context, Connection connection, String walletName) {
-    UIHelper.showInfoDialog(context, "account_linked".tr(),
-        "autonomy_has_received".tr(args: [walletName, connection.accountNumber.mask(4)]));
+    UIHelper.showInfoDialog(
+        context,
+        "account_linked".tr(),
+        "autonomy_has_received"
+            .tr(args: [walletName, connection.accountNumber.mask(4)]));
 
     Future.delayed(const Duration(seconds: 3), () {
       UIHelper.hideInfoDialog(context);

@@ -1,8 +1,8 @@
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/sent_artwork.dart';
 import 'package:autonomy_flutter/screen/add_new_playlist/add_new_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/add_new_playlist/add_new_playlist_state.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -16,10 +16,12 @@ import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import '../../util/token_ext.dart';
 
 class AddNewPlaylistScreen extends StatefulWidget {
-  const AddNewPlaylistScreen({Key? key}) : super(key: key);
+  final PlayListModel? playListModel;
+  const AddNewPlaylistScreen({Key? key, this.playListModel}) : super(key: key);
 
   @override
   State<AddNewPlaylistScreen> createState() => _AddNewPlaylistScreenState();
@@ -45,7 +47,8 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen> {
       nftBloc.add(RefreshTokenEvent(addresses: value));
       nftBloc.add(RequestIndexEvent(value));
     });
-    bloc.add(InitPlaylist());
+    _playlistNameC.text = widget.playListModel?.name ?? '';
+    bloc.add(InitPlaylist(playListModel: widget.playListModel));
   }
 
   List<AssetToken> setupPlayList({
@@ -81,9 +84,7 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen> {
       bloc: bloc,
       listener: (context, state) {
         if (state.isAddSuccess == true) {
-          Navigator.pop(context);
-          Navigator.pushNamed(context, AppRouter.viewPlayListPage,
-              arguments: state.playListModel);
+          Navigator.pop(context, state.playListModel);
         }
       },
       builder: (context, state) {

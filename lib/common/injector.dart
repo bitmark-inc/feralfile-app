@@ -20,6 +20,7 @@ import 'package:autonomy_flutter/gateway/pubdoc_api.dart';
 import 'package:autonomy_flutter/gateway/rendering_report_api.dart';
 import 'package:autonomy_flutter/gateway/tzkt_api.dart';
 import 'package:autonomy_flutter/screen/add_new_playlist/add_new_playlist_bloc.dart';
+import 'package:autonomy_flutter/screen/edit_playlist/edit_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/view_playlist/view_playlist_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
@@ -256,6 +257,7 @@ Future<void> setup() async {
       ));
   injector.registerFactory<AddNewPlaylistBloc>(() => AddNewPlaylistBloc());
   injector.registerFactory<ViewPlaylistBloc>(() => ViewPlaylistBloc());
+  injector.registerFactory<EditPlaylistBloc>(() => EditPlaylistBloc());
   injector.registerSingleton<ValueNotifier<PlayControlService>>(
       ValueNotifier<PlayControlService>(
           PlayControlService(timer: 0, isLoop: false, isShuffle: false)));

@@ -124,7 +124,16 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                 IconButton(
                   onPressed: () {
                     UIHelper.showDialogAction(context, options: [
-                      OptionItem(title: tr('modify_playlist'), onTap: () {}),
+                      OptionItem(
+                          title: tr('modify_playlist'),
+                          onTap: () {
+                            Navigator.pop(context);
+                            Navigator.pushNamed(
+                              context,
+                              AppRouter.editPlayListPage,
+                              arguments: playList,
+                            );
+                          }),
                       OptionItem(
                           title: tr('delete_playlist'),
                           onTap: () {

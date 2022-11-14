@@ -58,6 +58,7 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_page.dart';
+import 'package:autonomy_flutter/screen/edit_playlist/edit_playlist.dart';
 import 'package:autonomy_flutter/screen/feed/feed_artwork_details_page.dart';
 import 'package:autonomy_flutter/screen/feed/feed_bloc.dart';
 import 'package:autonomy_flutter/screen/feed/feed_preview_page.dart';
@@ -116,6 +117,7 @@ import 'account/link_beacon_connect_page.dart';
 class AppRouter {
   static const createPlayListPage = "createPlayList";
   static const viewPlayListPage = "viewPlayList";
+  static const editPlayListPage = "editPlayList";
   static const onboardingPage = "onboarding";
   static const beOwnGalleryPage = 'be_own_gallery';
   static const moreAutonomyPage = 'more_autonomy';
@@ -193,7 +195,16 @@ class AppRouter {
       case createPlayListPage:
         return CupertinoPageRoute(
           settings: settings,
-          builder: (context) => const AddNewPlaylistScreen(),
+          builder: (context) => AddNewPlaylistScreen(
+            playListModel: settings.arguments as PlayListModel?,
+          ),
+        );
+      case editPlayListPage:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) => EditPlaylistScreen(
+            playListModel: settings.arguments as PlayListModel?,
+          ),
         );
       case onboardingPage:
         return CupertinoPageRoute(

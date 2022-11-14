@@ -5,7 +5,8 @@ import 'package:autonomy_flutter/model/play_list_model.dart';
 abstract class AddNewPlaylistEvent {}
 
 class InitPlaylist extends AddNewPlaylistEvent {
-  InitPlaylist();
+  final PlayListModel? playListModel;
+  InitPlaylist({this.playListModel});
 }
 
 class UpdateItemPlaylist extends AddNewPlaylistEvent {
