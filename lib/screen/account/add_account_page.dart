@@ -183,6 +183,8 @@ class _AddAccountPageState extends State<AddAccountPage> {
               style: theme.textTheme.bodyText1),
           onTap: () {
             if (state.createAccountState == ActionState.loading) return;
+            UIHelper.showInfoDialog(context, "generating".tr(), "",
+                isDismissible: true);
             context.read<PersonaBloc>().add(CreatePersonaEvent());
           },
         );

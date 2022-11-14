@@ -199,6 +199,7 @@ class _AccountsViewState extends State<AccountsView> {
               style: theme.textTheme.headline4,
               controller: _nameController,
               onSubmitted: (String value) async {
+                if (value.isEmpty) return;
                 final persona = account.persona;
                 final connection = account.connections?.first;
                 if (persona != null) {

@@ -19,7 +19,6 @@ import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/eula_privacy.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -27,6 +26,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:logging/logging.dart';
+
+final logger = Logger('App');
 
 class OnboardingPage extends StatefulWidget {
   const OnboardingPage({Key? key}) : super(key: key);
@@ -39,6 +41,7 @@ class _OnboardingPageState extends State<OnboardingPage>
     with TickerProviderStateMixin {
   bool _processing = false;
   bool fromBranchLink = false;
+  bool fromDeeplink = false;
 
   late AnimationController controller;
   late Animation<double> animation;
@@ -54,6 +57,7 @@ class _OnboardingPageState extends State<OnboardingPage>
     animation = CurvedAnimation(parent: controller, curve: Curves.easeIn);
     controller.forward();
     handleBranchLink();
+    handleDeepLink();
   }
 
   @override
@@ -61,6 +65,38 @@ class _OnboardingPageState extends State<OnboardingPage>
     super.didChangeDependencies();
     log("DefineViewRoutingEvent");
     context.read<RouterBloc>().add(DefineViewRoutingEvent());
+  }
+
+  void handleDeepLink(){
+    setState(() {
+      fromDeeplink = true;
+    });
+    Future.delayed(const Duration(seconds: 2), () {
+      final link = memoryValues.deepLink.value;
+      if (link == null || link.isEmpty) {
+        if (mounted) {
+          setState(() {
+            fromDeeplink = false;
+          });
+        }
+      }
+    });
+    memoryValues.deepLink.addListener(() async {
+      if (memoryValues.deepLink.value != null){
+        setState(() {
+          fromDeeplink = true;
+        });
+        Future.delayed(const Duration(seconds: 30), () {
+          setState(() {
+            fromDeeplink = false;
+          });
+        });
+      } else {
+        setState(() {
+          fromDeeplink = false;
+        });
+      }
+    });
   }
 
   void handleBranchLink() async {
@@ -229,7 +265,7 @@ class _OnboardingPageState extends State<OnboardingPage>
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: fromBranchLink ||
-                            state.onboardingStep == OnboardingStep.undefined
+                            (state.onboardingStep == OnboardingStep.undefined) || fromDeeplink
                         ? [
                             Center(
                                 child: Text(

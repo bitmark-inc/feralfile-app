@@ -16,6 +16,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:share/share.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_flutter/util/debouce_util.dart';
 
 class LinkTezosKukaiPage extends StatelessWidget {
   const LinkTezosKukaiPage({Key? key}) : super(key: key);
@@ -71,12 +72,12 @@ class LinkTezosKukaiPage extends StatelessWidget {
               children: [
                 Expanded(
                   child: AuFilledButton(
-                    text: "generate_link".tr().toUpperCase(),
-                    onPress: () async {
-                      final uri = await tezosBeaconService.getConnectionURI();
-                      Share.share("https://wallet.kukai.app/tezos$uri");
-                    },
-                  ),
+                      text: "generate_link".tr().toUpperCase(),
+                      onPress: () => withDebounce(() async {
+                            final uri =
+                                await tezosBeaconService.getConnectionURI();
+                            Share.share("https://wallet.kukai.app/tezos$uri");
+                          }, debounceTime: 2000000)),
                 ),
               ],
             ),

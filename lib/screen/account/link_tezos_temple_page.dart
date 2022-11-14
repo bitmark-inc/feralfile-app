@@ -17,6 +17,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
@@ -28,6 +29,7 @@ import 'package:share/share.dart';
 import 'package:uuid/uuid.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_flutter/util/debouce_util.dart';
 
 class LinkTezosTemplePage extends StatefulWidget {
   const LinkTezosTemplePage({Key? key}) : super(key: key);
@@ -98,7 +100,8 @@ class _LinkTezosTemplePageState extends State<LinkTezosTemplePage> {
                 Expanded(
                   child: AuFilledButton(
                     text: "generate_link".tr().toUpperCase(),
-                    onPress: () => _generateLinkAndListen(),
+                    onPress: () => withDebounce(() => _generateLinkAndListen(),
+                        debounceTime: 2000000),
                   ),
                 ),
               ],
@@ -192,7 +195,8 @@ class _LinkTezosTemplePageState extends State<LinkTezosTemplePage> {
       log.info('[LinkTemple][done] _handlePostMessageOpenChannel');
       if (!mounted) return;
       UIHelper.showInfoDialog(context, "link_requested".tr(),
-          "autonomy_has_sent".tr(args: [peer.name]));
+          "autonomy_has_sent".tr(args: [peer.name]),
+          autoDismissAfter: 3, isDismissible: true);
       //"Autonomy has sent a request to ${peer.name} to link to your account. Please open the wallet and authorize the request.");
     }
   }
@@ -224,8 +228,8 @@ class _LinkTezosTemplePageState extends State<LinkTezosTemplePage> {
         log.info('[LinkTemple][Done] _handleMessageResponse');
         if (!mounted) return;
         UIHelper.showInfoDialog(context, "account_linked".tr(),
-            "autonomy_has_received".tr(args: [_peer!.name]));
-        //"Autonomy has received autorization to link to your NFTs in ${_peer!.name}.");
+            "autonomy_has_received".tr(args: [_peer!.name, tzAddress.mask(4)]));
+        //Autonomy has received authorization to link to your account {accountNumbers} in {walletName}.;
 
         Future.delayed(SHOW_DIALOG_DURATION, () {
           UIHelper.hideInfoDialog(context);
@@ -263,7 +267,6 @@ class _LinkTezosTemplePageState extends State<LinkTezosTemplePage> {
             arguments: exception.connection);
       });
     } catch (_) {
-      UIHelper.hideInfoDialog(context);
       rethrow;
     }
   }

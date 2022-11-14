@@ -6,6 +6,7 @@
 //
 
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -13,11 +14,25 @@ import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-class AccessMethodPage extends StatelessWidget {
-  final String walletApp;
-  const AccessMethodPage({Key? key, required this.walletApp}) : super(key: key);
+import '../../common/injector.dart';
+import '../../database/cloud_database.dart';
+import '../../database/entity/connection.dart';
+import '../../util/constants.dart';
+import '../bloc/persona/persona_bloc.dart';
+
+class AccessMethodPage extends StatefulWidget {
+  const AccessMethodPage({Key? key}) : super(key: key);
+
+  @override
+  State<AccessMethodPage> createState() => _AccessMethodPageState();
+}
+
+class _AccessMethodPageState extends State<AccessMethodPage> {
+  var _redrawObject = Object();
 
   @override
   Widget build(BuildContext context) {
@@ -37,49 +52,62 @@ class AccessMethodPage extends StatelessWidget {
             child:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(
-                "access_method".tr(),
+                "add_account".tr(),
                 style: theme.textTheme.headline1,
               ),
               addTitleSpace(),
-              if (walletApp == 'WalletApp.MetaMask') ...[
-                Container(
-                  color: AppColor.chatPrimaryColor,
-                  child: Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'important'.tr(),
-                          style: theme.textTheme.atlasGreyBold14,
-                        ),
-                        const SizedBox(
-                          height: 5,
-                        ),
-                        RichText(
-                          text: TextSpan(
-                              text: 'autonomy_currently'.tr(),
-                              children: [
-                                TextSpan(
-                                    text: '${'ethereum_mainnet'.tr()}. ',
-                                    style: theme.textTheme.atlasBlackBold14),
-                                TextSpan(text: 'all_other_evm_networks'.tr()),
-                              ],
-                              style: theme.textTheme.atlasBlackNormal14),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+              if (injector<ConfigurationService>().isDoneOnboarding()) ...[
+                _createAccountOption(context),
+                addDivider(),
               ],
-              addTitleSpace(),
               _linkAccount(context),
               addDivider(),
               _importAccount(context),
+              injector<ConfigurationService>().isDoneOnboarding()
+                  ? _linkDebugWidget(context)
+                  : const SizedBox(),
             ]),
           ))
         ]),
       ),
+    );
+  }
+
+  Widget _createAccountOption(BuildContext context) {
+    final theme = Theme.of(context);
+    return BlocConsumer<PersonaBloc, PersonaState>(
+      listener: (context, state) {
+        switch (state.createAccountState) {
+          case ActionState.done:
+            UIHelper.hideInfoDialog(context);
+            UIHelper.showGeneratedPersonaDialog(context, onContinue: () {
+              UIHelper.hideInfoDialog(context);
+              final createdPersona = state.persona;
+              if (createdPersona != null) {
+                Navigator.of(context).pushNamed(AppRouter.namePersonaPage,
+                    arguments: createdPersona.uuid);
+              }
+            });
+            break;
+
+          default:
+            break;
+        }
+      },
+      builder: (context, state) {
+        return TappableForwardRowWithContent(
+          leftWidget: Text('new'.tr(), style: theme.textTheme.headline4),
+          bottomWidget: Text("ne_make_a_new_account".tr(),
+              //'Make a new account with addresses you can use to collect or receive NFTs on Ethereum, Feral File, and Tezos. ',
+              style: theme.textTheme.bodyText1),
+          onTap: () {
+            if (state.createAccountState == ActionState.loading) return;
+            UIHelper.showInfoDialog(context, "generating".tr(), "",
+                isDismissible: true);
+            context.read<PersonaBloc>().add(CreatePersonaEvent());
+          },
+        );
+      },
     );
   }
 
@@ -91,29 +119,13 @@ class AccessMethodPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              //'View your NFTs without Autonomy accessing your private keys in ${walletApp.split('.').last}.',
-              "li_view_your_nfts".tr(args: [walletApp.split('.').last]),
+              "li_view_your_nfts".tr(),
               style: theme.textTheme.bodyText1,
             ),
           ],
         ),
         onTap: () {
-          switch (walletApp) {
-            case 'WalletApp.MetaMask':
-              Navigator.of(context).pushNamed(AppRouter.linkAppOptionPage);
-              break;
-
-            case 'WalletApp.Kukai':
-              Navigator.of(context).pushNamed(AppRouter.linkTezosKukaiPage);
-              break;
-
-            case 'WalletApp.Temple':
-              Navigator.of(context).pushNamed(AppRouter.linkTezosTemplePage);
-              break;
-
-            default:
-              return;
-          }
+          Navigator.of(context).pushNamed(AppRouter.linkAccountpage);
         });
   }
 
@@ -132,6 +144,78 @@ class AccessMethodPage extends StatelessWidget {
         ],
       ),
       onTap: () => Navigator.of(context).pushNamed(AppRouter.importAccountPage),
+    );
+  }
+
+  Widget _linkDebugWidget(BuildContext context) {
+    final theme = Theme.of(context);
+    return FutureBuilder<bool>(
+        future: isAppCenterBuild(),
+        builder: (context, snapshot) {
+          if (snapshot.data == true) {
+            return Column(
+              children: [
+                addDivider(),
+                TappableForwardRowWithContent(
+                  leftWidget: Text('debug_address'.tr(),
+                      style: theme.textTheme.headline4),
+                  bottomWidget: Text("da_manually_input_an".tr(),
+                      //'Manually input an address for debugging purposes.',
+                      style: theme.textTheme.bodyText1),
+                  onTap: () => Navigator.of(context)
+                      .pushNamed(AppRouter.linkManually, arguments: 'address'),
+                ),
+                _linkTokenIndexerIDWidget(context),
+                addDivider(),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text("show_token_debug_log".tr(),
+                        style: theme.textTheme.headline4),
+                    CupertinoSwitch(
+                      value:
+                          injector<ConfigurationService>().showTokenDebugInfo(),
+                      onChanged: (isEnabled) async {
+                        await injector<ConfigurationService>()
+                            .setShowTokenDebugInfo(isEnabled);
+                        setState(() {
+                          _redrawObject = Object();
+                        });
+                      },
+                      activeColor: theme.colorScheme.primary,
+                    )
+                  ],
+                ),
+                const SizedBox(height: 40),
+              ],
+            );
+          }
+
+          return const SizedBox();
+        });
+  }
+
+  Widget _linkTokenIndexerIDWidget(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      children: [
+        addDivider(),
+        TappableForwardRowWithContent(
+          leftWidget: Text("debug_indexer_tokenId".tr(),
+              style: theme.textTheme.headline4),
+          bottomWidget: Text("dit_manually_input_an".tr(),
+              //'Manually input an indexer tokenID for debugging purposes',
+              style: theme.textTheme.bodyText1),
+          onTap: () => Navigator.of(context)
+              .pushNamed(AppRouter.linkManually, arguments: 'indexerTokenID'),
+        ),
+        TextButton(
+            onPressed: () {
+              injector<CloudDatabase>().connectionDao.deleteConnectionsByType(
+                  ConnectionType.manuallyIndexerTokenID.rawValue);
+            },
+            child: Text("delete_all_debug_li".tr())),
+      ],
     );
   }
 }

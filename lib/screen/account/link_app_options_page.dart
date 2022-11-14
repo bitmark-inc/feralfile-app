@@ -10,17 +10,21 @@ import 'dart:io';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/wallet_connect_dapp_service/wallet_connect_dapp_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:autonomy_theme/style/colors.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 
 class LinkAppOptionsPage extends StatefulWidget {
-  const LinkAppOptionsPage({Key? key}) : super(key: key);
+  final WalletApp walletApp;
+  const LinkAppOptionsPage({Key? key, required this.walletApp}) : super(key: key);
 
   @override
   State<LinkAppOptionsPage> createState() => _LinkAppOptionsPageState();
@@ -52,14 +56,45 @@ class _LinkAppOptionsPageState extends State<LinkAppOptionsPage> {
             child:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(
-                "where_are_you_using_metamask".tr(),
+                "where_are_you_using".tr(args: [widget.walletApp.toString().split(".").last]),
                 style: theme.textTheme.headline1,
               ),
               addTitleSpace(),
               _mobileAppOnThisDeviceOptionWidget(context),
               addOnlyDivider(),
               _browserExtensionOptionWidget(context),
-              addOnlyDivider(),
+              const SizedBox(height: 40,),
+                  if (widget.walletApp == WalletApp.MetaMask) ...[
+                    Container(
+                      color: AppColor.chatPrimaryColor,
+                      child: Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'important'.tr(),
+                              style: theme.textTheme.atlasGreyBold14,
+                            ),
+                            const SizedBox(
+                              height: 5,
+                            ),
+                            RichText(
+                              text: TextSpan(
+                                  text: 'autonomy_currently'.tr(),
+                                  children: [
+                                    TextSpan(
+                                        text: '${'ethereum_mainnet'.tr()}. ',
+                                        style: theme.textTheme.atlasBlackBold14),
+                                    TextSpan(text: 'all_other_evm_networks'.tr()),
+                                  ],
+                                  style: theme.textTheme.atlasBlackNormal14),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
             ]),
           ))
         ]),

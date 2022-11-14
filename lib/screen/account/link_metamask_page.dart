@@ -23,6 +23,7 @@ import 'package:share/share.dart';
 import 'package:uuid/uuid.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_flutter/util/debouce_util.dart';
 
 class LinkMetamaskPage extends StatefulWidget {
   const LinkMetamaskPage({Key? key}) : super(key: key);
@@ -91,7 +92,8 @@ class _LinkMetamaskPageState extends State<LinkMetamaskPage> {
                 Expanded(
                   child: AuFilledButton(
                     text: "generate_link".tr().toUpperCase(),
-                    onPress: () => _generateLinkAndListen(),
+                    onPress: () => withDebounce(() => _generateLinkAndListen(),
+                        debounceTime: 2000000),
                   ),
                 ),
               ],

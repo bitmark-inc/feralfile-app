@@ -178,7 +178,7 @@ class AutonomyApp extends StatelessWidget {
 final RouteObserver<ModalRoute<void>> routeObserver =
     RouteObserver<ModalRoute<void>>();
 
-var memoryValues = MemoryValues(airdropFFExhibitionId: ValueNotifier(null));
+var memoryValues = MemoryValues(airdropFFExhibitionId: ValueNotifier(null), deepLink: ValueNotifier(null));
 
 class MemoryValues {
   String? scopedPersona;
@@ -187,6 +187,7 @@ class MemoryValues {
   bool inGalleryView;
   ValueNotifier<Pair<String, Otp?>?> airdropFFExhibitionId;
   List<Connection>? linkedFFConnections = [];
+  ValueNotifier<String?> deepLink;
 
   MemoryValues({
     this.scopedPersona,
@@ -195,6 +196,7 @@ class MemoryValues {
     this.inGalleryView = true,
     required this.airdropFFExhibitionId,
     this.linkedFFConnections,
+    required this.deepLink,
   });
 
   MemoryValues copyWith({
@@ -203,6 +205,7 @@ class MemoryValues {
     return MemoryValues(
       scopedPersona: scopedPersona ?? this.scopedPersona,
       airdropFFExhibitionId: airdropFFExhibitionId,
+      deepLink: deepLink,
     );
   }
 }

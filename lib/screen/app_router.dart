@@ -29,6 +29,7 @@ import 'package:autonomy_flutter/screen/account/name_persona_page.dart';
 import 'package:autonomy_flutter/screen/account/new_account_page.dart';
 import 'package:autonomy_flutter/screen/account/persona_details_page.dart';
 import 'package:autonomy_flutter/screen/account/recovery_phrase_page.dart';
+import 'package:autonomy_flutter/screen/account/select_ledger_page.dart';
 import 'package:autonomy_flutter/screen/autonomy_security_page.dart';
 import 'package:autonomy_flutter/screen/be_own_gallery_page.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
@@ -99,6 +100,7 @@ import 'package:autonomy_flutter/screen/wallet_connect/wc_disconnect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -117,6 +119,7 @@ class AppRouter {
   static const addAccountPage = 'add_account';
   static const linkAccountpage = "link_account";
   static const linkLedgerWalletPage = "link_ledger_wallet";
+  static const selectLedgerWalletPage = "select_ledger_waller";
   static const linkWalletConnectPage = "link_wallet_connect";
   static const linkBeaconConnectPage = "link_beacon_connect";
   static const accountsPreviewPage = 'accounts_preview';
@@ -302,18 +305,28 @@ class AppRouter {
       case accessMethodPage:
         return CupertinoPageRoute(
             settings: settings,
-            builder: (context) => BlocProvider(
-                create: (_) => FeralfileBloc.create(),
-                child: AccessMethodPage(
-                  walletApp: settings.arguments as String,
-                )));
+            builder: (context) => MultiBlocProvider(providers: [
+                  BlocProvider(
+                    create: (_) => FeralfileBloc.create(),
+                  ),
+                  BlocProvider(
+                    create: (_) => PersonaBloc(
+                      injector<CloudDatabase>(),
+                      injector(),
+                      injector(),
+                      injector<AuditService>(),
+                    ),
+                  ),
+                ], child: const AccessMethodPage()));
 
       case linkAppOptionPage:
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider(
                 create: (_) => FeralfileBloc.create(),
-                child: const LinkAppOptionsPage()));
+                child: LinkAppOptionsPage(
+                  walletApp: settings.arguments as WalletApp,
+                )));
 
       case linkMetamaskPage:
         return CupertinoPageRoute(
@@ -344,6 +357,10 @@ class AppRouter {
             builder: (context) => BlocProvider.value(
                 value: accountsBloc,
                 child: LinkLedgerPage(payload: settings.arguments as String)));
+
+      case selectLedgerWalletPage:
+        return CupertinoPageRoute(settings: settings,
+        builder: (context) => const SelectLedgerPage());
 
       case linkWalletConnectPage:
         return CupertinoPageRoute(

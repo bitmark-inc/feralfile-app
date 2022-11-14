@@ -65,10 +65,10 @@ class _AccountsPreviewPageState extends State<AccountsPreviewPage> {
                   children: [
                     Expanded(
                       child: AuFilledButton(
-                        text: "link_another_account".tr().toUpperCase(),
+                        text: "add_another_account".tr().toUpperCase(),
                         onPress: () {
                           Navigator.of(context)
-                              .pushNamed(AppRouter.linkAccountpage);
+                              .pushNamed(AppRouter.accessMethodPage);
                         },
                       ),
                     ),

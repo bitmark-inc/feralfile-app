@@ -133,7 +133,7 @@ class _SettingsPageState extends State<SettingsPage>
                       children: [
                         TextButton(
                           onPressed: () => Navigator.of(context)
-                              .pushNamed(AppRouter.addAccountPage),
+                              .pushNamed(AppRouter.accessMethodPage),
                           child: Text(
                             'plus_account'.tr(),
                             style: theme.textTheme.subtitle1,
