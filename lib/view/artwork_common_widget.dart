@@ -231,6 +231,61 @@ Widget tokenGalleryThumbnailWidget(
   );
 }
 
+Widget tokenGalleryWidget(
+  BuildContext context,
+  AssetToken token,
+  int cachedImageSize,
+) {
+  final thumbnailUrl = token.getGalleryThumbnailUrl();
+  if (thumbnailUrl == null || thumbnailUrl.isEmpty) {
+    return const GalleryNoThumbnailWidget();
+  }
+
+  final ext = p.extension(thumbnailUrl);
+
+  final cacheManager = injector<CacheManager>();
+
+  Future<bool> cachingState = _cachingStates[thumbnailUrl] ??
+      cacheManager.store.retrieveCacheData(thumbnailUrl).then((cachedObject) {
+        final cached = cachedObject != null;
+        if (cached) {
+          _cachingStates[thumbnailUrl] = Future.value(true);
+        }
+        return cached;
+      });
+
+  return Semantics(
+    label: token.title,
+    child: ext == ".svg"
+        ? SvgImage(
+            url: thumbnailUrl,
+            loadingWidgetBuilder: (_) => const GalleryThumbnailPlaceholder(),
+            errorWidgetBuilder: (_) => const GalleryThumbnailErrorWidget(),
+            unsupportWidgetBuilder: (context) =>
+                const GalleryUnSupportThumbnailWidget(),
+          )
+        : CachedNetworkImage(
+            imageUrl: thumbnailUrl,
+            fadeInDuration: Duration.zero,
+            fit: BoxFit.cover,
+            memCacheHeight: cachedImageSize,
+            memCacheWidth: cachedImageSize,
+            maxWidthDiskCache: cachedImageSize,
+            maxHeightDiskCache: cachedImageSize,
+            cacheManager: cacheManager,
+            placeholder: (context, index) => FutureBuilder<bool>(
+                future: cachingState,
+                builder: (context, snapshot) {
+                  return GalleryThumbnailPlaceholder(
+                    loading: !(snapshot.data ?? true),
+                  );
+                }),
+            errorWidget: (context, url, error) =>
+                const GalleryThumbnailErrorWidget(),
+          ),
+  );
+}
+
 class GalleryUnSupportWidget extends StatelessWidget {
   final String type;
   final Function()? onHideArtwork;
@@ -482,8 +537,13 @@ class _ReportButtonState extends State<ReportButton> {
   }
 }
 
-INFTRenderingWidget buildRenderingWidget(BuildContext context, AssetToken token,
-    {int? attempt}) {
+INFTRenderingWidget buildRenderingWidget(
+  BuildContext context,
+  AssetToken token, {
+  int? attempt,
+  Function({int? time})? onLoaded,
+  Function({int? time})? onDispose,
+}) {
   String mimeType = "";
   switch (token.medium) {
     case "image":
@@ -516,6 +576,8 @@ INFTRenderingWidget buildRenderingWidget(BuildContext context, AssetToken token,
     loadingWidget: previewPlaceholder(context),
     errorWidget: BrokenTokenWidget(token: token),
     cacheManager: injector<CacheManager>(),
+    onLoaded: onLoaded,
+    onDispose: onDispose,
   ));
 
   return renderingWidget;
@@ -744,7 +806,7 @@ Widget artworkDetailsMetadataSection(
           ? Column(
               children: [
                 const Divider(height: 32.0),
-                _getEditionNameRow(context ,asset),
+                _getEditionNameRow(context, asset),
               ],
             )
           : const SizedBox(),

@@ -9,6 +9,7 @@ import 'dart:convert';
 
 import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/model/network.dart';
+import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/sent_artwork.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -121,6 +122,10 @@ abstract class ConfigurationService {
 
   Future<void> setPreviousBuildNumber(String value);
 
+  List<PlayListModel>? getPlayList();
+
+  Future<void> setPlayList(List<PlayListModel>? value, {bool override = false});
+
   List<String> getFinishedSurveys();
 
   Future<void> setFinishedSurvey(List<String> surveyNames);
@@ -192,8 +197,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
       'hidden_linked_accounts_in_gallery';
   static const String KEY_TEMP_STORAGE_HIDDEN_TOKEN_IDS =
       'temp_storage_hidden_token_ids_mainnet';
-  static const String KEY_RECENTLY_SENT_TOKEN =
-      'recently_sent_token_mainnet';
+  static const String KEY_RECENTLY_SENT_TOKEN = 'recently_sent_token_mainnet';
   static const String KEY_READ_RELEASE_NOTES_VERSION =
       'read_release_notes_version';
   static const String KEY_FINISHED_SURVEYS = "finished_surveys";
@@ -218,6 +222,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
   static const String TV_CONNECT_PEER_META = "tv_connect_peer_meta";
   static const String TV_CONNECT_ID = "tv_connect_id";
+
+  static const String PLAYLISTS = "playlists";
 
   // Do at once
   static const String KEY_SENT_TEZOS_ARTWORK_METRIC =
@@ -503,8 +509,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
       var sentTokenIDs = _preferences.getStringList(key) ?? [];
 
       sentTokenIDs.addAll(updateTokens);
-      await _preferences.setStringList(
-          key, sentTokenIDs.toSet().toList());
+      await _preferences.setStringList(key, sentTokenIDs.toSet().toList());
     }
   }
 
@@ -723,5 +728,29 @@ class ConfigurationServiceImpl implements ConfigurationService {
       return;
     }
     await _preferences.setInt(COUNT_OPEN_APP, value);
+  }
+
+  @override
+  List<PlayListModel>? getPlayList() {
+    final playListsString = _preferences.getStringList(PLAYLISTS) ?? [];
+    return playListsString
+        .map((e) => PlayListModel.fromJson(jsonDecode(e)))
+        .toList();
+  }
+
+  @override
+  Future<void> setPlayList(List<PlayListModel>? value,
+      {bool override = false}) async {
+    final playlists = value?.map((e) => jsonEncode(e)).toList() ?? [];
+
+    if (override) {
+      await _preferences.setStringList(PLAYLISTS, playlists);
+    } else {
+      var playlistsSave = _preferences.getStringList(PLAYLISTS) ?? [];
+
+      playlistsSave.addAll(playlists);
+      await _preferences.setStringList(
+          PLAYLISTS, playlistsSave.toSet().toList());
+    }
   }
 }

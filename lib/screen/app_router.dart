@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
+import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/account/access_method_page.dart';
 import 'package:autonomy_flutter/screen/account/accounts_preview_page.dart';
 import 'package:autonomy_flutter/screen/account/add_account_page.dart';
@@ -30,6 +31,7 @@ import 'package:autonomy_flutter/screen/account/new_account_page.dart';
 import 'package:autonomy_flutter/screen/account/persona_details_page.dart';
 import 'package:autonomy_flutter/screen/account/recovery_phrase_page.dart';
 import 'package:autonomy_flutter/screen/account/select_ledger_page.dart';
+import 'package:autonomy_flutter/screen/add_new_playlist/add_new_playlist.dart';
 import 'package:autonomy_flutter/screen/autonomy_security_page.dart';
 import 'package:autonomy_flutter/screen/be_own_gallery_page.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
@@ -92,6 +94,7 @@ import 'package:autonomy_flutter/screen/survey/survey_thankyou.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_sign_message_page.dart';
 import 'package:autonomy_flutter/screen/unsafe_web_wallet_page.dart';
+import 'package:autonomy_flutter/screen/view_playlist/view_playlist.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_bloc.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/tv_connect_page.dart';
@@ -111,6 +114,8 @@ import 'package:wallet_connect/wallet_connect.dart';
 import 'account/link_beacon_connect_page.dart';
 
 class AppRouter {
+  static const createPlayListPage = "createPlayList";
+  static const viewPlayListPage = "viewPlayList";
   static const onboardingPage = "onboarding";
   static const beOwnGalleryPage = 'be_own_gallery';
   static const moreAutonomyPage = 'more_autonomy';
@@ -178,6 +183,18 @@ class AppRouter {
     final nftCollectionBloc = injector<NftCollectionBloc>();
 
     switch (settings.name) {
+      case viewPlayListPage:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) => ViewPlaylistScreen(
+            playListModel: settings.arguments as PlayListModel?,
+          ),
+        );
+      case createPlayListPage:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) => const AddNewPlaylistScreen(),
+        );
       case onboardingPage:
         return CupertinoPageRoute(
             settings: settings,
@@ -241,6 +258,7 @@ class AppRouter {
           settings: settings,
           builder: (context) => const BeOwnGalleryPage(),
         );
+
       case moreAutonomyPage:
         return CupertinoPageRoute(
           settings: settings,
@@ -359,8 +377,8 @@ class AppRouter {
                 child: LinkLedgerPage(payload: settings.arguments as String)));
 
       case selectLedgerWalletPage:
-        return CupertinoPageRoute(settings: settings,
-        builder: (context) => const SelectLedgerPage());
+        return CupertinoPageRoute(
+            settings: settings, builder: (context) => const SelectLedgerPage());
 
       case linkWalletConnectPage:
         return CupertinoPageRoute(
