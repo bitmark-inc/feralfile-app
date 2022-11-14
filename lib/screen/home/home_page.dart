@@ -63,6 +63,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:wallet_connect/models/wc_peer_meta.dart';
 
 import '../../util/constants.dart';
+import '../../util/token_ext.dart';
 
 class HomePage extends StatefulWidget {
   static const tag = "home";
@@ -326,20 +327,7 @@ class _HomePageState extends State<HomePage>
 
   Widget _assetsWidget(BuildContext context, List<AssetToken> tokens) {
     playlists = injector.get<ConfigurationService>().getPlayList();
-    tokens.sort((a, b) {
-      final aSource = a.source?.toLowerCase() ?? INDEXER_UNKNOWN_SOURCE;
-      final bSource = b.source?.toLowerCase() ?? INDEXER_UNKNOWN_SOURCE;
-
-      if (aSource == INDEXER_UNKNOWN_SOURCE &&
-          bSource == INDEXER_UNKNOWN_SOURCE) {
-        return b.lastUpdateTime.compareTo(a.lastUpdateTime);
-      }
-
-      if (aSource == INDEXER_UNKNOWN_SOURCE) return 1;
-      if (bSource == INDEXER_UNKNOWN_SOURCE) return -1;
-
-      return b.lastUpdateTime.compareTo(a.lastUpdateTime);
-    });
+    tokens.sortToken();
 
     final accountIdentities = tokens
         .where((e) => e.pending != true || e.hasMetadata)

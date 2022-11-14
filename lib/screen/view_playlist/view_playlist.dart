@@ -20,6 +20,7 @@ import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import '../../util/token_ext.dart';
 
 class ViewPlaylistScreen extends StatefulWidget {
   final PlayListModel? playListModel;
@@ -66,21 +67,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
     required List<AssetToken> tokens,
     List<String>? selectedTokens,
   }) {
-    tokens.sort((a, b) {
-      final aSource = a.source?.toLowerCase() ?? INDEXER_UNKNOWN_SOURCE;
-      final bSource = b.source?.toLowerCase() ?? INDEXER_UNKNOWN_SOURCE;
-
-      if (aSource == INDEXER_UNKNOWN_SOURCE &&
-          bSource == INDEXER_UNKNOWN_SOURCE) {
-        return b.lastUpdateTime.compareTo(a.lastUpdateTime);
-      }
-
-      if (aSource == INDEXER_UNKNOWN_SOURCE) return 1;
-      if (bSource == INDEXER_UNKNOWN_SOURCE) return -1;
-
-      return b.lastUpdateTime.compareTo(a.lastUpdateTime);
-    });
-
+    tokens.sortToken();
     tokens = tokens
         .where((element) => selectedTokens?.contains(element.id) ?? false)
         .toList();

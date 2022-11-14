@@ -16,6 +16,7 @@ import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import '../../util/token_ext.dart';
 
 class AddNewPlaylistScreen extends StatefulWidget {
   const AddNewPlaylistScreen({Key? key}) : super(key: key);
@@ -51,20 +52,8 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen> {
     required List<AssetToken> tokens,
     List<String>? selectedTokens,
   }) {
-    tokens.sort((a, b) {
-      final aSource = a.source?.toLowerCase() ?? INDEXER_UNKNOWN_SOURCE;
-      final bSource = b.source?.toLowerCase() ?? INDEXER_UNKNOWN_SOURCE;
+    tokens.sortToken();
 
-      if (aSource == INDEXER_UNKNOWN_SOURCE &&
-          bSource == INDEXER_UNKNOWN_SOURCE) {
-        return b.lastUpdateTime.compareTo(a.lastUpdateTime);
-      }
-
-      if (aSource == INDEXER_UNKNOWN_SOURCE) return 1;
-      if (bSource == INDEXER_UNKNOWN_SOURCE) return -1;
-
-      return b.lastUpdateTime.compareTo(a.lastUpdateTime);
-    });
     final expiredTime = DateTime.now().subtract(SENT_ARTWORK_HIDE_TIME);
 
     tokens = tokens
