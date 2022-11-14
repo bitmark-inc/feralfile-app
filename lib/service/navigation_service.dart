@@ -186,7 +186,7 @@ class NavigationService {
         navigatorKey.currentContext != null){
       UIHelper.showInfoDialog(
         navigatorKey.currentContext!,
-        'contacting'.tr().toUpperCase(),
+        'contacting'.tr(),
         'contact_with_dapp'.tr(),
         closeButton: "cancel".tr(),
         isDismissible: true,
