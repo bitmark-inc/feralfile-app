@@ -201,7 +201,7 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
     return Container(
       color: theme.colorScheme.primary,
       height: safeAreaTop + 52,
-      padding: EdgeInsets.fromLTRB(15, safeAreaTop, 15, 0),
+      padding: EdgeInsets.fromLTRB(15, safeAreaTop, 5, 0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -262,7 +262,7 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
     return Container(
       color: theme.colorScheme.primary,
       height: MediaQuery.of(context).padding.top + 52,
-      padding: EdgeInsets.fromLTRB(15, safeAreaTop, 0, 0),
+      padding: EdgeInsets.fromLTRB(15, safeAreaTop + 2, 5, 0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -313,7 +313,7 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
     return Container(
       color: theme.colorScheme.primary,
       height: safeAreaTop + 52,
-      padding: EdgeInsets.fromLTRB(15, safeAreaTop, 15, 0),
+      padding: EdgeInsets.fromLTRB(15, safeAreaTop, 5, 0),
       child: GestureDetector(
         behavior: HitTestBehavior.translucent,
         onTap: () => _moveToInfo(asset),
@@ -448,7 +448,7 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
     final theme = Theme.of(context);
     return Padding(
       padding: ResponsiveLayout.pageEdgeInsets
-          .copyWith(top: safeAreaTop, right: 0),
+          .copyWith(top: safeAreaTop + 2, right: 5),
       child: Stack(
         children: [
           // loading
