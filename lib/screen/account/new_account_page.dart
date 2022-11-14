@@ -100,6 +100,8 @@ class NewAccountPage extends StatelessWidget {
             //"Make a new account with addresses you can use to collect or receive NFTs on Ethereum, Feral File, and Tezos.",
             onTap: () {
           if (state.createAccountState == ActionState.loading) return;
+          UIHelper.showInfoDialog(context, "generating".tr(), "",
+              isDismissible: true);
           context.read<PersonaBloc>().add(CreatePersonaEvent());
         });
       },
