@@ -26,7 +26,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_branch_sdk/flutter_branch_sdk.dart';
 import 'package:uni_links/uni_links.dart';
 
-
 abstract class DeeplinkService {
   Future setup();
 
@@ -149,7 +148,9 @@ class DeeplinkServiceImpl extends DeeplinkService {
         .firstWhereOrNull((prefix) => link.startsWith(prefix));
     if (callingTBDeeplinkPrefix != null) {
       _tezosBeaconService.addPeer(link);
-      _navigationService.showContactingDialog();
+      if (_configurationService.isDoneOnboarding()) {
+        _navigationService.showContactingDialog();
+      }
       return true;
     }
 
