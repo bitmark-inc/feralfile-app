@@ -1086,10 +1086,12 @@ Widget _rowItem(
 
 Widget previewCloseIcon(BuildContext context) {
   final theme = Theme.of(context);
-  return IconButton(
-    onPressed: () => Navigator.of(context).pop(),
-    icon: closeIcon(color: theme.colorScheme.secondary),
-    tooltip: "CloseArtwork",
+  return Semantics(
+    label: "CloseArtwork",
+    child: GestureDetector(
+      onTap: () => Navigator.of(context).pop(),
+      child: closeIcon(color: theme.colorScheme.secondary),
+    ),
   );
 }
 

@@ -201,7 +201,7 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
     return Container(
       color: theme.colorScheme.primary,
       height: safeAreaTop + 52,
-      padding: EdgeInsets.fromLTRB(15, safeAreaTop, 15, 0),
+      padding: EdgeInsets.fromLTRB(15, safeAreaTop, 5, 0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -262,7 +262,7 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
     return Container(
       color: theme.colorScheme.primary,
       height: MediaQuery.of(context).padding.top + 52,
-      padding: EdgeInsets.fromLTRB(15, safeAreaTop, 15, 0),
+      padding: EdgeInsets.fromLTRB(15, safeAreaTop + 2, 5, 0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -313,7 +313,7 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
     return Container(
       color: theme.colorScheme.primary,
       height: safeAreaTop + 52,
-      padding: EdgeInsets.fromLTRB(15, safeAreaTop, 15, 0),
+      padding: EdgeInsets.fromLTRB(15, safeAreaTop, 5, 0),
       child: GestureDetector(
         behavior: HitTestBehavior.translucent,
         onTap: () => _moveToInfo(asset),
@@ -446,39 +446,74 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
   Widget _emptyOrLoadingDiscoveryWidget(AppFeedData? appFeedData) {
     double safeAreaTop = MediaQuery.of(context).padding.top;
     final theme = Theme.of(context);
-
     return Padding(
       padding: ResponsiveLayout.pageEdgeInsets
-          .copyWith(top: safeAreaTop + 6, right: 15),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+          .copyWith(top: safeAreaTop + 2, right: 5),
+      child: Stack(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              previewCloseIcon(context),
-            ],
-          ),
-          const SizedBox(height: 24),
-          Text(
-            "h_discovery".tr(),
-            style: theme.primaryTextTheme.headline1,
-          ),
-          const SizedBox(height: 48),
+          // loading
           if (appFeedData == null) ...[
             Center(
-                child:
-                    loadingIndicator(valueColor: theme.colorScheme.secondary)),
-          ] else if (appFeedData.events.isEmpty) ...[
-            Text(
-              "discovery_keep_you_up".tr(),
-              //'Discovery keeps you up to date on what your favorite artists are creating and collecting.
-              // For now they haven’t created or collected anything new yet. Once they do, you can view it here. ',
-              style: theme.primaryTextTheme.bodyText1,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  loadingIndicator(valueColor: Colors.white),
+                  const SizedBox(
+                    height: 12,
+                  ),
+                  Text(
+                    "loading...".tr(),
+                    style: ResponsiveLayout.isMobile
+                    ? theme.textTheme.atlasGreyNormal12
+                        : theme.textTheme.atlasGreyNormal14,
+                  ),
+                ],
+              ),
             )
           ]
-        ],
-      ),
+          else if (appFeedData.events.isEmpty) ...[
+            Column(
+              children:[
+                const SizedBox(height: 100),
+                Container(
+                  padding: ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, left: 0, bottom: 0),
+                  child: Text(
+                    "discovery_keep_you_up".tr(),
+                    //'Discovery keeps you up to date on what your favorite artists are creating and collecting.
+                    // For now they haven’t created or collected anything new yet. Once they do, you can view it here. ',
+                    style: theme.primaryTextTheme.bodyText1,
+                    textAlign: TextAlign.justify,
+                  ),
+                )]
+            )
+          ],
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SvgPicture.asset(
+                "assets/images/iconFeed.svg",
+                color: theme.colorScheme.secondary,
+              ),
+              const Spacer(),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(0, 16, 0, 12),
+                child: Text(
+                  "h_discovery".tr().toUpperCase(),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                    fontFamily: 'IBMPlexMono',
+                    fontStyle: FontStyle.normal,
+                  ),
+                ),
+              ),
+              const Spacer(),
+              previewCloseIcon(context)
+            ],
+          ),
+        ]
+      )
     );
   }
 }
