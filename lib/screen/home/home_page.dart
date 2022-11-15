@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/blockchain.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
+import 'package:autonomy_flutter/screen/add_new_playlist/add_new_playlist.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
@@ -57,6 +58,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
+import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
@@ -362,28 +364,14 @@ class _HomePageState extends State<HomePage>
               padding: const EdgeInsets.only(bottom: 16),
               child: SizedBox(
                 height: 70,
-                child: Center(
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemBuilder: (context, index) =>
-                        index == (playlists?.length ?? 0)
-                            ? AddPlayListItem(
-                                onTap: () {
-                                  Navigator.of(context)
-                                      .pushNamed(AppRouter.createPlayListPage);
-                                },
-                              )
-                            : PlaylistItem(
-                                name: playlists?[index].name,
-                                thumbnailURL: playlists?[index].thumbnailURL,
-                                onSelected: () => Navigator.pushNamed(
-                                  context,
-                                  AppRouter.viewPlayListPage,
-                                  arguments: playlists?[index],
-                                ),
-                              ),
-                    itemCount: (playlists?.length ?? 0) + 1,
-                  ),
+                child: ListPlaylistWidget(
+                  playlists: playlists,
+                  onUpdateList: () async {
+                    await injector
+                        .get<ConfigurationService>()
+                        .setPlayList(playlists, override: true);
+                    injector.get<SettingsDataService>().backup();
+                  },
                 ),
               ),
             )
@@ -646,6 +634,74 @@ class _HomePageState extends State<HomePage>
   }
 }
 
+class ListPlaylistWidget extends StatefulWidget {
+  final Function onUpdateList;
+  const ListPlaylistWidget({
+    Key? key,
+    required this.playlists,
+    required this.onUpdateList,
+  }) : super(key: key);
+
+  final List<PlayListModel?>? playlists;
+
+  @override
+  State<ListPlaylistWidget> createState() => _ListPlaylistWidgetState();
+}
+
+class _ListPlaylistWidgetState extends State<ListPlaylistWidget> {
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: ReorderableListView.builder(
+        onReorderStart: (index) {
+          Vibrate.feedback(FeedbackType.light);
+        },
+        proxyDecorator: (child, index, animation) {
+          return PlaylistItem(
+            name: widget.playlists?[index]?.name,
+            thumbnailURL: widget.playlists?[index]?.thumbnailURL,
+          );
+        },
+        onReorder: (oldIndex, newIndex) {
+          setState(() {
+            if (oldIndex < newIndex) {
+              newIndex -= 1;
+            }
+            final element = widget.playlists?.removeAt(oldIndex);
+            if (element != null) widget.playlists?.insert(newIndex, element);
+            widget.playlists?.removeWhere((element) => element == null);
+            widget.onUpdateList.call();
+          });
+        },
+        scrollDirection: Axis.horizontal,
+        footer: AddPlayListItem(
+          onTap: () {
+            Navigator.of(context)
+                .pushNamed(AppRouter.createPlayListPage)
+                .then((value) {
+              if (value != null && value is PlayListModel) {
+                Navigator.pushNamed(context, AppRouter.viewPlayListPage,
+                    arguments: value);
+              }
+            });
+          },
+        ),
+        itemBuilder: (context, index) => PlaylistItem(
+          key: ValueKey(widget.playlists?[index]?.id),
+          name: widget.playlists?[index]?.name,
+          thumbnailURL: widget.playlists?[index]?.thumbnailURL,
+          onSelected: () => Navigator.pushNamed(
+            context,
+            AppRouter.viewPlayListPage,
+            arguments: widget.playlists?[index],
+          ),
+        ),
+        itemCount: widget.playlists?.length ?? 0,
+      ),
+    );
+  }
+}
+
 class PlaylistItem extends StatefulWidget {
   final Function()? onSelected;
   final String? name;
@@ -681,6 +737,7 @@ class _PlaylistItemState extends State<PlaylistItem> {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
+                color: Colors.transparent,
                 shape: BoxShape.circle,
                 border: Border.all(),
               ),

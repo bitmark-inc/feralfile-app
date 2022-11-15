@@ -145,6 +145,7 @@ dependencies:
   dotenv: ^4.0.1
   auto_size_text: ^3.0.0
   uri: ^1.0.0
+  reorderable_grid_view: ^2.2.5
 
 dependency_overrides:
   # Error using when import photo_view from dependencies:

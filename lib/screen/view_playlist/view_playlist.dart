@@ -20,7 +20,7 @@ import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import '../../util/token_ext.dart';
+import '../../util/iterable_ext.dart';
 
 class ViewPlaylistScreen extends StatefulWidget {
   final PlayListModel? playListModel;
@@ -67,10 +67,6 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
     required List<AssetToken> tokens,
     List<String>? selectedTokens,
   }) {
-    tokens.sortToken();
-    tokens = tokens
-        .where((element) => selectedTokens?.contains(element.id) ?? false)
-        .toList();
     final expiredTime = DateTime.now().subtract(SENT_ARTWORK_HIDE_TIME);
 
     tokens = tokens
@@ -85,12 +81,23 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
               ),
         )
         .toList();
+
     accountIdentities = tokens
         .where((e) => e.pending != true || e.hasMetadata)
         .map((element) => ArtworkIdentity(element.id, element.ownerAddress))
         .toList();
-    tokensPlaylist = tokens;
-    return tokens;
+
+    final temp = selectedTokens
+            ?.map((e) =>
+                tokens.where((element) => element.id == e).firstOrDefault())
+            .toList() ??
+        [];
+
+    temp.removeWhere((element) => element == null);
+
+    tokensPlaylist = List.from(temp);
+
+    return tokensPlaylist;
   }
 
   @override
@@ -124,7 +131,16 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                 IconButton(
                   onPressed: () {
                     UIHelper.showDialogAction(context, options: [
-                      OptionItem(title: tr('modify_playlist'), onTap: () {}),
+                      OptionItem(
+                          title: tr('modify_playlist'),
+                          onTap: () {
+                            Navigator.pop(context);
+                            Navigator.pushNamed(
+                              context,
+                              AppRouter.editPlayListPage,
+                              arguments: playList,
+                            );
+                          }),
                       OptionItem(
                           title: tr('delete_playlist'),
                           onTap: () {
@@ -149,7 +165,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                                   ),
                                 ]),
                               ),
-                              actionButton: "Remove",
+                              actionButton: "delete".tr(),
                               onAction: deletePlayList,
                             );
                           }),
@@ -180,12 +196,14 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                             style: playList?.name == null
                                 ? theme.textTheme.atlasSpanishGreyBold36
                                 : theme.textTheme.headline1,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                           Padding(
                             padding: const EdgeInsets.only(bottom: 40, top: 5),
                             child: Text(
                               tr(
-                                  tokensPlaylist.length > 1
+                                  tokensPlaylist.length != 1
                                       ? 'artworks'
                                       : 'artwork',
                                   args: [tokensPlaylist.length.toString()]),
