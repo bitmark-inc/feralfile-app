@@ -181,7 +181,7 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen> {
                             children: [
                               Text(
                                 tr(
-                                  selectedCount > 1
+                                  selectedCount != 1
                                       ? 'artworks_selected'
                                       : 'artwork_selected',
                                   args: [selectedCount.toString()],

@@ -69,7 +69,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
   }) {
     final expiredTime = DateTime.now().subtract(SENT_ARTWORK_HIDE_TIME);
 
-    tokensPlaylist = tokens
+    tokens = tokens
         .where(
           (element) =>
               !hiddenTokens.contains(element.id) &&
@@ -203,7 +203,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                             padding: const EdgeInsets.only(bottom: 40, top: 5),
                             child: Text(
                               tr(
-                                  tokensPlaylist.length > 1
+                                  tokensPlaylist.length != 1
                                       ? 'artworks'
                                       : 'artwork',
                                   args: [tokensPlaylist.length.toString()]),
