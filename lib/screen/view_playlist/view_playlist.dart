@@ -165,7 +165,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                                   ),
                                 ]),
                               ),
-                              actionButton: "remove".tr(),
+                              actionButton: "delete".tr(),
                               onAction: deletePlayList,
                             );
                           }),
