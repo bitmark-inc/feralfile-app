@@ -303,7 +303,7 @@ void showErrorDialogFromException(Object exception,
   log.warning("Unhandled error: $exception", exception);
 
   final metricClient = injector.get<MetricClientService>();
-  await metricClient
+  metricClient
       .addEvent("unhandled_error", data: {"message": exception.toString()});
 
   if (library != null || onlySentryException(exception)) {

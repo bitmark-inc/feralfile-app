@@ -17,6 +17,7 @@ import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
+import 'package:autonomy_flutter/service/mixPanel_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
@@ -211,7 +212,7 @@ class WalletConnectService {
               arguments: WCConnectPageArgs(id, peerMeta));
         }
       },
-      onEthSign: (id, message) async {
+      onEthSign: (id, message) {
         String? uuid = wcConnection?.personaUuid ?? tmpUuids[currentPeerMeta!];
         if (uuid == null ||
             !wcClients.any(
@@ -220,6 +221,13 @@ class WalletConnectService {
         _navigationService.navigateTo(WCSignMessagePage.tag,
             arguments: WCSignMessagePageArgs(
                 id, topic, currentPeerMeta!, message.data!, uuid));
+
+        final mixPanelClient = injector.get<MixPanelClientService>();
+        mixPanelClient.trackEvent(
+            "Sign In",
+            data: {"type" : "Eth",},
+            hashedData: {"uuid": uuid}
+        );
       },
       onEthSendTransaction: (id, tx) {
         String? uuid = wcConnection?.personaUuid ?? tmpUuids[currentPeerMeta!];

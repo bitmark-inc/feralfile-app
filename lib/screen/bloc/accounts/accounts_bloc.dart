@@ -286,7 +286,7 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
 
       final metricClient = injector.get<MetricClientService>();
 
-      await metricClient.addEvent(
+      metricClient.addEvent(
         "link_ledger",
         data: {"blockchain": event.blockchain},
         hashedData: {"address": event.address},

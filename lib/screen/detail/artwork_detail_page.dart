@@ -68,9 +68,9 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   }
 
   @override
-  void afterFirstLayout(BuildContext context) async {
+  void afterFirstLayout(BuildContext context) {
     final metricClient = injector.get<MetricClientService>();
-    await metricClient.addEvent(
+    metricClient.addEvent(
       "view_artwork_detail",
       data: {
         "id":

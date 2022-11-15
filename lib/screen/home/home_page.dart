@@ -34,6 +34,7 @@ import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/service/mixPanel_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/pending_token_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
@@ -79,6 +80,7 @@ class _HomePageState extends State<HomePage>
   StreamSubscription<FGBGType>? _fgbgSubscription;
   late ScrollController _controller;
   late MetricClientService metricClient;
+  late MixPanelClientService mixPanelClient;
   int _cachedImageSize = 0;
 
   late List<PlayListModel>? playlists;
@@ -101,6 +103,7 @@ class _HomePageState extends State<HomePage>
   void initState() {
     super.initState();
     metricClient = injector.get<MetricClientService>();
+    mixPanelClient = injector<MixPanelClientService>();
     _checkForKeySync();
     WidgetsBinding.instance.addObserver(this);
     _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
@@ -218,7 +221,7 @@ class _HomePageState extends State<HomePage>
             hashedAddresses &&
         tokens.any((asset) =>
             asset.blockchain == Blockchain.TEZOS.name.toLowerCase())) {
-      await metricClient.addEvent("collection_has_tezos");
+      metricClient.addEvent("collection_has_tezos");
       injector<ConfigurationService>()
           .setSentTezosArtworkMetric(hashedAddresses);
     }
@@ -425,6 +428,14 @@ class _HomePageState extends State<HomePage>
                   Navigator.of(context).pushNamed(AppRouter.artworkPreviewPage,
                       arguments: payload);
                 }
+
+                mixPanelClient.trackEvent(
+                  "view_artwork",
+                  data: {
+                    "tokenId": asset.tokenId,
+                    "identity": asset.id
+                  }
+                );
               },
             );
           },
@@ -572,7 +583,7 @@ class _HomePageState extends State<HomePage>
       nftBloc.add(
           RefreshTokenEvent(addresses: addresses, debugTokens: manualTokenIds));
       nftBloc.add(RequestIndexEvent(addresses));
-      await metricClient.addEvent("device_foreground");
+      metricClient.addEvent("device_foreground");
       final pendingTokenService = injector<PendingTokenService>();
       addresses.where((address) => address.startsWith("tz")).forEach((address) {
         pendingTokenService.checkPendingTezosTokens(address, maxRetries: 1);
@@ -626,9 +637,10 @@ class _HomePageState extends State<HomePage>
     );
   }
 
-  void _handleBackground() async {
-    await metricClient.addEvent("device_background");
-    await metricClient.sendAndClearMetrics();
+  void _handleBackground() {
+    metricClient.addEvent("device_background");
+    metricClient.sendAndClearMetrics();
+    mixPanelClient.sendData();
     _cloudBackup();
     FileLogger.shrinkLogFileIfNeeded();
   }

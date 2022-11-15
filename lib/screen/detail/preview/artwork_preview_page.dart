@@ -22,6 +22,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/play_control_service.dart';
+import 'package:autonomy_flutter/service/mixPanel_client_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -363,8 +364,8 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
             case AUCastDeviceType.Airplay:
               return GestureDetector(
                   behavior: HitTestBehavior.translucent,
-                  onTap: () async {
-                    await metricClient.addEvent("stream_airplay");
+                  onTap: () {
+                    metricClient.addEvent("stream_airplay");
                   },
                   child: _airplayItem(context, isSubscribed));
             case AUCastDeviceType.Chromecast:
@@ -576,6 +577,14 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                               .add(ArtworkPreviewGetAssetTokenEvent(currentId));
                           _stopAllChromecastDevices();
                           keyboardManagerKey.currentState?.hideKeyboard();
+                          final mixPanelClient = injector.get<MixPanelClientService>();
+                          mixPanelClient.trackEvent(
+                            "Next Artwork",
+                            hashedData: {
+                              "tokenId": currentId.id,
+                              "identity": currentId.id
+                            }
+                          );
                         },
                         controller: controller,
                         itemCount: tokens.length,

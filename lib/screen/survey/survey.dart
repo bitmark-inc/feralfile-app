@@ -75,7 +75,7 @@ class _SurveyPageState extends State<SurveyPage> {
                 enabled: _surveyAnswer != null && _surveyAnswer!.isNotEmpty,
                 onPress: () async {
                   const onboardingSurveyKey = "onboarding_survey";
-                  await metricClient.addEvent(onboardingSurveyKey,
+                  metricClient.addEvent(onboardingSurveyKey,
                       message: _surveyAnswer);
                   injector<ConfigurationService>()
                       .setFinishedSurvey([onboardingSurveyKey]);
