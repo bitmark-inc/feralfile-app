@@ -80,6 +80,7 @@ jobs:
           echo METRIC_ENDPOINT=${{ secrets.METRIC_ENDPOINT }} >> .env
           echo METRIC_SECRET_KEY=${{ secrets.METRIC_SECRET_KEY }} >> .env
           echo BRANCH_KEY=${{ secrets.BRANCH_KEY }} >> .env
+          echo MIXPANEL_KEY=${{ secrets.MIXPANEL_KEY }} >> .env
 
           echo APP_TESTNET_CONFIG=${{ github.event.inputs.testnet == 'true' }} >> .env
           cat .env
