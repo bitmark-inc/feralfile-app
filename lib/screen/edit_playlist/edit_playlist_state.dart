@@ -14,14 +14,14 @@ class UpdateSelectedPlaylist extends EditPlaylistEvent {
   UpdateSelectedPlaylist({required this.tokenID, required this.value});
 }
 
-class CreatePlaylist extends EditPlaylistEvent {
-  final String? name;
-  CreatePlaylist({required this.name});
+class SavePlaylist extends EditPlaylistEvent {
+  SavePlaylist();
 }
 
 class UpdateOrderPlaylist extends EditPlaylistEvent {
   final List<String>? tokenIDs;
-  UpdateOrderPlaylist({required this.tokenIDs});
+  final String? thumbnailURL;
+  UpdateOrderPlaylist({required this.tokenIDs, this.thumbnailURL});
 }
 
 class RemoveTokens extends EditPlaylistEvent {
@@ -32,18 +32,22 @@ class RemoveTokens extends EditPlaylistEvent {
 class EditPlaylistState {
   PlayListModel? playListModel;
   List<String>? selectedItem;
+  bool? isAddSuccess;
   EditPlaylistState({
     this.playListModel,
     this.selectedItem,
+    this.isAddSuccess,
   });
 
   EditPlaylistState copyWith({
     PlayListModel? playListModel,
     List<String>? selectedItem,
+    bool isAddSuccess = false,
   }) {
     return EditPlaylistState(
       playListModel: playListModel ?? this.playListModel,
       selectedItem: selectedItem ?? this.selectedItem,
+      isAddSuccess: isAddSuccess,
     );
   }
 }

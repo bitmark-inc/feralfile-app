@@ -656,6 +656,12 @@ class _ListPlaylistWidgetState extends State<ListPlaylistWidget> {
         onReorderStart: (index) {
           Vibrate.feedback(FeedbackType.light);
         },
+        proxyDecorator: (child, index, animation) {
+          return PlaylistItem(
+            name: widget.playlists?[index]?.name,
+            thumbnailURL: widget.playlists?[index]?.thumbnailURL,
+          );
+        },
         onReorder: (oldIndex, newIndex) {
           setState(() {
             if (oldIndex < newIndex) {
@@ -731,6 +737,7 @@ class _PlaylistItemState extends State<PlaylistItem> {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
+                color: Colors.transparent,
                 shape: BoxShape.circle,
                 border: Border.all(),
               ),

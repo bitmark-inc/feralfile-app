@@ -9,11 +9,13 @@ import 'package:autonomy_flutter/screen/edit_playlist/edit_playlist_state.dart';
 
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/text_field.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/nft_collection.dart';
@@ -21,6 +23,8 @@ import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:reorderable_grid_view/reorderable_grid_view.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import '../../util/iterable_ext.dart';
 
 class EditPlaylistScreen extends StatefulWidget {
   final PlayListModel? playListModel;
@@ -74,10 +78,16 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
               ),
         )
         .toList();
-    tokensPlaylist = tokenIDs
-            ?.map((e) => tokens.firstWhere((element) => element.id == e))
+
+    final temp = tokenIDs
+            ?.map((e) =>
+                tokens.where((element) => element.id == e).firstOrDefault())
             .toList() ??
         [];
+
+    temp.removeWhere((element) => element == null);
+    tokensPlaylist = List.from(temp);
+
     return tokensPlaylist;
   }
 
@@ -86,7 +96,12 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
     final theme = Theme.of(context);
     return BlocConsumer<EditPlaylistBloc, EditPlaylistState>(
       bloc: bloc,
-      listener: (context, state) {},
+      listener: (context, state) {
+        if (state.isAddSuccess ?? false) {
+          Navigator.pop(context);
+          Navigator.pop(context);
+        }
+      },
       builder: (context, state) {
         final playList = state.playListModel;
         final selectedItem = state.selectedItem ?? [];
@@ -111,7 +126,7 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
                 ),
                 const Spacer(),
                 GestureDetector(
-                  onTap: () {},
+                  onTap: () => bloc.add(SavePlaylist()),
                   child: Text(
                     tr('save').toUpperCase(),
                     style: theme.textTheme.button,
@@ -133,7 +148,10 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      TextNamePlaylist(playList: playList),
+                      TextNamePlaylist(
+                        playList: playList,
+                        onEditPlaylistName: (value) => playList?.name = value,
+                      ),
                       Padding(
                         padding: const EdgeInsets.only(bottom: 40, top: 5),
                         child: Row(
@@ -184,7 +202,7 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
                                       ),
                                     ]),
                                   ),
-                                  actionButton: "Remove",
+                                  actionButton: "remove".tr(),
                                   onAction: () {
                                     Navigator.pop(context);
                                     bloc.add(
@@ -231,10 +249,16 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
                               tokenIDs: playList?.tokenIDs,
                             ),
                             onReorder: (tokens) {
+                              final tokenIDs =
+                                  tokens.map((e) => e?.id ?? '').toList();
                               bloc.add(
                                 UpdateOrderPlaylist(
-                                  tokenIDs:
-                                      tokens.map((e) => e?.id ?? '').toList(),
+                                  tokenIDs: tokenIDs,
+                                  thumbnailURL: tokens
+                                      .where((element) =>
+                                          element?.id == tokenIDs.first)
+                                      .first
+                                      ?.getThumbnailUrl(),
                                 ),
                               );
                             },
@@ -298,13 +322,18 @@ class _TextNamePlaylistState extends State<TextNamePlaylist> {
     return !isEditing
         ? Row(
             children: [
-              Text(
-                widget.playList?.name ?? tr('untitled'),
-                style: widget.playList?.name == null
-                    ? theme.textTheme.atlasSpanishGreyBold36
-                    : theme.textTheme.headline1,
+              Expanded(
+                child: Text(
+                  _playlistNameC.text.isNotEmpty
+                      ? _playlistNameC.text
+                      : tr('untitled'),
+                  style: _playlistNameC.text.isEmpty
+                      ? theme.textTheme.atlasSpanishGreyBold36
+                      : theme.textTheme.headline1,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
               ),
-              const Spacer(),
               IconButton(
                 onPressed: () {
                   setState(() {
@@ -395,11 +424,7 @@ class _EditPlaylistGridViewState extends State<EditPlaylistGridView> {
       footer: [
         GestureDetector(
           onTap: widget.onAddTap,
-          child: const Card(
-            child: Center(
-              child: Icon(Icons.add),
-            ),
-          ),
+          child: const AddTokenWidget(),
         ),
       ],
       onDragStart: (dragIndex) {
@@ -431,6 +456,37 @@ class _EditPlaylistGridViewState extends State<EditPlaylistGridView> {
                 : const SizedBox.shrink(),
           )
           .toList(),
+    );
+  }
+}
+
+class AddTokenWidget extends StatelessWidget {
+  const AddTokenWidget({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return ClipPath(
+      clipper: AutonomyTopRightRectangleClipper(),
+      child: Stack(
+        children: [
+          SvgPicture.asset(
+            'assets/images/union.svg',
+            width: double.infinity,
+            height: double.infinity,
+          ),
+          Positioned(
+            bottom: 13,
+            left: 13,
+            child: Text(
+              '+ ${'add'.tr().toUpperCase()}',
+              style: theme.textTheme.atlasGreyNormal14,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
