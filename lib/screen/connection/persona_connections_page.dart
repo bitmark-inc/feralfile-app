@@ -400,15 +400,14 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
     final theme = Theme.of(context);
 
     return TappableForwardRow(
-        leftWidget: Expanded(
-          child: Row(children: [
-            UIHelper.buildConnectionAppWidget(connection, 24),
-            const SizedBox(width: 16),
-            Expanded(
-                child:
-                    Text(connection.appName, style: theme.textTheme.headline4)),
-          ]),
-        ),
+        leftWidget: Row(children: [
+          UIHelper.buildConnectionAppWidget(connection, 24),
+          const SizedBox(width: 16),
+          Expanded(
+              child:
+                  Text(connection.appName, style: theme.textTheme.headline4,
+                  overflow: TextOverflow.ellipsis,)),
+        ]),
         onTap: () => Navigator.of(context).pushNamed(
             AppRouter.connectionDetailsPage,
             arguments: connectionItem));

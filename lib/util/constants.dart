@@ -35,6 +35,10 @@ const DEEP_LINKS = [
   "https://link.autonomy.io",
 ];
 
+const int cellPerRowPhone = 3;
+const int cellPerRowTablet = 6;
+const double cellSpacing = 3.0;
+
 const Duration SENT_ARTWORK_HIDE_TIME = Duration(minutes: 10);
 
 Future<bool> isAppCenterBuild() async {

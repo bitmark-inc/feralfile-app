@@ -402,16 +402,17 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
 class ArtworkDetailPayload {
   final List<ArtworkIdentity> identities;
   final int currentIndex;
+  final bool isPlaylist;
 
-  ArtworkDetailPayload(this.identities, this.currentIndex);
+  ArtworkDetailPayload(this.identities, this.currentIndex,
+      {this.isPlaylist = false});
 
-  ArtworkDetailPayload copyWith({
-    List<ArtworkIdentity>? ids,
-    int? currentIndex,
-  }) {
+  ArtworkDetailPayload copyWith(
+      {List<ArtworkIdentity>? ids, int? currentIndex, bool? isPlaylist}) {
     return ArtworkDetailPayload(
       ids ?? this.identities,
       currentIndex ?? this.currentIndex,
+      isPlaylist: isPlaylist ?? this.isPlaylist,
     );
   }
 }

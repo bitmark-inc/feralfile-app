@@ -71,12 +71,14 @@ Widget accountWithConnectionItem(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                          connection.name.isNotEmpty
-                              ? connection.name
-                              : "unnamed".tr(),
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.headline4),
+                      Expanded(
+                        child: Text(
+                            connection.name.isNotEmpty
+                                ? connection.name
+                                : "unnamed".tr(),
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.headline4),
+                      ),
                       _linkedBox(context),
                     ]),
                 const SizedBox(height: 8),
@@ -110,11 +112,14 @@ Widget accountItem(BuildContext context, Account account,
         children: [
           accountLogo(context, account),
           const SizedBox(width: 16),
-          Text(
-            account.name.isNotEmpty
-                ? account.name.maskIfNeeded()
-                : account.accountNumber.mask(4),
-            style: theme.textTheme.headline4,
+          Expanded(
+            child: Text(
+              account.name.isNotEmpty
+                  ? account.name
+                  : account.accountNumber.mask(4),
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.headline4,
+            ),
           ),
         ],
       ),
@@ -234,18 +239,39 @@ String _blockchainName(String? blockchain) {
 Widget accountLogo(BuildContext context, Account account) {
   if (account.persona != null) {
     return SizedBox(
-      width: 26,
-      height: 30,
+      width: 29,
+      height: 29,
       child: Stack(
         children: [
-          Align(
+          Container(
+            padding: const EdgeInsets.fromLTRB(0, 4, 4, 0),
             alignment: Alignment.centerLeft,
               child: Image.asset("assets/images/moma_logo.png")),
           Align(
             alignment: Alignment.topRight,
             child: account.persona?.defaultAccount == 1 && context.widget is AccountsView
-                ? SvgPicture.asset("assets/images/icon_verified.svg")
-                : const SizedBox(),
+              ? SizedBox(
+                width: 19,
+                height: 19,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Transform.scale(
+                      scale: 1.45,
+                      child: SvgPicture.asset(
+                        "assets/images/icon_verified.svg",
+                        color: Colors.white,
+                      )
+                    ),
+                    Align(
+                      child: SvgPicture.asset(
+                        "assets/images/icon_verified.svg",
+                      )
+                    ),
+                  ]
+                  ),
+              )
+              : const SizedBox(),
           ),
         ],
       ),

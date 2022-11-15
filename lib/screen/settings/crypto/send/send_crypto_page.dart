@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_state.d
 import 'package:autonomy_flutter/screen/settings/crypto/send_review_page.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
+import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
@@ -99,6 +100,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                                 ? ScannerItem.ETH_ADDRESS
                                 : ScannerItem.XTZ_ADDRESS);
                         if (address != null && address is String) {
+                          address = address.replacePrefix("ethereum:", "");
                           _addressController.text = address;
                           if (!mounted) return;
                           context

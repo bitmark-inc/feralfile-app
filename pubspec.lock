@@ -75,8 +75,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "1.0.4"
-      resolved-ref: "131bdfa2816346c869a8555f8628c3260eb22a75"
+      ref: "1.0.5"
+      resolved-ref: "28b0dd59744f84c233089edd7eb0149707dbcc6f"
       url: "https://github.com/bitmark-inc/autonomy-client-shared-theme.git"
     source: git
     version: "0.0.1+20"
@@ -1195,8 +1195,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: fcd3a7ece324c72488a5cb2043f16c3c19f220cc
-      resolved-ref: fcd3a7ece324c72488a5cb2043f16c3c19f220cc
+      ref: b9ef57c2f3526706fa178f979cc22685d504bffa
+      resolved-ref: b9ef57c2f3526706fa178f979cc22685d504bffa
       url: "https://github.com/autonomy-system/nft-collection"
     source: git
     version: "0.0.1"
@@ -1204,8 +1204,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "1c225e2307d34d86dd6fc5a174d3ed5fc0668a91"
-      resolved-ref: "1c225e2307d34d86dd6fc5a174d3ed5fc0668a91"
+      ref: "6e4781b4950e2cc81f86a384e1ce63545653c260"
+      resolved-ref: "6e4781b4950e2cc81f86a384e1ce63545653c260"
       url: "https://github.com/autonomy-system/nft-rendering.git"
     source: git
     version: "1.0.9"
@@ -1616,21 +1616,21 @@ packages:
       name: sentry
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "6.13.1"
+    version: "6.9.1"
   sentry_dio:
     dependency: "direct main"
     description:
       name: sentry_dio
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "6.13.1"
+    version: "6.9.1"
   sentry_flutter:
     dependency: "direct main"
     description:
       name: sentry_flutter
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "6.13.1"
+    version: "6.9.1"
   shake:
     dependency: "direct main"
     description:

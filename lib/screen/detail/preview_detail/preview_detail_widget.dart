@@ -20,9 +20,13 @@ import 'package:autonomy_flutter/util/asset_token_ext.dart';
 
 class ArtworkPreviewWidget extends StatefulWidget {
   final ArtworkIdentity identity;
+  final Function({int? time})? onLoaded;
+  final Function({int? time})? onDispose;
   const ArtworkPreviewWidget({
     Key? key,
     required this.identity,
+    this.onLoaded,
+    this.onDispose,
   }) : super(key: key);
 
   @override
@@ -102,8 +106,13 @@ class _ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
                     }
                     if (_renderingWidget == null ||
                         _renderingWidget!.previewURL != asset.getPreviewUrl()) {
-                      _renderingWidget = buildRenderingWidget(context, asset,
-                          attempt: attempt > 0 ? attempt : null);
+                      _renderingWidget = buildRenderingWidget(
+                        context,
+                        asset,
+                        attempt: attempt > 0 ? attempt : null,
+                        onLoaded: widget.onLoaded,
+                        onDispose: widget.onLoaded,
+                      );
                     }
 
                     return Container(

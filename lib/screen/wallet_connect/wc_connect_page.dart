@@ -7,12 +7,14 @@
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/wc2_proposal.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/screen/connection/persona_connections_page.dart';
+import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -37,6 +39,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:wallet_connect/models/wc_peer_meta.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+
+import '../../service/account_service.dart';
 
 /*
  Because WalletConnect & TezosBeacon are using same logic:
@@ -75,6 +79,7 @@ class _WCConnectPageState extends State<WCConnectPage>
     super.initState();
     context.read<PersonaBloc>().add(GetListPersonaEvent(useDidKeyForAlias: true));
     injector<NavigationService>().setIsWCConnectInShow(true);
+    memoryValues.deepLink.value = null;
   }
 
   @override
@@ -124,7 +129,7 @@ class _WCConnectPageState extends State<WCConnectPage>
     Navigator.of(context).pop();
   }
 
-  Future _approve() async {
+  Future _approve({bool onBoarding = false}) async {
     if (selectedPersona == null) return;
 
     final wc2Proposal = widget.wc2Proposal;
@@ -159,10 +164,13 @@ class _WCConnectPageState extends State<WCConnectPage>
 
       payloadAddress = address;
       payloadType = CryptoType.ETH;
-
-      if (wcConnectArgs.peerMeta.url.contains("feralfile")) {
-        _navigateWhenConnectFeralFile();
-        return;
+      if (onBoarding) {
+        _navigateHome();
+      } else {
+        if (wcConnectArgs.peerMeta.url.contains("feralfile")) {
+          _navigateWhenConnectFeralFile();
+          return;
+        }
       }
 
       if (wcConnectArgs.peerMeta.name == AUTONOMY_TV_PEER_NAME) {
@@ -200,15 +208,18 @@ class _WCConnectPageState extends State<WCConnectPage>
         address: payloadAddress,
         type: payloadType,
         personaName: selectedPersona!.name);
-
     if (!mounted) return;
     if (memoryValues.scopedPersona != null) {
       // from persona details flow
       Navigator.of(context).pop();
     } else {
-      Navigator.of(context).pushReplacementNamed(
-          AppRouter.personaConnectionsPage,
-          arguments: payload);
+      if (onBoarding) {
+        _navigateHome();
+      } else {
+        Navigator.of(context).pushReplacementNamed(
+            AppRouter.personaConnectionsPage,
+            arguments: payload);
+      }
     }
 
     await metricClient.addEvent(
@@ -221,8 +232,8 @@ class _WCConnectPageState extends State<WCConnectPage>
     );
   }
 
-  Future<void> _approveThenNotify() async {
-    await _approve();
+  Future<void> _approveThenNotify({bool onBoarding = false}) async {
+    await _approve(onBoarding: onBoarding);
     final notificationEnable =
         injector<ConfigurationService>().isNotificationEnabled() ?? false;
     if (notificationEnable) {
@@ -253,6 +264,10 @@ class _WCConnectPageState extends State<WCConnectPage>
 
   void _navigateWhenConnectFeralFile() {
     Navigator.of(context).pop();
+  }
+
+  void _navigateHome() {
+    Navigator.of(context).pushReplacementNamed(AppRouter.homePage);
   }
 
   @override
@@ -320,10 +335,9 @@ class _WCConnectPageState extends State<WCConnectPage>
               if (statePersonas == null) return const SizedBox();
 
               if (statePersonas.isEmpty) {
-                return Expanded(child: _suggestToCreatePersona());
-              } else {
-                return Expanded(child: _selectPersonaWidget(statePersonas));
-              }
+                return Expanded(child: _createAccountAndConnect());
+              } else {}
+              return Expanded(child: _selectPersonaWidget(statePersonas));
             }),
           ]),
         ),
@@ -489,10 +503,10 @@ class _WCConnectPageState extends State<WCConnectPage>
                                 Expanded(
                                   child: Text(
                                     persona.name,
-                                    overflow: TextOverflow.ellipsis,
                                     style: theme.textTheme.headline4,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
-                                ),
+                                )
                               ],
                             ),
                             contentPadding: EdgeInsets.zero,
@@ -536,68 +550,37 @@ class _WCConnectPageState extends State<WCConnectPage>
     );
   }
 
-  Widget _suggestToCreatePersona() {
-    final theme = Theme.of(context);
-
-    return BlocConsumer<PersonaBloc, PersonaState>(
-      listener: (context, state) {
-        switch (state.createAccountState) {
-          case ActionState.done:
-            UIHelper.hideInfoDialog(context);
-            UIHelper.showGeneratedPersonaDialog(context, onContinue: () {
-              UIHelper.hideInfoDialog(context);
-              final createdPersona = state.persona;
-              if (createdPersona != null) {
-                Navigator.of(context).pushNamed(AppRouter.namePersonaPage,
-                    arguments: createdPersona.uuid);
-              }
-            });
-            break;
-
-          default:
-            break;
-        }
-      },
-      builder: (context, state) {
-        return Column(
+  Widget _createAccountAndConnect() {
+    return Column(
+      children: [
+        const Spacer(),
+        Row(
           children: [
-            // Expanded(
             Expanded(
-              child: Column(
-                children: [
-                  Text("require_full_account".tr(),
-                      //'This service requires a full Autonomy account to connect to the dapp.',
-                      style: theme.textTheme.bodyText1),
-                  const SizedBox(height: 24),
-                  Text(
-                    "generate_full_account".tr(),
-                    //'Would you like to generate a full Autonomy account?',
-                    style: theme.textTheme.headline4,
-                  ),
-                  const SizedBox(height: 24),
-                  Text("newly_account_will".tr(),
-                      //'The newly generated account would also get an address for each of the chains that we support.',
-                      style: theme.textTheme.bodyText1),
-                ],
+              child: AuFilledButton(
+                text: "connect".tr().toUpperCase(),
+                onPress: () => withDebounce(() => _createAccount()),
               ),
-            ),
-            // ),
-            Row(
-              children: [
-                Expanded(
-                  child: AuFilledButton(
-                    text: "generate".tr().toUpperCase(),
-                    onPress: () {
-                      context.read<PersonaBloc>().add(CreatePersonaEvent());
-                    },
-                  ),
-                )
-              ],
             )
           ],
-        );
-      },
+        ),
+      ],
     );
+  }
+
+  Future _createAccount() async {
+    UIHelper.showInfoDialog(context, "connecting...".tr(), "");
+    final account = await injector<AccountService>().getDefaultAccount();
+    final defaultName = await account.getAccountDID();
+    var persona =
+        await injector<CloudDatabase>().personaDao.findById(account.uuid);
+    persona!.wallet().updateName(defaultName);
+    final namedPersona = persona.copyWith(name: defaultName);
+    await injector<CloudDatabase>().personaDao.updatePersona(namedPersona);
+    await injector<AuditService>().auditPersonaAction('name', namedPersona);
+    injector<ConfigurationService>().setDoneOnboarding(true);
+    selectedPersona = namedPersona;
+    _approveThenNotify(onBoarding: true);
   }
 }
 

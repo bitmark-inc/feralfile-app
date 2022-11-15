@@ -295,6 +295,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                                                   ? ScannerItem.ETH_ADDRESS
                                                   : ScannerItem.XTZ_ADDRESS);
                                   if (address != null && address is String) {
+                                    address = address.replacePrefix("ethereum:", "");
                                     _addressController.text = address;
                                     if (!mounted) return;
                                     context

@@ -24,6 +24,8 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:collection/collection.dart';
 import 'package:wallet_connect/wallet_connect.dart';
 
+import '../main.dart';
+
 class WalletConnectService {
   final NavigationService _navigationService;
   final CloudDatabase _cloudDB;
@@ -72,9 +74,16 @@ class WalletConnectService {
     );
 
     final wcClient = _createWCClient(session.topic, null);
-    if (wcClient == null) return;
-    wcClient.connectNewSession(session: session, peerMeta: peerMeta);
-    wcClients.add(wcClient);
+    if (wcClient == null) {
+      memoryValues.deepLink.value = null;
+      return;
+    }
+    try {
+      wcClient.connectNewSession(session: session, peerMeta: peerMeta);
+      wcClients.add(wcClient);
+    } catch (_) {
+      memoryValues.deepLink.value = null;
+    }
   }
 
   disconnect(WCPeerMeta peerMeta) {

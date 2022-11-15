@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:autonomy_flutter/gateway/iap_api.dart';
+import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:crypto/crypto.dart';
@@ -63,6 +64,7 @@ class SettingsDataServiceImpl implements SettingsDataService {
           _configurationService.getPersonaUUIDsHiddenInGallery(),
       hiddenLinkedAccountsFromGallery:
           _configurationService.getLinkedAccountsHiddenInGallery(),
+      playlists: _configurationService.getPlayList(),
     );
 
     final dataBytes = json.encode(data.toJson()).codeUnits;
@@ -121,6 +123,8 @@ class SettingsDataServiceImpl implements SettingsDataService {
         data.hiddenLinkedAccountsFromGallery, true,
         override: true);
 
+    await _configurationService.setPlayList(data.playlists, override: true);
+
     log.info('[SettingsDataService][Done] restoreSettingsData');
   }
 }
@@ -134,6 +138,7 @@ class SettingsDataBackup {
   List<String> hiddenTestnetTokenIDs;
   List<String> hiddenFullAccountsFromGallery;
   List<String> hiddenLinkedAccountsFromGallery;
+  List<PlayListModel>? playlists;
 
   SettingsDataBackup({
     required this.addresses,
@@ -143,6 +148,7 @@ class SettingsDataBackup {
     required this.hiddenTestnetTokenIDs,
     required this.hiddenFullAccountsFromGallery,
     required this.hiddenLinkedAccountsFromGallery,
+    this.playlists,
   });
 
   factory SettingsDataBackup.fromJson(Map<String, dynamic> json) =>

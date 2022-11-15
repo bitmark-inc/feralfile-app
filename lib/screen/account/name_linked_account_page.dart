@@ -32,6 +32,14 @@ class NameLinkedAccountPage extends StatefulWidget {
 class _NameLinkedAccountPageState extends State<NameLinkedAccountPage> {
   final TextEditingController _nameController = TextEditingController();
 
+  bool isSavingAliasDisabled = true;
+
+  void saveAliasButtonChangedState() {
+    setState(() {
+      isSavingAliasDisabled = !isSavingAliasDisabled;
+    });
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -73,7 +81,13 @@ class _NameLinkedAccountPageState extends State<NameLinkedAccountPage> {
                     AuTextField(
                         title: "",
                         placeholder: "enter_alias".tr(),
-                        controller: _nameController),
+                        controller: _nameController,
+                        onChanged: (valueChanged) {
+                          if (_nameController.text.trim().isEmpty !=
+                              isSavingAliasDisabled) {
+                            saveAliasButtonChangedState();
+                          }
+                        }),
                   ],
                 ),
               ),
@@ -85,18 +99,23 @@ class _NameLinkedAccountPageState extends State<NameLinkedAccountPage> {
                     Expanded(
                       child: AuFilledButton(
                         text: "save_alias".tr().toUpperCase(),
-                        onPress: () {
-                          context.read<AccountsBloc>().add(
-                              NameLinkedAccountEvent(
-                                  widget.connection, _nameController.text));
-                          _doneNaming();
-                        },
+                        onPress: isSavingAliasDisabled
+                            ? null
+                            : () {
+                                context.read<AccountsBloc>().add(
+                                    NameLinkedAccountEvent(widget.connection,
+                                        _nameController.text));
+                                _doneNaming();
+                              },
                       ),
                     ),
                   ],
                 ),
                 TextButton(
                     onPressed: () {
+                      context.read<AccountsBloc>().add(
+                          NameLinkedAccountEvent(widget.connection,
+                              widget.connection.accountNumber));
                       _doneNaming();
                     },
                     child: Text("skip".tr(), style: theme.textTheme.button)),

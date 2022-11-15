@@ -1,3 +1,4 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 //
 //  SPDX-License-Identifier: BSD-2-Clause-Patent
 //  Copyright © 2022 Bitmark. All rights reserved.
@@ -6,6 +7,18 @@
 //
 
 import 'dart:async';
+
+import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_vibrate/flutter_vibrate.dart';
+import 'package:jiffy/jiffy.dart';
+import 'package:nft_collection/models/asset_token.dart';
+import 'package:share/share.dart';
+import 'package:wallet_connect/models/wc_peer_meta.dart';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
@@ -24,20 +37,10 @@ import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:dio/dio.dart';
-import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:flutter_vibrate/flutter_vibrate.dart';
-import 'package:jiffy/jiffy.dart';
-import 'package:nft_collection/models/asset_token.dart';
-import 'package:share/share.dart';
-import 'package:wallet_connect/models/wc_peer_meta.dart';
 
 enum ActionState { notRequested, loading, error, done }
 
@@ -165,6 +168,7 @@ class UIHelper {
     FeedbackType? feedback = FeedbackType.selection,
     String? actionButton,
     Function? onAction,
+    Widget? descriptionWidget,
   }) async {
     log.info("[UIHelper] showInfoDialog: $title, $description");
     final theme = Theme.of(context);
@@ -186,6 +190,7 @@ class UIHelper {
               style: theme.primaryTextTheme.bodyText1,
             ),
           ],
+          descriptionWidget ?? const SizedBox.shrink(),
           const SizedBox(height: 40),
           if (onAction != null) ...[
             AuFilledButton(
@@ -213,6 +218,59 @@ class UIHelper {
       ),
       isDismissible: isDismissible,
       feedback: feedback,
+    );
+  }
+
+  static Future<void> showDialogAction(BuildContext context,
+      {List<OptionItem>? options}) async {
+    final theme = Theme.of(context);
+
+    Widget optionRow({required String title, Function()? onTap}) {
+      return InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(title, style: theme.primaryTextTheme.headline4),
+              Icon(Icons.navigate_next, color: theme.colorScheme.secondary),
+            ],
+          ),
+        ),
+      );
+    }
+
+    UIHelper.showDialog(
+      context,
+      "Options",
+      ListView.separated(
+        shrinkWrap: true,
+        itemBuilder: (BuildContext context, int index) =>
+            index != options?.length
+                ? optionRow(
+                    title: options?[index].title ?? '',
+                    onTap: options?[index].onTap)
+                : TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    child: Text(
+                      "cancel".tr(),
+                      style: theme.primaryTextTheme.button,
+                    ),
+                  ),
+        itemCount: (options?.length ?? 0) + 1,
+        separatorBuilder: (context, index) =>
+            index == (options?.length ?? 0) - 1
+                ? const SizedBox.shrink()
+                : Divider(
+                    height: 1,
+                    thickness: 1.0,
+                    color: theme.colorScheme.surface,
+                  ),
+      ),
+      isDismissible: true,
     );
   }
 
@@ -405,10 +463,7 @@ class UIHelper {
         autoDismissAfter: 5);
   }
 
-  static Future showExhibitionNotStarted(
-    BuildContext context, {
-    required DateTime startTime,
-  }) async {
+  static Future showAirdropNotStarted(BuildContext context) async {
     final theme = Theme.of(context);
     final error = FeralfileError(5006, "");
     return UIHelper.showDialog(
@@ -820,7 +875,7 @@ class UIHelper {
   static showAccountLinked(
       BuildContext context, Connection connection, String walletName) {
     UIHelper.showInfoDialog(context, "account_linked".tr(),
-        "au_receive_auth_nft".tr(args: [walletName]));
+        "autonomy_has_received".tr(args: [walletName, connection.accountNumber.mask(4)]));
 
     Future.delayed(const Duration(seconds: 3), () {
       UIHelper.hideInfoDialog(context);
@@ -956,4 +1011,13 @@ wantMoreSecurityWidget(BuildContext context, WalletApp walletApp) {
 
 String getDateTimeRepresentation(DateTime dateTime) {
   return Jiffy(dateTime).fromNow();
+}
+
+class OptionItem {
+  String? title;
+  Function()? onTap;
+  OptionItem({
+    this.title,
+    this.onTap,
+  });
 }

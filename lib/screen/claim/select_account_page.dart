@@ -98,7 +98,10 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
               height: 40,
             ),
             Text(
-              "claim_airdrop_select_account_desc".tr(),
+              "claim_airdrop_select_account_desc".tr(args: [
+                widget.blockchain ?? "Tezos",
+                widget.blockchain ?? "Tezos",
+              ]),
               style: theme.textTheme.bodyText1,
             ),
             const SizedBox(

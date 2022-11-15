@@ -8,6 +8,7 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/environment.dart';
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/branch_api.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/otp.dart';
@@ -27,7 +28,6 @@ import 'package:collection/collection.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_branch_sdk/flutter_branch_sdk.dart';
 import 'package:uni_links/uni_links.dart';
-
 
 abstract class DeeplinkService {
   Future setup();
@@ -100,6 +100,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
   }
 
   bool _handleDappConnectDeeplink(String link) {
+
     log.info("[DeeplinkService] _handleDappConnectDeeplink");
     final wcPrefixes = [
       "https://au.bitmark.com/apps/wc?uri=",
@@ -123,7 +124,9 @@ class DeeplinkServiceImpl extends DeeplinkService {
       "tezos://",
       "autonomy-tezos://",
     ];
-
+    if (!_configurationService.isDoneOnboarding()) {
+      memoryValues.deepLink.value = link;
+    }
     // Check Universal Link
     final callingWCPrefix =
         wcPrefixes.firstWhereOrNull((prefix) => link.startsWith(prefix));
@@ -161,10 +164,12 @@ class DeeplinkServiceImpl extends DeeplinkService {
         .firstWhereOrNull((prefix) => link.startsWith(prefix));
     if (callingTBDeeplinkPrefix != null) {
       _tezosBeaconService.addPeer(link);
-      _navigationService.showContactingDialog();
+      if (_configurationService.isDoneOnboarding()) {
+        _navigationService.showContactingDialog();
+      }
       return true;
     }
-
+    memoryValues.deepLink.value = null;
     return false;
   }
 
@@ -264,16 +269,12 @@ class DeeplinkServiceImpl extends DeeplinkService {
           _navigationService.popUntilHomeOrSettings();
         });
         final exhibition = await exhibitionFuture;
-        final exhibitionNotStarted =
-            exhibition.exhibitionStartAt.isAfter(DateTime.now());
         final endTime = exhibition.airdropInfo?.endedAt;
-        if (exhibitionNotStarted) {
-          await _navigationService.showExhibitionNotStarted(
-            startTime: exhibition.exhibitionStartAt,
-          );
-        } else if (exhibition.airdropInfo == null ||
+        if (exhibition.airdropInfo == null ||
             (endTime != null && endTime.isBefore(DateTime.now()))) {
           await _navigationService.showAirdropExpired();
+        } else if (exhibition.airdropInfo?.isAirdropStarted != true) {
+          await _navigationService.showAirdropNotStarted();
         } else if (exhibition.airdropInfo?.remainAmount == 0) {
           await _navigationService.showNoRemainingToken(
             exhibition: exhibition,

@@ -127,11 +127,23 @@ class _NamePersonaPageState extends State<NamePersonaPage> {
                       ),
                     ],
                   ),
-                  TextButton(
-                      onPressed: () {
-                        _doneNaming();
-                      },
-                      child: Text("skip".tr(), style: theme.textTheme.button)),
+                  !injector<ConfigurationService>().isDoneOnboarding()
+                      ? TextButton(
+                          onPressed: () async {
+                            //_doneNaming();
+                            final defaultAccount = await injector<AccountService>().getDefaultAccount();
+                            final accountDID = await defaultAccount.getAccountDID();
+
+                            if (!mounted) {
+                              _doneNaming();
+                              return;
+                            }
+                            context.read<PersonaBloc>().add(
+                                NamePersonaEvent(accountDID.trim()));
+                          },
+                          child:
+                              Text("skip".tr(), style: theme.textTheme.button))
+                      : const SizedBox(),
                 ],
               ),
             ],

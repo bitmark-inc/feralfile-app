@@ -255,6 +255,7 @@ class AirdropInfo {
   final String? artworkTitle;
   final String? artist;
   final String? gifter;
+  final DateTime? startedAt;
   final DateTime? endedAt;
 
   AirdropInfo(
@@ -265,6 +266,7 @@ class AirdropInfo {
     this.artworkTitle,
     this.artist,
     this.gifter,
+    this.startedAt,
     this.endedAt,
   );
 
@@ -272,6 +274,10 @@ class AirdropInfo {
       _$AirdropInfoFromJson(json);
 
   Map<String, dynamic> toJson() => _$AirdropInfoToJson(this);
+
+  bool get isAirdropStarted {
+    return startedAt?.isBefore(DateTime.now()) == true;
+  }
 }
 
 @JsonSerializable()

@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/blockchain.dart';
+import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
@@ -47,11 +48,13 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/penrose_top_bar_view.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/nft_collection.dart';
@@ -60,6 +63,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:wallet_connect/models/wc_peer_meta.dart';
 
 import '../../util/constants.dart';
+import '../../util/token_ext.dart';
 
 class HomePage extends StatefulWidget {
   static const tag = "home";
@@ -76,6 +80,8 @@ class _HomePageState extends State<HomePage>
   late ScrollController _controller;
   late MetricClientService metricClient;
   int _cachedImageSize = 0;
+
+  late List<PlayListModel>? playlists;
 
   Future<List<String>> getAddresses() async {
     final accountService = injector<AccountService>();
@@ -109,6 +115,7 @@ class _HomePageState extends State<HomePage>
       final indexerIds = value[1];
       final hiddenAddresses = value[2];
       final nftBloc = context.read<NftCollectionBloc>();
+      playlists = injector.get<ConfigurationService>().getPlayList();
       nftBloc.add(UpdateHiddenTokens(ownerAddresses: hiddenAddresses));
       nftBloc.add(
           RefreshTokenEvent(addresses: addresses, debugTokens: indexerIds));
@@ -123,6 +130,7 @@ class _HomePageState extends State<HomePage>
         _handleNotificationClicked(openedResult.notification);
       });
     });
+
     injector<IAPService>().setup();
     memoryValues.inGalleryView = true;
     injector<TezosBeaconService>().cleanup();
@@ -165,6 +173,7 @@ class _HomePageState extends State<HomePage>
   void didPopNext() async {
     super.didPopNext();
     final connectivityResult = await (Connectivity().checkConnectivity());
+    playlists = injector.get<ConfigurationService>().getPlayList();
 
     if (!mounted) return;
 
@@ -308,11 +317,6 @@ class _HomePageState extends State<HomePage>
           child: autonomyLogo,
         ),
         Text(
-          "collection".tr(),
-          style: theme.textTheme.headline1,
-        ),
-        const SizedBox(height: 24.0),
-        Text(
           "collection_empty_now".tr(),
           //"Your collection is empty for now.",
           style: theme.textTheme.bodyText1,
@@ -322,20 +326,8 @@ class _HomePageState extends State<HomePage>
   }
 
   Widget _assetsWidget(BuildContext context, List<AssetToken> tokens) {
-    tokens.sort((a, b) {
-      final aSource = a.source?.toLowerCase() ?? INDEXER_UNKNOWN_SOURCE;
-      final bSource = b.source?.toLowerCase() ?? INDEXER_UNKNOWN_SOURCE;
-
-      if (aSource == INDEXER_UNKNOWN_SOURCE &&
-          bSource == INDEXER_UNKNOWN_SOURCE) {
-        return b.lastUpdateTime.compareTo(a.lastUpdateTime);
-      }
-
-      if (aSource == INDEXER_UNKNOWN_SOURCE) return 1;
-      if (bSource == INDEXER_UNKNOWN_SOURCE) return -1;
-
-      return b.lastUpdateTime.compareTo(a.lastUpdateTime);
-    });
+    playlists = injector.get<ConfigurationService>().getPlayList();
+    tokens.sortToken();
 
     final accountIdentities = tokens
         .where((e) => e.pending != true || e.hasMetadata)
@@ -357,10 +349,44 @@ class _HomePageState extends State<HomePage>
     List<Widget> sources;
     sources = [
       SliverToBoxAdapter(
-          child: Container(
-        padding: const EdgeInsets.fromLTRB(0, 72, 0, 48),
-        child: autonomyLogo,
-      )),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.fromLTRB(0, 72, 0, 30),
+              child: autonomyLogo,
+            ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: SizedBox(
+                height: 70,
+                child: Center(
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemBuilder: (context, index) =>
+                        index == (playlists?.length ?? 0)
+                            ? AddPlayListItem(
+                                onTap: () {
+                                  Navigator.of(context)
+                                      .pushNamed(AppRouter.createPlayListPage);
+                                },
+                              )
+                            : PlaylistItem(
+                                name: playlists?[index].name,
+                                thumbnailURL: playlists?[index].thumbnailURL,
+                                onSelected: () => Navigator.pushNamed(
+                                  context,
+                                  AppRouter.viewPlayListPage,
+                                  arguments: playlists?[index],
+                                ),
+                              ),
+                    itemCount: (playlists?.length ?? 0) + 1,
+                  ),
+                ),
+              ),
+            )
+          ],
+        ),
+      ),
       SliverGrid(
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: cellPerRow,
@@ -605,5 +631,127 @@ class _HomePageState extends State<HomePage>
     await metricClient.sendAndClearMetrics();
     _cloudBackup();
     FileLogger.shrinkLogFileIfNeeded();
+  }
+}
+
+class PlaylistItem extends StatefulWidget {
+  final Function()? onSelected;
+  final String? name;
+  final String? thumbnailURL;
+
+  const PlaylistItem({
+    Key? key,
+    this.onSelected,
+    this.name,
+    this.thumbnailURL,
+  }) : super(key: key);
+
+  @override
+  State<PlaylistItem> createState() => _PlaylistItemState();
+}
+
+class _PlaylistItemState extends State<PlaylistItem> {
+  @override
+  void didUpdateWidget(covariant PlaylistItem oldWidget) {
+    super.didUpdateWidget(oldWidget);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return GestureDetector(
+      onTap: widget.onSelected,
+      child: SizedBox(
+        width: 70,
+        child: Column(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(1),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(100),
+                  child: widget.thumbnailURL == null
+                      ? Image.asset(
+                          'assets/images/moma_logo.png',
+                          fit: BoxFit.cover,
+                        )
+                      : CachedNetworkImage(
+                          imageUrl: widget.thumbnailURL ?? '',
+                          fit: BoxFit.cover,
+                          cacheManager: injector.get<CacheManager>(),
+                          errorWidget: (context, url, error) =>
+                              const GalleryThumbnailErrorWidget(),
+                          memCacheHeight: 1000,
+                          memCacheWidth: 1000,
+                          maxWidthDiskCache: 1000,
+                          maxHeightDiskCache: 1000,
+                          fadeInDuration: Duration.zero,
+                        ),
+                ),
+              ),
+            ),
+            const SizedBox(
+              height: 4,
+            ),
+            Text(
+              widget.name ?? 'Untitled',
+              style: theme.textTheme.headline5,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class AddPlayListItem extends StatelessWidget {
+  final Function()? onTap;
+  const AddPlayListItem({Key? key, this.onTap}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return GestureDetector(
+      onTap: onTap,
+      child: SizedBox(
+        width: 70,
+        child: Column(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(1),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(100),
+                  child: const Icon(
+                    Icons.add,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(
+              height: 4,
+            ),
+            Text(
+              'new list',
+              style: theme.textTheme.headline5,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
