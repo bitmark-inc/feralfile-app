@@ -74,7 +74,7 @@ class AddNewPlaylistBloc
         playListModel?.id = const Uuid().v4();
         await _configurationService.setPlayList([playListModel!]);
         injector.get<SettingsDataService>().backup();
-      } else {}
+      }
       emit(state.copyWith(isAddSuccess: true));
     });
   }
