@@ -210,7 +210,7 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
                 ],
               )
             ],
-            SizedBox(height: safeAreaBottom > 0 ? 24 : 0),
+            SizedBox(height: safeAreaBottom > 0 ? 40 : 16),
           ],
         ),
       ),

@@ -75,7 +75,7 @@ class _NamePersonaPageState extends State<NamePersonaPage> {
           }
         },
         child: Container(
-          margin: ResponsiveLayout.pageEdgeInsets,
+          margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
