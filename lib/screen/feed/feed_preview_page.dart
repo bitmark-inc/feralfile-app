@@ -79,9 +79,9 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
   }
 
   @override
-  Future<void> afterFirstLayout(BuildContext context) async {
+  void afterFirstLayout(BuildContext context) {
     final metricClient = injector.get<MetricClientService>();
-    await metricClient.addEvent(
+    metricClient.addEvent(
       "view_discovery",
     );
   }

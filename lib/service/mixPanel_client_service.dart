@@ -7,6 +7,7 @@ import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:crypto/crypto.dart';
+import 'package:intl/intl.dart';
 import 'package:mixpanel_flutter/mixpanel_flutter.dart';
 
 class MixPanelClientService {
@@ -15,14 +16,17 @@ class MixPanelClientService {
 
   late Mixpanel mixpanel;
   Future<void> initService() async {
-    final defaultDID = (await (await _accountService.getCurrentDefaultAccount())
-        ?.getAccountDID()) ??
+    final currentDefaultAccount = await _accountService.getCurrentDefaultAccount();
+
+    final defaultDID = await currentDefaultAccount
+        ?.getAccountDID() ??
         'unknown';
     final hashedUserID = sha256.convert(utf8.encode(defaultDID)).toString();
 
-    final defaultAddress = await (await _accountService.getCurrentDefaultAccount())
+    final defaultAddress = await currentDefaultAccount
         ?.getETHAddress() ??
-        "unknow";
+        "unknown";
+
     final hashedDefaultAddress = sha256.convert(utf8.encode(defaultAddress)).toString();
 
     mixpanel = await Mixpanel.init(Environment.mixpanelKey,
@@ -51,7 +55,7 @@ class MixPanelClientService {
     // track with Mixpanel
     if (hashedData.isNotEmpty) {
       hashedData = hashedData.map((key, value) {
-          final salt = DateTime.now().day.toString();
+        final salt = DateFormat("yyyy-MM-dd").format(DateTime.now()).toString();
           final valueWithSalt = "$value$salt";
           return MapEntry(key, sha256.convert(utf8.encode(valueWithSalt)).toString());
       });

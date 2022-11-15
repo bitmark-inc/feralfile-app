@@ -74,7 +74,7 @@ class MetricClientService {
             ?.getAccountDID()) ??
         'unknown';
     final hashedUserID = sha224.convert(utf8.encode(defaultDID)).toString();
-    await MetricClient.addEvent(
+    MetricClient.addEvent(
       name,
       message: message,
       userId: hashedUserID,

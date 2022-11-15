@@ -364,8 +364,8 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
             case AUCastDeviceType.Airplay:
               return GestureDetector(
                   behavior: HitTestBehavior.translucent,
-                  onTap: () async {
-                    await metricClient.addEvent("stream_airplay");
+                  onTap: () {
+                    metricClient.addEvent("stream_airplay");
                   },
                   child: _airplayItem(context, isSubscribed));
             case AUCastDeviceType.Chromecast:

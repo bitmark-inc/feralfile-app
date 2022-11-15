@@ -221,7 +221,7 @@ class _HomePageState extends State<HomePage>
             hashedAddresses &&
         tokens.any((asset) =>
             asset.blockchain == Blockchain.TEZOS.name.toLowerCase())) {
-      await metricClient.addEvent("collection_has_tezos");
+      metricClient.addEvent("collection_has_tezos");
       injector<ConfigurationService>()
           .setSentTezosArtworkMetric(hashedAddresses);
     }
@@ -583,7 +583,7 @@ class _HomePageState extends State<HomePage>
       nftBloc.add(
           RefreshTokenEvent(addresses: addresses, debugTokens: manualTokenIds));
       nftBloc.add(RequestIndexEvent(addresses));
-      await metricClient.addEvent("device_foreground");
+      metricClient.addEvent("device_foreground");
       final pendingTokenService = injector<PendingTokenService>();
       addresses.where((address) => address.startsWith("tz")).forEach((address) {
         pendingTokenService.checkPendingTezosTokens(address, maxRetries: 1);

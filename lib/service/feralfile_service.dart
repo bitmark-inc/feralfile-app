@@ -114,14 +114,14 @@ class FeralFileServiceImpl extends FeralFileService {
     // mark survey from FeralFile as referrer if user hasn't answerred
     final finishedSurveys = _configurationService.getFinishedSurveys();
     if (!finishedSurveys.contains(Survey.onboarding)) {
-      await metricClient.addEvent(
+      metricClient.addEvent(
         Survey.onboarding,
         message: 'Feral File Website',
       );
       injector<ConfigurationService>().setFinishedSurvey([Survey.onboarding]);
     }
 
-    await metricClient.addEvent(
+    metricClient.addEvent(
       "link_feralfile",
       hashedData: {"address": connection.accountNumber},
     );
