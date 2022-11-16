@@ -25,9 +25,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
-
-import '../model/pair.dart';
 
 class OnboardingPage extends StatefulWidget {
   const OnboardingPage({Key? key}) : super(key: key);
@@ -85,8 +82,6 @@ class _OnboardingPageState extends State<OnboardingPage> {
         if (currentExhibitionId == exhibitionId) return;
 
         if (exhibitionId != null && exhibitionId.isNotEmpty) {
-          warningDeepLinkTimeOut(
-              message: "Open Claim Page Timeout", param: "feralFileAirDrop");
           currentExhibitionId = exhibitionId;
           setState(() {
             fromBranchLink = true;

@@ -17,8 +17,6 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
-import '../main.dart';
-
 class NavigationService {
   final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -43,10 +41,11 @@ class NavigationService {
         ?.pushNamed(routeName, arguments: arguments);
   }
 
-  Future<dynamic>? navigateUntil(String routeName,
-      RoutePredicate predicate, {
-        Object? arguments,
-      }) {
+  Future<dynamic>? navigateUntil(
+    String routeName,
+    RoutePredicate predicate, {
+    Object? arguments,
+  }) {
     log.info("NavigationService.navigateTo: $routeName");
 
     if (routeName == AppRouter.wcConnectPage && _isWCConnectInShow) {
@@ -72,13 +71,13 @@ class NavigationService {
           inOnboarding: inOnboarding);
     }
   }
-  NavigatorState navigatorState(){
+
+  NavigatorState navigatorState() {
     return Navigator.of(navigatorKey.currentContext!);
   }
 
   Future showAirdropNotStarted() async {
     log.info("NavigationService.showAirdropNotStarted");
-    memoryValues.deepLinkHandleWatcher = null;
     if (navigatorKey.currentState?.mounted == true &&
         navigatorKey.currentContext != null) {
       await UIHelper.showAirdropNotStarted(
@@ -91,7 +90,6 @@ class NavigationService {
 
   Future showAirdropExpired() async {
     log.info("NavigationService.showAirdropExpired");
-    memoryValues.deepLinkHandleWatcher = null;
     if (navigatorKey.currentState?.mounted == true &&
         navigatorKey.currentContext != null) {
       await UIHelper.showAirdropExpired(navigatorKey.currentContext!);
@@ -185,9 +183,9 @@ class NavigationService {
     _isWCConnectInShow = appeared;
   }
 
-  void showContactingDialog(){
+  void showContactingDialog() {
     if (navigatorKey.currentState?.mounted == true &&
-        navigatorKey.currentContext != null){
+        navigatorKey.currentContext != null) {
       UIHelper.showInfoDialog(
         navigatorKey.currentContext!,
         'contacting'.tr(),

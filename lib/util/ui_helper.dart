@@ -437,7 +437,6 @@ class UIHelper {
   static Future showAirdropExpired(BuildContext context) async {
     final theme = Theme.of(context);
     final error = FeralfileError(3007, "");
-    memoryValues.deepLinkHandleWatcher = null;
     return UIHelper.showDialog(
       context,
       error.dialogTitle,
@@ -469,7 +468,6 @@ class UIHelper {
     required Exhibition exhibition,
   }) async {
     final error = FeralfileError(3009, "");
-    memoryValues.deepLinkHandleWatcher = null;
     return showErrorDialog(
       context,
       error.getDialogTitle(exhibition: exhibition),
@@ -479,7 +477,6 @@ class UIHelper {
   }
 
   static Future showOtpExpired(BuildContext context) async {
-    memoryValues.deepLinkHandleWatcher = null;
     final error = FeralfileError(3013, "");
     return showErrorDialog(
       context,
