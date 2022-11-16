@@ -17,6 +17,7 @@ import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
+import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_widget.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -163,36 +164,20 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                       ),
                     ),
                     const SizedBox(height: 16.0),
-                    GestureDetector(
-                        child: TokenThumbnailWidget(
-                          token: asset,
-                          onHideArtwork: () {
-                            _showArtworkOptionsDialog(asset);
-                          },
-                        ),
-                        onTap: () {
-                          if (injector<ConfigurationService>()
-                              .isImmediateInfoViewEnabled()) {
-                            Navigator.of(context).pushNamed(
-                                AppRouter.artworkPreviewPage,
-                                arguments: widget.payload);
-                          } else {
-                            Navigator.of(context).pop();
-                          }
-                        }),
-                    debugInfoWidget(context, currentAsset),
-                    const SizedBox(height: 16.0),
-                    Padding(
-                      padding: ResponsiveLayout.getPadding,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(
-                            width: 165,
-                            height: 48,
-                            child: AuOutlinedButton(
-                              text: "view_artwork".tr(),
-                              onPress: () {
+                    Hero(
+                      tag: asset.id,
+                      child: AspectRatio(
+                        aspectRatio: 1,
+                        child: Stack(
+                          children: [
+                            Center(
+                              child: ArtworkPreviewWidget(
+                                identity: widget.payload
+                                    .identities[widget.payload.currentIndex],
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: () {
                                 if (injector<ConfigurationService>()
                                     .isImmediateInfoViewEnabled()) {
                                   Navigator.of(context).pushNamed(
@@ -202,9 +187,21 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                                   Navigator.of(context).pop();
                                 }
                               },
+                              child: Container(
+                                color: Colors.transparent,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 40.0),
+                          ],
+                        ),
+                      ),
+                    ),
+                    debugInfoWidget(context, currentAsset),
+                    const SizedBox(height: 16.0),
+                    Padding(
+                      padding: ResponsiveLayout.getPadding,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                           Semantics(
                             label: 'Desc',
                             child: Text(

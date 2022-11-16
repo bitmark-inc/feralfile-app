@@ -78,15 +78,14 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
       Platform.isIOS ? [AUCastDevice(AUCastDeviceType.Airplay)] : [];
   final keyboardManagerKey = GlobalKey<KeyboardManagerWidgetState>();
 
-  final Future<List<CastDevice>> _castDevicesFuture =
-      CastDiscoveryService().search();
   INFTRenderingWidget? _renderingWidget;
 
   @override
   void initState() {
     controller = PageController(initialPage: widget.payload.currentIndex);
     _bloc = context.read<ArtworkPreviewBloc>();
-    final currentIdentity = widget.payload.identities[widget.payload.currentIndex];
+    final currentIdentity =
+        widget.payload.identities[widget.payload.currentIndex];
     _bloc.add(ArtworkPreviewGetAssetTokenEvent(currentIdentity));
     super.initState();
   }
@@ -204,7 +203,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
       context,
       "select_a_device".tr(),
       FutureBuilder<List<CastDevice>>(
-        future: _castDevicesFuture,
+        future: CastDiscoveryService().search(),
         builder: (context, snapshot) {
           if (!snapshot.hasData ||
               snapshot.data!.isEmpty ||
