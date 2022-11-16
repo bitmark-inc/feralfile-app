@@ -82,11 +82,6 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
         )
         .toList();
 
-    accountIdentities = tokens
-        .where((e) => e.pending != true || e.hasMetadata)
-        .map((element) => ArtworkIdentity(element.id, element.ownerAddress))
-        .toList();
-
     final temp = selectedTokens
             ?.map((e) =>
                 tokens.where((element) => element.id == e).firstOrDefault())
@@ -96,6 +91,11 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
     temp.removeWhere((element) => element == null);
 
     tokensPlaylist = List.from(temp);
+
+    accountIdentities = tokensPlaylist
+        .where((e) => e.pending != true || e.hasMetadata)
+        .map((element) => ArtworkIdentity(element.id, element.ownerAddress))
+        .toList();
 
     return tokensPlaylist;
   }
@@ -192,8 +192,10 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            playList?.name ?? tr('untitled'),
-                            style: playList?.name == null
+                            (playList?.name?.isNotEmpty ?? false)
+                                ? playList!.name!
+                                : tr('untitled'),
+                            style: !(playList?.name?.isNotEmpty ?? false)
                                 ? theme.textTheme.atlasSpanishGreyBold36
                                 : theme.textTheme.headline1,
                             maxLines: 1,
@@ -302,6 +304,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                 .where((e) => e.pending != true || e.hasMetadata)
                 .toList()
                 .indexOf(asset);
+
             final payload = ArtworkDetailPayload(accountIdentities, index,
                 isPlaylist: true);
             Navigator.of(context)
