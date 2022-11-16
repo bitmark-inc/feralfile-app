@@ -417,13 +417,8 @@ class _HomePageState extends State<HomePage>
                       arguments: payload);
                 }
 
-                mixPanelClient.trackEvent(
-                  "view_artwork",
-                  data: {
-                    "tokenId": asset.tokenId,
-                    "identity": asset.id
-                  }
-                );
+                mixPanelClient.trackEvent("view_artwork",
+                    data: {"tokenId": asset.tokenId, "identity": asset.id});
               },
             );
           },
@@ -769,7 +764,7 @@ class _PlaylistItemState extends State<PlaylistItem> {
               height: 4,
             ),
             Text(
-              widget.name ?? 'Untitled',
+              (widget.name?.isNotEmpty ?? false) ? widget.name! : 'Untitled',
               style: theme.textTheme.headline5,
               overflow: TextOverflow.ellipsis,
             ),
