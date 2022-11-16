@@ -33,6 +33,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
+
+import '../../model/pair.dart';
 
 class ScanQRPage extends StatefulWidget {
   static const String tag = AppRouter.scanQRPage;
@@ -336,6 +339,10 @@ class _ScanQRPageState extends State<ScanQRPage> with RouteAware {
     controller.dispose();
     injector<WalletConnectService>().connect(code);
     Navigator.of(context).pop();
+
+    warningDeepLinkTimeOut(
+        message: "Wallet Connect Timeout", param: "inAppScanner:walletConnect");
+
   }
 
   void _handleBeaconConnect(String code) {
@@ -343,6 +350,8 @@ class _ScanQRPageState extends State<ScanQRPage> with RouteAware {
     injector<TezosBeaconService>().addPeer(code);
     Navigator.of(context).pop();
     injector<NavigationService>().showContactingDialog();
+    warningDeepLinkTimeOut(
+        message: "Beacon Connect Timeout", param: "inAppScanner:beaconConnect");
   }
 
   void _handleFeralFileToken(String code) async {

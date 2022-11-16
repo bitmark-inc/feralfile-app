@@ -187,6 +187,7 @@ class MemoryValues {
   bool inGalleryView;
   ValueNotifier<Pair<String, Otp?>?> airdropFFExhibitionId;
   List<Connection>? linkedFFConnections = [];
+  Pair<int, String>? deepLinkHandleWatcher;
 
   MemoryValues({
     this.scopedPersona,
@@ -195,6 +196,7 @@ class MemoryValues {
     this.inGalleryView = true,
     required this.airdropFFExhibitionId,
     this.linkedFFConnections,
+    this.deepLinkHandleWatcher,
   });
 
   MemoryValues copyWith({
@@ -215,3 +217,18 @@ void downloadCallback(String id, DownloadTaskStatus status, int progress) {
 }
 
 void imageError(Object exception, StackTrace? stackTrace) {}
+
+Future<void> warningDeepLinkTimeOut(
+    {required String message, required String param}) async {
+  memoryValues.deepLinkHandleWatcher =
+      Pair(DateTime.now().millisecondsSinceEpoch, param);
+  Future.delayed(const Duration(seconds: 2), () {
+    if (memoryValues.deepLinkHandleWatcher != null) {
+      Sentry.captureMessage(message, level: SentryLevel.warning, params: [
+        memoryValues.deepLinkHandleWatcher!.first,
+        memoryValues.deepLinkHandleWatcher!.second
+      ]);
+      memoryValues.deepLinkHandleWatcher = null;
+    }
+  });
+}

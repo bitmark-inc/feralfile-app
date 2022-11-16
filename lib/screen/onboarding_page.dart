@@ -19,13 +19,15 @@ import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/eula_privacy.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
+
+import '../model/pair.dart';
 
 class OnboardingPage extends StatefulWidget {
   const OnboardingPage({Key? key}) : super(key: key);
@@ -81,7 +83,10 @@ class _OnboardingPageState extends State<OnboardingPage> {
       try {
         final exhibitionId = memoryValues.airdropFFExhibitionId.value?.first;
         if (currentExhibitionId == exhibitionId) return;
+
         if (exhibitionId != null && exhibitionId.isNotEmpty) {
+          warningDeepLinkTimeOut(
+              message: "Open Claim Page Timeout", param: "feralFileAirDrop");
           currentExhibitionId = exhibitionId;
           setState(() {
             fromBranchLink = true;
@@ -122,10 +127,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
           if (!mounted) return;
           await Navigator.of(context).pushNamed(
             AppRouter.claimFeralfileTokenPage,
-            arguments: ClaimTokenPageArgs(
-              exhibition: exhibition,
-              otp: otp
-            ),
+            arguments: ClaimTokenPageArgs(exhibition: exhibition, otp: otp),
           );
           currentExhibitionId = null;
 

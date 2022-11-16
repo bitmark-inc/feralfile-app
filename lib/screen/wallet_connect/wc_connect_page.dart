@@ -66,6 +66,7 @@ class _WCConnectPageState extends State<WCConnectPage>
 
   @override
   void initState() {
+    memoryValues.deepLinkHandleWatcher = null;
     super.initState();
     context.read<PersonaBloc>().add(GetListPersonaEvent());
     injector<NavigationService>().setIsWCConnectInShow(true);

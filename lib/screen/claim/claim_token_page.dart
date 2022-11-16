@@ -51,6 +51,12 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
   bool _processing = false;
 
   @override
+  void initState() {
+    memoryValues.deepLinkHandleWatcher = null;
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final exhibition = widget.exhibition;
     final artwork = exhibition.airdropArtwork;
