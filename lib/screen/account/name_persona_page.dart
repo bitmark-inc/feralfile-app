@@ -90,8 +90,9 @@ class _NamePersonaPageState extends State<NamePersonaPage> {
                       ),
                       addTitleSpace(),
                       Text(
-                        "aa_you_can_add".tr(),
-                        //"You can add an optional alias for this account to help you recognize it. This alias will only be visible to you in Autonomy.",
+                        injector<ConfigurationService>().isDoneOnboarding()
+                            ? "need_add_alias".tr()
+                            : "aa_you_can_add".tr(),
                         style: theme.textTheme.bodyText1,
                       ),
                       const SizedBox(height: 40),
@@ -131,15 +132,19 @@ class _NamePersonaPageState extends State<NamePersonaPage> {
                       ? TextButton(
                           onPressed: () async {
                             //_doneNaming();
-                            final defaultAccount = await injector<AccountService>().getDefaultAccount();
-                            final accountDID = await defaultAccount.getAccountDID();
+                            final defaultAccount =
+                                await injector<AccountService>()
+                                    .getDefaultAccount();
+                            final accountDID =
+                                await defaultAccount.getAccountDID();
 
                             if (!mounted) {
                               _doneNaming();
                               return;
                             }
-                            context.read<PersonaBloc>().add(
-                                NamePersonaEvent(accountDID.trim()));
+                            context
+                                .read<PersonaBloc>()
+                                .add(NamePersonaEvent(accountDID.trim()));
                           },
                           child:
                               Text("skip".tr(), style: theme.textTheme.button))
