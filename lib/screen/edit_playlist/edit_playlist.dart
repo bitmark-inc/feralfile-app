@@ -207,7 +207,9 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
                                 ),
                                 child: Text(
                                   tr('remove'),
-                                  style: theme.textTheme.atlasBlackMedium12,
+                                  style: theme.textTheme.atlasBlackMedium12
+                                      .copyWith(
+                                          decoration: TextDecoration.underline),
                                 ),
                               ),
                             ),
