@@ -113,6 +113,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
           ? time ?? 10
           : playControlListen.value.timer;
       _timer = Timer.periodic(Duration(seconds: defauftDuration), (timer) {
+        if (!(_timer?.isActive ?? false)) return;
         if (playControlListen.value.isLoop &&
             controller.page?.toInt() == tokens.length - 1) {
           controller.jumpTo(0);
@@ -572,19 +573,19 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                             ? const NeverScrollableScrollPhysics()
                             : null,
                         onPageChanged: (value) {
+                          _timer?.cancel();
                           final currentId = tokens[value];
                           _bloc
                               .add(ArtworkPreviewGetAssetTokenEvent(currentId));
                           _stopAllChromecastDevices();
                           keyboardManagerKey.currentState?.hideKeyboard();
-                          final mixPanelClient = injector.get<MixPanelClientService>();
-                          mixPanelClient.trackEvent(
-                            "Next Artwork",
-                            hashedData: {
-                              "tokenId": currentId.id,
-                              "identity": currentId.id
-                            }
-                          );
+                          final mixPanelClient =
+                              injector.get<MixPanelClientService>();
+                          mixPanelClient.trackEvent("Next Artwork",
+                              hashedData: {
+                                "tokenId": currentId.id,
+                                "identity": currentId.id
+                              });
                         },
                         controller: controller,
                         itemCount: tokens.length,

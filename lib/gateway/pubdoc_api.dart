@@ -7,6 +7,7 @@
 
 import 'dart:convert';
 
+import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/version_info.dart';
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
@@ -25,11 +26,21 @@ abstract class PubdocAPI {
     @Path("app") String app,
     @Path("name") String name,
   );
+  @GET("/demo/demo_account.json")
+  Future<String> getDemoAccount();
 }
 
 extension PubdocAPIHelpers on PubdocAPI {
   Future<VersionsInfo> getVersionsInfo() async {
     final value = await getVersionContent();
     return VersionsInfo.fromJson(jsonDecode(value));
+  }
+
+  Future<List<PlayListModel>> getDemoAccountFromGithub() async {
+    final value = await getDemoAccount();
+    final list = (jsonDecode(value) as List?)?.map((element) {
+      return PlayListModel.fromJson(element);
+    }).toList();
+    return list ?? [];
   }
 }

@@ -65,7 +65,6 @@ import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:wallet_connect/models/wc_peer_meta.dart';
 
-import '../../util/constants.dart';
 import '../../util/token_ext.dart';
 
 class HomePage extends StatefulWidget {
@@ -92,6 +91,14 @@ class _HomePageState extends State<HomePage>
     return await accountService.getAllAddresses();
   }
 
+  Future<List<PlayListModel>?> getPlaylist() async {
+    final configurationService = injector.get<ConfigurationService>();
+    if (configurationService.isDemoArtworksMode()) {
+      return injector<VersionService>().getDemoAccountFromGithub();
+    }
+    return configurationService.getPlayList();
+  }
+
   Future<List<String>> getManualTokenIds() async {
     final cloudDb = injector<CloudDatabase>();
     final tokenIndexerIDs = (await cloudDb.connectionDao.getConnectionsByType(
@@ -114,17 +121,24 @@ class _HomePageState extends State<HomePage>
     Future.wait([
       getAddresses(),
       getManualTokenIds(),
-      accountService.getHiddenAddresses()
-    ]).then((value) {
+      accountService.getHiddenAddresses(),
+    ]).then((value) async {
       final addresses = value[0];
       final indexerIds = value[1];
       final hiddenAddresses = value[2];
       final nftBloc = context.read<NftCollectionBloc>();
-      playlists = injector.get<ConfigurationService>().getPlayList();
+      playlists = await getPlaylist();
+      final isDemo = injector.get<ConfigurationService>().isDemoArtworksMode();
+      if (isDemo) {
+        playlists?.forEach((element) {
+          indexerIds.addAll(element.tokenIDs ?? []);
+        });
+      }
       nftBloc.add(UpdateHiddenTokens(ownerAddresses: hiddenAddresses));
       nftBloc.add(
           RefreshTokenEvent(addresses: addresses, debugTokens: indexerIds));
       nftBloc.add(RequestIndexEvent(addresses));
+      if (!mounted) return;
       context.read<HomeBloc>().add(CheckReviewAppEvent());
     });
     OneSignal.shared
@@ -178,13 +192,19 @@ class _HomePageState extends State<HomePage>
   void didPopNext() async {
     super.didPopNext();
     final connectivityResult = await (Connectivity().checkConnectivity());
-    playlists = injector.get<ConfigurationService>().getPlayList();
 
+    playlists = await getPlaylist();
     if (!mounted) return;
 
     Future.wait([getAddresses(), getManualTokenIds()]).then((value) {
       final addresses = value[0];
       final indexerIds = value[1];
+      final isDemo = injector.get<ConfigurationService>().isDemoArtworksMode();
+      if (isDemo) {
+        playlists?.forEach((element) {
+          indexerIds.addAll(element.tokenIDs ?? []);
+        });
+      }
       context.read<NftCollectionBloc>().add(
           RefreshTokenEvent(addresses: addresses, debugTokens: indexerIds));
     });
@@ -331,9 +351,7 @@ class _HomePageState extends State<HomePage>
   }
 
   Widget _assetsWidget(BuildContext context, List<AssetToken> tokens) {
-    playlists = injector.get<ConfigurationService>().getPlayList();
     tokens.sortToken();
-
     final accountIdentities = tokens
         .where((e) => e.pending != true || e.hasMetadata)
         .map((element) => ArtworkIdentity(element.id, element.ownerAddress))
@@ -367,6 +385,9 @@ class _HomePageState extends State<HomePage>
                 child: ListPlaylistWidget(
                   playlists: playlists,
                   onUpdateList: () async {
+                    if (injector
+                        .get<ConfigurationService>()
+                        .isDemoArtworksMode()) return;
                     await injector
                         .get<ConfigurationService>()
                         .setPlayList(playlists, override: true);
@@ -682,7 +703,7 @@ class _ListPlaylistWidgetState extends State<ListPlaylistWidget> {
           },
         ),
         itemBuilder: (context, index) => PlaylistItem(
-          key: ValueKey(widget.playlists?[index]?.id),
+          key: ValueKey(widget.playlists?[index]?.id ?? index),
           name: widget.playlists?[index]?.name,
           thumbnailURL: widget.playlists?[index]?.thumbnailURL,
           onSelected: () => Navigator.pushNamed(
