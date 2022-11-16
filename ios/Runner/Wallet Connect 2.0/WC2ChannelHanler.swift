@@ -41,9 +41,9 @@ class WC2ChannelHandler: NSObject {
     @MainActor
     func respondOnReject(call: FlutterMethodCall, result: @escaping FlutterResult) {
         let args: NSDictionary = call.arguments as! NSDictionary
-        let requestId: Int64 = args["topic"] as! Int64
+        let requestId: String = args["topic"] as! String
         
-        guard let request = pendingRequests.last(where: { $0.id.right == requestId }) else {
+        guard let request = pendingRequests.last(where: { $0.id.left == requestId }) else {
             result(AppError.aborted)
             return
         }

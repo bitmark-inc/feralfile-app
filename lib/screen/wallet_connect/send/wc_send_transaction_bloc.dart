@@ -71,7 +71,7 @@ class WCSendTransactionBloc
       final txHash = await _ethereumService.sendTransaction(
           persona, event.to, event.value, event.gas, event.data);
       if (event.isWalletConnect2) {
-        _wc2Service.respondOnApprove(event.topic ?? "", txHash);
+        await _wc2Service.respondOnApprove(event.topic ?? "", txHash);
       } else {
         _walletConnectService.approveRequest(
             event.peerMeta, event.requestId, txHash);

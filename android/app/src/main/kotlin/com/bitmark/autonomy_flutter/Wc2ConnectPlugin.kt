@@ -1,6 +1,7 @@
 package com.bitmark.autonomy_flutter
 
 import android.app.Application
+import com.bitmark.autonomy_flutter.util.toJsonElement
 import com.bitmark.autonomy_flutter.wc2.toPairing
 import com.bitmark.autonomy_flutter.wc2.toProposalNamespace
 import com.google.gson.Gson
@@ -16,7 +17,7 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import kotlinx.coroutines.*
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.*
 import timber.log.Timber
 
 class Wc2ConnectPlugin(private val application: Application) : FlutterPlugin,
@@ -69,7 +70,7 @@ class Wc2ConnectPlugin(private val application: Application) : FlutterPlugin,
         }
         val namespaces = proposal.requiredNamespaces.mapValues {
             Sign.Model.Namespace.Session(
-                accounts = listOf("${it.key}:$account"),
+                accounts = it.value.chains.map { chain -> "$chain:$account" },
                 methods = it.value.methods,
                 events = it.value.events,
                 extensions = it.value.extensions?.map { ext ->
@@ -307,7 +308,7 @@ class Wc2ConnectPlugin(private val application: Application) : FlutterPlugin,
                         "icons" to proposer.icons
                     )
                 }
-                val params = Json.encodeToString(request)
+                val params = Json.encodeToString(request.toJsonElement())
                 mainScope.launch {
                     events?.success(
                         mapOf(

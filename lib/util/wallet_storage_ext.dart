@@ -61,10 +61,12 @@ extension WalletStorageExtension on WalletStorage {
   }) async {
     final msg = Uint8List.fromList(message.codeUnits);
     switch (chain.caip2Namespace) {
-      case "eip155":
+      case Wc2Chain.ethereum:
         return await ethSignPersonalMessage(msg);
-      case "tezos":
+      case Wc2Chain.tezos:
         return bytesToHex(await tezosSignMessage(msg));
+      case Wc2Chain.autonomy:
+        return await getAccountDIDSignature(message);
     }
     throw Exception("Unsupported chain $chain");
   }

@@ -31,7 +31,7 @@ class Wc2Request {
   AppMetadata? proposer;
 
   factory Wc2Request.fromJson(Map<String, dynamic> json) => Wc2Request(
-        id: json["id"],
+        id: json["id"] is int ? json["id"] : int.tryParse(json["id"]) ?? 0,
         method: json["method"],
         topic: json["topic"],
         params: Platform.isIOS ? json["params"] : jsonDecode(json["params"]),
@@ -209,6 +209,10 @@ class Wc2ChainResult {
 
 @JsonSerializable()
 class Wc2Chain {
+  static const autonomy = "autonomy";
+  static const ethereum = "eip155";
+  static const tezos = "tezos";
+
   final String chain;
   final String address;
   final String? publicKey;

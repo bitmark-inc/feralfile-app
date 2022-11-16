@@ -13,8 +13,10 @@ import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
+import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
@@ -58,7 +60,9 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
     }
 
     if (currentWallet == null) {
-      injector<TezosBeaconService>().signResponse(widget.request.id, null);
+      await _rejectRequest(
+        reason: "No wallet found for address ${widget.request.sourceAddress}",
+      );
       if (!mounted) return;
       Navigator.of(context).pop();
       return;
@@ -67,6 +71,36 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
     setState(() {
       _currentPersona = currentWallet;
     });
+  }
+
+  Future _rejectRequest({String? reason}) async {
+    log.info("[TBSignMessagePage] _rejectRequest: $reason");
+    if (widget.request.wc2Topic != null) {
+      await injector<Wc2Service>().respondOnReject(
+        widget.request.wc2Topic!,
+        reason: reason,
+      );
+    } else {
+      await injector<TezosBeaconService>().signResponse(
+        widget.request.id,
+        null,
+      );
+    }
+  }
+
+  Future _approveRequest({required String signature}) async {
+    log.info("[TBSignMessagePage] _approveRequest");
+    if (widget.request.wc2Topic != null) {
+      await injector<Wc2Service>().respondOnApprove(
+        widget.request.wc2Topic!,
+        signature,
+      );
+    } else {
+      await injector<TezosBeaconService>().signResponse(
+        widget.request.id,
+        signature,
+      );
+    }
   }
 
   @override
@@ -82,15 +116,14 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
 
     return WillPopScope(
       onWillPop: () async {
-        injector<TezosBeaconService>().signResponse(widget.request.id, null);
+        await _rejectRequest(reason: "User reject");
         return true;
       },
       child: Scaffold(
         appBar: getBackAppBar(
           context,
           onBack: () {
-            injector<TezosBeaconService>()
-                .signResponse(widget.request.id, null);
+            _rejectRequest(reason: "User reject");
             Navigator.of(context).pop();
           },
         ),
@@ -142,8 +175,7 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
                           ? () => withDebounce(() async {
                                 final signature = await injector<TezosService>()
                                     .signMessage(_currentPersona!, message);
-                                injector<TezosBeaconService>()
-                                    .signResponse(widget.request.id, signature);
+                                await _approveRequest(signature: signature);
                                 if (!mounted) return;
                                 Navigator.of(context).pop();
                                 final notificationEnable =

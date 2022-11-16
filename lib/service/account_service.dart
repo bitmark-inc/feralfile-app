@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/gateway/autonomy_api.dart';
 import 'package:autonomy_flutter/model/p2p_peer.dart';
+import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
@@ -207,17 +208,22 @@ class AccountServiceImpl extends AccountService {
   }) async {
     var personas = await _cloudDB.personaDao.getDefaultPersonas();
     for (Persona p in personas) {
+      final wallet = p.wallet();
       switch (chain.caip2Namespace) {
-        case "eip155":
-          if ((await p.wallet().getETHEip55Address()) == address) {
-            return p.wallet();
+        case Wc2Chain.ethereum:
+          if ((await wallet.getETHEip55Address()) == address) {
+            return wallet;
           }
           break;
-        case "tezos":
-          if ((await p.wallet().getTezosAddress()) == address) {
-            return p.wallet();
+        case Wc2Chain.tezos:
+          if ((await wallet.getTezosAddress()) == address) {
+            return wallet;
           }
           break;
+        case Wc2Chain.autonomy:
+          if (await wallet.getAccountDID() == address) {
+            return wallet;
+          }
       }
     }
     throw Exception("Wallet not found. Chain $chain, address: $address");

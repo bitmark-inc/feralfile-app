@@ -10,21 +10,23 @@ import 'package:autonomy_flutter/model/wc2_proposal.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_send_transaction_page.dart';
+import 'package:autonomy_flutter/screen/tezos_beacon/tb_sign_message_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/wc2_channel.dart';
+import 'package:autonomy_flutter/util/wc2_ext.dart';
 import 'package:autonomy_flutter/util/wc2_tezos_ext.dart';
 import 'package:collection/collection.dart';
 import 'package:wallet_connect/models/ethereum/wc_ethereum_transaction.dart';
 
 class Wc2Service extends Wc2Handler {
   static final Set<String> _supportedChains = {
-    "autonomy",
-    "eip155",
-    "tezos",
+    Wc2Chain.autonomy,
+    Wc2Chain.ethereum,
+    Wc2Chain.tezos,
   };
 
   static final Set<String> _supportedMethods = {
@@ -84,6 +86,7 @@ class Wc2Service extends Wc2Handler {
     );
   }
 
+  //#region Pairing
   Future<List<Wc2Pairing>> getPairings() async {
     return await _wc2channel.getPairings();
   }
@@ -92,7 +95,9 @@ class Wc2Service extends Wc2Handler {
     log.info("[Wc2Service] Delete pairing. Topic: $topic");
     return await _wc2channel.deletePairing(topic: topic);
   }
+  //#endregion
 
+  //#region Events handling
   @override
   void onSessionProposal(Wc2Proposal proposal) async {
     final unsupportedChains =
@@ -128,19 +133,20 @@ class Wc2Service extends Wc2Handler {
   @override
   void onSessionRequest(Wc2Request request) async {
     if (request.method == "au_sign") {
-      _navigationService.navigateTo(WCSignMessagePage.tag,
-          arguments: WCSignMessagePageArgs(
-            request.id,
+      switch (request.chainId.caip2Namespace) {
+        case Wc2Chain.ethereum:
+          await _handleEthereumSignRequest(request);
+          break;
+        case Wc2Chain.tezos:
+          await _handleTezosSignRequest(request);
+          break;
+        default:
+          log.info("[Wc2Service] Unsupported chain: ${request.method}");
+          await respondOnReject(
             request.topic,
-            request.proposer!.toWCPeerMeta(),
-            request.params["message"],
-            "", // uuid, used for Wallet connect 1 only
-            wc2Params: Wc2SignRequestParams(
-              chain: request.params["chain"],
-              address: request.params["address"],
-              message: request.params["message"],
-            ),
-          ));
+            reason: "Chain ${request.chainId} is not supported",
+          );
+      }
     } else if (request.method == "au_permissions") {
       _navigationService.navigateTo(
         AppRouter.wc2PermissionPage,
@@ -149,7 +155,7 @@ class Wc2Service extends Wc2Handler {
     } else if (request.method == "au_sendTransaction") {
       final chain = request.params["chain"];
       switch (chain.caip2Namespace) {
-        case "eip155":
+        case Wc2Chain.ethereum:
           try {
             final account = await _accountService.getAccountByAddress(
               chain: request.chainId,
@@ -173,7 +179,7 @@ class Wc2Service extends Wc2Handler {
             await respondOnReject(request.topic, reason: "$e");
           }
           break;
-        case "tezos":
+        case Wc2Chain.tezos:
           try {
             final beaconReq = request.toBeaconRequest();
             _navigationService.navigateTo(
@@ -198,4 +204,31 @@ class Wc2Service extends Wc2Handler {
       );
     }
   }
+  //#endregion
+
+  //#region Handle sign request
+  Future _handleEthereumSignRequest(Wc2Request request) async {
+    await _navigationService.navigateTo(WCSignMessagePage.tag,
+        arguments: WCSignMessagePageArgs(
+          request.id,
+          request.topic,
+          request.proposer!.toWCPeerMeta(),
+          request.params["message"],
+          "", // uuid, used for Wallet connect 1 only
+          wc2Params: Wc2SignRequestParams(
+            chain: request.params["chain"],
+            address: request.params["address"],
+            message: request.params["message"],
+          ),
+        ));
+  }
+
+  Future _handleTezosSignRequest(Wc2Request request) async {
+    final beaconReq = request.toBeaconRequest();
+    await _navigationService.navigateTo(
+      TBSignMessagePage.tag,
+      arguments: beaconReq,
+    );
+  }
+  //#endregion
 }

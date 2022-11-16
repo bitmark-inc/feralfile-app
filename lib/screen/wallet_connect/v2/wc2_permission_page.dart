@@ -134,7 +134,8 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
       final params =
           Wc2PermissionsRequestParams.fromJson(widget.request.params);
       final accountService = injector<AccountService>();
-      final account = await accountService.getAccount(params.account);
+      final did = "did:key:${params.account.split(":")[2]}";
+      final account = await accountService.getAccount(did);
       if (account != null) {
         final response = await _handleAuPermissionRequest(
           params: params,
