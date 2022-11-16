@@ -16,6 +16,10 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../common/injector.dart';
+import '../../database/cloud_database.dart';
+import '../../service/account_service.dart';
+
 class AccountsPreviewPage extends StatefulWidget {
   const AccountsPreviewPage({Key? key}) : super(key: key);
 
@@ -40,7 +44,7 @@ class _AccountsPreviewPageState extends State<AccountsPreviewPage> {
         onBack: null,
       ),
       body: Container(
-        margin: ResponsiveLayout.pageEdgeInsets,
+        margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -75,7 +79,18 @@ class _AccountsPreviewPageState extends State<AccountsPreviewPage> {
                   ],
                 ),
                 TextButton(
-                  onPressed: () => doneOnboarding(context),
+                  onPressed: () async {
+                    doneOnboarding(context);
+                    final account = await injector<AccountService>().getDefaultAccount();
+                    final currentName = await account.getName();
+                    if (currentName == "" || currentName == "Default"){
+                      final defaultName = await account.getAccountDID();
+                      var persona =
+                      await injector<CloudDatabase>().personaDao.findById(account.uuid);
+                      account.updateName(defaultName);
+                      injector<AccountService>().namePersona(persona!, defaultName);
+                    }
+                  },
                   child: Text("done".tr(), style: theme.textTheme.button),
                 ),
               ],

@@ -535,10 +535,7 @@ class _WCConnectPageState extends State<WCConnectPage>
     final defaultName = await account.getAccountDID();
     var persona =
         await injector<CloudDatabase>().personaDao.findById(account.uuid);
-    persona!.wallet().updateName(defaultName);
-    final namedPersona = persona.copyWith(name: defaultName);
-    await injector<CloudDatabase>().personaDao.updatePersona(namedPersona);
-    await injector<AuditService>().auditPersonaAction('name', namedPersona);
+    final namedPersona = await injector<AccountService>().namePersona(persona!, defaultName);
     injector<ConfigurationService>().setDoneOnboarding(true);
     selectedPersona = namedPersona;
     _approveThenNotify(onBoarding: true);
