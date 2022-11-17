@@ -62,7 +62,7 @@ extension FFContractExt on FFContract {
         break;
 
       case "TESTNET_ethereum":
-        url = "https://rinkeby.etherscan.io/address/$address}";
+        url = "https://goerli.etherscan.io/address/$address}";
         break;
 
       case "MAINNET_tezos":

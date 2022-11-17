@@ -130,7 +130,7 @@ extension AssetTokenExtension on AssetToken {
           break;
 
         case "TESTNET_ethereum":
-          url = "https://rinkeby.etherscan.io/address/$contractAddress}";
+          url = "https://goerli.etherscan.io/address/$contractAddress}";
           break;
 
         case "MAINNET_tezos":
