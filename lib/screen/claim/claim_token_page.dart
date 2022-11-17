@@ -214,7 +214,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                                       fontWeight: FontWeight.bold)),
                               recognizer: TapGestureRecognizer()
                                 ..onTap = () {
-                                  _openPrivacyPolicy();
+                                  _openFFArtistCollector();
                                 }),
                           TextSpan(
                             text: ".",
@@ -321,7 +321,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
     }
   }
 
-  void _openPrivacyPolicy() {
+  void _openFFArtistCollector() {
     launchUrl(Uri.parse(FF_ARTIST_COLLECTOR),
         mode: LaunchMode.externalApplication);
   }
