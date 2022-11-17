@@ -654,9 +654,12 @@ class ControlView extends StatelessWidget {
                 (assetToken?.medium?.isEmpty ?? true),
             child: const SizedBox(width: 8),
           ),
-          CastButton(
-            assetToken: assetToken,
-            onCastTap: () => onClickCast?.call(assetToken),
+          Visibility(
+            visible: onClickCast != null,
+            child: CastButton(
+              assetToken: assetToken,
+              onCastTap: () => onClickCast?.call(assetToken),
+            ),
           ),
           const SizedBox(width: 8),
           IconButton(

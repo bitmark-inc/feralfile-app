@@ -23,6 +23,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
@@ -192,6 +193,27 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                               ),
                             ),
                           ],
+                        ),
+                      ),
+                    ),
+                    Visibility(
+                      visible: asset.assetURL == CHECK_WEB3_PRIMER_URL,
+                      child: Align(
+                        alignment: Alignment.centerRight,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: SizedBox(
+                            width: 165,
+                            height: 48,
+                            child: AuOutlinedButton(
+                              text: "web3_primer".tr(),
+                              onPress: () {
+                                Navigator.pushNamed(
+                                    context, AppRouter.previewPrimerPage,
+                                    arguments: asset);
+                              },
+                            ),
+                          ),
                         ),
                       ),
                     ),

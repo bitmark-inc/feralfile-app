@@ -55,6 +55,7 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_page.dart';
+import 'package:autonomy_flutter/screen/detail/preview_primer.dart';
 import 'package:autonomy_flutter/screen/feed/feed_artwork_details_page.dart';
 import 'package:autonomy_flutter/screen/feed/feed_bloc.dart';
 import 'package:autonomy_flutter/screen/feed/feed_preview_page.dart';
@@ -102,6 +103,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:wallet_connect/wallet_connect.dart';
@@ -109,6 +111,7 @@ import 'package:wallet_connect/wallet_connect.dart';
 import 'account/link_beacon_connect_page.dart';
 
 class AppRouter {
+  static const previewPrimerPage = "preview_primer";
   static const onboardingPage = "onboarding";
   static const beOwnGalleryPage = 'be_own_gallery';
   static const moreAutonomyPage = 'more_autonomy';
@@ -189,6 +192,23 @@ class AppRouter {
                     ),
                 child: const OnboardingPage()));
 
+      case previewPrimerPage:
+        return PageTransition(
+            type: PageTransitionType.fade,
+            curve: Curves.easeIn,
+            duration: const Duration(milliseconds: 250),
+            settings: settings,
+            child: MultiBlocProvider(
+              providers: [
+                BlocProvider(
+                    create: (_) =>
+                        IdentityBloc(injector<AppDatabase>(), injector())),
+              ],
+              child: PreviewPrimerPage(
+                token: settings.arguments as AssetToken,
+              ),
+            ));
+
       case homePageNoTransition:
         return PageRouteBuilder(
             settings: settings,
@@ -204,9 +224,9 @@ class AppRouter {
                     BlocProvider.value(value: nftCollectionBloc),
                     BlocProvider(
                         create: (_) => UpgradesBloc(
-                          injector(),
-                          injector(),
-                        )),
+                              injector(),
+                              injector(),
+                            )),
                   ],
                   child: const HomePage(),
                 ),
@@ -227,9 +247,9 @@ class AppRouter {
                     BlocProvider.value(value: nftCollectionBloc),
                     BlocProvider(
                         create: (_) => UpgradesBloc(
-                          injector(),
-                          injector(),
-                        )),
+                              injector(),
+                              injector(),
+                            )),
                   ],
                   child: const HomePage(),
                 ));

@@ -36,6 +36,9 @@ const DEEP_LINKS = [
 ];
 const FF_ARTIST_COLLECTOR =
     'https://feralfile.com/docs/artist-collector-rights';
+const WEB3_PRIMER_URL = 'https://autonomy.io/catalog/primer/';
+const CHECK_WEB3_PRIMER_URL =
+    'https://feralfile.com/artworks/memento-1-study-for-unsupervised';
 
 const Duration SENT_ARTWORK_HIDE_TIME = Duration(minutes: 10);
 
