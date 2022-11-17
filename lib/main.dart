@@ -215,3 +215,4 @@ void downloadCallback(String id, DownloadTaskStatus status, int progress) {
 }
 
 void imageError(Object exception, StackTrace? stackTrace) {}
+

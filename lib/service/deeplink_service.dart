@@ -24,6 +24,7 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_branch_sdk/flutter_branch_sdk.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:uni_links/uni_links.dart';
 
 abstract class DeeplinkService {
@@ -41,6 +42,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
   final BranchApi _branchApi;
 
   String? currentExhibitionId;
+  String? handlingDeepLink;
 
   DeeplinkServiceImpl(
     this._configurationService,
@@ -53,11 +55,14 @@ class DeeplinkServiceImpl extends DeeplinkService {
 
   @override
   Future setup() async {
-    FlutterBranchSdk.initSession().listen((data) {
+    FlutterBranchSdk.initSession().listen((data) async {
       log.info("[DeeplinkService] _handleFeralFileDeeplink with Branch");
 
       if (data["+clicked_branch_link"] == true) {
-        _handleBranchDeeplinkData(data);
+        _deepLinkHandleClock(
+            "Handle Branch Deep Link Data Time Out", data["source"]);
+        await _handleBranchDeeplinkData(data);
+        handlingDeepLink = null;
       }
     }, onError: (error) {
       log.warning(
@@ -88,13 +93,15 @@ class DeeplinkServiceImpl extends DeeplinkService {
 
     Timer.periodic(delay, (timer) async {
       timer.cancel();
-      _handleDappConnectDeeplink(link) ||
-          _handleFeralFileDeeplink(link) ||
+      _deepLinkHandleClock("Handle Deep Link Time Out", link);
+      await _handleDappConnectDeeplink(link) ||
+          await _handleFeralFileDeeplink(link) ||
           await _handleBranchDeeplink(link);
+      handlingDeepLink = null;
     });
   }
 
-  bool _handleDappConnectDeeplink(String link) {
+  Future<bool> _handleDappConnectDeeplink(String link) async {
     log.info("[DeeplinkService] _handleDappConnectDeeplink");
     final wcPrefixes = [
       "https://au.bitmark.com/apps/wc?uri=",
@@ -125,7 +132,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
     if (callingWCPrefix != null) {
       final wcUri = link.substring(callingWCPrefix.length);
       final decodedWcUri = Uri.decodeFull(wcUri);
-      _walletConnectService.connect(decodedWcUri);
+      await _walletConnectService.connect(decodedWcUri);
       return true;
     }
 
@@ -133,21 +140,21 @@ class DeeplinkServiceImpl extends DeeplinkService {
         tzPrefixes.firstWhereOrNull((prefix) => link.startsWith(prefix));
     if (callingTBPrefix != null) {
       final tzUri = link.substring(callingTBPrefix.length);
-      _tezosBeaconService.addPeer(tzUri);
+      await _tezosBeaconService.addPeer(tzUri);
       return true;
     }
 
     final callingWCDeeplinkPrefix = wcDeeplinkPrefixes
         .firstWhereOrNull((prefix) => link.startsWith(prefix));
     if (callingWCDeeplinkPrefix != null) {
-      _walletConnectService.connect(link);
+      await _walletConnectService.connect(link);
       return true;
     }
 
     final callingTBDeeplinkPrefix = tbDeeplinkPrefixes
         .firstWhereOrNull((prefix) => link.startsWith(prefix));
     if (callingTBDeeplinkPrefix != null) {
-      _tezosBeaconService.addPeer(link);
+      await _tezosBeaconService.addPeer(link);
       if (_configurationService.isDoneOnboarding()) {
         _navigationService.showContactingDialog();
       }
@@ -157,11 +164,12 @@ class DeeplinkServiceImpl extends DeeplinkService {
     return false;
   }
 
-  bool _handleFeralFileDeeplink(String link) {
+  Future<bool> _handleFeralFileDeeplink(String link) async {
     log.info("[DeeplinkService] _handleFeralFileDeeplink");
 
     if (link.startsWith(FF_TOKEN_DEEPLINK_PREFIX)) {
-      _linkFeralFileToken(link.replacePrefix(FF_TOKEN_DEEPLINK_PREFIX, ""));
+      await _linkFeralFileToken(
+          link.replacePrefix(FF_TOKEN_DEEPLINK_PREFIX, ""));
       return true;
     }
 
@@ -180,14 +188,14 @@ class DeeplinkServiceImpl extends DeeplinkService {
     return false;
   }
 
-  void _handleBranchDeeplinkData(Map<dynamic, dynamic> data) {
+  Future<void> _handleBranchDeeplinkData(Map<dynamic, dynamic> data) async {
     final source = data["source"];
     switch (source) {
       case "FeralFile":
         final String? tokenId = data["token_id"];
         if (tokenId != null) {
           log.info("[DeeplinkService] _linkFeralFileToken $tokenId");
-          _linkFeralFileToken(tokenId);
+          await _linkFeralFileToken(tokenId);
         }
         memoryValues.airdropFFExhibitionId.value = null;
         break;
@@ -204,7 +212,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
         }
 
         if (exhibitionId != null) {
-          _claimFFAirdropToken(
+          await _claimFFAirdropToken(
             exhibitionId,
             otp: _getOtpFromBranchData(data),
           );
@@ -277,6 +285,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
         currentExhibitionId = null;
       } else {
         memoryValues.airdropFFExhibitionId.value = Pair(exhibitionId, otp);
+        handlingDeepLink = null;
         await Future.delayed(const Duration(seconds: 5), () {
           currentExhibitionId = null;
         });
@@ -285,6 +294,18 @@ class DeeplinkServiceImpl extends DeeplinkService {
       log.info("[DeeplinkService] _claimFFAirdropToken error $e");
       currentExhibitionId = null;
     }
+  }
+
+  Future<void> _deepLinkHandleClock(String message, String param,
+      {Duration duration = const Duration(seconds: 2)}) async {
+    handlingDeepLink = message;
+    Future.delayed(duration, () {
+      if (handlingDeepLink != null) {
+        Sentry.captureMessage(message,
+            level: SentryLevel.warning, params: [param]);
+      }
+      handlingDeepLink = null;
+    });
   }
 }
 

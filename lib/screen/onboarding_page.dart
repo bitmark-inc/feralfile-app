@@ -19,7 +19,6 @@ import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/eula_privacy.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -81,6 +80,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
       try {
         final exhibitionId = memoryValues.airdropFFExhibitionId.value?.first;
         if (currentExhibitionId == exhibitionId) return;
+
         if (exhibitionId != null && exhibitionId.isNotEmpty) {
           currentExhibitionId = exhibitionId;
           setState(() {
@@ -122,10 +122,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
           if (!mounted) return;
           await Navigator.of(context).pushNamed(
             AppRouter.claimFeralfileTokenPage,
-            arguments: ClaimTokenPageArgs(
-              exhibition: exhibition,
-              otp: otp
-            ),
+            arguments: ClaimTokenPageArgs(exhibition: exhibition, otp: otp),
           );
           currentExhibitionId = null;
 

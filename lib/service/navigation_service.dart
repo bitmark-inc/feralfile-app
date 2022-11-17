@@ -41,10 +41,11 @@ class NavigationService {
         ?.pushNamed(routeName, arguments: arguments);
   }
 
-  Future<dynamic>? navigateUntil(String routeName,
-      RoutePredicate predicate, {
-        Object? arguments,
-      }) {
+  Future<dynamic>? navigateUntil(
+    String routeName,
+    RoutePredicate predicate, {
+    Object? arguments,
+  }) {
     log.info("NavigationService.navigateTo: $routeName");
 
     if (routeName == AppRouter.wcConnectPage && _isWCConnectInShow) {
@@ -70,7 +71,8 @@ class NavigationService {
           inOnboarding: inOnboarding);
     }
   }
-  NavigatorState navigatorState(){
+
+  NavigatorState navigatorState() {
     return Navigator.of(navigatorKey.currentContext!);
   }
 
@@ -181,9 +183,9 @@ class NavigationService {
     _isWCConnectInShow = appeared;
   }
 
-  void showContactingDialog(){
+  void showContactingDialog() {
     if (navigatorKey.currentState?.mounted == true &&
-        navigatorKey.currentContext != null){
+        navigatorKey.currentContext != null) {
       UIHelper.showInfoDialog(
         navigatorKey.currentContext!,
         'contacting'.tr(),
