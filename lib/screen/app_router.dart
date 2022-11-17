@@ -43,6 +43,7 @@ import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/router/router_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/tzkt_transaction/tzkt_transaction_bloc.dart';
+import 'package:autonomy_flutter/screen/bloc/usdc/usdc_bloc.dart';
 import 'package:autonomy_flutter/screen/bug_bounty_page.dart';
 import 'package:autonomy_flutter/screen/claim/claim_token_page.dart';
 import 'package:autonomy_flutter/screen/claim/select_account_page.dart';
@@ -180,6 +181,7 @@ class AppRouter {
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final ethereumBloc = EthereumBloc(injector());
     final tezosBloc = TezosBloc(injector());
+    final usdcBloc = USDCBloc(injector());
     final accountsBloc = AccountsBloc(injector(), injector<CloudDatabase>(),
         injector(), injector<AuditService>(), injector());
     final nftCollectionBloc = injector<NftCollectionBloc>();
@@ -529,6 +531,7 @@ class AppRouter {
                     providers: [
                       BlocProvider.value(value: ethereumBloc),
                       BlocProvider.value(value: tezosBloc),
+                      BlocProvider.value(value: usdcBloc),
                       BlocProvider.value(value: nftCollectionBloc),
                     ],
                     child: PersonaDetailsPage(
@@ -543,6 +546,7 @@ class AppRouter {
                       BlocProvider.value(value: accountsBloc),
                       BlocProvider.value(value: ethereumBloc),
                       BlocProvider.value(value: tezosBloc),
+                      BlocProvider.value(value: usdcBloc),
                       BlocProvider.value(
                           value: ConnectionsBloc(
                         injector<CloudDatabase>(),

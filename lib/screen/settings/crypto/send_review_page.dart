@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/biometrics_util.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
+import 'package:autonomy_flutter/util/usdc_amount_formatter.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
@@ -23,6 +24,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:web3dart/credentials.dart';
+import 'package:web3dart/web3dart.dart';
 
 class SendReviewPage extends StatefulWidget {
   static const String tag = 'send_review';
@@ -40,7 +42,9 @@ class _SendReviewPageState extends State<SendReviewPage> {
 
   @override
   Widget build(BuildContext context) {
-    final total = widget.payload.amount + widget.payload.fee;
+    final total = widget.payload.type == CryptoType.USDC
+        ? widget.payload.amount
+        : widget.payload.amount + widget.payload.fee;
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -84,9 +88,7 @@ class _SendReviewPageState extends State<SendReviewPage> {
                       style: theme.textTheme.headline4,
                     ),
                     Text(
-                      widget.payload.type == CryptoType.ETH
-                          ? "${EthAmountFormatter(widget.payload.amount).format()} ETH (${widget.payload.exchangeRate.ethToUsd(widget.payload.amount)} USD)"
-                          : "${XtzAmountFormatter(widget.payload.amount.toInt()).format()} XTZ (${widget.payload.exchangeRate.xtzToUsd(widget.payload.amount.toInt())} USD)",
+                      _amountFormat(widget.payload.amount),
                       style: theme.textTheme.bodyText2,
                     ),
                   ],
@@ -100,9 +102,7 @@ class _SendReviewPageState extends State<SendReviewPage> {
                       style: theme.textTheme.headline4,
                     ),
                     Text(
-                      widget.payload.type == CryptoType.ETH
-                          ? "${EthAmountFormatter(widget.payload.fee).format()} ETH (${widget.payload.exchangeRate.ethToUsd(widget.payload.fee)} USD)"
-                          : "${XtzAmountFormatter(widget.payload.fee.toInt()).format()} XTZ (${widget.payload.exchangeRate.xtzToUsd(widget.payload.fee.toInt())} USD)",
+                      _amountFormat(widget.payload.fee, isETH: true),
                       style: theme.textTheme.bodyText2,
                     ),
                   ],
@@ -116,9 +116,7 @@ class _SendReviewPageState extends State<SendReviewPage> {
                       style: theme.textTheme.headline4,
                     ),
                     Text(
-                      widget.payload.type == CryptoType.ETH
-                          ? "${EthAmountFormatter(total).format()} ETH (${widget.payload.exchangeRate.ethToUsd(total)} USD)"
-                          : "${XtzAmountFormatter(total.toInt()).format()} XTZ (${widget.payload.exchangeRate.xtzToUsd(total.toInt())} USD)",
+                      _amountFormat(total),
                       style: theme.textTheme.headline4,
                     ),
                   ],
@@ -179,14 +177,15 @@ class _SendReviewPageState extends State<SendReviewPage> {
                                     Navigator.of(context).pop(payload);
                                     break;
                                   case CryptoType.XTZ:
-                                    final opHash = await injector<TezosService>()
-                                        .sendTransaction(
-                                            widget.payload.wallet,
-                                            widget.payload.address,
-                                            widget.payload.amount.toInt());
+                                    final opHash =
+                                        await injector<TezosService>()
+                                            .sendTransaction(
+                                                widget.payload.wallet,
+                                                widget.payload.address,
+                                                widget.payload.amount.toInt());
                                     final exchangeRateXTZ = 1 /
                                         (double.tryParse(widget
-                                            .payload.exchangeRate.xtz) ??
+                                                .payload.exchangeRate.xtz) ??
                                             1);
                                     final tx = TZKTOperation(
                                       bakerFee: widget.payload.fee.toInt(),
@@ -215,10 +214,44 @@ class _SendReviewPageState extends State<SendReviewPage> {
                                     };
                                     Navigator.of(context).pop(payload);
                                     break;
+                                  case CryptoType.USDC:
+                                    final address = await widget.payload.wallet
+                                        .getETHEip55Address();
+                                    final ownerAddress =
+                                        EthereumAddress.fromHex(address);
+                                    final toAddress = EthereumAddress.fromHex(
+                                        widget.payload.address);
+                                    final contractAddress =
+                                        EthereumAddress.fromHex(
+                                            usdcContractAddress);
+
+                                    final data =
+                                        await injector<EthereumService>()
+                                            .getERC20TransferTransactionData(
+                                                contractAddress,
+                                                ownerAddress,
+                                                toAddress,
+                                                widget.payload.amount);
+
+                                    final txHash =
+                                        await injector<EthereumService>()
+                                            .sendTransaction(
+                                                widget.payload.wallet,
+                                                contractAddress,
+                                                BigInt.zero,
+                                                null,
+                                                data);
+
+                                    if (!mounted) return;
+                                    final payload = {
+                                      "isTezos": false,
+                                      "hash": txHash,
+                                    };
+                                    Navigator.of(context).pop(payload);
+                                    break;
                                   default:
                                     break;
                                 }
-
 
                                 setState(() {
                                   _isSending = false;
@@ -237,5 +270,22 @@ class _SendReviewPageState extends State<SendReviewPage> {
         ],
       ),
     );
+  }
+
+  String _amountFormat(BigInt amount, {bool isETH = false}) {
+    switch (widget.payload.type) {
+      case CryptoType.ETH:
+        return "${EthAmountFormatter(amount).format()} ETH (${widget.payload.exchangeRate.ethToUsd(amount)} USD)";
+      case CryptoType.XTZ:
+        return "${XtzAmountFormatter(amount.toInt()).format()} XTZ (${widget.payload.exchangeRate.xtzToUsd(amount.toInt())} USD)";
+      case CryptoType.USDC:
+        if (isETH) {
+          return "${EthAmountFormatter(amount).format()} ETH (${widget.payload.exchangeRate.ethToUsd(amount)} USD)";
+        } else {
+          return "${USDCAmountFormatter(amount).format()} USDC";
+        }
+      default:
+        return "";
+    }
   }
 }

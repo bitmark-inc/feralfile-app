@@ -39,6 +39,15 @@ abstract class EthereumService {
       EthereumAddress to,
       String tokenId,
       int quantity);
+
+  Future<BigInt> getERC20TokenBalance(
+      EthereumAddress contractAddress, EthereumAddress owner);
+
+  Future<String?> getERC20TransferTransactionData(
+      EthereumAddress contractAddress,
+      EthereumAddress from,
+      EthereumAddress to,
+      BigInt quantity);
 }
 
 class EthereumServiceImpl extends EthereumService {
@@ -125,14 +134,14 @@ class EthereumServiceImpl extends EthereumService {
     final contractJson = await rootBundle.loadString('assets/erc721-abi.json');
     final contract = DeployedContract(
         ContractAbi.fromJson(contractJson, "ERC721"), contractAddress);
-    ContractFunction _transferFrom() => contract.function("transferFrom");
+    ContractFunction transferFrom() => contract.function("transferFrom");
 
     final nonce = await _web3Client.getTransactionCount(from);
     final gasPrice = await _web3Client.getGasPrice();
 
     final transaction = Transaction.callContract(
       contract: contract,
-      function: _transferFrom(),
+      function: transferFrom(),
       parameters: [from, to, BigInt.parse(tokenId, radix: 10)],
       from: from,
       gasPrice: gasPrice,
@@ -152,14 +161,15 @@ class EthereumServiceImpl extends EthereumService {
     final contractJson = await rootBundle.loadString('assets/erc1155-abi.json');
     final contract = DeployedContract(
         ContractAbi.fromJson(contractJson, "ERC1155"), contractAddress);
-    ContractFunction _transferFrom() => contract.function("safeBatchTransferFrom");
+    ContractFunction transferFrom() =>
+        contract.function("safeBatchTransferFrom");
 
     final nonce = await _web3Client.getTransactionCount(from);
     final gasPrice = await _web3Client.getGasPrice();
 
     final transaction = Transaction.callContract(
       contract: contract,
-      function: _transferFrom(),
+      function: transferFrom(),
       parameters: [
         from,
         to,
@@ -167,6 +177,51 @@ class EthereumServiceImpl extends EthereumService {
         [BigInt.from(quantity)],
         Uint8List.fromList([0]),
       ],
+      from: from,
+      gasPrice: gasPrice,
+      nonce: nonce,
+    );
+
+    return transaction.data != null ? bytesToHex(transaction.data!) : null;
+  }
+
+  @override
+  Future<BigInt> getERC20TokenBalance(
+      EthereumAddress contractAddress, EthereumAddress owner) async {
+
+    final contractJson = await rootBundle.loadString('assets/erc20-abi.json');
+    final contract = DeployedContract(
+        ContractAbi.fromJson(contractJson, "ERC20"), contractAddress);
+    ContractFunction balanceFunction() => contract.function("balanceOf");
+
+    var response = await _web3Client.call(
+      contract: contract,
+      function: balanceFunction(),
+      params: [owner],
+    );
+
+    return response.first as BigInt;
+  }
+
+  @override
+  Future<String?> getERC20TransferTransactionData(
+      EthereumAddress contractAddress,
+      EthereumAddress from,
+      EthereumAddress to,
+      BigInt quantity) async {
+
+    final contractJson = await rootBundle.loadString('assets/erc20-abi.json');
+    final contract = DeployedContract(
+        ContractAbi.fromJson(contractJson, "ERC20"), contractAddress);
+    ContractFunction transferFrom() => contract.function("transfer");
+
+    final nonce = await _web3Client.getTransactionCount(from);
+    final gasPrice = await _web3Client.getGasPrice();
+
+    final transaction = Transaction.callContract(
+      contract: contract,
+      function: transferFrom(),
+      parameters: [to, quantity],
       from: from,
       gasPrice: gasPrice,
       nonce: nonce,

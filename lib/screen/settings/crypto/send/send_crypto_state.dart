@@ -57,6 +57,7 @@ class SendCryptoState {
   BigInt? fee;
   BigInt? maxAllow;
   BigInt? balance;
+  BigInt? ethBalance;
 
   CurrencyExchangeRate exchangeRate;
 
@@ -72,6 +73,7 @@ class SendCryptoState {
       this.fee,
       this.maxAllow,
       this.balance,
+      this.ethBalance,
       this.exchangeRate = const CurrencyExchangeRate(eth: "1.0", xtz: "1.0")});
 
   SendCryptoState clone() => SendCryptoState(
@@ -86,6 +88,7 @@ class SendCryptoState {
         fee: fee,
         maxAllow: maxAllow,
         balance: balance,
+        ethBalance: ethBalance,
         exchangeRate: exchangeRate,
       );
 }
