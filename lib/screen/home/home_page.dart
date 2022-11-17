@@ -84,7 +84,7 @@ class _HomePageState extends State<HomePage>
   late MixPanelClientService mixPanelClient;
   int _cachedImageSize = 0;
 
-  late List<PlayListModel>? playlists;
+  List<PlayListModel>? playlists;
 
   Future<List<String>> getAddresses() async {
     final accountService = injector<AccountService>();
