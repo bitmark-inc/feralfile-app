@@ -169,6 +169,19 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
                       PageView.builder(
                         controller: _controller,
                         onPageChanged: (value) {
+                          final event = state.feedEvents![value];
+                          final asset = state.feedTokens![value];
+                          final neededIdentities = [
+                            asset?.artistName ?? '',
+                            event.recipient
+                          ];
+                          neededIdentities
+                              .removeWhere((element) => element == '');
+                          if (neededIdentities.isNotEmpty) {
+                            context
+                                .read<IdentityBloc>()
+                                .add(GetIdentityEvent(neededIdentities));
+                          }
                           _bloc.add(ChangePageEvent(index: value));
                         },
                         itemCount: feedTokens?.length,
@@ -298,12 +311,6 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
   }
 
   Widget _controlView(FeedEvent event, AssetToken? asset) {
-    final neededIdentities = [asset?.artistName ?? '', event.recipient];
-    neededIdentities.removeWhere((element) => element == '');
-    if (neededIdentities.isNotEmpty) {
-      context.read<IdentityBloc>().add(GetIdentityEvent(neededIdentities));
-    }
-
     if (asset == null) {
       return _controlViewWhenNoAsset(event);
     }
