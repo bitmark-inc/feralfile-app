@@ -192,8 +192,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
       'hidden_linked_accounts_in_gallery';
   static const String KEY_TEMP_STORAGE_HIDDEN_TOKEN_IDS =
       'temp_storage_hidden_token_ids_mainnet';
-  static const String KEY_RECENTLY_SENT_TOKEN =
-      'recently_sent_token_mainnet';
+  static const String KEY_RECENTLY_SENT_TOKEN = 'recently_sent_token_mainnet';
   static const String KEY_READ_RELEASE_NOTES_VERSION =
       'read_release_notes_version';
   static const String KEY_FINISHED_SURVEYS = "finished_surveys";
@@ -315,7 +314,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
   @override
   bool isImmediateInfoViewEnabled() {
-    return _preferences.getBool(KEY_IMMEDIATE_INFOVIEW) ?? false;
+    return _preferences.getBool(KEY_IMMEDIATE_INFOVIEW) ?? true;
   }
 
   @override
@@ -503,8 +502,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
       var sentTokenIDs = _preferences.getStringList(key) ?? [];
 
       sentTokenIDs.addAll(updateTokens);
-      await _preferences.setStringList(
-          key, sentTokenIDs.toSet().toList());
+      await _preferences.setStringList(key, sentTokenIDs.toSet().toList());
     }
   }
 

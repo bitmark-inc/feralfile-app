@@ -209,7 +209,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                               style: theme.textTheme.bodyText1,
                             ),
                           ),
-                          artworkDetailsRightSection(context, asset),
                           const SizedBox(height: 40.0),
                           artworkDetailsMetadataSection(
                               context, asset, artistName),
@@ -227,6 +226,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                                 ? _provenanceView(context, state.provenances)
                                 : const SizedBox()
                           ],
+                          artworkDetailsRightSection(context, asset),
                           const SizedBox(height: 80.0),
                         ],
                       ),

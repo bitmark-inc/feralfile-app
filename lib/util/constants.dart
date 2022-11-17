@@ -34,6 +34,8 @@ const DEEP_LINKS = [
   "https://autonomy-app-alternate.app.link",
   "https://link.autonomy.io",
 ];
+const FF_ARTIST_COLLECTOR =
+    'https://feralfile.com/docs/artist-collector-rights';
 
 const Duration SENT_ARTWORK_HIDE_TIME = Duration(minutes: 10);
 
