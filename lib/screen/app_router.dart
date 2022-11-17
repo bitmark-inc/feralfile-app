@@ -875,7 +875,7 @@ class AppRouter {
             settings: settings,
             builder: (context) {
               return ClaimTokenPage(
-                exhibition: args.exhibition,
+                artwork: args.artwork,
                 otp: args.otp,
               );
             });
@@ -885,7 +885,7 @@ class AppRouter {
             settings: settings,
             builder: (context) {
               return TokenDetailPage(
-                exhibition: settings.arguments as Exhibition,
+                artwork: settings.arguments as FFArtwork,
               );
             });
 
@@ -898,7 +898,7 @@ class AppRouter {
                 value: accountsBloc,
                 child: SelectAccountPage(
                   blockchain: args.blockchain,
-                  exhibition: args.exhibition,
+                  artwork: args.artwork,
                   otp: args.otp,
                 ),
               );

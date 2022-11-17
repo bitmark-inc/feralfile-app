@@ -99,14 +99,14 @@ class NavigationService {
   }
 
   Future showNoRemainingToken({
-    required Exhibition exhibition,
+    required FFArtwork artwork,
   }) async {
     log.info("NavigationService.showNoRemainingToken");
     if (navigatorKey.currentState?.mounted == true &&
         navigatorKey.currentContext != null) {
       await UIHelper.showNoRemainingAirdropToken(
         navigatorKey.currentContext!,
-        exhibition: exhibition,
+        artwork: artwork,
       );
     } else {
       Future.value(0);
@@ -124,7 +124,7 @@ class NavigationService {
   }
 
   Future openClaimTokenPage(
-    Exhibition exhibition, {
+    FFArtwork artwork, {
     Otp? otp,
   }) async {
     log.info("NavigationService.openClaimTokenPage");
@@ -133,7 +133,7 @@ class NavigationService {
       await navigatorKey.currentState?.pushNamed(
         AppRouter.claimFeralfileTokenPage,
         arguments: ClaimTokenPageArgs(
-          exhibition: exhibition,
+          artwork: artwork,
           otp: otp,
         ),
       );

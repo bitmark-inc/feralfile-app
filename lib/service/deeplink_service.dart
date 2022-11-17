@@ -10,8 +10,8 @@ import 'dart:async';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/gateway/branch_api.dart';
 import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/model/airdrop_data.dart';
 import 'package:autonomy_flutter/model/otp.dart';
-import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -179,7 +179,10 @@ class DeeplinkServiceImpl extends DeeplinkService {
   Future<bool> _handleBranchDeeplink(String link) async {
     log.info("[DeeplinkService] _handleBranchDeeplink");
     //star
-    memoryValues.airdropFFExhibitionId.value = Pair('', null);
+    memoryValues.airdropFFExhibitionId.value = AirdropQrData(
+      exhibitionId: '',
+      artworkId: '',
+    );
     if (Constants.branchDeepLinks.any((prefix) => link.startsWith(prefix))) {
       final response = await _branchApi.getParams(Environment.branchKey, link);
       _handleBranchDeeplinkData(response["data"]);
@@ -201,6 +204,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
         break;
       case "FeralFile_AirDrop":
         final String? exhibitionId = data["exhibition_id"];
+        final String? artworkId = data["artwork_id"];
         final String? expiredAt = data["expired_at"];
 
         if (expiredAt != null &&
@@ -211,9 +215,10 @@ class DeeplinkServiceImpl extends DeeplinkService {
           break;
         }
 
-        if (exhibitionId != null) {
-          await _claimFFAirdropToken(
-            exhibitionId,
+        if (exhibitionId?.isNotEmpty == true || artworkId?.isNotEmpty == true) {
+          _claimFFAirdropToken(
+            exhibitionId: exhibitionId,
+            artworkId: artworkId,
             otp: _getOtpFromBranchData(data),
           );
         }
@@ -243,33 +248,39 @@ class DeeplinkServiceImpl extends DeeplinkService {
     }
   }
 
-  Future _claimFFAirdropToken(
-    String exhibitionId, {
+  Future _claimFFAirdropToken({
+    String? exhibitionId,
+    String? artworkId,
     Otp? otp,
   }) async {
     log.info(
         "[DeeplinkService] Claim FF Airdrop token. Exhibition $exhibitionId, otp: ${otp?.toJson()}");
-    if (currentExhibitionId == exhibitionId) {
+    final id = "${exhibitionId}_${artworkId}_${otp?.code}";
+    if (currentExhibitionId == id) {
       return;
     }
     try {
-      currentExhibitionId = exhibitionId;
+      currentExhibitionId = id;
       final doneOnboarding = _configurationService.isDoneOnboarding();
       if (doneOnboarding) {
-        final exhibitionFuture = _feralFileService.getExhibition(exhibitionId);
+        final artworkFuture = (artworkId?.isNotEmpty == true)
+            ? _feralFileService.getArtwork(artworkId!)
+            : _feralFileService.getAirdropArtworkFromExhibitionId(exhibitionId!);
+
         await Future.delayed(const Duration(seconds: 1), () {
           _navigationService.popUntilHomeOrSettings();
         });
-        final exhibition = await exhibitionFuture;
-        final endTime = exhibition.airdropInfo?.endedAt;
-        if (exhibition.airdropInfo == null ||
+
+        final artwork = await artworkFuture;
+        final endTime = artwork.airdropInfo?.endedAt;
+        if (artwork.airdropInfo == null ||
             (endTime != null && endTime.isBefore(DateTime.now()))) {
           await _navigationService.showAirdropExpired();
-        } else if (exhibition.airdropInfo?.isAirdropStarted != true) {
+        } else if (artwork.airdropInfo?.isAirdropStarted != true) {
           await _navigationService.showAirdropNotStarted();
-        } else if (exhibition.airdropInfo?.remainAmount == 0) {
+        } else if (artwork.airdropInfo?.remainAmount == 0) {
           await _navigationService.showNoRemainingToken(
-            exhibition: exhibition,
+            artwork: artwork,
           );
         } else if (otp?.isExpired == true) {
           await _navigationService.showOtpExpired();
@@ -278,13 +289,17 @@ class DeeplinkServiceImpl extends DeeplinkService {
             currentExhibitionId = null;
           });
           await _navigationService.openClaimTokenPage(
-            exhibition,
+            artwork,
             otp: otp,
           );
         }
         currentExhibitionId = null;
       } else {
-        memoryValues.airdropFFExhibitionId.value = Pair(exhibitionId, otp);
+        memoryValues.airdropFFExhibitionId.value = AirdropQrData(
+          exhibitionId: exhibitionId,
+          artworkId: artworkId,
+          otp: otp,
+        );
         handlingDeepLink = null;
         await Future.delayed(const Duration(seconds: 5), () {
           currentExhibitionId = null;

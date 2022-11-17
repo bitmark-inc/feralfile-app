@@ -16,9 +16,9 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shake/shake.dart';
 
 class PreviewTokenClaim extends StatefulWidget {
-  final Exhibition exhibition;
+  final FFArtwork artwork;
 
-  const PreviewTokenClaim({Key? key, required this.exhibition,})
+  const PreviewTokenClaim({Key? key, required this.artwork,})
       : super(key: key);
 
   @override
@@ -67,9 +67,8 @@ class _PreviewTokenClaimState extends State<PreviewTokenClaim>
   Widget build(BuildContext context) {
     final safeAreaTop = MediaQuery.of(context).padding.top;
     final theme = Theme.of(context);
-    final exhibition = widget.exhibition;
-    final artwork = exhibition.airdropArtwork;
-    final artist = exhibition.getArtist(artwork);
+    final artwork = widget.artwork;
+    final artist = artwork.artist;
     return Scaffold(
         backgroundColor: theme.colorScheme.primary,
         body: SafeArea(
@@ -105,7 +104,7 @@ class _PreviewTokenClaimState extends State<PreviewTokenClaim>
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Text(
-                                      widget.exhibition.title,
+                                      artwork.title,
                                       overflow: TextOverflow.ellipsis,
                                       style: ResponsiveLayout.isMobile
                                           ? theme.textTheme.atlasWhiteBold12
@@ -116,7 +115,7 @@ class _PreviewTokenClaimState extends State<PreviewTokenClaim>
                                         const SizedBox(height: 4.0),
                                         Text(
                                           "by".tr(args: [
-                                            artist?.getDisplayName() ?? ""
+                                            artist.getDisplayName()
                                           ]).trim(),
                                           overflow: TextOverflow.ellipsis,
                                           style:
@@ -133,7 +132,7 @@ class _PreviewTokenClaimState extends State<PreviewTokenClaim>
                           onTap: () {
                             Navigator.of(context).pushNamed(
                               AppRouter.airdropTokenDetailPage,
-                              arguments: widget.exhibition,
+                              arguments: artwork,
                             );
                           },
                         ),
@@ -160,12 +159,10 @@ class _PreviewTokenClaimState extends State<PreviewTokenClaim>
                 ),
               ),
               Expanded(
-                child: artwork?.getThumbnailURL() != null
-                    ? CachedNetworkImage(
-                        imageUrl: artwork!.getThumbnailURL(),
-                        fit: BoxFit.contain,
-                      )
-                    : Container(),
+                child: CachedNetworkImage(
+                  imageUrl: artwork.getThumbnailURL(),
+                  fit: BoxFit.contain,
+                ),
               )
             ],
           ),
