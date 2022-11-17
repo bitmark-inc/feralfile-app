@@ -182,6 +182,7 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - .env
+    - assets/erc20-abi.json
     - assets/erc721-abi.json
     - assets/erc1155-abi.json
     - assets/images/

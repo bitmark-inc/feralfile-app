@@ -211,6 +211,7 @@ class _HomePageState extends State<HomePage>
     if (connectivityResult == ConnectivityResult.mobile ||
         connectivityResult == ConnectivityResult.wifi) {
       Future.delayed(const Duration(milliseconds: 1000), () async {
+        if (!mounted) return;
         context
             .read<NftCollectionBloc>()
             .add(RequestIndexEvent(await getAddresses()));

@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/screen/settings/crypto/send_review_page.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
+import 'package:autonomy_flutter/util/usdc_amount_formatter.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
@@ -74,7 +75,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  type == CryptoType.ETH ? "send_eth".tr() : "send_xtz".tr(),
+                  _titleText(),
                   style: theme.textTheme.headline1,
                 ),
                 const SizedBox(height: 40.0),
@@ -96,9 +97,9 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                       } else {
                         dynamic address = await Navigator.of(context).pushNamed(
                             ScanQRPage.tag,
-                            arguments: type == CryptoType.ETH
-                                ? ScannerItem.ETH_ADDRESS
-                                : ScannerItem.XTZ_ADDRESS);
+                            arguments: type == CryptoType.XTZ
+                                ? ScannerItem.XTZ_ADDRESS
+                                : ScannerItem.ETH_ADDRESS);
                         if (address != null && address is String) {
                           address = address.replacePrefix("ethereum:", "");
                           _addressController.text = address;
@@ -143,11 +144,11 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                       : null,
                   suffix: IconButton(
                     icon: SvgPicture.asset(state.isCrypto
-                        ? (widget.data.type == CryptoType.ETH
-                            ? "assets/images/iconEth.svg"
-                            : "assets/images/iconXtz.svg")
+                        ? _cryptoIconAsset()
                         : "assets/images/iconUsd.svg"),
                     onPressed: () {
+                      if (type == CryptoType.USDC) return;
+
                       double amount = double.tryParse(
                               _amountController.text.replaceAll(",", ".")) ??
                           0;
@@ -155,7 +156,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                         if (type == CryptoType.ETH) {
                           _amountController.text = state.exchangeRate
                               .ethToUsd(BigInt.from(amount * pow(10, 18)));
-                        } else {
+                        } else if (type == CryptoType.XTZ) {
                           _amountController.text = state.exchangeRate
                               .xtzToUsd((amount * pow(10, 6)).toInt());
                         }
@@ -222,6 +223,30 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
     );
   }
 
+  String _titleText() {
+    switch (widget.data.type) {
+      case CryptoType.ETH:
+        return "send_eth".tr();
+      case CryptoType.XTZ:
+        return "send_xtz".tr();
+      case CryptoType.USDC:
+        return "Send USDC";
+      default:
+        return "";
+    }
+  }
+
+  String _cryptoIconAsset() {
+    switch (widget.data.type) {
+      case CryptoType.ETH:
+        return "assets/images/iconEth.svg";
+      case CryptoType.XTZ:
+        return "assets/images/iconXtz.svg";
+      default:
+        return "assets/images/iconUsdc.svg";
+    }
+  }
+
   String _maxAmountText(SendCryptoState state) {
     if (state.maxAllow == null) return "";
     final max = state.maxAllow!;
@@ -238,6 +263,9 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
         text += state.isCrypto
             ? "${XtzAmountFormatter(max.toInt()).format()} XTZ"
             : "${state.exchangeRate.xtzToUsd(max.toInt())} USD";
+        break;
+      case CryptoType.USDC:
+        text += "${USDCAmountFormatter(max).format()} USDC";
         break;
       default:
         break;
@@ -258,6 +286,8 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
         return state.isCrypto
             ? XtzAmountFormatter(max.toInt()).format()
             : state.exchangeRate.xtzToUsd(max.toInt());
+      case CryptoType.USDC:
+        return USDCAmountFormatter(max).format();
       default:
         return "";
     }
@@ -271,6 +301,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
 
     switch (widget.data.type) {
       case CryptoType.ETH:
+      case CryptoType.USDC:
         text += state.isCrypto
             ? "${EthAmountFormatter(fee).format()} ETH"
             : "${state.exchangeRate.ethToUsd(fee)} USD";
@@ -280,8 +311,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
             ? "${XtzAmountFormatter(fee.toInt()).format()} XTZ"
             : "${state.exchangeRate.xtzToUsd(fee.toInt())} USD";
         break;
-      case CryptoType.BITMARK:
-        // TODO: Handle this case.
+      default:
         break;
     }
     return text;
