@@ -8,6 +8,7 @@ import 'package:autonomy_flutter/screen/claim/select_account_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -20,6 +21,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ClaimTokenPageArgs {
   final Exhibition exhibition;
@@ -320,10 +322,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
   }
 
   void _openPrivacyPolicy() {
-    Navigator.of(context).pushNamed(AppRouter.githubDocPage, arguments: {
-      "prefix": "/bitmark-inc/autonomy.io/main/apps/docs/",
-      "document": "privacy.md",
-      "title": ""
-    });
+    launchUrl(Uri.parse(FF_ARTIST_COLLECTOR),
+        mode: LaunchMode.externalApplication);
   }
 }

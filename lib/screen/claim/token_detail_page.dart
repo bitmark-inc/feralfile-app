@@ -84,14 +84,14 @@ class _TokenDetailPageState extends State<TokenDetailPage> {
                   children: [
                     Theme(
                       data: theme.copyWith(textTheme: theme.primaryTextTheme),
-                      child: const ArtworkRightWidget(),
+                      child: FeralfileArtworkDetailsMetadataSection(
+                        exhibition: widget.exhibition,
+                      ),
                     ),
                     const SizedBox(height: 40.0),
                     Theme(
                       data: theme.copyWith(textTheme: theme.primaryTextTheme),
-                      child: FeralfileArtworkDetailsMetadataSection(
-                        exhibition: widget.exhibition,
-                      ),
+                      child: const ArtworkRightWidget(),
                     ),
                     const SizedBox(height: 40.0),
                   ],
