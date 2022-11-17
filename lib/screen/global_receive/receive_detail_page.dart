@@ -37,7 +37,6 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
 
   @override
   void initState() {
-    // TODO: implement initState
     _account = widget.payload as Account;
     super.initState();
   }
@@ -160,6 +159,8 @@ String _blockchainNFTText(String? blockchain) {
       return "nft_or_eth".tr();
     case "Tezos":
       return "nft_or_xtz".tr();
+    case "USDC":
+      return "USDC (Ethereum ERC-20)";
     default:
       return "unknown".tr();
   }

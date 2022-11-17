@@ -16,12 +16,12 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/usdc_amount_formatter.dart';
-import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -79,6 +79,11 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                   style: theme.textTheme.headline1,
                 ),
                 const SizedBox(height: 40.0),
+                if (type == CryptoType.USDC) ...[
+                  Text("please_verify_usdc_erc20".tr(),
+                      style: theme.textTheme.headline5),
+                  const SizedBox(height: 8),
+                ],
                 AuTextField(
                   title: "to".tr(),
                   placeholder: "paste_or_scan_address".tr(),
@@ -184,6 +189,14 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                 ),
                 const SizedBox(height: 8.0),
                 Text(_gasFee(state), style: theme.textTheme.headline5),
+                if (type == CryptoType.USDC &&
+                    state.fee != null &&
+                    state.ethBalance != null &&
+                    state.fee! > state.ethBalance!)
+                  Text("insufficient_eth_funds".tr(),
+                      style: theme.textTheme.headline5?.copyWith(
+                        color: AppColor.red,
+                      )),
                 const SizedBox(height: 24.0),
                 // Expanded(child: SizedBox()),
                 Row(
@@ -230,7 +243,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
       case CryptoType.XTZ:
         return "send_xtz".tr();
       case CryptoType.USDC:
-        return "Send USDC";
+        return "send_usdc".tr();
       default:
         return "";
     }
@@ -301,7 +314,6 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
 
     switch (widget.data.type) {
       case CryptoType.ETH:
-      case CryptoType.USDC:
         text += state.isCrypto
             ? "${EthAmountFormatter(fee).format()} ETH"
             : "${state.exchangeRate.ethToUsd(fee)} USD";
@@ -310,6 +322,10 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
         text += state.isCrypto
             ? "${XtzAmountFormatter(fee.toInt()).format()} XTZ"
             : "${state.exchangeRate.xtzToUsd(fee.toInt())} USD";
+        break;
+      case CryptoType.USDC:
+        text +=
+            "${EthAmountFormatter(fee).format()} ETH (${state.exchangeRate.ethToUsd(fee)} USD)";
         break;
       default:
         break;

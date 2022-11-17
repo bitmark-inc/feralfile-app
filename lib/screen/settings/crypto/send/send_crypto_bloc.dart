@@ -78,8 +78,10 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
 
           final balance = await _ethereumService.getERC20TokenBalance(
               contractAddress, ownerAddress);
+          final ethBalance = await _ethereumService.getBalance(address);
 
           newState.balance = balance;
+          newState.ethBalance = ethBalance.getInWei;
 
           if (state.fee != null) {
             final maxAllow = balance;
