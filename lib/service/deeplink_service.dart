@@ -55,13 +55,14 @@ class DeeplinkServiceImpl extends DeeplinkService {
 
   @override
   Future setup() async {
-    FlutterBranchSdk.initSession().listen((data) {
+    FlutterBranchSdk.initSession().listen((data) async {
       log.info("[DeeplinkService] _handleFeralFileDeeplink with Branch");
 
       if (data["+clicked_branch_link"] == true) {
         _deepLinkHandleClock(
             "Handle Branch Deep Link Data Time Out", data["source"]);
-        _handleBranchDeeplinkData(data);
+        await _handleBranchDeeplinkData(data);
+        handlingDeepLink = null;
       }
     }, onError: (error) {
       log.warning(
@@ -96,6 +97,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
       await _handleDappConnectDeeplink(link) ||
           await _handleFeralFileDeeplink(link) ||
           await _handleBranchDeeplink(link);
+      handlingDeepLink = null;
     });
   }
 
@@ -131,7 +133,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
       final wcUri = link.substring(callingWCPrefix.length);
       final decodedWcUri = Uri.decodeFull(wcUri);
       await _walletConnectService.connect(decodedWcUri);
-      handlingDeepLink = null;
       return true;
     }
 
@@ -140,7 +141,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
     if (callingTBPrefix != null) {
       final tzUri = link.substring(callingTBPrefix.length);
       await _tezosBeaconService.addPeer(tzUri);
-      handlingDeepLink = null;
       return true;
     }
 
@@ -148,7 +148,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
         .firstWhereOrNull((prefix) => link.startsWith(prefix));
     if (callingWCDeeplinkPrefix != null) {
       await _walletConnectService.connect(link);
-      handlingDeepLink = null;
       return true;
     }
 
@@ -159,7 +158,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
       if (_configurationService.isDoneOnboarding()) {
         _navigationService.showContactingDialog();
       }
-      handlingDeepLink = null;
       return true;
     }
 
@@ -172,7 +170,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
     if (link.startsWith(FF_TOKEN_DEEPLINK_PREFIX)) {
       await _linkFeralFileToken(
           link.replacePrefix(FF_TOKEN_DEEPLINK_PREFIX, ""));
-      handlingDeepLink = null;
       return true;
     }
 
@@ -199,7 +196,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
         if (tokenId != null) {
           log.info("[DeeplinkService] _linkFeralFileToken $tokenId");
           await _linkFeralFileToken(tokenId);
-          handlingDeepLink = null;
         }
         memoryValues.airdropFFExhibitionId.value = null;
         break;
@@ -212,7 +208,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
                 int.tryParse(expiredAt) ?? 0))) {
           log.info("[DeeplinkService] FeralFile Airdrop expired");
           _navigationService.showAirdropExpired();
-          handlingDeepLink = null;
           break;
         }
 
@@ -221,11 +216,9 @@ class DeeplinkServiceImpl extends DeeplinkService {
             exhibitionId,
             otp: _getOtpFromBranchData(data),
           );
-          handlingDeepLink = null;
         }
         break;
       default:
-        handlingDeepLink = null;
         memoryValues.airdropFFExhibitionId.value = null;
     }
   }
