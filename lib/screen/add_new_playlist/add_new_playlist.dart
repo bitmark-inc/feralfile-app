@@ -99,9 +99,17 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen> {
               children: [
                 GestureDetector(
                   onTap: () => Navigator.of(context).pop(),
-                  child: Text(
-                    tr('back'),
-                    style: theme.primaryTextTheme.button,
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.navigate_before_sharp,
+                        color: theme.colorScheme.secondary,
+                      ),
+                      Text(
+                        tr('back'),
+                        style: theme.primaryTextTheme.button,
+                      ),
+                    ],
                   ),
                 ),
                 const Spacer(),
@@ -196,7 +204,9 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen> {
                                   isSeletedAll
                                       ? tr('unselect_all')
                                       : tr('select_all'),
-                                  style: theme.textTheme.atlasWhiteMedium12,
+                                  style: theme.textTheme.atlasWhiteMedium12
+                                      .copyWith(
+                                          decoration: TextDecoration.underline),
                                 ),
                               ),
                             ],

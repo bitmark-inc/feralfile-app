@@ -89,6 +89,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   final playControlListen = injector.get<ValueNotifier<PlayControlService>>();
   List<ArtworkIdentity> tokens = [];
   Timer? _timer;
+  late int initialPage;
 
   @override
   void initState() {
@@ -97,7 +98,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     if (playControlListen.value.isShuffle && widget.payload.isPlaylist) {
       tokens.shuffle();
     }
-    final initialPage = tokens.indexOf(initialTokenID);
+    initialPage = tokens.indexOf(initialTokenID);
 
     controller = PageController(initialPage: initialPage);
     _bloc = context.read<ArtworkPreviewBloc>();
@@ -113,6 +114,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
           ? time ?? 10
           : playControlListen.value.timer;
       _timer = Timer.periodic(Duration(seconds: defauftDuration), (timer) {
+        if (!(_timer?.isActive ?? false)) return;
         if (playControlListen.value.isLoop &&
             controller.page?.toInt() == tokens.length - 1) {
           controller.jumpTo(0);
@@ -189,8 +191,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
 
     final currentIndex = tokens.indexWhere((element) =>
         element.id == asset.id && element.owner == asset.ownerAddress);
-    if (isImmediateInfoViewEnabled &&
-        currentIndex == widget.payload.currentIndex) {
+    if (isImmediateInfoViewEnabled && currentIndex == initialPage) {
       Navigator.of(context).pop();
       return;
     }
@@ -202,7 +203,10 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
 
     Navigator.of(context).pushNamed(
       AppRouter.artworkDetailsPage,
-      arguments: widget.payload.copyWith(currentIndex: currentIndex),
+      arguments: widget.payload.copyWith(
+        currentIndex: currentIndex,
+        ids: tokens,
+      ),
     );
   }
 
@@ -572,19 +576,19 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                             ? const NeverScrollableScrollPhysics()
                             : null,
                         onPageChanged: (value) {
+                          _timer?.cancel();
                           final currentId = tokens[value];
                           _bloc
                               .add(ArtworkPreviewGetAssetTokenEvent(currentId));
                           _stopAllChromecastDevices();
                           keyboardManagerKey.currentState?.hideKeyboard();
-                          final mixPanelClient = injector.get<MixPanelClientService>();
-                          mixPanelClient.trackEvent(
-                            "Next Artwork",
-                            hashedData: {
-                              "tokenId": currentId.id,
-                              "identity": currentId.id
-                            }
-                          );
+                          final mixPanelClient =
+                              injector.get<MixPanelClientService>();
+                          mixPanelClient.trackEvent("Next Artwork",
+                              hashedData: {
+                                "tokenId": currentId.id,
+                                "identity": currentId.id
+                              });
                         },
                         controller: controller,
                         itemCount: tokens.length,

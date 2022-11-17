@@ -8,6 +8,7 @@
 import 'dart:io';
 
 import 'package:autonomy_flutter/gateway/pubdoc_api.dart';
+import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/version_info.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -127,9 +128,7 @@ class VersionService {
         context,
         "update_required".tr(),
         Column(children: [
-          Text(
-              "newer_version".tr(),
-              style: theme.primaryTextTheme.bodyText1),
+          Text("newer_version".tr(), style: theme.primaryTextTheme.bodyText1),
           const SizedBox(height: 35),
           Row(
             children: [
@@ -163,5 +162,9 @@ class VersionService {
     await _configurationService.setReadReleaseNotesInVersion(currentVersion);
     await _navigationService.navigateTo(AppRouter.releaseNotesPage,
         arguments: releaseNotes);
+  }
+
+  Future<List<PlayListModel>> getDemoAccountFromGithub() async {
+    return _pubdocAPI.getDemoAccountFromGithub();
   }
 }
