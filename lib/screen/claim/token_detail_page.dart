@@ -16,11 +16,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class TokenDetailPage extends StatefulWidget {
-  final Exhibition exhibition;
+  final FFArtwork artwork;
 
   const TokenDetailPage({
     Key? key,
-    required this.exhibition,
+    required this.artwork,
   }) : super(key: key);
 
   @override
@@ -31,9 +31,8 @@ class _TokenDetailPageState extends State<TokenDetailPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final exhibition = widget.exhibition;
-    final artwork = exhibition.airdropArtwork;
-    final artist = exhibition.getArtist(artwork);
+    final artwork = widget.artwork;
+    final artist = artwork.artist;
     return Scaffold(
         appBar: _appBar(
           context,
@@ -48,7 +47,7 @@ class _TokenDetailPageState extends State<TokenDetailPage> {
               Padding(
                 padding: ResponsiveLayout.getPadding,
                 child: Text(
-                  artwork?.title ?? "",
+                  artwork.title ?? "",
                   style: theme.primaryTextTheme.headline1,
                 ),
               ),
@@ -56,7 +55,7 @@ class _TokenDetailPageState extends State<TokenDetailPage> {
               Padding(
                 padding: ResponsiveLayout.getPadding,
                 child: Text(
-                  "by".tr(args: [artist?.getDisplayName() ?? ""]).trim(),
+                  "by".tr(args: [artist.getDisplayName() ?? ""]).trim(),
                   style:
                       theme.primaryTextTheme.headline4?.copyWith(fontSize: 18),
                 ),
@@ -65,14 +64,14 @@ class _TokenDetailPageState extends State<TokenDetailPage> {
               // Show artwork here.
               CachedNetworkImage(
                 imageUrl:
-                    artwork?.getThumbnailURL() ?? exhibition.getThumbnailURL(),
+                    artwork.getThumbnailURL(),
                 fit: BoxFit.fitWidth,
               ),
               const SizedBox(height: 24.0),
               Padding(
                 padding: ResponsiveLayout.getPadding,
                 child: Text(
-                  artwork?.description ?? "",
+                  artwork.description,
                   style: theme.primaryTextTheme.bodyText1,
                 ),
               ),
@@ -84,14 +83,14 @@ class _TokenDetailPageState extends State<TokenDetailPage> {
                   children: [
                     Theme(
                       data: theme.copyWith(textTheme: theme.primaryTextTheme),
-                      child: const ArtworkRightWidget(),
+                      child: FeralfileArtworkDetailsMetadataSection(
+                        artwork: widget.artwork,
+                      ),
                     ),
                     const SizedBox(height: 40.0),
                     Theme(
                       data: theme.copyWith(textTheme: theme.primaryTextTheme),
-                      child: FeralfileArtworkDetailsMetadataSection(
-                        exhibition: widget.exhibition,
-                      ),
+                      child: const ArtworkRightWidget(),
                     ),
                     const SizedBox(height: 40.0),
                   ],

@@ -105,8 +105,9 @@ class _OnboardingPageState extends State<OnboardingPage>
     });
 
     Future.delayed(const Duration(seconds: 2), () {
-      final id = memoryValues.airdropFFExhibitionId.value?.first;
-      if (id == null || id.isEmpty) {
+      final data = memoryValues.airdropFFExhibitionId.value;
+      final id = "${data?.artworkId ?? ''}${data?.exhibitionId ?? ''}".trim();
+      if (id.isEmpty) {
         if (mounted) {
           setState(() {
             fromBranchLink = false;
@@ -115,52 +116,57 @@ class _OnboardingPageState extends State<OnboardingPage>
       }
     });
 
-    String? currentExhibitionId;
+    String? currentId;
 
     void _updateDeepLinkState() {
       setState(() {
         fromBranchLink = false;
-        currentExhibitionId = null;
+        currentId = null;
         memoryValues.airdropFFExhibitionId.value = null;
       });
     }
 
     memoryValues.airdropFFExhibitionId.addListener(() async {
       try {
-        final exhibitionId = memoryValues.airdropFFExhibitionId.value?.first;
-        if (currentExhibitionId == exhibitionId) return;
-        if (exhibitionId != null && exhibitionId.isNotEmpty) {
-          currentExhibitionId = exhibitionId;
+        final data = memoryValues.airdropFFExhibitionId.value;
+        final id = "${data?.exhibitionId}_${data?.artworkId}";
+        if (currentId == id) return;
+        if (data?.artworkId?.isNotEmpty == true ||
+            data?.exhibitionId?.isNotEmpty == true) {
+          currentId = id;
           setState(() {
             fromBranchLink = true;
           });
-          final exhibition =
-              await injector<FeralFileService>().getExhibition(exhibitionId);
+          final ffService = injector<FeralFileService>();
+          final artwork = data?.artworkId?.isNotEmpty == true
+              ? await ffService.getArtwork(data!.artworkId!)
+              : await ffService
+                  .getAirdropArtworkFromExhibitionId(data!.exhibitionId!);
 
-          if (exhibition.airdropInfo?.isAirdropStarted != true) {
+          if (artwork.airdropInfo?.isAirdropStarted != true) {
             await injector.get<NavigationService>().showAirdropNotStarted();
             _updateDeepLinkState();
             return;
           }
 
-          final endTime = exhibition.airdropInfo?.endedAt;
+          final endTime = artwork.airdropInfo?.endedAt;
 
-          if (exhibition.airdropInfo == null ||
+          if (artwork.airdropInfo == null ||
               (endTime != null && endTime.isBefore(DateTime.now()))) {
             await injector.get<NavigationService>().showAirdropExpired();
             _updateDeepLinkState();
             return;
           }
 
-          if (exhibition.airdropInfo?.remainAmount == 0) {
+          if (artwork.airdropInfo?.remainAmount == 0) {
             await injector.get<NavigationService>().showNoRemainingToken(
-                  exhibition: exhibition,
+                  artwork: artwork,
                 );
             _updateDeepLinkState();
             return;
           }
 
-          final otp = memoryValues.airdropFFExhibitionId.value?.second;
+          final otp = memoryValues.airdropFFExhibitionId.value?.otp;
           if (otp?.isExpired == true) {
             await injector.get<NavigationService>().showOtpExpired();
             _updateDeepLinkState();
@@ -170,9 +176,12 @@ class _OnboardingPageState extends State<OnboardingPage>
           if (!mounted) return;
           await Navigator.of(context).pushNamed(
             AppRouter.claimFeralfileTokenPage,
-            arguments: ClaimTokenPageArgs(exhibition: exhibition, otp: otp),
+            arguments: ClaimTokenPageArgs(
+              artwork: artwork,
+              otp: otp,
+            ),
           );
-          currentExhibitionId = null;
+          currentId = null;
 
           setState(() {
             fromBranchLink = false;

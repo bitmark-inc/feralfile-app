@@ -39,12 +39,12 @@ extension FeralfileErrorExt on FeralfileError {
     }
   }
 
-  String getDialogTitle({required Exhibition exhibition}) {
+  String getDialogTitle({required FFArtwork artwork}) {
     return dialogTitle;
   }
 
-  String getDialogMessage({required Exhibition exhibition}) {
-    if (code == 3009 && exhibition.maxEdition < 0) {
+  String getDialogMessage({required FFArtwork artwork}) {
+    if (code == 3009 && artwork.maxEdition < 0) {
       return "We are running out of tokens. Come back later.";
     } else {
       return dialogMessage;

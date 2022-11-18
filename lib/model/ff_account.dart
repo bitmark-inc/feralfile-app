@@ -69,12 +69,9 @@ class Exhibition {
   final String? coverURI;
   final String? thumbnailCoverURI;
   final String mintBlockchain;
-  final List<FFArtist> artists;
-  final List<FFArtwork> artworks;
+  final List<FFArtist>? artists;
+  final List<FFArtwork>? artworks;
   final List<FFContract>? contracts;
-  // FIXME: support multiple airdrop artworks in a exhibition?
-  @JsonKey(ignore: true)
-  FFArtwork? airdropArtwork;
 
   Exhibition(
     this.id,
@@ -96,21 +93,7 @@ class Exhibition {
 
   FFArtist? getArtist(FFArtwork? artwork) {
     final artistId = artwork?.artistID;
-    return artists.firstWhereOrNull((artist) => artist.id == artistId);
-  }
-
-  AirdropInfo? get airdropInfo {
-    return airdropArtwork?.airdropInfo;
-  }
-
-  // Airdrop token max edition.
-  int get maxEdition {
-    return airdropArtwork?.settings?.maxEdition ?? 0;
-  }
-
-  FFContract? get airdropContract {
-    final contractAddress = airdropArtwork?.airdropInfo?.contractAddress;
-    return contracts?.firstWhereOrNull((e) => e.address == contractAddress);
+    return artists?.firstWhereOrNull((artist) => artist.id == artistId);
   }
 
   String getThumbnailURL() {
@@ -171,6 +154,8 @@ class FFArtwork {
   final String? thumbnailFileURI;
   final String? galleryThumbnailFileURI;
   final FFArtworkSettings? settings;
+  final FFArtist artist;
+  final Exhibition? exhibition;
   final AirdropInfo? airdropInfo;
   final DateTime? createdAt;
 
@@ -183,9 +168,21 @@ class FFArtwork {
     this.thumbnailFileURI,
     this.galleryThumbnailFileURI,
     this.settings,
+    this.artist,
+    this.exhibition,
     this.airdropInfo,
     this.createdAt,
   );
+
+  int get maxEdition {
+    return settings?.maxEdition ?? -1;
+  }
+
+  FFContract? get contract {
+    return exhibition?.contracts?.firstWhereOrNull((e) {
+      return e.address == airdropInfo?.contractAddress;
+    });
+  }
 
   String getThumbnailURL() {
     return "${Environment.feralFileAssetURL}/${galleryThumbnailFileURI ?? thumbnailFileURI}";

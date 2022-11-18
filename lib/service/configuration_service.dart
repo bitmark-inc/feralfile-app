@@ -321,7 +321,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
   @override
   bool isImmediateInfoViewEnabled() {
-    return _preferences.getBool(KEY_IMMEDIATE_INFOVIEW) ?? false;
+    return _preferences.getBool(KEY_IMMEDIATE_INFOVIEW) ?? true;
   }
 
   @override

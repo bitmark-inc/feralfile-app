@@ -524,13 +524,13 @@ class UIHelper {
 
   static Future showNoRemainingAirdropToken(
     BuildContext context, {
-    required Exhibition exhibition,
+    required FFArtwork artwork,
   }) async {
     final error = FeralfileError(3009, "");
     return showErrorDialog(
       context,
-      error.getDialogTitle(exhibition: exhibition),
-      error.getDialogMessage(exhibition: exhibition),
+      error.getDialogTitle(artwork: artwork),
+      error.getDialogMessage(artwork: artwork),
       "close".tr(),
     );
   }
@@ -548,25 +548,25 @@ class UIHelper {
   static Future showClaimTokenError(
     BuildContext context,
     Object e, {
-    required Exhibition exhibition,
+    required FFArtwork artwork,
   }) async {
     if (e is AirdropExpired) {
       await showAirdropExpired(context);
     } else if (e is DioError) {
       final ffError = e.error as FeralfileError?;
       final message = ffError != null
-          ? ffError.getDialogMessage(exhibition: exhibition)
+          ? ffError.getDialogMessage(artwork: artwork)
           : "${e.response?.data ?? e.message}";
       await showErrorDialog(
         context,
-        ffError?.getDialogTitle(exhibition: exhibition) ?? "error".tr(),
+        ffError?.getDialogTitle(artwork: artwork) ?? "error".tr(),
         message,
         "close".tr(),
       );
     } else if (e is NoRemainingToken) {
       await showNoRemainingAirdropToken(
         context,
-        exhibition: exhibition,
+        artwork: artwork,
       );
     }
   }

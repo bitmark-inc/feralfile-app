@@ -35,6 +35,11 @@ const DEEP_LINKS = [
   "https://autonomy-app-alternate.app.link",
   "https://link.autonomy.io",
 ];
+const FF_ARTIST_COLLECTOR =
+    'https://feralfile.com/docs/artist-collector-rights';
+const WEB3_PRIMER_URL = 'https://autonomy.io/catalog/primer/';
+const CHECK_WEB3_PRIMER_URL =
+    'https://feralfile.com/artworks/memento-1-study-for-unsupervised';
 
 const int cellPerRowPhone = 3;
 const int cellPerRowTablet = 6;

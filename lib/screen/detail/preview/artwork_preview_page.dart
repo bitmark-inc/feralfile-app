@@ -82,8 +82,6 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
       Platform.isIOS ? [AUCastDevice(AUCastDeviceType.Airplay)] : [];
   final keyboardManagerKey = GlobalKey<KeyboardManagerWidgetState>();
 
-  final Future<List<CastDevice>> _castDevicesFuture =
-      CastDiscoveryService().search();
   INFTRenderingWidget? _renderingWidget;
 
   final playControlListen = injector.get<ValueNotifier<PlayControlService>>();
@@ -245,7 +243,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
       context,
       "select_a_device".tr(),
       FutureBuilder<List<CastDevice>>(
-        future: _castDevicesFuture,
+        future: CastDiscoveryService().search(),
         builder: (context, snapshot) {
           if (!snapshot.hasData ||
               snapshot.data!.isEmpty ||
@@ -721,9 +719,12 @@ class ControlView extends StatelessWidget {
                 (assetToken?.medium?.isEmpty ?? true),
             child: const SizedBox(width: 8),
           ),
-          CastButton(
-            assetToken: assetToken,
-            onCastTap: () => onClickCast?.call(assetToken),
+          Visibility(
+            visible: onClickCast != null,
+            child: CastButton(
+              assetToken: assetToken,
+              onCastTap: () => onClickCast?.call(assetToken),
+            ),
           ),
           const SizedBox(width: 8),
           IconButton(

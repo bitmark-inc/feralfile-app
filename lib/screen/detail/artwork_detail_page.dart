@@ -17,11 +17,13 @@ import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
+import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_widget.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
@@ -163,36 +165,20 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                       ),
                     ),
                     const SizedBox(height: 16.0),
-                    GestureDetector(
-                        child: TokenThumbnailWidget(
-                          token: asset,
-                          onHideArtwork: () {
-                            _showArtworkOptionsDialog(asset);
-                          },
-                        ),
-                        onTap: () {
-                          if (injector<ConfigurationService>()
-                              .isImmediateInfoViewEnabled()) {
-                            Navigator.of(context).pushNamed(
-                                AppRouter.artworkPreviewPage,
-                                arguments: widget.payload);
-                          } else {
-                            Navigator.of(context).pop();
-                          }
-                        }),
-                    debugInfoWidget(context, currentAsset),
-                    const SizedBox(height: 16.0),
-                    Padding(
-                      padding: ResponsiveLayout.getPadding,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(
-                            width: 165,
-                            height: 48,
-                            child: AuOutlinedButton(
-                              text: "view_artwork".tr(),
-                              onPress: () {
+                    Hero(
+                      tag: asset.id,
+                      child: AspectRatio(
+                        aspectRatio: 1,
+                        child: Stack(
+                          children: [
+                            Center(
+                              child: ArtworkPreviewWidget(
+                                identity: widget.payload
+                                    .identities[widget.payload.currentIndex],
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: () {
                                 if (injector<ConfigurationService>()
                                     .isImmediateInfoViewEnabled()) {
                                   Navigator.of(context).pushNamed(
@@ -202,9 +188,42 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                                   Navigator.of(context).pop();
                                 }
                               },
+                              child: Container(
+                                color: Colors.transparent,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Visibility(
+                      visible: asset.assetURL == CHECK_WEB3_PRIMER_URL,
+                      child: Align(
+                        alignment: Alignment.centerRight,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: SizedBox(
+                            width: 165,
+                            height: 48,
+                            child: AuOutlinedButton(
+                              text: "web3_primer".tr(),
+                              onPress: () {
+                                Navigator.pushNamed(
+                                    context, AppRouter.previewPrimerPage,
+                                    arguments: asset);
+                              },
                             ),
                           ),
-                          const SizedBox(height: 40.0),
+                        ),
+                      ),
+                    ),
+                    debugInfoWidget(context, currentAsset),
+                    const SizedBox(height: 16.0),
+                    Padding(
+                      padding: ResponsiveLayout.getPadding,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                           Semantics(
                             label: 'Desc',
                             child: Text(
@@ -212,7 +231,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                               style: theme.textTheme.bodyText1,
                             ),
                           ),
-                          artworkDetailsRightSection(context, asset),
                           const SizedBox(height: 40.0),
                           artworkDetailsMetadataSection(
                               context, asset, artistName),
@@ -230,6 +248,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                                 ? _provenanceView(context, state.provenances)
                                 : const SizedBox()
                           ],
+                          artworkDetailsRightSection(context, asset),
                           const SizedBox(height: 80.0),
                         ],
                       ),

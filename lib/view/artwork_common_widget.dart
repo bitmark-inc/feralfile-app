@@ -1171,21 +1171,20 @@ class ArtworkRightWidget extends StatelessWidget {
 }
 
 class FeralfileArtworkDetailsMetadataSection extends StatelessWidget {
-  final Exhibition exhibition;
+  final FFArtwork artwork;
 
   const FeralfileArtworkDetailsMetadataSection({
     Key? key,
-    required this.exhibition,
+    required this.artwork,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final artwork = exhibition.airdropArtwork;
-    final artist = exhibition.getArtist(artwork);
-    final contract = exhibition.airdropContract;
+    final artist = artwork.artist;
+    final contract = artwork.contract;
     final df = DateFormat('yyyy-MMM-dd hh:mm');
-    final mintDate = artwork?.createdAt;
+    final mintDate = artwork.createdAt;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1194,7 +1193,7 @@ class FeralfileArtworkDetailsMetadataSection extends StatelessWidget {
           style: theme.textTheme.headline2,
         ),
         const SizedBox(height: 23.0),
-        _rowItem(context, "title".tr(), artwork?.title),
+        _rowItem(context, "title".tr(), artwork.title),
         const Divider(
           height: 32.0,
           color: AppColor.secondarySpanishGrey,
@@ -1202,10 +1201,10 @@ class FeralfileArtworkDetailsMetadataSection extends StatelessWidget {
         _rowItem(
           context,
           "artist".tr(),
-          artist?.getDisplayName(),
-          tapLink: "${Environment.feralFileAPIURL}/profiles/${artist?.id}",
+          artist.getDisplayName(),
+          tapLink: "${Environment.feralFileAPIURL}/profiles/${artist.id}",
         ),
-        if (exhibition.maxEdition > 0) ...[
+        if (artwork.maxEdition > 0) ...[
           const Divider(
             height: 32.0,
             color: AppColor.secondarySpanishGrey,
@@ -1213,7 +1212,7 @@ class FeralfileArtworkDetailsMetadataSection extends StatelessWidget {
           _rowItem(
             context,
             "edition_size".tr(),
-            exhibition.maxEdition.toString(),
+            artwork.maxEdition.toString(),
           ),
         ],
         const Divider(
@@ -1244,7 +1243,7 @@ class FeralfileArtworkDetailsMetadataSection extends StatelessWidget {
         _rowItem(
           context,
           "medium".tr(),
-          artwork?.medium.capitalize() ?? "",
+          artwork.medium.capitalize() ?? "",
         ),
         const Divider(
           height: 32.0,

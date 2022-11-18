@@ -176,46 +176,46 @@ String _refineToCloudflareURL(String url, String thumbnailID, String variant) {
 }
 
 AssetToken createPendingAssetToken({
-  required Exhibition exhibition,
+  required FFArtwork artwork,
   required String owner,
   required String tokenId,
 }) {
-  final indexerId = exhibition.airdropInfo?.getTokenIndexerId(tokenId);
-  final artwork = exhibition.airdropArtwork;
-  final artist = exhibition.getArtist(artwork);
-  final contract = exhibition.airdropContract;
+  final indexerId = artwork.airdropInfo?.getTokenIndexerId(tokenId);
+  final artist = artwork.artist;
+  final exhibition = artwork.exhibition;
+  final contract = artwork.contract;
   return AssetToken(
-    artistName: artist?.fullName ?? artist?.alias,
+    artistName: artist.fullName,
     artistURL: null,
-    artistID: artist?.id,
+    artistID: artist.id,
     assetData: null,
     assetID: null,
     assetURL: null,
     basePrice: null,
     baseCurrency: null,
-    blockchain: exhibition.mintBlockchain.toLowerCase(),
+    blockchain: exhibition?.mintBlockchain.toLowerCase() ?? "tezos",
     blockchainUrl: null,
     fungible: false,
     contractType: null,
     tokenId: tokenId,
     contractAddress: contract?.address,
-    desc: artwork?.description,
+    desc: artwork.description,
     edition: 0,
     editionName: "",
     id: indexerId ?? "",
-    maxEdition: exhibition.maxEdition,
+    maxEdition: artwork.maxEdition,
     medium: null,
     mimeType: null,
-    mintedAt: artwork?.createdAt != null
-        ? dateFormatterYMDHM.format(artwork!.createdAt!).toUpperCase()
+    mintedAt: artwork.createdAt != null
+        ? dateFormatterYMDHM.format(artwork.createdAt!).toUpperCase()
         : null,
-    previewURL: exhibition.getThumbnailURL(),
-    source: "feralfile-airdrop",
+    previewURL: artwork.thumbnailFileURI,
+    source: "airdrop",
     sourceURL: null,
     thumbnailID: null,
-    thumbnailURL: exhibition.getThumbnailURL(),
-    galleryThumbnailURL: exhibition.getThumbnailURL(),
-    title: exhibition.title,
+    thumbnailURL: artwork.thumbnailFileURI,
+    galleryThumbnailURL: artwork.galleryThumbnailFileURI,
+    title: artwork.title,
     balance: 0,
     ownerAddress: owner,
     owners: {
