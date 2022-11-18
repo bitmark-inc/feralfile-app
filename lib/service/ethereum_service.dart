@@ -134,7 +134,7 @@ class EthereumServiceImpl extends EthereumService {
     final contractJson = await rootBundle.loadString('assets/erc721-abi.json');
     final contract = DeployedContract(
         ContractAbi.fromJson(contractJson, "ERC721"), contractAddress);
-    ContractFunction transferFrom() => contract.function("transferFrom");
+    ContractFunction transferFrom() => contract.function("safeTransferFrom");
 
     final nonce = await _web3Client.getTransactionCount(from);
     final gasPrice = await _web3Client.getGasPrice();
@@ -175,7 +175,7 @@ class EthereumServiceImpl extends EthereumService {
         to,
         [BigInt.parse(tokenId, radix: 10)],
         [BigInt.from(quantity)],
-        Uint8List.fromList([0]),
+        Uint8List(0),
       ],
       from: from,
       gasPrice: gasPrice,

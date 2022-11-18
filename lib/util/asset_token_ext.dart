@@ -45,7 +45,7 @@ extension AssetTokenExtension on AssetToken {
 
   Future<WalletStorage?> getOwnerWallet() async {
     if (contractAddress == null || tokenId == null) return null;
-    if (!(blockchain == "ethereum" && contractType == "erc721") &&
+    if (!(blockchain == "ethereum" && (contractType == "erc721" || contractType == "erc1155")) &&
         !(blockchain == "tezos" && contractType == "fa2")) return null;
 
     //check asset is able to send
