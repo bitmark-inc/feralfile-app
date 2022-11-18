@@ -381,7 +381,7 @@ class _HomePageState extends State<HomePage>
             Padding(
               padding: const EdgeInsets.only(bottom: 16),
               child: SizedBox(
-                height: 70,
+                height: 68,
                 child: ListPlaylistWidget(
                   playlists: playlists,
                   onUpdateList: () async {
@@ -676,6 +676,7 @@ class _ListPlaylistWidgetState extends State<ListPlaylistWidget> {
           return PlaylistItem(
             name: widget.playlists?[index]?.name,
             thumbnailURL: widget.playlists?[index]?.thumbnailURL,
+            onHold: true,
           );
         },
         onReorder: (oldIndex, newIndex) {
@@ -722,12 +723,14 @@ class PlaylistItem extends StatefulWidget {
   final Function()? onSelected;
   final String? name;
   final String? thumbnailURL;
+  final bool onHold;
 
   const PlaylistItem({
     Key? key,
     this.onSelected,
     this.name,
     this.thumbnailURL,
+    this.onHold = false,
   }) : super(key: key);
 
   @override
@@ -750,12 +753,12 @@ class _PlaylistItemState extends State<PlaylistItem> {
         child: Column(
           children: [
             Container(
-              width: 48,
-              height: 48,
+              width: widget.onHold ? 52 : 48,
+              height: widget.onHold ? 52 : 48,
               decoration: BoxDecoration(
                 color: Colors.transparent,
                 shape: BoxShape.circle,
-                border: Border.all(),
+                border: Border.all(width: widget.onHold ? 2 : 1),
               ),
               child: Padding(
                 padding: const EdgeInsets.all(1),
@@ -781,12 +784,13 @@ class _PlaylistItemState extends State<PlaylistItem> {
                 ),
               ),
             ),
-            const SizedBox(
-              height: 4,
-            ),
+            Spacer(),
             Text(
               (widget.name?.isNotEmpty ?? false) ? widget.name! : 'Untitled',
-              style: theme.textTheme.headline5,
+              style: widget.onHold
+                  ? theme.textTheme.headline5
+                      ?.copyWith(fontWeight: FontWeight.bold)
+                  : theme.textTheme.headline5,
               overflow: TextOverflow.ellipsis,
             ),
           ],
@@ -826,9 +830,7 @@ class AddPlayListItem extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(
-              height: 4,
-            ),
+            Spacer(),
             Text(
               'new list',
               style: theme.textTheme.headline5,
