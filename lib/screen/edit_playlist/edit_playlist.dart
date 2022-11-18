@@ -95,6 +95,11 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
       listener: (context, state) {
         if (state.isAddSuccess ?? false) {
           injector<NavigationService>().popUntilHomeOrSettings();
+          Navigator.pushNamed(
+            context,
+            AppRouter.viewPlayListPage,
+            arguments: state.playListModel,
+          );
         }
       },
       builder: (context, state) {
@@ -207,9 +212,8 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
                                 ),
                                 child: Text(
                                   tr('remove'),
-                                  style: theme.textTheme.atlasBlackMedium12
-                                      .copyWith(
-                                          decoration: TextDecoration.underline),
+                                  style: theme.textTheme.linkStyle
+                                      .copyWith(fontSize: 12),
                                 ),
                               ),
                             ),
