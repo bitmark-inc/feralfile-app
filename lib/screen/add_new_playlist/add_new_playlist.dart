@@ -17,6 +17,7 @@ import 'package:nft_collection/nft_collection.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:roundcheckbox/roundcheckbox.dart';
 import '../../util/token_ext.dart';
 
 class AddNewPlaylistScreen extends StatefulWidget {
@@ -204,9 +205,8 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen> {
                                   isSeletedAll
                                       ? tr('unselect_all')
                                       : tr('select_all'),
-                                  style: theme.textTheme.atlasWhiteMedium12
-                                      .copyWith(
-                                          decoration: TextDecoration.underline),
+                                  style: theme.textTheme.whitelinkStyle
+                                      .copyWith(fontSize: 12),
                                 ),
                               ),
                             ],
@@ -290,6 +290,8 @@ class ThubnailPlaylistItem extends StatefulWidget {
   final AssetToken token;
   final Function(bool?)? onChanged;
   final int cachedImageSize;
+  final bool showTriggerOrder;
+
   const ThubnailPlaylistItem({
     Key? key,
     required this.token,
@@ -297,6 +299,7 @@ class ThubnailPlaylistItem extends StatefulWidget {
     this.showSelect = true,
     this.isSelected = false,
     this.onChanged,
+    this.showTriggerOrder = false,
   }) : super(key: key);
 
   @override
@@ -344,17 +347,40 @@ class _ThubnailPlaylistItemState extends State<ThubnailPlaylistItem> {
             ),
           ),
           Positioned(
-            top: 0,
-            right: 0,
+            top: 10,
+            right: 10,
             child: Visibility(
               visible: widget.showSelect,
-              child: Checkbox(
-                checkColor: Colors.white,
-                fillColor: MaterialStateProperty.all(theme.primaryColor),
-                side: const BorderSide(color: Colors.white, width: 10),
-                value: isSelected,
-                shape: const CircleBorder(),
-                onChanged: onChanged,
+              child: RoundCheckBox(
+                uncheckedColor: theme.colorScheme.secondary,
+                checkedColor: theme.colorScheme.primary,
+                checkedWidget: Icon(
+                  Icons.check,
+                  color: theme.colorScheme.secondary,
+                  size: 20,
+                ),
+                animationDuration: const Duration(milliseconds: 100),
+                isChecked: isSelected,
+                size: 24,
+                onTap: onChanged,
+              ),
+            ),
+          ),
+          Visibility(
+            visible: widget.showTriggerOrder,
+            child: Positioned(
+              bottom: 10,
+              left: 0,
+              right: 0,
+              child: Align(
+                child: Container(
+                  width: 24,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(60),
+                    color: theme.colorScheme.secondary,
+                  ),
+                ),
               ),
             ),
           ),

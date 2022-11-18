@@ -74,6 +74,7 @@ class _EditPlaylistGridViewState extends State<EditPlaylistGridView> {
                     key: ValueKey(e),
                     token: e,
                     cachedImageSize: cachedImageSize,
+                    showTriggerOrder: true,
                     isSelected: widget.selectedTokens?.contains(e.id) ?? false,
                     onChanged: (value) {
                       widget.onChangedSelect?.call(e.id, value ?? false);
@@ -108,7 +109,7 @@ class AddTokenWidget extends StatelessWidget {
             left: 13,
             child: Text(
               '+ ${'add'.tr().toUpperCase()}',
-              style: theme.textTheme.atlasGreyNormal14,
+              style: theme.textTheme.ibmGreyNormal14,
             ),
           ),
         ],
