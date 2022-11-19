@@ -422,9 +422,11 @@ class _ArtworkView extends StatelessWidget {
               Navigator.of(context).pop();
             }
           },
-          child: ArtworkPreviewWidget(
-            identity: payload.identities[payload.currentIndex],
-            isMute: true,
+          child: Center(
+            child: ArtworkPreviewWidget(
+              identity: payload.identities[payload.currentIndex],
+              isMute: true,
+            ),
           ),
         );
 
