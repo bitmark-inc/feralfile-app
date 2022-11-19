@@ -167,33 +167,9 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                     const SizedBox(height: 16.0),
                     Hero(
                       tag: asset.id,
-                      child: AspectRatio(
-                        aspectRatio: 1,
-                        child: Stack(
-                          children: [
-                            Center(
-                              child: ArtworkPreviewWidget(
-                                identity: widget.payload
-                                    .identities[widget.payload.currentIndex],
-                              ),
-                            ),
-                            GestureDetector(
-                              onTap: () {
-                                if (injector<ConfigurationService>()
-                                    .isImmediateInfoViewEnabled()) {
-                                  Navigator.of(context).pushNamed(
-                                      AppRouter.artworkPreviewPage,
-                                      arguments: widget.payload);
-                                } else {
-                                  Navigator.of(context).pop();
-                                }
-                              },
-                              child: Container(
-                                color: Colors.transparent,
-                              ),
-                            ),
-                          ],
-                        ),
+                      child: _ArtworkView(
+                        payload: widget.payload,
+                        token: asset,
                       ),
                     ),
                     Visibility(
@@ -415,6 +391,73 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
       ),
       isDismissible: true,
     );
+  }
+}
+
+class _ArtworkView extends StatelessWidget {
+  const _ArtworkView({
+    Key? key,
+    required this.payload,
+    required this.token,
+  }) : super(key: key);
+
+  final ArtworkDetailPayload payload;
+  final AssetToken token;
+
+  @override
+  Widget build(BuildContext context) {
+    final mimeType = token.getMimeType;
+    switch (mimeType) {
+      case "image":
+      case "svg":
+      case 'gif':
+      case "audio":
+      case "video":
+        return GestureDetector(
+          onTap: () {
+            if (injector<ConfigurationService>().isImmediateInfoViewEnabled()) {
+              Navigator.of(context)
+                  .pushNamed(AppRouter.artworkPreviewPage, arguments: payload);
+            } else {
+              Navigator.of(context).pop();
+            }
+          },
+          child: ArtworkPreviewWidget(
+            identity: payload.identities[payload.currentIndex],
+            isMute: true,
+          ),
+        );
+
+      default:
+        return AspectRatio(
+          aspectRatio: 1,
+          child: Stack(
+            children: [
+              Center(
+                child: ArtworkPreviewWidget(
+                  identity: payload.identities[payload.currentIndex],
+                  isMute: true,
+                ),
+              ),
+              GestureDetector(
+                onTap: () {
+                  if (injector<ConfigurationService>()
+                      .isImmediateInfoViewEnabled()) {
+                    Navigator.of(context).pushNamed(
+                        AppRouter.artworkPreviewPage,
+                        arguments: payload);
+                  } else {
+                    Navigator.of(context).pop();
+                  }
+                },
+                child: Container(
+                  color: Colors.transparent,
+                ),
+              ),
+            ],
+          ),
+        );
+    }
   }
 }
 

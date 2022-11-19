@@ -1,5 +1,11 @@
 import 'dart:io';
 
+import 'package:libauk_dart/libauk_dart.dart';
+import 'package:nft_collection/models/asset_token.dart';
+// ignore: depend_on_referenced_packages
+import 'package:path/path.dart' as p;
+import 'package:uri/uri.dart';
+
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
@@ -9,9 +15,6 @@ import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
-import 'package:libauk_dart/libauk_dart.dart';
-import 'package:nft_collection/models/asset_token.dart';
-import 'package:uri/uri.dart';
 
 extension AssetTokenExtension on AssetToken {
   static final Map<String, Map<String, String>> _tokenUrlMap = {
@@ -21,7 +24,8 @@ extension AssetTokenExtension on AssetToken {
     },
     "TEST": {
       "ethereum": "https://goerli.etherscan.io/token/{contract}?a={tokenId}",
-      "tezos": "https://kathmandunet.tzkt.io/{contract}/tokens/{tokenId}/transfers"
+      "tezos":
+          "https://kathmandunet.tzkt.io/{contract}/tokens/{tokenId}/transfers"
     }
   };
 
@@ -103,6 +107,32 @@ extension AssetTokenExtension on AssetToken {
       return source?.toLowerCase() == "feralfile" ? _multiUniqueUrl(url) : url;
     }
     return null;
+  }
+
+  String get getMimeType {
+    String mimeType = "";
+    switch (medium) {
+      case "image":
+        final ext = p.extension(getPreviewUrl() ?? "");
+        if (ext == ".svg") {
+          mimeType = "svg";
+        } else if (mimeType == 'image/gif') {
+          mimeType = "gif";
+        } else {
+          mimeType = "image";
+        }
+        break;
+      case "video":
+        mimeType = "video";
+        break;
+      default:
+        if (mimeType.startsWith("audio/") == true) {
+          mimeType = "audio";
+        } else {
+          mimeType = mimeType;
+        }
+    }
+    return mimeType;
   }
 
   String? getThumbnailUrl() {
