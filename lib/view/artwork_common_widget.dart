@@ -39,6 +39,25 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../common/injector.dart';
 
+const moMAContract = [
+  {
+    "address": "KT1CPeE8YGVG16xkpoE9sviUYoEzS7hWfu39",
+    "name": "Memento 1 - Unsupervised Opening Day",
+    "blockchainType": "FeralfileExhibitionV2"
+  },
+  {
+    "address": "0x7E6c132B8cb00899d17750E0fD982EA122C6b0f2",
+    "name": "Opening Celebration — Refik Anadol: Unsupervised",
+    "blockchainType": "FeralfileExhibitionV3"
+  },
+  {
+    "address": "0x7a15b36cB834AeA88553De69077D3777460d73Ac",
+    "name": "Unsupervised",
+    "blockchainType": "FeralfileExhibitionV2"
+  },
+
+];
+
 String getEditionSubTitle(AssetToken token) {
   if (token.editionName != null && token.editionName != "") {
     return token.editionName!;
@@ -772,7 +791,7 @@ Widget artworkDetailsRightSection(BuildContext context, AssetToken token) {
   return token.source == "feralfile"
       ? Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [const SizedBox(height: 40.0), _artworkRightView(context)],
+          children: [const SizedBox(height: 40.0), _artworkRightView(context, contract: FFContract("", "", token.contractAddress ?? ""))],
         )
       : const SizedBox();
 }
@@ -969,9 +988,12 @@ Widget artworkDetailsProvenanceSectionNotEmpty(
   );
 }
 
-Widget _artworkRightView(BuildContext context, {TextStyle? linkStyle}) {
+Widget _artworkRightView(BuildContext context, {TextStyle? linkStyle, required FFContract contract}) {
   final theme = Theme.of(context);
 
+  bool _isMoMAShow(String? address){
+    return moMAContract.any((contract) => contract["address"] == address);
+  }
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
@@ -1019,8 +1041,13 @@ Widget _artworkRightView(BuildContext context, {TextStyle? linkStyle}) {
         height: 32.0,
         color: AppColor.secondarySpanishGrey,
       ),
+
       _artworkRightItem(
-          context, "resell_or_transfer".tr(), "resell_or_transfer_text".tr()),
+        context,
+        "resell_or_transfer".tr(),
+        _isMoMAShow(contract.address)
+          ? "resell_or_transfer_moma_text".tr()
+          : "resell_or_transfer_text".tr()),
       const Divider(
         height: 32.0,
         color: AppColor.secondarySpanishGrey,
@@ -1158,7 +1185,8 @@ Widget previewCloseIcon(BuildContext context) {
 }
 
 class ArtworkRightWidget extends StatelessWidget {
-  const ArtworkRightWidget({Key? key}) : super(key: key);
+  final FFContract? contract;
+  ArtworkRightWidget({Key? key, @required this.contract}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -1166,7 +1194,7 @@ class ArtworkRightWidget extends StatelessWidget {
           color: Colors.white,
           decorationColor: Colors.white,
         );
-    return _artworkRightView(context, linkStyle: linkStyle);
+    return _artworkRightView(context, linkStyle: linkStyle, contract: FFContract("", "", ""));
   }
 }
 

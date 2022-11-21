@@ -32,6 +32,7 @@ class _TokenDetailPageState extends State<TokenDetailPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final artwork = widget.artwork;
+    final contract = artwork.contract;
     final artist = artwork.artist;
     return Scaffold(
         appBar: _appBar(
@@ -90,7 +91,8 @@ class _TokenDetailPageState extends State<TokenDetailPage> {
                     const SizedBox(height: 40.0),
                     Theme(
                       data: theme.copyWith(textTheme: theme.primaryTextTheme),
-                      child: const ArtworkRightWidget(),
+
+                      child: ArtworkRightWidget(contract: contract,),
                     ),
                     const SizedBox(height: 40.0),
                   ],
