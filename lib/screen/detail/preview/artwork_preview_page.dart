@@ -570,9 +570,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                     ),
                     Expanded(
                       child: PageView.builder(
-                        physics: isFullScreen
-                            ? const NeverScrollableScrollPhysics()
-                            : null,
+                        physics: const NeverScrollableScrollPhysics(),
                         onPageChanged: (value) {
                           _timer?.cancel();
                           final currentId = tokens[value];
