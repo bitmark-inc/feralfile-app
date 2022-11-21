@@ -36,7 +36,7 @@ class _PlaylistControlState extends State<PlaylistControl> {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 100, vertical: 15),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 ControlItem(
@@ -79,6 +79,9 @@ class _PlaylistControlState extends State<PlaylistControl> {
                     playControlListen.value = playControl.onChangeTime();
                   },
                 ),
+                const SizedBox(
+                  width: 15,
+                ),
                 ControlItem(
                   icon: SvgPicture.asset(
                     'assets/images/shuffle_icon.svg',
@@ -96,6 +99,9 @@ class _PlaylistControlState extends State<PlaylistControl> {
                     widget.onShuffleTap?.call();
                   },
                 ),
+                const SizedBox(
+                  width: 15,
+                ),
                 ControlItem(
                   icon: SvgPicture.asset(
                     'assets/images/loop_icon.svg',
@@ -112,9 +118,11 @@ class _PlaylistControlState extends State<PlaylistControl> {
                         playControl.copyWith(isLoop: !playControl.isLoop);
                   },
                 ),
-                Visibility(
-                  visible: widget.showPlay,
-                  child: ControlItem(
+                if (widget.showPlay) ...[
+                  const SizedBox(
+                    width: 15,
+                  ),
+                  ControlItem(
                     icon: SvgPicture.asset(
                       'assets/images/play_icon.svg',
                       width: 24,
@@ -129,7 +137,7 @@ class _PlaylistControlState extends State<PlaylistControl> {
                       widget.onPlayTap?.call();
                     },
                   ),
-                ),
+                ]
               ],
             ),
           ),
