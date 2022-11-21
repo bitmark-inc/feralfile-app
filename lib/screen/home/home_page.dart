@@ -693,18 +693,20 @@ class _ListPlaylistWidgetState extends State<ListPlaylistWidget> {
           });
         },
         scrollDirection: Axis.horizontal,
-        footer: AddPlayListItem(
-          onTap: () {
-            Navigator.of(context)
-                .pushNamed(AppRouter.createPlayListPage)
-                .then((value) {
-              if (value != null && value is PlayListModel) {
-                Navigator.pushNamed(context, AppRouter.viewPlayListPage,
-                    arguments: value);
-              }
-            });
-          },
-        ),
+        footer: injector.get<ConfigurationService>().isDemoArtworksMode()
+            ? null
+            : AddPlayListItem(
+                onTap: () {
+                  Navigator.of(context)
+                      .pushNamed(AppRouter.createPlayListPage)
+                      .then((value) {
+                    if (value != null && value is PlayListModel) {
+                      Navigator.pushNamed(context, AppRouter.viewPlayListPage,
+                          arguments: value);
+                    }
+                  });
+                },
+              ),
         itemBuilder: (context, index) => PlaylistItem(
           key: ValueKey(widget.playlists?[index]?.id ?? index),
           name: widget.playlists?[index]?.name,
