@@ -560,6 +560,7 @@ INFTRenderingWidget buildRenderingWidget(
   BuildContext context,
   AssetToken token, {
   int? attempt,
+  bool isMute = false,
   Function({int? time})? onLoaded,
   Function({int? time})? onDispose,
 }) {
@@ -597,6 +598,7 @@ INFTRenderingWidget buildRenderingWidget(
     cacheManager: injector<CacheManager>(),
     onLoaded: onLoaded,
     onDispose: onDispose,
+    isMute: isMute,
   ));
 
   return renderingWidget;
@@ -632,27 +634,30 @@ class _BrokenTokenWidgetState extends State<BrokenTokenWidget> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Center(
-      child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-        Text(
-          "unable_to_load_artwork_preview_from_ipfs".tr(),
-          style: ResponsiveLayout.isMobile
-              ? theme.textTheme.atlasGreyNormal12
-              : theme.textTheme.atlasGreyNormal14,
-        ),
-        TextButton(
-          onPressed: () => context.read<RetryCubit>().refresh(),
-          style: TextButton.styleFrom(
-              minimumSize: Size.zero,
-              padding: const EdgeInsets.all(8),
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap),
-          child: Text("please_try_again".tr(),
-              style: makeLinkStyle(
-                ResponsiveLayout.isMobile
-                    ? theme.textTheme.atlasGreyNormal12
-                    : theme.textTheme.atlasGreyNormal14,
-              )),
-        ),
-      ]),
+      child: AspectRatio(
+        aspectRatio: 1,
+        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+          Text(
+            "unable_to_load_artwork_preview_from_ipfs".tr(),
+            style: ResponsiveLayout.isMobile
+                ? theme.textTheme.atlasGreyNormal12
+                : theme.textTheme.atlasGreyNormal14,
+          ),
+          TextButton(
+            onPressed: () => context.read<RetryCubit>().refresh(),
+            style: TextButton.styleFrom(
+                minimumSize: Size.zero,
+                padding: const EdgeInsets.all(8),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+            child: Text("please_try_again".tr(),
+                style: makeLinkStyle(
+                  ResponsiveLayout.isMobile
+                      ? theme.textTheme.atlasGreyNormal12
+                      : theme.textTheme.atlasGreyNormal14,
+                )),
+          ),
+        ]),
+      ),
     );
   }
 }
@@ -720,22 +725,25 @@ void _showReportRenderingDialogSuccess(BuildContext context, String githubURL) {
 Widget previewPlaceholder(BuildContext context) {
   final theme = Theme.of(context);
   return Center(
-    child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        loadingIndicator(
-            valueColor: theme.colorScheme.secondary,
-            backgroundColor: theme.colorScheme.secondary.withOpacity(0.5)),
-        const SizedBox(
-          height: 13,
-        ),
-        Text(
-          "loading...".tr(),
-          style: ResponsiveLayout.isMobile
-              ? theme.textTheme.atlasGreyNormal12
-              : theme.textTheme.atlasGreyNormal14,
-        ),
-      ],
+    child: AspectRatio(
+      aspectRatio: 1,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          loadingIndicator(
+              valueColor: theme.colorScheme.surface,
+              backgroundColor: theme.colorScheme.surface.withOpacity(0.5)),
+          const SizedBox(
+            height: 13,
+          ),
+          Text(
+            "loading...".tr(),
+            style: ResponsiveLayout.isMobile
+                ? theme.textTheme.atlasGreyNormal12
+                : theme.textTheme.atlasGreyNormal14,
+          ),
+        ],
+      ),
     ),
   );
 }

@@ -22,11 +22,14 @@ class ArtworkPreviewWidget extends StatefulWidget {
   final ArtworkIdentity identity;
   final Function({int? time})? onLoaded;
   final Function({int? time})? onDispose;
+  final bool isMute;
+
   const ArtworkPreviewWidget({
     Key? key,
     required this.identity,
     this.onLoaded,
     this.onDispose,
+    this.isMute = false,
   }) : super(key: key);
 
   @override
@@ -112,6 +115,7 @@ class _ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
                         attempt: attempt > 0 ? attempt : null,
                         onLoaded: widget.onLoaded,
                         onDispose: widget.onLoaded,
+                        isMute: widget.isMute,
                       );
                     }
 
