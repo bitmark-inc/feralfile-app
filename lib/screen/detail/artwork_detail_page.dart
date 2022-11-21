@@ -41,6 +41,8 @@ import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/provenance.dart';
 import 'package:nft_collection/nft_collection.dart';
 
+import '../../service/mixPanel_client_service.dart';
+
 part 'artwork_detail_page.g.dart';
 
 class ArtworkDetailPage extends StatefulWidget {
@@ -71,12 +73,20 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
 
   @override
   void afterFirstLayout(BuildContext context) {
+    final artworkId = jsonEncode(widget.payload.identities[widget.payload.currentIndex]);
     final metricClient = injector.get<MetricClientService>();
     metricClient.addEvent(
       "view_artwork_detail",
       data: {
-        "id":
-            jsonEncode(widget.payload.identities[widget.payload.currentIndex]),
+        "id": artworkId,
+      },
+    );
+
+    final mixPanelClient = injector.get<MixPanelClientService>();
+    mixPanelClient.trackEvent(
+      "view_artwork_detail",
+      data: {
+        "id": artworkId,
       },
     );
   }
