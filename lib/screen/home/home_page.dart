@@ -439,8 +439,8 @@ class _HomePageState extends State<HomePage>
                       arguments: payload);
                 }
 
-                mixPanelClient.trackEvent("view_artwork",
-                    data: {"tokenId": asset.tokenId, "identity": asset.id});
+                mixPanelClient.trackEvent("view_artwork_detail",
+                    data: {"id": asset.tokenId});
               },
             );
           },
@@ -645,6 +645,7 @@ class _HomePageState extends State<HomePage>
   void _handleBackground() {
     metricClient.addEvent("device_background");
     metricClient.sendAndClearMetrics();
+    mixPanelClient.trackEvent("device_background");
     mixPanelClient.sendData();
     _cloudBackup();
     FileLogger.shrinkLogFileIfNeeded();

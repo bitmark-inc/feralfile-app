@@ -170,8 +170,7 @@ class TezosBeaconService implements BeaconHandler {
 
     final mixPanelClient = injector.get<MixPanelClientService>();
     mixPanelClient.trackEvent(
-      "connect_external",
-      data: {"type": "Tezos Beacon"},
+      "link_tezos_beacon",
       hashedData: {"address": tezosConnection.address},
     );
 
