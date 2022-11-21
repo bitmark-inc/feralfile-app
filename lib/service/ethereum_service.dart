@@ -72,7 +72,11 @@ class EthereumServiceImpl extends EthereumService {
       return gas * gasPrice.getInWei;
     } catch (err) {
       //Cannot estimate return default value
-      return BigInt.from(21000) * gasPrice.getInWei;
+      if (data != null && data.isNotEmpty) {
+        return BigInt.from(100000) * gasPrice.getInWei;
+      } else {
+        return BigInt.from(21000) * gasPrice.getInWei;
+      }
     }
   }
 
