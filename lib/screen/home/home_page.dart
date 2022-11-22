@@ -439,8 +439,8 @@ class _HomePageState extends State<HomePage>
                       arguments: payload);
                 }
 
-                mixPanelClient.trackEvent("view_artwork_detail",
-                    data: {"id": asset.tokenId});
+                mixPanelClient.trackEvent("view_artwork",
+                    data: {"id": asset.id});
               },
             );
           },

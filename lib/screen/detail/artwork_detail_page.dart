@@ -84,7 +84,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
 
     final mixPanelClient = injector.get<MixPanelClientService>();
     mixPanelClient.trackEvent(
-      "view_artwork_detail",
+      "view_artwork",
       data: {
         "id": artworkId,
       },
