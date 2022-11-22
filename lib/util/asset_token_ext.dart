@@ -169,10 +169,10 @@ extension AssetTokenExtension on AssetToken {
           break;
 
         case "MAINNET_bitmark":
-          url = "https://registry.bitmark.com/bitmark/$id";
+          url = "https://registry.bitmark.com/bitmark/$tokenId";
           break;
         case "TESTNET_bitmark":
-          url = "https://registry.test.bitmark.com/bitmark/$id";
+          url = "https://registry.test.bitmark.com/bitmark/$tokenId";
           break;
       }
     }

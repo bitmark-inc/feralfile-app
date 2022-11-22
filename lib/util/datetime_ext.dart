@@ -8,9 +8,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-final DateFormat dateFormatterYMDHM = DateFormat('yyyy-MMM-dd hh:mm', "en_US");
-final DateFormat dateFormatterMDHM = DateFormat('MMM-dd hh:mm', "en_US");
-final DateFormat timeFormatterHM = DateFormat('hh:mm', "en_US");
+final DateFormat dateFormatterYMDHM = DateFormat('yyyy-MMM-HH:mm', "en_US");
+final DateFormat dateFormatterMDHM = DateFormat('MMM-dd HH:mm', "en_US");
+final DateFormat timeFormatterHM = DateFormat('HH:mm', "en_US");
 final DateFormat dateFormatterMD = DateFormat('MMM-dd', "en_US");
 final DateFormat dateFormatterYMD = DateFormat('yyyy-MMM-dd', "en_US");
 
