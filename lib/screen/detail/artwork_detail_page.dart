@@ -73,7 +73,8 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
 
   @override
   void afterFirstLayout(BuildContext context) {
-    final artworkId = jsonEncode(widget.payload.identities[widget.payload.currentIndex]);
+    final artworkId =
+        jsonEncode(widget.payload.identities[widget.payload.currentIndex]);
     final metricClient = injector.get<MetricClientService>();
     metricClient.addEvent(
       "view_artwork_detail",
@@ -433,9 +434,11 @@ class _ArtworkView extends StatelessWidget {
             }
           },
           child: Center(
-            child: ArtworkPreviewWidget(
-              identity: payload.identities[payload.currentIndex],
-              isMute: true,
+            child: IntrinsicHeight(
+              child: ArtworkPreviewWidget(
+                identity: payload.identities[payload.currentIndex],
+                isMute: true,
+              ),
             ),
           ),
         );

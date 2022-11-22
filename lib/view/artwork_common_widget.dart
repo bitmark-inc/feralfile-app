@@ -55,7 +55,6 @@ const moMAContract = [
     "name": "Unsupervised",
     "blockchainType": "FeralfileExhibitionV2"
   },
-
 ];
 
 String getEditionSubTitle(AssetToken token) {
@@ -564,28 +563,8 @@ INFTRenderingWidget buildRenderingWidget(
   Function({int? time})? onLoaded,
   Function({int? time})? onDispose,
 }) {
-  String mimeType = "";
-  switch (token.medium) {
-    case "image":
-      final ext = p.extension(token.getPreviewUrl() ?? "");
-      if (ext == ".svg") {
-        mimeType = "svg";
-      } else if (token.mimeType == 'image/gif') {
-        mimeType = "gif";
-      } else {
-        mimeType = "image";
-      }
-      break;
-    case "video":
-      mimeType = "video";
-      break;
-    default:
-      if (token.mimeType?.startsWith("audio/") == true) {
-        mimeType = "audio";
-      } else {
-        mimeType = token.mimeType ?? "";
-      }
-  }
+  String mimeType = token.getMimeType;
+
   final renderingWidget = typesOfNFTRenderingWidget(mimeType);
 
   renderingWidget.setRenderWidgetBuilder(RenderingWidgetBuilder(
@@ -799,7 +778,11 @@ Widget artworkDetailsRightSection(BuildContext context, AssetToken token) {
   return token.source == "feralfile"
       ? Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [const SizedBox(height: 40.0), _artworkRightView(context, contract: FFContract("", "", token.contractAddress ?? ""))],
+          children: [
+            const SizedBox(height: 40.0),
+            _artworkRightView(context,
+                contract: FFContract("", "", token.contractAddress ?? ""))
+          ],
         )
       : const SizedBox();
 }
@@ -996,12 +979,14 @@ Widget artworkDetailsProvenanceSectionNotEmpty(
   );
 }
 
-Widget _artworkRightView(BuildContext context, {TextStyle? linkStyle, required FFContract contract}) {
+Widget _artworkRightView(BuildContext context,
+    {TextStyle? linkStyle, required FFContract contract}) {
   final theme = Theme.of(context);
 
-  bool _isMoMAShow(String? address){
+  bool _isMoMAShow(String? address) {
     return moMAContract.any((contract) => contract["address"] == address);
   }
+
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
@@ -1049,13 +1034,12 @@ Widget _artworkRightView(BuildContext context, {TextStyle? linkStyle, required F
         height: 32.0,
         color: AppColor.secondarySpanishGrey,
       ),
-
       _artworkRightItem(
-        context,
-        "resell_or_transfer".tr(),
-        _isMoMAShow(contract.address)
-          ? "resell_or_transfer_moma_text".tr()
-          : "resell_or_transfer_text".tr()),
+          context,
+          "resell_or_transfer".tr(),
+          _isMoMAShow(contract.address)
+              ? "resell_or_transfer_moma_text".tr()
+              : "resell_or_transfer_text".tr()),
       const Divider(
         height: 32.0,
         color: AppColor.secondarySpanishGrey,
@@ -1202,7 +1186,8 @@ class ArtworkRightWidget extends StatelessWidget {
           color: Colors.white,
           decorationColor: Colors.white,
         );
-    return _artworkRightView(context, linkStyle: linkStyle, contract: FFContract("", "", ""));
+    return _artworkRightView(context,
+        linkStyle: linkStyle, contract: FFContract("", "", ""));
   }
 }
 
