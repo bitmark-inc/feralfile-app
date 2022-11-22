@@ -50,6 +50,7 @@ class _OnboardingPageState extends State<OnboardingPage>
   Tween<double> _maxWidthTween = Tween<double>(begin: 0, end: 1.0);
 
   static const _durationAnimation = Duration(milliseconds: 300);
+
   @override
   void initState() {
     super.initState();
@@ -61,13 +62,19 @@ class _OnboardingPageState extends State<OnboardingPage>
   }
 
   @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     log("DefineViewRoutingEvent");
     context.read<RouterBloc>().add(DefineViewRoutingEvent());
   }
 
-  void handleDeepLink(){
+  void handleDeepLink() {
     setState(() {
       fromDeeplink = true;
     });
@@ -82,7 +89,7 @@ class _OnboardingPageState extends State<OnboardingPage>
       }
     });
     memoryValues.deepLink.addListener(() async {
-      if (memoryValues.deepLink.value != null){
+      if (memoryValues.deepLink.value != null) {
         setState(() {
           fromDeeplink = true;
         });
@@ -274,7 +281,9 @@ class _OnboardingPageState extends State<OnboardingPage>
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: fromBranchLink ||
-                            (state.onboardingStep == OnboardingStep.undefined) || fromDeeplink
+                            (state.onboardingStep ==
+                                OnboardingStep.undefined) ||
+                            fromDeeplink
                         ? [
                             Center(
                                 child: Text(
