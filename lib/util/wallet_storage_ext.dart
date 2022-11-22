@@ -34,7 +34,8 @@ extension StringHelper on String {
 
   String publicKeyToTezosAddress() {
     return crypto.addressFromPublicKey(this);
-  }}
+  }
+}
 
 extension WalletStorageExtension on WalletStorage {
   Future getOwnedQuantity(AssetToken token) async {
@@ -75,20 +76,24 @@ extension WalletStorageExtension on WalletStorage {
     required String chain,
     required String message,
   }) async {
-    final signature = await signMessage(chain: chain, message: message);
     switch (chain.caip2Namespace) {
       case "eip155":
+        final ethAddress = await getETHEip55Address();
+        final ethMessage = message.replaceAll("\$OWN_ADDRESS\$", ethAddress);
         return Wc2Chain(
           chain: chain,
-          address: await getETHEip55Address(),
-          signature: signature,
+          address: ethAddress,
+          signature: await signMessage(chain: chain, message: ethMessage),
         );
       case "tezos":
+        final tezosAddress = await getTezosAddress();
+        final tezosMessage =
+            message.replaceAll("\$OWN_ADDRESS\$", tezosAddress);
         return Wc2Chain(
           chain: chain,
-          address: await getTezosAddress(),
+          address: tezosAddress,
           publicKey: await getTezosPublicKey(),
-          signature: signature,
+          signature: await signMessage(chain: chain, message: tezosMessage),
         );
     }
     return null;

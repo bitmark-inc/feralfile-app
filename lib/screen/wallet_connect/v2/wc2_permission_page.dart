@@ -80,7 +80,11 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
     required Wc2PermissionsRequestParams params,
     required WalletStorage account,
   }) async {
-    final signature = await account.getAccountDIDSignature(params.message);
+    final did = "did:key:${params.account.split(":")[2]}";
+    final didMessage = params.message.replaceAll("\$OWN_ADDRESS\$", did);
+    print("--------did");
+    print(didMessage);
+    final signature = await account.getAccountDIDSignature(didMessage);
     final permissionResults = params.permissions.map((permission) async {
       final chainFutures = permission.request.chains.map((chain) async {
         final chainResp = await account.signPermissionRequest(
@@ -170,6 +174,9 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
     if (widget.request.method == "au_sign") {
       signParams = Wc2SignRequestParams.fromJson(widget.request.params);
     }
+    final params = Wc2PermissionsRequestParams.fromJson(widget.request.params);
+    final did = "did:key:${params.account.split(":")[2]}";
+    final message = params.message.replaceAll("\$OWN_ADDRESS\$", did);
 
     return WillPopScope(
       onWillPop: () async {
@@ -210,7 +217,7 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
               ),
               const SizedBox(height: 16.0),
               Text(
-                widget.request.params["message"],
+                message,
                 style: theme.textTheme.bodyText2,
               ),
               Divider(
