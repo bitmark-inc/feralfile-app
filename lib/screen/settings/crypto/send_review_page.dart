@@ -166,7 +166,6 @@ class _SendReviewPageState extends State<SendReviewPage> {
                                                 widget.payload.wallet,
                                                 address,
                                                 widget.payload.amount,
-                                                null,
                                                 null);
 
                                     if (!mounted) return;
@@ -239,7 +238,6 @@ class _SendReviewPageState extends State<SendReviewPage> {
                                                 widget.payload.wallet,
                                                 contractAddress,
                                                 BigInt.zero,
-                                                null,
                                                 data);
 
                                     if (!mounted) return;

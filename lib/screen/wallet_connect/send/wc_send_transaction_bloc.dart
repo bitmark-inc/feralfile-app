@@ -63,7 +63,7 @@ class WCSendTransactionBloc
       final WalletStorage persona = LibAukDart.getWallet(event.uuid);
 
       final txHash = await _ethereumService.sendTransaction(
-          persona, event.to, event.value, event.gas, event.data);
+          persona, event.to, event.value, event.data);
       _walletConnectService.approveRequest(
           event.peerMeta, event.requestId, txHash);
       injector<PendingTokenService>()
