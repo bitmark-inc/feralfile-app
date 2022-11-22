@@ -5,9 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'dart:typed_data';
-
 import 'package:autonomy_flutter/common/environment.dart';
+import 'package:autonomy_flutter/gateway/etherchain_api.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter/services.dart';
 import 'package:libauk_dart/libauk_dart.dart';
@@ -54,13 +53,16 @@ abstract class EthereumService {
 
 class EthereumServiceImpl extends EthereumService {
   final Web3Client _web3Client;
+  final EtherchainApi _etherchainApi;
 
-  EthereumServiceImpl(this._web3Client);
+  EthereumServiceImpl(this._web3Client, this._etherchainApi);
 
   @override
   Future<BigInt> estimateFee(WalletStorage wallet, EthereumAddress to,
       EtherAmount amount, String? data) async {
-    final gasPrice = await _web3Client.getGasPrice();
+    log.info("[EthereumService] estimateFee - to: $to - amount $amount");
+
+    final gasPrice = await _getGasPrice();
     final sender = EthereumAddress.fromHex(await wallet.getETHAddress());
 
     try {
@@ -115,9 +117,11 @@ class EthereumServiceImpl extends EthereumService {
   @override
   Future<String> sendTransaction(WalletStorage wallet, EthereumAddress to,
       BigInt value, String? data) async {
+    log.info("[EthereumService] sendTransaction - to: $to - amount $value");
+
     final sender = EthereumAddress.fromHex(await wallet.getETHAddress());
     final nonce = await _web3Client.getTransactionCount(sender);
-    final gasPrice = await _web3Client.getGasPrice();
+    final gasPrice = await _getGasPrice();
     var gasLimit =
         (await _estimateGasLimit(sender, to, EtherAmount.inWei(value), data));
     final chainId = Environment.web3ChainId;
@@ -146,7 +150,7 @@ class EthereumServiceImpl extends EthereumService {
     ContractFunction transferFrom() => contract.function("safeTransferFrom");
 
     final nonce = await _web3Client.getTransactionCount(from);
-    final gasPrice = await _web3Client.getGasPrice();
+    final gasPrice = await _getGasPrice();
 
     final transaction = Transaction.callContract(
       contract: contract,
@@ -174,7 +178,7 @@ class EthereumServiceImpl extends EthereumService {
         contract.function("safeBatchTransferFrom");
 
     final nonce = await _web3Client.getTransactionCount(from);
-    final gasPrice = await _web3Client.getGasPrice();
+    final gasPrice = await _getGasPrice();
 
     final transaction = Transaction.callContract(
       contract: contract,
@@ -223,7 +227,7 @@ class EthereumServiceImpl extends EthereumService {
     ContractFunction transferFrom() => contract.function("transfer");
 
     final nonce = await _web3Client.getTransactionCount(from);
-    final gasPrice = await _web3Client.getGasPrice();
+    final gasPrice = await _getGasPrice();
 
     final transaction = Transaction.callContract(
       contract: contract,
@@ -254,6 +258,26 @@ class EthereumServiceImpl extends EthereumService {
       } else {
         return BigInt.from(21000);
       }
+    }
+  }
+
+  Future<EtherAmount> _getGasPrice() async {
+    if (Environment.appTestnetConfig) {
+      return await _web3Client.getGasPrice();
+    }
+
+    int? gasPrice;
+    try {
+      gasPrice = (await _etherchainApi.getGasPrice()).data.fast;
+    } catch (e) {
+      log.info("[EthereumService] getGasPrice failed - fallback RPC $e");
+      gasPrice = null;
+    }
+
+    if (gasPrice != null) {
+      return EtherAmount.inWei(BigInt.from(gasPrice));
+    } else {
+      return await _web3Client.getGasPrice();
     }
   }
 }

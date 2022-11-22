@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/gateway/bitmark_api.dart';
 import 'package:autonomy_flutter/gateway/branch_api.dart';
 import 'package:autonomy_flutter/gateway/currency_exchange_api.dart';
 import 'package:autonomy_flutter/gateway/customer_support_api.dart';
+import 'package:autonomy_flutter/gateway/etherchain_api.dart';
 import 'package:autonomy_flutter/gateway/feed_api.dart';
 import 'package:autonomy_flutter/gateway/feralfile_api.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
@@ -166,6 +167,7 @@ Future<void> setup() async {
   injector.registerLazySingleton(() =>
       AutonomyApi(authenticatedDio, baseUrl: Environment.autonomyAuthURL));
   injector.registerLazySingleton(() => TZKTApi(dio));
+  injector.registerLazySingleton(() => EtherchainApi(dio));
   injector.registerLazySingleton(() => BranchApi(dio));
   injector.registerLazySingleton(
       () => FeedApi(authenticatedDio, baseUrl: Environment.feedURL));
@@ -231,7 +233,7 @@ Future<void> setup() async {
       () => IndexerApi(dio, baseUrl: Environment.indexerURL));
 
   injector.registerLazySingleton<EthereumService>(
-      () => EthereumServiceImpl(injector()));
+      () => EthereumServiceImpl(injector(), injector()));
   injector
       .registerLazySingleton<TezosService>(() => TezosServiceImpl(injector()));
   injector.registerLazySingleton<AppDatabase>(() => mainnetDB);
