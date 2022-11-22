@@ -1,11 +1,17 @@
+import 'dart:convert';
+import 'dart:ffi';
 import 'dart:io';
 
+import 'package:autonomy_flutter/util/log.dart';
+import 'package:crypto/crypto.dart';
+import 'package:flutter/foundation.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/models/asset_token.dart';
+import 'package:nft_rendering/nft_rendering.dart';
 // ignore: depend_on_referenced_packages
 import 'package:path/path.dart' as p;
 import 'package:uri/uri.dart';
-
+import 'iterable_ext.dart';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
@@ -15,6 +21,7 @@ import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
+import 'package:web3dart/crypto.dart';
 
 extension AssetTokenExtension on AssetToken {
   static final Map<String, Map<String, String>> _tokenUrlMap = {
@@ -49,7 +56,8 @@ extension AssetTokenExtension on AssetToken {
 
   Future<WalletStorage?> getOwnerWallet() async {
     if (contractAddress == null || tokenId == null) return null;
-    if (!(blockchain == "ethereum" && (contractType == "erc721" || contractType == "erc1155")) &&
+    if (!(blockchain == "ethereum" &&
+            (contractType == "erc721" || contractType == "erc1155")) &&
         !(blockchain == "tezos" && contractType == "fa2")) return null;
 
     //check asset is able to send
@@ -87,16 +95,38 @@ extension AssetTokenExtension on AssetToken {
       final id = (contractAddress == "KT1F6EKvGq8CKJhgsBy3GUJMSS9KPKn1UD5D")
           ? _intToHex(tokenId!)
           : tokenId;
+
       builder.queryParameters
         ..putIfAbsent("edition_index", () => "$edition")
         ..putIfAbsent("edition_number", () => "$edition")
         ..putIfAbsent("blockchain", () => blockchain)
         ..putIfAbsent("token_id", () => "$id")
         ..putIfAbsent("contract", () => "$contractAddress");
+      if (contractAddress == "KT1F6EKvGq8CKJhgsBy3GUJMSS9KPKn1UD5D" ||
+          (builder.queryParameters['token_id_hex']?.isNotEmpty ?? false)) {
+        return builder.build().toString();
+      }
+
+      final tokenHex = digestHex2Hash(id ?? '');
+      builder.queryParameters.putIfAbsent("token_id_hex", () => tokenHex);
+
       return builder.build().toString();
     } catch (e) {
       return originUrl;
     }
+  }
+
+  String digestHex2Hash(String tokenId) {
+    final bigint = BigInt.tryParse(tokenId, radix: 10);
+    if (bigint == null) {
+      log.info('digestHex2Hash convert BigInt null');
+      return '';
+    }
+
+    final hex = bigint.toRadixString(16);
+    final bytes = hexToBytes(hex);
+    final hashHex = '0x${sha256.convert(bytes).toString()}';
+    return hashHex;
   }
 
   String? getPreviewUrl() {
@@ -110,29 +140,42 @@ extension AssetTokenExtension on AssetToken {
   }
 
   String get getMimeType {
-    String mimeType = "";
-    switch (medium) {
-      case "image":
-        final ext = p.extension(getPreviewUrl() ?? "");
-        if (ext == ".svg") {
-          mimeType = "svg";
-        } else if (mimeType == 'image/gif') {
-          mimeType = "gif";
-        } else {
-          mimeType = "image";
-        }
-        break;
-      case "video":
-        mimeType = "video";
-        break;
+    switch (mimeType) {
+      case "image/avif":
+      case "image/bmp":
+      case "image/jpeg":
+      case "image/png":
+      case "image/tiff":
+        return RenderingType.image;
+
+      case "image/svg+xml":
+        return RenderingType.svg;
+
+      case "image/gif":
+        return RenderingType.gif;
+
+      case "audio/aac":
+      case "audio/midi":
+      case "audio/x-midi":
+      case "audio/mpeg":
+      case "audio/ogg":
+      case "audio/opus":
+      case "audio/wav":
+      case "audio/webm":
+      case "audio/3gpp":
+        return RenderingType.audio;
+
+      case "video/x-msvideo":
+      case "video/3gpp":
+      case "video/mp4":
+      case "video/mpeg":
+      case "video/ogg":
+      case "video/3gpp2":
+        return RenderingType.video;
+
       default:
-        if (mimeType.startsWith("audio/") == true) {
-          mimeType = "audio";
-        } else {
-          mimeType = mimeType;
-        }
+        return mimeType ?? RenderingType.webview;
     }
-    return mimeType;
   }
 
   String? getThumbnailUrl() {
