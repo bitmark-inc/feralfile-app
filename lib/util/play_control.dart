@@ -34,7 +34,7 @@ class _PlaylistControlState extends State<PlaylistControl> {
         return Container(
           color: theme.colorScheme.primary,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 100, vertical: 15),
+            padding: const EdgeInsets.symmetric(vertical: 15),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
