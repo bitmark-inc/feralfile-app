@@ -388,7 +388,12 @@ class AccountServiceImpl extends AccountService {
         hashedData: {"address": connection.accountNumber});
 
     final mixPanelClient = injector.get<MixPanelClientService>();
-    mixPanelClient.trackEvent("link_eth_wallet_browser",
+    mixPanelClient.trackEvent("link_wallet",
+        data: {
+          "wallet": walletApp.name,
+          "type": "browser",
+          "connectionType": connection.connectionType
+        },
         hashedData: {"address": address});
     _autonomyService.postLinkedAddresses();
     return connection;
