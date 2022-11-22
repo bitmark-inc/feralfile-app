@@ -220,7 +220,7 @@ class WalletConnectService {
 
         _navigationService.navigateTo(WCSignMessagePage.tag,
             arguments: WCSignMessagePageArgs(
-                id, topic, currentPeerMeta!, message.data!, uuid));
+                id, topic, currentPeerMeta!, message.data!, message.type, uuid));
 
         final mixPanelClient = injector.get<MixPanelClientService>();
         mixPanelClient.trackEvent(

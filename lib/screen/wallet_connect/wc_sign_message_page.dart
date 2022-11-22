@@ -17,14 +17,15 @@ import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:eth_sig_util/eth_sig_util.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:libauk_dart/libauk_dart.dart';
-import 'package:wallet_connect/models/wc_peer_meta.dart';
+import 'package:wallet_connect/wallet_connect.dart';
 import 'package:web3dart/crypto.dart';
-import 'package:autonomy_flutter/view/responsive.dart';
 
 class WCSignMessagePage extends StatefulWidget {
   static const String tag = 'wc_sign_message';
@@ -40,8 +41,20 @@ class WCSignMessagePage extends StatefulWidget {
 class _WCSignMessagePageState extends State<WCSignMessagePage> {
   @override
   Widget build(BuildContext context) {
-    final message = hexToBytes(widget.args.message);
-    final messageInUtf8 = utf8.decode(message, allowMalformed: true);
+    String messageInUtf8;
+    Uint8List message;
+    switch (widget.args.type) {
+      case WCSignType.MESSAGE:
+      case WCSignType.PERSONAL_MESSAGE:
+        message = hexToBytes(widget.args.message);
+        messageInUtf8 = utf8.decode(message, allowMalformed: true);
+        break;
+      case WCSignType.TYPED_MESSAGE:
+        message = TypedDataUtil.typedDataV4(jsonData: widget.args.message);
+        messageInUtf8 = widget.args.message;
+        break;
+    }
+
     final theme = Theme.of(context);
 
     return WillPopScope(
@@ -152,8 +165,19 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
               onPress: () => withDebounce(() async {
                 final WalletStorage wallet =
                     LibAukDart.getWallet(widget.args.uuid);
-                final signature = await injector<EthereumService>()
-                    .signPersonalMessage(wallet, message);
+                final String signature;
+
+                switch (widget.args.type) {
+                  case WCSignType.PERSONAL_MESSAGE:
+                    signature = await injector<EthereumService>()
+                        .signPersonalMessage(wallet, message);
+                    break;
+                  case WCSignType.MESSAGE:
+                  case WCSignType.TYPED_MESSAGE:
+                    signature = await injector<EthereumService>()
+                        .signMessage(wallet, message);
+                    break;
+                }
 
                 injector<WalletConnectService>().approveRequest(
                     widget.args.peerMeta, widget.args.id, signature);
@@ -193,12 +217,14 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
                   Navigator.of(context).pop();
                 }
                 final notificationEnable =
-                    injector<ConfigurationService>().isNotificationEnabled() ?? false;
+                    injector<ConfigurationService>().isNotificationEnabled() ??
+                        false;
                 if (notificationEnable) {
                   showInfoNotification(
                     const Key("signed"),
                     "signed".tr().toUpperCase(),
-                    frontWidget: SvgPicture.asset("assets/images/checkbox_icon.svg"),
+                    frontWidget:
+                        SvgPicture.asset("assets/images/checkbox_icon.svg"),
                   );
                 }
               }),
@@ -215,8 +241,9 @@ class WCSignMessagePageArgs {
   final String topic;
   final WCPeerMeta peerMeta;
   final String message;
+  final WCSignType type;
   final String uuid;
 
   WCSignMessagePageArgs(
-      this.id, this.topic, this.peerMeta, this.message, this.uuid);
+      this.id, this.topic, this.peerMeta, this.message, this.type, this.uuid);
 }

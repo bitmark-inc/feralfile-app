@@ -184,6 +184,27 @@ class LibAukChannelHandler {
             .store(in: &cancelBag)
     }
     
+    func signMessage(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args: NSDictionary = call.arguments as! NSDictionary
+        let uuid: String = args["uuid"] as! String
+        let message = args["message"] as! FlutterStandardTypedData
+
+        LibAuk.shared.storage(for: UUID(uuidString: uuid)!)
+            .ethSign(message: [UInt8](message.data))
+            .sink(receiveCompletion: { (completion) in
+                if let error = completion.error {
+                    result(ErrorHandler.handle(error: error))
+                }
+
+            }, receiveValue: { (v, r, s) in
+                result([
+                    "error": 0,
+                    "data": "0x" + r.toHexString() + s.toHexString() + String(v + 27, radix: 16),
+                ])
+            })
+            .store(in: &cancelBag)
+    }
+    
     func signTransaction(call: FlutterMethodCall, result: @escaping FlutterResult) {
         let args: NSDictionary = call.arguments as! NSDictionary
         let uuid: String = args["uuid"] as! String

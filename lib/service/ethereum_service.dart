@@ -21,11 +21,13 @@ abstract class EthereumService {
 
   Future<String> signPersonalMessage(WalletStorage wallet, Uint8List message);
 
+  Future<String> signMessage(WalletStorage wallet, Uint8List message);
+
   Future<BigInt> estimateFee(WalletStorage wallet, EthereumAddress to,
       EtherAmount amount, String? data);
 
-  Future<String> sendTransaction(WalletStorage wallet, EthereumAddress to,
-      BigInt value, BigInt? gas, String? data);
+  Future<String> sendTransaction(
+      WalletStorage wallet, EthereumAddress to, BigInt value, String? data);
 
   Future<String?> getERC721TransferTransactionData(
       EthereumAddress contractAddress,
@@ -106,15 +108,18 @@ class EthereumServiceImpl extends EthereumService {
   }
 
   @override
+  Future<String> signMessage(WalletStorage wallet, Uint8List message) async {
+    return await wallet.ethSignMessage(message);
+  }
+
+  @override
   Future<String> sendTransaction(WalletStorage wallet, EthereumAddress to,
-      BigInt value, BigInt? gas, String? data) async {
+      BigInt value, String? data) async {
     final sender = EthereumAddress.fromHex(await wallet.getETHAddress());
     final nonce = await _web3Client.getTransactionCount(sender);
     final gasPrice = await _web3Client.getGasPrice();
-    var gasLimit = gas != null ? gas ~/ gasPrice.getInWei : null;
-    gasLimit ??=
-        (await estimateFee(wallet, to, EtherAmount.inWei(value), data)) ~/
-            gasPrice.getInWei;
+    var gasLimit =
+        (await _estimateGasLimit(sender, to, EtherAmount.inWei(value), data));
     final chainId = Environment.web3ChainId;
 
     final signedTransaction = await wallet.ethSignTransaction(
@@ -192,7 +197,6 @@ class EthereumServiceImpl extends EthereumService {
   @override
   Future<BigInt> getERC20TokenBalance(
       EthereumAddress contractAddress, EthereumAddress owner) async {
-
     final contractJson = await rootBundle.loadString('assets/erc20-abi.json');
     final contract = DeployedContract(
         ContractAbi.fromJson(contractJson, "ERC20"), contractAddress);
@@ -213,7 +217,6 @@ class EthereumServiceImpl extends EthereumService {
       EthereumAddress from,
       EthereumAddress to,
       BigInt quantity) async {
-
     final contractJson = await rootBundle.loadString('assets/erc20-abi.json');
     final contract = DeployedContract(
         ContractAbi.fromJson(contractJson, "ERC20"), contractAddress);
@@ -232,5 +235,25 @@ class EthereumServiceImpl extends EthereumService {
     );
 
     return transaction.data != null ? bytesToHex(transaction.data!) : null;
+  }
+
+  Future<BigInt> _estimateGasLimit(EthereumAddress sender, EthereumAddress to,
+      EtherAmount amount, String? transactionData) async {
+    try {
+      BigInt gas = await _web3Client.estimateGas(
+        sender: sender,
+        to: to,
+        value: amount,
+        data: transactionData != null ? hexToBytes(transactionData) : null,
+      );
+      return gas;
+    } catch (err) {
+      //Cannot estimate return default value
+      if (transactionData != null && transactionData.isNotEmpty) {
+        return BigInt.from(200000);
+      } else {
+        return BigInt.from(21000);
+      }
+    }
   }
 }

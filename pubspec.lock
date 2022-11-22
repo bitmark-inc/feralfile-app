@@ -129,6 +129,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.2.1"
+  buffer:
+    dependency: transitive
+    description:
+      name: buffer
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.1.1"
   build:
     dependency: transitive
     description:
@@ -479,6 +486,15 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.5"
+  eth_sig_util:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: "15334dee6a5bbd3047ce3af2bdd061906a2094e2"
+      resolved-ref: "15334dee6a5bbd3047ce3af2bdd061906a2094e2"
+      url: "https://github.com/autonomy-system/eth-sig-util.git"
+    source: git
+    version: "0.0.8"
   fake_async:
     dependency: transitive
     description:
@@ -1051,8 +1067,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "4e9a90910ab451183ea49dec540d1a65c45a903d"
-      resolved-ref: "4e9a90910ab451183ea49dec540d1a65c45a903d"
+      ref: b944f87fd68bc1076646a584a6c460721cfa9445
+      resolved-ref: b944f87fd68bc1076646a584a6c460721cfa9445
       url: "https://github.com/autonomy-system/libauk-dart.git"
     source: git
     version: "0.0.1"

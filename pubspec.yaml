@@ -78,7 +78,7 @@ dependencies:
   libauk_dart:
     git:
       url: https://github.com/autonomy-system/libauk-dart.git
-      ref: 4e9a90910ab451183ea49dec540d1a65c45a903d
+      ref: b944f87fd68bc1076646a584a6c460721cfa9445
   local_auth: ^2.1.0
   logging: ^1.0.2
   mime: ^1.0.1
@@ -146,6 +146,10 @@ dependencies:
   auto_size_text: ^3.0.0
   uri: ^1.0.0
   reorderable_grid_view: ^2.2.5
+  eth_sig_util:
+    git:
+      url: https://github.com/autonomy-system/eth-sig-util.git
+      ref: 15334dee6a5bbd3047ce3af2bdd061906a2094e2
 
 dependency_overrides:
   # Error using when import photo_view from dependencies:
