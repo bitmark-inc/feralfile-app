@@ -178,16 +178,15 @@ class _ControlItemState extends State<ControlItem> {
             padding: const EdgeInsets.all(8.0),
             child: widget.isActive ? widget.iconFocus : widget.icon,
           ),
-          Visibility(
-            visible: widget.isActive,
-            child: Container(
-              width: 4,
-              height: 4,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: theme.colorScheme.secondary,
-              ),
-            ),
+          Container(
+            width: 4,
+            height: 4,
+            decoration: widget.isActive
+                ? BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: theme.colorScheme.secondary,
+                  )
+                : null,
           )
         ],
       ),

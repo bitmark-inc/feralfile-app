@@ -140,42 +140,61 @@ extension AssetTokenExtension on AssetToken {
   }
 
   String get getMimeType {
-    switch (mimeType) {
-      case "image/avif":
-      case "image/bmp":
-      case "image/jpeg":
-      case "image/png":
-      case "image/tiff":
-        return RenderingType.image;
-
-      case "image/svg+xml":
-        return RenderingType.svg;
-
-      case "image/gif":
-        return RenderingType.gif;
-
-      case "audio/aac":
-      case "audio/midi":
-      case "audio/x-midi":
-      case "audio/mpeg":
-      case "audio/ogg":
-      case "audio/opus":
-      case "audio/wav":
-      case "audio/webm":
-      case "audio/3gpp":
-        return RenderingType.audio;
-
-      case "video/x-msvideo":
-      case "video/3gpp":
-      case "video/mp4":
-      case "video/mpeg":
-      case "video/ogg":
-      case "video/3gpp2":
+    switch (medium) {
+      case "image":
+        final ext = p.extension(getPreviewUrl() ?? "");
+        if (ext == ".svg") {
+          return RenderingType.svg;
+        } else if (mimeType == 'image/gif') {
+          return RenderingType.gif;
+        } else {
+          return RenderingType.image;
+        }
+      case "video":
         return RenderingType.video;
-
       default:
-        return mimeType ?? RenderingType.webview;
+        if (mimeType?.startsWith("audio/") == true) {
+          return RenderingType.audio;
+        } else {
+          return mimeType ?? RenderingType.webview;
+        }
     }
+    // switch (mimeType) {
+    //   case "image/avif":
+    //   case "image/bmp":
+    //   case "image/jpeg":
+    //   case "image/png":
+    //   case "image/tiff":
+    //     return RenderingType.image;
+
+    //   case "image/svg+xml":
+    //     return RenderingType.svg;
+
+    //   case "image/gif":
+    //     return RenderingType.gif;
+
+    //   case "audio/aac":
+    //   case "audio/midi":
+    //   case "audio/x-midi":
+    //   case "audio/mpeg":
+    //   case "audio/ogg":
+    //   case "audio/opus":
+    //   case "audio/wav":
+    //   case "audio/webm":
+    //   case "audio/3gpp":
+    //     return RenderingType.audio;
+
+    //   case "video/x-msvideo":
+    //   case "video/3gpp":
+    //   case "video/mp4":
+    //   case "video/mpeg":
+    //   case "video/ogg":
+    //   case "video/3gpp2":
+    //     return RenderingType.video;
+
+    //   default:
+    //     return mimeType ?? RenderingType.webview;
+    // }
   }
 
   String? getThumbnailUrl() {
