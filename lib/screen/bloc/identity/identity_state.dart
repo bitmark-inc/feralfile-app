@@ -23,6 +23,12 @@ class FetchIdentityEvent extends IdentityEvent {
   FetchIdentityEvent(this.addresses);
 }
 
+/// Remove all identities from app data
+class RemoveAllEvent extends IdentityEvent {
+
+  RemoveAllEvent();
+}
+
 class IdentityState {
   Map<String, String> identityMap;
 

@@ -542,6 +542,8 @@ class AppRouter {
                           )),
                   BlocProvider.value(value: ethereumBloc),
                   BlocProvider.value(value: tezosBloc),
+                  BlocProvider(
+                    create: (_) => IdentityBloc(injector(), injector())),
                 ], child: const SettingsPage()));
 
       case personaDetailsPage:
