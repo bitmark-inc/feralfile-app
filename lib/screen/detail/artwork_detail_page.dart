@@ -424,23 +424,36 @@ class _ArtworkView extends StatelessWidget {
       case 'gif':
       case "audio":
       case "video":
-        return GestureDetector(
-          onTap: () {
-            if (injector<ConfigurationService>().isImmediateInfoViewEnabled()) {
-              Navigator.of(context)
-                  .pushNamed(AppRouter.artworkPreviewPage, arguments: payload);
-            } else {
-              Navigator.of(context).pop();
-            }
-          },
-          child: Center(
-            child: IntrinsicHeight(
-              child: ArtworkPreviewWidget(
-                identity: payload.identities[payload.currentIndex],
-                isMute: true,
+        return Stack(
+          children: [
+            AbsorbPointer(
+              child: Center(
+                child: IntrinsicHeight(
+                  child: ArtworkPreviewWidget(
+                    identity: payload.identities[payload.currentIndex],
+                    isMute: true,
+                  ),
+                ),
               ),
             ),
-          ),
+            Positioned.fill(
+              child: GestureDetector(
+                onTap: () {
+                  if (injector<ConfigurationService>()
+                      .isImmediateInfoViewEnabled()) {
+                    Navigator.of(context).pushNamed(
+                        AppRouter.artworkPreviewPage,
+                        arguments: payload);
+                  } else {
+                    Navigator.of(context).pop();
+                  }
+                },
+                child: Container(
+                  color: Colors.transparent,
+                ),
+              ),
+            ),
+          ],
         );
 
       default:

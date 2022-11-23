@@ -13,6 +13,7 @@ class TextFieldWidget extends StatefulWidget {
   final TextEditingController? controller;
   final String? Function(String?)? validator;
   final Function(String)? onFieldSubmitted;
+  final Function(String)? onChanged;
   final FocusNode? focusNode;
   const TextFieldWidget({
     Key? key,
@@ -28,6 +29,7 @@ class TextFieldWidget extends StatefulWidget {
     this.validator,
     this.onFieldSubmitted,
     this.focusNode,
+    this.onChanged,
   }) : super(key: key);
 
   @override
@@ -62,6 +64,7 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
             enabledBorder: widget.enabledBorder,
           ),
           onFieldSubmitted: widget.onFieldSubmitted,
+          onChanged: widget.onChanged,
         ),
       ],
     );
