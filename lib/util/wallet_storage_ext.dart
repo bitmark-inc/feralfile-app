@@ -5,9 +5,13 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
+import 'package:autonomy_flutter/service/ethereum_service.dart';
+import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/wc2_ext.dart';
 import 'package:collection/collection.dart';
 import 'package:libauk_dart/libauk_dart.dart';
@@ -60,12 +64,12 @@ extension WalletStorageExtension on WalletStorage {
     required String chain,
     required String message,
   }) async {
-    final msg = Uint8List.fromList(message.codeUnits);
+    var msg = Uint8List.fromList(utf8.encode(message));
     switch (chain.caip2Namespace) {
       case Wc2Chain.ethereum:
-        return await ethSignPersonalMessage(msg);
+        return await injector<EthereumService>().signPersonalMessage(this, msg);
       case Wc2Chain.tezos:
-        return bytesToHex(await tezosSignMessage(msg));
+        return await injector<TezosService>().signMessage(this, msg);
       case Wc2Chain.autonomy:
         return await getAccountDIDSignature(message);
     }
@@ -79,21 +83,18 @@ extension WalletStorageExtension on WalletStorage {
     switch (chain.caip2Namespace) {
       case "eip155":
         final ethAddress = await getETHEip55Address();
-        final ethMessage = message.replaceAll("\$OWN_ADDRESS\$", ethAddress);
         return Wc2Chain(
           chain: chain,
           address: ethAddress,
-          signature: await signMessage(chain: chain, message: ethMessage),
+          signature: await signMessage(chain: chain, message: message),
         );
       case "tezos":
         final tezosAddress = await getTezosAddress();
-        final tezosMessage =
-            message.replaceAll("\$OWN_ADDRESS\$", tezosAddress);
         return Wc2Chain(
           chain: chain,
           address: tezosAddress,
           publicKey: await getTezosPublicKey(),
-          signature: await signMessage(chain: chain, message: tezosMessage),
+          signature: await signMessage(chain: chain, message: message),
         );
     }
     return null;

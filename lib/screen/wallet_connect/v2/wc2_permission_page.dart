@@ -23,7 +23,6 @@ import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 
 class Wc2RequestPage extends StatefulWidget {
@@ -80,11 +79,7 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
     required Wc2PermissionsRequestParams params,
     required WalletStorage account,
   }) async {
-    final did = "did:key:${params.account.split(":")[2]}";
-    final didMessage = params.message.replaceAll("\$OWN_ADDRESS\$", did);
-    print("--------did");
-    print(didMessage);
-    final signature = await account.getAccountDIDSignature(didMessage);
+    final signature = await account.getAccountDIDSignature(params.message);
     final permissionResults = params.permissions.map((permission) async {
       final chainFutures = permission.request.chains.map((chain) async {
         final chainResp = await account.signPermissionRequest(
@@ -174,9 +169,6 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
     if (widget.request.method == "au_sign") {
       signParams = Wc2SignRequestParams.fromJson(widget.request.params);
     }
-    final params = Wc2PermissionsRequestParams.fromJson(widget.request.params);
-    final did = "did:key:${params.account.split(":")[2]}";
-    final message = params.message.replaceAll("\$OWN_ADDRESS\$", did);
 
     return WillPopScope(
       onWillPop: () async {
@@ -217,7 +209,7 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
               ),
               const SizedBox(height: 16.0),
               Text(
-                message,
+                widget.request.params["message"],
                 style: theme.textTheme.bodyText2,
               ),
               Divider(

@@ -201,6 +201,11 @@ class Connection {
     return WCConnectedSession.fromJson(jsonData);
   }
 
+  String? get wc2ConnectedSession {
+    if (connectionType != ConnectionType.walletConnect2.rawValue) return null;
+    return data;
+  }
+
   LedgerConnection? get ledgerConnection {
     if (connectionType != ConnectionType.ledger.rawValue) return null;
 
@@ -215,6 +220,10 @@ class Connection {
 
     if (beaconConnectConnection != null) {
       return beaconConnectConnection?.peer.name ?? "";
+    }
+
+    if (wc2ConnectedSession != null) {
+      return name;
     }
 
     return "";

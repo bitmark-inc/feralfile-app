@@ -155,7 +155,7 @@ class _WCConnectPageState extends State<WCConnectPage>
 
       final approvedAddresses = [address];
       log.info(
-          "[WCConnectPage] approve WCConnect with addreses $approvedAddresses");
+          "[WCConnectPage] approve WCConnect with addresses $approvedAddresses");
       await injector<WalletConnectService>().approveSession(
           selectedPersona!.uuid,
           wcConnectArgs.peerMeta,

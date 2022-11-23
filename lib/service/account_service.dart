@@ -192,7 +192,7 @@ class AccountServiceImpl extends AccountService {
 
   @override
   Future<WalletStorage?> getAccount(String did) async {
-    var personas = await _cloudDB.personaDao.getDefaultPersonas();
+    var personas = await _cloudDB.personaDao.getPersonas();
     for (Persona p in personas) {
       if ((await p.wallet().getAccountDID()) == did) {
         return p.wallet();
