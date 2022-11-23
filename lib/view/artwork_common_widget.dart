@@ -808,7 +808,7 @@ Widget artworkDetailsMetadataSection(
           artistName,
           // some FF's artist set multiple links
           // Discussion thread: https://bitmark.slack.com/archives/C01EPPD07HU/p1648698027564299
-          tapLink: asset.artistURL?.split(" & ").first,
+          tapLink: asset.artistURL?.split(" & ").firstOrNull,
           forceSafariVC: true,
         ),
       ],

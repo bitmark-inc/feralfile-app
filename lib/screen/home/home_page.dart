@@ -14,7 +14,6 @@ import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/blockchain.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
-import 'package:autonomy_flutter/screen/add_new_playlist/add_new_playlist.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
@@ -117,30 +116,8 @@ class _HomePageState extends State<HomePage>
     WidgetsBinding.instance.addObserver(this);
     _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
     _controller = ScrollController();
-    final accountService = injector<AccountService>();
-    Future.wait([
-      getAddresses(),
-      getManualTokenIds(),
-      accountService.getHiddenAddresses(),
-    ]).then((value) async {
-      final addresses = value[0];
-      final indexerIds = value[1];
-      final hiddenAddresses = value[2];
-      final nftBloc = context.read<NftCollectionBloc>();
-      playlists = await getPlaylist();
-      final isDemo = injector.get<ConfigurationService>().isDemoArtworksMode();
-      if (isDemo) {
-        playlists?.forEach((element) {
-          indexerIds.addAll(element.tokenIDs ?? []);
-        });
-      }
-      nftBloc.add(UpdateHiddenTokens(ownerAddresses: hiddenAddresses));
-      nftBloc.add(
-          RefreshTokenEvent(addresses: addresses, debugTokens: indexerIds));
-      nftBloc.add(RequestIndexEvent(addresses));
-      if (!mounted) return;
-      context.read<HomeBloc>().add(CheckReviewAppEvent());
-    });
+    _refreshTokens();
+    context.read<HomeBloc>().add(CheckReviewAppEvent());
     OneSignal.shared
         .setNotificationWillShowInForegroundHandler(_shouldShowNotifications);
     injector<AuditService>().auditFirstLog();
@@ -170,16 +147,6 @@ class _HomePageState extends State<HomePage>
   }
 
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    super.didChangeAppLifecycleState(state);
-    if (state == AppLifecycleState.resumed) {
-      // reconnect disconnected sessions
-      injector<WalletConnectService>().initSessions(forced: true);
-      didPopNext();
-    }
-  }
-
-  @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     routeObserver.unsubscribe(this);
@@ -192,22 +159,7 @@ class _HomePageState extends State<HomePage>
   void didPopNext() async {
     super.didPopNext();
     final connectivityResult = await (Connectivity().checkConnectivity());
-
-    playlists = await getPlaylist();
-    if (!mounted) return;
-
-    Future.wait([getAddresses(), getManualTokenIds()]).then((value) {
-      final addresses = value[0];
-      final indexerIds = value[1];
-      final isDemo = injector.get<ConfigurationService>().isDemoArtworksMode();
-      if (isDemo) {
-        playlists?.forEach((element) {
-          indexerIds.addAll(element.tokenIDs ?? []);
-        });
-      }
-      context.read<NftCollectionBloc>().add(
-          RefreshTokenEvent(addresses: addresses, debugTokens: indexerIds));
-    });
+    _refreshTokens();
     if (connectivityResult == ConnectivityResult.mobile ||
         connectivityResult == ConnectivityResult.wifi) {
       Future.delayed(const Duration(milliseconds: 1000), () async {
@@ -439,8 +391,8 @@ class _HomePageState extends State<HomePage>
                       arguments: payload);
                 }
 
-                mixPanelClient.trackEvent("view_artwork",
-                    data: {"id": asset.id});
+                mixPanelClient
+                    .trackEvent("view_artwork", data: {"id": asset.id});
               },
             );
           },
@@ -470,6 +422,43 @@ class _HomePageState extends State<HomePage>
       if (!mounted) return;
       Navigator.of(context).pushNamed(AppRouter.keySyncPage);
     }
+  }
+
+  void _refreshTokens({checkPendingToken = false}) {
+    final accountService = injector<AccountService>();
+
+    Future.wait([
+      getAddresses(),
+      getManualTokenIds(),
+      accountService.getHiddenAddresses(),
+    ]).then((value) async {
+      final addresses = value[0];
+      final indexerIds = value[1];
+      final hiddenAddresses = value[2];
+      final activeAddresses = addresses
+          .where((element) => !hiddenAddresses.contains(element))
+          .toList();
+      final nftBloc = context.read<NftCollectionBloc>();
+      playlists = await getPlaylist();
+      final isDemo = injector.get<ConfigurationService>().isDemoArtworksMode();
+      if (isDemo) {
+        playlists?.forEach((element) {
+          indexerIds.addAll(element.tokenIDs ?? []);
+        });
+      }
+      nftBloc.add(UpdateHiddenTokens(ownerAddresses: hiddenAddresses));
+      nftBloc.add(
+          RefreshTokenEvent(addresses: activeAddresses, debugTokens: indexerIds));
+      nftBloc.add(RequestIndexEvent(activeAddresses));
+      if (checkPendingToken) {
+        final pendingTokenService = injector<PendingTokenService>();
+        activeAddresses
+            .where((address) => address.startsWith("tz"))
+            .forEach((address) {
+          pendingTokenService.checkPendingTezosTokens(address, maxRetries: 1);
+        });
+      }
+    });
   }
 
   void _handleForeBackground(FGBGType event) async {
@@ -578,24 +567,11 @@ class _HomePageState extends State<HomePage>
       }
     }
 
-    Future.delayed(const Duration(milliseconds: 3500), () async {
-      final addresses = await getAddresses();
-      final manualTokenIds = await getManualTokenIds();
-      final hiddenAddress =
-          await injector<AccountService>().getHiddenAddresses();
-      final nftBloc = context.read<NftCollectionBloc>();
-      nftBloc.add(UpdateHiddenTokens(ownerAddresses: hiddenAddress));
-      nftBloc.add(
-          RefreshTokenEvent(addresses: addresses, debugTokens: manualTokenIds));
-      nftBloc.add(RequestIndexEvent(addresses));
-      metricClient.addEvent("device_foreground");
-      final pendingTokenService = injector<PendingTokenService>();
-      addresses.where((address) => address.startsWith("tz")).forEach((address) {
-        pendingTokenService.checkPendingTezosTokens(address, maxRetries: 1);
-      });
-      _subscriptionNotify();
-    });
+    injector<WalletConnectService>().initSessions(forced: true);
+    _refreshTokens(checkPendingToken: true);
 
+    metricClient.addEvent("device_foreground");
+    _subscriptionNotify();
     injector<VersionService>().checkForUpdate();
 
     // Reload token in Isolate
@@ -654,6 +630,7 @@ class _HomePageState extends State<HomePage>
 
 class ListPlaylistWidget extends StatefulWidget {
   final Function onUpdateList;
+
   const ListPlaylistWidget({
     Key? key,
     required this.playlists,
@@ -788,7 +765,7 @@ class _PlaylistItemState extends State<PlaylistItem> {
                 ),
               ),
             ),
-            Spacer(),
+            const Spacer(),
             Text(
               (widget.name?.isNotEmpty ?? false) ? widget.name! : 'Untitled',
               style: widget.onHold
@@ -806,6 +783,7 @@ class _PlaylistItemState extends State<PlaylistItem> {
 
 class AddPlayListItem extends StatelessWidget {
   final Function()? onTap;
+
   const AddPlayListItem({Key? key, this.onTap}) : super(key: key);
 
   @override
@@ -834,7 +812,7 @@ class AddPlayListItem extends StatelessWidget {
                 ),
               ),
             ),
-            Spacer(),
+            const Spacer(),
             Text(
               'new list',
               style: theme.textTheme.headline5,

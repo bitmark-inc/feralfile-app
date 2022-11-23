@@ -14,10 +14,10 @@ Issue _$IssueFromJson(Map<String, dynamic> json) => Issue(
       timestamp: DateTime.parse(json['timestamp'] as String),
       total: json['total'] as int,
       unread: json['unread'] as int,
-      rating: json['rating'] == null ? 0 : json['rating'] as int,
       lastMessage: json['last_message'] == null
           ? null
           : Message.fromJson(json['last_message'] as Map<String, dynamic>),
+      rating: json['rating'] as int,
     );
 
 Map<String, dynamic> _$IssueToJson(Issue instance) => <String, dynamic>{
@@ -28,8 +28,8 @@ Map<String, dynamic> _$IssueToJson(Issue instance) => <String, dynamic>{
       'timestamp': instance.timestamp.toIso8601String(),
       'total': instance.total,
       'unread': instance.unread,
-      'last_message': instance.lastMessage,
       'rating': instance.rating,
+      'last_message': instance.lastMessage,
     };
 
 SendAttachment _$SendAttachmentFromJson(Map<String, dynamic> json) =>

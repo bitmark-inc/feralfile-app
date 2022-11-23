@@ -88,6 +88,7 @@ TZKTTokenTransfer _$TZKTTokenTransferFromJson(Map<String, dynamic> json) =>
       transactionId: json['transactionId'] as int?,
       originationId: json['originationId'] as int?,
       migrationId: json['migrationId'] as int?,
+      status: json['status'] as String?,
     )..tokenTransfer = json['tokenTransfer'] == null
         ? null
         : TZKTTokenTransfer.fromJson(
@@ -105,6 +106,7 @@ Map<String, dynamic> _$TZKTTokenTransferToJson(TZKTTokenTransfer instance) =>
       'transactionId': instance.transactionId,
       'originationId': instance.originationId,
       'migrationId': instance.migrationId,
+      'status': instance.status,
       'tokenTransfer': instance.tokenTransfer,
     };
 

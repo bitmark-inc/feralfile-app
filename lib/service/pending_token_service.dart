@@ -222,6 +222,8 @@ class PendingTokenService {
         anyOf: owner,
         sort: "timestamp",
         limit: 5,
+        lastTime:
+            DateTime.now().subtract(const Duration(hours: 4)).toIso8601String(),
       );
       final transfers = <TZKTTokenTransfer>[];
       for (final operation in operations.reversed) {
@@ -253,7 +255,8 @@ class PendingTokenService {
         await _assetTokenDao.deleteAsset(token);
       }
 
-      final newTokens = tokens.where((e) => !ownedTokenIds.contains(e.id)).toList();
+      final newTokens =
+          tokens.where((e) => !ownedTokenIds.contains(e.id)).toList();
       pendingTokens.addAll(newTokens);
       if (pendingTokens.isNotEmpty) {
         log.info(

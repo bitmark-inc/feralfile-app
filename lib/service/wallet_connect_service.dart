@@ -54,6 +54,12 @@ class WalletConnectService {
         continue;
       }
 
+      if (element.createdAt
+          .isBefore(DateTime.now().subtract(const Duration(days: 7)))) {
+        // expire session after 7 days.
+        continue;
+      }
+
       final WCClient? wcClient = _createWCClient(null, element);
       final sessionStore = element.wcConnection?.sessionStore;
 
@@ -219,15 +225,15 @@ class WalletConnectService {
                 (element) => element.remotePeerMeta == currentPeerMeta)) return;
 
         _navigationService.navigateTo(WCSignMessagePage.tag,
-            arguments: WCSignMessagePageArgs(
-                id, topic, currentPeerMeta!, message.data!, message.type, uuid));
+            arguments: WCSignMessagePageArgs(id, topic, currentPeerMeta!,
+                message.data!, message.type, uuid));
 
         final mixPanelClient = injector.get<MixPanelClientService>();
-        mixPanelClient.trackEvent(
-            "Sign In",
-            data: {"type" : "Eth",},
-            hashedData: {"uuid": uuid}
-        );
+        mixPanelClient.trackEvent("Sign In", data: {
+          "type": "Eth",
+        }, hashedData: {
+          "uuid": uuid
+        });
       },
       onEthSendTransaction: (id, tx) {
         String? uuid = wcConnection?.personaUuid ?? tmpUuids[currentPeerMeta!];
