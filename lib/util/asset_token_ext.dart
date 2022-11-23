@@ -10,6 +10,7 @@ import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_rendering/nft_rendering.dart';
 // ignore: depend_on_referenced_packages
 import 'package:path/path.dart' as p;
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:uri/uri.dart';
 import 'iterable_ext.dart';
 import 'package:autonomy_flutter/common/environment.dart';
@@ -123,7 +124,10 @@ extension AssetTokenExtension on AssetToken {
       return '';
     }
 
-    final hex = bigint.toRadixString(16);
+    String hex = bigint.toRadixString(16);
+    if (hex.length.isOdd) {
+      hex = '0$hex';
+    }
     final bytes = hexToBytes(hex);
     final hashHex = '0x${sha256.convert(bytes).toString()}';
     return hashHex;
@@ -140,61 +144,53 @@ extension AssetTokenExtension on AssetToken {
   }
 
   String get getMimeType {
-    switch (medium) {
-      case "image":
-        final ext = p.extension(getPreviewUrl() ?? "");
-        if (ext == ".svg") {
-          return RenderingType.svg;
-        } else if (mimeType == 'image/gif') {
-          return RenderingType.gif;
-        } else {
-          return RenderingType.image;
-        }
-      case "video":
+    switch (mimeType) {
+      case "image/avif":
+      case "image/bmp":
+      case "image/jpeg":
+      case "image/png":
+      case "image/tiff":
+        return RenderingType.image;
+
+      case "image/svg+xml":
+        return RenderingType.svg;
+
+      case "image/gif":
+        return RenderingType.gif;
+
+      case "audio/aac":
+      case "audio/midi":
+      case "audio/x-midi":
+      case "audio/mpeg":
+      case "audio/ogg":
+      case "audio/opus":
+      case "audio/wav":
+      case "audio/webm":
+      case "audio/3gpp":
+        return RenderingType.audio;
+
+      case "video/x-msvideo":
+      case "video/3gpp":
+      case "video/mp4":
+      case "video/mpeg":
+      case "video/ogg":
+      case "video/3gpp2":
+      case "application/x-mpegURL":
         return RenderingType.video;
+
+      case "application/pdf":
+        return RenderingType.pdf;
+
       default:
-        if (mimeType?.startsWith("audio/") == true) {
-          return RenderingType.audio;
-        } else {
-          return mimeType ?? RenderingType.webview;
+        if (mimeType?.isNotEmpty ?? false) {
+          Sentry.captureMessage(
+            'Unsupport mimeType: $mimeType',
+            level: SentryLevel.warning,
+            params: [id],
+          );
         }
+        return mimeType ?? RenderingType.webview;
     }
-    // switch (mimeType) {
-    //   case "image/avif":
-    //   case "image/bmp":
-    //   case "image/jpeg":
-    //   case "image/png":
-    //   case "image/tiff":
-    //     return RenderingType.image;
-
-    //   case "image/svg+xml":
-    //     return RenderingType.svg;
-
-    //   case "image/gif":
-    //     return RenderingType.gif;
-
-    //   case "audio/aac":
-    //   case "audio/midi":
-    //   case "audio/x-midi":
-    //   case "audio/mpeg":
-    //   case "audio/ogg":
-    //   case "audio/opus":
-    //   case "audio/wav":
-    //   case "audio/webm":
-    //   case "audio/3gpp":
-    //     return RenderingType.audio;
-
-    //   case "video/x-msvideo":
-    //   case "video/3gpp":
-    //   case "video/mp4":
-    //   case "video/mpeg":
-    //   case "video/ogg":
-    //   case "video/3gpp2":
-    //     return RenderingType.video;
-
-    //   default:
-    //     return mimeType ?? RenderingType.webview;
-    // }
   }
 
   String? getThumbnailUrl() {

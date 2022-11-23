@@ -7,6 +7,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:uuid/uuid.dart';
+import 'package:collection/collection.dart';
 
 class AddNewPlaylistBloc
     extends Bloc<AddNewPlaylistEvent, AddNewPlaylistState> {
@@ -67,8 +68,10 @@ class AddNewPlaylistBloc
       final playListModel = state.playListModel;
       playListModel?.name = event.name;
       playListModel?.thumbnailURL = state.tokens
-          ?.firstWhere((element) => element.id == playListModel.tokenIDs?.first)
-          .getGalleryThumbnailUrl();
+          ?.firstWhereOrNull(
+              (element) => element.id == playListModel.tokenIDs?.first)
+          ?.getGalleryThumbnailUrl();
+
       playListModel?.tokenIDs = state.playListModel?.tokenIDs?.toSet().toList();
       if (playListModel?.id == null) {
         playListModel?.id = const Uuid().v4();

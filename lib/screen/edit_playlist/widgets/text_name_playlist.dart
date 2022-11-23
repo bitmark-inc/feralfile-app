@@ -92,6 +92,9 @@ class _TextNamePlaylistState extends State<TextNamePlaylist> {
                 color: theme.colorScheme.primary,
               ),
             ),
+            onChanged: (value) {
+              widget.onEditPlaylistName?.call(value);
+            },
             onFieldSubmitted: (value) {
               setState(() {
                 isEditing = false;
