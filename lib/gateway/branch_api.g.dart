@@ -9,7 +9,10 @@ part of 'branch_api.dart';
 // ignore_for_file: unnecessary_brace_in_string_interps,no_leading_underscores_for_local_identifiers
 
 class _BranchApi implements BranchApi {
-  _BranchApi(this._dio, {this.baseUrl}) {
+  _BranchApi(
+    this._dio, {
+    this.baseUrl,
+  }) {
     baseUrl ??= 'https://api2.branch.io';
   }
 
@@ -18,17 +21,30 @@ class _BranchApi implements BranchApi {
   String? baseUrl;
 
   @override
-  Future<dynamic> getParams(key, url) async {
+  Future<dynamic> getParams(
+    key,
+    url,
+  ) async {
     const _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{r'branch_key': key, r'url': url};
+    final queryParameters = <String, dynamic>{
+      r'branch_key': key,
+      r'url': url,
+    };
     queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
-    final _result = await _dio.fetch(_setStreamType<dynamic>(
-        Options(method: 'GET', headers: _headers, extra: _extra)
-            .compose(_dio.options, '/v1/url',
-                queryParameters: queryParameters, data: _data)
-            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+    final _result = await _dio.fetch(_setStreamType<dynamic>(Options(
+      method: 'GET',
+      headers: _headers,
+      extra: _extra,
+    )
+        .compose(
+          _dio.options,
+          '/v1/url',
+          queryParameters: queryParameters,
+          data: _data,
+        )
+        .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
     final value = _result.data;
     return value;
   }

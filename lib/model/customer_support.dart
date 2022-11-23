@@ -6,6 +6,7 @@
 //
 
 import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
+import 'package:collection/collection.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 
@@ -47,7 +48,7 @@ class Issue {
 
   String get reportIssueType {
     return ReportIssueType.getList
-        .firstWhere((element) => tags.contains(element));
+        .firstWhereOrNull((element) => tags.contains(element)) ?? "";
   }
 }
 

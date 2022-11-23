@@ -10,6 +10,7 @@ import 'dart:async';
 
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -586,7 +587,7 @@ class UIHelper {
                   Image.asset("assets/images/walletconnect-alternative.png"));
         } else {
           return CachedNetworkImage(
-            imageUrl: appIcons.first,
+            imageUrl: appIcons.firstOrNull ?? "",
             width: size,
             height: size,
             errorWidget: (context, url, error) => SizedBox(
