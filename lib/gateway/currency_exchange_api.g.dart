@@ -6,8 +6,13 @@ part of 'currency_exchange_api.dart';
 // RetrofitGenerator
 // **************************************************************************
 
+// ignore_for_file: unnecessary_brace_in_string_interps,no_leading_underscores_for_local_identifiers
+
 class _CurrencyExchangeApi implements CurrencyExchangeApi {
-  _CurrencyExchangeApi(this._dio, {this.baseUrl});
+  _CurrencyExchangeApi(
+    this._dio, {
+    this.baseUrl,
+  });
 
   final Dio _dio;
 
@@ -20,11 +25,18 @@ class _CurrencyExchangeApi implements CurrencyExchangeApi {
     final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
     final _result = await _dio.fetch<Map<String, dynamic>>(
-        _setStreamType<Map<String, CurrencyExchange>>(
-            Options(method: 'GET', headers: _headers, extra: _extra)
-                .compose(_dio.options, '/v2/exchange-rates',
-                    queryParameters: queryParameters, data: _data)
-                .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+        _setStreamType<Map<String, CurrencyExchange>>(Options(
+      method: 'GET',
+      headers: _headers,
+      extra: _extra,
+    )
+            .compose(
+              _dio.options,
+              '/v2/exchange-rates',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
     var value = _result.data!.map((k, dynamic v) =>
         MapEntry(k, CurrencyExchange.fromJson(v as Map<String, dynamic>)));
     return value;
