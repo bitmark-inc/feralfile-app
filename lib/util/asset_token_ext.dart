@@ -104,12 +104,12 @@ extension AssetTokenExtension on AssetToken {
         ..putIfAbsent("token_id", () => "$id")
         ..putIfAbsent("contract", () => "$contractAddress");
       if (contractAddress == "KT1F6EKvGq8CKJhgsBy3GUJMSS9KPKn1UD5D" ||
-          (builder.queryParameters['token_id_hex']?.isNotEmpty ?? false)) {
+          (builder.queryParameters['token_id_hash']?.isNotEmpty ?? false)) {
         return builder.build().toString();
       }
 
       final tokenHex = digestHex2Hash(id ?? '');
-      builder.queryParameters.putIfAbsent("token_id_hex", () => tokenHex);
+      builder.queryParameters.putIfAbsent("token_id_hash", () => tokenHex);
 
       return builder.build().toString();
     } catch (e) {
