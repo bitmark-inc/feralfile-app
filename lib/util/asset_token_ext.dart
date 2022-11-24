@@ -117,6 +117,8 @@ extension AssetTokenExtension on AssetToken {
     }
   }
 
+  String? tokenIdHex() => tokenId != null ? _intToHex(tokenId!) : null;
+
   String digestHex2Hash(String tokenId) {
     final bigint = BigInt.tryParse(tokenId, radix: 10);
     if (bigint == null) {
