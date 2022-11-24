@@ -22,6 +22,7 @@ import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import '../../util/iterable_ext.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 
 class ViewPlaylistScreen extends StatefulWidget {
   final PlayListModel? playListModel;
@@ -62,8 +63,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
         ?.removeWhere((element) => element.id == widget.playListModel?.id);
     _configurationService.setPlayList(listPlaylist, override: true);
     injector.get<SettingsDataService>().backup();
-    Navigator.pop(context);
-    Navigator.pop(context);
+    injector<NavigationService>().popUntilHomeOrSettings();
   }
 
   List<AssetToken> setupPlayList({

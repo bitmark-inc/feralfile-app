@@ -135,11 +135,8 @@ class AccountServiceImpl extends AccountService {
     metricClient.addEvent("create_full_account", hashedData: {"id": uuid});
 
     final mixPanelClient = injector.get<MixPanelClientService>();
-    mixPanelClient.trackEvent(
-        "create_full_account",
-        data: {"isDefault": isDefault},
-        hashedData: {"id": persona.uuid}
-    );
+    mixPanelClient.trackEvent("create_full_account",
+        data: {"isDefault": isDefault}, hashedData: {"id": persona.uuid});
     _autonomyService.postLinkedAddresses();
 
     return persona;
@@ -168,10 +165,8 @@ class AccountServiceImpl extends AccountService {
     metricClient.addEvent("import_full_account", hashedData: {"id": uuid});
 
     final mixPanelClient = injector.get<MixPanelClientService>();
-    mixPanelClient.trackEvent(
-        "import_full_account",
-        hashedData: {"id": persona.uuid}
-    );
+    mixPanelClient
+        .trackEvent("import_full_account", hashedData: {"id": persona.uuid});
     _autonomyService.postLinkedAddresses();
 
     return persona;
@@ -293,12 +288,8 @@ class AccountServiceImpl extends AccountService {
         hashedData: {"address": connection.accountNumber});
 
     final mixPanelClient = injector.get<MixPanelClientService>();
-    mixPanelClient.trackEvent(
-      "delete_linked_account",
-      hashedData: {
-        "address": connection.accountNumber
-      }
-    );
+    mixPanelClient.trackEvent("delete_linked_account",
+        hashedData: {"address": connection.accountNumber});
   }
 
   @override
@@ -388,13 +379,13 @@ class AccountServiceImpl extends AccountService {
         hashedData: {"address": connection.accountNumber});
 
     final mixPanelClient = injector.get<MixPanelClientService>();
-    mixPanelClient.trackEvent("link_wallet",
-        data: {
-          "wallet": walletApp.name,
-          "type": "browser",
-          "connectionType": connection.connectionType
-        },
-        hashedData: {"address": address});
+    mixPanelClient.trackEvent("link_wallet", data: {
+      "wallet": walletApp.name,
+      "type": "browser",
+      "connectionType": connection.connectionType
+    }, hashedData: {
+      "address": address
+    });
     _autonomyService.postLinkedAddresses();
     return connection;
   }
@@ -413,7 +404,7 @@ class AccountServiceImpl extends AccountService {
   Future setHidePersonaInGallery(String personaUUID, bool isEnabled) async {
     await _configurationService
         .setHidePersonaInGallery([personaUUID], isEnabled);
-    await injector<SettingsDataService>().backup();
+    injector<SettingsDataService>().backup();
   }
 
   @override

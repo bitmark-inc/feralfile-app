@@ -83,7 +83,7 @@ class _HomePageState extends State<HomePage>
   late MixPanelClientService mixPanelClient;
   int _cachedImageSize = 0;
 
-  List<PlayListModel>? playlists;
+  ValueNotifier<List<PlayListModel>?> playlists = ValueNotifier([]);
 
   Future<List<String>> getAddresses() async {
     final accountService = injector<AccountService>();
@@ -335,17 +335,20 @@ class _HomePageState extends State<HomePage>
               padding: const EdgeInsets.only(bottom: 16),
               child: SizedBox(
                 height: 68,
-                child: ListPlaylistWidget(
-                  playlists: playlists,
-                  onUpdateList: () async {
-                    if (injector
-                        .get<ConfigurationService>()
-                        .isDemoArtworksMode()) return;
-                    await injector
-                        .get<ConfigurationService>()
-                        .setPlayList(playlists, override: true);
-                    injector.get<SettingsDataService>().backup();
-                  },
+                child: ValueListenableBuilder(
+                  valueListenable: playlists,
+                  builder: (context, value, child) => ListPlaylistWidget(
+                    playlists: playlists.value,
+                    onUpdateList: () async {
+                      if (injector
+                          .get<ConfigurationService>()
+                          .isDemoArtworksMode()) return;
+                      await injector
+                          .get<ConfigurationService>()
+                          .setPlayList(playlists.value, override: true);
+                      injector.get<SettingsDataService>().backup();
+                    },
+                  ),
                 ),
               ),
             )
@@ -424,8 +427,9 @@ class _HomePageState extends State<HomePage>
     }
   }
 
-  void _refreshTokens({checkPendingToken = false}) {
+  void _refreshTokens({checkPendingToken = false}) async {
     final accountService = injector<AccountService>();
+    playlists.value = await getPlaylist();
 
     Future.wait([
       getAddresses(),
@@ -439,16 +443,15 @@ class _HomePageState extends State<HomePage>
           .where((element) => !hiddenAddresses.contains(element))
           .toList();
       final nftBloc = context.read<NftCollectionBloc>();
-      playlists = await getPlaylist();
       final isDemo = injector.get<ConfigurationService>().isDemoArtworksMode();
       if (isDemo) {
-        playlists?.forEach((element) {
+        playlists.value?.forEach((element) {
           indexerIds.addAll(element.tokenIDs ?? []);
         });
       }
       nftBloc.add(UpdateHiddenTokens(ownerAddresses: hiddenAddresses));
-      nftBloc.add(
-          RefreshTokenEvent(addresses: activeAddresses, debugTokens: indexerIds));
+      nftBloc.add(RefreshTokenEvent(
+          addresses: activeAddresses, debugTokens: indexerIds));
       nftBloc.add(RequestIndexEvent(activeAddresses));
       if (checkPendingToken) {
         final pendingTokenService = injector<PendingTokenService>();
