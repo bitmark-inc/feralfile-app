@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/model/wc2_pairing.dart';
 import 'package:autonomy_flutter/model/wc2_proposal.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/tezos_beacon/au_sign_message_page.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_sign_message_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
@@ -140,6 +141,9 @@ class Wc2Service extends Wc2Handler {
         case Wc2Chain.tezos:
           await _handleTezosSignRequest(request);
           break;
+        case Wc2Chain.autonomy:
+          await _handleAutonomySignRequest(request);
+          break;
         default:
           log.info("[Wc2Service] Unsupported chain: ${request.method}");
           await respondOnReject(
@@ -228,6 +232,13 @@ class Wc2Service extends Wc2Handler {
     await _navigationService.navigateTo(
       TBSignMessagePage.tag,
       arguments: beaconReq,
+    );
+  }
+
+  Future _handleAutonomySignRequest(Wc2Request request) async {
+    await _navigationService.navigateTo(
+      AUSignMessagePage.tag,
+      arguments: request,
     );
   }
   //#endregion

@@ -93,6 +93,7 @@ import 'package:autonomy_flutter/screen/settings/settings_page.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/screen/survey/survey.dart';
 import 'package:autonomy_flutter/screen/survey/survey_thankyou.dart';
+import 'package:autonomy_flutter/screen/tezos_beacon/au_sign_message_page.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_sign_message_page.dart';
 import 'package:autonomy_flutter/screen/unsafe_web_wallet_page.dart';
@@ -710,6 +711,12 @@ class AppRouter {
           builder: (context) =>
               TBSignMessagePage(request: settings.arguments as BeaconRequest),
         );
+      case AUSignMessagePage.tag:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) =>
+              AUSignMessagePage(request: settings.arguments as Wc2Request),
+        );
       case TBSendTransactionPage.tag:
         return CupertinoPageRoute(
           settings: settings,
@@ -936,22 +943,21 @@ class AppRouter {
               );
             });
 
-
       case wc2ConnectPage:
         return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => MultiBlocProvider(
-                providers: [
-                  BlocProvider.value(value: accountsBloc),
-                  BlocProvider(
-                    create: (_) => PersonaBloc(
-                      injector<CloudDatabase>(),
-                      injector(),
-                      injector(),
-                      injector<AuditService>(),
-                    ),
-                  ),
-                ],
+          settings: settings,
+          builder: (context) => MultiBlocProvider(
+            providers: [
+              BlocProvider.value(value: accountsBloc),
+              BlocProvider(
+                create: (_) => PersonaBloc(
+                  injector<CloudDatabase>(),
+                  injector(),
+                  injector(),
+                  injector<AuditService>(),
+                ),
+              ),
+            ],
             child: WCConnectPage(
               wcConnectArgs: null,
               beaconRequest: null,
@@ -964,19 +970,19 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => MultiBlocProvider(
-                providers: [
-                  BlocProvider.value(value: accountsBloc),
-                  BlocProvider(
-                    create: (_) => PersonaBloc(
-                      injector<CloudDatabase>(),
-                      injector(),
-                      injector(),
-                      injector<AuditService>(),
-                    ),
-                  ),
-                ],
-                child: Wc2RequestPage(
-                    request: settings.arguments as Wc2Request)));
+                    providers: [
+                      BlocProvider.value(value: accountsBloc),
+                      BlocProvider(
+                        create: (_) => PersonaBloc(
+                          injector<CloudDatabase>(),
+                          injector(),
+                          injector(),
+                          injector<AuditService>(),
+                        ),
+                      ),
+                    ],
+                    child: Wc2RequestPage(
+                        request: settings.arguments as Wc2Request)));
       default:
         throw Exception('Invalid route: ${settings.name}');
     }
