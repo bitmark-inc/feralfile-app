@@ -108,8 +108,8 @@ extension AssetTokenExtension on AssetToken {
         return builder.build().toString();
       }
 
-      final tokenHex = digestHex2Hash(id ?? '');
-      builder.queryParameters.putIfAbsent("token_id_hash", () => tokenHex);
+      final tokenHash = digestHex2Hash(id ?? '');
+      builder.queryParameters.putIfAbsent("token_id_hash", () => tokenHash);
 
       return builder.build().toString();
     } catch (e) {
