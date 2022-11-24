@@ -112,6 +112,11 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE          
           flutter pub run test auto-test/mobile_external_webs/purchase_tez_nft_test.dart
+      - name: Run auto tests for Suite "Purchase Feral File NFT"
+        if: success() || failure()
+        run: |
+          cd $GITHUB_WORKSPACE          
+          flutter pub run test auto-test/mobile_external_webs/purchaseFeralfileTezosToken_test.dart
       - name: Run auto tests for Suite "Send/transfer artworks"
         if: success() || failure()
         run: |
