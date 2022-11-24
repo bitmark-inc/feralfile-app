@@ -559,6 +559,7 @@ INFTRenderingWidget buildRenderingWidget(
   BuildContext context,
   AssetToken token, {
   int? attempt,
+  String? overriddenHtml,
   bool isMute = false,
   Function({int? time})? onLoaded,
   Function({int? time})? onDispose,
@@ -577,6 +578,7 @@ INFTRenderingWidget buildRenderingWidget(
     cacheManager: injector<CacheManager>(),
     onLoaded: onLoaded,
     onDispose: onDispose,
+    overriddenHtml: overriddenHtml,
     isMute: isMute,
   ));
 
@@ -1178,6 +1180,7 @@ Widget previewCloseIcon(BuildContext context) {
 
 class ArtworkRightWidget extends StatelessWidget {
   final FFContract? contract;
+
   ArtworkRightWidget({Key? key, @required this.contract}) : super(key: key);
 
   @override

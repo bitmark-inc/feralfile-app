@@ -49,6 +49,9 @@ abstract class EthereumService {
       EthereumAddress from,
       EthereumAddress to,
       BigInt quantity);
+
+  Future<String> getFeralFileTokenMetadata(
+      EthereumAddress contract, Uint8List data);
 }
 
 class EthereumServiceImpl extends EthereumService {
@@ -239,6 +242,22 @@ class EthereumServiceImpl extends EthereumService {
     );
 
     return transaction.data != null ? bytesToHex(transaction.data!) : null;
+  }
+
+  @override
+  Future<String> getFeralFileTokenMetadata(
+      EthereumAddress contract, Uint8List data) async {
+    final metadata = await _web3Client.callRaw(contract: contract, data: data);
+
+    final List<FunctionParameter> outputs = [
+      const FunctionParameter("string", StringType())
+    ];
+
+    final tuple = TupleType(outputs.map((p) => p.type).toList());
+    final buffer = hexToBytes(metadata).buffer;
+
+    final parsedData = tuple.decode(buffer, 0);
+    return parsedData.data.isNotEmpty ? parsedData.data.first : "";
   }
 
   Future<BigInt> _estimateGasLimit(EthereumAddress sender, EthereumAddress to,

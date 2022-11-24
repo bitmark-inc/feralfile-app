@@ -36,7 +36,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:html_unescape/html_unescape.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:metric_client/metric_client.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/provenance.dart';
 import 'package:nft_collection/nft_collection.dart';
@@ -500,7 +499,7 @@ class ArtworkDetailPayload {
   ArtworkDetailPayload copyWith(
       {List<ArtworkIdentity>? ids, int? currentIndex, bool? isPlaylist}) {
     return ArtworkDetailPayload(
-      ids ?? this.identities,
+      ids ?? identities,
       currentIndex ?? this.currentIndex,
       isPlaylist: isPlaylist ?? this.isPlaylist,
     );
