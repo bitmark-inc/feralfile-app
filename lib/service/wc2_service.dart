@@ -5,6 +5,9 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:convert';
+
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/wc2_pairing.dart';
 import 'package:autonomy_flutter/model/wc2_proposal.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
@@ -23,6 +26,9 @@ import 'package:autonomy_flutter/util/wc2_tezos_ext.dart';
 import 'package:collection/collection.dart';
 import 'package:wallet_connect/models/ethereum/wc_ethereum_transaction.dart';
 
+import '../database/cloud_database.dart';
+import '../database/entity/connection.dart';
+
 class Wc2Service extends Wc2Handler {
   static final Set<String> _supportedChains = {
     Wc2Chain.autonomy,
@@ -38,12 +44,14 @@ class Wc2Service extends Wc2Handler {
 
   final NavigationService _navigationService;
   final AccountService _accountService;
+  final CloudDatabase _cloudDB;
 
   late Wc2Channel _wc2channel;
 
   Wc2Service(
     this._navigationService,
     this._accountService,
+    this._cloudDB,
   ) {
     _wc2channel = Wc2Channel(handler: this);
   }
@@ -52,14 +60,22 @@ class Wc2Service extends Wc2Handler {
     await _wc2channel.pairClient(uri);
   }
 
-  Future approveSession(
-    String id, {
-    required String accountDid,
-  }) async {
+  Future approveSession(Wc2Proposal proposal,
+      {required String accountDid, required String personalUUID}) async {
     await _wc2channel.approve(
-      id,
+      proposal.id,
       accountDid,
     );
+    final wc2Pairings = await injector<Wc2Service>().getPairings();
+    final connection = Connection(
+      key: "$personalUUID:${wc2Pairings.last.topic}",
+      name: proposal.proposer.name,
+      data: json.encode(proposal.proposer),
+      connectionType: ConnectionType.walletConnect2.rawValue,
+      accountNumber: accountDid,
+      createdAt: DateTime.now(),
+    );
+    await _cloudDB.connectionDao.insertConnection(connection);
   }
 
   Future rejectSession(
@@ -96,6 +112,7 @@ class Wc2Service extends Wc2Handler {
     log.info("[Wc2Service] Delete pairing. Topic: $topic");
     return await _wc2channel.deletePairing(topic: topic);
   }
+
   //#endregion
 
   //#region Events handling
@@ -157,16 +174,18 @@ class Wc2Service extends Wc2Handler {
         arguments: request,
       );
     } else if (request.method == "au_sendTransaction") {
-      final chain = request.params["chain"];
+      final chain = request.params["chain"] as String;
       switch (chain.caip2Namespace) {
         case Wc2Chain.ethereum:
           try {
             final account = await _accountService.getAccountByAddress(
-              chain: request.chainId,
+              chain: chain,
               address: request.params["address"],
             );
-            final transactions =
+            var transactions =
                 request.params["transactions"] as Map<String, dynamic>;
+            if (transactions["data"] == null) transactions["data"] = "";
+            if (transactions["gas"] == null) transactions["gas"] = "";
             final args = WCSendTransactionPageArgs(
               request.id,
               request.proposer!.toWCPeerMeta(),
@@ -208,6 +227,7 @@ class Wc2Service extends Wc2Handler {
       );
     }
   }
+
   //#endregion
 
   //#region Handle sign request
@@ -241,5 +261,5 @@ class Wc2Service extends Wc2Handler {
       arguments: request,
     );
   }
-  //#endregion
+//#endregion
 }

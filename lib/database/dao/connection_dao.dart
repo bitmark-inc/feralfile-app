@@ -18,7 +18,7 @@ abstract class ConnectionDao {
   Future<List<Connection>> getConnections();
 
   @Query(
-      'SELECT * FROM Connection WHERE connectionType NOT IN ("dappConnect", "beaconP2PPeer", "manuallyIndexerTokenID")')
+      'SELECT * FROM Connection WHERE connectionType NOT IN ("dappConnect", "walletConnect2", "beaconP2PPeer", "manuallyIndexerTokenID")')
   Future<List<Connection>> getLinkedAccounts();
 
   // getUpdatedLinkedAccounts:

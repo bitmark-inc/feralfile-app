@@ -183,52 +183,58 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
         }),
         body: Container(
           margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                FittedBox(
-                  child: Text(
-                    "signature_request".tr(),
-                    style: theme.textTheme.headline1,
+          child: Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      FittedBox(
+                        child: Text(
+                          "signature_request".tr(),
+                          style: theme.textTheme.headline1,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      Text(
+                        "connection".tr(),
+                        style: theme.textTheme.headline4,
+                      ),
+                      const SizedBox(height: 16.0),
+                      Text(
+                        widget.request.proposer?.name ?? "",
+                        style: theme.textTheme.bodyText2,
+                      ),
+                      const Divider(height: 32),
+                      Text(
+                        "message".tr(),
+                        style: theme.textTheme.headline4,
+                      ),
+                      const SizedBox(height: 16.0),
+                      Text(
+                        widget.request.params["message"],
+                        style: theme.textTheme.bodyText2,
+                      ),
+                      Divider(
+                        height: 64,
+                        color: theme.colorScheme.secondary,
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 24),
-                Text(
-                  "connection".tr(),
-                  style: theme.textTheme.headline4,
-                ),
-                const SizedBox(height: 16.0),
-                Text(
-                  widget.request.proposer?.name ?? "",
-                  style: theme.textTheme.bodyText2,
-                ),
-                const Divider(height: 32),
-                Text(
-                  "message".tr(),
-                  style: theme.textTheme.headline4,
-                ),
-                const SizedBox(height: 16.0),
-                Text(
-                  widget.request.params["message"],
-                  style: theme.textTheme.bodyText2,
-                ),
-                Divider(
-                  height: 64,
-                  color: theme.colorScheme.secondary,
-                ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: AuFilledButton(
-                        text: "sign".tr().toUpperCase(),
-                        onPress: () => withDebounce(() => _approve()),
-                      ),
-                    )
-                  ],
-                )
-              ],
-            ),
+              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: AuFilledButton(
+                      text: "sign".tr().toUpperCase(),
+                      onPress: () => withDebounce(() => _approve()),
+                    ),
+                  )
+                ],
+              )
+            ],
           ),
         ),
       ),

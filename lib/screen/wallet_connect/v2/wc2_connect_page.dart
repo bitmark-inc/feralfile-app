@@ -67,9 +67,11 @@ class _Wc2ConnectPageState extends State<Wc2ConnectPage>
   }
 
   Future _approve() async {
+    //final accountDid = await current !.wallet().getAccountDID();
     await injector<Wc2Service>().approveSession(
-      widget.proposal.id,
+      widget.proposal,
       accountDid: "",
+      personalUUID: "",
     );
 
     if (!mounted) return;

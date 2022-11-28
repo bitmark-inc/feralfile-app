@@ -142,9 +142,12 @@ class _WCConnectPageState extends State<WCConnectPage>
     if (wc2Proposal != null) {
       final accountDid = await selectedPersona!.wallet().getAccountDID();
       await injector<Wc2Service>().approveSession(
-        wc2Proposal.id,
+        wc2Proposal,
         accountDid: accountDid.substring("did:key:".length),
+        personalUUID: selectedPersona!.uuid,
       );
+      payloadType = CryptoType.ETH;
+      payloadAddress = await selectedPersona!.wallet().getETHEip55Address();
       if (!mounted) return;
       Navigator.of(context).pop();
     } else if (wcConnectArgs != null) {

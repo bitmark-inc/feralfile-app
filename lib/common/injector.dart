@@ -196,6 +196,7 @@ Future<void> setup() async {
   injector.registerLazySingleton(() => Wc2Service(
         injector(),
         injector(),
+        injector(),
       ));
   injector.registerLazySingleton<CurrencyExchangeApi>(
       () => CurrencyExchangeApi(dio, baseUrl: Environment.currencyExchangeURL));

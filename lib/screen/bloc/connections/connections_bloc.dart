@@ -24,12 +24,22 @@ class ConnectionsBloc extends AuBloc<ConnectionsEvent, ConnectionsState> {
   final Wc2Service _wc2Service;
   final TezosBeaconService _tezosBeaconService;
 
-  Future<List<ConnectionItem>> _getWc2Connections() async {
-    final wc2Pairings = await _wc2Service.getPairings();
-    return wc2Pairings.map((e) {
-      final conn = Connection.fromWc2Pairing(e);
-      return ConnectionItem(representative: conn, connections: [conn]);
-    }).toList();
+  Future<List<ConnectionItem>> _getWc2Connections(String personaUUID) async {
+    final connections = await _cloudDB.connectionDao
+        .getConnectionsByType(ConnectionType.walletConnect2 .rawValue);
+    List<Connection> personaConnections = [];
+    for (var connection in connections) {
+      if (connection.key.split(":")[0] == personaUUID) {
+        personaConnections.add(connection);
+      }
+    }
+    final resultGroup =
+    groupBy(personaConnections, (Connection conn) => conn.appName);
+    final connectionItems = resultGroup.values
+        .map((conns) =>
+        ConnectionItem(representative: conns.first, connections: conns))
+        .toList();
+    return connectionItems;
   }
 
   ConnectionsBloc(
@@ -41,22 +51,18 @@ class ConnectionsBloc extends AuBloc<ConnectionsEvent, ConnectionsState> {
     on<GetETHConnectionsEvent>((event, emit) async {
       emit(state.resetConnectionItems());
       final personaUUID = event.personUUID;
-
       final connections = await _cloudDB.connectionDao
           .getConnectionsByType(ConnectionType.dappConnect.rawValue);
-
       List<Connection> personaConnections = [];
       for (var connection in connections) {
         final wcConnection = connection.wcConnection;
         if (wcConnection == null) continue;
-
         if (wcConnection.personaUuid == personaUUID &&
             wcConnection.sessionStore.remotePeerMeta.name !=
                 AUTONOMY_TV_PEER_NAME) {
           personaConnections.add(connection);
         }
       }
-
       // PersonaConnectionsPage is showing combined connections based on app
       final resultGroup =
           groupBy(personaConnections, (Connection conn) => conn.appName);
@@ -64,8 +70,7 @@ class ConnectionsBloc extends AuBloc<ConnectionsEvent, ConnectionsState> {
           .map((conns) =>
               ConnectionItem(representative: conns.first, connections: conns))
           .toList();
-
-      final wc2Connections = await _getWc2Connections();
+      final wc2Connections = await _getWc2Connections(personaUUID);
       connectionItems.addAll(wc2Connections);
 
       emit(state.copyWith(connectionItems: connectionItems));
@@ -93,7 +98,7 @@ class ConnectionsBloc extends AuBloc<ConnectionsEvent, ConnectionsState> {
               ConnectionItem(representative: conns.first, connections: conns))
           .toList();
 
-      final wc2Connections = await _getWc2Connections();
+      final wc2Connections = await _getWc2Connections(personaUUID);
       connectionItems.addAll(wc2Connections);
 
       emit(state.copyWith(connectionItems: connectionItems));
@@ -108,7 +113,7 @@ class ConnectionsBloc extends AuBloc<ConnectionsEvent, ConnectionsState> {
 
         if (connection.connectionType ==
             ConnectionType.walletConnect2.rawValue) {
-          await _wc2Service.deletePairing(topic: connection.data);
+          await _wc2Service.deletePairing(topic: connection.key.split(":")[1]);
         }
 
         final wcPeer = connection.wcConnection?.sessionStore.peerMeta;

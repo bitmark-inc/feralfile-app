@@ -7,7 +7,9 @@
 //
 
 import 'dart:async';
+import 'dart:convert';
 
+import 'package:autonomy_flutter/model/wc2_proposal.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dio/dio.dart';
@@ -583,6 +585,28 @@ class UIHelper {
               height: size,
               child:
                   Image.asset("assets/images/walletconnect-alternative.png"));
+        } else {
+          return CachedNetworkImage(
+            imageUrl: appIcons.first,
+            width: size,
+            height: size,
+            errorWidget: (context, url, error) => SizedBox(
+              width: size,
+              height: size,
+              child: Image.asset("assets/images/walletconnect-alternative.png"),
+            ),
+          );
+        }
+
+      case 'walletConnect2':
+        final appMetaData = AppMetadata.fromJson(jsonDecode(connection.data));
+        final appIcons = appMetaData.icons;
+        if (appIcons.isEmpty) {
+          return SizedBox(
+              width: size,
+              height: size,
+              child:
+              Image.asset("assets/images/walletconnect-alternative.png"));
         } else {
           return CachedNetworkImage(
             imageUrl: appIcons.first,
