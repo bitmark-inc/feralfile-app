@@ -33,7 +33,7 @@ class WC2ChannelHandler: NSObject {
         
         WalletConnectService.shared.respondOnApprove(
             request: request,
-            response: AnyCodable(response))
+            response: response != nil ? AnyCodable(response) : AnyCodable(args["response"] as! String))
         
         result([
             "error": 0
