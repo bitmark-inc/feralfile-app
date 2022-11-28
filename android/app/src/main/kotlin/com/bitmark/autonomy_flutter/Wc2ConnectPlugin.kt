@@ -129,7 +129,7 @@ class Wc2ConnectPlugin(private val application: Application) : FlutterPlugin,
             result.error("", "Request not found", null)
             return
         }
-        val jsonRpcResponse = Sign.Model.JsonRpcResponse.JsonRpcResult(
+        val jsonRpcResponse =  Sign.Model.JsonRpcResponse.JsonRpcResult(
             id = request.request.id,
             result = response
         )

@@ -22,7 +22,9 @@ class WC2ChannelHandler: NSObject {
     func respondOnApprove(call: FlutterMethodCall, result: @escaping FlutterResult) {
         let args: NSDictionary = call.arguments as! NSDictionary
         let topic: String = args["topic"] as! String
-        let response: String = args["response"] as! String
+        let dataString = (args["response"] as! String).utf8Data
+
+        let response = try? JSONDecoder().decode(CustomCodable.self, from: dataString)
         
         guard let request = pendingRequests.last(where: { $0.topic == topic }) else {
             result(AppError.aborted)
