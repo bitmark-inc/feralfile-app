@@ -206,7 +206,7 @@ class AccountServiceImpl extends AccountService {
     required String chain,
     required String address,
   }) async {
-    var personas = await _cloudDB.personaDao.getDefaultPersonas();
+    var personas = await _cloudDB.personaDao.getPersonas();
     for (Persona p in personas) {
       final wallet = p.wallet();
       switch (chain.caip2Namespace) {
