@@ -33,6 +33,6 @@ abstract class TZKTApi {
         @Query("sort.desc") String sort = "id",
         @Query("limit") int? limit,
         @Query("lastId") int? lastId,
-        @Query("lastTime.gt") String? lastTime,
+        @Query("timestamp.gt") String? lastTime,
       });
 }

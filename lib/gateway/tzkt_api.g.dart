@@ -77,7 +77,7 @@ class _TZKTApi implements TZKTApi {
       r'sort.desc': sort,
       r'limit': limit,
       r'lastId': lastId,
-      r'lastTime.gt': lastTime,
+      r'timestamp.gt': lastTime,
     };
     queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
