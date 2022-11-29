@@ -8,8 +8,9 @@ import 'package:tezart/tezart.dart';
 
 extension Wc2TezosRequestExt on Wc2Request {
   BeaconRequest toBeaconRequest() {
-    if (chainId.caip2Namespace != "tezos") {
-      throw Exception("$chainId chain is not supported");
+    final chain = params["chain"] as String;
+    if (chain.caip2Namespace != "tezos") {
+      throw Exception("$chain chain is not supported");
     }
 
     final List operationsDetails = params["transactions"];
@@ -36,7 +37,7 @@ extension Wc2TezosRequestExt on Wc2Request {
         );
         return operation;
       } else {
-        final int amount = int.tryParse(element["amount"]) ?? 0;
+        final int amount = int.tryParse(element["amount"].toString()) ?? 0;
         final String destination = element["destination"] ?? "";
         final dynamic parameters = element["parameters"] != null
             ? json.decode(json.encode(element["parameters"]))

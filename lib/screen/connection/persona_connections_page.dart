@@ -117,7 +117,14 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
         context,
         title: widget.payload.personaName,
         onBack: () {
-          Navigator.of(context).pop();
+          if (widget.payload.isBackHome) {
+            Navigator.of(context).pushNamedAndRemoveUntil(
+              AppRouter.homePage,
+              (route) => false,
+            );
+          } else {
+            Navigator.of(context).pop();
+          }
         },
       ),
       body: Container(
@@ -424,11 +431,12 @@ class PersonaConnectionsPayload {
   final String address;
   final CryptoType type;
   final String personaName;
+  final bool isBackHome;
 
-  PersonaConnectionsPayload({
-    required this.personaUUID,
-    required this.address,
-    required this.type,
-    required this.personaName,
-  });
+  PersonaConnectionsPayload(
+      {required this.personaUUID,
+      required this.address,
+      required this.type,
+      required this.personaName,
+      this.isBackHome = false});
 }

@@ -77,7 +77,9 @@ class _WCConnectPageState extends State<WCConnectPage>
   @override
   void initState() {
     super.initState();
-    context.read<PersonaBloc>().add(GetListPersonaEvent(useDidKeyForAlias: true));
+    context
+        .read<PersonaBloc>()
+        .add(GetListPersonaEvent(useDidKeyForAlias: true));
     injector<NavigationService>().setIsWCConnectInShow(true);
     memoryValues.deepLink.value = null;
   }
@@ -92,7 +94,9 @@ class _WCConnectPageState extends State<WCConnectPage>
   @override
   void didPopNext() {
     super.didPopNext();
-    context.read<PersonaBloc>().add(GetListPersonaEvent(useDidKeyForAlias: true));
+    context
+        .read<PersonaBloc>()
+        .add(GetListPersonaEvent(useDidKeyForAlias: true));
   }
 
   @override
@@ -210,7 +214,8 @@ class _WCConnectPageState extends State<WCConnectPage>
         personaUUID: selectedPersona!.uuid,
         address: payloadAddress,
         type: payloadType,
-        personaName: selectedPersona!.name);
+        personaName: selectedPersona!.name,
+        isBackHome: true);
     if (!mounted) return;
     if (memoryValues.scopedPersona != null) {
       // from persona details flow
@@ -478,8 +483,8 @@ class _WCConnectPageState extends State<WCConnectPage>
                             title: Row(
                               children: [
                                 SizedBox(
-                                    width: 30,
-                                    height: 32,
+                                  width: 30,
+                                  height: 32,
                                   child: Stack(
                                     children: [
                                       Align(

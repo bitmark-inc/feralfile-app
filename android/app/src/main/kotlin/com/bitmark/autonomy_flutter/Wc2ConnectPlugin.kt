@@ -180,6 +180,7 @@ class Wc2ConnectPlugin(private val application: Application) : FlutterPlugin,
             CoreClient.Pairing.disconnect(topic, onError = { e ->
                 throw e.throwable
             })
+            result.success()
         } catch (e: Throwable) {
             Timber.e(e, "Delete pairing error")
             result.error(e)

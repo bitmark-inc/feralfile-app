@@ -48,15 +48,27 @@ class Wc2Service extends Wc2Handler {
 
   late Wc2Channel _wc2channel;
 
-  Wc2Service(
-    this._navigationService,
-    this._accountService,
-    this._cloudDB,
-  ) {
+  Wc2Service(this._navigationService,
+      this._accountService,
+      this._cloudDB,) {
     _wc2channel = Wc2Channel(handler: this);
   }
 
   Future connect(String uri) async {
+    try {
+      var wc2Pairings = await getPairings();
+      final connections = await _cloudDB.connectionDao
+          .getConnectionsByType(ConnectionType.walletConnect2 .rawValue);
+      for (var pair in wc2Pairings) {
+        Connection? con = connections.firstWhereOrNull((con) => con.key.contains(pair.topic));
+        if (con == null) {
+          await deletePairing(topic: pair.topic);
+        }
+      }
+    } catch (e) {
+      log.info("[Wc Service]: connect. Remove disconnected $e");
+    }
+
     await _wc2channel.pairClient(uri);
   }
 
@@ -78,8 +90,7 @@ class Wc2Service extends Wc2Handler {
     await _cloudDB.connectionDao.insertConnection(connection);
   }
 
-  Future rejectSession(
-    String id, {
+  Future rejectSession(String id, {
     String? reason,
   }) async {
     await _wc2channel.reject(
@@ -92,8 +103,7 @@ class Wc2Service extends Wc2Handler {
     await _wc2channel.respondOnApprove(topic, response);
   }
 
-  Future respondOnReject(
-    String topic, {
+  Future respondOnReject(String topic, {
     String? reason,
   }) async {
     log.info("[Wc2Service] respondOnReject topic $topic, reason: $reason");
@@ -119,7 +129,7 @@ class Wc2Service extends Wc2Handler {
   @override
   void onSessionProposal(Wc2Proposal proposal) async {
     final unsupportedChains =
-        proposal.requiredNamespaces.keys.toSet().difference(_supportedChains);
+    proposal.requiredNamespaces.keys.toSet().difference(_supportedChains);
     if (unsupportedChains.isNotEmpty) {
       log.info("[Wc2Service] Proposal contains unsupported chains: "
           "$unsupportedChains");
@@ -182,14 +192,14 @@ class Wc2Service extends Wc2Handler {
               chain: chain,
               address: request.params["address"],
             );
-            var transactions =
-                request.params["transactions"] as Map<String, dynamic>;
-            if (transactions["data"] == null) transactions["data"] = "";
-            if (transactions["gas"] == null) transactions["gas"] = "";
+            var transaction =
+            request.params["transactions"][0] as Map<String, dynamic>;
+            if (transaction["data"] == null) transaction["data"] = "";
+            if (transaction["gas"] == null) transaction["gas"] = "";
             final args = WCSendTransactionPageArgs(
               request.id,
               request.proposer!.toWCPeerMeta(),
-              WCEthereumTransaction.fromJson(transactions),
+              WCEthereumTransaction.fromJson(transaction),
               account.uuid,
               topic: request.topic,
               isWalletConnect2: true,
