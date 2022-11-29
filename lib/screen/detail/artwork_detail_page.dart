@@ -98,154 +98,158 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
 
     return Stack(
       children: [
-        Scaffold(
-          appBar: getBackAppBar(context,
-              onBack: () => Navigator.of(context).pop(),
-              action: () {
-                if (currentAsset == null) return;
-                _showArtworkOptionsDialog(currentAsset!);
-              }),
-          body: BlocConsumer<ArtworkDetailBloc, ArtworkDetailState>(
-              listener: (context, state) {
-            final identitiesList =
-                state.provenances.map((e) => e.owner).toList();
-            if (state.asset?.artistName != null &&
-                state.asset!.artistName!.length > 20) {
-              identitiesList.add(state.asset!.artistName!);
-            }
-            setState(() {
-              currentAsset = state.asset;
-            });
-
-            context.read<IdentityBloc>().add(GetIdentityEvent(identitiesList));
-          }, builder: (context, state) {
-            if (state.asset != null) {
-              final identityState = context.watch<IdentityBloc>().state;
-              final asset = state.asset!;
-
-              final artistName =
-                  asset.artistName?.toIdentityOrMask(identityState.identityMap);
-
-              var subTitle = "";
-              if (artistName != null && artistName.isNotEmpty) {
-                subTitle = "by".tr(args: [artistName]);
+        SafeArea(
+          child: Scaffold(
+            appBar: getBackAppBar(context,
+                onBack: () => Navigator.of(context).pop(),
+                action: () {
+                  if (currentAsset == null) return;
+                  _showArtworkOptionsDialog(currentAsset!);
+                }),
+            body: BlocConsumer<ArtworkDetailBloc, ArtworkDetailState>(
+                listener: (context, state) {
+              final identitiesList =
+                  state.provenances.map((e) => e.owner).toList();
+              if (state.asset?.artistName != null &&
+                  state.asset!.artistName!.length > 20) {
+                identitiesList.add(state.asset!.artistName!);
               }
+              setState(() {
+                currentAsset = state.asset;
+              });
 
-              return SingleChildScrollView(
-                controller: _scrollController,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 16.0),
-                    Padding(
-                      padding: ResponsiveLayout.getPadding,
-                      child: Semantics(
-                        label: 'Title',
-                        child: Text(
-                          asset.title,
-                          style: theme.textTheme.headline1,
+              context
+                  .read<IdentityBloc>()
+                  .add(GetIdentityEvent(identitiesList));
+            }, builder: (context, state) {
+              if (state.asset != null) {
+                final identityState = context.watch<IdentityBloc>().state;
+                final asset = state.asset!;
+
+                final artistName = asset.artistName
+                    ?.toIdentityOrMask(identityState.identityMap);
+
+                var subTitle = "";
+                if (artistName != null && artistName.isNotEmpty) {
+                  subTitle = "by".tr(args: [artistName]);
+                }
+
+                return SingleChildScrollView(
+                  controller: _scrollController,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 16.0),
+                      Padding(
+                        padding: ResponsiveLayout.getPadding,
+                        child: Semantics(
+                          label: 'Title',
+                          child: Text(
+                            asset.title,
+                            style: theme.textTheme.headline1,
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 8.0),
-                    Padding(
-                      padding: ResponsiveLayout.getPadding,
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.baseline,
-                        textBaseline: TextBaseline.alphabetic,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              subTitle,
-                              style: theme.textTheme.headline3?.copyWith(
-                                fontSize: 18,
+                      const SizedBox(height: 8.0),
+                      Padding(
+                        padding: ResponsiveLayout.getPadding,
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.baseline,
+                          textBaseline: TextBaseline.alphabetic,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                subTitle,
+                                style: theme.textTheme.headline3?.copyWith(
+                                  fontSize: 18,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(
+                              width: 8,
+                            ),
+                            Text(
+                              getEditionSubTitle(asset),
+                              style: theme.textTheme.headline5?.copyWith(
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16.0),
+                      Hero(
+                        tag: asset.id,
+                        child: _ArtworkView(
+                          payload: widget.payload,
+                          token: asset,
+                        ),
+                      ),
+                      Visibility(
+                        visible: asset.assetURL == CHECK_WEB3_PRIMER_URL,
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: SizedBox(
+                              width: 165,
+                              height: 48,
+                              child: AuOutlinedButton(
+                                text: "web3_primer".tr(),
+                                onPress: () {
+                                  Navigator.pushNamed(
+                                      context, AppRouter.previewPrimerPage,
+                                      arguments: asset);
+                                },
                               ),
                             ),
                           ),
-                          const SizedBox(
-                            width: 8,
-                          ),
-                          Text(
-                            getEditionSubTitle(asset),
-                            style: theme.textTheme.headline5?.copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16.0),
-                    Hero(
-                      tag: asset.id,
-                      child: _ArtworkView(
-                        payload: widget.payload,
-                        token: asset,
-                      ),
-                    ),
-                    Visibility(
-                      visible: asset.assetURL == CHECK_WEB3_PRIMER_URL,
-                      child: Align(
-                        alignment: Alignment.centerRight,
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: SizedBox(
-                            width: 165,
-                            height: 48,
-                            child: AuOutlinedButton(
-                              text: "web3_primer".tr(),
-                              onPress: () {
-                                Navigator.pushNamed(
-                                    context, AppRouter.previewPrimerPage,
-                                    arguments: asset);
-                              },
-                            ),
-                          ),
                         ),
                       ),
-                    ),
-                    debugInfoWidget(context, currentAsset),
-                    const SizedBox(height: 16.0),
-                    Padding(
-                      padding: ResponsiveLayout.getPadding,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Semantics(
-                            label: 'Desc',
-                            child: Text(
-                              unescape.convert(asset.desc ?? ""),
-                              style: theme.textTheme.bodyText1,
+                      debugInfoWidget(context, currentAsset),
+                      const SizedBox(height: 16.0),
+                      Padding(
+                        padding: ResponsiveLayout.getPadding,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Semantics(
+                              label: 'Desc',
+                              child: Text(
+                                unescape.convert(asset.desc ?? ""),
+                                style: theme.textTheme.bodyText1,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 40.0),
-                          artworkDetailsMetadataSection(
-                              context, asset, artistName),
-                          if (asset.fungible == true) ...[
                             const SizedBox(height: 40.0),
-                            BlocBuilder<AccountsBloc, AccountsState>(
-                              builder: (context, state) {
-                                final addresses = state.addresses;
-                                return tokenOwnership(
-                                    context, asset, addresses);
-                              },
-                            ),
-                          ] else ...[
-                            state.provenances.isNotEmpty
-                                ? _provenanceView(context, state.provenances)
-                                : const SizedBox()
+                            artworkDetailsMetadataSection(
+                                context, asset, artistName),
+                            if (asset.fungible == true) ...[
+                              const SizedBox(height: 40.0),
+                              BlocBuilder<AccountsBloc, AccountsState>(
+                                builder: (context, state) {
+                                  final addresses = state.addresses;
+                                  return tokenOwnership(
+                                      context, asset, addresses);
+                                },
+                              ),
+                            ] else ...[
+                              state.provenances.isNotEmpty
+                                  ? _provenanceView(context, state.provenances)
+                                  : const SizedBox()
+                            ],
+                            artworkDetailsRightSection(context, asset),
+                            const SizedBox(height: 80.0),
                           ],
-                          artworkDetailsRightSection(context, asset),
-                          const SizedBox(height: 80.0),
-                        ],
-                      ),
-                    )
-                  ],
-                ),
-              );
-            } else {
-              return const SizedBox();
-            }
-          }),
+                        ),
+                      )
+                    ],
+                  ),
+                );
+              } else {
+                return const SizedBox();
+              }
+            }),
+          ),
         ),
         Positioned(
           bottom: 0,
