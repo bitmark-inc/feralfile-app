@@ -25,6 +25,7 @@ import 'package:autonomy_flutter/util/wc2_ext.dart';
 import 'package:autonomy_flutter/util/wc2_tezos_ext.dart';
 import 'package:collection/collection.dart';
 import 'package:wallet_connect/models/ethereum/wc_ethereum_transaction.dart';
+import 'package:wallet_connect/models/wc_peer_meta.dart';
 
 import '../database/cloud_database.dart';
 import '../database/entity/connection.dart';
@@ -48,9 +49,11 @@ class Wc2Service extends Wc2Handler {
 
   late Wc2Channel _wc2channel;
 
-  Wc2Service(this._navigationService,
-      this._accountService,
-      this._cloudDB,) {
+  Wc2Service(
+    this._navigationService,
+    this._accountService,
+    this._cloudDB,
+  ) {
     _wc2channel = Wc2Channel(handler: this);
   }
 
@@ -58,9 +61,10 @@ class Wc2Service extends Wc2Handler {
     try {
       var wc2Pairings = await getPairings();
       final connections = await _cloudDB.connectionDao
-          .getConnectionsByType(ConnectionType.walletConnect2 .rawValue);
+          .getConnectionsByType(ConnectionType.walletConnect2.rawValue);
       for (var pair in wc2Pairings) {
-        Connection? con = connections.firstWhereOrNull((con) => con.key.contains(pair.topic));
+        Connection? con =
+            connections.firstWhereOrNull((con) => con.key.contains(pair.topic));
         if (con == null) {
           await deletePairing(topic: pair.topic);
         }
@@ -90,7 +94,8 @@ class Wc2Service extends Wc2Handler {
     await _cloudDB.connectionDao.insertConnection(connection);
   }
 
-  Future rejectSession(String id, {
+  Future rejectSession(
+    String id, {
     String? reason,
   }) async {
     await _wc2channel.reject(
@@ -103,7 +108,8 @@ class Wc2Service extends Wc2Handler {
     await _wc2channel.respondOnApprove(topic, response);
   }
 
-  Future respondOnReject(String topic, {
+  Future respondOnReject(
+    String topic, {
     String? reason,
   }) async {
     log.info("[Wc2Service] respondOnReject topic $topic, reason: $reason");
@@ -129,7 +135,7 @@ class Wc2Service extends Wc2Handler {
   @override
   void onSessionProposal(Wc2Proposal proposal) async {
     final unsupportedChains =
-    proposal.requiredNamespaces.keys.toSet().difference(_supportedChains);
+        proposal.requiredNamespaces.keys.toSet().difference(_supportedChains);
     if (unsupportedChains.isNotEmpty) {
       log.info("[Wc2Service] Proposal contains unsupported chains: "
           "$unsupportedChains");
@@ -193,12 +199,15 @@ class Wc2Service extends Wc2Handler {
               address: request.params["address"],
             );
             var transaction =
-            request.params["transactions"][0] as Map<String, dynamic>;
+                request.params["transactions"][0] as Map<String, dynamic>;
             if (transaction["data"] == null) transaction["data"] = "";
             if (transaction["gas"] == null) transaction["gas"] = "";
+            final metaData = request.proposer != null
+                ? request.proposer!.toWCPeerMeta()
+                : WCPeerMeta(icons: [], name: "", url: "", description: "");
             final args = WCSendTransactionPageArgs(
               request.id,
-              request.proposer!.toWCPeerMeta(),
+              metaData,
               WCEthereumTransaction.fromJson(transaction),
               account.uuid,
               topic: request.topic,

@@ -28,9 +28,11 @@ class ConnectionsBloc extends AuBloc<ConnectionsEvent, ConnectionsState> {
 
   Future<List<ConnectionItem>> _getWc2Connections(String personaUUID) async {
     var wc2Pairings = await _wc2Service.getPairings();
-    wc2Pairings.forEach((element) {log.info("getpairing ${element.topic}");});
+    wc2Pairings.forEach((element) {
+      log.info("getPairings: topic ${element.topic}");
+    });
     final connections = await _cloudDB.connectionDao
-        .getConnectionsByType(ConnectionType.walletConnect2 .rawValue);
+        .getConnectionsByType(ConnectionType.walletConnect2.rawValue);
     List<Connection> personaConnections = [];
     for (var connection in connections) {
       if (connection.key.split(":")[0] == personaUUID) {
@@ -38,10 +40,10 @@ class ConnectionsBloc extends AuBloc<ConnectionsEvent, ConnectionsState> {
       }
     }
     final resultGroup =
-    groupBy(personaConnections, (Connection conn) => conn.appName);
+        groupBy(personaConnections, (Connection conn) => conn.appName);
     final connectionItems = resultGroup.values
         .map((conns) =>
-        ConnectionItem(representative: conns.first, connections: conns))
+            ConnectionItem(representative: conns.first, connections: conns))
         .toList();
     return connectionItems;
   }
@@ -112,7 +114,6 @@ class ConnectionsBloc extends AuBloc<ConnectionsEvent, ConnectionsState> {
       Set<WCPeerMeta> wcPeers = {};
       Set<P2PPeer> bcPeers = {};
 
-
       for (var connection in event.connectionItem.connections) {
         await _cloudDB.connectionDao.deleteConnection(connection);
         if (connection.connectionType ==
@@ -125,8 +126,6 @@ class ConnectionsBloc extends AuBloc<ConnectionsEvent, ConnectionsState> {
 
         final bcPeer = connection.beaconConnectConnection?.peer;
         if (bcPeer != null) bcPeers.add(bcPeer);
-
-
       }
 
       for (var peer in wcPeers) {
