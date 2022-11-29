@@ -39,6 +39,24 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../common/injector.dart';
 
+const moMAContract = [
+  {
+    "address": "KT1CPeE8YGVG16xkpoE9sviUYoEzS7hWfu39",
+    "name": "Memento 1 - Unsupervised Opening Day",
+    "blockchainType": "FeralfileExhibitionV2"
+  },
+  {
+    "address": "0x7E6c132B8cb00899d17750E0fD982EA122C6b0f2",
+    "name": "Opening Celebration — Refik Anadol: Unsupervised",
+    "blockchainType": "FeralfileExhibitionV3"
+  },
+  {
+    "address": "0x7a15b36cB834AeA88553De69077D3777460d73Ac",
+    "name": "Unsupervised",
+    "blockchainType": "FeralfileExhibitionV2"
+  },
+];
+
 String getEditionSubTitle(AssetToken token) {
   if (token.editionName != null && token.editionName != "") {
     return token.editionName!;
@@ -541,31 +559,13 @@ INFTRenderingWidget buildRenderingWidget(
   BuildContext context,
   AssetToken token, {
   int? attempt,
+  String? overriddenHtml,
+  bool isMute = false,
   Function({int? time})? onLoaded,
   Function({int? time})? onDispose,
 }) {
-  String mimeType = "";
-  switch (token.medium) {
-    case "image":
-      final ext = p.extension(token.getPreviewUrl() ?? "");
-      if (ext == ".svg") {
-        mimeType = "svg";
-      } else if (token.mimeType == 'image/gif') {
-        mimeType = "gif";
-      } else {
-        mimeType = "image";
-      }
-      break;
-    case "video":
-      mimeType = "video";
-      break;
-    default:
-      if (token.mimeType?.startsWith("audio/") == true) {
-        mimeType = "audio";
-      } else {
-        mimeType = token.mimeType ?? "";
-      }
-  }
+  String mimeType = token.getMimeType;
+
   final renderingWidget = typesOfNFTRenderingWidget(mimeType);
 
   renderingWidget.setRenderWidgetBuilder(RenderingWidgetBuilder(
@@ -578,6 +578,8 @@ INFTRenderingWidget buildRenderingWidget(
     cacheManager: injector<CacheManager>(),
     onLoaded: onLoaded,
     onDispose: onDispose,
+    overriddenHtml: overriddenHtml,
+    isMute: isMute,
   ));
 
   return renderingWidget;
@@ -613,27 +615,30 @@ class _BrokenTokenWidgetState extends State<BrokenTokenWidget> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Center(
-      child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-        Text(
-          "unable_to_load_artwork_preview_from_ipfs".tr(),
-          style: ResponsiveLayout.isMobile
-              ? theme.textTheme.atlasGreyNormal12
-              : theme.textTheme.atlasGreyNormal14,
-        ),
-        TextButton(
-          onPressed: () => context.read<RetryCubit>().refresh(),
-          style: TextButton.styleFrom(
-              minimumSize: Size.zero,
-              padding: const EdgeInsets.all(8),
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap),
-          child: Text("please_try_again".tr(),
-              style: makeLinkStyle(
-                ResponsiveLayout.isMobile
-                    ? theme.textTheme.atlasGreyNormal12
-                    : theme.textTheme.atlasGreyNormal14,
-              )),
-        ),
-      ]),
+      child: AspectRatio(
+        aspectRatio: 1,
+        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+          Text(
+            "unable_to_load_artwork_preview_from_ipfs".tr(),
+            style: ResponsiveLayout.isMobile
+                ? theme.textTheme.atlasGreyNormal12
+                : theme.textTheme.atlasGreyNormal14,
+          ),
+          TextButton(
+            onPressed: () => context.read<RetryCubit>().refresh(),
+            style: TextButton.styleFrom(
+                minimumSize: Size.zero,
+                padding: const EdgeInsets.all(8),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+            child: Text("please_try_again".tr(),
+                style: makeLinkStyle(
+                  ResponsiveLayout.isMobile
+                      ? theme.textTheme.atlasGreyNormal12
+                      : theme.textTheme.atlasGreyNormal14,
+                )),
+          ),
+        ]),
+      ),
     );
   }
 }
@@ -701,22 +706,25 @@ void _showReportRenderingDialogSuccess(BuildContext context, String githubURL) {
 Widget previewPlaceholder(BuildContext context) {
   final theme = Theme.of(context);
   return Center(
-    child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        loadingIndicator(
-            valueColor: theme.colorScheme.secondary,
-            backgroundColor: theme.colorScheme.secondary.withOpacity(0.5)),
-        const SizedBox(
-          height: 13,
-        ),
-        Text(
-          "loading...".tr(),
-          style: ResponsiveLayout.isMobile
-              ? theme.textTheme.atlasGreyNormal12
-              : theme.textTheme.atlasGreyNormal14,
-        ),
-      ],
+    child: AspectRatio(
+      aspectRatio: 1,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          loadingIndicator(
+              valueColor: theme.colorScheme.surface,
+              backgroundColor: theme.colorScheme.surface.withOpacity(0.5)),
+          const SizedBox(
+            height: 13,
+          ),
+          Text(
+            "loading...".tr(),
+            style: ResponsiveLayout.isMobile
+                ? theme.textTheme.atlasGreyNormal12
+                : theme.textTheme.atlasGreyNormal14,
+          ),
+        ],
+      ),
     ),
   );
 }
@@ -772,7 +780,11 @@ Widget artworkDetailsRightSection(BuildContext context, AssetToken token) {
   return token.source == "feralfile"
       ? Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [const SizedBox(height: 40.0), _artworkRightView(context)],
+          children: [
+            const SizedBox(height: 40.0),
+            _artworkRightView(context,
+                contract: FFContract("", "", token.contractAddress ?? ""))
+          ],
         )
       : const SizedBox();
 }
@@ -798,7 +810,7 @@ Widget artworkDetailsMetadataSection(
           artistName,
           // some FF's artist set multiple links
           // Discussion thread: https://bitmark.slack.com/archives/C01EPPD07HU/p1648698027564299
-          tapLink: asset.artistURL?.split(" & ").first,
+          tapLink: asset.artistURL?.split(" & ").firstOrNull,
           forceSafariVC: true,
         ),
       ],
@@ -969,8 +981,13 @@ Widget artworkDetailsProvenanceSectionNotEmpty(
   );
 }
 
-Widget _artworkRightView(BuildContext context, {TextStyle? linkStyle}) {
+Widget _artworkRightView(BuildContext context,
+    {TextStyle? linkStyle, required FFContract contract}) {
   final theme = Theme.of(context);
+
+  bool _isMoMAShow(String? address) {
+    return moMAContract.any((contract) => contract["address"] == address);
+  }
 
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1020,7 +1037,11 @@ Widget _artworkRightView(BuildContext context, {TextStyle? linkStyle}) {
         color: AppColor.secondarySpanishGrey,
       ),
       _artworkRightItem(
-          context, "resell_or_transfer".tr(), "resell_or_transfer_text".tr()),
+          context,
+          "resell_or_transfer".tr(),
+          _isMoMAShow(contract.address)
+              ? "resell_or_transfer_moma_text".tr()
+              : "resell_or_transfer_text".tr()),
       const Divider(
         height: 32.0,
         color: AppColor.secondarySpanishGrey,
@@ -1158,7 +1179,9 @@ Widget previewCloseIcon(BuildContext context) {
 }
 
 class ArtworkRightWidget extends StatelessWidget {
-  const ArtworkRightWidget({Key? key}) : super(key: key);
+  final FFContract? contract;
+
+  ArtworkRightWidget({Key? key, @required this.contract}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -1166,26 +1189,26 @@ class ArtworkRightWidget extends StatelessWidget {
           color: Colors.white,
           decorationColor: Colors.white,
         );
-    return _artworkRightView(context, linkStyle: linkStyle);
+    return _artworkRightView(context,
+        linkStyle: linkStyle, contract: FFContract("", "", ""));
   }
 }
 
 class FeralfileArtworkDetailsMetadataSection extends StatelessWidget {
-  final Exhibition exhibition;
+  final FFArtwork artwork;
 
   const FeralfileArtworkDetailsMetadataSection({
     Key? key,
-    required this.exhibition,
+    required this.artwork,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final artwork = exhibition.airdropArtwork;
-    final artist = exhibition.getArtist(artwork);
-    final contract = exhibition.airdropContract;
+    final artist = artwork.artist;
+    final contract = artwork.contract;
     final df = DateFormat('yyyy-MMM-dd hh:mm');
-    final mintDate = artwork?.createdAt;
+    final mintDate = artwork.createdAt;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1194,7 +1217,7 @@ class FeralfileArtworkDetailsMetadataSection extends StatelessWidget {
           style: theme.textTheme.headline2,
         ),
         const SizedBox(height: 23.0),
-        _rowItem(context, "title".tr(), artwork?.title),
+        _rowItem(context, "title".tr(), artwork.title),
         const Divider(
           height: 32.0,
           color: AppColor.secondarySpanishGrey,
@@ -1202,10 +1225,10 @@ class FeralfileArtworkDetailsMetadataSection extends StatelessWidget {
         _rowItem(
           context,
           "artist".tr(),
-          artist?.getDisplayName(),
-          tapLink: "${Environment.feralFileAPIURL}/profiles/${artist?.id}",
+          artist.getDisplayName(),
+          tapLink: "${Environment.feralFileAPIURL}/profiles/${artist.id}",
         ),
-        if (exhibition.maxEdition > 0) ...[
+        if (artwork.maxEdition > 0) ...[
           const Divider(
             height: 32.0,
             color: AppColor.secondarySpanishGrey,
@@ -1213,7 +1236,7 @@ class FeralfileArtworkDetailsMetadataSection extends StatelessWidget {
           _rowItem(
             context,
             "edition_size".tr(),
-            exhibition.maxEdition.toString(),
+            artwork.maxEdition.toString(),
           ),
         ],
         const Divider(
@@ -1244,7 +1267,7 @@ class FeralfileArtworkDetailsMetadataSection extends StatelessWidget {
         _rowItem(
           context,
           "medium".tr(),
-          artwork?.medium.capitalize() ?? "",
+          artwork.medium.capitalize() ?? "",
         ),
         const Divider(
           height: 32.0,

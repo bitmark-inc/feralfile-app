@@ -19,6 +19,7 @@ import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/service/mixPanel_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 
@@ -286,12 +287,18 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
 
       final metricClient = injector.get<MetricClientService>();
 
-      await metricClient.addEvent(
+      metricClient.addEvent(
         "link_ledger",
         data: {"blockchain": event.blockchain},
         hashedData: {"address": event.address},
       );
 
+      final mixPanelClient = injector.get<MixPanelClientService>();
+      mixPanelClient.trackEvent(
+        "link_ledger",
+        data: {"blockchain": event.blockchain},
+        hashedData: {"address": event.address},
+      );
       add(GetAccountsEvent());
     });
 

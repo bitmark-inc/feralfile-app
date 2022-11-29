@@ -67,7 +67,7 @@ class SettingsDataServiceImpl implements SettingsDataService {
       playlists: _configurationService.getPlayList(),
     );
 
-    final dataBytes = json.encode(data.toJson()).codeUnits;
+    final dataBytes = utf8.encode(json.encode(data.toJson()));
     final dataHash = sha512.convert(dataBytes).toString();
     if (latestDataHash == dataHash) {
       log.info("[SettingsDataService] skip backup because of it's identical");

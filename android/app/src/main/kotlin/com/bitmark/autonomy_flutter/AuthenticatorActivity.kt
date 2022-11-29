@@ -31,7 +31,7 @@ class AuthenticatorActivity : AppCompatActivity() {
 
 
         if (BuildConfig.FLAVOR.equals("inhouse")) {
-            findViewById<AppCompatImageView>(R.id.logo_authentication).setImageResource(R.drawable.penrose_inhouse)
+            findViewById<AppCompatImageView>(R.id.logo_authentication).setImageResource(R.drawable.splash_inhouse)
         }
     }
 

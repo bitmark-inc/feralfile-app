@@ -22,6 +22,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/play_control_service.dart';
+import 'package:autonomy_flutter/service/mixPanel_client_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -81,13 +82,12 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
       Platform.isIOS ? [AUCastDevice(AUCastDeviceType.Airplay)] : [];
   final keyboardManagerKey = GlobalKey<KeyboardManagerWidgetState>();
 
-  final Future<List<CastDevice>> _castDevicesFuture =
-      CastDiscoveryService().search();
   INFTRenderingWidget? _renderingWidget;
 
   final playControlListen = injector.get<ValueNotifier<PlayControlService>>();
   List<ArtworkIdentity> tokens = [];
   Timer? _timer;
+  late int initialPage;
 
   @override
   void initState() {
@@ -96,7 +96,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     if (playControlListen.value.isShuffle && widget.payload.isPlaylist) {
       tokens.shuffle();
     }
-    final initialPage = tokens.indexOf(initialTokenID);
+    initialPage = tokens.indexOf(initialTokenID);
 
     controller = PageController(initialPage: initialPage);
     _bloc = context.read<ArtworkPreviewBloc>();
@@ -112,6 +112,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
           ? time ?? 10
           : playControlListen.value.timer;
       _timer = Timer.periodic(Duration(seconds: defauftDuration), (timer) {
+        if (!(_timer?.isActive ?? false)) return;
         if (playControlListen.value.isLoop &&
             controller.page?.toInt() == tokens.length - 1) {
           controller.jumpTo(0);
@@ -188,8 +189,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
 
     final currentIndex = tokens.indexWhere((element) =>
         element.id == asset.id && element.owner == asset.ownerAddress);
-    if (isImmediateInfoViewEnabled &&
-        currentIndex == widget.payload.currentIndex) {
+    if (isImmediateInfoViewEnabled && currentIndex == initialPage) {
       Navigator.of(context).pop();
       return;
     }
@@ -201,7 +201,10 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
 
     Navigator.of(context).pushNamed(
       AppRouter.artworkDetailsPage,
-      arguments: widget.payload.copyWith(currentIndex: currentIndex),
+      arguments: widget.payload.copyWith(
+        currentIndex: currentIndex,
+        ids: tokens,
+      ),
     );
   }
 
@@ -240,7 +243,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
       context,
       "select_a_device".tr(),
       FutureBuilder<List<CastDevice>>(
-        future: _castDevicesFuture,
+        future: CastDiscoveryService().search(),
         builder: (context, snapshot) {
           if (!snapshot.hasData ||
               snapshot.data!.isEmpty ||
@@ -363,8 +366,8 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
             case AUCastDeviceType.Airplay:
               return GestureDetector(
                   behavior: HitTestBehavior.translucent,
-                  onTap: () async {
-                    await metricClient.addEvent("stream_airplay");
+                  onTap: () {
+                    metricClient.addEvent("stream_airplay");
                   },
                   child: _airplayItem(context, isSubscribed));
             case AUCastDeviceType.Chromecast:
@@ -567,15 +570,21 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                     ),
                     Expanded(
                       child: PageView.builder(
-                        physics: isFullScreen
-                            ? const NeverScrollableScrollPhysics()
-                            : null,
+                        physics: const NeverScrollableScrollPhysics(),
                         onPageChanged: (value) {
+                          _timer?.cancel();
                           final currentId = tokens[value];
                           _bloc
                               .add(ArtworkPreviewGetAssetTokenEvent(currentId));
                           _stopAllChromecastDevices();
                           keyboardManagerKey.currentState?.hideKeyboard();
+                          final mixPanelClient =
+                              injector.get<MixPanelClientService>();
+                          mixPanelClient.trackEvent("Next Artwork",
+                              hashedData: {
+                                "tokenId": currentId.id,
+                                "identity": currentId.id
+                              });
                         },
                         controller: controller,
                         itemCount: tokens.length,
@@ -708,9 +717,12 @@ class ControlView extends StatelessWidget {
                 (assetToken?.medium?.isEmpty ?? true),
             child: const SizedBox(width: 8),
           ),
-          CastButton(
-            assetToken: assetToken,
-            onCastTap: () => onClickCast?.call(assetToken),
+          Visibility(
+            visible: onClickCast != null,
+            child: CastButton(
+              assetToken: assetToken,
+              onCastTap: () => onClickCast?.call(assetToken),
+            ),
           ),
           const SizedBox(width: 8),
           IconButton(

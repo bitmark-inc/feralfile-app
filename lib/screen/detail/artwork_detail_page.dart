@@ -17,11 +17,13 @@ import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
+import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_widget.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
@@ -34,10 +36,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:html_unescape/html_unescape.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:metric_client/metric_client.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/provenance.dart';
 import 'package:nft_collection/nft_collection.dart';
+
+import '../../service/mixPanel_client_service.dart';
 
 part 'artwork_detail_page.g.dart';
 
@@ -68,13 +71,22 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   }
 
   @override
-  void afterFirstLayout(BuildContext context) async {
+  void afterFirstLayout(BuildContext context) {
+    final artworkId =
+        jsonEncode(widget.payload.identities[widget.payload.currentIndex]);
     final metricClient = injector.get<MetricClientService>();
-    await metricClient.addEvent(
+    metricClient.addEvent(
       "view_artwork_detail",
       data: {
-        "id":
-            jsonEncode(widget.payload.identities[widget.payload.currentIndex]),
+        "id": artworkId,
+      },
+    );
+
+    final mixPanelClient = injector.get<MixPanelClientService>();
+    mixPanelClient.trackEvent(
+      "view_artwork",
+      data: {
+        "id": artworkId,
       },
     );
   }
@@ -86,161 +98,158 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
 
     return Stack(
       children: [
-        Scaffold(
-          appBar: getBackAppBar(context,
-              onBack: () => Navigator.of(context).pop(),
-              action: () {
-                if (currentAsset == null) return;
-                _showArtworkOptionsDialog(currentAsset!);
-              }),
-          body: BlocConsumer<ArtworkDetailBloc, ArtworkDetailState>(
-              listener: (context, state) {
-            final identitiesList =
-                state.provenances.map((e) => e.owner).toList();
-            if (state.asset?.artistName != null &&
-                state.asset!.artistName!.length > 20) {
-              identitiesList.add(state.asset!.artistName!);
-            }
-            setState(() {
-              currentAsset = state.asset;
-            });
-
-            context.read<IdentityBloc>().add(GetIdentityEvent(identitiesList));
-          }, builder: (context, state) {
-            if (state.asset != null) {
-              final identityState = context.watch<IdentityBloc>().state;
-              final asset = state.asset!;
-
-              final artistName =
-                  asset.artistName?.toIdentityOrMask(identityState.identityMap);
-
-              var subTitle = "";
-              if (artistName != null && artistName.isNotEmpty) {
-                subTitle = "by".tr(args: [artistName]);
+        SafeArea(
+          child: Scaffold(
+            appBar: getBackAppBar(context,
+                onBack: () => Navigator.of(context).pop(),
+                action: () {
+                  if (currentAsset == null) return;
+                  _showArtworkOptionsDialog(currentAsset!);
+                }),
+            body: BlocConsumer<ArtworkDetailBloc, ArtworkDetailState>(
+                listener: (context, state) {
+              final identitiesList =
+                  state.provenances.map((e) => e.owner).toList();
+              if (state.asset?.artistName != null &&
+                  state.asset!.artistName!.length > 20) {
+                identitiesList.add(state.asset!.artistName!);
               }
+              setState(() {
+                currentAsset = state.asset;
+              });
 
-              return SingleChildScrollView(
-                controller: _scrollController,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 16.0),
-                    Padding(
-                      padding: ResponsiveLayout.getPadding,
-                      child: Semantics(
-                        label: 'Title',
-                        child: Text(
-                          asset.title,
-                          style: theme.textTheme.headline1,
+              context
+                  .read<IdentityBloc>()
+                  .add(GetIdentityEvent(identitiesList));
+            }, builder: (context, state) {
+              if (state.asset != null) {
+                final identityState = context.watch<IdentityBloc>().state;
+                final asset = state.asset!;
+
+                final artistName = asset.artistName
+                    ?.toIdentityOrMask(identityState.identityMap);
+
+                var subTitle = "";
+                if (artistName != null && artistName.isNotEmpty) {
+                  subTitle = "by".tr(args: [artistName]);
+                }
+
+                return SingleChildScrollView(
+                  controller: _scrollController,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 16.0),
+                      Padding(
+                        padding: ResponsiveLayout.getPadding,
+                        child: Semantics(
+                          label: 'Title',
+                          child: Text(
+                            asset.title,
+                            style: theme.textTheme.headline1,
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 8.0),
-                    Padding(
-                      padding: ResponsiveLayout.getPadding,
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.baseline,
-                        textBaseline: TextBaseline.alphabetic,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              subTitle,
-                              style: theme.textTheme.headline3?.copyWith(
-                                fontSize: 18,
+                      const SizedBox(height: 8.0),
+                      Padding(
+                        padding: ResponsiveLayout.getPadding,
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.baseline,
+                          textBaseline: TextBaseline.alphabetic,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                subTitle,
+                                style: theme.textTheme.headline3?.copyWith(
+                                  fontSize: 18,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(
+                              width: 8,
+                            ),
+                            Text(
+                              getEditionSubTitle(asset),
+                              style: theme.textTheme.headline5?.copyWith(
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16.0),
+                      Hero(
+                        tag: asset.id,
+                        child: _ArtworkView(
+                          payload: widget.payload,
+                          token: asset,
+                        ),
+                      ),
+                      Visibility(
+                        visible: asset.assetURL == CHECK_WEB3_PRIMER_URL,
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: SizedBox(
+                              width: 165,
+                              height: 48,
+                              child: AuOutlinedButton(
+                                text: "web3_primer".tr(),
+                                onPress: () {
+                                  Navigator.pushNamed(
+                                      context, AppRouter.previewPrimerPage,
+                                      arguments: asset);
+                                },
                               ),
                             ),
                           ),
-                          const SizedBox(
-                            width: 8,
-                          ),
-                          Text(
-                            getEditionSubTitle(asset),
-                            style: theme.textTheme.headline5?.copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16.0),
-                    GestureDetector(
-                        child: TokenThumbnailWidget(
-                          token: asset,
-                          onHideArtwork: () {
-                            _showArtworkOptionsDialog(asset);
-                          },
                         ),
-                        onTap: () {
-                          if (injector<ConfigurationService>()
-                              .isImmediateInfoViewEnabled()) {
-                            Navigator.of(context).pushNamed(
-                                AppRouter.artworkPreviewPage,
-                                arguments: widget.payload);
-                          } else {
-                            Navigator.of(context).pop();
-                          }
-                        }),
-                    debugInfoWidget(context, currentAsset),
-                    const SizedBox(height: 16.0),
-                    Padding(
-                      padding: ResponsiveLayout.getPadding,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(
-                            width: 165,
-                            height: 48,
-                            child: AuOutlinedButton(
-                              text: "view_artwork".tr(),
-                              onPress: () {
-                                if (injector<ConfigurationService>()
-                                    .isImmediateInfoViewEnabled()) {
-                                  Navigator.of(context).pushNamed(
-                                      AppRouter.artworkPreviewPage,
-                                      arguments: widget.payload);
-                                } else {
-                                  Navigator.of(context).pop();
-                                }
-                              },
-                            ),
-                          ),
-                          const SizedBox(height: 40.0),
-                          Semantics(
-                            label: 'Desc',
-                            child: Text(
-                              unescape.convert(asset.desc ?? ""),
-                              style: theme.textTheme.bodyText1,
-                            ),
-                          ),
-                          artworkDetailsRightSection(context, asset),
-                          const SizedBox(height: 40.0),
-                          artworkDetailsMetadataSection(
-                              context, asset, artistName),
-                          if (asset.fungible == true) ...[
-                            const SizedBox(height: 40.0),
-                            BlocBuilder<AccountsBloc, AccountsState>(
-                              builder: (context, state) {
-                                final addresses = state.addresses;
-                                return tokenOwnership(
-                                    context, asset, addresses);
-                              },
-                            ),
-                          ] else ...[
-                            state.provenances.isNotEmpty
-                                ? _provenanceView(context, state.provenances)
-                                : const SizedBox()
-                          ],
-                          const SizedBox(height: 80.0),
-                        ],
                       ),
-                    )
-                  ],
-                ),
-              );
-            } else {
-              return const SizedBox();
-            }
-          }),
+                      debugInfoWidget(context, currentAsset),
+                      const SizedBox(height: 16.0),
+                      Padding(
+                        padding: ResponsiveLayout.getPadding,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Semantics(
+                              label: 'Desc',
+                              child: Text(
+                                unescape.convert(asset.desc ?? ""),
+                                style: theme.textTheme.bodyText1,
+                              ),
+                            ),
+                            const SizedBox(height: 40.0),
+                            artworkDetailsMetadataSection(
+                                context, asset, artistName),
+                            if (asset.fungible == true) ...[
+                              const SizedBox(height: 40.0),
+                              BlocBuilder<AccountsBloc, AccountsState>(
+                                builder: (context, state) {
+                                  final addresses = state.addresses;
+                                  return tokenOwnership(
+                                      context, asset, addresses);
+                                },
+                              ),
+                            ] else ...[
+                              state.provenances.isNotEmpty
+                                  ? _provenanceView(context, state.provenances)
+                                  : const SizedBox()
+                            ],
+                            artworkDetailsRightSection(context, asset),
+                            const SizedBox(height: 80.0),
+                          ],
+                        ),
+                      )
+                    ],
+                  ),
+                );
+              } else {
+                return const SizedBox();
+              }
+            }),
+          ),
         ),
         Positioned(
           bottom: 0,
@@ -399,6 +408,90 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   }
 }
 
+class _ArtworkView extends StatelessWidget {
+  const _ArtworkView({
+    Key? key,
+    required this.payload,
+    required this.token,
+  }) : super(key: key);
+
+  final ArtworkDetailPayload payload;
+  final AssetToken token;
+
+  @override
+  Widget build(BuildContext context) {
+    final mimeType = token.getMimeType;
+    switch (mimeType) {
+      case "image":
+      case "svg":
+      case 'gif':
+      case "audio":
+      case "video":
+        return Stack(
+          children: [
+            AbsorbPointer(
+              child: Center(
+                child: IntrinsicHeight(
+                  child: ArtworkPreviewWidget(
+                    identity: payload.identities[payload.currentIndex],
+                    isMute: true,
+                  ),
+                ),
+              ),
+            ),
+            Positioned.fill(
+              child: GestureDetector(
+                onTap: () {
+                  if (injector<ConfigurationService>()
+                      .isImmediateInfoViewEnabled()) {
+                    Navigator.of(context).pushNamed(
+                        AppRouter.artworkPreviewPage,
+                        arguments: payload);
+                  } else {
+                    Navigator.of(context).pop();
+                  }
+                },
+                child: Container(
+                  color: Colors.transparent,
+                ),
+              ),
+            ),
+          ],
+        );
+
+      default:
+        return AspectRatio(
+          aspectRatio: 1,
+          child: Stack(
+            children: [
+              Center(
+                child: ArtworkPreviewWidget(
+                  identity: payload.identities[payload.currentIndex],
+                  isMute: true,
+                ),
+              ),
+              GestureDetector(
+                onTap: () {
+                  if (injector<ConfigurationService>()
+                      .isImmediateInfoViewEnabled()) {
+                    Navigator.of(context).pushNamed(
+                        AppRouter.artworkPreviewPage,
+                        arguments: payload);
+                  } else {
+                    Navigator.of(context).pop();
+                  }
+                },
+                child: Container(
+                  color: Colors.transparent,
+                ),
+              ),
+            ],
+          ),
+        );
+    }
+  }
+}
+
 class ArtworkDetailPayload {
   final List<ArtworkIdentity> identities;
   final int currentIndex;
@@ -410,7 +503,7 @@ class ArtworkDetailPayload {
   ArtworkDetailPayload copyWith(
       {List<ArtworkIdentity>? ids, int? currentIndex, bool? isPlaylist}) {
     return ArtworkDetailPayload(
-      ids ?? this.identities,
+      ids ?? identities,
       currentIndex ?? this.currentIndex,
       isPlaylist: isPlaylist ?? this.isPlaylist,
     );

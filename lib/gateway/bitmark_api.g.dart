@@ -6,8 +6,13 @@ part of 'bitmark_api.dart';
 // RetrofitGenerator
 // **************************************************************************
 
+// ignore_for_file: unnecessary_brace_in_string_interps,no_leading_underscores_for_local_identifiers
+
 class _BitmarkApi implements BitmarkApi {
-  _BitmarkApi(this._dio, {this.baseUrl});
+  _BitmarkApi(
+    this._dio, {
+    this.baseUrl,
+  });
 
   final Dio _dio;
 
@@ -15,20 +20,29 @@ class _BitmarkApi implements BitmarkApi {
 
   @override
   Future<Map<String, List<Bitmark>>> getBitmarkIDs(
-      owner, includePending) async {
+    owner,
+    includePending,
+  ) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
       r'owner': owner,
-      r'pending': includePending
+      r'pending': includePending,
     };
     final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
     final _result = await _dio.fetch<Map<String, dynamic>>(
-        _setStreamType<Map<String, List<Bitmark>>>(
-            Options(method: 'GET', headers: _headers, extra: _extra)
-                .compose(_dio.options, '/v1/bitmarks',
-                    queryParameters: queryParameters, data: _data)
-                .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+        _setStreamType<Map<String, List<Bitmark>>>(Options(
+      method: 'GET',
+      headers: _headers,
+      extra: _extra,
+    )
+            .compose(
+              _dio.options,
+              '/v1/bitmarks',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
     var value = _result.data!.map((k, dynamic v) => MapEntry(
         k,
         (v as List)

@@ -7,7 +7,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:uuid/uuid.dart';
-import 'package:uuid/uuid_util.dart';
+import 'package:collection/collection.dart';
 
 class AddNewPlaylistBloc
     extends Bloc<AddNewPlaylistEvent, AddNewPlaylistState> {
@@ -16,7 +16,7 @@ class AddNewPlaylistBloc
     on<InitPlaylist>((event, emit) {
       emit(
         AddNewPlaylistState(
-          playListModel:
+          playListModel: event.playListModel ??
               PlayListModel(tokenIDs: [], thumbnailURL: '', name: ''),
         ),
       );
@@ -68,13 +68,16 @@ class AddNewPlaylistBloc
       final playListModel = state.playListModel;
       playListModel?.name = event.name;
       playListModel?.thumbnailURL = state.tokens
-          ?.firstWhere((element) => element.id == playListModel.tokenIDs?.first)
-          .getGalleryThumbnailUrl();
-      playListModel?.tokenIDs = state.playListModel?.tokenIDs?.toSet().toList();
-      playListModel?.id = const Uuid().v4();
-      await _configurationService.setPlayList([playListModel!]);
-      injector.get<SettingsDataService>().backup();
+          ?.firstWhereOrNull(
+              (element) => element.id == playListModel.tokenIDs?.first)
+          ?.getGalleryThumbnailUrl();
 
+      playListModel?.tokenIDs = state.playListModel?.tokenIDs?.toSet().toList();
+      if (playListModel?.id == null) {
+        playListModel?.id = const Uuid().v4();
+        await _configurationService.setPlayList([playListModel!]);
+        injector.get<SettingsDataService>().backup();
+      }
       emit(state.copyWith(isAddSuccess: true));
     });
   }

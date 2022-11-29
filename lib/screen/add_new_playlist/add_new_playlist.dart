@@ -1,8 +1,8 @@
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/sent_artwork.dart';
 import 'package:autonomy_flutter/screen/add_new_playlist/add_new_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/add_new_playlist/add_new_playlist_state.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -16,10 +16,13 @@ import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:roundcheckbox/roundcheckbox.dart';
 import '../../util/token_ext.dart';
 
 class AddNewPlaylistScreen extends StatefulWidget {
-  const AddNewPlaylistScreen({Key? key}) : super(key: key);
+  final PlayListModel? playListModel;
+  const AddNewPlaylistScreen({Key? key, this.playListModel}) : super(key: key);
 
   @override
   State<AddNewPlaylistScreen> createState() => _AddNewPlaylistScreenState();
@@ -45,7 +48,8 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen> {
       nftBloc.add(RefreshTokenEvent(addresses: value));
       nftBloc.add(RequestIndexEvent(value));
     });
-    bloc.add(InitPlaylist());
+    _playlistNameC.text = widget.playListModel?.name ?? '';
+    bloc.add(InitPlaylist(playListModel: widget.playListModel));
   }
 
   List<AssetToken> setupPlayList({
@@ -81,9 +85,7 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen> {
       bloc: bloc,
       listener: (context, state) {
         if (state.isAddSuccess == true) {
-          Navigator.pop(context);
-          Navigator.pushNamed(context, AppRouter.viewPlayListPage,
-              arguments: state.playListModel);
+          Navigator.pop(context, state.playListModel);
         }
       },
       builder: (context, state) {
@@ -98,9 +100,17 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen> {
               children: [
                 GestureDetector(
                   onTap: () => Navigator.of(context).pop(),
-                  child: Text(
-                    tr('back'),
-                    style: theme.primaryTextTheme.button,
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.navigate_before_sharp,
+                        color: theme.colorScheme.secondary,
+                      ),
+                      Text(
+                        tr('back'),
+                        style: theme.primaryTextTheme.button,
+                      ),
+                    ],
                   ),
                 ),
                 const Spacer(),
@@ -180,7 +190,7 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen> {
                             children: [
                               Text(
                                 tr(
-                                  selectedCount > 1
+                                  selectedCount != 1
                                       ? 'artworks_selected'
                                       : 'artwork_selected',
                                   args: [selectedCount.toString()],
@@ -195,7 +205,8 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen> {
                                   isSeletedAll
                                       ? tr('unselect_all')
                                       : tr('select_all'),
-                                  style: theme.textTheme.atlasWhiteMedium12,
+                                  style: theme.textTheme.whitelinkStyle
+                                      .copyWith(fontSize: 12),
                                 ),
                               ),
                             ],
@@ -279,6 +290,8 @@ class ThubnailPlaylistItem extends StatefulWidget {
   final AssetToken token;
   final Function(bool?)? onChanged;
   final int cachedImageSize;
+  final bool showTriggerOrder;
+
   const ThubnailPlaylistItem({
     Key? key,
     required this.token,
@@ -286,6 +299,7 @@ class ThubnailPlaylistItem extends StatefulWidget {
     this.showSelect = true,
     this.isSelected = false,
     this.onChanged,
+    this.showTriggerOrder = false,
   }) : super(key: key);
 
   @override
@@ -333,17 +347,40 @@ class _ThubnailPlaylistItemState extends State<ThubnailPlaylistItem> {
             ),
           ),
           Positioned(
-            top: 0,
-            right: 0,
+            top: 10,
+            right: 10,
             child: Visibility(
               visible: widget.showSelect,
-              child: Checkbox(
-                checkColor: Colors.white,
-                fillColor: MaterialStateProperty.all(theme.primaryColor),
-                side: const BorderSide(color: Colors.white, width: 10),
-                value: isSelected,
-                shape: const CircleBorder(),
-                onChanged: onChanged,
+              child: RoundCheckBox(
+                uncheckedColor: theme.colorScheme.secondary,
+                checkedColor: theme.colorScheme.primary,
+                checkedWidget: Icon(
+                  Icons.check,
+                  color: theme.colorScheme.secondary,
+                  size: 20,
+                ),
+                animationDuration: const Duration(milliseconds: 100),
+                isChecked: isSelected,
+                size: 24,
+                onTap: onChanged,
+              ),
+            ),
+          ),
+          Visibility(
+            visible: widget.showTriggerOrder,
+            child: Positioned(
+              bottom: 10,
+              left: 0,
+              right: 0,
+              child: Align(
+                child: Container(
+                  width: 24,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(60),
+                    color: theme.colorScheme.secondary,
+                  ),
+                ),
               ),
             ),
           ),

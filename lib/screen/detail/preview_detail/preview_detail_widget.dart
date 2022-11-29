@@ -9,7 +9,7 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_state.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -22,11 +22,14 @@ class ArtworkPreviewWidget extends StatefulWidget {
   final ArtworkIdentity identity;
   final Function({int? time})? onLoaded;
   final Function({int? time})? onDispose;
+  final bool isMute;
+
   const ArtworkPreviewWidget({
     Key? key,
     required this.identity,
     this.onLoaded,
     this.onDispose,
+    this.isMute = false,
   }) : super(key: key);
 
   @override
@@ -37,7 +40,7 @@ class _ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
     with WidgetsBindingObserver, RouteAware {
   final bloc = ArtworkPreviewDetailBloc(
       GetIt.instance.get<NftCollectionBloc>().database.assetDao,
-      GetIt.instance.get<ConfigurationService>());
+      GetIt.instance.get<EthereumService>());
 
   INFTRenderingWidget? _renderingWidget;
 
@@ -112,6 +115,8 @@ class _ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
                         attempt: attempt > 0 ? attempt : null,
                         onLoaded: widget.onLoaded,
                         onDispose: widget.onLoaded,
+                        overriddenHtml: state.overriddenHtml,
+                        isMute: widget.isMute,
                       );
                     }
 

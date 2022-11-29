@@ -11,8 +11,8 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/branch_api.dart';
 import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/model/airdrop_data.dart';
 import 'package:autonomy_flutter/model/otp.dart';
-import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -27,6 +27,7 @@ import 'package:autonomy_flutter/util/wallet_connect_ext.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_branch_sdk/flutter_branch_sdk.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:uni_links/uni_links.dart';
 
 abstract class DeeplinkService {
@@ -45,6 +46,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
   final BranchApi _branchApi;
 
   String? currentExhibitionId;
+  String? handlingDeepLink;
 
   DeeplinkServiceImpl(
     this._configurationService,
@@ -58,11 +60,14 @@ class DeeplinkServiceImpl extends DeeplinkService {
 
   @override
   Future setup() async {
-    FlutterBranchSdk.initSession().listen((data) {
+    FlutterBranchSdk.initSession().listen((data) async {
       log.info("[DeeplinkService] _handleFeralFileDeeplink with Branch");
 
       if (data["+clicked_branch_link"] == true) {
-        _handleBranchDeeplinkData(data);
+        _deepLinkHandleClock(
+            "Handle Branch Deep Link Data Time Out", data["source"]);
+        await _handleBranchDeeplinkData(data);
+        handlingDeepLink = null;
       }
     }, onError: (error) {
       log.warning(
@@ -93,14 +98,15 @@ class DeeplinkServiceImpl extends DeeplinkService {
 
     Timer.periodic(delay, (timer) async {
       timer.cancel();
-      _handleDappConnectDeeplink(link) ||
-          _handleFeralFileDeeplink(link) ||
+      _deepLinkHandleClock("Handle Deep Link Time Out", link);
+      await _handleDappConnectDeeplink(link) ||
+          await _handleFeralFileDeeplink(link) ||
           await _handleBranchDeeplink(link);
+      handlingDeepLink = null;
     });
   }
 
-  bool _handleDappConnectDeeplink(String link) {
-
+  Future<bool> _handleDappConnectDeeplink(String link) async {
     log.info("[DeeplinkService] _handleDappConnectDeeplink");
     final wcPrefixes = [
       "https://au.bitmark.com/apps/wc?uri=",
@@ -134,9 +140,9 @@ class DeeplinkServiceImpl extends DeeplinkService {
       final wcUri = link.substring(callingWCPrefix.length);
       final decodedWcUri = Uri.decodeFull(wcUri);
       if (decodedWcUri.isAutonomyConnectUri) {
-        _walletConnect2Service.connect(decodedWcUri);
+        await _walletConnect2Service.connect(decodedWcUri);
       } else {
-        _walletConnectService.connect(decodedWcUri);
+        await _walletConnectService.connect(decodedWcUri);
       }
       return true;
     }
@@ -145,7 +151,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
         tzPrefixes.firstWhereOrNull((prefix) => link.startsWith(prefix));
     if (callingTBPrefix != null) {
       final tzUri = link.substring(callingTBPrefix.length);
-      _tezosBeaconService.addPeer(tzUri);
+      await _tezosBeaconService.addPeer(tzUri);
       return true;
     }
 
@@ -153,9 +159,9 @@ class DeeplinkServiceImpl extends DeeplinkService {
         .firstWhereOrNull((prefix) => link.startsWith(prefix));
     if (callingWCDeeplinkPrefix != null) {
       if (link.isAutonomyConnectUri) {
-         _walletConnect2Service.connect(link);
+        await _walletConnect2Service.connect(link);
       } else {
-        _walletConnectService.connect(link);
+        await _walletConnectService.connect(link);
       }
       return true;
     }
@@ -163,7 +169,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
     final callingTBDeeplinkPrefix = tbDeeplinkPrefixes
         .firstWhereOrNull((prefix) => link.startsWith(prefix));
     if (callingTBDeeplinkPrefix != null) {
-      _tezosBeaconService.addPeer(link);
+      await _tezosBeaconService.addPeer(link);
       if (_configurationService.isDoneOnboarding()) {
         _navigationService.showContactingDialog();
       }
@@ -173,11 +179,12 @@ class DeeplinkServiceImpl extends DeeplinkService {
     return false;
   }
 
-  bool _handleFeralFileDeeplink(String link) {
+  Future<bool> _handleFeralFileDeeplink(String link) async {
     log.info("[DeeplinkService] _handleFeralFileDeeplink");
 
     if (link.startsWith(FF_TOKEN_DEEPLINK_PREFIX)) {
-      _linkFeralFileToken(link.replacePrefix(FF_TOKEN_DEEPLINK_PREFIX, ""));
+      await _linkFeralFileToken(
+          link.replacePrefix(FF_TOKEN_DEEPLINK_PREFIX, ""));
       return true;
     }
 
@@ -187,7 +194,10 @@ class DeeplinkServiceImpl extends DeeplinkService {
   Future<bool> _handleBranchDeeplink(String link) async {
     log.info("[DeeplinkService] _handleBranchDeeplink");
     //star
-    memoryValues.airdropFFExhibitionId.value = Pair('', null);
+    memoryValues.airdropFFExhibitionId.value = AirdropQrData(
+      exhibitionId: '',
+      artworkId: '',
+    );
     if (Constants.branchDeepLinks.any((prefix) => link.startsWith(prefix))) {
       final response = await _branchApi.getParams(Environment.branchKey, link);
       _handleBranchDeeplinkData(response["data"]);
@@ -196,19 +206,20 @@ class DeeplinkServiceImpl extends DeeplinkService {
     return false;
   }
 
-  void _handleBranchDeeplinkData(Map<dynamic, dynamic> data) {
+  Future<void> _handleBranchDeeplinkData(Map<dynamic, dynamic> data) async {
     final source = data["source"];
     switch (source) {
       case "FeralFile":
         final String? tokenId = data["token_id"];
         if (tokenId != null) {
           log.info("[DeeplinkService] _linkFeralFileToken $tokenId");
-          _linkFeralFileToken(tokenId);
+          await _linkFeralFileToken(tokenId);
         }
         memoryValues.airdropFFExhibitionId.value = null;
         break;
       case "FeralFile_AirDrop":
         final String? exhibitionId = data["exhibition_id"];
+        final String? artworkId = data["artwork_id"];
         final String? expiredAt = data["expired_at"];
 
         if (expiredAt != null &&
@@ -219,9 +230,10 @@ class DeeplinkServiceImpl extends DeeplinkService {
           break;
         }
 
-        if (exhibitionId != null) {
+        if (exhibitionId?.isNotEmpty == true || artworkId?.isNotEmpty == true) {
           _claimFFAirdropToken(
-            exhibitionId,
+            exhibitionId: exhibitionId,
+            artworkId: artworkId,
             otp: _getOtpFromBranchData(data),
           );
         }
@@ -251,33 +263,39 @@ class DeeplinkServiceImpl extends DeeplinkService {
     }
   }
 
-  Future _claimFFAirdropToken(
-    String exhibitionId, {
+  Future _claimFFAirdropToken({
+    String? exhibitionId,
+    String? artworkId,
     Otp? otp,
   }) async {
     log.info(
         "[DeeplinkService] Claim FF Airdrop token. Exhibition $exhibitionId, otp: ${otp?.toJson()}");
-    if (currentExhibitionId == exhibitionId) {
+    final id = "${exhibitionId}_${artworkId}_${otp?.code}";
+    if (currentExhibitionId == id) {
       return;
     }
     try {
-      currentExhibitionId = exhibitionId;
+      currentExhibitionId = id;
       final doneOnboarding = _configurationService.isDoneOnboarding();
       if (doneOnboarding) {
-        final exhibitionFuture = _feralFileService.getExhibition(exhibitionId);
+        final artworkFuture = (artworkId?.isNotEmpty == true)
+            ? _feralFileService.getArtwork(artworkId!)
+            : _feralFileService.getAirdropArtworkFromExhibitionId(exhibitionId!);
+
         await Future.delayed(const Duration(seconds: 1), () {
           _navigationService.popUntilHomeOrSettings();
         });
-        final exhibition = await exhibitionFuture;
-        final endTime = exhibition.airdropInfo?.endedAt;
-        if (exhibition.airdropInfo == null ||
+
+        final artwork = await artworkFuture;
+        final endTime = artwork.airdropInfo?.endedAt;
+        if (artwork.airdropInfo == null ||
             (endTime != null && endTime.isBefore(DateTime.now()))) {
           await _navigationService.showAirdropExpired();
-        } else if (exhibition.airdropInfo?.isAirdropStarted != true) {
+        } else if (artwork.airdropInfo?.isAirdropStarted != true) {
           await _navigationService.showAirdropNotStarted();
-        } else if (exhibition.airdropInfo?.remainAmount == 0) {
+        } else if (artwork.airdropInfo?.remainAmount == 0) {
           await _navigationService.showNoRemainingToken(
-            exhibition: exhibition,
+            artwork: artwork,
           );
         } else if (otp?.isExpired == true) {
           await _navigationService.showOtpExpired();
@@ -286,13 +304,18 @@ class DeeplinkServiceImpl extends DeeplinkService {
             currentExhibitionId = null;
           });
           await _navigationService.openClaimTokenPage(
-            exhibition,
+            artwork,
             otp: otp,
           );
         }
         currentExhibitionId = null;
       } else {
-        memoryValues.airdropFFExhibitionId.value = Pair(exhibitionId, otp);
+        memoryValues.airdropFFExhibitionId.value = AirdropQrData(
+          exhibitionId: exhibitionId,
+          artworkId: artworkId,
+          otp: otp,
+        );
+        handlingDeepLink = null;
         await Future.delayed(const Duration(seconds: 5), () {
           currentExhibitionId = null;
         });
@@ -301,6 +324,18 @@ class DeeplinkServiceImpl extends DeeplinkService {
       log.info("[DeeplinkService] _claimFFAirdropToken error $e");
       currentExhibitionId = null;
     }
+  }
+
+  Future<void> _deepLinkHandleClock(String message, String param,
+      {Duration duration = const Duration(seconds: 2)}) async {
+    handlingDeepLink = message;
+    Future.delayed(duration, () {
+      if (handlingDeepLink != null) {
+        Sentry.captureMessage(message,
+            level: SentryLevel.warning, params: [param]);
+      }
+      handlingDeepLink = null;
+    });
   }
 }
 

@@ -78,15 +78,16 @@ dependencies:
   libauk_dart:
     git:
       url: https://github.com/autonomy-system/libauk-dart.git
-      ref: 4e9a90910ab451183ea49dec540d1a65c45a903d
+      ref: b944f87fd68bc1076646a584a6c460721cfa9445
   local_auth: ^2.1.0
   logging: ^1.0.2
   mime: ^1.0.1
+  mixpanel_flutter: ^2.0.0
   modal_bottom_sheet: ^2.0.0
   nft_rendering:
     git:
       url: https://github.com/autonomy-system/nft-rendering.git
-      ref: 6e4781b4950e2cc81f86a384e1ce63545653c260
+      ref: 32d0e927c95ac85eb9cfbd3b870ca82e2b5550f7
   onesignal_flutter: ^3.3.0
   open_settings: ^2.0.2
   overlay_support: ^2.0.0
@@ -134,7 +135,7 @@ dependencies:
   nft_collection:
     git:
       url: https://github.com/autonomy-system/nft-collection
-      ref: b9ef57c2f3526706fa178f979cc22685d504bffa
+      ref: fa162ff62bf421b1dd1ae4f232da086fd3526433
   flutter_branch_sdk: ^6.1.0
   flutter_rating_bar: ^4.0.1
   metric_client:
@@ -144,6 +145,11 @@ dependencies:
   dotenv: ^4.0.1
   auto_size_text: ^3.0.0
   uri: ^1.0.0
+  reorderable_grid_view: ^2.2.5
+  eth_sig_util:
+    git:
+      url: https://github.com/autonomy-system/eth-sig-util.git
+      ref: 15334dee6a5bbd3047ce3af2bdd061906a2094e2
 
 dependency_overrides:
   # Error using when import photo_view from dependencies:
@@ -180,6 +186,7 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - .env
+    - assets/erc20-abi.json
     - assets/erc721-abi.json
     - assets/erc1155-abi.json
     - assets/images/

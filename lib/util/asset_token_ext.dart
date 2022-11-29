@@ -1,5 +1,18 @@
+import 'dart:convert';
+import 'dart:ffi';
 import 'dart:io';
 
+import 'package:autonomy_flutter/util/log.dart';
+import 'package:crypto/crypto.dart';
+import 'package:flutter/foundation.dart';
+import 'package:libauk_dart/libauk_dart.dart';
+import 'package:nft_collection/models/asset_token.dart';
+import 'package:nft_rendering/nft_rendering.dart';
+// ignore: depend_on_referenced_packages
+import 'package:path/path.dart' as p;
+import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:uri/uri.dart';
+import 'iterable_ext.dart';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
@@ -9,9 +22,7 @@ import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
-import 'package:libauk_dart/libauk_dart.dart';
-import 'package:nft_collection/models/asset_token.dart';
-import 'package:uri/uri.dart';
+import 'package:web3dart/crypto.dart';
 
 extension AssetTokenExtension on AssetToken {
   static final Map<String, Map<String, String>> _tokenUrlMap = {
@@ -21,7 +32,8 @@ extension AssetTokenExtension on AssetToken {
     },
     "TEST": {
       "ethereum": "https://goerli.etherscan.io/token/{contract}?a={tokenId}",
-      "tezos": "https://kathmandunet.tzkt.io/{contract}/tokens/{tokenId}/transfers"
+      "tezos":
+          "https://kathmandunet.tzkt.io/{contract}/tokens/{tokenId}/transfers"
     }
   };
 
@@ -45,7 +57,8 @@ extension AssetTokenExtension on AssetToken {
 
   Future<WalletStorage?> getOwnerWallet() async {
     if (contractAddress == null || tokenId == null) return null;
-    if (!(blockchain == "ethereum" && contractType == "erc721") &&
+    if (!(blockchain == "ethereum" &&
+            (contractType == "erc721" || contractType == "erc1155")) &&
         !(blockchain == "tezos" && contractType == "fa2")) return null;
 
     //check asset is able to send
@@ -83,16 +96,43 @@ extension AssetTokenExtension on AssetToken {
       final id = (contractAddress == "KT1F6EKvGq8CKJhgsBy3GUJMSS9KPKn1UD5D")
           ? _intToHex(tokenId!)
           : tokenId;
+
       builder.queryParameters
         ..putIfAbsent("edition_index", () => "$edition")
         ..putIfAbsent("edition_number", () => "$edition")
         ..putIfAbsent("blockchain", () => blockchain)
         ..putIfAbsent("token_id", () => "$id")
         ..putIfAbsent("contract", () => "$contractAddress");
+      if (contractAddress == "KT1F6EKvGq8CKJhgsBy3GUJMSS9KPKn1UD5D" ||
+          (builder.queryParameters['token_id_hash']?.isNotEmpty ?? false)) {
+        return builder.build().toString();
+      }
+
+      final tokenHash = digestHex2Hash(id ?? '');
+      builder.queryParameters.putIfAbsent("token_id_hash", () => tokenHash);
+
       return builder.build().toString();
     } catch (e) {
       return originUrl;
     }
+  }
+
+  String? tokenIdHex() => tokenId != null ? _intToHex(tokenId!) : null;
+
+  String digestHex2Hash(String tokenId) {
+    final bigint = BigInt.tryParse(tokenId, radix: 10);
+    if (bigint == null) {
+      log.info('digestHex2Hash convert BigInt null');
+      return '';
+    }
+
+    String hex = bigint.toRadixString(16);
+    if (hex.length.isOdd) {
+      hex = '0$hex';
+    }
+    final bytes = hexToBytes(hex);
+    final hashHex = '0x${sha256.convert(bytes).toString()}';
+    return hashHex;
   }
 
   String? getPreviewUrl() {
@@ -103,6 +143,56 @@ extension AssetTokenExtension on AssetToken {
       return source?.toLowerCase() == "feralfile" ? _multiUniqueUrl(url) : url;
     }
     return null;
+  }
+
+  String get getMimeType {
+    switch (mimeType) {
+      case "image/avif":
+      case "image/bmp":
+      case "image/jpeg":
+      case "image/png":
+      case "image/tiff":
+        return RenderingType.image;
+
+      case "image/svg+xml":
+        return RenderingType.svg;
+
+      case "image/gif":
+        return RenderingType.gif;
+
+      case "audio/aac":
+      case "audio/midi":
+      case "audio/x-midi":
+      case "audio/mpeg":
+      case "audio/ogg":
+      case "audio/opus":
+      case "audio/wav":
+      case "audio/webm":
+      case "audio/3gpp":
+        return RenderingType.audio;
+
+      case "video/x-msvideo":
+      case "video/3gpp":
+      case "video/mp4":
+      case "video/mpeg":
+      case "video/ogg":
+      case "video/3gpp2":
+      case "application/x-mpegURL":
+        return RenderingType.video;
+
+      case "application/pdf":
+        return RenderingType.pdf;
+
+      default:
+        if (mimeType?.isNotEmpty ?? false) {
+          Sentry.captureMessage(
+            'Unsupport mimeType: $mimeType',
+            level: SentryLevel.warning,
+            params: [id],
+          );
+        }
+        return mimeType ?? RenderingType.webview;
+    }
   }
 
   String? getThumbnailUrl() {
@@ -130,7 +220,7 @@ extension AssetTokenExtension on AssetToken {
           break;
 
         case "TESTNET_ethereum":
-          url = "https://rinkeby.etherscan.io/address/$contractAddress}";
+          url = "https://goerli.etherscan.io/address/$contractAddress";
           break;
 
         case "MAINNET_tezos":
@@ -139,10 +229,10 @@ extension AssetTokenExtension on AssetToken {
           break;
 
         case "MAINNET_bitmark":
-          url = "https://registry.bitmark.com/bitmark/$id";
+          url = "https://registry.bitmark.com/bitmark/$tokenId";
           break;
         case "TESTNET_bitmark":
-          url = "https://registry.test.bitmark.com/bitmark/$id";
+          url = "https://registry.test.bitmark.com/bitmark/$tokenId";
           break;
       }
     }
@@ -176,46 +266,46 @@ String _refineToCloudflareURL(String url, String thumbnailID, String variant) {
 }
 
 AssetToken createPendingAssetToken({
-  required Exhibition exhibition,
+  required FFArtwork artwork,
   required String owner,
   required String tokenId,
 }) {
-  final indexerId = exhibition.airdropInfo?.getTokenIndexerId(tokenId);
-  final artwork = exhibition.airdropArtwork;
-  final artist = exhibition.getArtist(artwork);
-  final contract = exhibition.airdropContract;
+  final indexerId = artwork.airdropInfo?.getTokenIndexerId(tokenId);
+  final artist = artwork.artist;
+  final exhibition = artwork.exhibition;
+  final contract = artwork.contract;
   return AssetToken(
-    artistName: artist?.fullName ?? artist?.alias,
+    artistName: artist.fullName,
     artistURL: null,
-    artistID: artist?.id,
+    artistID: artist.id,
     assetData: null,
     assetID: null,
     assetURL: null,
     basePrice: null,
     baseCurrency: null,
-    blockchain: exhibition.mintBlockchain.toLowerCase(),
+    blockchain: exhibition?.mintBlockchain.toLowerCase() ?? "tezos",
     blockchainUrl: null,
     fungible: false,
     contractType: null,
     tokenId: tokenId,
     contractAddress: contract?.address,
-    desc: artwork?.description,
+    desc: artwork.description,
     edition: 0,
     editionName: "",
     id: indexerId ?? "",
-    maxEdition: exhibition.maxEdition,
+    maxEdition: artwork.maxEdition,
     medium: null,
     mimeType: null,
-    mintedAt: artwork?.createdAt != null
-        ? dateFormatterYMDHM.format(artwork!.createdAt!).toUpperCase()
+    mintedAt: artwork.createdAt != null
+        ? dateFormatterYMDHM.format(artwork.createdAt!).toUpperCase()
         : null,
-    previewURL: exhibition.getThumbnailURL(),
-    source: "feralfile-airdrop",
+    previewURL: artwork.thumbnailFileURI,
+    source: "airdrop",
     sourceURL: null,
     thumbnailID: null,
-    thumbnailURL: exhibition.getThumbnailURL(),
-    galleryThumbnailURL: exhibition.getThumbnailURL(),
-    title: exhibition.title,
+    thumbnailURL: artwork.thumbnailFileURI,
+    galleryThumbnailURL: artwork.galleryThumbnailFileURI,
+    title: artwork.title,
     balance: 0,
     ownerAddress: owner,
     owners: {

@@ -45,11 +45,11 @@ Exhibition _$ExhibitionFromJson(Map<String, dynamic> json) => Exhibition(
       DateTime.parse(json['exhibitionEndAt'] as String),
       json['coverURI'] as String?,
       json['thumbnailCoverURI'] as String?,
-      (json['artists'] as List<dynamic>)
-          .map((e) => FFArtist.fromJson(e as Map<String, dynamic>))
+      (json['artists'] as List<dynamic>?)
+          ?.map((e) => FFArtist.fromJson(e as Map<String, dynamic>))
           .toList(),
-      (json['artworks'] as List<dynamic>)
-          .map((e) => FFArtwork.fromJson(e as Map<String, dynamic>))
+      (json['artworks'] as List<dynamic>?)
+          ?.map((e) => FFArtwork.fromJson(e as Map<String, dynamic>))
           .toList(),
       (json['contracts'] as List<dynamic>?)
           ?.map((e) => FFContract.fromJson(e as Map<String, dynamic>))
@@ -117,6 +117,10 @@ FFArtwork _$FFArtworkFromJson(Map<String, dynamic> json) => FFArtwork(
           ? null
           : FFArtworkSettings.fromJson(
               json['settings'] as Map<String, dynamic>),
+      FFArtist.fromJson(json['artist'] as Map<String, dynamic>),
+      json['exhibition'] == null
+          ? null
+          : Exhibition.fromJson(json['exhibition'] as Map<String, dynamic>),
       json['airdropInfo'] == null
           ? null
           : AirdropInfo.fromJson(json['airdropInfo'] as Map<String, dynamic>),
@@ -134,6 +138,8 @@ Map<String, dynamic> _$FFArtworkToJson(FFArtwork instance) => <String, dynamic>{
       'thumbnailFileURI': instance.thumbnailFileURI,
       'galleryThumbnailFileURI': instance.galleryThumbnailFileURI,
       'settings': instance.settings,
+      'artist': instance.artist,
+      'exhibition': instance.exhibition,
       'airdropInfo': instance.airdropInfo,
       'createdAt': instance.createdAt?.toIso8601String(),
     };

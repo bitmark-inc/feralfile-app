@@ -58,7 +58,7 @@ class _NameLinkedAccountPageState extends State<NameLinkedAccountPage> {
         onBack: null,
       ),
       body: Container(
-        margin: ResponsiveLayout.pageEdgeInsets,
+        margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

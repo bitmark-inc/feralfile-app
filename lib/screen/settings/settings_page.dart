@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
+import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/connection/accounts_view.dart';
 import 'package:autonomy_flutter/screen/settings/forget_exist/forget_exist_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/forget_exist/forget_exist_view.dart';
@@ -341,6 +342,7 @@ class _SettingsPageState extends State<SettingsPage>
       "rebuild".tr(),
       () async {
         await injector<NftCollectionBloc>().tokensService.purgeCachedGallery();
+        context.read<IdentityBloc>().add(RemoveAllEvent());
         if (!mounted) return;
         Navigator.of(context).popUntil((route) =>
             route.settings.name == AppRouter.homePage ||

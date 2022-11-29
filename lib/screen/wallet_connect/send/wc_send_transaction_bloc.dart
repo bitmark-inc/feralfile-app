@@ -69,7 +69,7 @@ class WCSendTransactionBloc
       final WalletStorage persona = LibAukDart.getWallet(event.uuid);
 
       final txHash = await _ethereumService.sendTransaction(
-          persona, event.to, event.value, event.gas, event.data);
+          persona, event.to, event.value, event.data);
       if (event.isWalletConnect2) {
         await _wc2Service.respondOnApprove(event.topic ?? "", txHash);
       } else {

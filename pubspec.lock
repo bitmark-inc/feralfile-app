@@ -129,6 +129,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.2.1"
+  buffer:
+    dependency: transitive
+    description:
+      name: buffer
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.1.1"
   build:
     dependency: transitive
     description:
@@ -479,6 +486,15 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.5"
+  eth_sig_util:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: "15334dee6a5bbd3047ce3af2bdd061906a2094e2"
+      resolved-ref: "15334dee6a5bbd3047ce3af2bdd061906a2094e2"
+      url: "https://github.com/autonomy-system/eth-sig-util.git"
+    source: git
+    version: "0.0.8"
   fake_async:
     dependency: transitive
     description:
@@ -1051,8 +1067,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "4e9a90910ab451183ea49dec540d1a65c45a903d"
-      resolved-ref: "4e9a90910ab451183ea49dec540d1a65c45a903d"
+      ref: b944f87fd68bc1076646a584a6c460721cfa9445
+      resolved-ref: b944f87fd68bc1076646a584a6c460721cfa9445
       url: "https://github.com/autonomy-system/libauk-dart.git"
     source: git
     version: "0.0.1"
@@ -1170,6 +1186,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.2"
+  mixpanel_flutter:
+    dependency: "direct main"
+    description:
+      name: mixpanel_flutter
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.0.0"
   mockito:
     dependency: "direct dev"
     description:
@@ -1195,8 +1218,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: b9ef57c2f3526706fa178f979cc22685d504bffa
-      resolved-ref: b9ef57c2f3526706fa178f979cc22685d504bffa
+      ref: fa162ff62bf421b1dd1ae4f232da086fd3526433
+      resolved-ref: fa162ff62bf421b1dd1ae4f232da086fd3526433
       url: "https://github.com/autonomy-system/nft-collection"
     source: git
     version: "0.0.1"
@@ -1204,8 +1227,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "6e4781b4950e2cc81f86a384e1ce63545653c260"
-      resolved-ref: "6e4781b4950e2cc81f86a384e1ce63545653c260"
+      ref: "32d0e927c95ac85eb9cfbd3b870ca82e2b5550f7"
+      resolved-ref: "32d0e927c95ac85eb9cfbd3b870ca82e2b5550f7"
       url: "https://github.com/autonomy-system/nft-rendering.git"
     source: git
     version: "1.0.9"
@@ -1547,6 +1570,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.1.0"
+  reorderable_grid_view:
+    dependency: "direct main"
+    description:
+      name: reorderable_grid_view
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.2.5"
   retrofit:
     dependency: "direct main"
     description:

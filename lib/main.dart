@@ -12,12 +12,12 @@ import 'dart:ui';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
-import 'package:autonomy_flutter/model/otp.dart';
-import 'package:autonomy_flutter/model/pair.dart';
+import 'package:autonomy_flutter/model/airdrop_data.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/service/mixPanel_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/au_file_service.dart';
 import 'package:autonomy_flutter/util/device.dart';
@@ -39,7 +39,7 @@ import 'package:overlay_support/overlay_support.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:metric_client/metric_client.dart';
+import 'package:mixpanel_flutter/mixpanel_flutter.dart';
 
 void main() async {
   await dotenv.load();
@@ -107,6 +107,9 @@ _setupApp() async {
 
   final metricClient = injector.get<MetricClientService>();
   metricClient.initService();
+
+  final mixPanelClient = injector.get<MixPanelClientService>();
+  mixPanelClient.initService();
 
   final countOpenApp = injector<ConfigurationService>().countOpenApp() ?? 0;
   injector<ConfigurationService>().setCountOpenApp(countOpenApp + 1);
@@ -185,7 +188,7 @@ class MemoryValues {
   String? viewingSupportThreadIssueID;
   DateTime? inForegroundAt;
   bool inGalleryView;
-  ValueNotifier<Pair<String, Otp?>?> airdropFFExhibitionId;
+  ValueNotifier<AirdropQrData?> airdropFFExhibitionId;
   List<Connection>? linkedFFConnections = [];
   ValueNotifier<String?> deepLink;
 
@@ -218,3 +221,4 @@ void downloadCallback(String id, DownloadTaskStatus status, int progress) {
 }
 
 void imageError(Object exception, StackTrace? stackTrace) {}
+

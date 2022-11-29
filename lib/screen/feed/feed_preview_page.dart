@@ -13,17 +13,21 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/feed.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
+import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_bloc.dart';
+import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_state.dart';
 import 'package:autonomy_flutter/screen/feed/feed_bloc.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/service/mixPanel_client_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
-
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -31,10 +35,10 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:get_it/get_it.dart';
 import 'package:nft_collection/models/asset_token.dart';
+import 'package:nft_collection/widgets/nft_collection_bloc.dart';
 import 'package:nft_rendering/nft_rendering.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:wakelock/wakelock.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 
 class FeedPreviewPage extends StatefulWidget {
   const FeedPreviewPage({Key? key}) : super(key: key);
@@ -79,9 +83,13 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
   }
 
   @override
-  Future<void> afterFirstLayout(BuildContext context) async {
+  void afterFirstLayout(BuildContext context) {
     final metricClient = injector.get<MetricClientService>();
-    await metricClient.addEvent(
+    metricClient.addEvent(
+      "view_discovery",
+    );
+    final mixPanelClient = injector.get<MixPanelClientService>();
+    mixPanelClient.trackEvent(
       "view_discovery",
     );
   }
@@ -169,6 +177,19 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
                       PageView.builder(
                         controller: _controller,
                         onPageChanged: (value) {
+                          final event = state.feedEvents![value];
+                          final asset = state.feedTokens![value];
+                          final neededIdentities = [
+                            asset?.artistName ?? '',
+                            event.recipient
+                          ];
+                          neededIdentities
+                              .removeWhere((element) => element == '');
+                          if (neededIdentities.isNotEmpty) {
+                            context
+                                .read<IdentityBloc>()
+                                .add(GetIdentityEvent(neededIdentities));
+                          }
                           _bloc.add(ChangePageEvent(index: value));
                         },
                         itemCount: feedTokens?.length,
@@ -298,12 +319,6 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
   }
 
   Widget _controlView(FeedEvent event, AssetToken? asset) {
-    final neededIdentities = [asset?.artistName ?? '', event.recipient];
-    neededIdentities.removeWhere((element) => element == '');
-    if (neededIdentities.isNotEmpty) {
-      context.read<IdentityBloc>().add(GetIdentityEvent(neededIdentities));
-    }
-
     if (asset == null) {
       return _controlViewWhenNoAsset(event);
     }
@@ -447,10 +462,9 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
     double safeAreaTop = MediaQuery.of(context).padding.top;
     final theme = Theme.of(context);
     return Padding(
-      padding: ResponsiveLayout.pageEdgeInsets
-          .copyWith(top: safeAreaTop + 2, right: 5),
-      child: Stack(
-        children: [
+        padding: ResponsiveLayout.pageEdgeInsets
+            .copyWith(top: safeAreaTop + 2, right: 5),
+        child: Stack(children: [
           // loading
           if (appFeedData == null) ...[
             Center(
@@ -464,28 +478,27 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
                   Text(
                     "loading...".tr(),
                     style: ResponsiveLayout.isMobile
-                    ? theme.textTheme.atlasGreyNormal12
+                        ? theme.textTheme.atlasGreyNormal12
                         : theme.textTheme.atlasGreyNormal14,
                   ),
                 ],
               ),
             )
-          ]
-          else if (appFeedData.events.isEmpty) ...[
-            Column(
-              children:[
-                const SizedBox(height: 100),
-                Container(
-                  padding: ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, left: 0, bottom: 0),
-                  child: Text(
-                    "discovery_keep_you_up".tr(),
-                    //'Discovery keeps you up to date on what your favorite artists are creating and collecting.
-                    // For now they haven’t created or collected anything new yet. Once they do, you can view it here. ',
-                    style: theme.primaryTextTheme.bodyText1,
-                    textAlign: TextAlign.justify,
-                  ),
-                )]
-            )
+          ] else if (appFeedData.events.isEmpty) ...[
+            Column(children: [
+              const SizedBox(height: 100),
+              Container(
+                padding: ResponsiveLayout.pageEdgeInsets
+                    .copyWith(top: 0, left: 0, bottom: 0),
+                child: Text(
+                  "discovery_keep_you_up".tr(),
+                  //'Discovery keeps you up to date on what your favorite artists are creating and collecting.
+                  // For now they haven’t created or collected anything new yet. Once they do, you can view it here. ',
+                  style: theme.primaryTextTheme.bodyText1,
+                  textAlign: TextAlign.justify,
+                ),
+              )
+            ])
           ],
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -512,15 +525,14 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
               previewCloseIcon(context)
             ],
           ),
-        ]
-      )
-    );
+        ]));
   }
 }
 
 class FeedArtwork extends StatefulWidget {
   final AssetToken? assetToken;
   final Function? onInit;
+
   const FeedArtwork({Key? key, this.assetToken, this.onInit}) : super(key: key);
 
   @override
@@ -532,11 +544,17 @@ class _FeedArtworkState extends State<FeedArtwork>
   bool _missingToken = false;
   INFTRenderingWidget? _renderingWidget;
 
+  final _bloc = ArtworkPreviewDetailBloc(
+    injector<NftCollectionBloc>().database.assetDao,
+    injector<EthereumService>(),
+  );
+
   @override
   void initState() {
-    // TODO: implement initState
     if (widget.assetToken == null) {
       _missingToken = true;
+    } else {
+      _bloc.add(ArtworkFeedPreviewDetailGetAssetTokenEvent(widget.assetToken!));
     }
     widget.onInit?.call();
     WidgetsBinding.instance.addObserver(this);
@@ -597,21 +615,45 @@ class _FeedArtworkState extends State<FeedArtwork>
       _missingToken = false;
     }
 
-    return BlocProvider(
-      create: (_) => RetryCubit(),
-      child: BlocBuilder<RetryCubit, int>(builder: (context, attempt) {
-        if (attempt > 0) {
-          _renderingWidget?.dispose();
-          _renderingWidget = null;
+    return BlocBuilder<ArtworkPreviewDetailBloc, ArtworkPreviewDetailState>(
+      bloc: _bloc,
+      builder: (context, state) {
+        switch (state.runtimeType) {
+          case ArtworkPreviewDetailLoadingState:
+            return const CircularProgressIndicator();
+          case ArtworkPreviewDetailLoadedState:
+            final asset = (state as ArtworkPreviewDetailLoadedState).asset;
+            if (asset != null) {
+              return BlocProvider(
+                create: (_) => RetryCubit(),
+                child: BlocBuilder<RetryCubit, int>(
+                  builder: (context, attempt) {
+                    if (attempt > 0) {
+                      _renderingWidget?.dispose();
+                      _renderingWidget = null;
+                    }
+                    if (_renderingWidget == null ||
+                        _renderingWidget!.previewURL != asset.getPreviewUrl()) {
+                      _renderingWidget = buildRenderingWidget(
+                        context,
+                        asset,
+                        attempt: attempt > 0 ? attempt : null,
+                        overriddenHtml: state.overriddenHtml,
+                      );
+                    }
+
+                    return Container(
+                      child: _renderingWidget?.build(context),
+                    );
+                  },
+                ),
+              );
+            }
+            return const SizedBox();
+          default:
+            return Container();
         }
-        if (_renderingWidget == null ||
-            _renderingWidget!.previewURL !=
-                widget.assetToken?.getPreviewUrl()) {
-          _renderingWidget = buildRenderingWidget(context, widget.assetToken!,
-              attempt: attempt > 0 ? attempt : null);
-        }
-        return Container(child: _renderingWidget!.build(context));
-      }),
+      },
     );
   }
 }

@@ -12,6 +12,9 @@ class TextFieldWidget extends StatefulWidget {
   final Color? cursorColor;
   final TextEditingController? controller;
   final String? Function(String?)? validator;
+  final Function(String)? onFieldSubmitted;
+  final Function(String)? onChanged;
+  final FocusNode? focusNode;
   const TextFieldWidget({
     Key? key,
     this.labelText,
@@ -24,6 +27,9 @@ class TextFieldWidget extends StatefulWidget {
     this.cursorColor,
     this.controller,
     this.validator,
+    this.onFieldSubmitted,
+    this.focusNode,
+    this.onChanged,
   }) : super(key: key);
 
   @override
@@ -45,6 +51,7 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
           ),
         ),
         TextFormField(
+          focusNode: widget.focusNode,
           controller: widget.controller,
           style: widget.style,
           validator: widget.validator,
@@ -56,6 +63,8 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
             focusedBorder: widget.focusedBorder,
             enabledBorder: widget.enabledBorder,
           ),
+          onFieldSubmitted: widget.onFieldSubmitted,
+          onChanged: widget.onChanged,
         ),
       ],
     );

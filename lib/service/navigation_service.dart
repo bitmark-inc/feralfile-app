@@ -41,10 +41,11 @@ class NavigationService {
         ?.pushNamed(routeName, arguments: arguments);
   }
 
-  Future<dynamic>? navigateUntil(String routeName,
-      RoutePredicate predicate, {
-        Object? arguments,
-      }) {
+  Future<dynamic>? navigateUntil(
+    String routeName,
+    RoutePredicate predicate, {
+    Object? arguments,
+  }) {
     log.info("NavigationService.navigateTo: $routeName");
 
     if (routeName == AppRouter.wcConnectPage && _isWCConnectInShow) {
@@ -70,7 +71,8 @@ class NavigationService {
           inOnboarding: inOnboarding);
     }
   }
-  NavigatorState navigatorState(){
+
+  NavigatorState navigatorState() {
     return Navigator.of(navigatorKey.currentContext!);
   }
 
@@ -97,14 +99,14 @@ class NavigationService {
   }
 
   Future showNoRemainingToken({
-    required Exhibition exhibition,
+    required FFArtwork artwork,
   }) async {
     log.info("NavigationService.showNoRemainingToken");
     if (navigatorKey.currentState?.mounted == true &&
         navigatorKey.currentContext != null) {
       await UIHelper.showNoRemainingAirdropToken(
         navigatorKey.currentContext!,
-        exhibition: exhibition,
+        artwork: artwork,
       );
     } else {
       Future.value(0);
@@ -122,7 +124,7 @@ class NavigationService {
   }
 
   Future openClaimTokenPage(
-    Exhibition exhibition, {
+    FFArtwork artwork, {
     Otp? otp,
   }) async {
     log.info("NavigationService.openClaimTokenPage");
@@ -131,7 +133,7 @@ class NavigationService {
       await navigatorKey.currentState?.pushNamed(
         AppRouter.claimFeralfileTokenPage,
         arguments: ClaimTokenPageArgs(
-          exhibition: exhibition,
+          artwork: artwork,
           otp: otp,
         ),
       );
@@ -181,9 +183,9 @@ class NavigationService {
     _isWCConnectInShow = appeared;
   }
 
-  void showContactingDialog(){
+  void showContactingDialog() {
     if (navigatorKey.currentState?.mounted == true &&
-        navigatorKey.currentContext != null){
+        navigatorKey.currentContext != null) {
       UIHelper.showInfoDialog(
         navigatorKey.currentContext!,
         'contacting'.tr(),

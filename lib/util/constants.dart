@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/common/environment.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
@@ -34,12 +35,24 @@ const DEEP_LINKS = [
   "https://autonomy-app-alternate.app.link",
   "https://link.autonomy.io",
 ];
+const FF_ARTIST_COLLECTOR =
+    'https://feralfile.com/docs/artist-collector-rights';
+const WEB3_PRIMER_URL = 'https://autonomy.io/catalog/primer/';
+const CHECK_WEB3_PRIMER_URL =
+    'https://feralfile.com/artworks/memento-1-study-for-unsupervised';
 
 const int cellPerRowPhone = 3;
 const int cellPerRowTablet = 6;
 const double cellSpacing = 3.0;
 
 const Duration SENT_ARTWORK_HIDE_TIME = Duration(minutes: 10);
+const USDC_CONTRACT_ADDRESS_GOERLI =
+    "0x07865c6E87B9F70255377e024ace6630C1Eaa37F";
+const USDC_CONTRACT_ADDRESS = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
+
+String get usdcContractAddress => Environment.appTestnetConfig
+    ? USDC_CONTRACT_ADDRESS_GOERLI
+    : USDC_CONTRACT_ADDRESS;
 
 Future<bool> isAppCenterBuild() async {
   final PackageInfo info = await PackageInfo.fromPlatform();
@@ -87,6 +100,7 @@ class ReportIssueType {
 
   static List<String> get getList =>
       [Feature, Bug, Feedback, Other, Exception, ReportNFTIssue];
+
   static List<String> get getSuggestList => [Feature, Bug, Feedback, Other];
 
   static String toTitle(String item) {
@@ -165,6 +179,7 @@ enum CryptoType {
   ETH,
   XTZ,
   BITMARK,
+  USDC,
   UNKNOWN,
 }
 
@@ -176,6 +191,7 @@ extension CryptoTypeHelpers on CryptoType {
       case CryptoType.XTZ:
         return "XTZ";
       case CryptoType.BITMARK:
+      case CryptoType.USDC:
         return "USDC";
       case CryptoType.UNKNOWN:
         return "";
@@ -189,6 +205,7 @@ extension CryptoTypeHelpers on CryptoType {
       case CryptoType.XTZ:
         return "Tezos (XTZ)";
       case CryptoType.BITMARK:
+      case CryptoType.USDC:
         return "USD Coin (USDC)";
       case CryptoType.UNKNOWN:
         return "";
@@ -203,6 +220,8 @@ extension CryptoTypeHelpers on CryptoType {
         return "Tezos";
       case CryptoType.BITMARK:
         return "Bitmark";
+      case CryptoType.USDC:
+        return "USDC";
       case CryptoType.UNKNOWN:
         return "Unknown";
     }
@@ -212,6 +231,7 @@ extension CryptoTypeHelpers on CryptoType {
 class Constants {
   static const minCountToReview = 10;
   static const durationToReview = Duration(days: 30);
+
   // Responsive
   static const kTabletBreakpoint = 480;
   static const kDesktopBreakpoint = 1025;

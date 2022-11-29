@@ -17,7 +17,7 @@ class IdentityBloc extends AuBloc<IdentityEvent, IdentityState> {
   final AppDatabase _appDB;
   final IndexerApi _indexerApi;
 
-  static const localIdentityCacheDuration = Duration(days: 7);
+  static const localIdentityCacheDuration = Duration(days: 1);
 
   IdentityBloc(this._appDB, this._indexerApi) : super(IdentityState({})) {
     on<GetIdentityEvent>((event, emit) async {
@@ -96,6 +96,10 @@ class IdentityBloc extends AuBloc<IdentityEvent, IdentityState> {
           return;
         }
       });
+    });
+
+    on<RemoveAllEvent>((event, emit) async {
+      await _appDB.identityDao.removeAll();
     });
   }
 }

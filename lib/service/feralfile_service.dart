@@ -14,13 +14,14 @@ import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/gateway/feralfile_api.dart';
 import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/model/airdrop_data.dart';
 import 'package:autonomy_flutter/model/asset_price.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/otp.dart';
-import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/service/mixPanel_client_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
@@ -48,14 +49,16 @@ abstract class FeralFileService {
 
   Future<List<AssetPrice>> getAssetPrices(List<String> ids);
 
-  Future<Exhibition> getExhibition(String id);
+  Future<FFArtwork> getAirdropArtworkFromExhibitionId(String id);
+
+  Future<FFArtwork> getArtwork(String id);
 
   Future<bool> claimToken({
-    required String exhibitionId,
+    required String artworkId,
     String? address,
     Otp? otp,
     bool delayed = false,
-    Future<bool> Function(Exhibition)? onConfirm,
+    Future<bool> Function(FFArtwork)? onConfirm,
   });
 }
 
@@ -110,18 +113,29 @@ class FeralFileServiceImpl extends FeralFileService {
           .fetchTokensForAddresses(connection.accountNumbers);
     }
     final metricClient = injector.get<MetricClientService>();
+    final mixPanelClient = injector.get<MixPanelClientService>();
+
 
     // mark survey from FeralFile as referrer if user hasn't answerred
     final finishedSurveys = _configurationService.getFinishedSurveys();
     if (!finishedSurveys.contains(Survey.onboarding)) {
-      await metricClient.addEvent(
+      metricClient.addEvent(
+        Survey.onboarding,
+        message: 'Feral File Website',
+      );
+      mixPanelClient.trackEvent(
         Survey.onboarding,
         message: 'Feral File Website',
       );
       injector<ConfigurationService>().setFinishedSurvey([Survey.onboarding]);
     }
 
-    await metricClient.addEvent(
+    metricClient.addEvent(
+      "link_feralfile",
+      hashedData: {"address": connection.accountNumber},
+    );
+
+    mixPanelClient.trackEvent(
       "link_feralfile",
       hashedData: {"address": connection.accountNumber},
     );
@@ -191,42 +205,51 @@ class FeralFileServiceImpl extends FeralFileService {
   }
 
   @override
-  Future<Exhibition> getExhibition(String id) async {
+  Future<FFArtwork> getAirdropArtworkFromExhibitionId(String id) async {
     final resp = await _feralFileApi.getExhibition(id);
     final exhibition = resp.result;
     final airdropArtworkId = exhibition.artworks
-        .firstWhereOrNull((e) => e.settings?.isAirdrop == true)
+        ?.firstWhereOrNull((e) => e.settings?.isAirdrop == true)
         ?.id;
     if (airdropArtworkId != null) {
       final airdropArtwork = await _feralFileApi.getArtwork(airdropArtworkId);
-      exhibition.airdropArtwork = airdropArtwork.result;
+      return airdropArtwork.result;
+    } else {
+      throw Exception("Not airdrop exhibition");
     }
-    return exhibition;
+  }
+
+  @override
+  Future<FFArtwork> getArtwork(String id) async {
+    return (await _feralFileApi.getArtwork(id)).result;
   }
 
   @override
   Future<bool> claimToken(
-      {required String exhibitionId,
+      {required String artworkId,
       String? address,
       Otp? otp,
       bool delayed = false,
-      Future<bool> Function(Exhibition)? onConfirm}) async {
+      Future<bool> Function(FFArtwork)? onConfirm}) async {
     log.info(
-        "[FeralFileService] Claim token - exhibitionId: $exhibitionId, delayed: $delayed");
+        "[FeralFileService] Claim token - artwork: $artworkId, delayed: $delayed");
     if (delayed) {
-      memoryValues.airdropFFExhibitionId.value = Pair(exhibitionId, otp);
+      memoryValues.airdropFFExhibitionId.value = AirdropQrData(
+        artworkId: artworkId,
+        otp: otp,
+      );
       return false;
     }
 
-    final exhibition = await getExhibition(exhibitionId);
+    final artwork = await getArtwork(artworkId);
 
-    if (exhibition.airdropInfo == null ||
-        exhibition.airdropInfo?.endedAt?.isBefore(DateTime.now()) == true) {
+    if (artwork.airdropInfo == null ||
+        artwork.airdropInfo?.endedAt?.isBefore(DateTime.now()) == true) {
       throw AirdropExpired();
     }
 
-    if ((exhibition.airdropInfo?.remainAmount ?? 0) > 0) {
-      final accepted = await onConfirm?.call(exhibition) ?? true;
+    if ((artwork.airdropInfo?.remainAmount ?? 0) > 0) {
+      final accepted = await onConfirm?.call(artwork) ?? true;
       if (!accepted) {
         log.info("[FeralFileService] User refused claim token");
         return false;
@@ -244,13 +267,12 @@ class FeralFileServiceImpl extends FeralFileService {
         "address": receiver,
         if (otp != null) ...{"airdropTOTPPasscode": otp.code}
       };
-      final artworkId = exhibition.airdropArtwork?.id ?? "";
-      final response = await _feralFileApi.claimArtwork(artworkId, body);
+      final response = await _feralFileApi.claimArtwork(artwork.id, body);
       final indexer = injector<TokensService>();
       await indexer.reindexAddresses([receiver]);
 
       final indexerId =
-          exhibition.airdropInfo!.getTokenIndexerId(response.result.editionID);
+          artwork.airdropInfo!.getTokenIndexerId(response.result.editionID);
       final tokens = await _fetchTokens(
         indexerId: indexerId,
         receiver: receiver,
@@ -261,7 +283,7 @@ class FeralFileServiceImpl extends FeralFileService {
         await indexer.setCustomTokens(
           [
             createPendingAssetToken(
-              exhibition: exhibition,
+              artwork: artwork,
               owner: receiver,
               tokenId: response.result.editionID,
             )

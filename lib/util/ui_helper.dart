@@ -12,9 +12,11 @@ import 'dart:convert';
 import 'package:autonomy_flutter/model/wc2_proposal.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:jiffy/jiffy.dart';
@@ -525,13 +527,13 @@ class UIHelper {
 
   static Future showNoRemainingAirdropToken(
     BuildContext context, {
-    required Exhibition exhibition,
+    required FFArtwork artwork,
   }) async {
     final error = FeralfileError(3009, "");
     return showErrorDialog(
       context,
-      error.getDialogTitle(exhibition: exhibition),
-      error.getDialogMessage(exhibition: exhibition),
+      error.getDialogTitle(artwork: artwork),
+      error.getDialogMessage(artwork: artwork),
       "close".tr(),
     );
   }
@@ -549,25 +551,25 @@ class UIHelper {
   static Future showClaimTokenError(
     BuildContext context,
     Object e, {
-    required Exhibition exhibition,
+    required FFArtwork artwork,
   }) async {
     if (e is AirdropExpired) {
       await showAirdropExpired(context);
     } else if (e is DioError) {
       final ffError = e.error as FeralfileError?;
       final message = ffError != null
-          ? ffError.getDialogMessage(exhibition: exhibition)
+          ? ffError.getDialogMessage(artwork: artwork)
           : "${e.response?.data ?? e.message}";
       await showErrorDialog(
         context,
-        ffError?.getDialogTitle(exhibition: exhibition) ?? "error".tr(),
+        ffError?.getDialogTitle(artwork: artwork) ?? "error".tr(),
         message,
         "close".tr(),
       );
     } else if (e is NoRemainingToken) {
       await showNoRemainingAirdropToken(
         context,
-        exhibition: exhibition,
+        artwork: artwork,
       );
     }
   }
@@ -587,7 +589,7 @@ class UIHelper {
                   Image.asset("assets/images/walletconnect-alternative.png"));
         } else {
           return CachedNetworkImage(
-            imageUrl: appIcons.first,
+            imageUrl: appIcons.firstOrNull ?? "",
             width: size,
             height: size,
             errorWidget: (context, url, error) => SizedBox(
@@ -898,8 +900,11 @@ class UIHelper {
 
   static showAccountLinked(
       BuildContext context, Connection connection, String walletName) {
-    UIHelper.showInfoDialog(context, "account_linked".tr(),
-        "autonomy_has_received".tr(args: [walletName, connection.accountNumber.mask(4)]));
+    UIHelper.showInfoDialog(
+        context,
+        "account_linked".tr(),
+        "autonomy_has_received"
+            .tr(args: [walletName, connection.accountNumber.mask(4)]));
 
     Future.delayed(const Duration(seconds: 3), () {
       UIHelper.hideInfoDialog(context);

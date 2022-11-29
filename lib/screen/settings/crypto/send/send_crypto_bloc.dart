@@ -70,7 +70,24 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
             newState.maxAllow = maxAllow;
             newState.isValid = _isValid(newState);
           }
+          break;
+        case CryptoType.USDC:
+          final address = await event.wallet.getETHEip55Address();
+          final ownerAddress = EthereumAddress.fromHex(address);
+          final contractAddress = EthereumAddress.fromHex(usdcContractAddress);
 
+          final balance = await _ethereumService.getERC20TokenBalance(
+              contractAddress, ownerAddress);
+          final ethBalance = await _ethereumService.getBalance(address);
+
+          newState.balance = balance;
+          newState.ethBalance = ethBalance.getInWei;
+
+          if (state.fee != null) {
+            final maxAllow = balance;
+            newState.maxAllow = maxAllow;
+            newState.isValid = _isValid(newState);
+          }
           break;
         default:
           break;
@@ -87,6 +104,7 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
       if (event.address.isNotEmpty) {
         switch (_type) {
           case CryptoType.ETH:
+          case CryptoType.USDC:
             try {
               final address = EthereumAddress.fromHex(event.address);
               newState.address = address.hexEip55;
@@ -198,6 +216,21 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
             fee = BigInt.zero;
           }
           break;
+        case CryptoType.USDC:
+          final wallet = state.wallet;
+          if (wallet == null) return;
+
+          final address = await wallet.getETHEip55Address();
+          final ownerAddress = EthereumAddress.fromHex(address);
+          final toAddress = EthereumAddress.fromHex(event.address);
+          final contractAddress = EthereumAddress.fromHex(usdcContractAddress);
+
+          final data = await _ethereumService.getERC20TransferTransactionData(
+              contractAddress, ownerAddress, toAddress, event.amount);
+
+          fee = await _ethereumService.estimateFee(
+              wallet, contractAddress, EtherAmount.zero(), data);
+          break;
         default:
           fee = BigInt.zero;
       }
@@ -205,7 +238,7 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
       newState.fee = fee;
 
       if (state.balance != null) {
-        var maxAllow = state.balance! - fee - _safeBuffer;
+        var maxAllow = _type != CryptoType.USDC ? state.balance! - fee - _safeBuffer : state.balance!;
         if (maxAllow < BigInt.zero) maxAllow = BigInt.zero;
         newState.maxAllow = maxAllow;
         newState.address = cachedAddress;

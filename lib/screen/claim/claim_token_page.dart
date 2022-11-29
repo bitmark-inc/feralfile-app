@@ -8,6 +8,7 @@ import 'package:autonomy_flutter/screen/claim/select_account_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -20,24 +21,25 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ClaimTokenPageArgs {
-  final Exhibition exhibition;
+  final FFArtwork artwork;
   final Otp? otp;
 
   ClaimTokenPageArgs({
-    required this.exhibition,
+    required this.artwork,
     this.otp,
   });
 }
 
 class ClaimTokenPage extends StatefulWidget {
-  final Exhibition exhibition;
+  final FFArtwork artwork;
   final Otp? otp;
 
   const ClaimTokenPage({
     Key? key,
-    required this.exhibition,
+    required this.artwork,
     this.otp,
   }) : super(key: key);
 
@@ -52,14 +54,12 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
 
   @override
   Widget build(BuildContext context) {
-    final exhibition = widget.exhibition;
-    final artwork = exhibition.airdropArtwork;
-    final artist = exhibition.getArtist(artwork);
-    final artistName = artist?.getDisplayName();
-    final artworkThumbnail =
-        artwork?.getThumbnailURL() ?? exhibition.getThumbnailURL();
+    final artwork = widget.artwork;
+    final artist = artwork.artist;
+    final artistName = artist.getDisplayName();
+    final artworkThumbnail = artwork.getThumbnailURL();
     String gifter =
-        exhibition.airdropInfo?.gifter?.replaceAll(" ", "\u00A0") ?? "";
+        artwork.airdropInfo?.gifter?.replaceAll(" ", "\u00A0") ?? "";
     String giftIntro = "you_can_receive_free_gift".tr();
     if (gifter.trim().isNotEmpty) {
       giftIntro += " ${'from'.tr().toLowerCase()} ";
@@ -154,7 +154,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                             context,
                             MaterialPageRoute(
                               builder: (context) => PreviewTokenClaim(
-                                exhibition: widget.exhibition,
+                                artwork: widget.artwork,
                               ),
                             ),
                           );
@@ -167,7 +167,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                     GestureDetector(
                       behavior: HitTestBehavior.opaque,
                       child: Text(
-                        artwork?.title ?? widget.exhibition.title,
+                        artwork.title,
                         style: makeLinkStyle(
                             theme.primaryTextTheme.bodyText1!.copyWith(
                           fontWeight: FontWeight.w700,
@@ -178,7 +178,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                           context,
                           MaterialPageRoute(
                             builder: (context) => PreviewTokenClaim(
-                              exhibition: widget.exhibition,
+                              artwork: widget.artwork,
                             ),
                           ),
                         );
@@ -212,7 +212,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                                       fontWeight: FontWeight.bold)),
                               recognizer: TapGestureRecognizer()
                                 ..onTap = () {
-                                  _openPrivacyPolicy();
+                                  _openFFArtistCollector();
                                 }),
                           TextSpan(
                             text: ".",
@@ -240,7 +240,8 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                   _processing = true;
                 });
                 final blockchain =
-                    widget.exhibition.mintBlockchain.capitalize();
+                    widget.artwork.exhibition?.mintBlockchain.capitalize() ??
+                        "Tezos";
                 final accountService = injector<AccountService>();
                 final addresses = await accountService.getAddress(blockchain);
 
@@ -262,7 +263,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                     AppRouter.claimSelectAccountPage,
                     arguments: SelectAccountPageArgs(
                       blockchain,
-                      widget.exhibition,
+                      widget.artwork,
                       widget.otp,
                     ),
                   );
@@ -294,7 +295,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
     final ffService = injector<FeralFileService>();
     try {
       await ffService.claimToken(
-        exhibitionId: widget.exhibition.id,
+        artworkId: widget.artwork.id,
         address: receiveAddress,
         otp: widget.otp,
       );
@@ -304,7 +305,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
       await UIHelper.showClaimTokenError(
         context,
         e,
-        exhibition: widget.exhibition,
+        artwork: widget.artwork,
       );
       memoryValues.airdropFFExhibitionId.value = null;
     }
@@ -319,11 +320,8 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
     }
   }
 
-  void _openPrivacyPolicy() {
-    Navigator.of(context).pushNamed(AppRouter.githubDocPage, arguments: {
-      "prefix": "/bitmark-inc/autonomy.io/main/apps/docs/",
-      "document": "privacy.md",
-      "title": ""
-    });
+  void _openFFArtistCollector() {
+    launchUrl(Uri.parse(FF_ARTIST_COLLECTOR),
+        mode: LaunchMode.externalApplication);
   }
 }

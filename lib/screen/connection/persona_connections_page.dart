@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/connections/connections_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/ethereum/ethereum_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
+import 'package:autonomy_flutter/screen/bloc/usdc/usdc_bloc.dart';
 import 'package:autonomy_flutter/screen/global_receive/receive_detail_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_page.dart';
@@ -20,6 +21,7 @@ import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/util/usdc_amount_formatter.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:autonomy_flutter/view/au_outlined_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -63,6 +65,10 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
         context.read<TezosBloc>().add(GetTezosBalanceWithUUIDEvent(personUUID));
         context.read<TezosBloc>().add(GetTezosAddressEvent(personUUID));
         break;
+      case CryptoType.USDC:
+        context.read<USDCBloc>().add(GetAddressEvent(personUUID));
+        context.read<USDCBloc>().add(GetUSDCBalanceWithUUIDEvent(personUUID));
+        break;
       case CryptoType.BITMARK:
       case CryptoType.UNKNOWN:
         // do nothing
@@ -102,8 +108,7 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
       case CryptoType.XTZ:
         context.read<ConnectionsBloc>().add(GetXTZConnectionsEvent(personUUID));
         break;
-      case CryptoType.BITMARK:
-      case CryptoType.UNKNOWN:
+      default:
         // do nothing
         break;
     }
@@ -138,7 +143,8 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _addressSection(),
-                    if (widget.payload.type != CryptoType.BITMARK) ...[
+                    if (widget.payload.type == CryptoType.ETH ||
+                        widget.payload.type == CryptoType.XTZ) ...[
                       const SizedBox(height: 40),
                       _connectionsSection(),
                     ],
@@ -147,7 +153,8 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
               ),
             ),
             if (widget.payload.type == CryptoType.ETH ||
-                widget.payload.type == CryptoType.XTZ) ...[
+                widget.payload.type == CryptoType.XTZ ||
+                widget.payload.type == CryptoType.USDC) ...[
               Row(
                 children: [
                   Expanded(
@@ -217,7 +224,7 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
                 ],
               )
             ],
-            SizedBox(height: safeAreaBottom > 0 ? 24 : 0),
+            SizedBox(height: safeAreaBottom > 0 ? 40 : 16),
           ],
         ),
       ),
@@ -265,34 +272,56 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
                 ),
               ],
             ),
-            if (widget.payload.type == CryptoType.ETH ||
-                widget.payload.type == CryptoType.XTZ) ...[addDivider()],
-            if (widget.payload.type == CryptoType.ETH) ...[
-              BlocBuilder<EthereumBloc, EthereumState>(
-                  builder: (context, state) {
-                final ethAddress =
-                    state.personaAddresses?[widget.payload.personaUUID];
-                final ethBalance = state.ethBalances[ethAddress];
-                final balance = ethBalance == null
-                    ? "-- ETH"
-                    : "${EthAmountFormatter(ethBalance.getInWei).format()} ETH";
-                return _historyRow(balance: balance);
-              })
-            ] else if (widget.payload.type == CryptoType.XTZ) ...[
-              BlocBuilder<TezosBloc, TezosState>(builder: (context, state) {
-                final tezosAddress =
-                    state.personaAddresses?[widget.payload.personaUUID];
-                final xtzBalance = state.balances[tezosAddress];
-                final balance = xtzBalance == null
-                    ? "-- XTZ"
-                    : "${XtzAmountFormatter(xtzBalance).format()} XTZ";
-                return _historyRow(balance: balance);
-              })
-            ],
+            ..._cryptoSection()
           ],
         ),
       ],
     );
+  }
+
+  List<Widget> _cryptoSection() {
+    final List<Widget> widgets = [addDivider()];
+    switch (widget.payload.type) {
+      case CryptoType.ETH:
+        widgets.add(
+            BlocBuilder<EthereumBloc, EthereumState>(builder: (context, state) {
+          final ethAddress =
+              state.personaAddresses?[widget.payload.personaUUID];
+          final ethBalance = state.ethBalances[ethAddress];
+          final balance = ethBalance == null
+              ? "-- ETH"
+              : "${EthAmountFormatter(ethBalance.getInWei).format()} ETH";
+          return _historyRow(balance: balance);
+        }));
+        break;
+      case CryptoType.XTZ:
+        widgets
+            .add(BlocBuilder<TezosBloc, TezosState>(builder: (context, state) {
+          final tezosAddress =
+              state.personaAddresses?[widget.payload.personaUUID];
+          final xtzBalance = state.balances[tezosAddress];
+          final balance = xtzBalance == null
+              ? "-- XTZ"
+              : "${XtzAmountFormatter(xtzBalance).format()} XTZ";
+          return _historyRow(balance: balance);
+        }));
+        break;
+      case CryptoType.USDC:
+        widgets.add(BlocBuilder<USDCBloc, USDCState>(builder: (context, state) {
+          final usdcAddress =
+              state.personaAddresses?[widget.payload.personaUUID];
+          final usdcBalance = state.usdcBalances[usdcAddress];
+          final balance = usdcBalance == null
+              ? "-- USDC"
+              : "${USDCAmountFormatter(usdcBalance).format()} USDC";
+          return _historyRow(balance: balance);
+        }));
+        break;
+      default:
+        return [];
+    }
+
+    return widgets;
   }
 
   Widget _historyRow({String balance = ""}) {
@@ -309,7 +338,11 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
               Expanded(
                 child: Row(
                   children: [
-                    Text("history".tr(), style: theme.textTheme.headline4),
+                    Text(
+                        widget.payload.type == CryptoType.USDC
+                            ? "USDC"
+                            : "history".tr(),
+                        style: theme.textTheme.headline4),
                     const Expanded(child: SizedBox()),
                     Text(balance, style: addressStyle),
                   ],
@@ -322,6 +355,7 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
         ],
       ),
       onTap: () {
+        if (widget.payload.type == CryptoType.USDC) return;
         Navigator.of(context).pushNamed(
           AppRouter.walletDetailsPage,
           arguments: WalletDetailsPayload(
@@ -391,8 +425,7 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
               case CryptoType.XTZ:
                 scanItem = ScannerItem.BEACON_CONNECT;
                 break;
-              case CryptoType.BITMARK:
-              case CryptoType.UNKNOWN:
+              default:
                 break;
             }
 

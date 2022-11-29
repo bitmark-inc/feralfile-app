@@ -58,6 +58,8 @@ import Starscream
                 LibAukChannelHandler.shared.getETHAddress(call: call, result: result)
             case "ethSignPersonalMessage":
                 LibAukChannelHandler.shared.signPersonalMessage(call: call, result: result)
+            case "ethSignMessage":
+                LibAukChannelHandler.shared.signMessage(call: call, result: result)
             case "exportMnemonicWords":
                 LibAukChannelHandler.shared.exportMnemonicWords(call: call, result: result)
             case "ethSignTransaction":

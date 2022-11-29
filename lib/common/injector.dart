@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/gateway/bitmark_api.dart';
 import 'package:autonomy_flutter/gateway/branch_api.dart';
 import 'package:autonomy_flutter/gateway/currency_exchange_api.dart';
 import 'package:autonomy_flutter/gateway/customer_support_api.dart';
+import 'package:autonomy_flutter/gateway/etherchain_api.dart';
 import 'package:autonomy_flutter/gateway/feed_api.dart';
 import 'package:autonomy_flutter/gateway/feralfile_api.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
@@ -20,6 +21,7 @@ import 'package:autonomy_flutter/gateway/pubdoc_api.dart';
 import 'package:autonomy_flutter/gateway/rendering_report_api.dart';
 import 'package:autonomy_flutter/gateway/tzkt_api.dart';
 import 'package:autonomy_flutter/screen/add_new_playlist/add_new_playlist_bloc.dart';
+import 'package:autonomy_flutter/screen/edit_playlist/edit_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/view_playlist/view_playlist_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
@@ -46,6 +48,7 @@ import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_dapp_service/wallet_connect_dapp_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
+import 'package:autonomy_flutter/service/mixPanel_client_service.dart';
 import 'package:autonomy_flutter/util/au_file_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
@@ -143,6 +146,8 @@ Future<void> setup() async {
       () => AutonomyServiceImpl(injector(), injector()));
   injector.registerLazySingleton<MetricClientService>(
       () => MetricClientService(injector()));
+  injector.registerLazySingleton<MixPanelClientService>(
+      () => MixPanelClientService(injector()));
   injector.registerLazySingleton(
       () => WalletConnectService(injector(), injector(), injector()));
   injector.registerLazySingleton<CacheManager>(() => AUImageCacheManage());
@@ -163,6 +168,7 @@ Future<void> setup() async {
   injector.registerLazySingleton(() =>
       AutonomyApi(authenticatedDio, baseUrl: Environment.autonomyAuthURL));
   injector.registerLazySingleton(() => TZKTApi(dio));
+  injector.registerLazySingleton(() => EtherchainApi(dio));
   injector.registerLazySingleton(() => BranchApi(dio));
   injector.registerLazySingleton(
       () => FeedApi(authenticatedDio, baseUrl: Environment.feedURL));
@@ -233,7 +239,7 @@ Future<void> setup() async {
       () => IndexerApi(dio, baseUrl: Environment.indexerURL));
 
   injector.registerLazySingleton<EthereumService>(
-      () => EthereumServiceImpl(injector()));
+      () => EthereumServiceImpl(injector(), injector()));
   injector
       .registerLazySingleton<TezosService>(() => TezosServiceImpl(injector()));
   injector.registerLazySingleton<AppDatabase>(() => mainnetDB);
@@ -266,6 +272,7 @@ Future<void> setup() async {
       ));
   injector.registerFactory<AddNewPlaylistBloc>(() => AddNewPlaylistBloc());
   injector.registerFactory<ViewPlaylistBloc>(() => ViewPlaylistBloc());
+  injector.registerFactory<EditPlaylistBloc>(() => EditPlaylistBloc());
   injector.registerSingleton<ValueNotifier<PlayControlService>>(
       ValueNotifier<PlayControlService>(
           PlayControlService(timer: 0, isLoop: false, isShuffle: false)));

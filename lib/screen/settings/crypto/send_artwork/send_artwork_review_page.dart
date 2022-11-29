@@ -238,7 +238,6 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                                             widget.payload.wallet,
                                             contractAddress,
                                             BigInt.zero,
-                                            null,
                                             data);
                                     if (!mounted) return;
                                     final payload = {

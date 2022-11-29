@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/ethereum/ethereum_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
+import 'package:autonomy_flutter/screen/bloc/usdc/usdc_bloc.dart';
 import 'package:autonomy_flutter/screen/connection/persona_connections_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -19,6 +20,7 @@ import 'package:autonomy_flutter/util/biometrics_util.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/usdc_amount_formatter.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
@@ -55,6 +57,8 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
 
     context.read<TezosBloc>().add(GetTezosAddressEvent(widget.persona.uuid));
 
+    context.read<USDCBloc>().add(GetAddressEvent(widget.persona.uuid));
+
     context
         .read<EthereumBloc>()
         .add(GetEthereumBalanceWithUUIDEvent(widget.persona.uuid));
@@ -62,6 +66,10 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
     context
         .read<TezosBloc>()
         .add(GetTezosBalanceWithUUIDEvent(widget.persona.uuid));
+
+    context
+        .read<USDCBloc>()
+        .add(GetUSDCBalanceWithUUIDEvent(widget.persona.uuid));
 
     isHideGalleryEnabled = injector<AccountService>()
         .isPersonaHiddenInGallery(widget.persona.uuid);
@@ -84,6 +92,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
     final uuid = widget.persona.uuid;
     context.read<EthereumBloc>().add(GetEthereumBalanceWithUUIDEvent(uuid));
     context.read<TezosBloc>().add(GetTezosBalanceWithUUIDEvent(uuid));
+    context.read<USDCBloc>().add(GetUSDCBalanceWithUUIDEvent(uuid));
     super.didPopNext();
   }
 
@@ -159,6 +168,18 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
           return _addressRow(
               address: state.personaAddresses?[uuid] ?? "",
               type: CryptoType.ETH,
+              balance: balance);
+        }),
+        addDivider(),
+        BlocBuilder<USDCBloc, USDCState>(builder: (context, state) {
+          final usdcAddress = state.personaAddresses?[uuid];
+          final usdcBalance = state.usdcBalances[usdcAddress];
+          final balance = usdcBalance == null
+              ? "-- USDC"
+              : "${USDCAmountFormatter(usdcBalance).format()} USDC";
+          return _addressRow(
+              address: state.personaAddresses?[uuid] ?? "",
+              type: CryptoType.USDC,
               balance: balance);
         }),
         addDivider(),

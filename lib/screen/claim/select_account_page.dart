@@ -18,26 +18,26 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 class SelectAccountPageArgs {
   final String? blockchain;
 
-  final Exhibition exhibition;
+  final FFArtwork artwork;
 
   final Otp? otp;
 
   SelectAccountPageArgs(
     this.blockchain,
-    this.exhibition,
+    this.artwork,
     this.otp,
   );
 }
 
 class SelectAccountPage extends StatefulWidget {
   final String? blockchain;
-  final Exhibition exhibition;
+  final FFArtwork artwork;
   final Otp? otp;
 
   const SelectAccountPage({
     Key? key,
     this.blockchain,
-    required this.exhibition,
+    required this.artwork,
     this.otp,
   }) : super(key: key);
 
@@ -117,7 +117,7 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
                     : () async {
                         await _claimToken(
                           _selectedAccount!,
-                          widget.exhibition.id,
+                          widget.artwork.id,
                           otp: widget.otp,
                         );
                       }),
@@ -189,7 +189,7 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
 
   Future _claimToken(
     Account account,
-    String exhibitionId, {
+    String artworkId, {
     Otp? otp,
   }) async {
     try {
@@ -197,14 +197,18 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
       final ffService = injector<FeralFileService>();
       final address = await account.getAddress(widget.blockchain ?? "tezos");
       await ffService.claimToken(
-        exhibitionId: exhibitionId,
+        artworkId: artworkId,
         address: address,
         otp: otp,
       );
       memoryValues.airdropFFExhibitionId.value = null;
     } catch (e) {
       log.info("[SelectAccountPage] Claim token failed. $e");
-      await UIHelper.showClaimTokenError(context, e, exhibition: widget.exhibition);
+      await UIHelper.showClaimTokenError(
+        context,
+        e,
+        artwork: widget.artwork,
+      );
       memoryValues.airdropFFExhibitionId.value = null;
     } finally {
       _setProcessingState(false);

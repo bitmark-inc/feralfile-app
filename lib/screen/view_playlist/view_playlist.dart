@@ -8,6 +8,7 @@ import 'package:autonomy_flutter/screen/view_playlist/view_playlist_state.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/play_control.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -20,7 +21,8 @@ import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import '../../util/token_ext.dart';
+import '../../util/iterable_ext.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 
 class ViewPlaylistScreen extends StatefulWidget {
   final PlayListModel? playListModel;
@@ -38,6 +40,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
   List<String> hiddenTokens = [];
   List<SentArtwork> sentArtworks = [];
   List<AssetToken> tokensPlaylist = [];
+  bool isDemo = false;
   @override
   void initState() {
     super.initState();
@@ -45,9 +48,10 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
         injector<ConfigurationService>().getTempStorageHiddenTokenIDs();
     sentArtworks = injector<ConfigurationService>().getRecentlySentToken();
     injector<AccountService>().getAllAddresses().then((value) {
+      isDemo = injector.get<ConfigurationService>().isDemoArtworksMode();
       nftBloc.add(RefreshTokenEvent(
-        addresses: value,
-      ));
+          addresses: value,
+          debugTokens: isDemo ? widget.playListModel?.tokenIDs ?? [] : []));
       nftBloc.add(RequestIndexEvent(value));
     });
     bloc.add(GetPlayList());
@@ -59,18 +63,13 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
         ?.removeWhere((element) => element.id == widget.playListModel?.id);
     _configurationService.setPlayList(listPlaylist, override: true);
     injector.get<SettingsDataService>().backup();
-    Navigator.pop(context);
-    Navigator.pop(context);
+    injector<NavigationService>().popUntilHomeOrSettings();
   }
 
   List<AssetToken> setupPlayList({
     required List<AssetToken> tokens,
     List<String>? selectedTokens,
   }) {
-    tokens.sortToken();
-    tokens = tokens
-        .where((element) => selectedTokens?.contains(element.id) ?? false)
-        .toList();
     final expiredTime = DateTime.now().subtract(SENT_ARTWORK_HIDE_TIME);
 
     tokens = tokens
@@ -85,12 +84,23 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
               ),
         )
         .toList();
-    accountIdentities = tokens
+
+    final temp = selectedTokens
+            ?.map((e) =>
+                tokens.where((element) => element.id == e).firstOrDefault())
+            .toList() ??
+        [];
+
+    temp.removeWhere((element) => element == null);
+
+    tokensPlaylist = List.from(temp);
+
+    accountIdentities = tokensPlaylist
         .where((e) => e.pending != true || e.hasMetadata)
         .map((element) => ArtworkIdentity(element.id, element.ownerAddress))
         .toList();
-    tokensPlaylist = tokens;
-    return tokens;
+
+    return tokensPlaylist;
   }
 
   @override
@@ -121,104 +131,115 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                   ),
                 ),
                 const Spacer(),
-                IconButton(
-                  onPressed: () {
-                    UIHelper.showDialogAction(context, options: [
-                      OptionItem(title: tr('modify_playlist'), onTap: () {}),
-                      OptionItem(
-                          title: tr('delete_playlist'),
-                          onTap: () {
-                            Navigator.pop(context);
-                            UIHelper.showMessageAction(
-                              context,
-                              tr('delete_playlist'),
-                              '',
-                              descriptionWidget: RichText(
-                                text: TextSpan(children: [
-                                  TextSpan(
-                                    style: theme.primaryTextTheme.bodyText1,
-                                    text: "you_are_about".tr(),
-                                  ),
-                                  TextSpan(
-                                    style: theme.primaryTextTheme.headline4,
-                                    text: playList?.name ?? tr('untitled'),
-                                  ),
-                                  TextSpan(
-                                    style: theme.primaryTextTheme.bodyText1,
-                                    text: "dont_worry".tr(),
-                                  ),
-                                ]),
-                              ),
-                              actionButton: "Remove",
-                              onAction: deletePlayList,
-                            );
-                          }),
-                    ]);
-                  },
-                  icon: const Icon(Icons.more_horiz),
-                )
+                isDemo
+                    ? const SizedBox()
+                    : IconButton(
+                        onPressed: () {
+                          UIHelper.showDialogAction(context, options: [
+                            OptionItem(
+                                title: tr('modify_playlist'),
+                                onTap: () {
+                                  Navigator.pop(context);
+                                  Navigator.pushNamed(
+                                    context,
+                                    AppRouter.editPlayListPage,
+                                    arguments: playList,
+                                  );
+                                }),
+                            OptionItem(
+                                title: tr('delete_playlist'),
+                                onTap: () {
+                                  Navigator.pop(context);
+                                  UIHelper.showMessageAction(
+                                    context,
+                                    tr('delete_playlist'),
+                                    '',
+                                    descriptionWidget: RichText(
+                                      text: TextSpan(children: [
+                                        TextSpan(
+                                          style:
+                                              theme.primaryTextTheme.bodyText1,
+                                          text: "you_are_about".tr(),
+                                        ),
+                                        TextSpan(
+                                          style:
+                                              theme.primaryTextTheme.headline4,
+                                          text:
+                                              playList?.name ?? tr('untitled'),
+                                        ),
+                                        TextSpan(
+                                          style:
+                                              theme.primaryTextTheme.bodyText1,
+                                          text: "dont_worry".tr(),
+                                        ),
+                                      ]),
+                                    ),
+                                    actionButton: "delete".tr(),
+                                    onAction: deletePlayList,
+                                  );
+                                }),
+                          ]);
+                        },
+                        icon: const Icon(Icons.more_horiz),
+                      )
               ],
             ),
           ),
           body: Stack(
             children: [
               SafeArea(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(
-                        left: 14,
-                        right: 14,
-                        top: 24,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            playList?.name ?? tr('untitled'),
-                            style: playList?.name == null
-                                ? theme.textTheme.atlasSpanishGreyBold36
-                                : theme.textTheme.headline1,
+                child: SizedBox(
+                  height: double.infinity,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(
+                            left: 14,
+                            right: 14,
+                            top: 24,
                           ),
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 40, top: 5),
-                            child: Text(
-                              tr(
-                                  tokensPlaylist.length > 1
-                                      ? 'artworks'
-                                      : 'artwork',
-                                  args: [tokensPlaylist.length.toString()]),
-                              style: theme.textTheme.atlasBlackMedium12,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Expanded(
-                      child: BlocConsumer<NftCollectionBloc,
-                          NftCollectionBlocState>(
-                        bloc: nftBloc,
-                        builder: (context, nftState) {
-                          return NftCollectionGrid(
-                            state: nftState.state,
-                            tokens: nftState.tokens,
-                            loadingIndicatorBuilder: loadingView,
-                            customGalleryViewBuilder: (context, tokens) =>
-                                _assetsWidget(
-                              context,
-                              setupPlayList(
-                                tokens: tokens,
-                                selectedTokens: playList?.tokenIDs,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                (playList?.name?.isNotEmpty ?? false)
+                                    ? playList!.name!
+                                    : tr('untitled'),
+                                style: !(playList?.name?.isNotEmpty ?? false)
+                                    ? theme.textTheme.atlasSpanishGreyBold36
+                                    : theme.textTheme.headline1,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                              accountIdentities: accountIdentities,
-                            ),
-                          );
-                        },
-                        listener: (context, nftState) {},
-                      ),
-                    )
-                  ],
+                            ],
+                          ),
+                        ),
+                        BlocConsumer<NftCollectionBloc, NftCollectionBlocState>(
+                          bloc: nftBloc,
+                          builder: (context, nftState) {
+                            return NftCollectionGrid(
+                              state: nftState.state,
+                              tokens: nftState.tokens,
+                              loadingIndicatorBuilder: (context) =>
+                                  Center(child: loadingIndicator()),
+                              customGalleryViewBuilder: (context, tokens) =>
+                                  _assetsWidget(
+                                context,
+                                setupPlayList(
+                                  tokens: tokens,
+                                  selectedTokens: playList?.tokenIDs,
+                                ),
+                                accountIdentities: accountIdentities,
+                              ),
+                            );
+                          },
+                          listener: (context, nftState) {},
+                        )
+                      ],
+                    ),
+                  ),
                 ),
               ),
               Positioned(
@@ -251,6 +272,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
     List<AssetToken> tokens, {
     required List<ArtworkIdentity> accountIdentities,
   }) {
+    final theme = Theme.of(context);
     int cellPerRow =
         ResponsiveLayout.isMobile ? cellPerRowPhone : cellPerRowTablet;
 
@@ -258,54 +280,69 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
         cellSpacing * (cellPerRow - 1);
     final cachedImageSize = (estimatedCellWidth * 3).ceil();
 
-    return GridView.builder(
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: cellPerRow,
-        crossAxisSpacing: cellSpacing,
-        mainAxisSpacing: cellSpacing,
-      ),
-      itemBuilder: (context, index) {
-        final asset = tokens[index];
-        return GestureDetector(
-          child: asset.pending == true && !asset.hasMetadata
-              ? PendingTokenWidget(
-                  thumbnail: asset.galleryThumbnailURL,
-                  tokenId: asset.tokenId,
-                )
-              : tokenGalleryWidget(
-                  context,
-                  asset,
-                  cachedImageSize,
-                ),
-          onTap: () {
-            if (asset.pending == true && !asset.hasMetadata) return;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(
+            bottom: 40,
+            top: 5,
+            left: 14,
+            right: 14,
+          ),
+          child: Text(
+            tr(tokensPlaylist.length != 1 ? 'artworks' : 'artwork',
+                args: [tokensPlaylist.length.toString()]),
+            style: theme.textTheme.atlasBlackMedium12,
+          ),
+        ),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: cellPerRow,
+            crossAxisSpacing: cellSpacing,
+            mainAxisSpacing: cellSpacing,
+          ),
+          itemBuilder: (context, index) {
+            final asset = tokens[index];
+            return GestureDetector(
+              child: asset.pending == true && !asset.hasMetadata
+                  ? PendingTokenWidget(
+                      thumbnail: asset.galleryThumbnailURL,
+                      tokenId: asset.tokenId,
+                    )
+                  : tokenGalleryWidget(
+                      context,
+                      asset,
+                      cachedImageSize,
+                    ),
+              onTap: () {
+                if (asset.pending == true && !asset.hasMetadata) return;
 
-            final index = tokens
-                .where((e) => e.pending != true || e.hasMetadata)
-                .toList()
-                .indexOf(asset);
-            final payload = ArtworkDetailPayload(accountIdentities, index,
-                isPlaylist: true);
-            Navigator.of(context)
-                .pushNamed(AppRouter.artworkPreviewPage, arguments: payload);
+                final index = tokens
+                    .where((e) => e.pending != true || e.hasMetadata)
+                    .toList()
+                    .indexOf(asset);
+                final payload = ArtworkDetailPayload(accountIdentities, index,
+                    isPlaylist: true);
+                if (injector<ConfigurationService>()
+                    .isImmediateInfoViewEnabled()) {
+                  Navigator.of(context).pushNamed(AppRouter.artworkDetailsPage,
+                      arguments: payload);
+                } else {
+                  Navigator.of(context).pushNamed(AppRouter.artworkPreviewPage,
+                      arguments: payload);
+                }
+              },
+            );
           },
-        );
-      },
-      itemCount: tokens.length,
+          itemCount: tokens.length,
+        ),
+        const SizedBox(
+          height: 80,
+        ),
+      ],
     );
   }
-}
-
-Widget loadingView(BuildContext context) {
-  final theme = Theme.of(context);
-  return Center(
-      child: Column(
-    children: [
-      CircularProgressIndicator(
-        backgroundColor: Colors.white60,
-        color: theme.colorScheme.secondary,
-        strokeWidth: 2,
-      ),
-    ],
-  ));
 }
