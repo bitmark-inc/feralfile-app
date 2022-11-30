@@ -181,6 +181,7 @@ extension AssetTokenExtension on AssetToken {
       case "application/x-mpegURL":
       case "video/x-flv":
       case "video/MP2T":
+      case "video/webm":
         return RenderingType.video;
 
       case "application/pdf":
