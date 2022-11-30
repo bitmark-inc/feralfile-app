@@ -50,6 +50,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/penrose_top_bar_view.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -93,6 +94,48 @@ class _HomePageState extends State<HomePage> {
         _selectedIndex = index;
         _pageController.jumpToPage(_selectedIndex);
       });
+    } else {
+      UIHelper.showDrawerAction(
+        context,
+        options: [
+          OptionItem(
+            title: 'Scan',
+            icon: const Icon(
+              AuIcon.scan,
+            ),
+            onTap: () => Navigator.of(context).pushNamed(
+              AppRouter.scanQRPage,
+              arguments: ScannerItem.GLOBAL,
+            ),
+          ),
+          OptionItem(
+            title: 'Playlist',
+            icon: const Icon(
+              AuIcon.playlists,
+            ),
+            // onTap: () => Navigator.of(context).pushNamed(
+            //   AppRouter.scanQRPage,
+            //   arguments: ScannerItem.GLOBAL,
+            // ),
+          ),
+          OptionItem(
+            title: 'Settings',
+            icon: const Icon(
+              AuIcon.settings,
+            ),
+            onTap: () =>
+                Navigator.of(context).pushNamed(AppRouter.settingsPage),
+          ),
+          OptionItem(
+            title: 'Help',
+            icon: const Icon(
+              AuIcon.help,
+            ),
+            onTap: () =>
+                Navigator.of(context).pushNamed(AppRouter.supportCustomerPage),
+          ),
+        ],
+      );
     }
   }
 
@@ -154,7 +197,7 @@ class _HomeScreenState extends State<HomeScreen>
   late MixPanelClientService mixPanelClient;
   int _cachedImageSize = 0;
 
-  ValueNotifier<List<PlayListModel>?> playlists = ValueNotifier([]);
+  // ValueNotifier<List<PlayListModel>?> playlists = ValueNotifier([]);
 
   Future<List<String>> getAddresses() async {
     final accountService = injector<AccountService>();
@@ -332,10 +375,10 @@ class _HomeScreenState extends State<HomeScreen>
           body: Stack(
             children: [
               contentWidget,
-              PenroseTopBarView(
-                _controller,
-                PenroseTopBarViewStyle.main,
-              ),
+              // PenroseTopBarView(
+              //   _controller,
+              //   PenroseTopBarViewStyle.main,
+              // ),
             ],
           ),
         ),
@@ -399,31 +442,34 @@ class _HomeScreenState extends State<HomeScreen>
       SliverToBoxAdapter(
         child: Column(
           children: [
-            Container(
-              padding: const EdgeInsets.fromLTRB(0, 72, 0, 30),
-              child: autonomyLogo,
-            ),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: SizedBox(
-                height: 68,
-                child: ValueListenableBuilder(
-                  valueListenable: playlists,
-                  builder: (context, value, child) => ListPlaylistWidget(
-                    playlists: playlists.value,
-                    onUpdateList: () async {
-                      if (injector
-                          .get<ConfigurationService>()
-                          .isDemoArtworksMode()) return;
-                      await injector
-                          .get<ConfigurationService>()
-                          .setPlayList(playlists.value, override: true);
-                      injector.get<SettingsDataService>().backup();
-                    },
-                  ),
-                ),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(15, 72, 0, 40),
+                child: autonomyLogo,
               ),
-            )
+            ),
+            // Padding(
+            //   padding: const EdgeInsets.only(bottom: 16),
+            //   child: SizedBox(
+            //     height: 68,
+            //     child: ValueListenableBuilder(
+            //       valueListenable: playlists,
+            //       builder: (context, value, child) => ListPlaylistWidget(
+            //         playlists: playlists.value,
+            //         onUpdateList: () async {
+            //           if (injector
+            //               .get<ConfigurationService>()
+            //               .isDemoArtworksMode()) return;
+            //           await injector
+            //               .get<ConfigurationService>()
+            //               .setPlayList(playlists.value, override: true);
+            //           injector.get<SettingsDataService>().backup();
+            //         },
+            //       ),
+            //     ),
+            //   ),
+            // )
           ],
         ),
       ),
@@ -501,7 +547,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   void _refreshTokens({checkPendingToken = false}) async {
     final accountService = injector<AccountService>();
-    playlists.value = await getPlaylist();
+    // playlists.value = await getPlaylist();
 
     Future.wait([
       getAddresses(),
@@ -515,12 +561,12 @@ class _HomeScreenState extends State<HomeScreen>
           .where((element) => !hiddenAddresses.contains(element))
           .toList();
       final nftBloc = context.read<NftCollectionBloc>();
-      final isDemo = injector.get<ConfigurationService>().isDemoArtworksMode();
-      if (isDemo) {
-        playlists.value?.forEach((element) {
-          indexerIds.addAll(element.tokenIDs ?? []);
-        });
-      }
+      // final isDemo = injector.get<ConfigurationService>().isDemoArtworksMode();
+      // if (isDemo) {
+      //   playlists.value?.forEach((element) {
+      //     indexerIds.addAll(element.tokenIDs ?? []);
+      //   });
+      // }
       nftBloc.add(UpdateHiddenTokens(ownerAddresses: hiddenAddresses));
       nftBloc.add(RefreshTokenEvent(
           addresses: activeAddresses, debugTokens: indexerIds));

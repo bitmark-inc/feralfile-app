@@ -10,6 +10,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:autonomy_flutter/model/wc2_proposal.dart';
+import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
@@ -608,7 +609,7 @@ class UIHelper {
               width: size,
               height: size,
               child:
-              Image.asset("assets/images/walletconnect-alternative.png"));
+                  Image.asset("assets/images/walletconnect-alternative.png"));
         } else {
           return CachedNetworkImage(
             imageUrl: appIcons.first,
@@ -971,6 +972,79 @@ class UIHelper {
       ),
     );
   }
+
+  static Future<void> showDrawerAction(BuildContext context,
+      {List<OptionItem>? options}) async {
+    final theme = Theme.of(context);
+    await showModalBottomSheet<dynamic>(
+        context: context,
+        isDismissible: true,
+        backgroundColor: Colors.transparent,
+        enableDrag: false,
+        constraints: BoxConstraints(
+            maxWidth: ResponsiveLayout.isMobile
+                ? double.infinity
+                : Constants.maxWidthModalTablet),
+        isScrollControlled: true,
+        builder: (context) {
+          return Container(
+            color: theme.auSuperTeal,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(
+                      AuIcon.close,
+                      size: 18,
+                    ),
+                  ),
+                ),
+                ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemBuilder: (BuildContext context, int index) =>
+                      GestureDetector(
+                    onTap: options?[index].onTap,
+                    child: Container(
+                      color: Colors.transparent,
+                      width: MediaQuery.of(context).size.width,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 16.0,
+                          horizontal: 13,
+                        ),
+                        child: Row(
+                          children: [
+                            if (options?[index].icon != null)
+                              options![index].icon!,
+                            if (options?[index].icon != null)
+                              const SizedBox(
+                                width: 40,
+                              ),
+                            Text(
+                              options?[index].title ?? '',
+                              style: theme.textTheme.ppMori400Black14,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  itemCount: options?.length ?? 0,
+                  separatorBuilder: (context, index) => Divider(
+                    height: 1,
+                    thickness: 1.0,
+                    color: theme.colorScheme.secondary,
+                  ),
+                ),
+              ],
+            ),
+          );
+        });
+  }
 }
 
 learnMoreAboutAutonomySecurityWidget(BuildContext context,
@@ -1042,8 +1116,10 @@ String getDateTimeRepresentation(DateTime dateTime) {
 class OptionItem {
   String? title;
   Function()? onTap;
+  Widget? icon;
   OptionItem({
     this.title,
     this.onTap,
+    this.icon,
   });
 }
