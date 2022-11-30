@@ -579,6 +579,8 @@ INFTRenderingWidget buildRenderingWidget(
     onLoaded: onLoaded,
     onDispose: onDispose,
     overriddenHtml: overriddenHtml,
+    skipViewport:
+        token.contractAddress == 'KT1RcZU4sphiF4b2mxW7zGkrfV8S2puKBFT3',
     isMute: isMute,
   ));
 

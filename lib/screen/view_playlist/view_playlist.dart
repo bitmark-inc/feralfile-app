@@ -247,6 +247,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                 left: 0,
                 right: 0,
                 child: PlaylistControl(
+                  showPlay: accountIdentities.isNotEmpty,
                   onPlayTap: () {
                     final payload = ArtworkDetailPayload(
                       accountIdentities,

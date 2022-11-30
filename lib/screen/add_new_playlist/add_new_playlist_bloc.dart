@@ -18,23 +18,22 @@ class AddNewPlaylistBloc
         AddNewPlaylistState(
           playListModel: event.playListModel ??
               PlayListModel(tokenIDs: [], thumbnailURL: '', name: ''),
+          selectedIDs: List.from(event.playListModel?.tokenIDs ?? []),
         ),
       );
     });
 
     on<UpdateItemPlaylist>((event, emit) {
-      final playListModel = state.playListModel;
       if (event.value) {
-        playListModel?.tokenIDs?.add(event.tokenID);
+        state.selectedIDs?.add(event.tokenID);
       } else {
-        playListModel?.tokenIDs?.remove(event.tokenID);
+        state.selectedIDs?.remove(event.tokenID);
       }
-      playListModel?.tokenIDs = state.playListModel?.tokenIDs?.toSet().toList();
-      emit(state.copyWith(playListModel: playListModel));
+      state.selectedIDs = state.selectedIDs?.toSet().toList();
+      emit(state.copyWith(selectedIDs: state.selectedIDs));
     });
 
     on<SelectItemPlaylist>((event, emit) {
-      final playListModel = state.playListModel;
       final hiddenTokens =
           injector<ConfigurationService>().getTempStorageHiddenTokenIDs();
       final sentArtworks =
@@ -56,12 +55,12 @@ class AddNewPlaylistBloc
               .toList() ??
           [];
       if (event.isSelectAll) {
-        playListModel?.tokenIDs = List.from(listTokenIDs);
+        state.selectedIDs = List.from(listTokenIDs);
       } else {
-        playListModel?.tokenIDs?.clear();
+        state.selectedIDs?.clear();
       }
-      playListModel?.tokenIDs = state.playListModel?.tokenIDs?.toSet().toList();
-      emit(state.copyWith(playListModel: playListModel));
+      state.selectedIDs = state.selectedIDs?.toSet().toList();
+      emit(state.copyWith(selectedIDs: state.selectedIDs));
     });
 
     on<CreatePlaylist>((event, emit) async {
@@ -69,10 +68,17 @@ class AddNewPlaylistBloc
       playListModel?.name = event.name;
       playListModel?.thumbnailURL = state.tokens
           ?.firstWhereOrNull(
-              (element) => element.id == playListModel.tokenIDs?.first)
+              (element) => element.id == state.selectedIDs?.first)
           ?.getGalleryThumbnailUrl();
 
-      playListModel?.tokenIDs = state.playListModel?.tokenIDs?.toSet().toList();
+      state.selectedIDs = state.tokens
+          ?.map((e) => e.id)
+          .toSet()
+          .intersection(state.selectedIDs?.toSet() ?? {})
+          .toList();
+
+      playListModel?.tokenIDs = state.selectedIDs?.toSet().toList();
+
       if (playListModel?.id == null) {
         playListModel?.id = const Uuid().v4();
         await _configurationService.setPlayList([playListModel!]);

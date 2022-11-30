@@ -89,7 +89,10 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen> {
         }
       },
       builder: (context, state) {
-        final selectedCount = state.playListModel?.tokenIDs?.length ?? 0;
+        final selectedCount = tokensPlaylist
+            .where(
+                (element) => state.selectedIDs?.contains(element.id) ?? false)
+            .length;
         final isSeletedAll = selectedCount == tokensPlaylist.length;
         return Scaffold(
           appBar: AppBar(
@@ -232,7 +235,7 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen> {
                               UpdateItemPlaylist(
                                   tokenID: tokenID, value: value),
                             ),
-                            selectedTokens: state.playListModel?.tokenIDs,
+                            selectedTokens: state.selectedIDs,
                           ),
                         );
                       },
