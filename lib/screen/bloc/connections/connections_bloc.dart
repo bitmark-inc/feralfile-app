@@ -16,8 +16,6 @@ import 'package:autonomy_flutter/util/constants.dart';
 import "package:collection/collection.dart";
 import 'package:wallet_connect/wallet_connect.dart';
 
-import '../../../util/log.dart';
-
 part 'connections_state.dart';
 
 class ConnectionsBloc extends AuBloc<ConnectionsEvent, ConnectionsState> {
@@ -27,15 +25,11 @@ class ConnectionsBloc extends AuBloc<ConnectionsEvent, ConnectionsState> {
   final TezosBeaconService _tezosBeaconService;
 
   Future<List<ConnectionItem>> _getWc2Connections(String personaUUID) async {
-    var wc2Pairings = await _wc2Service.getPairings();
-    wc2Pairings.forEach((element) {
-      log.info("getPairings: topic ${element.topic}");
-    });
     final connections = await _cloudDB.connectionDao
         .getConnectionsByType(ConnectionType.walletConnect2.rawValue);
     List<Connection> personaConnections = [];
     for (var connection in connections) {
-      if (connection.key.split(":")[0] == personaUUID) {
+      if (connection.key.split(":").firstOrNull == personaUUID) {
         personaConnections.add(connection);
       }
     }
@@ -118,7 +112,10 @@ class ConnectionsBloc extends AuBloc<ConnectionsEvent, ConnectionsState> {
         await _cloudDB.connectionDao.deleteConnection(connection);
         if (connection.connectionType ==
             ConnectionType.walletConnect2.rawValue) {
-          await _wc2Service.deletePairing(topic: connection.key.split(":")[1]);
+          final topic = connection.key.split(":").lastOrNull;
+          if (topic != null) {
+            await _wc2Service.deletePairing(topic: topic);
+          }
         }
 
         final wcPeer = connection.wcConnection?.sessionStore.peerMeta;

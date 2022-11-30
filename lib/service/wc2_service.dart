@@ -49,6 +49,7 @@ class Wc2Service extends Wc2Handler {
   final CloudDatabase _cloudDB;
 
   late Wc2Channel _wc2channel;
+  String pendingUri = "";
 
   Wc2Service(
     this._navigationService,
@@ -59,22 +60,18 @@ class Wc2Service extends Wc2Handler {
   }
 
   Future connect(String uri) async {
-    try {
-      var wc2Pairings = await getPairings();
-      final connections = await _cloudDB.connectionDao
-          .getConnectionsByType(ConnectionType.walletConnect2.rawValue);
-      for (var pair in wc2Pairings) {
-        Connection? con =
-            connections.firstWhereOrNull((con) => con.key.contains(pair.topic));
-        if (con == null) {
-          await deletePairing(topic: pair.topic);
-        }
-      }
-    } catch (e) {
-      log.info("[Wc Service]: connect. Remove disconnected $e");
-    }
-
+    pendingUri = uri;
     await _wc2channel.pairClient(uri);
+  }
+
+  Future activateParings() async {
+    final connections = await _cloudDB.connectionDao
+        .getConnectionsByType(ConnectionType.walletConnect2.rawValue);
+    for (var connection in connections) {
+      final topic = connection.key.split(":").lastOrNull;
+      if (topic == null) continue;
+      await _wc2channel.activate(topic: topic);
+    }
   }
 
   Future approveSession(Wc2Proposal proposal,
@@ -84,8 +81,9 @@ class Wc2Service extends Wc2Handler {
       accountDid,
     );
     final wc2Pairings = await injector<Wc2Service>().getPairings();
+    final topic = wc2Pairings.firstWhereOrNull((element) => pendingUri.contains(element.topic))?.topic ?? "";
     final connection = Connection(
-      key: "$personalUUID:${wc2Pairings.last.topic}",
+      key: "$personalUUID:$topic",
       name: proposal.proposer.name,
       data: json.encode(proposal.proposer),
       connectionType: ConnectionType.walletConnect2.rawValue,

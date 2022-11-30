@@ -27,14 +27,14 @@ class WalletConnectService {
     }
     
     @MainActor
-    func respondOnReject(request: Request) {
+    func respondOnReject(request: Request, reason: String) {
         logger.info("[WALLET] Respond on Reject")
         Task {
             do {
                 try await Sign.instance.respond(
                     topic: request.topic,
                     requestId: request.id,
-                    response: .error(JSONRPCError(code: 0, message: "", data: nil))
+                    response: .error(JSONRPCError(code: 0, message: reason, data: nil))
                 )
             } catch {
                 logger.info("[DAPP] Respond Error: \(error.localizedDescription)")
@@ -82,6 +82,12 @@ class WalletConnectService {
     func getPairings() -> [Pairing] {
         logger.info("[WALLET] getPairings")
         return Pair.instance.getPairings()
+    }
+    
+    @MainActor
+    func activate(topic: String) {
+        logger.info("[WALLET] activate \(topic)")
+        Pair.registerer.activate(pairingTopic: topic)
     }
 
     @MainActor

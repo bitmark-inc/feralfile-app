@@ -174,6 +174,12 @@ class Wc2ConnectPlugin(private val application: Application) : FlutterPlugin,
         }
     }
 
+    private fun activate(topic: String, result: MethodChannel.Result) {
+        Timber.e("activate pairing. Topic: $topic")
+        CoreClient.Pairing.activate(topic)
+        result.success()
+    }
+
     private fun deletePairing(topic: String, result: MethodChannel.Result) {
         try {
             Timber.e("Delete pairing. Topic: $topic")
@@ -215,6 +221,10 @@ class Wc2ConnectPlugin(private val application: Application) : FlutterPlugin,
             }
             "getPairings" -> {
                 getPairings(result)
+            }
+            "activate" -> {
+                val topic = call.argument<String?>("topic").orEmpty()
+                activate(topic = topic, result = result)
             }
             "deletePairing" -> {
                 val topic = call.argument<String?>("topic").orEmpty()

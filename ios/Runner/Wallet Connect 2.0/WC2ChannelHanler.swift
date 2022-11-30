@@ -44,13 +44,14 @@ class WC2ChannelHandler: NSObject {
     func respondOnReject(call: FlutterMethodCall, result: @escaping FlutterResult) {
         let args: NSDictionary = call.arguments as! NSDictionary
         let requestId: String = args["topic"] as! String
-        
-        guard let request = pendingRequests.last(where: { $0.id.left == requestId }) else {
+        let reason: String = (args["reason"] as? String) ?? ""
+
+        guard let request = pendingRequests.last(where: { $0.topic == requestId }) else {
             result(AppError.aborted)
             return
         }
         
-        WalletConnectService.shared.respondOnReject(request: request)
+        WalletConnectService.shared.respondOnReject(request: request, reason: reason)
         
         result([
             "error": 0
@@ -72,6 +73,17 @@ class WC2ChannelHandler: NSObject {
         }
     }
 
+    @MainActor
+    func activate(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args: NSDictionary = call.arguments as! NSDictionary
+        let topic: String = args["topic"] as! String
+        
+        try WalletConnectService.shared.activate(topic: topic)
+        result([
+            "error": 0
+        ])
+    }
+    
     @MainActor
     func deletePairing(call: FlutterMethodCall, result: @escaping FlutterResult) {
         do {

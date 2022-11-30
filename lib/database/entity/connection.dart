@@ -63,17 +63,6 @@ class Connection {
     required this.createdAt,
   });
 
-  factory Connection.fromWc2Pairing(Wc2Pairing pairing) {
-    return Connection(
-      key: pairing.topic,
-      name: pairing.peerAppMetaData?.name ?? "",
-      data: pairing.topic,
-      connectionType: ConnectionType.walletConnect2.rawValue,
-      accountNumber: "",
-      createdAt: DateTime.now(),
-    );
-  }
-
   factory Connection.fromFFToken(
       String token, String source, FFAccount ffAccount) {
     final ffConnection =
