@@ -28,22 +28,26 @@ class CreatePlaylist extends AddNewPlaylistEvent {
 class AddNewPlaylistState {
   List<AssetToken>? tokens;
   PlayListModel? playListModel;
+  List<String>? selectedIDs;
   bool? isAddSuccess;
   AddNewPlaylistState({
     this.tokens,
     this.playListModel,
+    this.selectedIDs,
     this.isAddSuccess,
   });
 
   AddNewPlaylistState copyWith({
     List<AssetToken>? tokens,
     PlayListModel? playListModel,
+    List<String>? selectedIDs,
     bool isAddSuccess = false,
   }) {
     return AddNewPlaylistState(
       tokens: tokens ?? this.tokens,
       playListModel: playListModel ?? this.playListModel,
       isAddSuccess: isAddSuccess,
+      selectedIDs: selectedIDs ?? this.selectedIDs,
     );
   }
 }
