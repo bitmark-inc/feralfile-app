@@ -211,9 +211,12 @@ Widget get autonomyLogo {
   return FutureBuilder<bool>(
       future: isAppCenterBuild(),
       builder: (context, snapshot) {
-        return SvgPicture.asset(snapshot.data == true
-            ? "assets/images/logo_dev.svg"
-            : "assets/images/penrose_moma.svg");
+        return SvgPicture.asset(
+          snapshot.data == true
+              ? "assets/images/logo_dev.svg"
+              : "assets/images/penrose_moma.svg",
+          width: 50,
+        );
       });
 }
 
