@@ -125,7 +125,6 @@ class AccountServiceImpl extends AccountService {
     final uuid = const Uuid().v4();
     final walletStorage = LibAukDart.getWallet(uuid);
     await walletStorage.createKey(name);
-
     final persona =
         Persona.newPersona(uuid: uuid, defaultAccount: isDefault ? 1 : null);
     await _cloudDB.personaDao.insertPersona(persona);
@@ -210,7 +209,7 @@ class AccountServiceImpl extends AccountService {
         await _cloudDB.personaDao.updatePersona(defaultPersona);
       } else {
         log.info("[AccountService] create default account");
-        defaultPersona = await createPersona(name: "Default", isDefault: true);
+        defaultPersona = await createPersona(isDefault: true);
       }
     } else {
       defaultPersona = personas.first;
