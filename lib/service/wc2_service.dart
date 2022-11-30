@@ -26,6 +26,7 @@ import 'package:autonomy_flutter/util/wc2_tezos_ext.dart';
 import 'package:collection/collection.dart';
 import 'package:wallet_connect/models/ethereum/wc_ethereum_transaction.dart';
 import 'package:wallet_connect/models/wc_peer_meta.dart';
+import 'package:wallet_connect/wallet_connect.dart';
 
 import '../database/cloud_database.dart';
 import '../database/entity/connection.dart';
@@ -257,6 +258,7 @@ class Wc2Service extends Wc2Handler {
           request.topic,
           request.proposer!.toWCPeerMeta(),
           request.params["message"],
+          WCSignType.PERSONAL_MESSAGE,
           "", // uuid, used for Wallet connect 1 only
           wc2Params: Wc2SignRequestParams(
             chain: request.params["chain"],
