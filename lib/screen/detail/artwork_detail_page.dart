@@ -34,7 +34,7 @@ import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:html_unescape/html_unescape.dart';
+import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/provenance.dart';
@@ -93,7 +93,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
 
   @override
   Widget build(BuildContext context) {
-    final unescape = HtmlUnescape();
     final theme = Theme.of(context);
 
     return Stack(
@@ -212,9 +211,9 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                         children: [
                           Semantics(
                             label: 'Desc',
-                            child: Text(
-                              unescape.convert(asset.desc ?? ""),
-                              style: theme.textTheme.bodyText1,
+                            child: HtmlWidget(
+                              asset.desc ?? "",
+                              textStyle: theme.textTheme.bodyText1,
                             ),
                           ),
                           const SizedBox(height: 40.0),

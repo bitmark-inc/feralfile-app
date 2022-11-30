@@ -21,7 +21,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:html_unescape/html_unescape.dart';
+import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -68,7 +68,6 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final unescape = HtmlUnescape();
     final theme = Theme.of(context);
 
     return Stack(
@@ -220,9 +219,9 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
                           ),
                         ),
                         const SizedBox(height: 40.0),
-                        Text(
-                          unescape.convert(token?.desc ?? ""),
-                          style: theme.textTheme.bodyText1,
+                        HtmlWidget(
+                          token?.desc ?? "",
+                          textStyle: theme.textTheme.bodyText1,
                         ),
                         artworkDetailsRightSection(context, token!),
                         const SizedBox(height: 40.0),
