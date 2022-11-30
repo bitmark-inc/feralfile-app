@@ -48,7 +48,8 @@ class FeedPreviewPage extends StatefulWidget {
 }
 
 class _FeedPreviewPageState extends State<FeedPreviewPage>
-    with RouteAware, AfterLayoutMixin<FeedPreviewPage>, WidgetsBindingObserver {
+    with RouteAware, AfterLayoutMixin<FeedPreviewPage>, WidgetsBindingObserver,
+        TickerProviderStateMixin {
   String? swipeDirection;
   Timer? _timer;
   Timer? _maxTimeTokenTimer;
@@ -69,16 +70,6 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
 
     _timer = Timer.periodic(const Duration(seconds: 10), (timer) {
       _bloc.add(RetryMissingTokenInFeedsEvent());
-    });
-  }
-
-  void setMaxTimeToken() {
-    _maxTimeTokenTimer?.cancel();
-    _maxTimeTokenTimer = Timer(const Duration(seconds: 10), () {
-      _controller.nextPage(
-        duration: const Duration(milliseconds: 500),
-        curve: Curves.easeIn,
-      );
     });
   }
 
@@ -105,7 +96,6 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
   void didPopNext() {
     Wakelock.enable();
 
-    setMaxTimeToken();
     super.didPopNext();
   }
 
@@ -127,91 +117,156 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
     super.dispose();
   }
 
+  Widget _menuBar(){
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children:[
+        previewCloseIcon(context),
+        SizedBox(),
+        previewCloseIcon(context),
+        SizedBox(),
+        previewCloseIcon(context),
+      ]
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    double safeAreaTop = MediaQuery.of(context).padding.top;
     return Scaffold(
       backgroundColor: theme.colorScheme.primary,
       body: BlocConsumer<FeedBloc, FeedState>(
           listener: (context, state) {},
           builder: (context, state) {
-            if (state.isFinishedOnBoarding() &&
-                ((state.feedTokens?.isEmpty ?? true) ||
-                    (state.feedEvents?.isEmpty ?? true))) {
+            if ((state.feedTokens?.isEmpty ?? true) ||
+                    (state.feedEvents?.isEmpty ?? true)) {
               return _emptyOrLoadingDiscoveryWidget(state.appFeedData);
             }
-
-            final feedTokens = state.feedTokens;
-            final currentIndex = state.viewingIndex ?? 0;
-
-            if (!state.isFinishedOnBoarding()) {
-              return Column(
+            //final feedTokens = state.feedTokens;
+            return Container(
+              padding: EdgeInsets.fromLTRB(0, safeAreaTop, 0, 0),
+              child: Stack(
                 children: [
-                  Expanded(
-                    child: Stack(
-                      children: [
-                        PageView.builder(
-                          onPageChanged: (value) {
-                            _bloc.add(ChangeOnBoardingEvent(index: value));
-                          },
-                          itemCount: 4,
-                          itemBuilder: (context, index) => Center(
-                            child: _getOnBoardingView(index),
+                  ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: state.feedTokens?.length,
+                    padding: EdgeInsets.fromLTRB(0, safeAreaTop + 170, 0, 0),
+                    //controller: ScrollController(),
+                    cacheExtent: 100,
+                    itemBuilder: (context, index) => GestureDetector(
+                      onTap: () {
+                        final asset = state.feedTokens![index];
+                        if (asset == null) {
+                          return;
+                        }
+                        _moveToInfo(asset);
+                      },
+                      child: Column(
+                        children: [
+                          Center(
+                            child: FeedArtwork(
+                              assetToken: state.feedTokens![index],
+                            ),
                           ),
-                        ),
-                        Align(
-                          alignment: Alignment.topCenter,
-                          child: _controlViewOnBoarding(),
-                        ),
-                      ],
+                          const SizedBox(height: 20,),
+                          Align(
+                            alignment: Alignment.topCenter,
+                            child: _controlView(
+                              state.feedEvents![index],
+                              state.feedTokens![index],
+                            ),
+                          ),
+                          const SizedBox(height: 60,),
+                        ]
+                      ),
                     ),
                   ),
-                ],
-              );
-            }
-            return Column(
-              children: [
-                Expanded(
-                  child: Stack(
-                    children: [
-                      PageView.builder(
-                        controller: _controller,
-                        onPageChanged: (value) {
-                          final event = state.feedEvents![value];
-                          final asset = state.feedTokens![value];
-                          final neededIdentities = [
-                            asset?.artistName ?? '',
-                            event.recipient
-                          ];
-                          neededIdentities
-                              .removeWhere((element) => element == '');
-                          if (neededIdentities.isNotEmpty) {
-                            context
-                                .read<IdentityBloc>()
-                                .add(GetIdentityEvent(neededIdentities));
-                          }
-                          _bloc.add(ChangePageEvent(index: value));
-                        },
-                        itemCount: feedTokens?.length,
-                        itemBuilder: (context, index) => Center(
-                          child: FeedArtwork(
-                            assetToken: state.feedTokens![index],
-                            onInit: setMaxTimeToken,
+                  Align(
+                    alignment: Alignment.topCenter,
+                    child: Container(
+                      color: Colors.black,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          SvgPicture.asset(
+                            "assets/images/iconFeed.svg",
+                            color: theme.colorScheme.secondary,
                           ),
-                        ),
+                          const Spacer(),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(0, 16, 0, 12),
+                            child: Text(
+                              "h_discovery".tr().toUpperCase(),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                                fontFamily: 'IBMPlexMono',
+                                fontStyle: FontStyle.normal,
+                              ),
+                            ),
+                          ),
+                          const Spacer(),
+                          previewCloseIcon(context)
+                        ],
                       ),
-                      Align(
-                        alignment: Alignment.topCenter,
-                        child: _controlView(
-                          state.feedEvents![currentIndex],
-                          state.feedTokens![currentIndex],
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
-                ),
-              ],
+                  Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Container(
+                        color: Colors.black,
+                        child: _menuBar()
+                    ),
+                  ),
+                ]
+              ),
             );
+
+            // return Column(
+            //   children: [
+            //     Expanded(
+            //       child: Stack(
+            //         children: [
+            //           PageView.builder(
+            //             controller: _controller,
+            //             onPageChanged: (value) {
+            //               final event = state.feedEvents![value];
+            //               final asset = state.feedTokens![value];
+            //               final neededIdentities = [
+            //                 asset?.artistName ?? '',
+            //                 event.recipient
+            //               ];
+            //               neededIdentities
+            //                   .removeWhere((element) => element == '');
+            //               if (neededIdentities.isNotEmpty) {
+            //                 context
+            //                     .read<IdentityBloc>()
+            //                     .add(GetIdentityEvent(neededIdentities));
+            //               }
+            //               _bloc.add(ChangePageEvent(index: value));
+            //             },
+            //             itemCount: feedTokens?.length,
+            //             itemBuilder: (context, index) => Center(
+            //               child: FeedArtwork(
+            //                 assetToken: state.feedTokens![index],
+            //                 onInit: setMaxTimeToken,
+            //               ),
+            //             ),
+            //           ),
+            //           Align(
+            //             alignment: Alignment.topCenter,
+            //             child: _controlView(
+            //               state.feedEvents![currentIndex],
+            //               state.feedTokens![currentIndex],
+            //             ),
+            //           ),
+            //         ],
+            //       ),
+            //     ),
+            //   ],
+            // );
           }),
     );
   }
@@ -277,48 +332,70 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
     );
   }
 
-  Widget _controlViewOnBoarding() {
-    final safeAreaTop = MediaQuery.of(context).padding.top;
+  Widget _controlView(FeedEvent event, AssetToken? asset) {
+    if (asset == null) {
+      return _controlViewWhenNoAsset(event);
+    }
+
     final theme = Theme.of(context);
     return Container(
       color: theme.colorScheme.primary,
-      height: MediaQuery.of(context).padding.top + 52,
-      padding: EdgeInsets.fromLTRB(15, safeAreaTop + 2, 5, 0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          SvgPicture.asset("assets/images/iconFeed.svg",
-              color: theme.colorScheme.secondary),
-          const SizedBox(width: 13),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  "h_autonomy".tr(),
-                  style: ResponsiveLayout.isMobile
-                      ? theme.textTheme.atlasWhiteBold12
-                      : theme.textTheme.atlasWhiteBold14,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  "introducing_discovery".tr(),
-                  style: theme.primaryTextTheme.headline5,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+      height: 52,
+      padding: EdgeInsets.fromLTRB(15, 0, 5, 0),
+      child: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTap: () => _moveToInfo(asset),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Expanded(
+              child: BlocBuilder<IdentityBloc, IdentityState>(
+                  builder: (context, identityState) {
+                final followingName = event.recipient
+                        .toIdentityOrMask(identityState.identityMap) ??
+                    event.recipient;
+                final artistName = asset.artistName
+                    ?.toIdentityOrMask(identityState.identityMap);
+
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        RichText(
+                          overflow: TextOverflow.ellipsis,
+                          text: TextSpan(
+                          text : asset.title.isEmpty
+                              ? 'nft'
+                              : '${asset.title} ',
+                          style: ResponsiveLayout.isMobile
+                              ? theme.textTheme.atlasWhiteItalic12
+                              : theme.textTheme.atlasWhiteItalic14,
+                          )
+                        ),
+                        if (event.action == 'transfer' &&
+                            artistName != null) ...[
+                          RichText(
+                              text: TextSpan(
+                                  text: 'by'.tr(args: [artistName]),
+                                  style: theme.primaryTextTheme.headline5),
+                          ),
+                        ]
+                      ],
+                    ),
+                  ],
+                );
+              }),
             ),
-          ),
-          const SizedBox(),
-          previewCloseIcon(context),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  Widget _controlView(FeedEvent event, AssetToken? asset) {
+  Widget _controlView_old(FeedEvent event, AssetToken? asset) {
     if (asset == null) {
       return _controlViewWhenNoAsset(event);
     }
@@ -341,58 +418,58 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
             Expanded(
               child: BlocBuilder<IdentityBloc, IdentityState>(
                   builder: (context, identityState) {
-                final followingName = event.recipient
+                    final followingName = event.recipient
                         .toIdentityOrMask(identityState.identityMap) ??
-                    event.recipient;
-                final artistName = asset.artistName
-                    ?.toIdentityOrMask(identityState.identityMap);
+                        event.recipient;
+                    final artistName = asset.artistName
+                        ?.toIdentityOrMask(identityState.identityMap);
 
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Row(children: [
-                      Flexible(
-                        child: Text(
-                          followingName,
-                          style: ResponsiveLayout.isMobile
-                              ? theme.textTheme.atlasWhiteBold12
-                              : theme.textTheme.atlasWhiteBold14,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      Text(" • ", style: theme.primaryTextTheme.headline5),
-                      Text(getDateTimeRepresentation(event.timestamp.toLocal()),
-                          style: theme.primaryTextTheme.headline5),
-                    ]),
-                    const SizedBox(height: 4),
-                    RichText(
-                        overflow: TextOverflow.ellipsis,
-                        text: TextSpan(
-                          style: theme.primaryTextTheme.headline5,
-                          children: <TextSpan>[
-                            TextSpan(
-                              text: '${event.actionRepresentation} ',
-                            ),
-                            TextSpan(
-                              text: asset.title.isEmpty
-                                  ? 'nft'
-                                  : '${asset.title} ',
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Row(children: [
+                          Flexible(
+                            child: Text(
+                              followingName,
                               style: ResponsiveLayout.isMobile
-                                  ? theme.textTheme.atlasWhiteItalic12
-                                  : theme.textTheme.atlasWhiteItalic14,
+                                  ? theme.textTheme.atlasWhiteBold12
+                                  : theme.textTheme.atlasWhiteBold14,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            if (event.action == 'transfer' &&
-                                artistName != null) ...[
-                              TextSpan(
-                                  text: 'by'.tr(args: [artistName]),
-                                  style: theme.primaryTextTheme.headline5),
-                            ]
-                          ],
-                        )),
-                  ],
-                );
-              }),
+                          ),
+                          Text(" • ", style: theme.primaryTextTheme.headline5),
+                          Text(getDateTimeRepresentation(event.timestamp.toLocal()),
+                              style: theme.primaryTextTheme.headline5),
+                        ]),
+                        const SizedBox(height: 4),
+                        RichText(
+                            overflow: TextOverflow.ellipsis,
+                            text: TextSpan(
+                              style: theme.primaryTextTheme.headline5,
+                              children: <TextSpan>[
+                                TextSpan(
+                                  text: '${event.actionRepresentation} ',
+                                ),
+                                TextSpan(
+                                  text: asset.title.isEmpty
+                                      ? 'nft'
+                                      : '${asset.title} ',
+                                  style: ResponsiveLayout.isMobile
+                                      ? theme.textTheme.atlasWhiteItalic12
+                                      : theme.textTheme.atlasWhiteItalic14,
+                                ),
+                                if (event.action == 'transfer' &&
+                                    artistName != null) ...[
+                                  TextSpan(
+                                      text: 'by'.tr(args: [artistName]),
+                                      style: theme.primaryTextTheme.headline5),
+                                ]
+                              ],
+                            )),
+                      ],
+                    );
+                  }),
             ),
             const SizedBox(),
             previewCloseIcon(context),
