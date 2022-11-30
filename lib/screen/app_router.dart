@@ -675,21 +675,7 @@ class AppRouter {
             curve: Curves.easeIn,
             duration: const Duration(milliseconds: 250),
             settings: settings,
-            child: MultiBlocProvider(
-              providers: [
-                BlocProvider(
-                  create: (_) => FeedBloc(
-                    injector(),
-                    injector(),
-                    nftCollectionBloc.database.assetDao,
-                  ),
-                ),
-                BlocProvider(
-                    create: (_) =>
-                        IdentityBloc(injector<AppDatabase>(), injector())),
-              ],
-              child: const FeedPreviewPage(),
-            ));
+            child: FeedPreviewPage());
 
       case feedArtworkDetailsPage:
         return PageTransition(

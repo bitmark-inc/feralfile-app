@@ -127,7 +127,7 @@ dependencies:
   autonomy_theme:
     git:
       url: https://github.com/bitmark-inc/autonomy-client-shared-theme.git
-      ref: 1.0.5
+      ref: 1.0.6
 
   easy_localization: ^3.0.1
   rxdart: ^0.26.0
@@ -219,3 +219,13 @@ flutter:
         - asset: assets/fonts/IBMPlexMono/IBMPlexMono-Bold.ttf
           weight: 700
         - asset: assets/fonts/IBMPlexMono/IBMPlexMono-SemiBold.ttf
+
+    - family: PPMori
+      fonts:
+        - asset: assets/fonts/PPMori/PPMori-Regular.ttf
+        - asset: assets/fonts/PPMori/PPMori-Bold.ttf
+        - asset: assets/fonts/PPMori/PPMori-SemiBold.ttf
+
+    - family: AuIcon
+      fonts:
+        - asset: assets/fonts/AuIcon.ttf
