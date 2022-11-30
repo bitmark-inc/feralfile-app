@@ -6,7 +6,6 @@
 //
 
 import 'package:autonomy_flutter/au_bloc.dart';
-import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
@@ -87,6 +86,11 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
       await _accountService.androidRestoreKeys();
 
       final personas = await _cloudDB.personaDao.getPersonas();
+      for (var persona in personas) {
+        if (persona.name != "") {
+          persona.wallet().updateName(persona.name);
+        }
+      }
       final connections =
           await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
       if (personas.isEmpty && connections.isEmpty) {
