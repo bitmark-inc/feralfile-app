@@ -1267,17 +1267,6 @@ Widget _rowItem(
   );
 }
 
-Widget previewCloseIcon(BuildContext context) {
-  final theme = Theme.of(context);
-  return Semantics(
-    label: "CloseArtwork",
-    child: GestureDetector(
-      onTap: () => Navigator.of(context).pop(),
-      child: closeIcon(color: theme.colorScheme.secondary),
-    ),
-  );
-}
-
 class ArtworkRightWidget extends StatelessWidget {
   final FFContract? contract;
   final String? exhibitionID;

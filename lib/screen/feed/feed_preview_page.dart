@@ -39,17 +39,45 @@ import 'package:nft_collection/widgets/nft_collection_bloc.dart';
 import 'package:nft_rendering/nft_rendering.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:wakelock/wakelock.dart';
+import 'package:autonomy_flutter/database/app_database.dart';
 
-class FeedPreviewPage extends StatefulWidget {
-  const FeedPreviewPage({Key? key}) : super(key: key);
+class FeedPreviewPage extends StatelessWidget {
+  FeedPreviewPage({Key? key}) : super(key: key);
+
+  final nftCollectionBloc = injector<NftCollectionBloc>();
 
   @override
-  State<FeedPreviewPage> createState() => _FeedPreviewPageState();
+  Widget build(BuildContext context) {
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (_) => FeedBloc(
+            injector(),
+            injector(),
+            nftCollectionBloc.database.assetDao,
+          ),
+        ),
+        BlocProvider(
+            create: (_) => IdentityBloc(injector<AppDatabase>(), injector())),
+      ],
+      child: const FeedPreviewScreen(),
+    );
+  }
 }
 
-class _FeedPreviewPageState extends State<FeedPreviewPage>
-    with RouteAware, AfterLayoutMixin<FeedPreviewPage>, WidgetsBindingObserver,
-        TickerProviderStateMixin {
+class FeedPreviewScreen extends StatefulWidget {
+  const FeedPreviewScreen({Key? key}) : super(key: key);
+
+  @override
+  State<FeedPreviewScreen> createState() => _FeedPreviewScreenState();
+}
+
+class _FeedPreviewScreenState extends State<FeedPreviewScreen>
+    with
+        RouteAware,
+        AfterLayoutMixin<FeedPreviewScreen>,
+        WidgetsBindingObserver,
+        TickerProviderStateMixin{
   String? swipeDirection;
   Timer? _timer;
   Timer? _maxTimeTokenTimer;
@@ -121,14 +149,11 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children:[
-        previewCloseIcon(context),
-        SizedBox(),
-        previewCloseIcon(context),
-        SizedBox(),
-        previewCloseIcon(context),
+        Container(color: Colors.lightBlue, height: 50,),
       ]
     );
   }
+  final nftCollectionBloc = injector<NftCollectionBloc>();
 
   @override
   Widget build(BuildContext context) {
@@ -208,7 +233,6 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
                             ),
                           ),
                           const Spacer(),
-                          previewCloseIcon(context)
                         ],
                       ),
                     ),
@@ -326,7 +350,6 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
             ),
           ),
           const SizedBox(),
-          previewCloseIcon(context),
         ],
       ),
     );
@@ -472,7 +495,6 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
                   }),
             ),
             const SizedBox(),
-            previewCloseIcon(context),
           ],
         ),
       ),
@@ -598,8 +620,6 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
                   ),
                 ),
               ),
-              const Spacer(),
-              previewCloseIcon(context)
             ],
           ),
         ]));
