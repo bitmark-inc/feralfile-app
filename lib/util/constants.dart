@@ -56,7 +56,7 @@ String get usdcContractAddress => Environment.appTestnetConfig
 
 Future<bool> isAppCenterBuild() async {
   final PackageInfo info = await PackageInfo.fromPlatform();
-  return info.packageName.contains("inhouse");
+  return !info.packageName.contains("inhouse");
 }
 
 Future<String> getDemoAccount() async {
