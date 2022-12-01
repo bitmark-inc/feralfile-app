@@ -140,7 +140,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                                 clipper: AutonomyTopRightRectangleClipper(),
                                 child: Container(
                                   color: Colors.white,
-                                  padding: const EdgeInsets.all(1),
+                                  padding: const EdgeInsets.all(2),
                                   child: ClipPath(
                                     clipper: AutonomyTopRightRectangleClipper(customRadius: 12),
                                     child: Container(
