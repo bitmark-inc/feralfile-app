@@ -102,11 +102,11 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE          
           flutter pub run test auto-test/mobile_external_webs/connectWalletToExchanges_test.dart
-      # - name: Run Flutter Driver tests for Suite "Link Ethereum Wallet"
-      #   if: success() || failure()
-      #   run: |
-      #     cd $GITHUB_WORKSPACE          
-      #     flutter pub run test auto-test/mobile_external_webs/linkEthereumAccountWallet_test.dart
+      - name: Run Flutter Driver tests for Suite "Link Ethereum Wallet"
+        if: success() || failure()
+        run: |
+          cd $GITHUB_WORKSPACE          
+          flutter pub run test auto-test/mobile_external_webs/linkEthereumAccountWallet_test.dart
       # - name: Run Flutter Driver tests for Suite "Purchase Tez NFT"
       #   if: success() || failure()
       #   run: |
