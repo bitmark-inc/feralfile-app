@@ -28,9 +28,12 @@ class AutonomyButtonClipper extends CustomClipper<Path> {
 }
 
 class AutonomyTopRightRectangleClipper extends CustomClipper<Path> {
+  final double? customRadius;
+  AutonomyTopRightRectangleClipper({this.customRadius});
+
   @override
   Path getClip(Size size) {
-    double radius = 14;
+    double radius = customRadius == null ? 14 : customRadius!;
 
     Path path = Path()
       ..lineTo(0, 0)
