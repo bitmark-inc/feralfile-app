@@ -31,6 +31,7 @@ class MigrationUtil {
   final IAPService _iapService;
   final AuditService _auditService;
   final BackupService _backupService;
+  final int requiredAndroidMigrationVersion = 95;
 
   MigrationUtil(
       this._configurationService,
@@ -211,8 +212,13 @@ class MigrationUtil {
 
   Future _migrationAndroid() async {
     final previousBuildNumber = _configurationService.getPreviousBuildNumber();
+    final packageInfo = await PackageInfo.fromPlatform();
+    _configurationService.setPreviousBuildNumber(packageInfo.buildNumber);
+    if (previousBuildNumber == null) return;
+    final previousBuildNumberInt = int.tryParse(previousBuildNumber);
+    if (previousBuildNumberInt == null) return;
 
-    if (previousBuildNumber == null) {
+    if (previousBuildNumberInt < requiredAndroidMigrationVersion) {
       final packageInfo = await PackageInfo.fromPlatform();
       _configurationService.setPreviousBuildNumber(packageInfo.buildNumber);
       _accountService.androidBackupKeys();
