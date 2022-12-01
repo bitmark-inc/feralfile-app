@@ -5,6 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:io';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
@@ -15,7 +17,9 @@ import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:nft_collection/services/tokens_service.dart';
@@ -38,6 +42,8 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final customLinkStyle =
+        theme.textTheme.linkStyle.copyWith(fontWeight: FontWeight.bold);
     return Scaffold(
       appBar: getBackAppBar(
         context,
@@ -60,10 +66,42 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
                       style: theme.textTheme.headline1,
                     ),
                     addTitleSpace(),
-                    Text(
-                      "ia_importing_your_account".tr(),
-                      //"Importing your account will also add support for all chains featured in Autonomy. We will automatically back up your account in your iCloud Keychain.",
-                      style: theme.textTheme.bodyText1,
+                    RichText(
+                      text: TextSpan(
+                        style: theme.textTheme.bodyText1,
+                        children: <TextSpan>[
+                          TextSpan(
+                            text: "ia_importing_your_account_".tr(),
+                          ),
+                          Platform.isIOS
+                              ? TextSpan(
+                                  text: 'icloud_keychain'.tr(),
+                                  style: customLinkStyle,
+                                  recognizer: TapGestureRecognizer()
+                                    ..onTap = () => Navigator.of(context)
+                                            .pushNamed(AppRouter.githubDocPage,
+                                                arguments: {
+                                              "prefix":
+                                                  "/bitmark-inc/autonomy.io/main/apps/docs/",
+                                              "document": "security-ios.md",
+                                              "title": ""
+                                            }),
+                                )
+                              : TextSpan(
+                                  text: 'android_block_store'.tr(),
+                                  style: customLinkStyle,
+                                  recognizer: TapGestureRecognizer()
+                                    ..onTap = () => Navigator.of(context)
+                                            .pushNamed(AppRouter.githubDocPage,
+                                                arguments: {
+                                              "prefix":
+                                                  "/bitmark-inc/autonomy.io/main/apps/docs/",
+                                              "document": "security-android.md",
+                                              "title": ""
+                                            }),
+                                ),
+                        ],
+                      ),
                     ),
                     const SizedBox(height: 16),
                     learnMoreAboutAutonomySecurityWidget(
