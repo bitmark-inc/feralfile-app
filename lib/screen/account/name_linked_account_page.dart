@@ -46,6 +46,9 @@ class _NameLinkedAccountPageState extends State<NameLinkedAccountPage> {
 
     if (_nameController.text.isEmpty) {
       _nameController.text = widget.connection.name;
+      setState(() {
+        isSavingAliasDisabled =  widget.connection.name.isEmpty;
+      });
     }
   }
 
