@@ -67,7 +67,7 @@ class _SelectLedgerPageState extends State<SelectLedgerPage> {
             ),
             onTap: () => Navigator.of(context).pushNamed(
                 AppRouter.linkLedgerWalletPage,
-                arguments: "blockchain")),
+                arguments: blockchain)),
       ],
     );
   }
