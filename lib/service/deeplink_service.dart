@@ -28,6 +28,14 @@ import 'package:flutter_branch_sdk/flutter_branch_sdk.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:uni_links/uni_links.dart';
 
+import '../database/cloud_database.dart';
+import '../screen/app_router.dart';
+import '../util/migration/migration_util.dart';
+import 'account_service.dart';
+import 'audit_service.dart';
+import 'backup_service.dart';
+import 'iap_service.dart';
+
 abstract class DeeplinkService {
   Future setup();
 
@@ -128,6 +136,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
     ];
     if (!_configurationService.isDoneOnboarding()) {
       memoryValues.deepLink.value = link;
+      await _restoreIfNeeded();
     }
     // Check Universal Link
     final callingWCPrefix =
@@ -268,7 +277,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
       if (doneOnboarding) {
         final artworkFuture = (artworkId?.isNotEmpty == true)
             ? _feralFileService.getArtwork(artworkId!)
-            : _feralFileService.getAirdropArtworkFromExhibitionId(exhibitionId!);
+            : _feralFileService
+                .getAirdropArtworkFromExhibitionId(exhibitionId!);
 
         await Future.delayed(const Duration(seconds: 1), () {
           _navigationService.popUntilHomeOrSettings();
@@ -324,6 +334,40 @@ class DeeplinkServiceImpl extends DeeplinkService {
       }
       handlingDeepLink = null;
     });
+  }
+
+  Future<void> _restoreIfNeeded() async {
+    final configurationService = injector<ConfigurationService>();
+    if (configurationService.isDoneOnboarding()) return;
+
+    final cloudDB = injector<CloudDatabase>();
+    final backupService = injector<BackupService>();
+    final accountService = injector<AccountService>();
+    final iapService = injector<IAPService>();
+    final auditService = injector<AuditService>();
+    final migrationUtil = MigrationUtil(configurationService, cloudDB,
+        accountService, iapService, auditService, backupService);
+    await accountService.androidBackupKeys();
+    await migrationUtil.migrationFromKeychain();
+    final personas = await cloudDB.personaDao.getPersonas();
+    final connections = await cloudDB.connectionDao.getConnections();
+    if (personas.isNotEmpty || connections.isNotEmpty) {
+      final defaultAccount = await accountService.getDefaultAccount();
+      final backupVersion =
+          await backupService.fetchBackupVersion(defaultAccount);
+      if (backupVersion.isNotEmpty) {
+        backupService.restoreCloudDatabase(defaultAccount, backupVersion);
+        for (var persona in personas) {
+          if (persona.name != "") {
+            persona.wallet().updateName(persona.name);
+          }
+        }
+        await cloudDB.connectionDao.getUpdatedLinkedAccounts();
+        configurationService.setDoneOnboarding(true);
+        injector<NavigationService>()
+            .navigateTo(AppRouter.homePageNoTransition);
+      }
+    }
   }
 }
 

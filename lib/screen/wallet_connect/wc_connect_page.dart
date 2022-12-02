@@ -13,7 +13,6 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/screen/connection/persona_connections_page.dart';
-import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -152,9 +151,7 @@ class _WCConnectPageState extends State<WCConnectPage>
           "connect_autonomy_display",
         );
         mixPanelClient.trackEvent(""
-            "connect_autonomy_display"
-        );
-
+            "connect_autonomy_display");
       } else {
         metricClient.addEvent(
           "connect_external",
@@ -226,7 +223,6 @@ class _WCConnectPageState extends State<WCConnectPage>
         "url": beaconRequest?.sourceAddress ?? "unknown",
       },
     );
-
   }
 
   Future<void> _approveThenNotify({bool onBoarding = false}) async {
@@ -535,7 +531,8 @@ class _WCConnectPageState extends State<WCConnectPage>
     final defaultName = await account.getAccountDID();
     var persona =
         await injector<CloudDatabase>().personaDao.findById(account.uuid);
-    final namedPersona = await injector<AccountService>().namePersona(persona!, defaultName);
+    final namedPersona =
+        await injector<AccountService>().namePersona(persona!, defaultName);
     injector<ConfigurationService>().setDoneOnboarding(true);
     selectedPersona = namedPersona;
     _approveThenNotify(onBoarding: true);

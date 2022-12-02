@@ -13,7 +13,12 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/router/router_bloc.dart';
 import 'package:autonomy_flutter/screen/claim/claim_token_page.dart';
+import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/audit_service.dart';
+import 'package:autonomy_flutter/service/backup_service.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
+import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
@@ -27,6 +32,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:logging/logging.dart';
+
+import '../database/cloud_database.dart';
+import '../util/migration/migration_util.dart';
 
 final logger = Logger('App');
 
@@ -144,6 +152,8 @@ class _OnboardingPageState extends State<OnboardingPage>
           setState(() {
             fromBranchLink = true;
           });
+
+          await _restoreIfNeeded();
           final ffService = injector<FeralFileService>();
           final artwork = data?.artworkId?.isNotEmpty == true
               ? await ffService.getArtwork(data!.artworkId!)
@@ -202,6 +212,40 @@ class _OnboardingPageState extends State<OnboardingPage>
     });
   }
 
+  Future<void> _restoreIfNeeded() async {
+    final configurationService = injector<ConfigurationService>();
+    if (configurationService.isDoneOnboarding()) return;
+
+    final cloudDB = injector<CloudDatabase>();
+    final backupService = injector<BackupService>();
+    final accountService = injector<AccountService>();
+    final iapService = injector<IAPService>();
+    final auditService = injector<AuditService>();
+    final migrationUtil = MigrationUtil(configurationService, cloudDB,
+        accountService, iapService, auditService, backupService);
+    await accountService.androidBackupKeys();
+    await migrationUtil.migrationFromKeychain();
+    final personas = await cloudDB.personaDao.getPersonas();
+    final connections = await cloudDB.connectionDao.getConnections();
+    if (personas.isNotEmpty || connections.isNotEmpty) {
+      final defaultAccount = await accountService.getDefaultAccount();
+      final backupVersion =
+      await backupService.fetchBackupVersion(defaultAccount);
+      if (backupVersion.isNotEmpty) {
+        backupService.restoreCloudDatabase(defaultAccount, backupVersion);
+        for (var persona in personas) {
+          if (persona.name != "") {
+            persona.wallet().updateName(persona.name);
+          }
+        }
+        await cloudDB.connectionDao.getUpdatedLinkedAccounts();
+        configurationService.setDoneOnboarding(true);
+        injector<NavigationService>()
+            .navigateTo(AppRouter.homePageNoTransition);
+      }
+    }
+  }
+
   // @override
   @override
   Widget build(BuildContext context) {
@@ -242,7 +286,6 @@ class _OnboardingPageState extends State<OnboardingPage>
             // await Future.delayed(SHORT_SHOW_DIALOG_DURATION,
             //     () => showSurveysNotification(context));
             break;
-
           default:
             break;
         }
