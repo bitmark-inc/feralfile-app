@@ -81,6 +81,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   static final List<AUCastDevice> _defaultCastDevices =
       Platform.isIOS ? [AUCastDevice(AUCastDeviceType.Airplay)] : [];
   final keyboardManagerKey = GlobalKey<KeyboardManagerWidgetState>();
+  final _focusNode = FocusNode();
 
   INFTRenderingWidget? _renderingWidget;
 
@@ -127,13 +128,13 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
 
   @override
   void dispose() {
+    _focusNode.dispose();
     disableLandscapeMode();
     Wakelock.disable();
     _timer?.cancel();
     routeObserver.unsubscribe(this);
     WidgetsBinding.instance.removeObserver(this);
     _stopAllChromecastDevices();
-
     _detector?.stopListening();
     if (Platform.isAndroid) {
       SystemChrome.setEnabledSystemUIMode(
@@ -546,8 +547,8 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
         final hasKeyboard = assetToken?.medium == "software" ||
             assetToken?.medium == "other" ||
             assetToken?.medium == null;
-        final _focusNode = FocusNode();
         return Scaffold(
+          appBar: isFullScreen ? null : AppBar(toolbarHeight: 0),
           backgroundColor: theme.colorScheme.primary,
           resizeToAvoidBottomInset: !hasKeyboard,
           body: SafeArea(
@@ -879,7 +880,6 @@ class KeyboardManagerWidgetState extends State<KeyboardManagerWidget> {
   @override
   void dispose() {
     super.dispose();
-    widget.focusNode?.dispose();
   }
 
   @override
