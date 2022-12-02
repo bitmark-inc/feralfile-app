@@ -14,9 +14,11 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/router/router_bloc.dart';
 import 'package:autonomy_flutter/screen/claim/claim_token_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
+import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
@@ -32,6 +34,7 @@ import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:logging/logging.dart';
 
 import '../database/cloud_database.dart';
+import '../util/migration/migration_util.dart';
 
 final logger = Logger('App');
 
@@ -214,15 +217,20 @@ class _OnboardingPageState extends State<OnboardingPage>
     if (configurationService.isDoneOnboarding()) return;
 
     final cloudDB = injector<CloudDatabase>();
+    final backupService = injector<BackupService>();
+    final accountService = injector<AccountService>();
+    final iapService = injector<IAPService>();
+    final auditService = injector<AuditService>();
+    final migrationUtil = MigrationUtil(configurationService, cloudDB,
+        accountService, iapService, auditService, backupService);
+    await accountService.androidBackupKeys();
+    await migrationUtil.migrationFromKeychain();
     final personas = await cloudDB.personaDao.getPersonas();
     final connections = await cloudDB.connectionDao.getConnections();
     if (personas.isNotEmpty || connections.isNotEmpty) {
-      final backupService = injector<BackupService>();
-      final accountService = injector<AccountService>();
-
       final defaultAccount = await accountService.getDefaultAccount();
       final backupVersion =
-          await backupService.fetchBackupVersion(defaultAccount);
+      await backupService.fetchBackupVersion(defaultAccount);
       if (backupVersion.isNotEmpty) {
         backupService.restoreCloudDatabase(defaultAccount, backupVersion);
         for (var persona in personas) {

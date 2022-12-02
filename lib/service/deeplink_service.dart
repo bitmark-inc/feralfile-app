@@ -30,8 +30,11 @@ import 'package:uni_links/uni_links.dart';
 
 import '../database/cloud_database.dart';
 import '../screen/app_router.dart';
+import '../util/migration/migration_util.dart';
 import 'account_service.dart';
+import 'audit_service.dart';
 import 'backup_service.dart';
+import 'iap_service.dart';
 
 abstract class DeeplinkService {
   Future setup();
@@ -338,12 +341,17 @@ class DeeplinkServiceImpl extends DeeplinkService {
     if (configurationService.isDoneOnboarding()) return;
 
     final cloudDB = injector<CloudDatabase>();
+    final backupService = injector<BackupService>();
+    final accountService = injector<AccountService>();
+    final iapService = injector<IAPService>();
+    final auditService = injector<AuditService>();
+    final migrationUtil = MigrationUtil(configurationService, cloudDB,
+        accountService, iapService, auditService, backupService);
+    await accountService.androidBackupKeys();
+    await migrationUtil.migrationFromKeychain();
     final personas = await cloudDB.personaDao.getPersonas();
     final connections = await cloudDB.connectionDao.getConnections();
     if (personas.isNotEmpty || connections.isNotEmpty) {
-      final backupService = injector<BackupService>();
-      final accountService = injector<AccountService>();
-
       final defaultAccount = await accountService.getDefaultAccount();
       final backupVersion =
           await backupService.fetchBackupVersion(defaultAccount);
