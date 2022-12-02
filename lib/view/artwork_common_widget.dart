@@ -598,6 +598,7 @@ INFTRenderingWidget buildRenderingWidget(
   bool isMute = false,
   Function({int? time})? onLoaded,
   Function({int? time})? onDispose,
+  FocusNode? focusNode,
 }) {
   String mimeType = token.getMimeType;
 
@@ -617,6 +618,7 @@ INFTRenderingWidget buildRenderingWidget(
     skipViewport:
         token.contractAddress == 'KT1RcZU4sphiF4b2mxW7zGkrfV8S2puKBFT3',
     isMute: isMute,
+    focusNode: focusNode,
   ));
 
   return renderingWidget;

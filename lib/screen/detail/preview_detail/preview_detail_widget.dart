@@ -23,6 +23,7 @@ class ArtworkPreviewWidget extends StatefulWidget {
   final Function({int? time})? onLoaded;
   final Function({int? time})? onDispose;
   final bool isMute;
+  final FocusNode? focusNode;
 
   const ArtworkPreviewWidget({
     Key? key,
@@ -30,6 +31,7 @@ class ArtworkPreviewWidget extends StatefulWidget {
     this.onLoaded,
     this.onDispose,
     this.isMute = false,
+    this.focusNode,
   }) : super(key: key);
 
   @override
@@ -117,6 +119,7 @@ class _ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
                         onDispose: widget.onLoaded,
                         overriddenHtml: state.overriddenHtml,
                         isMute: widget.isMute,
+                        focusNode: widget.focusNode,
                       );
                     }
 
