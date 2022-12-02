@@ -166,7 +166,6 @@ class TokenThumbnailWidget extends StatelessWidget {
                 aspectRatio: 1,
                 child: Container(
                   color: const Color.fromRGBO(227, 227, 227, 1),
-                  padding: const EdgeInsets.symmetric(vertical: 133),
                   child: BrokenTokenWidget(token: token),
                 ),
               ),
@@ -625,6 +624,8 @@ class _BrokenTokenWidgetState extends State<BrokenTokenWidget> {
             style: ResponsiveLayout.isMobile
                 ? theme.textTheme.atlasGreyNormal12
                 : theme.textTheme.atlasGreyNormal14,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
           TextButton(
             onPressed: () => context.read<RetryCubit>().refresh(),
