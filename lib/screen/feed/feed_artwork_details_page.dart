@@ -209,15 +209,6 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         debugInfoWidget(context, token),
-                        const SizedBox(height: 16.0),
-                        SizedBox(
-                          width: 165,
-                          height: 48,
-                          child: AuOutlinedButton(
-                            text: "view_artwork".tr(),
-                            onPress: () => Navigator.of(context).pop(),
-                          ),
-                        ),
                         const SizedBox(height: 40.0),
                         HtmlWidget(
                           token?.desc ?? "",
