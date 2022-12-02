@@ -94,10 +94,13 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
+    final hasKeyboard = currentAsset?.medium == "software" ||
+        currentAsset?.medium == "other" ||
+        currentAsset?.medium == null;
     return Stack(
       children: [
         Scaffold(
+          resizeToAvoidBottomInset: !hasKeyboard,
           appBar: getBackAppBar(context,
               onBack: () => Navigator.of(context).pop(),
               action: () {
