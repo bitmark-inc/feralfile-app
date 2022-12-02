@@ -546,6 +546,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
         final hasKeyboard = assetToken?.medium == "software" ||
             assetToken?.medium == "other" ||
             assetToken?.medium == null;
+        final _focusNode = FocusNode();
         return Scaffold(
           backgroundColor: theme.colorScheme.primary,
           resizeToAvoidBottomInset: !hasKeyboard,
@@ -566,6 +567,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                         onClickFullScreen: onClickFullScreen,
                         onClickCast: (assetToken) => onCastTap(assetToken),
                         keyboardManagerKey: keyboardManagerKey,
+                        focusNode: _focusNode,
                       ),
                     ),
                     Expanded(
@@ -592,6 +594,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                           child: ArtworkPreviewWidget(
                             identity: tokens[index],
                             onLoaded: setTimer,
+                            focusNode: _focusNode,
                           ),
                         ),
                       ),
@@ -625,6 +628,7 @@ class ControlView extends StatelessWidget {
   final Function(AssetToken?)? onClickCast;
   final VoidCallback? onClickInfo;
   final Key? keyboardManagerKey;
+  final FocusNode? focusNode;
 
   const ControlView({
     Key? key,
@@ -633,6 +637,7 @@ class ControlView extends StatelessWidget {
     this.onClickCast,
     this.onClickInfo,
     this.keyboardManagerKey,
+    this.focusNode,
   }) : super(key: key);
 
   @override
@@ -705,17 +710,15 @@ class ControlView extends StatelessWidget {
           ),
           Visibility(
             visible: (assetToken?.medium == 'software' ||
-                    assetToken?.medium == 'other' ||
-                    (assetToken?.medium?.isEmpty ?? true)) &&
-                Platform.isAndroid,
-            child: KeyboardManagerWidget(
-              key: keyboardManagerKey,
+                assetToken?.medium == 'other' ||
+                (assetToken?.medium?.isEmpty ?? true)),
+            child: Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child: KeyboardManagerWidget(
+                key: keyboardManagerKey,
+                focusNode: focusNode,
+              ),
             ),
-          ),
-          Visibility(
-            visible: assetToken?.medium == 'software' ||
-                (assetToken?.medium?.isEmpty ?? true),
-            child: const SizedBox(width: 8),
           ),
           Visibility(
             visible: onClickCast != null,
@@ -833,7 +836,8 @@ class FullscreenIntroPopup extends StatelessWidget {
 }
 
 class KeyboardManagerWidget extends StatefulWidget {
-  const KeyboardManagerWidget({Key? key}) : super(key: key);
+  final FocusNode? focusNode;
+  const KeyboardManagerWidget({Key? key, this.focusNode}) : super(key: key);
 
   @override
   State<KeyboardManagerWidget> createState() => KeyboardManagerWidgetState();
@@ -844,19 +848,30 @@ class KeyboardManagerWidgetState extends State<KeyboardManagerWidget> {
 
   @override
   void initState() {
+    widget.focusNode?.addListener(() {
+      if (widget.focusNode?.hasFocus ?? false) {
+        setState(() {
+          _isShowKeyboard = true;
+        });
+      } else {
+        setState(() {
+          _isShowKeyboard = false;
+        });
+      }
+    });
     super.initState();
   }
 
   void showKeyboard() async {
-    await SystemChannels.textInput.invokeMethod('TextInput.show');
     setState(() {
+      widget.focusNode?.requestFocus();
       _isShowKeyboard = true;
     });
   }
 
   void hideKeyboard() async {
-    await SystemChannels.textInput.invokeMethod('TextInput.hide');
     setState(() {
+      widget.focusNode?.unfocus();
       _isShowKeyboard = false;
     });
   }
@@ -864,7 +879,7 @@ class KeyboardManagerWidgetState extends State<KeyboardManagerWidget> {
   @override
   void dispose() {
     super.dispose();
-    SystemChannels.textInput.invokeMethod('TextInput.hide');
+    widget.focusNode?.dispose();
   }
 
   @override
