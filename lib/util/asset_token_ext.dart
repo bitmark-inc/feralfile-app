@@ -199,19 +199,25 @@ extension AssetTokenExtension on AssetToken {
     }
   }
 
-  String? getThumbnailUrl() {
-    if (thumbnailURL != null && thumbnailID != null) {
+  String? getThumbnailUrl({usingThumbnailID = true}) {
+    if (thumbnailURL == null) return null;
+
+    if (thumbnailID != null && usingThumbnailID) {
       return _refineToCloudflareURL(thumbnailURL!, thumbnailID!, "preview");
+    } else {
+      return _replaceIPFS(thumbnailURL!);
     }
-    return thumbnailURL;
   }
 
-  String? getGalleryThumbnailUrl() {
-    if (galleryThumbnailURL != null && thumbnailID != null) {
+  String? getGalleryThumbnailUrl({usingThumbnailID = true}) {
+    if (galleryThumbnailURL == null) return null;
+
+    if (thumbnailID != null && usingThumbnailID) {
       return _refineToCloudflareURL(
           galleryThumbnailURL!, thumbnailID!, "thumbnail");
+    } else {
+      return _replaceIPFS(galleryThumbnailURL!);
     }
-    return galleryThumbnailURL;
   }
 
   String? getBlockchainUrl() {

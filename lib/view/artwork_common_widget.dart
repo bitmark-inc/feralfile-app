@@ -153,7 +153,7 @@ class TokenThumbnailWidget extends StatelessWidget {
             )
           : CachedNetworkImage(
               imageUrl: attempt > 0
-                  ? "${token.getThumbnailUrl() ?? ''}?t=$attempt"
+                  ? "${token.getThumbnailUrl(usingThumbnailID: false) ?? ''}?t=$attempt"
                   : token.getThumbnailUrl() ?? "",
               width: double.infinity,
               memCacheWidth: (screenWidth * 3).floor(),
@@ -242,8 +242,26 @@ Widget tokenGalleryThumbnailWidget(
                       loading: !(snapshot.data ?? true),
                     );
                   }),
-              errorWidget: (context, url, error) =>
-                  const GalleryThumbnailErrorWidget(),
+              errorWidget: (context, url, error) => CachedNetworkImage(
+                imageUrl:
+                    token.getGalleryThumbnailUrl(usingThumbnailID: false) ?? "",
+                fadeInDuration: Duration.zero,
+                fit: BoxFit.cover,
+                memCacheHeight: cachedImageSize,
+                memCacheWidth: cachedImageSize,
+                maxWidthDiskCache: cachedImageSize,
+                maxHeightDiskCache: cachedImageSize,
+                cacheManager: cacheManager,
+                placeholder: (context, index) => FutureBuilder<bool>(
+                    future: cachingState,
+                    builder: (context, snapshot) {
+                      return GalleryThumbnailPlaceholder(
+                        loading: !(snapshot.data ?? true),
+                      );
+                    }),
+                errorWidget: (context, url, error) =>
+                    const GalleryThumbnailErrorWidget(),
+              ),
             ),
     ),
   );
@@ -298,8 +316,26 @@ Widget tokenGalleryWidget(
                     loading: !(snapshot.data ?? true),
                   );
                 }),
-            errorWidget: (context, url, error) =>
-                const GalleryThumbnailErrorWidget(),
+            errorWidget: (context, url, error) => CachedNetworkImage(
+              imageUrl:
+                  token.getGalleryThumbnailUrl(usingThumbnailID: false) ?? "",
+              fadeInDuration: Duration.zero,
+              fit: BoxFit.cover,
+              memCacheHeight: cachedImageSize,
+              memCacheWidth: cachedImageSize,
+              maxWidthDiskCache: cachedImageSize,
+              maxHeightDiskCache: cachedImageSize,
+              cacheManager: cacheManager,
+              placeholder: (context, index) => FutureBuilder<bool>(
+                  future: cachingState,
+                  builder: (context, snapshot) {
+                    return GalleryThumbnailPlaceholder(
+                      loading: !(snapshot.data ?? true),
+                    );
+                  }),
+              errorWidget: (context, url, error) =>
+                  const GalleryThumbnailErrorWidget(),
+            ),
           ),
   );
 }
@@ -572,7 +608,7 @@ INFTRenderingWidget buildRenderingWidget(
     previewURL: attempt == null
         ? token.getPreviewUrl()
         : "${token.getPreviewUrl()}?t=$attempt",
-    thumbnailURL: token.getThumbnailUrl(),
+    thumbnailURL: token.getThumbnailUrl(usingThumbnailID: false),
     loadingWidget: previewPlaceholder(context),
     errorWidget: BrokenTokenWidget(token: token),
     cacheManager: injector<CacheManager>(),
@@ -1269,7 +1305,7 @@ class FeralfileArtworkDetailsMetadataSection extends StatelessWidget {
         _rowItem(
           context,
           "medium".tr(),
-          artwork.medium.capitalize() ?? "",
+          artwork.medium.capitalize(),
         ),
         const Divider(
           height: 32.0,
