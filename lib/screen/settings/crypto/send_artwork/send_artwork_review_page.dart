@@ -242,7 +242,9 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                                     if (!mounted) return;
                                     final payload = {
                                       "isTezos": false,
-                                      "hash": txHash
+                                      "hash": txHash,
+                                      "isSentAll": widget.payload.quantity >=
+                                          widget.payload.ownedTokens
                                     };
                                     Navigator.of(context).pop(payload);
                                   } else {
