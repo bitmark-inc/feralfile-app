@@ -122,7 +122,14 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
         context,
         title: widget.payload.personaName,
         onBack: () {
-          Navigator.of(context).pop();
+          if (widget.payload.isBackHome) {
+            Navigator.of(context).pushNamedAndRemoveUntil(
+              AppRouter.homePage,
+              (route) => false,
+            );
+          } else {
+            Navigator.of(context).pop();
+          }
         },
       ),
       body: Container(
@@ -300,8 +307,7 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
         }));
         break;
       case CryptoType.USDC:
-        widgets
-            .add(BlocBuilder<USDCBloc, USDCState>(builder: (context, state) {
+        widgets.add(BlocBuilder<USDCBloc, USDCState>(builder: (context, state) {
           final usdcAddress =
               state.personaAddresses?[widget.payload.personaUUID];
           final usdcBalance = state.usdcBalances[usdcAddress];
@@ -434,19 +440,22 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
     final theme = Theme.of(context);
 
     return TappableForwardRow(
-        leftWidget: Row(children: [
-          UIHelper.buildConnectionAppWidget(connection, 24),
-          const SizedBox(width: 16),
-          Expanded(
-              child: Text(
-            connection.appName,
-            style: theme.textTheme.headline4,
-            overflow: TextOverflow.ellipsis,
-          )),
-        ]),
-        onTap: () => Navigator.of(context).pushNamed(
-            AppRouter.connectionDetailsPage,
-            arguments: connectionItem));
+      leftWidget: Row(children: [
+        UIHelper.buildConnectionAppWidget(connection, 24),
+        const SizedBox(width: 16),
+        Expanded(
+            child: Text(
+          connection.appName,
+          style: theme.textTheme.headline4,
+          overflow: TextOverflow.ellipsis,
+        )),
+      ]),
+      onTap: () {
+        Navigator.of(context).pushNamed(AppRouter.connectionDetailsPage,
+            arguments: connectionItem);
+        _callFetchConnections();
+      },
+    );
   }
 }
 
@@ -455,11 +464,12 @@ class PersonaConnectionsPayload {
   final String address;
   final CryptoType type;
   final String personaName;
+  final bool isBackHome;
 
-  PersonaConnectionsPayload({
-    required this.personaUUID,
-    required this.address,
-    required this.type,
-    required this.personaName,
-  });
+  PersonaConnectionsPayload(
+      {required this.personaUUID,
+      required this.address,
+      required this.type,
+      required this.personaName,
+      this.isBackHome = false});
 }

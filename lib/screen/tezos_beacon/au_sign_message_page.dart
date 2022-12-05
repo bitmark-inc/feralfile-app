@@ -5,43 +5,35 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'dart:convert';
-import 'dart:typed_data';
-
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
+import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
-import 'package:autonomy_flutter/service/mixPanel_client_service.dart';
-import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
-import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:libauk_dart/libauk_dart.dart';
-import 'package:web3dart/crypto.dart';
+import 'package:autonomy_flutter/service/account_service.dart';
 
-class TBSignMessagePage extends StatefulWidget {
-  static const String tag = 'tb_sign_message';
-  final BeaconRequest request;
+class AUSignMessagePage extends StatefulWidget {
+  static const String tag = 'au_sign_message';
+  final Wc2Request request;
 
-  const TBSignMessagePage({Key? key, required this.request}) : super(key: key);
+  const AUSignMessagePage({Key? key, required this.request}) : super(key: key);
 
   @override
-  State<TBSignMessagePage> createState() => _TBSignMessagePageState();
+  State<AUSignMessagePage> createState() => _AUSignMessagePageState();
 }
 
-class _TBSignMessagePageState extends State<TBSignMessagePage> {
+class _AUSignMessagePageState extends State<AUSignMessagePage> {
   WalletStorage? _currentPersona;
 
   @override
@@ -54,8 +46,8 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
     final personas = await injector<CloudDatabase>().personaDao.getPersonas();
     WalletStorage? currentWallet;
     for (final persona in personas) {
-      final address = await persona.wallet().getTezosAddress();
-      if (address == widget.request.sourceAddress) {
+      final addressDID = await persona.wallet().getAccountDID();
+      if (addressDID == widget.request.params['address']) {
         currentWallet = persona.wallet();
         break;
       }
@@ -63,7 +55,8 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
 
     if (currentWallet == null) {
       await _rejectRequest(
-        reason: "No wallet found for address ${widget.request.sourceAddress}",
+        reason:
+            "No wallet found for address ${widget.request.params['address']}",
       );
       if (!mounted) return;
       Navigator.of(context).pop();
@@ -76,43 +69,37 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
   }
 
   Future _rejectRequest({String? reason}) async {
-    log.info("[TBSignMessagePage] _rejectRequest: $reason");
-    if (widget.request.wc2Topic != null) {
-      await injector<Wc2Service>().respondOnReject(
-        widget.request.wc2Topic!,
-        reason: reason,
-      );
-    } else {
-      await injector<TezosBeaconService>().signResponse(
-        widget.request.id,
-        null,
-      );
-    }
+    log.info("[AUSignMessagePage] _rejectRequest: $reason");
+    await injector<Wc2Service>().respondOnReject(
+      widget.request.topic,
+      reason: reason,
+    );
   }
 
-  Future _approveRequest({required String signature}) async {
-    log.info("[TBSignMessagePage] _approveRequest");
-    if (widget.request.wc2Topic != null) {
-      await injector<Wc2Service>().respondOnApprove(
-        widget.request.wc2Topic!,
-        signature,
+  Future _handleAuSignRequest({required Wc2Request request}) async {
+    final accountService = injector<AccountService>();
+    final params = Wc2SignRequestParams.fromJson(request.params);
+    final address = params.address;
+    final chain = params.chain;
+    final account = await accountService.getAccountByAddress(
+      chain: chain,
+      address: address,
+    );
+    final wc2Service = injector<Wc2Service>();
+    try {
+      final signature = await account.signMessage(
+        chain: chain,
+        message: params.message,
       );
-    } else {
-      await injector<TezosBeaconService>().signResponse(
-        widget.request.id,
-        signature,
-      );
+      wc2Service.respondOnApprove(request.topic, signature);
+    } catch (e) {
+      log.info("[Wc2RequestPage] _handleAuSignRequest $e");
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final message = hexToBytes(widget.request.payload!);
-    final Uint8List viewMessage = message.length > 6 &&
-            message.sublist(0, 2).equals(Uint8List.fromList([5, 1]))
-        ? message.sublist(6)
-        : message;
-    final messageInUtf8 = utf8.decode(viewMessage, allowMalformed: true);
+    final viewMessage = widget.request.params['message'];
 
     final theme = Theme.of(context);
 
@@ -150,10 +137,10 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
                         style: theme.textTheme.headline4,
                       ),
                       const SizedBox(height: 16.0),
-                      Text(
-                        widget.request.appName ?? "",
-                        style: theme.textTheme.bodyText2,
-                      ),
+                      // Text(
+                      //   widget.request.appName ?? "",
+                      //   style: theme.textTheme.bodyText2,
+                      // ),
                       const Divider(height: 32),
                       Text(
                         "message".tr(),
@@ -161,7 +148,7 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
                       ),
                       const SizedBox(height: 16.0),
                       Text(
-                        messageInUtf8,
+                        viewMessage,
                         style: theme.textTheme.bodyText2,
                       ),
                     ],
@@ -175,24 +162,19 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
                       text: "sign".tr().toUpperCase(),
                       onPress: _currentPersona != null
                           ? () => withDebounce(() async {
-                                final signature = await injector<TezosService>()
-                                    .signMessage(_currentPersona!, message);
-                                await _approveRequest(signature: signature);
+                                _handleAuSignRequest(request: widget.request);
                                 if (!mounted) return;
-
-                                final mixPanelClient = injector.get<MixPanelClientService>();
-                                mixPanelClient.trackEvent(
-                                  "Sign In",
-                                  hashedData: {"uuid": widget.request.id},
-                                );
                                 Navigator.of(context).pop();
                                 final notificationEnable =
-                                    injector<ConfigurationService>().isNotificationEnabled() ?? false;
+                                    injector<ConfigurationService>()
+                                            .isNotificationEnabled() ??
+                                        false;
                                 if (notificationEnable) {
                                   showInfoNotification(
                                     const Key("signed"),
                                     "signed".tr().toUpperCase(),
-                                    frontWidget: SvgPicture.asset("assets/images/checkbox_icon.svg"),
+                                    frontWidget: SvgPicture.asset(
+                                        "assets/images/checkbox_icon.svg"),
                                   );
                                 }
                               })

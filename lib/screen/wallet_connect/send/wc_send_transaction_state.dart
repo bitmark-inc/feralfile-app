@@ -27,15 +27,34 @@ class WCSendTransactionSendEvent extends WCSendTransactionEvent {
   final BigInt? gas;
   final String? data;
   final String uuid;
+  final bool isWalletConnect2;
+  final String? topic;
 
-  WCSendTransactionSendEvent(this.peerMeta, this.requestId, this.to, this.value, this.gas, this.data, this.uuid);
+  WCSendTransactionSendEvent(
+    this.peerMeta,
+    this.requestId,
+    this.to,
+    this.value,
+    this.gas,
+    this.data,
+    this.uuid, {
+    required this.isWalletConnect2,
+    this.topic,
+  });
 }
 
 class WCSendTransactionRejectEvent extends WCSendTransactionEvent {
   final WCPeerMeta peerMeta;
   final int requestId;
+  final String? topic;
+  final bool isWalletConnect2;
 
-  WCSendTransactionRejectEvent(this.peerMeta, this.requestId);
+  WCSendTransactionRejectEvent(
+    this.peerMeta,
+    this.requestId, {
+    this.topic,
+    required this.isWalletConnect2,
+  });
 }
 
 class WCSendTransactionState {

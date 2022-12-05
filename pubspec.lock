@@ -791,8 +791,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "0bd6ff556a664d3f8881f1a570f4d2028b7101dd"
-      resolved-ref: "0bd6ff556a664d3f8881f1a570f4d2028b7101dd"
+      ref: "622b2717fd2d0fa70a06e62817b845e2361b100e"
+      resolved-ref: "622b2717fd2d0fa70a06e62817b845e2361b100e"
       url: "https://github.com/autonomy-system/flutter_to_airplay.git"
     source: git
     version: "2.0.2"

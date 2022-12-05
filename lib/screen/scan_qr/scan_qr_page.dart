@@ -16,12 +16,14 @@ import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
+import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/util/wallet_connect_ext.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -266,7 +268,11 @@ class _ScanQRPageState extends State<ScanQRPage> with RouteAware {
       switch (widget.scannerItem) {
         case ScannerItem.WALLET_CONNECT:
           if (code.startsWith("wc:") == true) {
-            _handleWalletConnect(code);
+            if (code.isAutonomyConnectUri) {
+              _handleAutonomyConnect(code);
+            } else {
+              _handleWalletConnect(code);
+            }
           } else {
             _handleError(code);
           }
@@ -296,7 +302,11 @@ class _ScanQRPageState extends State<ScanQRPage> with RouteAware {
           break;
         case ScannerItem.GLOBAL:
           if (code.startsWith("wc:") == true) {
-            _handleWalletConnect(code);
+            if (code.isAutonomyConnectUri) {
+              _handleAutonomyConnect(code);
+            } else {
+              _handleWalletConnect(code);
+            }
           } else if (code.startsWith("tezos:") == true) {
             _handleBeaconConnect(code);
           } else if (code.startsWith(FF_TOKEN_DEEPLINK_PREFIX) == true) {
@@ -330,6 +340,12 @@ class _ScanQRPageState extends State<ScanQRPage> with RouteAware {
     log.info("[Scanner][start] scan ${widget.scannerItem}");
     log.info(
         "[Scanner][incorrectScanItem] item: ${data.substring(0, data.length ~/ 2)}");
+  }
+
+  void _handleAutonomyConnect(String code) {
+    controller.dispose();
+    injector<Wc2Service>().connect(code);
+    Navigator.of(context).pop();
   }
 
   void _handleWalletConnect(String code) {

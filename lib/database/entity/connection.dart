@@ -10,6 +10,7 @@ import 'dart:convert';
 import 'package:autonomy_flutter/model/connection_supports.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/tezos_connection.dart';
+import 'package:autonomy_flutter/model/wc2_pairing.dart';
 import 'package:autonomy_flutter/service/wallet_connect_dapp_service/wc_connected_session.dart';
 import 'package:floor/floor.dart';
 
@@ -24,6 +25,7 @@ enum ConnectionType {
   ledger, // Autonomy connect to Ledger: ETH, TZ
   manuallyAddress,
   manuallyIndexerTokenID,
+  walletConnect2,
 }
 
 extension RawValue on ConnectionType {
@@ -188,6 +190,11 @@ class Connection {
     return WCConnectedSession.fromJson(jsonData);
   }
 
+  String? get wc2ConnectedSession {
+    if (connectionType != ConnectionType.walletConnect2.rawValue) return null;
+    return data;
+  }
+
   LedgerConnection? get ledgerConnection {
     if (connectionType != ConnectionType.ledger.rawValue) return null;
 
@@ -202,6 +209,10 @@ class Connection {
 
     if (beaconConnectConnection != null) {
       return beaconConnectConnection?.peer.name ?? "";
+    }
+
+    if (wc2ConnectedSession != null) {
+      return name;
     }
 
     return "";

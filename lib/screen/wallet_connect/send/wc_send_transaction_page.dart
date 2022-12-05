@@ -49,7 +49,13 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
     return WillPopScope(
       onWillPop: () async {
         context.read<WCSendTransactionBloc>().add(
-            WCSendTransactionRejectEvent(widget.args.peerMeta, widget.args.id));
+              WCSendTransactionRejectEvent(
+                widget.args.peerMeta,
+                widget.args.id,
+                isWalletConnect2: widget.args.isWalletConnect2,
+                topic: widget.args.topic,
+              ),
+            );
         return true;
       },
       child: Scaffold(
@@ -57,8 +63,13 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
           context,
           onBack: () {
             context.read<WCSendTransactionBloc>().add(
-                WCSendTransactionRejectEvent(
-                    widget.args.peerMeta, widget.args.id));
+                  WCSendTransactionRejectEvent(
+                    widget.args.peerMeta,
+                    widget.args.id,
+                    isWalletConnect2: widget.args.isWalletConnect2,
+                    topic: widget.args.topic,
+                  ),
+                );
           },
         ),
         body: BlocBuilder<WCSendTransactionBloc, WCSendTransactionState>(
@@ -178,14 +189,20 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                                           widget.args.transaction.to);
 
                                       context.read<WCSendTransactionBloc>().add(
-                                          WCSendTransactionSendEvent(
+                                            WCSendTransactionSendEvent(
                                               widget.args.peerMeta,
                                               widget.args.id,
                                               to,
                                               amount.getInWei,
                                               state.fee!,
                                               widget.args.transaction.data,
-                                              widget.args.uuid));
+                                              widget.args.uuid,
+                                              isWalletConnect2:
+                                                  widget.args.isWalletConnect2,
+                                              topic: widget.args
+                                                  .topic, // Used for wallet Connect 2.0 only
+                                            ),
+                                          );
                                     }
                                   : null,
                             ),
@@ -212,7 +229,14 @@ class WCSendTransactionPageArgs {
   final WCPeerMeta peerMeta;
   final WCEthereumTransaction transaction;
   final String uuid;
+  final String? topic; // For Wallet Connect 2.0
+  final bool isWalletConnect2;
 
-  WCSendTransactionPageArgs(
-      this.id, this.peerMeta, this.transaction, this.uuid);
+  WCSendTransactionPageArgs(this.id,
+      this.peerMeta,
+      this.transaction,
+      this.uuid, {
+        this.topic,
+        this.isWalletConnect2 = false,
+      });
 }

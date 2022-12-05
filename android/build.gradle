@@ -1,8 +1,13 @@
 buildscript {
-    ext.kotlin_version = '1.6.10'
+    ext.kotlin_version = '1.7.20'
     repositories {
         google()
-        jcenter()
+        mavenCentral {
+            content {
+                excludeGroup("com.facebook.react")
+            }
+        }
+
     }
 
     dependencies {
@@ -15,7 +20,11 @@ buildscript {
 allprojects {
     repositories {
         google()
-        jcenter()
+        mavenCentral {
+            content {
+                excludeGroup("com.facebook.react")
+            }
+        }
         maven { url 'https://jitpack.io' }
     }
 }

@@ -10,6 +10,8 @@ import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
+import 'package:autonomy_flutter/model/wc2_proposal.dart';
+import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/account/access_method_page.dart';
@@ -94,6 +96,7 @@ import 'package:autonomy_flutter/screen/settings/settings_page.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/screen/survey/survey.dart';
 import 'package:autonomy_flutter/screen/survey/survey_thankyou.dart';
+import 'package:autonomy_flutter/screen/tezos_beacon/au_sign_message_page.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_sign_message_page.dart';
 import 'package:autonomy_flutter/screen/unsafe_web_wallet_page.dart';
@@ -101,6 +104,7 @@ import 'package:autonomy_flutter/screen/view_playlist/view_playlist.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_bloc.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/tv_connect_page.dart';
+import 'package:autonomy_flutter/screen/wallet_connect/v2/wc2_permission_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_disconnect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
@@ -180,6 +184,8 @@ class AppRouter {
   static const claimFeralfileTokenPage = 'claim_feralfile_token_page';
   static const claimSelectAccountPage = 'claim_select_account_page';
   static const airdropTokenDetailPage = 'airdrop_token_detail_page';
+  static const wc2ConnectPage = 'wc2_connect_page';
+  static const wc2PermissionPage = 'wc2_permission_page';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final ethereumBloc = EthereumBloc(injector());
@@ -467,8 +473,10 @@ class AppRouter {
                           ),
                         ],
                         child: WCConnectPage(
-                            wcConnectArgs: argument as WCConnectPageArgs,
-                            beaconRequest: null)));
+                          wcConnectArgs: argument as WCConnectPageArgs,
+                          beaconRequest: null,
+                          wc2Proposal: null,
+                        )));
 
           case BeaconRequest:
             return CupertinoPageRoute(
@@ -486,8 +494,10 @@ class AppRouter {
                     ),
                   ],
                   child: WCConnectPage(
-                      wcConnectArgs: null,
-                      beaconRequest: argument as BeaconRequest?)),
+                    wcConnectArgs: null,
+                    beaconRequest: argument as BeaconRequest?,
+                    wc2Proposal: null,
+                  )),
             );
 
           default:
@@ -513,7 +523,12 @@ class AppRouter {
           settings: settings,
           builder: (context) => BlocProvider(
             create: (_) => WCSendTransactionBloc(
-                injector(), injector(), injector(), injector()),
+              injector(),
+              injector(),
+              injector(),
+              injector(),
+              injector(),
+            ),
             child: WCSendTransactionPage(
                 args: settings.arguments as WCSendTransactionPageArgs),
           ),
@@ -574,6 +589,7 @@ class AppRouter {
                         injector<CloudDatabase>(),
                         injector(),
                         injector(),
+                        injector(),
                       ))
                     ],
                     child: PersonaConnectionsPage(
@@ -586,6 +602,7 @@ class AppRouter {
             builder: (context) => BlocProvider(
                 create: (_) => ConnectionsBloc(
                       injector<CloudDatabase>(),
+                      injector(),
                       injector(),
                       injector(),
                     ),
@@ -729,6 +746,12 @@ class AppRouter {
           settings: settings,
           builder: (context) =>
               TBSignMessagePage(request: settings.arguments as BeaconRequest),
+        );
+      case AUSignMessagePage.tag:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) =>
+              AUSignMessagePage(request: settings.arguments as Wc2Request),
         );
       case TBSendTransactionPage.tag:
         return CupertinoPageRoute(
@@ -956,6 +979,46 @@ class AppRouter {
               );
             });
 
+      case wc2ConnectPage:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) => MultiBlocProvider(
+            providers: [
+              BlocProvider.value(value: accountsBloc),
+              BlocProvider(
+                create: (_) => PersonaBloc(
+                  injector<CloudDatabase>(),
+                  injector(),
+                  injector(),
+                  injector<AuditService>(),
+                ),
+              ),
+            ],
+            child: WCConnectPage(
+              wcConnectArgs: null,
+              beaconRequest: null,
+              wc2Proposal: settings.arguments as Wc2Proposal,
+            ),
+          ),
+        );
+
+      case wc2PermissionPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => MultiBlocProvider(
+                    providers: [
+                      BlocProvider.value(value: accountsBloc),
+                      BlocProvider(
+                        create: (_) => PersonaBloc(
+                          injector<CloudDatabase>(),
+                          injector(),
+                          injector(),
+                          injector<AuditService>(),
+                        ),
+                      ),
+                    ],
+                    child: Wc2RequestPage(
+                        request: settings.arguments as Wc2Request)));
       default:
         throw Exception('Invalid route: ${settings.name}');
     }
