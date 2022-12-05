@@ -146,7 +146,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                                     child: Container(
                                       color: Colors.black,
                                       child: CachedNetworkImage(
-                                        fit: BoxFit.contain,
+                                        fit: BoxFit.cover,
                                         imageUrl: artworkThumbnail,
                                         width: 264,
                                         height: 264,
