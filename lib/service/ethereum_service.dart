@@ -129,10 +129,12 @@ class EthereumServiceImpl extends EthereumService {
         (await _estimateGasLimit(sender, to, EtherAmount.inWei(value), data));
     final chainId = Environment.web3ChainId;
 
-    final signedTransaction = await wallet.ethSignTransaction(
+    final signedTransaction = await wallet.ethSignTransaction1559(
         nonce: nonce,
-        gasPrice: gasPrice.getInWei,
+        //gasPrice: gasPrice.getInWei,
         gasLimit: gasLimit,
+        maxFeePerGas: EtherAmount.fromUnitAndValue(EtherUnit.gwei, 2).getInWei,
+        maxPriorityFeePerGas: EtherAmount.fromUnitAndValue(EtherUnit.gwei, 1).getInWei,
         to: to.hexEip55,
         value: value,
         data: data ?? "",
@@ -237,7 +239,8 @@ class EthereumServiceImpl extends EthereumService {
       function: transferFrom(),
       parameters: [to, quantity],
       from: from,
-      gasPrice: gasPrice,
+      maxFeePerGas: EtherAmount.fromUnitAndValue(EtherUnit.gwei, 2),
+      maxPriorityFeePerGas: EtherAmount.fromUnitAndValue(EtherUnit.gwei, 1),
       nonce: nonce,
     );
 

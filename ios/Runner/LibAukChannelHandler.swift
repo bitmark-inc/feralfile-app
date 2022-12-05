@@ -242,6 +242,46 @@ class LibAukChannelHandler {
             .store(in: &cancelBag)
     }
     
+    func signTransaction1559(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args: NSDictionary = call.arguments as! NSDictionary
+        let uuid: String = args["uuid"] as! String
+        let nonce: String = args["nonce"] as? String ?? ""
+        let gasLimit: String = args["gasLimit"] as? String ?? ""
+        let maxPriorityFeePerGas: String = args["maxPriorityFeePerGas"] as? String ?? ""
+        let maxFeePerGas: String = args["maxFeePerGas"] as? String ?? ""
+        let to: String = args["to"] as? String ?? ""
+        let value: String = args["value"] as? String ?? ""
+        let data: String = args["data"] as? String ?? ""
+        let chainId: Int = args["chainId"] as? Int ?? 0
+        
+        let transaction = EthereumTransaction(
+            EthereumQuantity(quantity: BigUInt(chainId)),
+            nonce: EthereumQuantity(quantity: BigUInt(Double(nonce) ?? 0)),
+            gas: EthereumQuantity(quantity: BigUInt(Double(gasLimit) ?? 0)),
+            from: nil,
+            to: try! EthereumAddress.init(hex: to, eip55: false),
+            value: EthereumQuantity(quantity: BigUInt(Double(value) ?? 0)),
+            data: try! EthereumData.string(data)),
+            maxPriorityFeePerGas: EthereumQuantity(quantity: BigUInt(Double(maxPriorityFeePerGas) ?? 0)),
+            maxFeePerGas: EthereumQuantity(quantity: BigUInt(Double(maxFeePerGas) ?? 0)),
+        
+
+        LibAuk.shared.storage(for: UUID(uuidString: uuid)!)
+            .ethSignTransaction(transaction: transaction, chainId: EthereumQuantity(quantity: BigUInt(chainId)))
+            .sink(receiveCompletion: { (completion) in
+                if let error = completion.error {
+                    result(ErrorHandler.handle(error: error))
+                }
+            }, receiveValue: { signedTx in
+                let bytes: [UInt8] = try! RLPEncoder().encode(signedTx.rlp())
+                result([
+                    "error": 0,
+                    "data": Data(bytes),
+                ])
+            })
+            .store(in: &cancelBag)
+    }
+    
     func exportMnemonicWords(call: FlutterMethodCall, result: @escaping FlutterResult) {
         let args: NSDictionary = call.arguments as! NSDictionary
         let uuid: String = args["uuid"] as! String
