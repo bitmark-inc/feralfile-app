@@ -397,7 +397,7 @@ class Wc2ConnectPlugin(private val application: Application) : FlutterPlugin,
         )
         CoreClient.initialize(
             metaData = appMetadata,
-            relayServerUrl = "wss://relay.walletconnect.com?projectId=d6696e154b8926b3e10c069b89e21fe4",
+            relayServerUrl = "wss://relay.walletconnect.com?projectId=33abc0fd433c7a6e1cc198273e4a7d6e",
             connectionType = ConnectionType.AUTOMATIC,
             application = application,
             relay = null

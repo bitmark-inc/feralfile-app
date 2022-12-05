@@ -148,7 +148,7 @@ import Starscream
             url: "https://autonomy.io",
             icons: [])
         
-        Networking.configure(projectId: "d6696e154b8926b3e10c069b89e21fe4", socketFactory: SocketFactory())
+        Networking.configure(projectId: "33abc0fd433c7a6e1cc198273e4a7d6e", socketFactory: SocketFactory())
         Pair.configure(metadata: metadata)
         // try? Sign.instance.cleanup()
 
