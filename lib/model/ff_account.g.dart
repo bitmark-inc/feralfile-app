@@ -55,6 +55,9 @@ Exhibition _$ExhibitionFromJson(Map<String, dynamic> json) => Exhibition(
           ?.map((e) => FFContract.fromJson(e as Map<String, dynamic>))
           .toList(),
       json['mintBlockchain'] as String,
+      json['partner'] == null
+          ? null
+          : FFArtist.fromJson(json['partner'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$ExhibitionToJson(Exhibition instance) =>
@@ -69,6 +72,7 @@ Map<String, dynamic> _$ExhibitionToJson(Exhibition instance) =>
       'artists': instance.artists,
       'artworks': instance.artworks,
       'contracts': instance.contracts,
+      'partner': instance.partner,
     };
 
 ExhibitionResponse _$ExhibitionResponseFromJson(Map<String, dynamic> json) =>
@@ -250,36 +254,87 @@ Map<String, dynamic> _$FeralfileErrorToJson(FeralfileError instance) =>
 
 ResaleResponse _$ResaleResponseFromJson(Map<String, dynamic> json) =>
     ResaleResponse(
-          FeralFileResaleInfo.fromJson(json['result'] as Map<String, dynamic>),
+      FeralFileResaleInfo.fromJson(json['result'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$ResaleResponseToJson(ResaleResponse instance) =>
     <String, dynamic>{
-          'result': instance.result,
+      'result': instance.result,
     };
 
 FeralFileResaleInfo _$FeralFileResaleInfoFromJson(Map<String, dynamic> json) =>
     FeralFileResaleInfo(
-          json['exhibitionID'] as String,
-          json['saleType'] as String,
-          json['platform'] as double,
-          json['artist'] as double,
-          json['seller'] as double,
-          json['curator'] as double,
-          json['partner'] as double,
-          DateTime.parse(json['createdAt'] as String),
-          DateTime.parse(json['updatedAt'] as String),
+      json['exhibitionID'] as String,
+      json['saleType'] as String,
+      double.parse(json['platform'].toString().trim()),
+      double.parse(json['artist'].toString().trim()),
+      double.parse(json['seller'].toString().trim()),
+      double.parse(json['curator'].toString().trim()),
+      double.parse(json['partner'].toString().trim()),
+      DateTime.parse(json['createdAt'] as String),
+      DateTime.parse(json['updatedAt'] as String),
     );
 
-Map<String, dynamic> _$FeralFileResaleInfoToJson(FeralFileResaleInfo instance) =>
+Map<String, dynamic> _$FeralFileResaleInfoToJson(
+        FeralFileResaleInfo instance) =>
     <String, dynamic>{
-          'exhibitionID': instance.exhibitionID,
-          'saleType': instance.saleType,
-          'platform': instance.platform,
-          'artist': instance.artist,
-          'seller': instance.seller,
-          'curator': instance.curator,
-          'partner': instance.parter,
-          'createdAt': instance.createdAt.toIso8601String,
-          'updatedAt': instance.updatedAt.toIso8601String,
+      'exhibitionID': instance.exhibitionID,
+      'saleType': instance.saleType,
+      'platform': instance.platform,
+      'artist': instance.artist,
+      'seller': instance.seller,
+      'curator': instance.curator,
+      'partner': instance.partner,
+      'createdAt': instance.createdAt.toIso8601String,
+      'updatedAt': instance.updatedAt.toIso8601String,
+    };
+
+ArtworkEditionResponse _$ArtworkEditionResponseFromJson(
+        Map<String, dynamic> json) =>
+    ArtworkEditionResponse(
+      ArtworkEdition.fromJson(json['result'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$ArtworkEditionResponseToJson(
+        ArtworkEditionResponse instance) =>
+    <String, dynamic>{
+      'result': instance.result,
+    };
+
+ArtworkEdition _$ArtworkEditionFromJson(Map<String, dynamic> json) =>
+    ArtworkEdition(
+      json['id'] as String,
+      json['artworkID'] as String,
+      json['index'] as int,
+      json['name'] as String,
+      json['category'] as String,
+      json['ownerAccountID'] as String,
+      json['virgin'] as bool,
+      json['burned'] as bool,
+      json['blockchainStatus'] as String,
+      json['isExternal'] as bool,
+      DateTime.parse(json['issuedAt'] as String),
+      DateTime.parse(json['createdAt'] as String),
+      DateTime.parse(json['updatedAt'] as String),
+      json['isArchived'] as bool,
+      FFArtwork.fromJson(json['artwork'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$ArtworkEditionToJson(ArtworkEdition instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'artworkID': instance.artworkID,
+      'index': instance.index,
+      'name': instance.name,
+      'category': instance.category,
+      'ownerAccountID': instance.ownerAccountID,
+      'virgin': instance.virgin,
+      'burned': instance.burned,
+      'blockchainStatus': instance.blockchainStatus,
+      'isExternal': instance.isExternal,
+      'issuedAt': instance.issuedAt.toIso8601String,
+      'createdAt': instance.createdAt.toIso8601String,
+      'updatedAt': instance.updatedAt.toIso8601String,
+      'isArchived': instance.isArchived,
+      'artwork': instance.artwork,
     };

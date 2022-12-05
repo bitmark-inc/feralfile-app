@@ -142,7 +142,8 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                                   color: Colors.white,
                                   padding: const EdgeInsets.all(2),
                                   child: ClipPath(
-                                    clipper: AutonomyTopRightRectangleClipper(customRadius: 12),
+                                    clipper: AutonomyTopRightRectangleClipper(
+                                        customRadius: 12),
                                     child: Container(
                                       color: Colors.black,
                                       child: CachedNetworkImage(
@@ -331,7 +332,9 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
   }
 
   void _openFFArtistCollector() {
-    launchUrl(Uri.parse(FF_ARTIST_COLLECTOR),
-        mode: LaunchMode.externalApplication);
+    String uri = (widget.artwork.exhibition?.id != null)
+        ? FF_ARTIST_COLLECTOR
+        : "$FF_ARTIST_COLLECTOR/${widget.artwork.exhibition?.id}";
+    launchUrl(Uri.parse(uri), mode: LaunchMode.externalApplication);
   }
 }
