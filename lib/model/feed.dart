@@ -115,7 +115,7 @@ extension FeedEventHelpers on FeedEvent {
         case 'tezos':
           return "tez-$contract-$tokenID";
         case 'bitmark':
-          return 'bmrk--$tokenID';
+          return 'bmk--$tokenID';
         default:
           return '';
       }
