@@ -22,6 +22,16 @@ class EditPlaylistBloc extends Bloc<EditPlaylistEvent, EditPlaylistState> {
       emit(state.copyWith(selectedItem: selectedItem));
     });
 
+    on<SelectAllPlaylist>((event, emit) {
+      if (event.value) {
+        state.selectedItem = event.tokenIDs;
+      } else {
+        state.selectedItem = [];
+      }
+      final selectedItem = state.selectedItem?.toSet().toList();
+      emit(state.copyWith(selectedItem: selectedItem));
+    });
+
     on<UpdateOrderPlaylist>((event, emit) {
       final playlist = state.playListModel;
       playlist?.tokenIDs = event.tokenIDs;

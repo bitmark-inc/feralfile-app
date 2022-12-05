@@ -59,6 +59,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
@@ -68,6 +69,7 @@ import 'package:nft_collection/nft_collection.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:wallet_connect/models/wc_peer_meta.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 
 import '../../util/token_ext.dart';
 
@@ -109,16 +111,6 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           OptionItem(
-            title: 'Playlist',
-            icon: const Icon(
-              AuIcon.playlists,
-            ),
-            // onTap: () => Navigator.of(context).pushNamed(
-            //   AppRouter.scanQRPage,
-            //   arguments: ScannerItem.GLOBAL,
-            // ),
-          ),
-          OptionItem(
             title: 'Settings',
             icon: const Icon(
               AuIcon.settings,
@@ -147,11 +139,13 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       bottomNavigationBar: BottomNavigationBar(
         showSelectedLabels: false,
         showUnselectedLabels: false,
         currentIndex: _selectedIndex,
+        backgroundColor: theme.backgroundColor.withOpacity(0.95),
         type: BottomNavigationBarType.fixed,
         onTap: _onItemTapped,
         items: const [
@@ -197,7 +191,7 @@ class _HomeScreenState extends State<HomeScreen>
   late MixPanelClientService mixPanelClient;
   int _cachedImageSize = 0;
 
-  // ValueNotifier<List<PlayListModel>?> playlists = ValueNotifier([]);
+  ValueNotifier<List<PlayListModel>?> playlists = ValueNotifier([]);
 
   Future<List<String>> getAddresses() async {
     final accountService = injector<AccountService>();
@@ -272,6 +266,10 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   void didPopNext() async {
     super.didPopNext();
+    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+      statusBarBrightness:
+          Brightness.light, //or set color with: Color(0xFF0000FF)
+    ));
     final connectivityResult = await (Connectivity().checkConnectivity());
     _refreshTokens();
     if (connectivityResult == ConnectivityResult.mobile ||
@@ -319,6 +317,7 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+
     final theme = Theme.of(context);
     final contentWidget =
         BlocConsumer<NftCollectionBloc, NftCollectionBlocState>(
@@ -372,14 +371,9 @@ class _HomeScreenState extends State<HomeScreen>
         controller: _controller,
         child: Scaffold(
           backgroundColor: theme.backgroundColor,
-          body: Stack(
-            children: [
-              contentWidget,
-              // PenroseTopBarView(
-              //   _controller,
-              //   PenroseTopBarViewStyle.main,
-              // ),
-            ],
+          body: SafeArea(
+            bottom: false,
+            child: contentWidget,
           ),
         ),
       ),
@@ -390,9 +384,12 @@ class _HomeScreenState extends State<HomeScreen>
     return Center(
         child: Column(
       children: [
-        Container(
-          padding: const EdgeInsets.fromLTRB(0, 72, 0, 48),
-          child: autonomyLogo,
+        Align(
+          alignment: Alignment.centerLeft,
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(15, 40, 0, 40),
+            child: autonomyLogo,
+          ),
         ),
         loadingIndicator(),
       ],
@@ -405,9 +402,12 @@ class _HomeScreenState extends State<HomeScreen>
     return ListView(
       padding: ResponsiveLayout.getPadding,
       children: [
-        Container(
-          padding: const EdgeInsets.fromLTRB(0, 72, 0, 48),
-          child: autonomyLogo,
+        Align(
+          alignment: Alignment.centerLeft,
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(15, 40, 0, 40),
+            child: autonomyLogo,
+          ),
         ),
         Text(
           "collection_empty_now".tr(),
@@ -445,31 +445,31 @@ class _HomeScreenState extends State<HomeScreen>
             Align(
               alignment: Alignment.centerLeft,
               child: Container(
-                padding: const EdgeInsets.fromLTRB(15, 72, 0, 40),
+                padding: const EdgeInsets.fromLTRB(15, 40, 0, 40),
                 child: autonomyLogo,
               ),
             ),
-            // Padding(
-            //   padding: const EdgeInsets.only(bottom: 16),
-            //   child: SizedBox(
-            //     height: 68,
-            //     child: ValueListenableBuilder(
-            //       valueListenable: playlists,
-            //       builder: (context, value, child) => ListPlaylistWidget(
-            //         playlists: playlists.value,
-            //         onUpdateList: () async {
-            //           if (injector
-            //               .get<ConfigurationService>()
-            //               .isDemoArtworksMode()) return;
-            //           await injector
-            //               .get<ConfigurationService>()
-            //               .setPlayList(playlists.value, override: true);
-            //           injector.get<SettingsDataService>().backup();
-            //         },
-            //       ),
-            //     ),
-            //   ),
-            // )
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: SizedBox(
+                height: 103,
+                child: ValueListenableBuilder(
+                  valueListenable: playlists,
+                  builder: (context, value, child) => ListPlaylistWidget(
+                    playlists: playlists.value,
+                    onUpdateList: () async {
+                      if (injector
+                          .get<ConfigurationService>()
+                          .isDemoArtworksMode()) return;
+                      await injector
+                          .get<ConfigurationService>()
+                          .setPlayList(playlists.value, override: true);
+                      injector.get<SettingsDataService>().backup();
+                    },
+                  ),
+                ),
+              ),
+            )
           ],
         ),
       ),
@@ -547,7 +547,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   void _refreshTokens({checkPendingToken = false}) async {
     final accountService = injector<AccountService>();
-    // playlists.value = await getPlaylist();
+    playlists.value = await getPlaylist();
 
     Future.wait([
       getAddresses(),
@@ -561,12 +561,12 @@ class _HomeScreenState extends State<HomeScreen>
           .where((element) => !hiddenAddresses.contains(element))
           .toList();
       final nftBloc = context.read<NftCollectionBloc>();
-      // final isDemo = injector.get<ConfigurationService>().isDemoArtworksMode();
-      // if (isDemo) {
-      //   playlists.value?.forEach((element) {
-      //     indexerIds.addAll(element.tokenIDs ?? []);
-      //   });
-      // }
+      final isDemo = injector.get<ConfigurationService>().isDemoArtworksMode();
+      if (isDemo) {
+        playlists.value?.forEach((element) {
+          indexerIds.addAll(element.tokenIDs ?? []);
+        });
+      }
       nftBloc.add(UpdateHiddenTokens(ownerAddresses: hiddenAddresses));
       nftBloc.add(RefreshTokenEvent(
           addresses: activeAddresses, debugTokens: indexerIds));
@@ -846,61 +846,67 @@ class PlaylistItem extends StatefulWidget {
 
 class _PlaylistItemState extends State<PlaylistItem> {
   @override
-  void didUpdateWidget(covariant PlaylistItem oldWidget) {
-    super.didUpdateWidget(oldWidget);
-  }
-
-  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return GestureDetector(
-      onTap: widget.onSelected,
-      child: SizedBox(
-        width: 70,
-        child: Column(
-          children: [
-            Container(
-              width: widget.onHold ? 52 : 48,
-              height: widget.onHold ? 52 : 48,
-              decoration: BoxDecoration(
-                color: Colors.transparent,
-                shape: BoxShape.circle,
-                border: Border.all(width: widget.onHold ? 2 : 1),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(1),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(100),
-                  child: widget.thumbnailURL == null
-                      ? Image.asset(
-                          'assets/images/moma_logo.png',
-                          fit: BoxFit.cover,
-                        )
-                      : CachedNetworkImage(
-                          imageUrl: widget.thumbnailURL ?? '',
-                          fit: BoxFit.cover,
-                          cacheManager: injector.get<CacheManager>(),
-                          errorWidget: (context, url, error) =>
-                              const GalleryThumbnailErrorWidget(),
-                          memCacheHeight: 1000,
-                          memCacheWidth: 1000,
-                          maxWidthDiskCache: 1000,
-                          maxHeightDiskCache: 1000,
-                          fadeInDuration: Duration.zero,
-                        ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: GestureDetector(
+        onTap: widget.onSelected,
+        child: SizedBox(
+          width: 83,
+          child: Column(
+            children: [
+              Container(
+                width: 83,
+                height: 83,
+                decoration: BoxDecoration(
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(5),
+                  border: Border.all(
+                    width: widget.onHold ? 3 : 0,
+                    color: theme.auLightGrey,
+                  ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(1),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(5),
+                    child: widget.thumbnailURL == null
+                        ? Image.asset(
+                            'assets/images/moma_logo.png',
+                            fit: BoxFit.cover,
+                          )
+                        : CachedNetworkImage(
+                            imageUrl: widget.thumbnailURL ?? '',
+                            fit: BoxFit.cover,
+                            cacheManager: injector.get<CacheManager>(),
+                            errorWidget: (context, url, error) =>
+                                const GalleryThumbnailErrorWidget(),
+                            memCacheHeight: 1000,
+                            memCacheWidth: 1000,
+                            maxWidthDiskCache: 1000,
+                            maxHeightDiskCache: 1000,
+                            fadeInDuration: Duration.zero,
+                          ),
+                  ),
                 ),
               ),
-            ),
-            const Spacer(),
-            Text(
-              (widget.name?.isNotEmpty ?? false) ? widget.name! : 'Untitled',
-              style: widget.onHold
-                  ? theme.textTheme.headline5
-                      ?.copyWith(fontWeight: FontWeight.bold)
-                  : theme.textTheme.headline5,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
+              const Spacer(),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  (widget.name?.isNotEmpty ?? false)
+                      ? widget.name!
+                      : 'Untitled',
+                  style: widget.onHold
+                      ? theme.textTheme.ppMori400Black12
+                          .copyWith(fontWeight: FontWeight.bold)
+                      : theme.textTheme.ppMori400Black12,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -915,36 +921,40 @@ class AddPlayListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return GestureDetector(
-      onTap: onTap,
-      child: SizedBox(
-        width: 70,
-        child: Column(
-          children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(1),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(100),
-                  child: const Icon(
-                    Icons.add,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: GestureDetector(
+        onTap: onTap,
+        child: SizedBox(
+          width: 83,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 83,
+                height: 83,
+                decoration: BoxDecoration(
+                    border: Border.all(color: theme.auLightGrey),
+                    borderRadius: BorderRadius.circular(5)),
+                child: Padding(
+                  padding: const EdgeInsets.all(1),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(100),
+                    child: Icon(
+                      AuIcon.add,
+                      color: theme.auLightGrey,
+                    ),
                   ),
                 ),
               ),
-            ),
-            const Spacer(),
-            Text(
-              'new list',
-              style: theme.textTheme.headline5,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
+              const Spacer(),
+              Text(
+                'New Playlist',
+                style: theme.textTheme.ppMori400Black12,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
         ),
       ),
     );

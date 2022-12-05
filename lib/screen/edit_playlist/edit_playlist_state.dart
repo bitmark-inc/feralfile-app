@@ -14,6 +14,12 @@ class UpdateSelectedPlaylist extends EditPlaylistEvent {
   UpdateSelectedPlaylist({required this.tokenID, required this.value});
 }
 
+class SelectAllPlaylist extends EditPlaylistEvent {
+  final bool value;
+  final List<String>? tokenIDs;
+  SelectAllPlaylist({required this.value, this.tokenIDs});
+}
+
 class SavePlaylist extends EditPlaylistEvent {
   SavePlaylist();
 }

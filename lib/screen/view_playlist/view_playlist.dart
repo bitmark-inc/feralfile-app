@@ -6,11 +6,13 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/view_playlist/view_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/view_playlist/view_playlist_state.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
+import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/play_control.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -113,77 +115,81 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
         final playList = widget.playListModel;
         return Scaffold(
           appBar: AppBar(
-            elevation: 0,
+            elevation: 1,
+            leading: GestureDetector(
+              onTap: () => Navigator.of(context).pop(),
+              child: const Icon(AuIcon.chevron),
+            ),
             backgroundColor: theme.backgroundColor,
             automaticallyImplyLeading: false,
-            title: Row(
-              children: [
-                GestureDetector(
-                  onTap: () => Navigator.of(context).pop(),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.navigate_before),
-                      Text(
-                        tr('back'),
-                        style: theme.textTheme.button,
-                      ),
-                    ],
-                  ),
-                ),
-                const Spacer(),
-                isDemo
-                    ? const SizedBox()
-                    : IconButton(
-                        onPressed: () {
-                          UIHelper.showDialogAction(context, options: [
-                            OptionItem(
-                                title: tr('modify_playlist'),
-                                onTap: () {
-                                  Navigator.pop(context);
-                                  Navigator.pushNamed(
-                                    context,
-                                    AppRouter.editPlayListPage,
-                                    arguments: playList,
-                                  );
-                                }),
-                            OptionItem(
-                                title: tr('delete_playlist'),
-                                onTap: () {
-                                  Navigator.pop(context);
-                                  UIHelper.showMessageAction(
-                                    context,
-                                    tr('delete_playlist'),
-                                    '',
-                                    descriptionWidget: RichText(
-                                      text: TextSpan(children: [
-                                        TextSpan(
-                                          style:
-                                              theme.primaryTextTheme.bodyText1,
-                                          text: "you_are_about".tr(),
-                                        ),
-                                        TextSpan(
-                                          style:
-                                              theme.primaryTextTheme.headline4,
-                                          text:
-                                              playList?.name ?? tr('untitled'),
-                                        ),
-                                        TextSpan(
-                                          style:
-                                              theme.primaryTextTheme.bodyText1,
-                                          text: "dont_worry".tr(),
-                                        ),
-                                      ]),
-                                    ),
-                                    actionButton: "delete".tr(),
-                                    onAction: deletePlayList,
-                                  );
-                                }),
-                          ]);
-                        },
-                        icon: const Icon(Icons.more_horiz),
-                      )
-              ],
+            centerTitle: true,
+            title: Text(
+              (playList?.name?.isNotEmpty ?? false)
+                  ? playList!.name!
+                  : tr('untitled'),
+              style: theme.textTheme.ppMori400Black14,
             ),
+            // title: Row(
+            //   children: [
+            //     Text(
+            //       (playList?.name?.isNotEmpty ?? false)
+            //           ? playList!.name!
+            //           : tr('untitled'),
+            //       style: theme.textTheme.ppMori400Black14,
+            //     ),
+            //     // isDemo
+            //     //     ? const SizedBox()
+            //     //     : IconButton(
+            //     //         onPressed: () {
+            //     //           UIHelper.showDialogAction(context, options: [
+            //     //             OptionItem(
+            //     //                 title: tr('modify_playlist'),
+            //     //                 onTap: () {
+            //     //                   Navigator.pop(context);
+            //     //                   Navigator.pushNamed(
+            //     //                     context,
+            //     //                     AppRouter.editPlayListPage,
+            //     //                     arguments: playList,
+            //     //                   );
+            //     //                 }),
+            //     //             OptionItem(
+            //     //                 title: tr('delete_playlist'),
+            //     //                 onTap: () {
+            //     //                   Navigator.pop(context);
+            //     //                   UIHelper.showMessageAction(
+            //     //                     context,
+            //     //                     tr('delete_playlist'),
+            //     //                     '',
+            //     //                     descriptionWidget: RichText(
+            //     //                       text: TextSpan(children: [
+            //     //                         TextSpan(
+            //     //                           style:
+            //     //                               theme.primaryTextTheme.bodyText1,
+            //     //                           text: "you_are_about".tr(),
+            //     //                         ),
+            //     //                         TextSpan(
+            //     //                           style:
+            //     //                               theme.primaryTextTheme.headline4,
+            //     //                           text:
+            //     //                               playList?.name ?? tr('untitled'),
+            //     //                         ),
+            //     //                         TextSpan(
+            //     //                           style:
+            //     //                               theme.primaryTextTheme.bodyText1,
+            //     //                           text: "dont_worry".tr(),
+            //     //                         ),
+            //     //                       ]),
+            //     //                     ),
+            //     //                     actionButton: "delete".tr(),
+            //     //                     onAction: deletePlayList,
+            //     //                   );
+            //     //                 }),
+            //     //           ]);
+            //     //         },
+            //     //         icon: const Icon(Icons.more_horiz),
+            //     //       )
+            //   ],
+            // ),
           ),
           body: Stack(
             children: [
@@ -200,18 +206,41 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                             right: 14,
                             top: 24,
                           ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          child: Row(
                             children: [
-                              Text(
-                                (playList?.name?.isNotEmpty ?? false)
-                                    ? playList!.name!
-                                    : tr('untitled'),
-                                style: !(playList?.name?.isNotEmpty ?? false)
-                                    ? theme.textTheme.atlasSpanishGreyBold36
-                                    : theme.textTheme.headline1,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
+                              Expanded(
+                                child: PrimaryButton(
+                                  onTap: () {
+                                    if (accountIdentities.isEmpty) return;
+                                    final payload = ArtworkDetailPayload(
+                                      accountIdentities,
+                                      0,
+                                      isPlaylist: true,
+                                    );
+                                    Navigator.of(context).pushNamed(
+                                      AppRouter.artworkPreviewPage,
+                                      arguments: payload,
+                                    );
+                                  },
+                                  text: tr('play'),
+                                  color: theme.auSuperTeal,
+                                ),
+                              ),
+                              const SizedBox(
+                                width: 10,
+                              ),
+                              Expanded(
+                                child: PrimaryButton(
+                                  onTap: () {
+                                    Navigator.pushNamed(
+                                      context,
+                                      AppRouter.editPlayListPage,
+                                      arguments: playList,
+                                    );
+                                  },
+                                  text: tr('edit'),
+                                  color: theme.auLightGrey,
+                                ),
                               ),
                             ],
                           ),
@@ -286,15 +315,15 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
       children: [
         Padding(
           padding: const EdgeInsets.only(
-            bottom: 40,
-            top: 5,
+            bottom: 10,
+            top: 15,
             left: 14,
             right: 14,
           ),
           child: Text(
             tr(tokensPlaylist.length != 1 ? 'artworks' : 'artwork',
                 args: [tokensPlaylist.length.toString()]),
-            style: theme.textTheme.atlasBlackMedium12,
+            style: theme.textTheme.ppMori400Black12,
           ),
         ),
         GridView.builder(

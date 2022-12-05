@@ -97,22 +97,23 @@ class AddTokenWidget extends StatelessWidget {
     final theme = Theme.of(context);
     return ClipPath(
       clipper: AutonomyTopRightRectangleClipper(),
-      child: Stack(
-        children: [
-          SvgPicture.asset(
-            'assets/images/union.svg',
-            width: double.infinity,
-            height: double.infinity,
-          ),
-          Positioned(
-            bottom: 13,
-            left: 13,
+      child: Container(
+        width: double.infinity,
+        height: double.infinity,
+        color: Colors.transparent,
+        child: Center(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              border: Border.all(color: theme.primaryColor),
+              borderRadius: BorderRadius.circular(64),
+            ),
             child: Text(
-              '+ ${'add'.tr().toUpperCase()}',
-              style: theme.textTheme.ibmGreyNormal14,
+              'add'.tr(),
+              style: theme.textTheme.ppMori400Black12,
             ),
           ),
-        ],
+        ),
       ),
     );
   }

@@ -127,7 +127,7 @@ dependencies:
   autonomy_theme:
     git:
       url: https://github.com/bitmark-inc/autonomy-client-shared-theme.git
-      ref: 1.0.6
+      ref: 1.0.8
 
   easy_localization: ^3.0.1
   rxdart: ^0.26.0
