@@ -42,3 +42,6 @@ com.bitmark.autonomy_flutter.**
 
 # https://help.branch.io/developers-hub/docs/android-basic-integration
 -keep class com.google.android.gms.** { *; }
+-keep class com.walletconnect.** { *; }
+-keep class net.sqlcipher.** { *; }
+-keep class net.sqlcipher.database.** { *; }
