@@ -41,16 +41,6 @@ import '../common/injector.dart';
 
 const moMAContract = [
   {
-    "address": "KT1CPeE8YGVG16xkpoE9sviUYoEzS7hWfu39",
-    "name": "Memento 1 - Unsupervised Opening Day",
-    "blockchainType": "FeralfileExhibitionV2"
-  },
-  {
-    "address": "0x7E6c132B8cb00899d17750E0fD982EA122C6b0f2",
-    "name": "Opening Celebration — Refik Anadol: Unsupervised",
-    "blockchainType": "FeralfileExhibitionV3"
-  },
-  {
     "address": "0x7a15b36cB834AeA88553De69077D3777460d73Ac",
     "name": "Unsupervised",
     "blockchainType": "FeralfileExhibitionV2"

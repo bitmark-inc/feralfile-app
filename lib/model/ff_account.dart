@@ -235,7 +235,11 @@ class FFContract {
   final String blockchainType;
   final String address;
 
-  FFContract(this.name, this.blockchainType, this.address,);
+  FFContract(
+    this.name,
+    this.blockchainType,
+    this.address,
+  );
 
   factory FFContract.fromJson(Map<String, dynamic> json) =>
       _$FFContractFromJson(json);
@@ -340,4 +344,45 @@ class FeralfileError {
   String toString() {
     return 'FeralfileError{code: $code, message: $message}';
   }
+}
+
+@JsonSerializable()
+class ResaleResponse {
+  final FeralFileResaleInfo result;
+
+  ResaleResponse(this.result);
+
+  factory ResaleResponse.fromJson(Map<String, dynamic> json) =>
+      _$ResaleResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ResaleResponseToJson(this);
+}
+
+@JsonSerializable()
+class FeralFileResaleInfo {
+  final String exhibitionID;
+  final String saleType;
+  final double platform;
+  final double artist;
+  final double seller;
+  final double curator;
+  final double parter;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
+  FeralFileResaleInfo(
+      this.exhibitionID,
+      this.saleType,
+      this.platform,
+      this.artist,
+      this.seller,
+      this.curator,
+      this.parter,
+      this.createdAt,
+      this.updatedAt);
+
+  factory FeralFileResaleInfo.fromJson(Map<String, dynamic> json) =>
+      _$FeralFileResaleInfoFromJson(json);
+
+  Map<String, dynamic> toJson() => _$FeralFileResaleInfoToJson(this);
 }

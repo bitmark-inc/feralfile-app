@@ -247,3 +247,39 @@ Map<String, dynamic> _$FeralfileErrorToJson(FeralfileError instance) =>
       'code': instance.code,
       'message': instance.message,
     };
+
+ResaleResponse _$ResaleResponseFromJson(Map<String, dynamic> json) =>
+    ResaleResponse(
+          FeralFileResaleInfo.fromJson(json['result'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$ResaleResponseToJson(ResaleResponse instance) =>
+    <String, dynamic>{
+          'result': instance.result,
+    };
+
+FeralFileResaleInfo _$FeralFileResaleInfoFromJson(Map<String, dynamic> json) =>
+    FeralFileResaleInfo(
+          json['exhibitionID'] as String,
+          json['saleType'] as String,
+          json['platform'] as double,
+          json['artist'] as double,
+          json['seller'] as double,
+          json['curator'] as double,
+          json['partner'] as double,
+          DateTime.parse(json['createdAt'] as String),
+          DateTime.parse(json['updatedAt'] as String),
+    );
+
+Map<String, dynamic> _$FeralFileResaleInfoToJson(FeralFileResaleInfo instance) =>
+    <String, dynamic>{
+          'exhibitionID': instance.exhibitionID,
+          'saleType': instance.saleType,
+          'platform': instance.platform,
+          'artist': instance.artist,
+          'seller': instance.seller,
+          'curator': instance.curator,
+          'partner': instance.parter,
+          'createdAt': instance.createdAt.toIso8601String,
+          'updatedAt': instance.updatedAt.toIso8601String,
+    };
