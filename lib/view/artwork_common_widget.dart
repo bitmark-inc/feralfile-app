@@ -5,6 +5,7 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/screen/detail/report_rendering_issue/any_problem_nft_widget.dart';
 import 'package:autonomy_flutter/screen/detail/report_rendering_issue/report_rendering_issue_widget.dart';
+import 'package:autonomy_flutter/screen/detail/royalty/royalty_bloc.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
@@ -40,16 +41,6 @@ import 'package:url_launcher/url_launcher.dart';
 import '../common/injector.dart';
 
 const moMAContract = [
-  {
-    "address": "KT1CPeE8YGVG16xkpoE9sviUYoEzS7hWfu39",
-    "name": "Memento 1 - Unsupervised Opening Day",
-    "blockchainType": "FeralfileExhibitionV2"
-  },
-  {
-    "address": "0x7E6c132B8cb00899d17750E0fD982EA122C6b0f2",
-    "name": "Opening Celebration — Refik Anadol: Unsupervised",
-    "blockchainType": "FeralfileExhibitionV3"
-  },
   {
     "address": "0x7a15b36cB834AeA88553De69077D3777460d73Ac",
     "name": "Unsupervised",
@@ -823,8 +814,10 @@ Widget artworkDetailsRightSection(BuildContext context, AssetToken token) {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 40.0),
-            _artworkRightView(context,
-                contract: FFContract("", "", token.contractAddress ?? ""))
+            ArtworkRightsView(
+              contract: FFContract("", "", token.contractAddress ?? ""),
+              editionID: token.id.split("-").last,
+            ),
           ],
         )
       : const SizedBox();
@@ -1022,81 +1015,147 @@ Widget artworkDetailsProvenanceSectionNotEmpty(
   );
 }
 
-Widget _artworkRightView(BuildContext context,
-    {TextStyle? linkStyle, required FFContract contract}) {
-  final theme = Theme.of(context);
+class ArtworkRightsView extends StatefulWidget {
+  final TextStyle? linkStyle;
+  final FFContract contract;
+  final String? editionID;
+  final String? exhibitionID;
+
+  const ArtworkRightsView(
+      {Key? key,
+      this.linkStyle,
+      required this.contract,
+      this.editionID,
+      this.exhibitionID})
+      : super(key: key);
+
+  @override
+  State<ArtworkRightsView> createState() => _ArtworkRightsViewState();
+}
+
+class _ArtworkRightsViewState extends State<ArtworkRightsView> {
+  @override
+  void initState() {
+    super.initState();
+    if (widget.exhibitionID != null) {
+      context
+          .read<RoyaltyBloc>()
+          .add(GetRoyaltyInfoEvent(exhibitionID: widget.exhibitionID));
+    } else {
+      context
+          .read<RoyaltyBloc>()
+          .add(GetRoyaltyInfoEvent(editionID: widget.editionID));
+    }
+  }
 
   bool _isMoMAShow(String? address) {
     return moMAContract.any((contract) => contract["address"] == address);
   }
 
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        "rights".tr(),
-        style: theme.textTheme.headline2,
-      ),
-      const SizedBox(height: 23.0),
-      Text(
-        "ff_protect".tr(),
-        style: theme.textTheme.bodyText1,
-      ),
-      const SizedBox(height: 18.0),
-      TextButton(
-        style: theme.textButtonNoPadding,
-        onPressed: () => launchUrl(
-            Uri.parse("https://feralfile.com/docs/artist-collector-rights")),
-        child: Text(
-          "learn_artist".tr(),
-          style: linkStyle ??
-              theme.textTheme.linkStyle.copyWith(
-                fontWeight: FontWeight.w500,
-              ),
-        ),
-      ),
-      const SizedBox(height: 23.0),
-      _artworkRightItem(context, "download".tr(), "download_text".tr()),
-      const Divider(
-        height: 32.0,
-        color: AppColor.secondarySpanishGrey,
-      ),
-      _artworkRightItem(context, "display".tr(), "display_text".tr()),
-      const Divider(
-        height: 32.0,
-        color: AppColor.secondarySpanishGrey,
-      ),
-      _artworkRightItem(context, "authenticate".tr(), "authenticate_text".tr()),
-      const Divider(
-        height: 32.0,
-        color: AppColor.secondarySpanishGrey,
-      ),
-      _artworkRightItem(
-          context, "loan_or_lease".tr(), "loan_or_lease_text".tr()),
-      const Divider(
-        height: 32.0,
-        color: AppColor.secondarySpanishGrey,
-      ),
-      _artworkRightItem(
-          context,
-          "resell_or_transfer".tr(),
-          _isMoMAShow(contract.address)
-              ? "resell_or_transfer_moma_text".tr()
-              : "resell_or_transfer_text".tr()),
-      const Divider(
-        height: 32.0,
-        color: AppColor.secondarySpanishGrey,
-      ),
-      _artworkRightItem(
-          context, "remain_anonymous".tr(), "remain_anonymous_text".tr()),
-      const Divider(
-        height: 32.0,
-        color: AppColor.secondarySpanishGrey,
-      ),
-      _artworkRightItem(context, "respect_artist_right".tr(),
-          "respect_artist_right_text".tr()),
-    ],
-  );
+  String sellOrTransferText(RoyaltyState state) {
+    if (_isMoMAShow(widget.contract.address)) {
+      return "resell_or_transfer_moma_text".tr();
+    }
+    if (state.resaleInfo != null) {
+      final FeralFileResaleInfo resaleInfo = state.resaleInfo!;
+      if (state.partnerName != null) {
+        if (state.resaleInfo!.partner > 0) {
+          final partnerName = state.partnerName ?? "partner".tr();
+          return "resell_or_transfer_with_partner_text".tr(args: [
+            (resaleInfo.artist * 100).toString(),
+            (resaleInfo.platform * 100).toString(),
+            partnerName,
+            (resaleInfo.partner * 100).toString()
+          ]);
+        } else {
+          return "resell_or_transfer_no_partner_text".tr(args: [
+            (resaleInfo.artist * 100).toString(),
+            (resaleInfo.platform * 100).toString()
+          ]);
+        }
+      }
+    }
+    return "resell_or_transfer_text".tr();
+  }
+
+  String getUrl(RoyaltyState state) {
+    if (state.exhibitionID != null) {
+      return "$FF_ARTIST_COLLECTOR/${state.exhibitionID}";
+    } else {
+      return FF_ARTIST_COLLECTOR;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return BlocBuilder<RoyaltyBloc, RoyaltyState>(builder: (context, state) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "rights".tr(),
+            style: theme.textTheme.headline2,
+          ),
+          const SizedBox(height: 23.0),
+          Text(
+            "ff_protect".tr(),
+            style: theme.textTheme.bodyText1,
+          ),
+          const SizedBox(height: 18.0),
+          TextButton(
+            style: theme.textButtonNoPadding,
+            onPressed: () => launchUrl(Uri.parse(getUrl(state)),
+                mode: LaunchMode.externalApplication),
+            child: Text(
+              "learn_artist".tr(),
+              style: widget.linkStyle ??
+                  theme.textTheme.linkStyle.copyWith(
+                    fontWeight: FontWeight.w500,
+                  ),
+            ),
+          ),
+          const SizedBox(height: 23.0),
+          _artworkRightItem(context, "download".tr(), "download_text".tr()),
+          const Divider(
+            height: 32.0,
+            color: AppColor.secondarySpanishGrey,
+          ),
+          _artworkRightItem(context, "display".tr(), "display_text".tr()),
+          const Divider(
+            height: 32.0,
+            color: AppColor.secondarySpanishGrey,
+          ),
+          _artworkRightItem(
+              context, "authenticate".tr(), "authenticate_text".tr()),
+          const Divider(
+            height: 32.0,
+            color: AppColor.secondarySpanishGrey,
+          ),
+          _artworkRightItem(
+              context, "loan_or_lease".tr(), "loan_or_lease_text".tr()),
+          const Divider(
+            height: 32.0,
+            color: AppColor.secondarySpanishGrey,
+          ),
+          _artworkRightItem(
+              context, "resell_or_transfer".tr(), sellOrTransferText(state)),
+          const Divider(
+            height: 32.0,
+            color: AppColor.secondarySpanishGrey,
+          ),
+          _artworkRightItem(
+              context, "remain_anonymous".tr(), "remain_anonymous_text".tr()),
+          const Divider(
+            height: 32.0,
+            color: AppColor.secondarySpanishGrey,
+          ),
+          _artworkRightItem(context, "respect_artist_right".tr(),
+              "respect_artist_right_text".tr()),
+        ],
+      );
+    });
+  }
 }
 
 Widget _artworkRightItem(BuildContext context, String name, String body) {
@@ -1221,8 +1280,11 @@ Widget previewCloseIcon(BuildContext context) {
 
 class ArtworkRightWidget extends StatelessWidget {
   final FFContract? contract;
+  final String? exhibitionID;
 
-  ArtworkRightWidget({Key? key, @required this.contract}) : super(key: key);
+  const ArtworkRightWidget(
+      {Key? key, @required this.contract, this.exhibitionID})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -1230,8 +1292,11 @@ class ArtworkRightWidget extends StatelessWidget {
           color: Colors.white,
           decorationColor: Colors.white,
         );
-    return _artworkRightView(context,
-        linkStyle: linkStyle, contract: FFContract("", "", ""));
+    return ArtworkRightsView(
+      linkStyle: linkStyle,
+      contract: FFContract("", "", ""),
+      exhibitionID: exhibitionID,
+    );
   }
 }
 

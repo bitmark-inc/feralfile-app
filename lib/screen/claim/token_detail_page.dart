@@ -93,7 +93,7 @@ class _TokenDetailPageState extends State<TokenDetailPage> {
                     Theme(
                       data: theme.copyWith(textTheme: theme.primaryTextTheme),
 
-                      child: ArtworkRightWidget(contract: contract,),
+                      child: ArtworkRightWidget(contract: contract,exhibitionID: widget.artwork.exhibition?.id,),
                     ),
                     const SizedBox(height: 40.0),
                   ],

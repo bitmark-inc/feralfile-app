@@ -60,6 +60,12 @@ abstract class FeralFileService {
     bool delayed = false,
     Future<bool> Function(FFArtwork)? onConfirm,
   });
+
+  Future<String?> getExhibitionIdFromTokenID(String tokenID);
+
+  Future<FeralFileResaleInfo> getResaleInfo(String exhibitionID);
+
+  Future<String?> getPartnerFullName(String exhibitionId);
 }
 
 class FeralFileServiceImpl extends FeralFileService {
@@ -114,7 +120,6 @@ class FeralFileServiceImpl extends FeralFileService {
     }
     final metricClient = injector.get<MetricClientService>();
     final mixPanelClient = injector.get<MixPanelClientService>();
-
 
     // mark survey from FeralFile as referrer if user hasn't answerred
     final finishedSurveys = _configurationService.getFinishedSurveys();
@@ -318,5 +323,24 @@ class FeralFileServiceImpl extends FeralFileService {
       log.info("[FeralFileService] Fetch token failed ($indexerId) $e");
       return [];
     }
+  }
+
+  @override
+  Future<String?> getExhibitionIdFromTokenID(String tokenID) async {
+    final artworkEditions = await _feralFileApi.getArtworkEditions(tokenID);
+    final String? exhibitionID = artworkEditions.result.artwork.exhibition?.id;
+    return exhibitionID;
+  }
+
+  @override
+  Future<FeralFileResaleInfo> getResaleInfo(String exhibitionID) async {
+    final resaleInfo = await _feralFileApi.getResaleInfo(exhibitionID);
+    return resaleInfo.result;
+  }
+
+  @override
+  Future<String?> getPartnerFullName(String exhibitionId) async {
+    final exhibition = await _feralFileApi.getExhibition(exhibitionId);
+    return exhibition.result.partner?.fullName;
   }
 }

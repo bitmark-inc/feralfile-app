@@ -60,6 +60,7 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview_primer.dart';
+import 'package:autonomy_flutter/screen/detail/royalty/royalty_bloc.dart';
 import 'package:autonomy_flutter/screen/edit_playlist/edit_playlist.dart';
 import 'package:autonomy_flutter/screen/feed/feed_artwork_details_page.dart';
 import 'package:autonomy_flutter/screen/feed/feed_bloc.dart';
@@ -543,7 +544,7 @@ class AppRouter {
                   BlocProvider.value(value: ethereumBloc),
                   BlocProvider.value(value: tezosBloc),
                   BlocProvider(
-                    create: (_) => IdentityBloc(injector(), injector())),
+                      create: (_) => IdentityBloc(injector(), injector())),
                 ], child: const SettingsPage()));
 
       case personaDetailsPage:
@@ -681,6 +682,7 @@ class AppRouter {
             settings: settings,
             child: MultiBlocProvider(providers: [
               BlocProvider.value(value: accountsBloc),
+              BlocProvider(create: (_) => RoyaltyBloc(injector())),
               BlocProvider.value(value: settings.arguments as FeedBloc),
               BlocProvider(
                   create: (_) =>
@@ -714,6 +716,7 @@ class AppRouter {
                   BlocProvider.value(value: accountsBloc),
                   BlocProvider(
                       create: (_) => IdentityBloc(injector(), injector())),
+                  BlocProvider(create: (_) => RoyaltyBloc(injector())),
                   BlocProvider(
                       create: (_) => ArtworkDetailBloc(
                             injector(),
@@ -935,11 +938,12 @@ class AppRouter {
       case airdropTokenDetailPage:
         return CupertinoPageRoute(
             settings: settings,
-            builder: (context) {
-              return TokenDetailPage(
-                artwork: settings.arguments as FFArtwork,
-              );
-            });
+            builder: (context) => BlocProvider(
+                  create: (_) => RoyaltyBloc(injector()),
+                  child: TokenDetailPage(
+                    artwork: settings.arguments as FFArtwork,
+                  ),
+                ));
 
       case claimSelectAccountPage:
         final args = settings.arguments as SelectAccountPageArgs;
