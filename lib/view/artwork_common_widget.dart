@@ -1105,7 +1105,8 @@ class _ArtworkRightsViewState extends State<ArtworkRightsView> {
           const SizedBox(height: 18.0),
           TextButton(
             style: theme.textButtonNoPadding,
-            onPressed: () => launchUrl(Uri.parse(getUrl(state))),
+            onPressed: () => launchUrl(Uri.parse(getUrl(state)),
+                mode: LaunchMode.externalApplication),
             child: Text(
               "learn_artist".tr(),
               style: widget.linkStyle ??

@@ -332,7 +332,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
   }
 
   void _openFFArtistCollector() {
-    String uri = (widget.artwork.exhibition?.id != null)
+    String uri = (widget.artwork.exhibition?.id == null)
         ? FF_ARTIST_COLLECTOR
         : "$FF_ARTIST_COLLECTOR/${widget.artwork.exhibition?.id}";
     launchUrl(Uri.parse(uri), mode: LaunchMode.externalApplication);
