@@ -138,11 +138,21 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                               offset: const Offset(1, 0),
                               child: ClipPath(
                                 clipper: AutonomyTopRightRectangleClipper(),
-                                child: CachedNetworkImage(
-                                  fit: BoxFit.cover,
-                                  imageUrl: artworkThumbnail,
-                                  width: 264,
-                                  height: 264,
+                                child: Container(
+                                  color: Colors.white,
+                                  padding: const EdgeInsets.all(2),
+                                  child: ClipPath(
+                                    clipper: AutonomyTopRightRectangleClipper(customRadius: 12),
+                                    child: Container(
+                                      color: Colors.black,
+                                      child: CachedNetworkImage(
+                                        fit: BoxFit.cover,
+                                        imageUrl: artworkThumbnail,
+                                        width: 264,
+                                        height: 264,
+                                      ),
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
