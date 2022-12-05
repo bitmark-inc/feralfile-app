@@ -191,4 +191,59 @@ class _FeralFileApi implements FeralFileApi {
     }
     return requestOptions;
   }
+
+  @override
+  Future<ResaleResponse> getResaleInfo(exhibitionID) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    final _data = <String, dynamic>{};
+    final _result = await _dio
+        .fetch<Map<String, dynamic>>(_setStreamType<ResaleResponse>(Options(
+      method: 'GET',
+      headers: _headers,
+      extra: _extra,
+    )
+        .compose(
+      _dio.options,
+      '/api/exhibitions/${exhibitionID}/revenue-setting/resale/',
+      queryParameters: queryParameters,
+      data: _data,
+    )
+        .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+    final value = ResaleResponse.fromJson(_result.data!);
+    return value;
+  }
+
+  @override
+  Future<ArtworkEditionResponse> getArtworkEditions(
+      tokenID, {
+        includeArtwork = true,
+        includeExhibition = true,
+        includeArtist = true,
+      }) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      r'includeArtwork': includeArtwork,
+      r'includeExhibition': includeExhibition,
+      r'includeArtist': includeArtist
+    };
+    final _headers = <String, dynamic>{};
+    final _data = <String, dynamic>{};
+    final _result = await _dio
+        .fetch<Map<String, dynamic>>(_setStreamType<ArtworkEditionResponse>(Options(
+      method: 'GET',
+      headers: _headers,
+      extra: _extra,
+    )
+        .compose(
+      _dio.options,
+      '/api/artwork-editions/${tokenID}',
+      queryParameters: queryParameters,
+      data: _data,
+    )
+        .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+    final value = ArtworkEditionResponse.fromJson(_result.data!);
+    return value;
+  }
 }

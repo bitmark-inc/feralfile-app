@@ -45,4 +45,15 @@ abstract class FeralFileApi {
     @Path("artworkId") String artworkId,
     @Body() Map<String, dynamic> body,
   );
+
+  @GET("/api/exhibitions/{exhibitionID}/revenue-setting/resale")
+  Future<ResaleResponse> getResaleInfo(@Path("exhibitionID") String exhibitionID);
+
+  @GET("/api/artwork-editions/{tokenID}/{exhibitionID}")
+  Future<ArtworkEditionResponse> getArtworkEditions(
+      @Path("tokenID") String tokenID, {
+        @Query("includeArtwork") bool includeArtwork = true,
+        @Query("includeExhibition") bool includeExhibition = true,
+        @Query("includeArtist") bool includeArtist = true,
+      });
 }
