@@ -3,6 +3,7 @@ import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/sent_artwork.dart';
 import 'package:autonomy_flutter/screen/add_new_playlist/add_new_playlist.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/edit_playlist/widgets/text_name_playlist.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 
@@ -126,14 +127,17 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
               onTap: () => Navigator.of(context).pop(),
               child: const Icon(AuIcon.chevron),
             ),
+            actions: const [
+              SizedBox(
+                width: 50,
+              )
+            ],
             backgroundColor: theme.backgroundColor,
             automaticallyImplyLeading: false,
             centerTitle: true,
-            title: Text(
-              (playList?.name?.isNotEmpty ?? false)
-                  ? playList!.name!
-                  : tr('untitled'),
-              style: theme.textTheme.ppMori400Black14,
+            title: TextNamePlaylist(
+              playList: playList,
+              onEditPlaylistName: (value) => playList?.name = value,
             ),
           ),
           body: SafeArea(
@@ -200,17 +204,25 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
                                                 ),
                                               );
                                             },
-                                            child: Text(
-                                              tr(
-                                                isSeletedAll
-                                                    ? tr('unselect_all')
-                                                    : tr('select_all'),
+                                            child: Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                horizontal: 10,
+                                                vertical: 4,
                                               ),
-                                              style: theme
-                                                  .textTheme.ppMori400Black12
-                                                  .copyWith(
-                                                decoration:
-                                                    TextDecoration.underline,
+                                              decoration: BoxDecoration(
+                                                border: Border.all(),
+                                                borderRadius:
+                                                    BorderRadius.circular(64),
+                                              ),
+                                              child: Text(
+                                                tr(
+                                                  isSeletedAll
+                                                      ? tr('unselect_all')
+                                                      : tr('select_all'),
+                                                ),
+                                                style: theme
+                                                    .textTheme.ppMori400Black12,
                                               ),
                                             ),
                                           ),
@@ -301,31 +313,31 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
                                 tokensPlaylist.isEmpty
                                     ? PrimaryButton(
                                         onTap: () {
-                                          UIHelper.showMessageAction(
+                                          UIHelper.showMessageActionNew(
                                             context,
                                             tr('delete_playlist'),
                                             '',
                                             descriptionWidget: RichText(
                                               text: TextSpan(children: [
                                                 TextSpan(
-                                                  style: theme.primaryTextTheme
-                                                      .bodyText1,
+                                                  style: theme.textTheme
+                                                      .ppMori400White16,
                                                   text: "you_are_about".tr(),
                                                 ),
                                                 TextSpan(
-                                                  style: theme.primaryTextTheme
-                                                      .headline4,
+                                                  style: theme.textTheme
+                                                      .ppMori700White16,
                                                   text: playList?.name ??
                                                       tr('untitled'),
                                                 ),
                                                 TextSpan(
-                                                  style: theme.primaryTextTheme
-                                                      .bodyText1,
+                                                  style: theme.textTheme
+                                                      .ppMori400White16,
                                                   text: "dont_worry".tr(),
                                                 ),
                                               ]),
                                             ),
-                                            actionButton: "delete".tr(),
+                                            actionButton: "delete_dialog".tr(),
                                             onAction: deletePlayList,
                                           );
                                         },
@@ -335,24 +347,23 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
                                     : PrimaryButton(
                                         onTap: selectedItem.isEmpty
                                             ? null
-                                            : () => UIHelper.showMessageAction(
+                                            : () =>
+                                                UIHelper.showMessageActionNew(
                                                   context,
                                                   tr('remove_from_list'),
                                                   '',
                                                   descriptionWidget: RichText(
                                                     text: TextSpan(children: [
                                                       TextSpan(
-                                                        style: theme
-                                                            .primaryTextTheme
-                                                            .bodyText1,
+                                                        style: theme.textTheme
+                                                            .ppMori400White16,
                                                         text:
                                                             "you_are_about_to_remove"
                                                                 .tr(),
                                                       ),
                                                       TextSpan(
-                                                        style: theme
-                                                            .primaryTextTheme
-                                                            .headline4,
+                                                        style: theme.textTheme
+                                                            .ppMori700White16,
                                                         text: tr(
                                                             selectedItem.length !=
                                                                     1
@@ -365,24 +376,21 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
                                                             ]),
                                                       ),
                                                       TextSpan(
-                                                        style: theme
-                                                            .primaryTextTheme
-                                                            .bodyText1,
+                                                        style: theme.textTheme
+                                                            .ppMori400White16,
                                                         text:
                                                             "from_the_playlist"
                                                                 .tr(),
                                                       ),
                                                       TextSpan(
-                                                        style: theme
-                                                            .primaryTextTheme
-                                                            .headline4,
+                                                        style: theme.textTheme
+                                                            .ppMori700White16,
                                                         text: playList?.name ??
                                                             tr('untitled'),
                                                       ),
                                                       TextSpan(
-                                                        style: theme
-                                                            .primaryTextTheme
-                                                            .bodyText1,
+                                                        style: theme.textTheme
+                                                            .ppMori400White16,
                                                         text: "they_will_remain"
                                                             .tr(),
                                                       ),
@@ -393,8 +401,8 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
                                                     Navigator.pop(context);
                                                     bloc.add(
                                                       RemoveTokens(
-                                                          tokenIDs:
-                                                              selectedItem),
+                                                        tokenIDs: selectedItem,
+                                                      ),
                                                     );
                                                   },
                                                 ),

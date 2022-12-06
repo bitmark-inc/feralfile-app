@@ -960,11 +960,22 @@ Widget tokenOwnership(
         style: theme.textTheme.ppMori400White12,
       ),
       const SizedBox(height: 32.0),
-      _rowItem(context, "editions".tr(), "${asset.maxEdition}",
-          tapLink: asset.tokenURL, forceSafariVC: true),
-      const Divider(height: 32.0),
-      _rowItem(context, "owned".tr(), "$ownedTokens",
-          tapLink: asset.tokenURL, forceSafariVC: true),
+      MetaDataItem(
+        title: "editions".tr(),
+        value: "${asset.maxEdition}",
+        tapLink: asset.tokenURL,
+        forceSafariVC: true,
+      ),
+      Divider(
+        height: 32.0,
+        color: theme.auLightGrey,
+      ),
+      MetaDataItem(
+        title: "owned".tr(),
+        value: "$ownedTokens",
+        tapLink: asset.tokenURL,
+        forceSafariVC: true,
+      ),
     ],
   );
 }

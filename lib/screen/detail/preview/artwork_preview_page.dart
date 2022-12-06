@@ -210,21 +210,27 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   }
 
   void onClickFullScreen() {
+    final theme = Theme.of(context);
     _bloc.add(ChangeFullScreen(isFullscreen: true));
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
 
-    if (injector<ConfigurationService>().isFullscreenIntroEnabled()) {
-      showModalBottomSheet<void>(
-        context: context,
-        constraints: BoxConstraints(
-            maxWidth: ResponsiveLayout.isMobile
-                ? double.infinity
-                : Constants.maxWidthModalTablet),
-        builder: (BuildContext context) {
-          return const FullscreenIntroPopup();
-        },
-      );
-    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Container(
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 10),
+          decoration: BoxDecoration(
+            color: theme.auSuperTeal.withOpacity(0.9),
+            borderRadius: BorderRadius.circular(64),
+          ),
+          child: Text(
+            'shake_exit'.tr(),
+            style: theme.textTheme.ppMori400Black12,
+          ),
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
+    );
   }
 
   Future<void> onCastTap(AssetToken? asset) async {
@@ -572,30 +578,32 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                       ),
                     ),
                     Expanded(
-                      child: PageView.builder(
-                        physics: const NeverScrollableScrollPhysics(),
-                        onPageChanged: (value) {
-                          _timer?.cancel();
-                          final currentId = tokens[value];
-                          _bloc
-                              .add(ArtworkPreviewGetAssetTokenEvent(currentId));
-                          _stopAllChromecastDevices();
-                          keyboardManagerKey.currentState?.hideKeyboard();
-                          final mixPanelClient =
-                              injector.get<MixPanelClientService>();
-                          mixPanelClient.trackEvent("Next Artwork",
-                              hashedData: {
-                                "tokenId": currentId.id,
-                                "identity": currentId.id
-                              });
-                        },
-                        controller: controller,
-                        itemCount: tokens.length,
-                        itemBuilder: (context, index) => Center(
-                          child: ArtworkPreviewWidget(
-                            identity: tokens[index],
-                            onLoaded: setTimer,
-                            focusNode: _focusNode,
+                      child: GestureDetector(
+                        child: PageView.builder(
+                          physics: const NeverScrollableScrollPhysics(),
+                          onPageChanged: (value) {
+                            _timer?.cancel();
+                            final currentId = tokens[value];
+                            _bloc.add(
+                                ArtworkPreviewGetAssetTokenEvent(currentId));
+                            _stopAllChromecastDevices();
+                            keyboardManagerKey.currentState?.hideKeyboard();
+                            final mixPanelClient =
+                                injector.get<MixPanelClientService>();
+                            mixPanelClient.trackEvent("Next Artwork",
+                                hashedData: {
+                                  "tokenId": currentId.id,
+                                  "identity": currentId.id
+                                });
+                          },
+                          controller: controller,
+                          itemCount: tokens.length,
+                          itemBuilder: (context, index) => Center(
+                            child: ArtworkPreviewWidget(
+                              identity: tokens[index],
+                              onLoaded: setTimer,
+                              focusNode: _focusNode,
+                            ),
                           ),
                         ),
                       ),

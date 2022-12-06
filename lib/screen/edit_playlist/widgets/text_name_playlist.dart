@@ -19,7 +19,6 @@ class TextNamePlaylist extends StatefulWidget {
 }
 
 class _TextNamePlaylistState extends State<TextNamePlaylist> {
-  bool isEditing = false;
   final _playlistNameC = TextEditingController();
   final _focusNode = FocusNode();
 
@@ -38,69 +37,21 @@ class _TextNamePlaylistState extends State<TextNamePlaylist> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return !isEditing
-        ? Row(
-            children: [
-              Expanded(
-                child: Text(
-                  _playlistNameC.text.isNotEmpty
-                      ? _playlistNameC.text
-                      : tr('untitled'),
-                  style: _playlistNameC.text.isEmpty
-                      ? theme.textTheme.atlasSpanishGreyBold36
-                      : theme.textTheme.headline1,
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                ),
-              ),
-              IconButton(
-                onPressed: () {
-                  setState(() {
-                    isEditing = true;
-                    _focusNode.requestFocus();
-                  });
-                },
-                icon: Icon(
-                  Icons.edit,
-                  color: theme.colorScheme.primary,
-                ),
-              ),
-            ],
-          )
-        : TextFieldWidget(
-            focusNode: _focusNode,
-            hintText: tr('untitled'),
-            controller: _playlistNameC,
-            cursorColor: theme.colorScheme.primary,
-            style: theme.textTheme.headline1,
-            hintStyle: theme.textTheme.atlasSpanishGreyBold36,
-            border: UnderlineInputBorder(
-              borderSide: BorderSide(
-                width: 2,
-                color: theme.colorScheme.primary,
-              ),
-            ),
-            focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(
-                width: 2,
-                color: theme.colorScheme.primary,
-              ),
-            ),
-            enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(
-                width: 2,
-                color: theme.colorScheme.primary,
-              ),
-            ),
-            onChanged: (value) {
-              widget.onEditPlaylistName?.call(value);
-            },
-            onFieldSubmitted: (value) {
-              setState(() {
-                isEditing = false;
-              });
-              widget.onEditPlaylistName?.call(value);
-            },
-          );
+    return TextFieldWidget(
+      focusNode: _focusNode,
+      hintText: tr('untitled'),
+      controller: _playlistNameC,
+      cursorColor: theme.colorScheme.primary,
+      style: theme.textTheme.ppMori700Black14,
+      hintStyle: theme.textTheme.ppMori700Black14,
+      textAlign: TextAlign.center,
+      border: InputBorder.none,
+      onChanged: (value) {
+        widget.onEditPlaylistName?.call(value);
+      },
+      onFieldSubmitted: (value) {
+        widget.onEditPlaylistName?.call(value);
+      },
+    );
   }
 }

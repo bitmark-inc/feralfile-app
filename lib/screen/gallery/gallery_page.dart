@@ -212,7 +212,12 @@ class _GalleryPageState extends State<GalleryPage> {
         SliverToBoxAdapter(
           child: Container(
             padding: const EdgeInsets.fromLTRB(16, 24, 24, 14),
-            child: Center(child: loadingIndicator()),
+            child: Center(
+              child: loadingIndicator(
+                valueColor: AppColor.white,
+                backgroundColor: AppColor.auLightGrey,
+              ),
+            ),
           ),
         ),
       ]
