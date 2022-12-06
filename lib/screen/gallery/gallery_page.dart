@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/screen/gallery/gallery_bloc.dart';
+import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/penrose_top_bar_view.dart';
@@ -74,44 +75,91 @@ class _GalleryPageState extends State<GalleryPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return PrimaryScrollController(
       controller: _scrollController,
-      child: Scaffold(
-        body: Stack(
-          children: [
-            BlocConsumer<GalleryBloc, GalleryState>(listener: (context, state) {
-              final tokens = state.tokens;
-              if (tokens == null) return;
+      child: BlocConsumer<GalleryBloc, GalleryState>(
+        listener: (context, state) {
+          final tokens = state.tokens;
+          if (tokens == null) return;
 
-              _latestTokensLength = tokens.length;
-              _isLastPage = state.isLastPage;
+          _latestTokensLength = tokens.length;
+          _isLastPage = state.isLastPage;
 
-              if (tokens.isNotEmpty) {
-                _timer?.cancel();
-                if (_latestTokensLength == 0) {
-                  Vibrate.feedback(FeedbackType.light);
-                }
-              }
-            }, builder: (context, state) {
-              return _assetsWidget(state.tokens, state.isLoading);
-            }),
-            PenroseTopBarView(_scrollController, PenroseTopBarViewStyle.back),
-          ],
-        ),
+          if (tokens.isNotEmpty) {
+            _timer?.cancel();
+            if (_latestTokensLength == 0) {
+              Vibrate.feedback(FeedbackType.light);
+            }
+          }
+        },
+        builder: (context, state) {
+          final artistURL = widget.payload.artistURL;
+          final tokens = state.tokens;
+          return Scaffold(
+            appBar: AppBar(
+              leadingWidth: 0,
+              centerTitle: false,
+              title: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'artist_collection'.tr(),
+                    style: theme.textTheme.ppMori400Grey12,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      GestureDetector(
+                        onTap: artistURL != null
+                            ? () {
+                                final uri = Uri.tryParse(artistURL);
+                                if (uri != null) {
+                                  launchUrl(uri);
+                                }
+                              }
+                            : null,
+                        child: Text(
+                          widget.payload.artistName,
+                          style: theme.textTheme.ppMori400White12,
+                        ),
+                      ),
+                      if (tokens != null && tokens.isEmpty) ...[
+                        Text(
+                          'indexing'.tr(),
+                          style: theme.textTheme.ppMori400White12,
+                        ),
+                      ]
+                    ],
+                  ),
+                ],
+              ),
+              actions: [
+                IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: Icon(
+                    AuIcon.close,
+                    color: theme.colorScheme.secondary,
+                  ),
+                )
+              ],
+            ),
+            backgroundColor: theme.colorScheme.primary,
+            body: _assetsWidget(tokens, state.isLoading),
+          );
+        },
       ),
     );
   }
 
   Widget _assetsWidget(List<AssetToken>? tokens, bool isLoading) {
-    final theme = Theme.of(context);
-
     const int cellPerRowPhone = 3;
     const int cellPerRowTablet = 6;
     const double cellSpacing = 3.0;
     int cellPerRow =
         ResponsiveLayout.isMobile ? cellPerRowPhone : cellPerRowTablet;
-
-    final artistURL = widget.payload.artistURL;
 
     if (_cachedImageSize == 0) {
       final estimatedCellWidth =
@@ -121,45 +169,9 @@ class _GalleryPageState extends State<GalleryPage> {
     }
     List<Widget> sources;
     sources = [
-      SliverToBoxAdapter(
-          child: Container(
-        padding: const EdgeInsets.fromLTRB(0, 72, 0, 48),
-        child: autonomyLogo,
-      )),
-      SliverToBoxAdapter(
-        child: Container(
-          alignment: Alignment.topLeft,
-          padding: const EdgeInsets.fromLTRB(6, 0, 14, 14),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              TextButton(
-                style: const ButtonStyle(alignment: Alignment.centerRight),
-                onPressed: artistURL != null
-                    ? () {
-                        final uri = Uri.tryParse(artistURL);
-                        if (uri != null) {
-                          launchUrl(uri);
-                        }
-                      }
-                    : null,
-                child: Text(
-                  widget.payload.artistName,
-                  style: artistURL != null
-                      ? makeLinkStyle(theme.textTheme.headline2!)
-                      : theme.textTheme.headline2,
-                ),
-              ),
-              if (tokens != null && tokens.isEmpty) ...[
-                Text(
-                  'indexing'.tr(),
-                  style: ResponsiveLayout.isMobile
-                      ? theme.textTheme.atlasBlackBold12
-                      : theme.textTheme.atlasBlackBold14,
-                ),
-              ]
-            ],
-          ),
+      const SliverToBoxAdapter(
+        child: SizedBox(
+          height: 40,
         ),
       ),
       if (tokens == null)

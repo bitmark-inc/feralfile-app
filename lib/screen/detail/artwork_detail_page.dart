@@ -23,6 +23,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -30,6 +31,7 @@ import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/au_outlined_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -73,7 +75,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   @override
   void afterFirstLayout(BuildContext context) {
     final artworkId =
-    jsonEncode(widget.payload.identities[widget.payload.currentIndex]);
+        jsonEncode(widget.payload.identities[widget.payload.currentIndex]);
     final metricClient = injector.get<MetricClientService>();
     metricClient.addEvent(
       "view_artwork_detail",
@@ -97,173 +99,166 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     final hasKeyboard = currentAsset?.medium == "software" ||
         currentAsset?.medium == "other" ||
         currentAsset?.medium == null;
-    return Stack(
-      children: [
-        Scaffold(
-          resizeToAvoidBottomInset: !hasKeyboard,
-          appBar: getBackAppBar(context,
-              onBack: () => Navigator.of(context).pop(),
-              action: () {
-                if (currentAsset == null) return;
-                _showArtworkOptionsDialog(currentAsset!);
-              }),
-          body: BlocConsumer<ArtworkDetailBloc, ArtworkDetailState>(
-              listener: (context, state) {
-                final identitiesList =
-                state.provenances.map((e) => e.owner).toList();
-                if (state.asset?.artistName != null &&
-                    state.asset!.artistName!.length > 20) {
-                  identitiesList.add(state.asset!.artistName!);
-                }
-                setState(() {
-                  currentAsset = state.asset;
-                });
+    return BlocConsumer<ArtworkDetailBloc, ArtworkDetailState>(
+        listener: (context, state) {
+      final identitiesList = state.provenances.map((e) => e.owner).toList();
+      if (state.asset?.artistName != null &&
+          state.asset!.artistName!.length > 20) {
+        identitiesList.add(state.asset!.artistName!);
+      }
+      setState(() {
+        currentAsset = state.asset;
+      });
 
-                context.read<IdentityBloc>().add(
-                    GetIdentityEvent(identitiesList));
-              }, builder: (context, state) {
-            if (state.asset != null) {
-              final identityState = context
-                  .watch<IdentityBloc>()
-                  .state;
-              final asset = state.asset!;
+      context.read<IdentityBloc>().add(GetIdentityEvent(identitiesList));
+    }, builder: (context, state) {
+      if (state.asset != null) {
+        final identityState = context.watch<IdentityBloc>().state;
+        final asset = state.asset!;
 
-              final artistName =
-              asset.artistName?.toIdentityOrMask(identityState.identityMap);
+        final artistName =
+            asset.artistName?.toIdentityOrMask(identityState.identityMap);
 
-              var subTitle = "";
-              if (artistName != null && artistName.isNotEmpty) {
-                subTitle = "by".tr(args: [artistName]);
-              }
+        var subTitle = "";
+        if (artistName != null && artistName.isNotEmpty) {
+          subTitle = "by".tr(args: [artistName]);
+        }
 
-              return SingleChildScrollView(
-                controller: _scrollController,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 16.0),
-                    Padding(
-                      padding: ResponsiveLayout.getPadding,
-                      child: Semantics(
-                        label: 'Title',
-                        child: Text(
-                          asset.title,
-                          style: theme.textTheme.headline1,
-                        ),
+        return Stack(
+          children: [
+            Scaffold(
+                backgroundColor: theme.colorScheme.primary,
+                resizeToAvoidBottomInset: !hasKeyboard,
+                appBar: AppBar(
+                  leadingWidth: 0,
+                  centerTitle: false,
+                  title: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        asset.title,
+                        style: theme.textTheme.ppMori400White12,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                    const SizedBox(height: 8.0),
-                    Padding(
-                      padding: ResponsiveLayout.getPadding,
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.baseline,
-                        textBaseline: TextBaseline.alphabetic,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              subTitle,
-                              style: theme.textTheme.headline3?.copyWith(
-                                fontSize: 18,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(
-                            width: 8,
-                          ),
-                          Text(
-                            getEditionSubTitle(asset),
-                            style: theme.textTheme.headline5?.copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ],
+                      Text(
+                        subTitle,
+                        style: theme.textTheme.ppMori400White12,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                    const SizedBox(height: 16.0),
-                    Hero(
-                      tag: asset.id,
-                      child: _ArtworkView(
-                        payload: widget.payload,
-                        token: asset,
-                      ),
-                    ),
-                    Visibility(
-                      visible: asset.assetURL == CHECK_WEB3_PRIMER_URL,
-                      child: Align(
-                        alignment: Alignment.centerRight,
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: SizedBox(
-                            width: 165,
-                            height: 48,
-                            child: AuOutlinedButton(
-                              text: "web3_primer".tr(),
-                              onPress: () {
-                                Navigator.pushNamed(
-                                    context, AppRouter.previewPrimerPage,
-                                    arguments: asset);
-                              },
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    debugInfoWidget(context, currentAsset),
-                    const SizedBox(height: 16.0),
-                    Padding(
-                      padding: ResponsiveLayout.getPadding,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Semantics(
-                            label: 'Desc',
-                            child: HtmlWidget(
-                              asset.desc ?? "",
-                              textStyle: theme.textTheme.bodyText1,
-                            ),
-                          ),
-                          const SizedBox(height: 40.0),
-                          artworkDetailsMetadataSection(
-                              context, asset, artistName),
-                          if (asset.fungible == true) ...[
-                            const SizedBox(height: 40.0),
-                            BlocBuilder<AccountsBloc, AccountsState>(
-                              builder: (context, state) {
-                                final addresses = state.addresses;
-                                return tokenOwnership(
-                                    context, asset, addresses);
-                              },
-                            ),
-                          ] else
-                            ...[
-                              state.provenances.isNotEmpty
-                                  ? _provenanceView(context, state.provenances)
-                                  : const SizedBox()
-                            ],
-                          artworkDetailsRightSection(context, asset),
-                          const SizedBox(height: 80.0),
-                        ],
+                    ],
+                  ),
+                  actions: [
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: Icon(
+                        AuIcon.close,
+                        color: theme.colorScheme.secondary,
                       ),
                     )
                   ],
                 ),
-              );
-            } else {
-              return const SizedBox();
-            }
-          }),
-        ),
-        Positioned(
-          bottom: 0,
-          left: 0,
-          right: 0,
-          child: ReportButton(
-            token: currentAsset,
-            scrollController: _scrollController,
-          ),
-        ),
-      ],
-    );
+                body: SingleChildScrollView(
+                  controller: _scrollController,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(
+                        height: 40,
+                      ),
+                      Hero(
+                        tag: asset.id,
+                        child: _ArtworkView(
+                          payload: widget.payload,
+                          token: asset,
+                        ),
+                      ),
+                      Visibility(
+                        visible: asset.assetURL == CHECK_WEB3_PRIMER_URL,
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: SizedBox(
+                              width: 165,
+                              height: 48,
+                              child: AuOutlinedButton(
+                                text: "web3_primer".tr(),
+                                onPress: () {
+                                  Navigator.pushNamed(
+                                      context, AppRouter.previewPrimerPage,
+                                      arguments: asset);
+                                },
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 40,
+                      ),
+                      Padding(
+                        padding: ResponsiveLayout.getPadding,
+                        child: Text(
+                          getEditionSubTitle(asset),
+                          style: theme.textTheme.ppMori400Grey12,
+                        ),
+                      ),
+                      debugInfoWidget(context, currentAsset),
+                      const SizedBox(height: 16.0),
+                      Padding(
+                        padding: ResponsiveLayout.getPadding,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Semantics(
+                              label: 'Desc',
+                              child: HtmlWidget(
+                                asset.desc ?? "",
+                                textStyle: theme.textTheme.ppMori400White12,
+                              ),
+                            ),
+                            const SizedBox(height: 40.0),
+                            artworkDetailsMetadataSection(
+                                context, asset, artistName),
+                            if (asset.fungible == true) ...[
+                              const SizedBox(height: 40.0),
+                              BlocBuilder<AccountsBloc, AccountsState>(
+                                builder: (context, state) {
+                                  final addresses = state.addresses;
+                                  return tokenOwnership(
+                                      context, asset, addresses);
+                                },
+                              ),
+                            ] else ...[
+                              state.provenances.isNotEmpty
+                                  ? _provenanceView(context, state.provenances)
+                                  : const SizedBox()
+                            ],
+                            artworkDetailsRightSection(context, asset),
+                            const SizedBox(height: 80.0),
+                          ],
+                        ),
+                      )
+                    ],
+                  ),
+                )),
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: ReportButton(
+                token: currentAsset,
+                scrollController: _scrollController,
+              ),
+            ),
+          ],
+        );
+      } else {
+        return const SizedBox();
+      }
+    });
   }
 
   Widget _provenanceView(BuildContext context, List<Provenance> provenances) {
@@ -271,15 +266,14 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
       builder: (context, identityState) =>
           BlocBuilder<AccountsBloc, AccountsState>(
               builder: (context, accountsState) {
-                final event = accountsState.event;
-                if (event != null && event is FetchAllAddressesSuccessEvent) {
-                  _accountNumberHash = HashSet.of(event.addresses);
-                }
+        final event = accountsState.event;
+        if (event != null && event is FetchAllAddressesSuccessEvent) {
+          _accountNumberHash = HashSet.of(event.addresses);
+        }
 
-                return artworkDetailsProvenanceSectionNotEmpty(
-                    context, provenances,
-                    _accountNumberHash, identityState.identityMap);
-              }),
+        return artworkDetailsProvenanceSectionNotEmpty(context, provenances,
+            _accountNumberHash, identityState.identityMap);
+      }),
     );
   }
 
@@ -330,10 +324,10 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
               Navigator.of(context).pop();
               UIHelper.showHideArtworkResultDialog(context, !isHidden,
                   onOK: () {
-                    Navigator.of(context).popUntil((route) =>
+                Navigator.of(context).popUntil((route) =>
                     route.settings.name == AppRouter.homePage ||
-                        route.settings.name == AppRouter.homePageNoTransition);
-                  });
+                    route.settings.name == AppRouter.homePageNoTransition);
+              });
             },
           ),
           if (ownerWallet != null) ...[
@@ -368,12 +362,10 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
 
                 if (!payload["isTezos"]) {
                   if (isSentAll) {
-                    Navigator.of(context).popAndPushNamed(
-                      AppRouter.homePage);
+                    Navigator.of(context).popAndPushNamed(AppRouter.homePage);
                   }
                   return;
                 }
-
 
                 final tx = payload['tx'] as TZKTOperation;
 
@@ -395,11 +387,10 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                   },
                   actionButton: 'see_transaction_detail'.tr().toUpperCase(),
                   closeButton: "close".tr().toUpperCase(),
-                  onClose: () =>
-                  isSentAll
+                  onClose: () => isSentAll
                       ? Navigator.of(context).popAndPushNamed(
-                    AppRouter.homePage,
-                  )
+                          AppRouter.homePage,
+                        )
                       : null,
                 );
               },
