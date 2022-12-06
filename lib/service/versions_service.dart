@@ -125,9 +125,13 @@ class VersionService {
 
     final theme = Theme.of(context);
     await UIHelper.showDialog(
-        context,
-        "update_required".tr(),
-        Column(children: [
+      context,
+      "update_required".tr(),
+      WillPopScope(
+        onWillPop: () async {
+          return false;
+        },
+        child: Column(children: [
           Text("newer_version".tr(), style: theme.primaryTextTheme.bodyText1),
           const SizedBox(height: 35),
           Row(
@@ -147,7 +151,9 @@ class VersionService {
               ),
             ],
           ),
-        ]));
+        ]),
+      ),
+    );
   }
 
   Future showReleaseNodeDialog(
