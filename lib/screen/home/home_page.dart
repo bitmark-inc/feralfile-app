@@ -105,27 +105,32 @@ class _HomePageState extends State<HomePage> {
             icon: const Icon(
               AuIcon.scan,
             ),
-            onTap: () => Navigator.of(context).pushNamed(
-              AppRouter.scanQRPage,
-              arguments: ScannerItem.GLOBAL,
-            ),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.of(context).pushNamed(
+                AppRouter.scanQRPage,
+                arguments: ScannerItem.GLOBAL,
+              );
+            },
           ),
           OptionItem(
-            title: 'Settings',
-            icon: const Icon(
-              AuIcon.settings,
-            ),
-            onTap: () =>
-                Navigator.of(context).pushNamed(AppRouter.settingsPage),
-          ),
+              title: 'Settings',
+              icon: const Icon(
+                AuIcon.settings,
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.of(context).pushNamed(AppRouter.settingsPage);
+              }),
           OptionItem(
-            title: 'Help',
-            icon: const Icon(
-              AuIcon.help,
-            ),
-            onTap: () =>
-                Navigator.of(context).pushNamed(AppRouter.supportCustomerPage),
-          ),
+              title: 'Help',
+              icon: const Icon(
+                AuIcon.help,
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.of(context).pushNamed(AppRouter.supportCustomerPage);
+              }),
         ],
       );
     }
