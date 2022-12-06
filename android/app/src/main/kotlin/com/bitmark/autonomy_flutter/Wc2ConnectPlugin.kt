@@ -152,10 +152,14 @@ class Wc2ConnectPlugin(private val application: Application) : FlutterPlugin,
     private fun respondOnReject(topic: String, reason: String, result: MethodChannel.Result) {
         try {
             val request = pendingRequests.firstOrNull { e -> e.topic == topic }
+            if (request == null) {
+                result.error("", "Request not found", null)
+                return
+            }
             SignClient.respond(
                 Sign.Params.Response(
                     topic,
-                    Sign.Model.JsonRpcResponse.JsonRpcError(request!!.request.id, 0, reason)),
+                    Sign.Model.JsonRpcResponse.JsonRpcError(request.request.id, 0, reason)),
                 onError = { e ->
                 throw e.throwable
             })
