@@ -63,6 +63,7 @@ class WyreWallet {
 class Exhibition {
   final String id;
   final String title;
+  final String slug;
   final DateTime exhibitionStartAt;
   final DateTime exhibitionEndAt;
   final String? coverURI;
@@ -73,17 +74,20 @@ class Exhibition {
   final List<FFContract>? contracts;
   final FFArtist? partner;
 
-  Exhibition(this.id,
-      this.title,
-      this.exhibitionStartAt,
-      this.exhibitionEndAt,
-      this.coverURI,
-      this.thumbnailCoverURI,
-      this.artists,
-      this.artworks,
-      this.contracts,
-      this.mintBlockchain,
-      this.partner);
+  Exhibition(
+    this.id,
+    this.title,
+    this.slug,
+    this.exhibitionStartAt,
+    this.exhibitionEndAt,
+    this.coverURI,
+    this.thumbnailCoverURI,
+    this.artists,
+    this.artworks,
+    this.contracts,
+    this.mintBlockchain,
+    this.partner,
+  );
 
   factory Exhibition.fromJson(Map<String, dynamic> json) =>
       _$ExhibitionFromJson(json);
@@ -148,6 +152,7 @@ class FFArtwork {
   final String id;
   final String artistID;
   final String title;
+  final String slug;
   final String medium;
   final String description;
   final String? thumbnailFileURI;
@@ -158,18 +163,21 @@ class FFArtwork {
   final AirdropInfo? airdropInfo;
   final DateTime? createdAt;
 
-  FFArtwork(this.id,
-      this.artistID,
-      this.title,
-      this.medium,
-      this.description,
-      this.thumbnailFileURI,
-      this.galleryThumbnailFileURI,
-      this.settings,
-      this.artist,
-      this.exhibition,
-      this.airdropInfo,
-      this.createdAt,);
+  FFArtwork(
+    this.id,
+    this.artistID,
+    this.title,
+    this.slug,
+    this.medium,
+    this.description,
+    this.thumbnailFileURI,
+    this.galleryThumbnailFileURI,
+    this.settings,
+    this.artist,
+    this.exhibition,
+    this.airdropInfo,
+    this.createdAt,
+  );
 
   int get maxEdition {
     return settings?.maxEdition ?? -1;

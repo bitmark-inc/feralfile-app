@@ -945,6 +945,184 @@ Widget tokenOwnership(
   );
 }
 
+class MetaDataItem extends StatelessWidget {
+  final String title;
+  final String value;
+  final Function()? onTap;
+  final String? tapLink;
+  final bool? forceSafariVC;
+
+  const MetaDataItem({
+    Key? key,
+    required this.title,
+    required this.value,
+    this.onTap,
+    this.tapLink,
+    this.forceSafariVC,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    Function()? onValueTap = onTap;
+
+    if (onValueTap == null && tapLink != null) {
+      final uri = Uri.parse(tapLink!);
+      onValueTap = () => launchUrl(uri,
+          mode: forceSafariVC == true
+              ? LaunchMode.externalApplication
+              : LaunchMode.platformDefault);
+    }
+    final theme = Theme.of(context);
+
+    return Row(
+      children: [
+        Expanded(
+          flex: 2,
+          child: Text(
+            title,
+            style: theme.textTheme.ppMori400Grey12,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+          ),
+        ),
+        Expanded(
+          flex: 3,
+          child: GestureDetector(
+            onTap: onValueTap,
+            child: Text(
+              value,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+              style: onValueTap != null
+                  ? theme.textTheme.ppMori400Green12
+                  : theme.textTheme.ppMori400White12,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class ProvenanceItem extends StatelessWidget {
+  final String title;
+  final String value;
+  final Function()? onTap;
+  final Function()? onNameTap;
+  final String? tapLink;
+  final bool? forceSafariVC;
+  const ProvenanceItem({
+    Key? key,
+    required this.title,
+    required this.value,
+    this.onTap,
+    this.tapLink,
+    this.forceSafariVC,
+    this.onNameTap,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    Function()? onValueTap = onTap;
+
+    if (onValueTap == null && tapLink != null) {
+      final uri = Uri.parse(tapLink!);
+      onValueTap = () => launchUrl(uri,
+          mode: forceSafariVC == true
+              ? LaunchMode.externalApplication
+              : LaunchMode.platformDefault);
+    }
+    final theme = Theme.of(context);
+
+    return Row(
+      children: [
+        Expanded(
+          flex: 2,
+          child: GestureDetector(
+            onTap: onNameTap,
+            child: Text(
+              title,
+              style: theme.textTheme.ppMori400White12,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+            ),
+          ),
+        ),
+        Expanded(
+          flex: 2,
+          child: Text(
+            value,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+            style: theme.textTheme.ppMori400White12,
+          ),
+        ),
+        Expanded(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              GestureDetector(
+                onTap: onValueTap,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: theme.auSuperTeal,
+                    ),
+                    borderRadius: BorderRadius.circular(64),
+                  ),
+                  child: Text(
+                    'view'.tr(),
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.ppMori400Green12,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class HeaderData extends StatelessWidget {
+  final String text;
+  const HeaderData({Key? key, required this.text}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Divider(
+          color: theme.colorScheme.secondary,
+          thickness: 1,
+        ),
+        Row(
+          children: [
+            Text(
+              text,
+              style: theme.textTheme.ppMori400White14,
+            ),
+            const Spacer(),
+            RotatedBox(
+              quarterTurns: 1,
+              child: Icon(
+                AuIcon.chevron_Sm,
+                size: 12,
+                color: theme.colorScheme.secondary,
+              ),
+            )
+          ],
+        ),
+      ],
+    );
+  }
+}
+
 Widget artworkDetailsProvenanceSectionNotEmpty(
     BuildContext context,
     List<Provenance> provenances,
@@ -1109,10 +1287,7 @@ class _ArtworkRightsViewState extends State<ArtworkRightsView> {
                 mode: LaunchMode.externalApplication),
             child: Text(
               "learn_artist".tr(),
-              style: widget.linkStyle ??
-                  theme.textTheme.linkStyle.copyWith(
-                    fontWeight: FontWeight.w500,
-                  ),
+              style: theme.textTheme.ppMori400Green12,
             ),
           ),
           const SizedBox(height: 23.0),

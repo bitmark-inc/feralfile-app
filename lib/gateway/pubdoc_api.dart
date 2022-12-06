@@ -7,6 +7,7 @@
 
 import 'dart:convert';
 
+import 'package:autonomy_flutter/model/editorial.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/version_info.dart';
 import 'package:dio/dio.dart';
@@ -26,8 +27,12 @@ abstract class PubdocAPI {
     @Path("app") String app,
     @Path("name") String name,
   );
+
   @GET("/demo/demo_account.json")
   Future<String> getDemoAccount();
+
+  @GET("/editorial.json")
+  Future<String> getEditorial();
 }
 
 extension PubdocAPIHelpers on PubdocAPI {
@@ -42,5 +47,10 @@ extension PubdocAPIHelpers on PubdocAPI {
       return PlayListModel.fromJson(element);
     }).toList();
     return list ?? [];
+  }
+
+  Future<Editorial> getEditorialInfo() async {
+    final value = await getEditorial();
+    return Editorial.fromJson(jsonDecode(value));
   }
 }

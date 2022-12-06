@@ -41,6 +41,7 @@ Map<String, dynamic> _$WyreWalletToJson(WyreWallet instance) =>
 Exhibition _$ExhibitionFromJson(Map<String, dynamic> json) => Exhibition(
       json['id'] as String,
       json['title'] as String,
+      json['slug'] as String,
       DateTime.parse(json['exhibitionStartAt'] as String),
       DateTime.parse(json['exhibitionEndAt'] as String),
       json['coverURI'] as String?,
@@ -64,6 +65,7 @@ Map<String, dynamic> _$ExhibitionToJson(Exhibition instance) =>
     <String, dynamic>{
       'id': instance.id,
       'title': instance.title,
+      'title': instance.slug,
       'exhibitionStartAt': instance.exhibitionStartAt.toIso8601String(),
       'exhibitionEndAt': instance.exhibitionEndAt.toIso8601String(),
       'coverURI': instance.coverURI,
@@ -113,6 +115,7 @@ FFArtwork _$FFArtworkFromJson(Map<String, dynamic> json) => FFArtwork(
       json['id'] as String,
       json['artistID'] as String,
       json['title'] as String,
+      json['slug'] as String,
       json['medium'] as String,
       json['description'] as String,
       json['thumbnailFileURI'] as String?,
@@ -137,6 +140,7 @@ Map<String, dynamic> _$FFArtworkToJson(FFArtwork instance) => <String, dynamic>{
       'id': instance.id,
       'artistID': instance.artistID,
       'title': instance.title,
+      'slug': instance.slug,
       'medium': instance.medium,
       'description': instance.description,
       'thumbnailFileURI': instance.thumbnailFileURI,

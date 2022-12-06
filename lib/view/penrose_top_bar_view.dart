@@ -18,12 +18,9 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/badge_view.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-
-import '../service/configuration_service.dart';
 
 enum PenroseTopBarViewStyle {
   main,
@@ -92,7 +89,7 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
     }
 
     final breakpoint =
-    widget.style == PenroseTopBarViewStyle.settings ? 25 : 80;
+        widget.style == PenroseTopBarViewStyle.settings ? 25 : 80;
 
     if (widget.scrollController.offset > breakpoint) {
       if (Platform.isIOS) {
@@ -216,9 +213,7 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
                   Navigator.of(context).pushNamed(AppRouter.settingsPage);
                 }
               },
-              icon: isInSettingsPage
-                  ? closeIcon()
-                  : _settingIcon(),
+              icon: isInSettingsPage ? closeIcon() : _settingIcon(),
             ),
           ),
         ),
@@ -293,8 +288,7 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
           return GestureDetector(
             behavior: HitTestBehavior.translucent,
             key: const Key("customerSupport"),
-            child:
-              Semantics(
+            child: Semantics(
                 label: "Customer Support",
                 child: Container(
                   padding: const EdgeInsets.fromLTRB(20, 10, 0, 20),
@@ -313,8 +307,7 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
                       ]
                     ],
                   ),
-                )
-              ),
+                )),
             onTap: () {
               if (_opacity == 0) return;
               Navigator.of(context).pushNamed(AppRouter.supportCustomerPage);

@@ -7,13 +7,12 @@
 
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 
 TextStyle makeLinkStyle(TextStyle style) {
   final color = style.color ?? AppColor.primaryBlack;
@@ -100,6 +99,78 @@ MarkdownStyleSheet markDownStyle(BuildContext context, Color textColor) {
         top: BorderSide(
           width: 5.0,
           color: theme.dividerColor,
+        ),
+      ),
+    ),
+  );
+}
+
+MarkdownStyleSheet editorialMarkDownStyle(BuildContext context) {
+  const textColor = AppColor.white;
+  final theme = Theme.of(context);
+  return MarkdownStyleSheet(
+    a: const TextStyle(
+      fontFamily: AppTheme.ppMori,
+      color: Colors.transparent,
+      fontWeight: FontWeight.w500,
+      shadows: [Shadow(color: textColor, offset: Offset(0, -1))],
+      decoration: TextDecoration.underline,
+      decorationStyle: TextDecorationStyle.solid,
+      decorationColor: textColor,
+      decorationThickness: 1,
+    ),
+    p: theme.textTheme.ppMori400White12,
+    pPadding: const EdgeInsets.only(bottom: 16),
+    code: theme.textTheme.ppMori400White12
+        .copyWith(backgroundColor: Colors.transparent),
+    h1: theme.textTheme.ppMori700White24,
+    h1Padding: const EdgeInsets.only(bottom: 24),
+    h2: theme.textTheme.ppMori700White24.copyWith(fontSize: 16),
+    h2Padding: EdgeInsets.zero,
+    h3: theme.textTheme.ppMori400Green12,
+    h3Padding: EdgeInsets.zero,
+    h4: theme.textTheme.ppMori400Green12,
+    h4Padding: EdgeInsets.zero,
+    h5: theme.textTheme.ppMori400Green12,
+    h5Padding: EdgeInsets.zero,
+    h6: theme.textTheme.ppMori400Green12,
+    h6Padding: EdgeInsets.zero,
+    em: const TextStyle(fontStyle: FontStyle.italic, color: textColor),
+    strong: const TextStyle(fontWeight: FontWeight.bold, color: textColor),
+    del: const TextStyle(
+        decoration: TextDecoration.lineThrough, color: textColor),
+    blockquote: theme.textTheme.ppMori400White12,
+    img: theme.textTheme.ppMori400White12,
+    checkbox: theme.textTheme.ppMori400White12
+        .copyWith(color: theme.colorScheme.secondary),
+    blockSpacing: 15.0,
+    listIndent: 24.0,
+    listBullet: theme.textTheme.ppMori400White12.copyWith(color: textColor),
+    listBulletPadding: const EdgeInsets.only(right: 4),
+    tableHead: const TextStyle(fontWeight: FontWeight.w600),
+    tableBody: theme.textTheme.ppMori400White12,
+    tableHeadAlign: TextAlign.center,
+    tableBorder: TableBorder.all(
+      color: theme.dividerColor,
+    ),
+    tableColumnWidth: const FlexColumnWidth(),
+    tableCellsPadding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+    tableCellsDecoration: const BoxDecoration(),
+    blockquotePadding: const EdgeInsets.only(left: 20),
+    blockquoteDecoration: const BoxDecoration(
+      border: Border(
+        left: BorderSide(width: 2, color: AppColor.auSuperTeal),
+      ),
+    ),
+    codeblockPadding: const EdgeInsets.all(8.0),
+    codeblockDecoration: BoxDecoration(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(2.0),
+    ),
+    horizontalRuleDecoration: const BoxDecoration(
+      border: Border(
+        top: BorderSide(
+          color: AppColor.auSuperTeal,
         ),
       ),
     ),

@@ -203,6 +203,50 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
                     ),
                     onTap: () => Navigator.of(context).pop(),
                   ),
+                  const SizedBox(
+                    height: 40,
+                  ),
+                  Padding(
+                    padding: ResponsiveLayout.getPadding,
+                    child: Text(
+                      editionSubTitle,
+                      style: theme.textTheme.ppMori400Grey12,
+                    ),
+                  ),
+                  Padding(
+                    padding: ResponsiveLayout.getPadding,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        RichText(
+                          text: TextSpan(
+                            style: ResponsiveLayout.isMobile
+                                ? theme.textTheme.ppMori400White12
+                                : theme.textTheme.ppMori400White14,
+                            children: [
+                              TextSpan(
+                                text: "_by"
+                                    .tr(args: [feedEvent.actionRepresentation]),
+                              ),
+                              TextSpan(
+                                text: followingName,
+                                style: theme.textTheme.ppMori400Green12,
+                                recognizer: TapGestureRecognizer()
+                                  ..onTap =
+                                      () => Navigator.of(context).pushNamed(
+                                            AppRouter.galleryPage,
+                                            arguments: GalleryPagePayload(
+                                              address: feedEvent.recipient,
+                                              artistName: followingName,
+                                            ),
+                                          ),
+                              )
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                   Padding(
                     padding: ResponsiveLayout.getPadding,
                     child: Column(

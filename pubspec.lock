@@ -75,8 +75,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "1.0.6"
-      resolved-ref: "0a00a28a18699918010b56849026975f319053e8"
+      ref: "1.0.8"
+      resolved-ref: a7b85ee980453d7e56e6de8c9139cedfcdd44744
       url: "https://github.com/bitmark-inc/autonomy-client-shared-theme.git"
     source: git
     version: "0.0.1+20"
@@ -1689,6 +1689,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.0.1"
+  sec:
+    dependency: transitive
+    description:
+      name: sec
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.1"
   sensors_plus:
     dependency: transitive
     description:
@@ -2285,7 +2292,7 @@ packages:
       name: web3dart
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.4.1"
+    version: "2.5.1"
   web_socket_channel:
     dependency: "direct main"
     description:
