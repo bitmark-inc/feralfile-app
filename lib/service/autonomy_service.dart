@@ -38,7 +38,6 @@ class AutonomyServiceImpl extends AutonomyService {
       if (!await persona.wallet().isWalletCreated()) continue;
       addresses.add(await persona.wallet().getETHEip55Address());
       addresses.add(await persona.wallet().getTezosAddress());
-      addresses.add(await persona.wallet().getBitmarkAddress());
     }
 
     final linkedAccounts =

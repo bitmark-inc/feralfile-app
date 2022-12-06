@@ -182,7 +182,6 @@ class ContextedAddress {
 enum CryptoType {
   ETH,
   XTZ,
-  BITMARK,
   USDC,
   UNKNOWN,
 }
@@ -194,7 +193,6 @@ extension CryptoTypeHelpers on CryptoType {
         return "ETH";
       case CryptoType.XTZ:
         return "XTZ";
-      case CryptoType.BITMARK:
       case CryptoType.USDC:
         return "USDC";
       case CryptoType.UNKNOWN:
@@ -208,7 +206,6 @@ extension CryptoTypeHelpers on CryptoType {
         return "Ethereum (ETH)";
       case CryptoType.XTZ:
         return "Tezos (XTZ)";
-      case CryptoType.BITMARK:
       case CryptoType.USDC:
         return "USD Coin (USDC)";
       case CryptoType.UNKNOWN:
@@ -222,8 +219,6 @@ extension CryptoTypeHelpers on CryptoType {
         return "Ethereum";
       case CryptoType.XTZ:
         return "Tezos";
-      case CryptoType.BITMARK:
-        return "Bitmark";
       case CryptoType.USDC:
         return "USDC";
       case CryptoType.UNKNOWN:

@@ -61,9 +61,6 @@ class WalletDetailBloc extends AuBloc<WalletDetailEvent, WalletDetailState> {
           newState.balanceInUSD = balanceInUSD;
 
           break;
-        case CryptoType.BITMARK:
-          // TODO: Handle this case.
-          break;
       }
 
       emit(newState);
