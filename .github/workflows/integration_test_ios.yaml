@@ -142,11 +142,11 @@ jobs:
       #   run: |
       #     cd $GITHUB_WORKSPACE          
       #     flutter pub run test auto-test/tests/customer_support_test.dart
-      # - name: Run Flutter Driver tests for Suite "Check deposit testcases"
-      #   if: success() || failure()
-      #   run: |
-      #     cd $GITHUB_WORKSPACE          
-      #     flutter pub run test auto-test/tests/send_xtz_test.dart
+      - name: Run Flutter Driver tests for Suite "Check deposit testcases"
+        if: success() || failure()
+        run: |
+          cd $GITHUB_WORKSPACE          
+          flutter pub run test auto-test/tests/send_xtz_test.dart
       - name: Run auto tests for Suite "Check deposit ETH testcases"
         if: success() || failure()
         run: |
