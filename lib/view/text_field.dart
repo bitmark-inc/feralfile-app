@@ -15,6 +15,7 @@ class TextFieldWidget extends StatefulWidget {
   final Function(String)? onFieldSubmitted;
   final Function(String)? onChanged;
   final FocusNode? focusNode;
+  final TextAlign textAlign;
   const TextFieldWidget({
     Key? key,
     this.labelText,
@@ -30,6 +31,7 @@ class TextFieldWidget extends StatefulWidget {
     this.onFieldSubmitted,
     this.focusNode,
     this.onChanged,
+    this.textAlign = TextAlign.start,
   }) : super(key: key);
 
   @override
@@ -55,6 +57,7 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
           controller: widget.controller,
           style: widget.style,
           validator: widget.validator,
+          textAlign: widget.textAlign,
           cursorColor: widget.cursorColor,
           decoration: InputDecoration(
             hintText: widget.hintText,

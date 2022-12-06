@@ -179,13 +179,22 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen> {
                                   GestureDetector(
                                     onTap: () => bloc.add(SelectItemPlaylist(
                                         isSelectAll: !isSeletedAll)),
-                                    child: Text(
-                                      isSeletedAll
-                                          ? tr('unselect_all')
-                                          : tr('select_all'),
-                                      style: theme.textTheme.ppMori400White12
-                                          .copyWith(
-                                        decoration: TextDecoration.underline,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        border: Border.all(
+                                          color: theme.disableColor,
+                                        ),
+                                        borderRadius: BorderRadius.circular(64),
+                                      ),
+                                      child: Text(
+                                        isSeletedAll
+                                            ? tr('unselect_all')
+                                            : tr('select_all'),
+                                        style: theme.textTheme.ppMori400Grey12,
                                       ),
                                     ),
                                   ),
@@ -374,12 +383,21 @@ class _ThubnailPlaylistItemState extends State<ThubnailPlaylistItem> {
             child: Visibility(
               visible: widget.showSelect,
               child: RoundCheckBox(
-                uncheckedColor: theme.colorScheme.secondary,
-                checkedColor: theme.colorScheme.primary,
-                checkedWidget: Icon(
-                  Icons.check,
+                border: Border.all(
                   color: theme.colorScheme.secondary,
-                  size: 20,
+                  width: 1.5,
+                ),
+                uncheckedColor: theme.colorScheme.primary,
+                uncheckedWidget: Container(
+                  padding: const EdgeInsets.all(4),
+                ),
+                checkedColor: theme.colorScheme.primary,
+                checkedWidget: Container(
+                  padding: const EdgeInsets.all(4),
+                  child: SvgPicture.asset(
+                    'assets/images/check-icon.svg',
+                    color: theme.colorScheme.secondary,
+                  ),
                 ),
                 animationDuration: const Duration(milliseconds: 100),
                 isChecked: isSelected,

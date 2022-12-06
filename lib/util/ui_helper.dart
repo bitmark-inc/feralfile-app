@@ -11,6 +11,7 @@ import 'dart:convert';
 
 import 'package:autonomy_flutter/model/wc2_proposal.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
@@ -149,7 +150,7 @@ class UIHelper {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title, style: theme.primaryTextTheme.headline1),
+                    Text(title, style: theme.primaryTextTheme.ppMori700White24),
                     const SizedBox(height: 40),
                     content,
                   ],
@@ -216,6 +217,71 @@ class UIHelper {
                   ),
                 ),
               ),
+            ],
+          ),
+          const SizedBox(height: 15),
+        ]),
+      ),
+      isDismissible: isDismissible,
+      feedback: feedback,
+    );
+  }
+
+  static Future<void> showMessageActionNew(
+    BuildContext context,
+    String title,
+    String description, {
+    bool isDismissible = false,
+    int autoDismissAfter = 0,
+    String? closeButton,
+    Function? onClose,
+    FeedbackType? feedback = FeedbackType.selection,
+    String? actionButton,
+    Function? onAction,
+    Widget? descriptionWidget,
+  }) async {
+    log.info("[UIHelper] showInfoDialog: $title, $description");
+    final theme = Theme.of(context);
+
+    if (autoDismissAfter > 0) {
+      Future.delayed(
+          Duration(seconds: autoDismissAfter), () => hideInfoDialog(context));
+    }
+
+    await showDialog(
+      context,
+      title,
+      SizedBox(
+        width: double.infinity,
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          if (description.isNotEmpty) ...[
+            Text(
+              description,
+              style: theme.primaryTextTheme.bodyText1,
+            ),
+          ],
+          descriptionWidget ?? const SizedBox.shrink(),
+          const SizedBox(height: 40),
+          Row(
+            children: [
+              Expanded(
+                child: PrimaryButton(
+                  onTap: () => onClose?.call() ?? Navigator.pop(context),
+                  text: closeButton ?? 'cancel_dialog'.tr(),
+                  color: theme.auLightGrey,
+                ),
+              ),
+              if (onAction != null) ...[
+                const SizedBox(
+                  width: 10,
+                ),
+                Expanded(
+                  child: PrimaryButton(
+                    onTap: () => onAction.call(),
+                    text: actionButton ?? '',
+                  ),
+                ),
+              ],
             ],
           ),
           const SizedBox(height: 15),
