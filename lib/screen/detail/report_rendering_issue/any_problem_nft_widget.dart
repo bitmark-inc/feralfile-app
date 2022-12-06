@@ -25,17 +25,21 @@ class AnyProblemNFTWidget extends StatelessWidget {
       child: Container(
         alignment: Alignment.bottomCenter,
         padding: const EdgeInsets.fromLTRB(0, 18, 0, 24),
-        color: AppColor.secondaryDimGreyBackground,
+        color: theme.auSuperTeal,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text("problem_nft".tr(),
-                style: theme.textTheme.button),
+            Text(
+              "problem_nft".tr(),
+              style: theme.textTheme.button,
+            ),
             const SizedBox(
               width: 4,
             ),
-            SvgPicture.asset("assets/images/iconSharpFeedback.svg",
-                color: theme.colorScheme.primary),
+            SvgPicture.asset(
+              "assets/images/iconSharpFeedback.svg",
+              color: theme.colorScheme.primary,
+            ),
           ],
         ),
       ),
