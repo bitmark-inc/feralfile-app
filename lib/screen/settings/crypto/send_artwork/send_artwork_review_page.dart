@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
@@ -38,6 +39,128 @@ class SendArtworkReviewPage extends StatefulWidget {
 
 class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
   bool _isSending = false;
+
+  void _sendArtwork() async {
+    setState(() {
+      _isSending = true;
+    });
+
+    try {
+      final asset = widget.payload.asset;
+      if (widget.payload.asset.blockchain == "ethereum") {
+        final ethereumService = injector<EthereumService>();
+
+        final contractAddress = EthereumAddress.fromHex(asset.contractAddress!);
+        final to = EthereumAddress.fromHex(widget.payload.address);
+        final from = EthereumAddress.fromHex(
+            await widget.payload.wallet.getETHAddress());
+        final tokenId = asset.tokenId!;
+
+        final data = widget.payload.asset.contractType == "erc1155"
+            ? await ethereumService.getERC1155TransferTransactionData(
+                contractAddress, from, to, tokenId, widget.payload.quantity)
+            : await ethereumService.getERC721TransferTransactionData(
+                contractAddress, from, to, tokenId);
+
+        final txHash = await ethereumService.sendTransaction(
+            widget.payload.wallet, contractAddress, BigInt.zero, data);
+        if (!mounted) return;
+        final payload = {
+          "isTezos": false,
+          "hash": txHash,
+          "isSentAll": widget.payload.quantity >= widget.payload.ownedTokens
+        };
+        Navigator.of(context).pop(payload);
+      } else {
+        final tezosService = injector<TezosService>();
+        final tokenId = asset.tokenId!;
+
+        final wallet = widget.payload.wallet;
+        final address = await wallet.getTezosAddress();
+        final operation = await tezosService.getFa2TransferOperation(
+          widget.payload.asset.contractAddress!,
+          address,
+          widget.payload.address,
+          tokenId,
+          widget.payload.quantity,
+        );
+        final opHash =
+            await tezosService.sendOperationTransaction(wallet, [operation]);
+        final exchangeRateXTZ =
+            1 / (double.tryParse(widget.payload.exchangeRate.xtz) ?? 1);
+
+        //post pending token to indexer
+        if (opHash != null) {
+          final pendingTxParams = PendingTxParams(
+            asset.id,
+            asset.blockchain,
+            asset.tokenId ?? "",
+            asset.contractAddress ?? "",
+            asset.ownerAddress,
+            opHash,
+          );
+          injector<TokensService>().postPendingToken(pendingTxParams);
+        }
+
+        final tx = TZKTOperation(
+          bakerFee: 0,
+          block: '',
+          counter: 0,
+          gasLimit: 0,
+          hash: opHash ?? '',
+          gasUsed: 0,
+          id: 0,
+          level: 0,
+          quote: TZKTQuote(
+            usd: exchangeRateXTZ,
+          ),
+          timestamp: DateTime.now(),
+          type: 'transaction',
+          sender: TZKTActor(
+            address: address,
+          ),
+          target: TZKTActor(
+            address: widget.payload.address,
+          ),
+          amount: widget.payload.fee.toInt(),
+        )..tokenTransfer = TZKTTokenTransfer(
+            id: 0,
+            level: 0,
+            from: TZKTActor(
+              address: address,
+            ),
+            to: TZKTActor(
+              address: widget.payload.address,
+            ),
+            timestamp: DateTime.now(),
+            amount: widget.payload.quantity.toString(),
+            token: TZKTToken(
+              tokenId: tokenId,
+              id: 0,
+              contract: TZKTActor(
+                  address: widget.payload.asset.contractAddress ?? ''),
+            ),
+            status: 'pending');
+        if (!mounted) return;
+        final payload = {
+          "isTezos": true,
+          "hash": opHash,
+          "tx": tx,
+          "isSentAll": widget.payload.quantity >= widget.payload.ownedTokens
+        };
+        Navigator.of(context).pop(payload);
+      }
+    } catch (e) {
+      UIHelper.showMessageAction(
+        context,
+        'transaction_failed'.tr(),
+        'try_later'.tr(),
+      );
+    }
+    setState(() {
+      _isSending = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -189,159 +312,11 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                     children: [
                       Expanded(
                         child: AuFilledButton(
-                          text: _isSending
-                              ? "sending".tr().toUpperCase()
-                              : "sendH".tr(),
-                          isProcessing: _isSending,
-                          onPress: _isSending
-                              ? null
-                              : () async {
-                                  setState(() {
-                                    _isSending = true;
-                                  });
-
-                                  final asset = widget.payload.asset;
-                                  if (widget.payload.asset.blockchain ==
-                                      "ethereum") {
-                                    final ethereumService =
-                                        injector<EthereumService>();
-
-                                    final contractAddress =
-                                        EthereumAddress.fromHex(
-                                            asset.contractAddress!);
-                                    final to = EthereumAddress.fromHex(
-                                        widget.payload.address);
-                                    final from = EthereumAddress.fromHex(
-                                        await widget.payload.wallet
-                                            .getETHAddress());
-                                    final tokenId = asset.tokenId!;
-
-                                    final data = widget
-                                                .payload.asset.contractType ==
-                                            "erc1155"
-                                        ? await ethereumService
-                                            .getERC1155TransferTransactionData(
-                                                contractAddress,
-                                                from,
-                                                to,
-                                                tokenId,
-                                                widget.payload.quantity)
-                                        : await ethereumService
-                                            .getERC721TransferTransactionData(
-                                                contractAddress,
-                                                from,
-                                                to,
-                                                tokenId);
-
-                                    final txHash =
-                                        await ethereumService.sendTransaction(
-                                            widget.payload.wallet,
-                                            contractAddress,
-                                            BigInt.zero,
-                                            data);
-                                    if (!mounted) return;
-                                    final payload = {
-                                      "isTezos": false,
-                                      "hash": txHash,
-                                      "isSentAll": widget.payload.quantity >=
-                                          widget.payload.ownedTokens
-                                    };
-                                    Navigator.of(context).pop(payload);
-                                  } else {
-                                    final tezosService =
-                                        injector<TezosService>();
-                                    final tokenId = asset.tokenId!;
-
-                                    final wallet = widget.payload.wallet;
-                                    final address =
-                                        await wallet.getTezosAddress();
-                                    final operation = await tezosService
-                                        .getFa2TransferOperation(
-                                            widget
-                                                .payload.asset.contractAddress!,
-                                            address,
-                                            widget.payload.address,
-                                            tokenId,
-                                            widget.payload.quantity);
-                                    final opHash = await tezosService
-                                        .sendOperationTransaction(
-                                            wallet, [operation]);
-                                    final exchangeRateXTZ = 1 /
-                                        (double.tryParse(widget
-                                                .payload.exchangeRate.xtz) ??
-                                            1);
-
-                                    //post pending token to indexer
-                                    if (opHash != null) {
-                                      final pendingTxParams = PendingTxParams(
-                                          asset.id,
-                                          asset.blockchain,
-                                          asset.tokenId ?? "",
-                                          asset.contractAddress ?? "",
-                                          asset.ownerAddress,
-                                          opHash);
-                                      injector<TokensService>()
-                                          .postPendingToken(pendingTxParams);
-                                    }
-
-                                    final tx = TZKTOperation(
-                                      bakerFee: 0,
-                                      block: '',
-                                      counter: 0,
-                                      gasLimit: 0,
-                                      hash: opHash ?? '',
-                                      gasUsed: 0,
-                                      id: 0,
-                                      level: 0,
-                                      quote: TZKTQuote(
-                                        usd: exchangeRateXTZ,
-                                      ),
-                                      timestamp: DateTime.now(),
-                                      type: 'transaction',
-                                      sender: TZKTActor(
-                                        address: address,
-                                      ),
-                                      target: TZKTActor(
-                                        address: widget.payload.address,
-                                      ),
-                                      amount: widget.payload.fee.toInt(),
-                                    )..tokenTransfer = TZKTTokenTransfer(
-                                        id: 0,
-                                        level: 0,
-                                        from: TZKTActor(
-                                          address: address,
-                                        ),
-                                        to: TZKTActor(
-                                          address: widget.payload.address,
-                                        ),
-                                        timestamp: DateTime.now(),
-                                        amount:
-                                            widget.payload.quantity.toString(),
-                                        token: TZKTToken(
-                                          tokenId: tokenId,
-                                          id: 0,
-                                          contract: TZKTActor(
-                                              address: widget.payload.asset
-                                                      .contractAddress ??
-                                                  ''),
-                                        ),
-                                        status: 'pending');
-                                    if (!mounted) return;
-                                    final payload = {
-                                      "isTezos": true,
-                                      "hash": opHash,
-                                      "tx": tx,
-                                      "isSentAll": widget.payload.quantity >=
-                                          widget.payload.ownedTokens
-                                    };
-                                    Navigator.of(context).pop(payload);
-                                  }
-
-                                  setState(() {
-                                    _isSending = false;
-                                  });
-                                },
-                        ),
+                            text: _isSending
+                                ? "sending".tr().toUpperCase()
+                                : "sendH".tr(),
+                            isProcessing: _isSending,
+                            onPress: _isSending ? null : _sendArtwork),
                       ),
                     ],
                   ),
