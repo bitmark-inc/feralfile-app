@@ -223,8 +223,6 @@ Widget _blockchainLogo(String? blockchain) {
 
 String _blockchainName(String? blockchain) {
   switch (blockchain) {
-    case "Bitmark":
-      return "bitmark".tr();
     case "Ethereum":
     case "walletConnect":
       return "ethereum".tr();

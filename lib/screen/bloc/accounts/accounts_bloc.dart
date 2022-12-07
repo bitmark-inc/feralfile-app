@@ -120,7 +120,6 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
 
       for (var persona in personas) {
         if (!await persona.wallet().isWalletCreated()) continue;
-        final bitmarkAddress = await persona.wallet().getBitmarkAddress();
         final ethAddress = await persona.wallet().getETHEip55Address();
         final xtzAddress = (await persona.wallet().getTezosAddress());
         var name = await persona.wallet().getName();
@@ -128,14 +127,6 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
         if (name.isEmpty) {
           name = persona.name;
         }
-
-        final bitmarkAccount = Account(
-            key: persona.uuid,
-            persona: persona,
-            name: name,
-            blockchain: "Bitmark",
-            accountNumber: bitmarkAddress,
-            createdAt: persona.createdAt);
 
         final ethAccount = Account(
             key: persona.uuid,
@@ -155,7 +146,7 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
 
         categorizedAccounts.add(CategorizedAccounts(
           name,
-          [bitmarkAccount, ethAccount, xtzAccount],
+          [ethAccount, xtzAccount],
           'Persona',
         ));
       }

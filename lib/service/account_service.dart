@@ -579,7 +579,6 @@ class AccountServiceImpl extends AccountService {
 
       addresses.add(ethAddress);
       addresses.add(await personaWallet.getTezosAddress());
-      addresses.add(await personaWallet.getBitmarkAddress());
     }
 
     final linkedAccounts =
@@ -609,9 +608,6 @@ class AccountServiceImpl extends AccountService {
           if (address.isNotEmpty) {
             addresses.add(address);
           }
-          break;
-        case "bitmark":
-          addresses.add(await personaWallet.getBitmarkAddress());
           break;
       }
     }
@@ -647,7 +643,6 @@ class AccountServiceImpl extends AccountService {
       if (ethAddress.isEmpty) continue;
       hiddenAddresses.add(ethAddress);
       hiddenAddresses.add(await personaWallet.getTezosAddress());
-      hiddenAddresses.add(await personaWallet.getBitmarkAddress());
     }
 
     final linkedAccounts =
@@ -687,7 +682,6 @@ class AccountServiceImpl extends AccountService {
 
       addresses.add(ethAddress);
       addresses.add(await personaWallet.getTezosAddress());
-      addresses.add(await personaWallet.getBitmarkAddress());
     }
 
     final linkedAccounts =

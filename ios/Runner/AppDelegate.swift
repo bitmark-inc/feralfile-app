@@ -74,8 +74,6 @@ import Starscream
                 LibAukChannelHandler.shared.tezosSign(call: call, result: result)
             case "tezosSignTransaction":
                 LibAukChannelHandler.shared.tezosSignTransaction(call: call, result: result)
-            case "getBitmarkAddress":
-                LibAukChannelHandler.shared.getBitmarkAddress(call: call, result: result)
             case "removeKeys":
                 LibAukChannelHandler.shared.removeKeys(call: call, result: result)
             default:

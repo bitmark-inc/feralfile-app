@@ -69,7 +69,6 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
         context.read<USDCBloc>().add(GetAddressEvent(personUUID));
         context.read<USDCBloc>().add(GetUSDCBalanceWithUUIDEvent(personUUID));
         break;
-      case CryptoType.BITMARK:
       case CryptoType.UNKNOWN:
         // do nothing
         break;
