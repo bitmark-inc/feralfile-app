@@ -53,10 +53,9 @@ class WCSendTransactionBloc
       if (_configurationService.isDevicePasscodeEnabled() &&
           await authenticateIsAvailable()) {
         final localAuth = LocalAuthentication();
-        final didAuthenticate =
-        await localAuth.authenticate(
-            localizedReason:
-            "authen_for_autonomy".tr());
+        final didAuthenticate = await localAuth.authenticate(
+            localizedReason: "authen_for_autonomy".tr());
+
         if (!didAuthenticate) {
           final newState = WCSendTransactionState();
           newState.fee = state.fee;
@@ -67,24 +66,35 @@ class WCSendTransactionBloc
       }
 
       final WalletStorage persona = LibAukDart.getWallet(event.uuid);
-
-      final txHash = await _ethereumService.sendTransaction(
-          persona, event.to, event.value, event.data);
-      if (event.isWalletConnect2) {
-        await _wc2Service.respondOnApprove(event.topic ?? "", txHash);
-      } else {
-        _walletConnectService.approveRequest(
-            event.peerMeta, event.requestId, txHash);
-      }
-      injector<PendingTokenService>()
-          .checkPendingEthereumTokens(
-              await persona.getETHEip55Address(), txHash)
-          .then((hasPendingTokens) {
-        if (hasPendingTokens) {
-          injector<NftCollectionBloc>().add(RefreshNftCollection());
+      final balance =
+          await _ethereumService.getBalance(await persona.getETHAddress());
+      try {
+        final txHash = await _ethereumService.sendTransaction(
+            persona, event.to, event.value, event.data);
+        if (event.isWalletConnect2) {
+          await _wc2Service.respondOnApprove(event.topic ?? "", txHash);
+        } else {
+          _walletConnectService.approveRequest(
+              event.peerMeta, event.requestId, txHash);
         }
-      });
-      _navigationService.goBack();
+        injector<PendingTokenService>()
+            .checkPendingEthereumTokens(
+                await persona.getETHEip55Address(), txHash)
+            .then((hasPendingTokens) {
+          if (hasPendingTokens) {
+            injector<NftCollectionBloc>().add(RefreshNftCollection());
+          }
+        });
+        _navigationService.goBack();
+      } catch (e) {
+        final newState = WCSendTransactionState();
+        newState.fee = state.fee;
+        newState.balance = balance.getInWei;
+        newState.isSending = false;
+        newState.isError = true;
+        emit(newState);
+        return;
+      }
     });
 
     on<WCSendTransactionRejectEvent>((event, emit) async {

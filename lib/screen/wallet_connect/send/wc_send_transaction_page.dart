@@ -8,6 +8,7 @@
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_bloc.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_state.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -72,7 +73,30 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                 );
           },
         ),
-        body: BlocBuilder<WCSendTransactionBloc, WCSendTransactionState>(
+        body: BlocConsumer<WCSendTransactionBloc, WCSendTransactionState>(
+          listener: (context, state) {
+            final EtherAmount amount = EtherAmount.fromUnitAndValue(
+                EtherUnit.wei, widget.args.transaction.value ?? 0);
+            final total =
+                state.fee != null ? state.fee! + amount.getInWei : null;
+            if (total != null &&
+                state.balance != null &&
+                total > state.balance!) {
+              UIHelper.showMessageAction(
+                context,
+                'transaction_failed'.tr(),
+                'dont_enough_money'.tr(),
+              );
+              return;
+            }
+            if (state.isError) {
+              UIHelper.showMessageAction(
+                context,
+                'transaction_failed'.tr(),
+                'try_later'.tr(),
+              );
+            }
+          },
           builder: (context, state) {
             final EtherAmount amount = EtherAmount.fromUnitAndValue(
                 EtherUnit.wei, widget.args.transaction.value ?? 0);
@@ -232,11 +256,12 @@ class WCSendTransactionPageArgs {
   final String? topic; // For Wallet Connect 2.0
   final bool isWalletConnect2;
 
-  WCSendTransactionPageArgs(this.id,
-      this.peerMeta,
-      this.transaction,
-      this.uuid, {
-        this.topic,
-        this.isWalletConnect2 = false,
-      });
+  WCSendTransactionPageArgs(
+    this.id,
+    this.peerMeta,
+    this.transaction,
+    this.uuid, {
+    this.topic,
+    this.isWalletConnect2 = false,
+  });
 }
