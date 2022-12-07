@@ -3,6 +3,7 @@ import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/sent_artwork.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
+import 'package:autonomy_flutter/screen/edit_playlist/widgets/text_name_playlist.dart';
 import 'package:autonomy_flutter/screen/view_playlist/view_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/view_playlist/view_playlist_state.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
@@ -17,6 +18,7 @@ import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
@@ -113,6 +115,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
       listener: (context, state) {},
       builder: (context, state) {
         final playList = widget.playListModel;
+        final isRename = state.isRename;
         return Scaffold(
           appBar: AppBar(
             elevation: 1,
@@ -123,12 +126,22 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
             backgroundColor: theme.backgroundColor,
             automaticallyImplyLeading: false,
             centerTitle: true,
-            title: Text(
-              (playList?.name?.isNotEmpty ?? false)
-                  ? playList!.name!
-                  : tr('untitled'),
-              style: theme.textTheme.ppMori400Black14,
-            ),
+            title: isRename ?? false
+                ? TextNamePlaylist(
+                    playList: playList,
+                    onEditPlaylistName: (value) => playList?.name = value,
+                  )
+                : Text(
+                    (playList?.name?.isNotEmpty ?? false)
+                        ? playList!.name!
+                        : tr('untitled'),
+                    style: theme.textTheme.ppMori400Black14,
+                  ),
+            actions: const [
+              SizedBox(
+                width: 50,
+              )
+            ],
           ),
           body: Stack(
             children: [
@@ -136,77 +149,97 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                 child: SizedBox(
                   height: double.infinity,
                   child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(
-                            left: 14,
-                            right: 14,
-                            top: 24,
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: PrimaryButton(
-                                  onTap: () {
-                                    if (accountIdentities.isEmpty) return;
-                                    final payload = ArtworkDetailPayload(
-                                      accountIdentities,
-                                      0,
-                                      isPlaylist: true,
-                                    );
-                                    Navigator.of(context).pushNamed(
-                                      AppRouter.artworkPreviewPage,
-                                      arguments: payload,
-                                    );
-                                  },
-                                  text: tr('play'),
-                                  color: theme.auSuperTeal,
-                                ),
-                              ),
-                              const SizedBox(
-                                width: 10,
-                              ),
-                              Expanded(
-                                child: PrimaryButton(
-                                  onTap: () {
-                                    if (isDemo) return;
-                                    Navigator.pushNamed(
-                                      context,
-                                      AppRouter.editPlayListPage,
-                                      arguments: playList,
-                                    );
-                                  },
-                                  text: tr('edit'),
-                                  color: theme.auLightGrey,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        BlocConsumer<NftCollectionBloc, NftCollectionBlocState>(
-                          bloc: nftBloc,
-                          builder: (context, nftState) {
-                            return NftCollectionGrid(
-                              state: nftState.state,
-                              tokens: nftState.tokens,
-                              loadingIndicatorBuilder: (context) =>
-                                  Center(child: loadingIndicator()),
-                              customGalleryViewBuilder: (context, tokens) =>
-                                  _assetsWidget(
+                    child:
+                        BlocBuilder<NftCollectionBloc, NftCollectionBlocState>(
+                      bloc: nftBloc,
+                      builder: (context, nftState) {
+                        return NftCollectionGrid(
+                          state: nftState.state,
+                          tokens: nftState.tokens,
+                          loadingIndicatorBuilder: (context) =>
+                              Center(child: loadingIndicator()),
+                          customGalleryViewBuilder: (context, tokens) =>
+                              _assetsWidget(
+                            context,
+                            setupPlayList(
+                              tokens: tokens,
+                              selectedTokens: playList?.tokenIDs,
+                            ),
+                            accountIdentities: accountIdentities,
+                            onMoreTap: () {
+                              UIHelper.showDrawerAction(
                                 context,
-                                setupPlayList(
-                                  tokens: tokens,
-                                  selectedTokens: playList?.tokenIDs,
-                                ),
-                                accountIdentities: accountIdentities,
-                              ),
-                            );
-                          },
-                          listener: (context, nftState) {},
-                        )
-                      ],
+                                options: [
+                                  OptionItem(
+                                    title: 'Rename',
+                                    icon: SvgPicture.asset(
+                                      'assets/images/rename_icon.svg',
+                                      width: 24,
+                                    ),
+                                    onTap: () {
+                                      Navigator.pop(context);
+                                      bloc.add(ChangeRename(value: true));
+                                    },
+                                  ),
+                                  OptionItem(
+                                    title: 'Edit',
+                                    icon: SvgPicture.asset(
+                                      'assets/images/edit_icon.svg',
+                                      width: 24,
+                                    ),
+                                    onTap: () {
+                                      Navigator.pop(context);
+                                      if (isDemo) return;
+                                      Navigator.pushNamed(
+                                        context,
+                                        AppRouter.editPlayListPage,
+                                        arguments: playList,
+                                      );
+                                    },
+                                  ),
+                                  OptionItem(
+                                    title: 'Delete',
+                                    icon: SvgPicture.asset(
+                                      'assets/images/delete_icon.svg',
+                                      width: 24,
+                                    ),
+                                    onTap: () {
+                                      Navigator.pop(context);
+                                      UIHelper.showMessageActionNew(
+                                        context,
+                                        tr('delete_playlist'),
+                                        '',
+                                        descriptionWidget: RichText(
+                                          text: TextSpan(children: [
+                                            TextSpan(
+                                              style: theme
+                                                  .textTheme.ppMori400White16,
+                                              text: "you_are_about".tr(),
+                                            ),
+                                            TextSpan(
+                                              style: theme
+                                                  .textTheme.ppMori700White16,
+                                              text: playList?.name ??
+                                                  tr('untitled'),
+                                            ),
+                                            TextSpan(
+                                              style: theme
+                                                  .textTheme.ppMori400White16,
+                                              text: "dont_worry".tr(),
+                                            ),
+                                          ]),
+                                        ),
+                                        actionButton: "delete_dialog".tr(),
+                                        onAction: deletePlayList,
+                                      );
+                                    },
+                                  ),
+                                ],
+                              );
+                            },
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ),
@@ -241,6 +274,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
     BuildContext context,
     List<AssetToken> tokens, {
     required List<ArtworkIdentity> accountIdentities,
+    Function()? onMoreTap,
   }) {
     final theme = Theme.of(context);
     int cellPerRow =
@@ -255,15 +289,27 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
       children: [
         Padding(
           padding: const EdgeInsets.only(
-            bottom: 10,
-            top: 15,
+            bottom: 24,
+            top: 24,
             left: 14,
             right: 14,
           ),
-          child: Text(
-            tr(tokensPlaylist.length != 1 ? 'artworks' : 'artwork',
-                args: [tokensPlaylist.length.toString()]),
-            style: theme.textTheme.ppMori400Black12,
+          child: Row(
+            children: [
+              Text(
+                tr(tokensPlaylist.length != 1 ? 'artworks' : 'artwork',
+                    args: [tokensPlaylist.length.toString()]),
+                style: theme.textTheme.ppMori400Black12,
+              ),
+              const Spacer(),
+              GestureDetector(
+                onTap: onMoreTap,
+                child: SvgPicture.asset(
+                  'assets/images/more_circle.svg',
+                  width: 24,
+                ),
+              )
+            ],
           ),
         ),
         GridView.builder(

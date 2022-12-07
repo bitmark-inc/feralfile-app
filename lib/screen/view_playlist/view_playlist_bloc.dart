@@ -12,5 +12,8 @@ class ViewPlaylistBloc extends Bloc<ViewPlaylistEvent, ViewPlaylistState> {
         ),
       );
     });
+    on<ChangeRename>((event, emit) {
+      emit(state.copyWith(isRename: event.value));
+    });
   }
 }

@@ -872,9 +872,8 @@ class _PlaylistItemState extends State<PlaylistItem> {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(5),
                     child: widget.thumbnailURL == null
-                        ? Image.asset(
-                            'assets/images/moma_logo.png',
-                            fit: BoxFit.cover,
+                        ? Container(
+                            color: theme.disableColor,
                           )
                         : CachedNetworkImage(
                             imageUrl: widget.thumbnailURL ?? '',

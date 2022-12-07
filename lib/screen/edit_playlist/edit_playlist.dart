@@ -24,6 +24,7 @@ import '../../util/iterable_ext.dart';
 import 'widgets/edit_playlist_gridview.dart';
 import 'edit_playlist_bloc.dart';
 import 'edit_playlist_state.dart';
+import '../../util/string_ext.dart';
 
 class EditPlaylistScreen extends StatefulWidget {
   final PlayListModel? playListModel;
@@ -135,116 +136,52 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
             backgroundColor: theme.backgroundColor,
             automaticallyImplyLeading: false,
             centerTitle: true,
-            title: TextNamePlaylist(
-              playList: playList,
-              onEditPlaylistName: (value) => playList?.name = value,
+            title: Text(
+              (playList?.name?.isNotEmpty ?? false)
+                  ? playList!.name!
+                  : tr('untitled'),
+              style: theme.textTheme.ppMori400Black14,
             ),
           ),
           body: SafeArea(
             bottom: false,
             child: Stack(
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(
-                        left: 14,
-                        right: 14,
-                        top: 24,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          PrimaryButton(
-                            onTap: () {
-                              bloc.add(SavePlaylist());
-                            },
-                            text: tr('finish'),
-                            color: theme.auLightGrey,
-                          ),
-                          BlocBuilder<NftCollectionBloc,
-                              NftCollectionBlocState>(
-                            bloc: nftBloc,
-                            builder: (context, state) {
-                              final isSeletedAll =
-                                  selectedItem.length == tokensPlaylist.length;
-                              return Padding(
+                BlocConsumer<NftCollectionBloc, NftCollectionBlocState>(
+                  bloc: nftBloc,
+                  builder: (context, nftState) {
+                    return NftCollectionGrid(
+                      state: nftState.state,
+                      tokens: nftState.tokens,
+                      loadingIndicatorBuilder: loadingView,
+                      customGalleryViewBuilder: (gridContext, tokens) {
+                        final listToken = setupPlayList(
+                          tokens: tokens,
+                          tokenIDs: playList?.tokenIDs ?? [],
+                        );
+                        return Column(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(
+                                left: 14,
+                                right: 14,
+                                top: 24,
+                              ),
+                              child: Padding(
                                 padding:
                                     const EdgeInsets.only(bottom: 15, top: 15),
-                                child: tokensPlaylist.isEmpty
-                                    ? Text(
-                                        tr('no_artwork_in_this_playlist'),
-                                        style: theme.textTheme.ppMori400Black12,
-                                      )
-                                    : Row(
-                                        children: [
-                                          Text(
-                                            tr(
-                                                selectedItem.length != 1
-                                                    ? 'artworks_selected'
-                                                    : 'artwork_selected',
-                                                args: [
-                                                  selectedItem.length.toString()
-                                                ]),
-                                            style: theme
-                                                .textTheme.ppMori400Black12,
-                                          ),
-                                          const Spacer(),
-                                          GestureDetector(
-                                            onTap: () {
-                                              final tokenIDs = tokensPlaylist
-                                                  .map((e) => e.id)
-                                                  .toList();
-
-                                              bloc.add(
-                                                SelectAllPlaylist(
-                                                  value: !isSeletedAll,
-                                                  tokenIDs: tokenIDs,
-                                                ),
-                                              );
-                                            },
-                                            child: Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                horizontal: 10,
-                                                vertical: 4,
-                                              ),
-                                              decoration: BoxDecoration(
-                                                border: Border.all(),
-                                                borderRadius:
-                                                    BorderRadius.circular(64),
-                                              ),
-                                              child: Text(
-                                                tr(
-                                                  isSeletedAll
-                                                      ? tr('unselect_all')
-                                                      : tr('select_all'),
-                                                ),
-                                                style: theme
-                                                    .textTheme.ppMori400Black12,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
+                                child: listToken.isEmpty
+                                    ? tokenEmptyAction(theme, playList)
+                                    : tokenAction(
+                                        selectedItem,
+                                        theme,
+                                        context,
+                                        playList,
                                       ),
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                    Expanded(
-                      child: BlocConsumer<NftCollectionBloc,
-                          NftCollectionBlocState>(
-                        bloc: nftBloc,
-                        builder: (context, nftState) {
-                          return NftCollectionGrid(
-                            state: nftState.state,
-                            tokens: nftState.tokens,
-                            loadingIndicatorBuilder: loadingView,
-                            customGalleryViewBuilder: (gridContext, tokens) {
-                              return EditPlaylistGridView(
+                              ),
+                            ),
+                            Expanded(
+                              child: EditPlaylistGridView(
                                 onAddTap: () => Navigator.pushNamed(
                                   context,
                                   AppRouter.createPlayListPage,
@@ -256,10 +193,7 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
                                     ));
                                   }
                                 }),
-                                tokens: setupPlayList(
-                                  tokens: tokens,
-                                  tokenIDs: playList?.tokenIDs ?? [],
-                                ),
+                                tokens: listToken,
                                 onReorder: (tokens) {
                                   final tokenIDs =
                                       tokens.map((e) => e?.id ?? '').toList();
@@ -282,14 +216,14 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
                                     value: value,
                                   ),
                                 ),
-                              );
-                            },
-                          );
-                        },
-                        listener: (context, nftState) {},
-                      ),
-                    )
-                  ],
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
+                  listener: (context, nftState) {},
                 ),
                 BlocBuilder<NftCollectionBloc, NftCollectionBlocState>(
                     bloc: nftBloc,
@@ -304,115 +238,19 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
                               children: [
                                 PrimaryButton(
                                   onTap: () {
-                                    Navigator.pop(context);
+                                    final thubnailUrl = tokensPlaylist
+                                        .where((element) =>
+                                            element.id ==
+                                            playList?.tokenIDs.firstOrDefault())
+                                        .firstOrDefault()
+                                        ?.getThumbnailUrl();
+                                    playList?.thumbnailURL = thubnailUrl;
+                                    bloc.add(SavePlaylist());
                                   },
                                   width: 170,
-                                  text: tr('undo'),
-                                  color: theme.auLightGrey,
+                                  text: tr('done').capitalize(),
+                                  color: theme.auSuperTeal,
                                 ),
-                                tokensPlaylist.isEmpty
-                                    ? PrimaryButton(
-                                        onTap: () {
-                                          UIHelper.showMessageActionNew(
-                                            context,
-                                            tr('delete_playlist'),
-                                            '',
-                                            descriptionWidget: RichText(
-                                              text: TextSpan(children: [
-                                                TextSpan(
-                                                  style: theme.textTheme
-                                                      .ppMori400White16,
-                                                  text: "you_are_about".tr(),
-                                                ),
-                                                TextSpan(
-                                                  style: theme.textTheme
-                                                      .ppMori700White16,
-                                                  text: playList?.name ??
-                                                      tr('untitled'),
-                                                ),
-                                                TextSpan(
-                                                  style: theme.textTheme
-                                                      .ppMori400White16,
-                                                  text: "dont_worry".tr(),
-                                                ),
-                                              ]),
-                                            ),
-                                            actionButton: "delete_dialog".tr(),
-                                            onAction: deletePlayList,
-                                          );
-                                        },
-                                        width: 170,
-                                        text: tr('delete_playlist'),
-                                      )
-                                    : PrimaryButton(
-                                        onTap: selectedItem.isEmpty
-                                            ? null
-                                            : () =>
-                                                UIHelper.showMessageActionNew(
-                                                  context,
-                                                  tr('remove_from_list'),
-                                                  '',
-                                                  descriptionWidget: RichText(
-                                                    text: TextSpan(children: [
-                                                      TextSpan(
-                                                        style: theme.textTheme
-                                                            .ppMori400White16,
-                                                        text:
-                                                            "you_are_about_to_remove"
-                                                                .tr(),
-                                                      ),
-                                                      TextSpan(
-                                                        style: theme.textTheme
-                                                            .ppMori700White16,
-                                                        text: tr(
-                                                            selectedItem.length !=
-                                                                    1
-                                                                ? 'artworks'
-                                                                : 'artwork',
-                                                            args: [
-                                                              selectedItem
-                                                                  .length
-                                                                  .toString()
-                                                            ]),
-                                                      ),
-                                                      TextSpan(
-                                                        style: theme.textTheme
-                                                            .ppMori400White16,
-                                                        text:
-                                                            "from_the_playlist"
-                                                                .tr(),
-                                                      ),
-                                                      TextSpan(
-                                                        style: theme.textTheme
-                                                            .ppMori700White16,
-                                                        text: playList?.name ??
-                                                            tr('untitled'),
-                                                      ),
-                                                      TextSpan(
-                                                        style: theme.textTheme
-                                                            .ppMori400White16,
-                                                        text: "they_will_remain"
-                                                            .tr(),
-                                                      ),
-                                                    ]),
-                                                  ),
-                                                  actionButton: "remove".tr(),
-                                                  onAction: () {
-                                                    Navigator.pop(context);
-                                                    bloc.add(
-                                                      RemoveTokens(
-                                                        tokenIDs: selectedItem,
-                                                      ),
-                                                    );
-                                                  },
-                                                ),
-                                        width: 170,
-                                        text:
-                                            '${tr('remove')} ${selectedItem.isEmpty ? '' : '(${selectedItem.length})'}',
-                                        color: selectedItem.isEmpty
-                                            ? theme.auLightGrey
-                                            : theme.auSuperTeal,
-                                      ),
                               ],
                             ),
                           ),
@@ -424,6 +262,116 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
           ),
         );
       },
+    );
+  }
+
+  Widget tokenAction(List<String> selectedItem, ThemeData theme,
+      BuildContext context, PlayListModel? playList) {
+    return Row(
+      children: [
+        Text(
+          tr(
+              selectedItem.length != 1
+                  ? 'artworks_selected'
+                  : 'artwork_selected',
+              args: [selectedItem.length.toString()]),
+          style: theme.textTheme.ppMori400Black12,
+        ),
+        const Spacer(),
+        GestureDetector(
+          onTap: selectedItem.isEmpty
+              ? null
+              : () => UIHelper.showMessageActionNew(
+                    context,
+                    tr('remove_from_list'),
+                    '',
+                    descriptionWidget: RichText(
+                      text: TextSpan(children: [
+                        TextSpan(
+                          style: theme.textTheme.ppMori400White16,
+                          text: "you_are_about_to_remove".tr(),
+                        ),
+                        TextSpan(
+                          style: theme.textTheme.ppMori700White16,
+                          text: tr(
+                              selectedItem.length != 1 ? 'artworks' : 'artwork',
+                              args: [selectedItem.length.toString()]),
+                        ),
+                        TextSpan(
+                          style: theme.textTheme.ppMori400White16,
+                          text: "from_the_playlist".tr(),
+                        ),
+                        TextSpan(
+                          style: theme.textTheme.ppMori700White16,
+                          text: playList?.name ?? tr('untitled'),
+                        ),
+                        TextSpan(
+                          style: theme.textTheme.ppMori400White16,
+                          text: "they_will_remain".tr(),
+                        ),
+                      ]),
+                    ),
+                    actionButton: "remove".tr(),
+                    onAction: () {
+                      Navigator.pop(context);
+                      bloc.add(
+                        RemoveTokens(
+                          tokenIDs: selectedItem,
+                        ),
+                      );
+                    },
+                  ),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primary,
+              borderRadius: BorderRadius.circular(64),
+            ),
+            child: Text(
+              '${tr('remove')} ${selectedItem.isEmpty ? '' : '(${selectedItem.length})'}',
+              style: theme.textTheme.ppMori400White12,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget tokenEmptyAction(ThemeData theme, PlayListModel? playList) {
+    return Row(
+      children: [
+        Text(
+          tr('no_artwork_in_this_playlist'),
+          style: theme.textTheme.ppMori400Black12,
+        ),
+        const Spacer(),
+        GestureDetector(
+          onTap: () {
+            Navigator.pushNamed(
+              context,
+              AppRouter.createPlayListPage,
+              arguments: playList,
+            ).then((value) {
+              if (value != null && value is PlayListModel) {
+                bloc.add(InitPlayList(
+                  playListModel: value,
+                ));
+              }
+            });
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primary,
+              borderRadius: BorderRadius.circular(64),
+            ),
+            child: Text(
+              tr('add'),
+              style: theme.textTheme.ppMori400White12,
+            ),
+          ),
+        )
+      ],
     );
   }
 }
