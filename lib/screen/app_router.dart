@@ -323,7 +323,7 @@ class AppRouter {
                       injector(),
                       injector<AuditService>(),
                     ),
-                child: const NewAccountPage()));
+                child: NewAccountPage()));
 
       case addAccountPage:
         return CupertinoPageRoute(

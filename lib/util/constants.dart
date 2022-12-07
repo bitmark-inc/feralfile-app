@@ -246,3 +246,19 @@ class Constants {
     "https://link.autonomy.io",
   ];
 }
+
+class MixpanelEvent {
+  static const addExistAccount = 'add_exist_account';
+  static const createNewAccount = 'create_new_account';
+  static const generateLink = 'generate_link';
+  static const backGenerateLink = 'back_generate_link';
+  static const backImportAccount = 'back_import_account';
+  static const restoreAccount = 'restore_account';
+  static const cancelContact = 'cancel_contact';
+  static const connectContactSuccess = 'connect_contact_success';
+  static const backConnectMarket = 'back_connect_market';
+  static const connectMarket = 'connect_market';
+  static const connectMarketSuccess = 'connect_market_success';
+  static const backConfirmTransaction = 'back_confirm_transaction';
+  static const confirmTransaction = 'confirm_transaction';
+}

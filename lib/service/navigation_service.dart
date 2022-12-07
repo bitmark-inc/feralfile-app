@@ -7,10 +7,13 @@
 
 import 'dart:async';
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/otp.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/claim/claim_token_page.dart';
+import 'package:autonomy_flutter/service/mixPanel_client_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -183,10 +186,12 @@ class NavigationService {
     _isWCConnectInShow = appeared;
   }
 
-  void showContactingDialog() {
+  void showContactingDialog() async {
     if (navigatorKey.currentState?.mounted == true &&
         navigatorKey.currentContext != null) {
-      UIHelper.showInfoDialog(
+      final mixPanelClient = injector.get<MixPanelClientService>();
+      mixPanelClient.timerEvent(MixpanelEvent.cancelContact);
+      await UIHelper.showInfoDialog(
         navigatorKey.currentContext!,
         'contacting'.tr(),
         'contact_with_dapp'.tr(),
@@ -194,9 +199,11 @@ class NavigationService {
         isDismissible: true,
         autoDismissAfter: 20,
         onClose: () {
+          mixPanelClient.trackEvent(MixpanelEvent.cancelContact);
           hideInfoDialog();
         },
       );
+      mixPanelClient.trackEvent(MixpanelEvent.connectContactSuccess);
     }
   }
 }

@@ -19,6 +19,7 @@ import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
+import 'package:autonomy_flutter/service/mixPanel_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
@@ -58,6 +59,8 @@ class _OnboardingPageState extends State<OnboardingPage>
   Tween<double> _maxWidthTween = Tween<double>(begin: 0, end: 1.0);
 
   static const _durationAnimation = Duration(milliseconds: 300);
+
+  final mixPanelClient = injector.get<MixPanelClientService>();
 
   @override
   void initState() {
@@ -230,7 +233,7 @@ class _OnboardingPageState extends State<OnboardingPage>
     if (personas.isNotEmpty || connections.isNotEmpty) {
       final defaultAccount = await accountService.getDefaultAccount();
       final backupVersion =
-      await backupService.fetchBackupVersion(defaultAccount);
+          await backupService.fetchBackupVersion(defaultAccount);
       if (backupVersion.isNotEmpty) {
         backupService.restoreCloudDatabase(defaultAccount, backupVersion);
         for (var persona in personas) {
@@ -381,6 +384,7 @@ class _OnboardingPageState extends State<OnboardingPage>
                 key: const Key("restore_button"),
                 onPress: !state.isLoading
                     ? () {
+                        mixPanelClient.trackEvent(MixpanelEvent.restoreAccount);
                         context.read<RouterBloc>().add(
                             RestoreCloudDatabaseRoutingEvent(
                                 state.backupVersion));

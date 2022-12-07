@@ -16,18 +16,18 @@ class MixPanelClientService {
 
   late Mixpanel mixpanel;
   Future<void> initService() async {
-    final currentDefaultAccount = await _accountService.getCurrentDefaultAccount();
+    final currentDefaultAccount =
+        await _accountService.getCurrentDefaultAccount();
 
-    final defaultDID = await currentDefaultAccount
-        ?.getAccountDID() ??
-        'unknown';
+    final defaultDID =
+        await currentDefaultAccount?.getAccountDID() ?? 'unknown';
     final hashedUserID = sha256.convert(utf8.encode(defaultDID)).toString();
 
-    final defaultAddress = await currentDefaultAccount
-        ?.getETHAddress() ??
-        "unknown";
+    final defaultAddress =
+        await currentDefaultAccount?.getETHAddress() ?? "unknown";
 
-    final hashedDefaultAddress = sha256.convert(utf8.encode(defaultAddress)).toString();
+    final hashedDefaultAddress =
+        sha256.convert(utf8.encode(defaultAddress)).toString();
 
     mixpanel = await Mixpanel.init(Environment.mixpanelKey,
         trackAutomaticEvents: true);
@@ -37,15 +37,21 @@ class MixPanelClientService {
     mixpanel.identify(hashedUserID);
     mixpanel.getPeople().set("Address", hashedDefaultAddress);
     mixpanel.getPeople().set("Subscription", "Free");
-    mixpanel.registerSuperPropertiesOnce({"client": "Autonomy Wallet",});
+    mixpanel.registerSuperPropertiesOnce({
+      "client": "Autonomy Wallet",
+    });
+  }
+
+  timerEvent(String name) {
+    mixpanel.timeEvent(name);
   }
 
   Future<void> trackEvent(
-      String name, {
-        String? message,
-        Map<String, dynamic> data = const {},
-        Map<String, dynamic> hashedData = const {},
-      }) async {
+    String name, {
+    String? message,
+    Map<String, dynamic> data = const {},
+    Map<String, dynamic> hashedData = const {},
+  }) async {
     final configurationService = injector.get<ConfigurationService>();
 
     if (configurationService.isAnalyticsEnabled() == false) {
@@ -56,8 +62,9 @@ class MixPanelClientService {
     if (hashedData.isNotEmpty) {
       hashedData = hashedData.map((key, value) {
         final salt = DateFormat("yyyy-MM-dd").format(DateTime.now()).toString();
-          final valueWithSalt = "$value$salt";
-          return MapEntry(key, sha256.convert(utf8.encode(valueWithSalt)).toString());
+        final valueWithSalt = "$value$salt";
+        return MapEntry(
+            key, sha256.convert(utf8.encode(valueWithSalt)).toString());
       });
     }
     var mixedData = Map<String, dynamic>.from(hashedData);
