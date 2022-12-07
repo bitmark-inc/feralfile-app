@@ -10,11 +10,14 @@ import 'dart:convert';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/audit.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:uuid/uuid.dart';
 
 abstract class AuditService {
   void auditFirstLog();
+
   Future auditPersonaAction(String action, Persona? persona);
+
   Future<List<int>> export();
 }
 
@@ -60,6 +63,9 @@ class AuditServiceImpl extends AuditService {
 
   @override
   Future auditPersonaAction(String action, Persona? persona) async {
+    log.info(
+        "[AuditService] auditPersonaAction - action: $action, uuid: ${persona?.uuid}");
+
     Map<String, dynamic> metadata = {};
 
     if (persona != null) {

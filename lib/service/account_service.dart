@@ -30,21 +30,22 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/migration/migration_util.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/wc2_ext.dart';
-import 'package:fast_base58/fast_base58.dart';
-import 'package:libauk_dart/libauk_dart.dart';
+
 // ignore: depend_on_referenced_packages
 import 'package:elliptic/elliptic.dart';
-import 'package:metric_client/metric_client.dart';
+import 'package:fast_base58/fast_base58.dart';
+import 'package:libauk_dart/libauk_dart.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:synchronized/synchronized.dart';
 import 'package:uuid/uuid.dart';
 import 'package:wallet_connect/wallet_connect.dart';
 import 'package:web3dart/crypto.dart';
-import 'package:synchronized/synchronized.dart';
 
 import 'wallet_connect_dapp_service/wc_connected_session.dart';
 
 abstract class AccountService {
   Future<WalletStorage> getDefaultAccount();
+
   Future<WalletStorage?> getCurrentDefaultAccount();
 
   Future<WalletStorage?> getAccount(String did);
@@ -93,9 +94,13 @@ abstract class AccountService {
   bool isLinkedAccountHiddenInGallery(String address);
 
   Future<List<String>> getAllAddresses();
+
   Future<List<String>> getAddress(String blockchain);
+
   Future<List<String>> getHiddenAddresses();
+
   Future<List<String>> getShowedAddresses();
+
   Future<String> authorizeToViewer();
 }
 
@@ -268,15 +273,19 @@ class AccountServiceImpl extends AccountService {
 
   @override
   Future deletePersona(Persona persona) async {
+    log.info("[AccountService] deletePersona start - ${persona.uuid}");
     await _cloudDB.personaDao.deletePersona(persona);
-    await _auditService.auditPersonaAction('delete', persona);
     await LibAukDart.getWallet(persona.uuid).removeKeys();
     await androidBackupKeys();
+
+    await _auditService.auditPersonaAction('delete', persona);
 
     final connections = await _cloudDB.connectionDao.getConnections();
     Set<WCPeerMeta> wcPeers = {};
     Set<P2PPeer> bcPeers = {};
 
+    log.info(
+        "[AccountService] deletePersona - deleteConnections ${connections.length}");
     for (var connection in connections) {
       switch (connection.connectionType) {
         case 'dappConnect':
@@ -323,6 +332,9 @@ class AccountServiceImpl extends AccountService {
     final mixPanelClient = injector.get<MixPanelClientService>();
     mixPanelClient
         .trackEvent("delete_full_account", hashedData: {"id": persona.uuid});
+
+    log.info(
+        "[AccountService] deletePersona finished - ${persona.uuid}");
   }
 
   @override
