@@ -219,7 +219,7 @@ class LibAukChannelHandler {
         let transaction = EthereumTransaction(
             nonce: EthereumQuantity(quantity: BigUInt(Double(nonce) ?? 0)),
             gasPrice: EthereumQuantity(quantity: BigUInt(Double(gasPrice) ?? 0)),
-            gas: EthereumQuantity(quantity: BigUInt(Double(gasLimit) ?? 0)),
+            gasLimit: EthereumQuantity(quantity: BigUInt(Double(gasLimit) ?? 0)),
             from: nil,
             to: try! EthereumAddress.init(hex: to, eip55: false),
             value: EthereumQuantity(quantity: BigUInt(Double(value) ?? 0)),
