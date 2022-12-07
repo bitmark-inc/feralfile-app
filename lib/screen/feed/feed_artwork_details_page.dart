@@ -10,7 +10,7 @@ import 'dart:collection';
 import 'package:autonomy_flutter/model/feed.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
-import 'package:autonomy_flutter/screen/feed/feed_bloc.dart';
+import 'package:autonomy_flutter/screen/feed/feed_preview_page.dart';
 import 'package:autonomy_flutter/screen/gallery/gallery_page.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -30,7 +30,8 @@ import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/provenance.dart';
 
 class FeedArtworkDetailsPage extends StatefulWidget {
-  const FeedArtworkDetailsPage({Key? key}) : super(key: key);
+  final FeedDetailPayload payload;
+  const FeedArtworkDetailsPage({Key? key, required this.payload}) : super(key: key);
 
   @override
   State<FeedArtworkDetailsPage> createState() => _FeedArtworkDetailsPageState();
@@ -50,10 +51,9 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
   }
 
   void fetchIdentities() {
-    final state = context.read<FeedBloc>().state;
-    final currentIndex = state.viewingIndex ?? 0;
-    final currentToken = state.feedTokens?[currentIndex];
-    final currentFeedEvent = state.feedEvents?[currentIndex];
+    // final state = context.read<FeedDetailBloc>().state;
+    final currentToken = widget.payload.feedToken;//state.feedToken;
+    final currentFeedEvent = widget.payload.feedEvent;//state.feedEvent;
 
     final neededIdentities = [
       currentToken?.artistName ?? '',
@@ -78,10 +78,9 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
             backTitle: "discovery".tr(),
             onBack: () => Navigator.of(context).pop(),
           ),
-          body: BlocBuilder<FeedBloc, FeedState>(builder: (context, state) {
-            final currentIndex = state.viewingIndex ?? 0;
-            final currentToken = state.feedTokens?[currentIndex];
-            final currentFeedEvent = state.feedEvents?[currentIndex];
+          body: Builder(builder: (context) {
+            final currentToken = widget.payload.feedToken;
+            final currentFeedEvent = widget.payload.feedEvent;
             if (currentFeedEvent == null || currentToken == null) {
               return const SizedBox();
             }

@@ -267,7 +267,7 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
                     addAutomaticKeepAlives: true,
                     itemCount: state.feedTokens?.length,
                     padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
-                    cacheExtent: 5,
+                    cacheExtent: 500,
 
                     itemBuilder: (context, index) => _listItem(
                         state.feedEvents![index],
@@ -282,22 +282,31 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
   }
 
   Widget _listItem(FeedEvent event, AssetToken? asset){
-    return Column(
-        children: [
-          Center(
-            child: FeedArtwork(
-              assetToken: asset,
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onTap: (){
+        if (asset == null){
+          return;
+        }
+        _moveToInfo(asset, event);
+      },
+      child: Column(
+          children: [
+            Center(
+              child: FeedArtwork(
+                assetToken: asset,
+              ),
             ),
-          ),
 
-          const SizedBox(height: 10,),
-          Align(
-            alignment: Alignment.topCenter,
-            child: _controlView(event, asset,),
-          ),
-          const SizedBox(height: 60,),
+            const SizedBox(height: 10,),
+            Align(
+              alignment: Alignment.topCenter,
+              child: _controlView(event, asset,),
+            ),
+            const SizedBox(height: 60,),
 
-        ]
+          ]
+      ),
     );
   }
 
@@ -367,27 +376,20 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
     return Container(
       color: theme.colorScheme.primary,
       padding: EdgeInsets.only(left: 15, right: 5),
-      child: GestureDetector(
-        behavior: HitTestBehavior.translucent,
-        onTap: (){
-          if (asset == null){
-            return;
-          }
-          _moveToInfo(asset);
-        },
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Expanded(
-              child: BlocBuilder<IdentityBloc, IdentityState>(
-                  builder: (context, identityState) {
-                final artistName = asset.artistName
-                    ?.toIdentityOrMask(identityState.identityMap);
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Expanded(
+            child: BlocBuilder<IdentityBloc, IdentityState>(
+                builder: (context, identityState) {
+              final artistName = asset.artistName
+                  ?.toIdentityOrMask(identityState.identityMap);
 
-                return Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Column(
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
@@ -399,6 +401,7 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
                                 ? theme.textTheme.ppMori400White14
                                 : theme.textTheme.atlasWhiteItalic14,
                         ),
+                        const SizedBox(height: 6,),
                         if (artistName != null) ...[
                           RichText(
                             overflow: TextOverflow.ellipsis,
@@ -409,24 +412,23 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
                         ]
                       ],
                     ),
-                  ],
-                );
-              }),
-            ),
-          ],
-        ),
+                  ),
+                ],
+              );
+            }),
+          ),
+        ],
       ),
     );
   }
 
-  Future _moveToInfo(AssetToken asset) async {
+  Future _moveToInfo(AssetToken asset, FeedEvent event) async {
     _maxTimeTokenTimer?.cancel();
     Wakelock.disable();
-    final _bloc = context.read<FeedBloc>();
 
     Navigator.of(context).pushNamed(
       AppRouter.feedArtworkDetailsPage,
-      arguments: _bloc,
+      arguments: FeedDetailPayload(asset, event),
     );
   }
 
@@ -635,6 +637,21 @@ class _FeedArtworkState extends State<FeedArtwork>
             return SizedBox();
         }
       },
+    );
+  }
+}
+
+class FeedDetailPayload {
+  AssetToken? feedToken;
+  FeedEvent? feedEvent;
+
+  FeedDetailPayload(this.feedToken, this.feedEvent,);
+
+  FeedDetailPayload copyWith(
+  AssetToken? feedToken,  FeedEvent? feedEvent) {
+    return FeedDetailPayload(
+      feedToken ?? this.feedToken,
+      feedEvent ?? this.feedEvent,
     );
   }
 }
