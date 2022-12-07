@@ -147,6 +147,14 @@ class MigrationUtil {
       }
     }
 
+    //Cleanup deleted or broken personas
+    final currentPersonas = await _cloudDB.personaDao.getPersonas();
+    for (final persona in currentPersonas) {
+      if (!(await persona.wallet().isWalletCreated())) {
+        await _cloudDB.personaDao.deletePersona(persona);
+      }
+    }
+
     for (var con in migrationData.ffTokenConnections) {
       final ffConnection =
           FeralFileConnection(source: con.source, ffAccount: con.ffAccount);
