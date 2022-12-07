@@ -1030,15 +1030,10 @@ class _ArtworkRightsViewState extends State<ArtworkRightsView> {
   @override
   void initState() {
     super.initState();
-    if (widget.exhibitionID != null) {
-      context.read<RoyaltyBloc>().add(GetRoyaltyInfoEvent(
-          exhibitionID: widget.exhibitionID,
-          contractAddress: widget.contract.address));
-    } else {
-      context.read<RoyaltyBloc>().add(GetRoyaltyInfoEvent(
-          editionID: widget.editionID,
-          contractAddress: widget.contract.address));
-    }
+    context.read<RoyaltyBloc>().add(GetRoyaltyInfoEvent(
+        exhibitionID: widget.exhibitionID,
+        editionID: widget.editionID,
+        contractAddress: widget.contract.address));
   }
 
   String getUrl(RoyaltyState state) {

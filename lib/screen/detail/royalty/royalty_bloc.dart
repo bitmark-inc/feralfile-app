@@ -29,14 +29,13 @@ class RoyaltyState {
 
 class RoyaltyBloc extends AuBloc<RoyaltyEvent, RoyaltyState> {
   final FeralFileService _feralFileService;
+  final dio = Dio(BaseOptions(
+    baseUrl: "https://raw.githubusercontent.com",
+    connectTimeout: 2000,
+  ));
 
   RoyaltyBloc(this._feralFileService) : super(RoyaltyState()) {
     on<GetRoyaltyInfoEvent>((event, emit) async {
-      final dio = Dio(BaseOptions(
-        baseUrl: "https://raw.githubusercontent.com",
-        connectTimeout: 2000,
-      ));
-
       try {
         final String? exhibitionID = event.exhibitionID ??
             await _feralFileService
