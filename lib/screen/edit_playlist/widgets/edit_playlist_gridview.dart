@@ -48,9 +48,12 @@ class _EditPlaylistGridViewState extends State<EditPlaylistGridView> {
 
     return ReorderableGridView.count(
       footer: [
-        GestureDetector(
-          onTap: widget.onAddTap,
-          child: const AddTokenWidget(),
+        Visibility(
+          visible: widget.tokens.isNotEmpty,
+          child: GestureDetector(
+            onTap: widget.onAddTap,
+            child: const AddTokenWidget(),
+          ),
         ),
       ],
       onDragStart: (dragIndex) {

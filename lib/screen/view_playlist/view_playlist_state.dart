@@ -8,33 +8,27 @@ class GetPlayList extends ViewPlaylistEvent {
   GetPlayList();
 }
 
-class UpdateItemPlaylist extends ViewPlaylistEvent {
-  final String tokenID;
+class ChangeRename extends ViewPlaylistEvent {
   final bool value;
-  UpdateItemPlaylist({required this.tokenID, required this.value});
-}
-
-class SelectItemPlaylist extends ViewPlaylistEvent {
-  final bool isSelectAll;
-  SelectItemPlaylist({required this.isSelectAll});
-}
-
-class CreatePlaylist extends ViewPlaylistEvent {
-  final String? name;
-  CreatePlaylist({required this.name});
+  ChangeRename({required this.value});
 }
 
 class ViewPlaylistState {
   PlayListModel? playListModel;
+  bool? isRename;
+
   ViewPlaylistState({
     this.playListModel,
+    this.isRename,
   });
 
   ViewPlaylistState copyWith({
     PlayListModel? playListModel,
+    bool? isRename,
   }) {
     return ViewPlaylistState(
       playListModel: playListModel ?? this.playListModel,
+      isRename: isRename ?? this.isRename,
     );
   }
 }
