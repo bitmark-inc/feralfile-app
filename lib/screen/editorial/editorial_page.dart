@@ -7,6 +7,7 @@
 import 'package:autonomy_flutter/model/editorial.dart';
 import 'package:autonomy_flutter/screen/editorial/editorial_bloc.dart';
 import 'package:autonomy_flutter/screen/editorial/editorial_state.dart';
+import 'package:autonomy_flutter/screen/feed/feed_preview_page.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -109,6 +110,7 @@ class _EditorialPageState extends State<EditorialPage>
               Expanded(
                 child: TabBarView(
                   children: [
+                    FeedPreviewPage().discoveryTab,
                     //TODO: replace with new discovery here.
                     const SizedBox(),
                     ListView.builder(

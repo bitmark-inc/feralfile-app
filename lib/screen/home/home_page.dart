@@ -18,6 +18,7 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/editorial/editorial_page.dart';
+import 'package:autonomy_flutter/screen/feed/feed_preview_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
@@ -86,6 +87,8 @@ class _HomePageState extends State<HomePage> {
   final List<Widget> _pages = <Widget>[
     const HomeScreen(),
     EditorialPage(),
+    //FeedPreviewPage(),
+
   ];
 
   void _onItemTapped(int index) {
@@ -333,10 +336,6 @@ class _HomeScreenState extends State<HomeScreen>
           body: Stack(
             children: [
               contentWidget,
-              PenroseTopBarView(
-                _controller,
-                PenroseTopBarViewStyle.main,
-              ),
             ],
           ),
         ),

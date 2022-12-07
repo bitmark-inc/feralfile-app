@@ -52,6 +52,23 @@ class FeedPreviewPage extends StatelessWidget {
 
   final nftCollectionBloc = injector<NftCollectionBloc>();
 
+  Widget get discoveryTab {
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (_) => FeedBloc(
+            injector(),
+            injector(),
+            nftCollectionBloc.database.assetDao,
+          ),
+        ),
+        BlocProvider(
+            create: (_) => IdentityBloc(injector<AppDatabase>(), injector())),
+      ],
+      child: const FeedPreviewScreen(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final List<String> _tabs = <String>['Discovery', 'Editorial'];
@@ -178,9 +195,6 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
       _bloc.add(GetFeedsEvent());
     }
 
-    // _timer = Timer.periodic(const Duration(seconds: 10), (timer) {
-    //   _bloc.add(RetryMissingTokenInFeedsEvent());
-    // });
   }
 
   @override
@@ -227,14 +241,6 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
     super.dispose();
   }
 
-  Widget _menuBar(){
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children:[
-        Container(color: Colors.lightBlue, height: 50,),
-      ]
-    );
-  }
   final nftCollectionBloc = injector<NftCollectionBloc>();
 
   @override
@@ -253,7 +259,7 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
             //final feedTokens = state.feedTokens;
             return Container(
               //color: Colors.lightBlue,
-              padding: EdgeInsets.only(top: 102),
+              //padding: EdgeInsets.only(top: 102),
               child: Stack(
                 children: [
                   ListView.builder(
@@ -466,29 +472,6 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
               )
             ])
           ],
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              SvgPicture.asset(
-                "assets/images/iconFeed.svg",
-                color: theme.colorScheme.secondary,
-              ),
-              const Spacer(),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(0, 16, 0, 12),
-                child: Text(
-                  "h_discovery".tr().toUpperCase(),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                    fontFamily: 'IBMPlexMono',
-                    fontStyle: FontStyle.normal,
-                  ),
-                ),
-              ),
-            ],
-          ),
         ]));
   }
 }
