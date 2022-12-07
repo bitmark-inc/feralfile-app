@@ -188,7 +188,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                   },
                 ),
                 const SizedBox(height: 8.0),
-                Text(_gasFee(state), style: theme.textTheme.headline5),
+                Text("", style: theme.textTheme.headline5),
                 if (type == CryptoType.USDC &&
                     state.fee != null &&
                     state.ethBalance != null &&
