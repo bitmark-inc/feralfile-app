@@ -13,6 +13,7 @@ import 'package:libauk_dart/libauk_dart.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 
+const double gWeiFactor = 1000000000 ;
 abstract class EthereumService {
   Future<String> getETHAddress(WalletStorage wallet);
 
@@ -302,4 +303,22 @@ class EthereumServiceImpl extends EthereumService {
       return await _web3Client.getGasPrice();
     }
   }
+
+  Future<BigInt> getPriorityFee(FeeOption feeOption) async {
+    final gasPrice = await _etherchainApi.getGasPriceOracle();
+    switch (feeOption) {
+      case FeeOption.LOW:
+        return BigInt.from(gasPrice.safeLow * gWeiFactor);
+      case FeeOption.MEDIUM:
+        return BigInt.from(gasPrice.fast * gWeiFactor);
+      case FeeOption.HIGH:
+        return BigInt.from(gasPrice.fastest * gWeiFactor);
+    }
+  }
+}
+
+enum FeeOption {
+  LOW,
+  MEDIUM,
+  HIGH,
 }
