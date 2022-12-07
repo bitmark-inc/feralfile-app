@@ -27,6 +27,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:nft_collection/models/asset_token.dart';
@@ -39,14 +40,6 @@ import 'package:share/share.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../common/injector.dart';
-
-const moMAContract = [
-  {
-    "address": "0x7a15b36cB834AeA88553De69077D3777460d73Ac",
-    "name": "Unsupervised",
-    "blockchainType": "FeralfileExhibitionV2"
-  },
-];
 
 String getEditionSubTitle(AssetToken token) {
   if (token.editionName != null && token.editionName != "") {
@@ -1038,44 +1031,14 @@ class _ArtworkRightsViewState extends State<ArtworkRightsView> {
   void initState() {
     super.initState();
     if (widget.exhibitionID != null) {
-      context
-          .read<RoyaltyBloc>()
-          .add(GetRoyaltyInfoEvent(exhibitionID: widget.exhibitionID));
+      context.read<RoyaltyBloc>().add(GetRoyaltyInfoEvent(
+          exhibitionID: widget.exhibitionID,
+          contractAddress: widget.contract.address));
     } else {
-      context
-          .read<RoyaltyBloc>()
-          .add(GetRoyaltyInfoEvent(editionID: widget.editionID));
+      context.read<RoyaltyBloc>().add(GetRoyaltyInfoEvent(
+          editionID: widget.editionID,
+          contractAddress: widget.contract.address));
     }
-  }
-
-  bool _isMoMAShow(String? address) {
-    return moMAContract.any((contract) => contract["address"] == address);
-  }
-
-  String sellOrTransferText(RoyaltyState state) {
-    if (_isMoMAShow(widget.contract.address)) {
-      return "resell_or_transfer_moma_text".tr();
-    }
-    if (state.resaleInfo != null) {
-      final FeralFileResaleInfo resaleInfo = state.resaleInfo!;
-      if (state.partnerName != null) {
-        if (state.resaleInfo!.partner > 0) {
-          final partnerName = state.partnerName ?? "partner".tr();
-          return "resell_or_transfer_with_partner_text".tr(args: [
-            (resaleInfo.artist * 100).toString(),
-            (resaleInfo.platform * 100).toString(),
-            partnerName,
-            (resaleInfo.partner * 100).toString()
-          ]);
-        } else {
-          return "resell_or_transfer_no_partner_text".tr(args: [
-            (resaleInfo.artist * 100).toString(),
-            (resaleInfo.platform * 100).toString()
-          ]);
-        }
-      }
-    }
-    return "resell_or_transfer_text".tr();
   }
 
   String getUrl(RoyaltyState state) {
@@ -1116,70 +1079,26 @@ class _ArtworkRightsViewState extends State<ArtworkRightsView> {
             ),
           ),
           const SizedBox(height: 23.0),
-          _artworkRightItem(context, "download".tr(), "download_text".tr()),
-          const Divider(
-            height: 32.0,
-            color: AppColor.secondarySpanishGrey,
-          ),
-          _artworkRightItem(context, "display".tr(), "display_text".tr()),
-          const Divider(
-            height: 32.0,
-            color: AppColor.secondarySpanishGrey,
-          ),
-          _artworkRightItem(
-              context, "authenticate".tr(), "authenticate_text".tr()),
-          const Divider(
-            height: 32.0,
-            color: AppColor.secondarySpanishGrey,
-          ),
-          _artworkRightItem(
-              context, "loan_or_lease".tr(), "loan_or_lease_text".tr()),
-          const Divider(
-            height: 32.0,
-            color: AppColor.secondarySpanishGrey,
-          ),
-          _artworkRightItem(
-              context, "resell_or_transfer".tr(), sellOrTransferText(state)),
-          const Divider(
-            height: 32.0,
-            color: AppColor.secondarySpanishGrey,
-          ),
-          _artworkRightItem(
-              context, "remain_anonymous".tr(), "remain_anonymous_text".tr()),
-          const Divider(
-            height: 32.0,
-            color: AppColor.secondarySpanishGrey,
-          ),
-          _artworkRightItem(context, "respect_artist_right".tr(),
-              "respect_artist_right_text".tr()),
+          state.markdownData == null
+              ? const SizedBox()
+              : Markdown(
+                  key: const Key("rightsSection"),
+                  data: state.markdownData!.replaceAll(".**", "**"),
+                  softLineBreak: true,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(0),
+                  styleSheet: markDownLightStyle(context, isDetailPage: true),
+                  onTapLink: (text, href, title) async {
+                    if (href == null) return;
+                    launchUrl(Uri.parse(href),
+                        mode: LaunchMode.externalApplication);
+                  }),
+          const SizedBox(height: 23.0),
         ],
       );
     });
   }
-}
-
-Widget _artworkRightItem(BuildContext context, String name, String body) {
-  final theme = Theme.of(context);
-
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Row(
-        children: [
-          Text(
-            name,
-            style: theme.textTheme.headline4,
-          ),
-        ],
-      ),
-      const SizedBox(height: 16.0),
-      Text(
-        body,
-        textAlign: TextAlign.start,
-        style: theme.textTheme.bodyText1,
-      ),
-    ],
-  );
 }
 
 Widget _rowItem(
