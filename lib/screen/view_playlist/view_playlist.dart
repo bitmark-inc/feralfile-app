@@ -44,6 +44,8 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
   List<SentArtwork> sentArtworks = [];
   List<AssetToken> tokensPlaylist = [];
   bool isDemo = false;
+  final _focusNode = FocusNode();
+
   @override
   void initState() {
     super.initState();
@@ -107,6 +109,12 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
   }
 
   @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return BlocConsumer<ViewPlaylistBloc, ViewPlaylistState>(
@@ -115,6 +123,9 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
       builder: (context, state) {
         final playList = widget.playListModel;
         final isRename = state.isRename;
+        if (isRename == true) {
+          _focusNode.requestFocus();
+        }
         return Scaffold(
           appBar: AppBar(
             elevation: 1,
@@ -127,6 +138,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
             centerTitle: true,
             title: isRename ?? false
                 ? TextNamePlaylist(
+                    focusNode: _focusNode,
                     playList: playList,
                     onEditPlaylistName: (value) {
                       bloc.add(SavePlaylist(
