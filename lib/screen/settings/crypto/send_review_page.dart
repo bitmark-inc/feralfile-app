@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/biometrics_util.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/usdc_amount_formatter.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
@@ -39,6 +40,110 @@ class SendReviewPage extends StatefulWidget {
 
 class _SendReviewPageState extends State<SendReviewPage> {
   bool _isSending = false;
+
+  void _send() async {
+    setState(() {
+      _isSending = true;
+    });
+
+    try {
+      final configurationService = injector<ConfigurationService>();
+
+      if (configurationService.isDevicePasscodeEnabled() &&
+          await authenticateIsAvailable()) {
+        final localAuth = LocalAuthentication();
+        final didAuthenticate = await localAuth.authenticate(
+            localizedReason: "authen_for_autonomy".tr());
+        if (!didAuthenticate) {
+          setState(() {
+            _isSending = false;
+          });
+          return;
+        }
+      }
+
+      switch (widget.payload.type) {
+        case CryptoType.ETH:
+          final address = EthereumAddress.fromHex(widget.payload.address);
+          final txHash = await injector<EthereumService>().sendTransaction(
+              widget.payload.wallet, address, widget.payload.amount, null);
+
+          if (!mounted) return;
+          final payload = {
+            "isTezos": false,
+            "hash": txHash,
+          };
+          Navigator.of(context).pop(payload);
+          break;
+        case CryptoType.XTZ:
+          final opHash = await injector<TezosService>().sendTransaction(
+              widget.payload.wallet,
+              widget.payload.address,
+              widget.payload.amount.toInt());
+          final exchangeRateXTZ =
+              1 / (double.tryParse(widget.payload.exchangeRate.xtz) ?? 1);
+          final tx = TZKTOperation(
+            bakerFee: widget.payload.fee.toInt(),
+            block: '',
+            counter: 0,
+            gasLimit: 0,
+            hash: opHash ?? '',
+            gasUsed: 0,
+            id: 0,
+            level: 0,
+            quote: TZKTQuote(
+              usd: exchangeRateXTZ,
+            ),
+            timestamp: DateTime.now(),
+            type: 'transaction',
+            target: TZKTActor(
+              address: widget.payload.address,
+            ),
+            amount: widget.payload.amount.toInt(),
+          );
+          if (!mounted) return;
+          final payload = {
+            "isTezos": true,
+            "hash": opHash,
+            "tx": tx,
+          };
+          Navigator.of(context).pop(payload);
+          break;
+        case CryptoType.USDC:
+          final address = await widget.payload.wallet.getETHEip55Address();
+          final ownerAddress = EthereumAddress.fromHex(address);
+          final toAddress = EthereumAddress.fromHex(widget.payload.address);
+          final contractAddress = EthereumAddress.fromHex(usdcContractAddress);
+
+          final data = await injector<EthereumService>()
+              .getERC20TransferTransactionData(contractAddress, ownerAddress,
+                  toAddress, widget.payload.amount);
+
+          final txHash = await injector<EthereumService>().sendTransaction(
+              widget.payload.wallet, contractAddress, BigInt.zero, data);
+
+          if (!mounted) return;
+          final payload = {
+            "isTezos": false,
+            "hash": txHash,
+          };
+          Navigator.of(context).pop(payload);
+          break;
+        default:
+          break;
+      }
+    } catch (e) {
+      UIHelper.showMessageAction(
+        context,
+        'transaction_failed'.tr(),
+        'try_later'.tr(),
+      );
+    }
+
+    setState(() {
+      _isSending = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -126,136 +231,11 @@ class _SendReviewPageState extends State<SendReviewPage> {
                   children: [
                     Expanded(
                       child: AuFilledButton(
-                        text: _isSending
-                            ? "sending".tr().toUpperCase()
-                            : "sendH".tr(),
-                        isProcessing: _isSending,
-                        onPress: _isSending
-                            ? null
-                            : () async {
-                                setState(() {
-                                  _isSending = true;
-                                });
-
-                                final configurationService =
-                                    injector<ConfigurationService>();
-
-                                if (configurationService
-                                        .isDevicePasscodeEnabled() &&
-                                    await authenticateIsAvailable()) {
-                                  final localAuth = LocalAuthentication();
-                                  final didAuthenticate =
-                                      await localAuth.authenticate(
-                                          localizedReason:
-                                              "authen_for_autonomy".tr());
-                                  if (!didAuthenticate) {
-                                    setState(() {
-                                      _isSending = false;
-                                    });
-                                    return;
-                                  }
-                                }
-
-                                switch (widget.payload.type) {
-                                  case CryptoType.ETH:
-                                    final address = EthereumAddress.fromHex(
-                                        widget.payload.address);
-                                    final txHash =
-                                        await injector<EthereumService>()
-                                            .sendTransaction(
-                                                widget.payload.wallet,
-                                                address,
-                                                widget.payload.amount,
-                                                null);
-
-                                    if (!mounted) return;
-                                    final payload = {
-                                      "isTezos": false,
-                                      "hash": txHash,
-                                    };
-                                    Navigator.of(context).pop(payload);
-                                    break;
-                                  case CryptoType.XTZ:
-                                    final opHash =
-                                        await injector<TezosService>()
-                                            .sendTransaction(
-                                                widget.payload.wallet,
-                                                widget.payload.address,
-                                                widget.payload.amount.toInt());
-                                    final exchangeRateXTZ = 1 /
-                                        (double.tryParse(widget
-                                                .payload.exchangeRate.xtz) ??
-                                            1);
-                                    final tx = TZKTOperation(
-                                      bakerFee: widget.payload.fee.toInt(),
-                                      block: '',
-                                      counter: 0,
-                                      gasLimit: 0,
-                                      hash: opHash ?? '',
-                                      gasUsed: 0,
-                                      id: 0,
-                                      level: 0,
-                                      quote: TZKTQuote(
-                                        usd: exchangeRateXTZ,
-                                      ),
-                                      timestamp: DateTime.now(),
-                                      type: 'transaction',
-                                      target: TZKTActor(
-                                        address: widget.payload.address,
-                                      ),
-                                      amount: widget.payload.amount.toInt(),
-                                    );
-                                    if (!mounted) return;
-                                    final payload = {
-                                      "isTezos": true,
-                                      "hash": opHash,
-                                      "tx": tx,
-                                    };
-                                    Navigator.of(context).pop(payload);
-                                    break;
-                                  case CryptoType.USDC:
-                                    final address = await widget.payload.wallet
-                                        .getETHEip55Address();
-                                    final ownerAddress =
-                                        EthereumAddress.fromHex(address);
-                                    final toAddress = EthereumAddress.fromHex(
-                                        widget.payload.address);
-                                    final contractAddress =
-                                        EthereumAddress.fromHex(
-                                            usdcContractAddress);
-
-                                    final data =
-                                        await injector<EthereumService>()
-                                            .getERC20TransferTransactionData(
-                                                contractAddress,
-                                                ownerAddress,
-                                                toAddress,
-                                                widget.payload.amount);
-
-                                    final txHash =
-                                        await injector<EthereumService>()
-                                            .sendTransaction(
-                                                widget.payload.wallet,
-                                                contractAddress,
-                                                BigInt.zero,
-                                                data);
-
-                                    if (!mounted) return;
-                                    final payload = {
-                                      "isTezos": false,
-                                      "hash": txHash,
-                                    };
-                                    Navigator.of(context).pop(payload);
-                                    break;
-                                  default:
-                                    break;
-                                }
-
-                                setState(() {
-                                  _isSending = false;
-                                });
-                              },
-                      ),
+                          text: _isSending
+                              ? "sending".tr().toUpperCase()
+                              : "sendH".tr(),
+                          isProcessing: _isSending,
+                          onPress: _isSending ? null : _send),
                     ),
                   ],
                 )
