@@ -69,7 +69,9 @@ class AddNewPlaylistBloc
       playListModel?.thumbnailURL = state.tokens
           ?.firstWhereOrNull(
               (element) => element.id == state.selectedIDs?.first)
-          ?.getGalleryThumbnailUrl();
+          ?.getThumbnailUrl(
+            usingThumbnailID: false,
+          );
 
       state.selectedIDs = state.tokens
           ?.map((e) => e.id)
