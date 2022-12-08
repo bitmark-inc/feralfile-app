@@ -119,7 +119,7 @@ dependencies:
     git:
       url: https://github.com/autonomy-system/wallet-connect-dart.git
       ref: 763516f2013982c8723e1ab1478f52a5ba0699c8
-  web3dart: ^2.3.3
+  web3dart: ^2.5.1
   web_socket_channel: ^2.1.0
   webview_flutter: ^3.0.0
   json_annotation: ^4.6.0
