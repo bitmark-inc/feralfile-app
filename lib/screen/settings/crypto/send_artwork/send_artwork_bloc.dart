@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
+import 'package:autonomy_flutter/util/fee_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
@@ -142,6 +143,7 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
       emit(state.copyWith(isEstimating: true));
 
       BigInt? fee;
+      FeeOptionValue? feeOptionValue;
       switch (type) {
         case CryptoType.ETH:
           final wallet = state.wallet;
@@ -159,8 +161,9 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
               : await _ethereumService.getERC721TransferTransactionData(
                   contractAddress, from, to, event.tokenId);
 
-          fee = await _ethereumService.estimateFee(
+          feeOptionValue = await _ethereumService.estimateFee(
               wallet, contractAddress, EtherAmount.zero(), data);
+          fee = feeOptionValue.getFee(state.feeOption);
           break;
         case CryptoType.XTZ:
           final wallet = state.wallet;
@@ -173,8 +176,20 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
                 event.tokenId,
                 event.quantity);
             final tezosFee = await _tezosService.estimateOperationFee(
-                await wallet.getTezosPublicKey(), [operation]);
+                await wallet.getTezosPublicKey(), [operation],
+                baseOperationCustomFee:
+                    state.feeOption.tezosBaseOperationCustomFee);
             fee = BigInt.from(tezosFee);
+            feeOptionValue = FeeOptionValue(
+                BigInt.from(tezosFee -
+                    state.feeOption.tezosBaseOperationCustomFee +
+                    baseOperationCustomFeeLow),
+                BigInt.from(tezosFee -
+                    state.feeOption.tezosBaseOperationCustomFee +
+                    baseOperationCustomFeeMedium),
+                BigInt.from(tezosFee -
+                    state.feeOption.tezosBaseOperationCustomFee +
+                    baseOperationCustomFeeHigh));
           } on TezartNodeError catch (err) {
             if (!emit.isDone) {
               UIHelper.showInfoDialog(
@@ -183,20 +198,31 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
                 getTezosErrorMessage(err),
                 isDismissible: true,
               );
+              fee = BigInt.zero;
+              feeOptionValue =
+                  FeeOptionValue(BigInt.zero, BigInt.zero, BigInt.zero);
             }
           } catch (err) {
             if (!emit.isDone) {
               showErrorDialogFromException(err);
             }
+            fee = BigInt.zero;
+            feeOptionValue =
+                FeeOptionValue(BigInt.zero, BigInt.zero, BigInt.zero);
           }
           break;
         default:
+          fee = BigInt.zero;
+          feeOptionValue =
+              FeeOptionValue(BigInt.zero, BigInt.zero, BigInt.zero);
           break;
       }
 
       if (!emit.isDone) {
-        final newState = state.clone();
+        final newState =
+            event.newState == null ? state.clone() : event.newState!.clone();
         newState.fee = fee;
+        newState.feeOptionValue = feeOptionValue;
         newState.isEstimating = false;
         newState.isValid = _isValid(newState);
         emit(newState);
@@ -205,6 +231,27 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
       return events
           .debounceTime(const Duration(milliseconds: 300))
           .switchMap(mapper);
+    });
+
+    on<FeeOptionChangedEvent>((event, emit) {
+      final newState = state.clone();
+      if (type == CryptoType.XTZ) {
+        add(EstimateFeeEvent(event.address, _asset.contractAddress!,
+            _asset.tokenId!, event.quantity));
+      }
+      newState.feeOption = event.feeOption;
+      emit(newState);
+    });
+
+    on<FeeOptionChangedEvent>((event, emit) async {
+      final newState = state.clone();
+      newState.feeOption = event.feeOption;
+      emit(newState);
+      if (type == CryptoType.XTZ) {
+        add(EstimateFeeEvent(event.address, _asset.contractAddress ?? "",
+            _asset.tokenId ?? "", event.quantity,
+            newState: newState));
+      }
     });
   }
 

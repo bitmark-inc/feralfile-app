@@ -11,6 +11,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:autonomy_flutter/common/environment.dart';
+import 'package:autonomy_flutter/util/fee_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:libauk_dart/libauk_dart.dart';
@@ -18,13 +19,17 @@ import 'package:tezart/src/crypto/crypto.dart' as crypto;
 import 'package:tezart/src/crypto/crypto.dart' show Prefixes;
 import 'package:tezart/tezart.dart';
 
+const baseOperationCustomFeeLow = 100;
+const baseOperationCustomFeeMedium = 150;
+const baseOperationCustomFeeHigh = 200;
+
 abstract class TezosService {
   Future<int> getBalance(String address);
 
   Future<int> estimateOperationFee(
-      String publicKey, List<Operation> operations);
+      String publicKey, List<Operation> operations, {int? baseOperationCustomFee});
 
-  Future<int> estimateFee(String publicKey, String to, int amount);
+  Future<int> estimateFee(String publicKey, String to, int amount, {int? baseOperationCustomFee});
 
   Future<String?> sendOperationTransaction(
       WalletStorage wallet, List<Operation> operations);

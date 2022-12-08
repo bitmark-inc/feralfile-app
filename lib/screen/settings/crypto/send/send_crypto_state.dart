@@ -6,7 +6,10 @@
 //
 
 import 'package:autonomy_flutter/model/currency_exchange.dart';
+import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/fee_util.dart';
 import 'package:libauk_dart/libauk_dart.dart';
+
 
 abstract class SendCryptoEvent {}
 
@@ -28,6 +31,13 @@ class AddressChangedEvent extends SendCryptoEvent {
   AddressChangedEvent(this.address);
 }
 
+class FeeOptionChangedEvent extends SendCryptoEvent {
+  final FeeOption feeOption;
+  final String address;
+
+  FeeOptionChangedEvent(this.feeOption, this.address);
+}
+
 class CurrencyTypeChangedEvent extends SendCryptoEvent {
   final bool isCrypto;
 
@@ -37,8 +47,9 @@ class CurrencyTypeChangedEvent extends SendCryptoEvent {
 class EstimateFeeEvent extends SendCryptoEvent {
   final String address;
   final BigInt amount;
+  final SendCryptoState? newState;
 
-  EstimateFeeEvent(this.address, this.amount);
+  EstimateFeeEvent(this.address, this.amount, {this.newState});
 }
 
 class SendCryptoState {
@@ -59,6 +70,9 @@ class SendCryptoState {
   BigInt? balance;
   BigInt? ethBalance;
 
+  FeeOption feeOption;
+  FeeOptionValue? feeOptionValue;
+
   CurrencyExchangeRate exchangeRate;
 
   SendCryptoState(
@@ -74,7 +88,9 @@ class SendCryptoState {
       this.maxAllow,
       this.balance,
       this.ethBalance,
-      this.exchangeRate = const CurrencyExchangeRate(eth: "1.0", xtz: "1.0")});
+      this.exchangeRate = const CurrencyExchangeRate(eth: "1.0", xtz: "1.0"),
+      this.feeOption = DEFAULT_FEE_OPTION,
+      this.feeOptionValue});
 
   SendCryptoState clone() => SendCryptoState(
         wallet: wallet,
@@ -90,5 +106,7 @@ class SendCryptoState {
         balance: balance,
         ethBalance: ethBalance,
         exchangeRate: exchangeRate,
+        feeOption: feeOption,
+        feeOptionValue: feeOptionValue,
       );
 }

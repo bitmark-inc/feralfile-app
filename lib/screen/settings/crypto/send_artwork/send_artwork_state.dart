@@ -6,6 +6,8 @@
 //
 
 import 'package:autonomy_flutter/model/currency_exchange.dart';
+import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/fee_util.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 
 abstract class SendArtworkEvent {}
@@ -45,9 +47,10 @@ class EstimateFeeEvent extends SendArtworkEvent {
   final String contractAddress;
   final String tokenId;
   final int quantity;
+  final SendArtworkState? newState;
 
   EstimateFeeEvent(
-      this.address, this.contractAddress, this.tokenId, this.quantity);
+      this.address, this.contractAddress, this.tokenId, this.quantity, {this.newState});
 
   @override
   bool operator ==(Object other) =>
@@ -67,6 +70,14 @@ class EstimateFeeEvent extends SendArtworkEvent {
       quantity.hashCode;
 }
 
+class FeeOptionChangedEvent extends SendArtworkEvent {
+  final FeeOption feeOption;
+  final String address;
+  final int quantity;
+
+  FeeOptionChangedEvent(this.feeOption, this.address, this.quantity);
+}
+
 class SendArtworkState {
   WalletStorage? wallet;
 
@@ -78,6 +89,9 @@ class SendArtworkState {
   BigInt? fee;
   String? address;
   BigInt? balance;
+
+  FeeOption feeOption;
+  FeeOptionValue? feeOptionValue;
 
   CurrencyExchangeRate exchangeRate;
 
@@ -96,7 +110,9 @@ class SendArtworkState {
         this.address,
         this.balance,
         this.exchangeRate = const CurrencyExchangeRate(eth: "1.0", xtz: "1.0"),
-        this.quantity = 1});
+        this.quantity = 1,
+        this.feeOption = DEFAULT_FEE_OPTION,
+        this.feeOptionValue});
 
   SendArtworkState clone() => SendArtworkState(
     wallet: wallet,
@@ -110,6 +126,8 @@ class SendArtworkState {
     exchangeRate: exchangeRate,
     balance: balance,
     quantity: quantity,
+    feeOption: feeOption,
+    feeOptionValue: feeOptionValue,
   );
 
   SendArtworkState copyWith({int? quantity, bool? isEstimating, BigInt? fee}) {

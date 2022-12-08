@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/service/pending_token_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/biometrics_util.dart';
+import 'package:autonomy_flutter/util/fee_util.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:libauk_dart/libauk_dart.dart';
@@ -38,10 +39,11 @@ class WCSendTransactionBloc
   ) : super(WCSendTransactionState()) {
     on<WCSendTransactionEstimateEvent>((event, emit) async {
       final WalletStorage persona = LibAukDart.getWallet(event.uuid);
-
-      state.fee = await _ethereumService.estimateFee(
+      FeeOptionValue feeOptionValue;
+      feeOptionValue = await _ethereumService.estimateFee(
           persona, event.address, event.amount, event.data);
       emit(state);
+      state.fee = feeOptionValue.high;
     });
 
     on<WCSendTransactionSendEvent>((event, emit) async {
