@@ -185,12 +185,10 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   Future _moveToInfo(AssetToken? asset) async {
     if (asset == null) return;
     keyboardManagerKey.currentState?.hideKeyboard();
-    final isImmediateInfoViewEnabled =
-        injector<ConfigurationService>().isImmediateInfoViewEnabled();
 
     final currentIndex = tokens.indexWhere((element) =>
         element.id == asset.id && element.owner == asset.ownerAddress);
-    if (isImmediateInfoViewEnabled && currentIndex == initialPage) {
+    if (currentIndex == initialPage) {
       Navigator.of(context).pop();
       return;
     }

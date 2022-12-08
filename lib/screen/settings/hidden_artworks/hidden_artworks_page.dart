@@ -129,18 +129,12 @@ class _HiddenArtworksPageState extends State<HiddenArtworksPage> {
                     final index = artworkIdentities.indexWhere((element) =>
                         element.id == asset.id &&
                         element.owner == asset.ownerAddress);
-                    final payload = ArtworkDetailPayload(artworkIdentities, index);
+                    final payload =
+                        ArtworkDetailPayload(artworkIdentities, index);
 
-                    if (injector<ConfigurationService>()
-                        .isImmediateInfoViewEnabled()) {
-                      Navigator.of(context).pushNamed(
-                          AppRouter.artworkDetailsPage,
-                          arguments: payload);
-                    } else {
-                      Navigator.of(context).pushNamed(
-                          AppRouter.artworkPreviewPage,
-                          arguments: payload);
-                    }
+                    Navigator.of(context).pushNamed(
+                        AppRouter.artworkDetailsPage,
+                        arguments: payload);
                   },
                 );
               },
