@@ -898,10 +898,10 @@ Widget artworkDetailsMetadataSection(
 }
 
 Widget _getEditionNameRow(BuildContext context, AssetToken asset) {
-  if (asset.editionName != null && asset.editionName != "") {
-    return _rowItem(context, "edition_name".tr(), asset.editionName!);
-  }
-  return _rowItem(context, "edition_number".tr(), asset.edition.toString());
+  final edition = (asset.maxEdition ?? 0) > 0
+      ? "${asset.editionName ?? asset.edition.toString()}/${asset.maxEdition}"
+      : asset.editionName ?? asset.edition.toString();
+  return _rowItem(context, "edition".tr(), edition);
 }
 
 Widget tokenOwnership(
@@ -1060,19 +1060,6 @@ class _ArtworkRightsViewState extends State<ArtworkRightsView> {
             "ff_protect".tr(),
             style: theme.textTheme.bodyText1,
           ),
-          const SizedBox(height: 18.0),
-          TextButton(
-            style: theme.textButtonNoPadding,
-            onPressed: () => launchUrl(Uri.parse(getUrl(state)),
-                mode: LaunchMode.externalApplication),
-            child: Text(
-              "learn_artist".tr(),
-              style: widget.linkStyle ??
-                  theme.textTheme.linkStyle.copyWith(
-                    fontWeight: FontWeight.w500,
-                  ),
-            ),
-          ),
           const SizedBox(height: 23.0),
           state.markdownData == null
               ? const SizedBox()
@@ -1089,6 +1076,19 @@ class _ArtworkRightsViewState extends State<ArtworkRightsView> {
                     launchUrl(Uri.parse(href),
                         mode: LaunchMode.externalApplication);
                   }),
+          const SizedBox(height: 23.0),
+          TextButton(
+            style: theme.textButtonNoPadding,
+            onPressed: () => launchUrl(Uri.parse(getUrl(state)),
+                mode: LaunchMode.externalApplication),
+            child: Text(
+              "learn_artist".tr(),
+              style: widget.linkStyle ??
+                  theme.textTheme.linkStyle.copyWith(
+                    fontWeight: FontWeight.w500,
+                  ),
+            ),
+          ),
           const SizedBox(height: 23.0),
         ],
       );

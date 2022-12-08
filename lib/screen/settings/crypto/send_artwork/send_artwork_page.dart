@@ -274,8 +274,8 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                                 ),
                                 Text(
                                   (asset.maxEdition ?? 0) > 0
-                                      ? "${asset.edition}/${asset.maxEdition}"
-                                      : "${asset.edition}",
+                                      ? "${asset.editionName ?? asset.edition.toString()}/${asset.maxEdition}"
+                                      : asset.editionName ?? asset.edition.toString(),
                                   style: theme.textTheme.bodyText2,
                                 ),
                               ],
