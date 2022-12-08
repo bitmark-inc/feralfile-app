@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwor
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_state.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
@@ -162,6 +163,15 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
             if (state.fee != null) {
               Scrollable.ensureVisible(feeWidgetKey.currentContext!);
             }
+            if (state.fee != null &&
+                state.balance != null &&
+                state.fee! > state.balance! + BigInt.from(10)) {
+              UIHelper.showMessageAction(
+                context,
+                'transaction_failed'.tr(),
+                'dont_enough_money'.tr(),
+              );
+            }
           }, builder: (context, state) {
             return Container(
               margin: const EdgeInsets.only(
@@ -295,7 +305,8 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                                                   ? ScannerItem.ETH_ADDRESS
                                                   : ScannerItem.XTZ_ADDRESS);
                                   if (address != null && address is String) {
-                                    address = address.replacePrefix("ethereum:", "");
+                                    address =
+                                        address.replacePrefix("ethereum:", "");
                                     _addressController.text = address;
                                     if (!mounted) return;
                                     context
@@ -368,7 +379,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                             state.address!,
                             state.fee!,
                             state.exchangeRate,
-                            widget.payload.ownedQuantity ,
+                            widget.payload.ownedQuantity,
                             state.quantity)) as Map?;
                     if (payload != null &&
                         payload["hash"] != null &&

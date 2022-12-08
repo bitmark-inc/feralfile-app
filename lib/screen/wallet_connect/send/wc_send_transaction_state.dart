@@ -16,7 +16,8 @@ class WCSendTransactionEstimateEvent extends WCSendTransactionEvent {
   final String data;
   final String uuid;
 
-  WCSendTransactionEstimateEvent(this.address, this.amount, this.data, this.uuid);
+  WCSendTransactionEstimateEvent(
+      this.address, this.amount, this.data, this.uuid);
 }
 
 class WCSendTransactionSendEvent extends WCSendTransactionEvent {
@@ -59,5 +60,7 @@ class WCSendTransactionRejectEvent extends WCSendTransactionEvent {
 
 class WCSendTransactionState {
   BigInt? fee;
+  BigInt? balance;
   bool isSending = false;
+  bool isError = false;
 }

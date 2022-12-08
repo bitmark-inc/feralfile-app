@@ -38,21 +38,6 @@ class PreferenceView extends StatelessWidget {
           const SizedBox(height: 40),
           _preferenceItem(
             context,
-            'immediate_info_view'.tr(),
-            "enable_info".tr(),
-            //"Enable info view when tapping on a thumbnail.",
-            state.isImmediateInfoViewEnabled,
-            (value) {
-              final newState =
-                  state.copyWith(isImmediateInfoViewEnabled: value);
-              context
-                  .read<PreferencesBloc>()
-                  .add(PreferenceUpdateEvent(newState));
-            },
-          ),
-          addDivider(),
-          _preferenceItem(
-            context,
             state.authMethodName,
             "use_device_passcode".tr(args: [
               state.authMethodName != "device_passcode".tr()

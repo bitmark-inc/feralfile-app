@@ -52,6 +52,7 @@ import 'package:autonomy_flutter/view/penrose_top_bar_view.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -254,18 +255,35 @@ class _HomePageState extends State<HomePage>
           }
         }
       },
-      child: PrimaryScrollController(
-        controller: _controller,
-        child: Scaffold(
-          backgroundColor: theme.backgroundColor,
-          body: Stack(
-            children: [
-              contentWidget,
-              PenroseTopBarView(
-                _controller,
-                PenroseTopBarViewStyle.main,
-              ),
-            ],
+      child: CustomRefreshIndicator(
+        builder: MaterialIndicatorDelegate(
+          edgeOffset: 100,
+          displacement: 20,
+          withRotation: false,
+          builder: (context, controller) {
+            return
+              Padding(
+              padding: const EdgeInsets.all(3.0),
+              child: loadingIndicator(size: 5),
+            );
+          },
+        ),
+        onRefresh: () async {
+          await _refreshTokens(checkPendingToken: true);
+        },
+        child: PrimaryScrollController(
+          controller: _controller,
+          child: Scaffold(
+            backgroundColor: theme.backgroundColor,
+            body: Stack(
+              children: [
+                contentWidget,
+                PenroseTopBarView(
+                  _controller,
+                  PenroseTopBarViewStyle.main,
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -365,7 +383,6 @@ class _HomePageState extends State<HomePage>
         delegate: SliverChildBuilderDelegate(
           (BuildContext context, int index) {
             final asset = tokens[index];
-
             return GestureDetector(
               child: asset.pending == true && !asset.hasMetadata
                   ? PendingTokenWidget(
@@ -386,14 +403,8 @@ class _HomePageState extends State<HomePage>
                     .indexOf(asset);
                 final payload = ArtworkDetailPayload(accountIdentities, index);
 
-                if (injector<ConfigurationService>()
-                    .isImmediateInfoViewEnabled()) {
-                  Navigator.of(context).pushNamed(AppRouter.artworkDetailsPage,
-                      arguments: payload);
-                } else {
-                  Navigator.of(context).pushNamed(AppRouter.artworkPreviewPage,
-                      arguments: payload);
-                }
+                Navigator.of(context).pushNamed(AppRouter.artworkDetailsPage,
+                    arguments: payload);
 
                 mixPanelClient
                     .trackEvent("view_artwork", data: {"id": asset.id});
@@ -407,6 +418,7 @@ class _HomePageState extends State<HomePage>
     ];
 
     return CustomScrollView(
+      physics: AlwaysScrollableScrollPhysics(),
       slivers: sources,
       controller: _controller,
     );
@@ -428,11 +440,11 @@ class _HomePageState extends State<HomePage>
     }
   }
 
-  void _refreshTokens({checkPendingToken = false}) async {
+  Future<void> _refreshTokens({checkPendingToken = false}) async {
     final accountService = injector<AccountService>();
     playlists.value = await getPlaylist();
 
-    Future.wait([
+    await Future.wait([
       getAddresses(),
       getManualTokenIds(),
       accountService.getHiddenAddresses(),
