@@ -109,6 +109,72 @@ MarkdownStyleSheet markDownStyle(BuildContext context, Color textColor) {
   );
 }
 
+MarkdownStyleSheet markDownRightStyle(BuildContext context) {
+  final theme = Theme.of(context);
+  final bodyText2 = theme.textTheme.ppMori400White12;
+  return MarkdownStyleSheet(
+    a: TextStyle(
+      fontFamily: AppTheme.ppMori,
+      color: theme.auSuperTeal,
+      fontWeight: FontWeight.w400,
+      fontSize: 12,
+    ),
+    p: theme.textTheme.ppMori400White12,
+    pPadding: const EdgeInsets.only(bottom: 0),
+    code: bodyText2.copyWith(backgroundColor: Colors.transparent),
+    h1: theme.textTheme.ppMori400White14,
+    h1Padding: const EdgeInsets.only(bottom: 0),
+    h2: theme.textTheme.ppMori400White14,
+    h2Padding: EdgeInsets.zero,
+    h3: theme.textTheme.ppMori400White14,
+    h3Padding: EdgeInsets.zero,
+    h4: theme.textTheme.ppMori400White14,
+    h4Padding: EdgeInsets.zero,
+    h5: theme.textTheme.ppMori400White14,
+    h5Padding: EdgeInsets.zero,
+    h6: theme.textTheme.ppMori400White14,
+    h6Padding: EdgeInsets.zero,
+    em: const TextStyle(fontStyle: FontStyle.italic, color: Colors.white),
+    strong: theme.textTheme.ppMori400White14,
+    del: const TextStyle(
+        decoration: TextDecoration.lineThrough, color: Colors.white),
+    blockquote: bodyText2,
+    img: bodyText2,
+    checkbox: bodyText2.copyWith(color: theme.colorScheme.secondary),
+    blockSpacing: 16.0,
+    listIndent: 24.0,
+    listBullet: bodyText2.copyWith(color: Colors.black),
+    listBulletPadding: const EdgeInsets.only(right: 4),
+    tableHead: const TextStyle(fontWeight: FontWeight.w600),
+    tableBody: bodyText2,
+    tableHeadAlign: TextAlign.center,
+    tableBorder: TableBorder.all(
+      color: theme.dividerColor,
+    ),
+    tableColumnWidth: const FlexColumnWidth(),
+    tableCellsPadding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+    tableCellsDecoration: const BoxDecoration(),
+    blockquotePadding: const EdgeInsets.all(8.0),
+    blockquoteDecoration: BoxDecoration(
+      color: Colors.blue.shade100,
+      borderRadius: BorderRadius.circular(2.0),
+    ),
+    codeblockPadding: const EdgeInsets.all(8.0),
+    codeblockDecoration: BoxDecoration(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(2.0),
+    ),
+    horizontalRuleDecoration: BoxDecoration(
+      border: Border(
+        top: BorderSide(
+          width: 0.5,
+          color: theme.disableColor,
+        ),
+      ),
+    ),
+  );
+}
+
 MarkdownStyleSheet markDownDetailPageStyle(
     BuildContext context, Color textColor) {
   final theme = Theme.of(context);

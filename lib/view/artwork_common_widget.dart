@@ -1275,7 +1275,7 @@ class _ArtworkRightsViewState extends State<ArtworkRightsView> {
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   padding: const EdgeInsets.all(0),
-                  styleSheet: markDownLightStyle(context, isDetailPage: true),
+                  styleSheet: markDownRightStyle(context),
                   onTapLink: (text, href, title) async {
                     if (href == null) return;
                     launchUrl(Uri.parse(href),
