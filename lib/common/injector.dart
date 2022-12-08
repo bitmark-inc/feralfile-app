@@ -39,6 +39,7 @@ import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/ledger_hardware/ledger_hardware_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/service/mixPanel_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/pending_token_service.dart';
 import 'package:autonomy_flutter/service/play_control_service.dart';
@@ -48,7 +49,6 @@ import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_dapp_service/wallet_connect_dapp_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
-import 'package:autonomy_flutter/service/mixPanel_client_service.dart';
 import 'package:autonomy_flutter/util/au_file_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
@@ -171,6 +171,8 @@ Future<void> setup() async {
   injector.registerLazySingleton(() => EtherchainApi(dio));
   injector.registerLazySingleton(() => BranchApi(dio));
   injector.registerLazySingleton(
+      () => PubdocAPI(dio, baseUrl: Environment.pubdocURL));
+  injector.registerLazySingleton(
       () => FeedApi(authenticatedDio, baseUrl: Environment.feedURL));
   injector.registerLazySingleton(
       () => AuthService(injector(), injector(), injector()));
@@ -208,8 +210,8 @@ Future<void> setup() async {
       () => CurrencyExchangeApi(dio, baseUrl: Environment.currencyExchangeURL));
   injector.registerLazySingleton<CurrencyService>(
       () => CurrencyServiceImpl(injector()));
-  injector.registerLazySingleton(() => VersionService(
-      PubdocAPI(dio, baseUrl: Environment.pubdocURL), injector(), injector()));
+  injector.registerLazySingleton(
+      () => VersionService(injector(), injector(), injector()));
 
   injector.registerLazySingleton<CustomerSupportService>(
       () => CustomerSupportServiceImpl(

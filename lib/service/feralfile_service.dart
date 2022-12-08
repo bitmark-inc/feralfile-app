@@ -37,7 +37,6 @@ import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:nft_collection/services/tokens_service.dart';
 
-// TODO:
 abstract class FeralFileService {
   Future<Connection> linkFF(String token, {required bool delayLink});
 
@@ -66,6 +65,8 @@ abstract class FeralFileService {
   Future<FeralFileResaleInfo> getResaleInfo(String exhibitionID);
 
   Future<String?> getPartnerFullName(String exhibitionId);
+
+  Future<Exhibition> getExhibition(String id);
 }
 
 class FeralFileServiceImpl extends FeralFileService {
@@ -299,6 +300,12 @@ class FeralFileServiceImpl extends FeralFileService {
     } else {
       throw NoRemainingToken();
     }
+  }
+
+  @override
+  Future<Exhibition> getExhibition(String id) async {
+    final resp = await _feralFileApi.getExhibition(id);
+    return resp.result;
   }
 
   Future<List<AssetToken>> _fetchTokens({
