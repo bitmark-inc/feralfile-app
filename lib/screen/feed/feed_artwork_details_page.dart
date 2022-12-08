@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/feed/feed_preview_page.dart';
 import 'package:autonomy_flutter/screen/gallery/gallery_page.dart';
+import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
@@ -85,116 +86,76 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
               return const SizedBox();
             }
 
-            feedEvent = currentFeedEvent;
-            token = currentToken;
+      feedEvent = currentFeedEvent;
+      token = currentToken;
 
-            final identityState = context.watch<IdentityBloc>().state;
-            final followingName = feedEvent.recipient
-                    .toIdentityOrMask(identityState.identityMap) ??
-                feedEvent.recipient;
-            final artistName =
-                token?.artistName?.toIdentityOrMask(identityState.identityMap);
-            final editionSubTitle = getEditionSubTitle(token!);
+      final identityState = context.watch<IdentityBloc>().state;
+      final followingName =
+          feedEvent.recipient.toIdentityOrMask(identityState.identityMap) ??
+              feedEvent.recipient;
+      final artistName =
+          token?.artistName?.toIdentityOrMask(identityState.identityMap);
+      final editionSubTitle = getEditionSubTitle(token!);
 
-            return SingleChildScrollView(
+      return Stack(
+        children: [
+          Scaffold(
+            appBar: AppBar(
+              leadingWidth: 0,
+              centerTitle: false,
+              title: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    token!.title,
+                    style: theme.textTheme.ppMori400White12,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (artistName?.isNotEmpty == true) ...[
+                    RichText(
+                      text: TextSpan(
+                        style: theme.textTheme.ppMori400White12,
+                        children: [
+                          TextSpan(text: "by".tr(args: [""])),
+                          TextSpan(
+                            text: artistName,
+                            recognizer: TapGestureRecognizer()
+                              ..onTap = token!.artistID != null
+                                  ? () => Navigator.of(context)
+                                      .pushNamed(AppRouter.galleryPage,
+                                          arguments: GalleryPagePayload(
+                                            address: token!.artistID!,
+                                            artistName: artistName!,
+                                            artistURL: token!.artistURL,
+                                          ))
+                                  : null,
+                            style: theme.textTheme.ppMori400White12,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+              actions: [
+                IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: Icon(
+                    AuIcon.close,
+                    color: theme.colorScheme.secondary,
+                  ),
+                )
+              ],
+            ),
+            backgroundColor: theme.colorScheme.primary,
+            body: SingleChildScrollView(
               controller: _scrollController,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Padding(
-                    padding: ResponsiveLayout.getPadding,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            RichText(
-                                text: TextSpan(
-                              style: ResponsiveLayout.isMobile
-                                  ? theme.textTheme.atlasBlackBold12
-                                  : theme.textTheme.atlasBlackBold14,
-                              children: [
-                                TextSpan(
-                                  text: "_by".tr(
-                                      args: [feedEvent.actionRepresentation]),
-                                ),
-                                TextSpan(
-                                  text: followingName,
-                                  style: ResponsiveLayout.isMobile
-                                      ? theme.textTheme.atlasBlackBold12
-                                      : theme.textTheme.atlasBlackBold14,
-                                  recognizer: TapGestureRecognizer()
-                                    ..onTap = () => Navigator.of(context)
-                                        .pushNamed(AppRouter.galleryPage,
-                                            arguments: GalleryPagePayload(
-                                              address: feedEvent.recipient,
-                                              artistName: followingName,
-                                            )),
-                                )
-                              ],
-                            )),
-                            Text(
-                              getDateTimeRepresentation(feedEvent.timestamp),
-                              style: ResponsiveLayout.isMobile
-                                  ? theme.textTheme.atlasBlackNormal12
-                                  : theme.textTheme.atlasBlackNormal14,
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 2.0),
-                        Text(
-                          token!.title,
-                          style: theme.textTheme.headline1,
-                        ),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.baseline,
-                          textBaseline: TextBaseline.alphabetic,
-                          children: [
-                            if (artistName?.isNotEmpty == true) ...[
-                              Expanded(
-                                  child: RichText(
-                                      text: TextSpan(
-                                          style: theme.textTheme.headline3,
-                                          children: [
-                                    TextSpan(text: "by".tr(args: [""])),
-                                    if (token!.artistID != null) ...[
-                                      TextSpan(
-                                        text: artistName,
-                                        recognizer: TapGestureRecognizer()
-                                          ..onTap = () => Navigator.of(context)
-                                              .pushNamed(AppRouter.galleryPage,
-                                                  arguments: GalleryPagePayload(
-                                                    address: token!.artistID!,
-                                                    artistName: artistName!,
-                                                    artistURL: token!.artistURL,
-                                                  )),
-                                        style: makeLinkStyle(
-                                            theme.textTheme.headline3!),
-                                      ),
-                                    ] else ...[
-                                      TextSpan(
-                                        text: artistName,
-                                      )
-                                    ],
-                                  ]))),
-                            ] else ...[
-                              const Expanded(child: SizedBox())
-                            ],
-                            const SizedBox(
-                              width: 8,
-                            ),
-                            Text(
-                              editionSubTitle,
-                              style: theme.textTheme.headline5?.copyWith(
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 15),
-                      ],
-                    ),
+                  const SizedBox(
+                    height: 40,
                   ),
                   GestureDetector(
                     child: TokenThumbnailWidget(
@@ -229,7 +190,7 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
                               ),
                               TextSpan(
                                 text: followingName,
-                                style: theme.textTheme.ppMori400Green12,
+                                style: theme.textTheme.ppMori400SupperTeal12,
                                 recognizer: TapGestureRecognizer()
                                   ..onTap =
                                       () => Navigator.of(context).pushNamed(
@@ -255,7 +216,7 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
                         const SizedBox(height: 40.0),
                         HtmlWidget(
                           token?.desc ?? "",
-                          textStyle: theme.textTheme.bodyText1,
+                          textStyle: theme.textTheme.ppMori400White12,
                         ),
                         artworkDetailsRightSection(context, token!),
                         const SizedBox(height: 40.0),
@@ -270,19 +231,23 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
                   ),
                 ],
               ),
-            );
-          }),
-        ),
-        Positioned(
-          bottom: 0,
-          left: 0,
-          right: 0,
-          child: ReportButton(
-            token: token,
-            scrollController: _scrollController,
+            ),
           ),
-        ),
-      ],
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: ReportButton(
+              token: token,
+              scrollController: _scrollController,
+            ),
+          ),
+        ],
+      );
+    }
+    )
+    )
+      ]
     );
   }
 

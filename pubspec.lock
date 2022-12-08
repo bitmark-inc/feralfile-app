@@ -75,8 +75,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "1.0.8"
-      resolved-ref: a7b85ee980453d7e56e6de8c9139cedfcdd44744
+      ref: "1.0.9"
+      resolved-ref: eee0b353bbd7895b5b9be15be7083c9f830c5719
       url: "https://github.com/bitmark-inc/autonomy-client-shared-theme.git"
     source: git
     version: "0.0.1+20"
@@ -1137,8 +1137,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: b944f87fd68bc1076646a584a6c460721cfa9445
-      resolved-ref: b944f87fd68bc1076646a584a6c460721cfa9445
+      ref: f136332307cff8f4b893598b986d25a8c3d87f3c
+      resolved-ref: f136332307cff8f4b893598b986d25a8c3d87f3c
       url: "https://github.com/autonomy-system/libauk-dart.git"
     source: git
     version: "0.0.1"

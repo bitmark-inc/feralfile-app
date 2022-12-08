@@ -219,7 +219,7 @@ class LibAukChannelHandler {
         let transaction = EthereumTransaction(
             nonce: EthereumQuantity(quantity: BigUInt(Double(nonce) ?? 0)),
             gasPrice: EthereumQuantity(quantity: BigUInt(Double(gasPrice) ?? 0)),
-            gas: EthereumQuantity(quantity: BigUInt(Double(gasLimit) ?? 0)),
+            gasLimit: EthereumQuantity(quantity: BigUInt(Double(gasLimit) ?? 0)),
             from: nil,
             to: try! EthereumAddress.init(hex: to, eip55: false),
             value: EthereumQuantity(quantity: BigUInt(Double(value) ?? 0)),
@@ -361,26 +361,7 @@ class LibAukChannelHandler {
             })
             .store(in: &cancelBag)
     }
-    
-    func getBitmarkAddress(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        let args: NSDictionary = call.arguments as! NSDictionary
-        let uuid: String = args["uuid"] as! String
 
-        LibAuk.shared.storage(for: UUID(uuidString: uuid)!).getBitmarkAddress()
-            .sink(receiveCompletion: { (completion) in
-                if let error = completion.error {
-                    result(ErrorHandler.handle(error: error))
-                }
-            }, receiveValue: { address in
-                result([
-                    "error": 0,
-                    "data": address,
-                ])
-            })
-            .store(in: &cancelBag)
-    }
-    
-    
 
     func removeKeys(call: FlutterMethodCall, result: @escaping FlutterResult) {
         let args: NSDictionary = call.arguments as! NSDictionary

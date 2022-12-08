@@ -171,7 +171,6 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
       injector<TokensService>().fetchTokensForAddresses([
         (await persona.wallet().getETHEip55Address()),
         (await persona.wallet().getTezosAddress()),
-        (await persona.wallet().getBitmarkAddress()),
       ]);
 
       if (!mounted) return;

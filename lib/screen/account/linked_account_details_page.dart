@@ -61,7 +61,6 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
         context
             .read<FeralfileBloc>()
             .add(GetFFAccountInfoEvent(widget.connection));
-        contextedAddresses.add(ContextedAddress(CryptoType.BITMARK, address));
 
         final ffAccount = widget.connection.ffConnection?.ffAccount ??
             widget.connection.ffWeb3Connection?.ffAccount;

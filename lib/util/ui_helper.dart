@@ -10,6 +10,8 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:autonomy_flutter/model/wc2_proposal.dart';
+import 'package:autonomy_flutter/util/au_icons.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
@@ -148,7 +150,7 @@ class UIHelper {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title, style: theme.primaryTextTheme.headline1),
+                    Text(title, style: theme.primaryTextTheme.ppMori700White24),
                     const SizedBox(height: 40),
                     content,
                   ],
@@ -215,6 +217,71 @@ class UIHelper {
                   ),
                 ),
               ),
+            ],
+          ),
+          const SizedBox(height: 15),
+        ]),
+      ),
+      isDismissible: isDismissible,
+      feedback: feedback,
+    );
+  }
+
+  static Future<void> showMessageActionNew(
+    BuildContext context,
+    String title,
+    String description, {
+    bool isDismissible = false,
+    int autoDismissAfter = 0,
+    String? closeButton,
+    Function? onClose,
+    FeedbackType? feedback = FeedbackType.selection,
+    String? actionButton,
+    Function? onAction,
+    Widget? descriptionWidget,
+  }) async {
+    log.info("[UIHelper] showInfoDialog: $title, $description");
+    final theme = Theme.of(context);
+
+    if (autoDismissAfter > 0) {
+      Future.delayed(
+          Duration(seconds: autoDismissAfter), () => hideInfoDialog(context));
+    }
+
+    await showDialog(
+      context,
+      title,
+      SizedBox(
+        width: double.infinity,
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          if (description.isNotEmpty) ...[
+            Text(
+              description,
+              style: theme.primaryTextTheme.bodyText1,
+            ),
+          ],
+          descriptionWidget ?? const SizedBox.shrink(),
+          const SizedBox(height: 40),
+          Row(
+            children: [
+              Expanded(
+                child: PrimaryButton(
+                  onTap: () => onClose?.call() ?? Navigator.pop(context),
+                  text: closeButton ?? 'cancel_dialog'.tr(),
+                  color: theme.auLightGrey,
+                ),
+              ),
+              if (onAction != null) ...[
+                const SizedBox(
+                  width: 10,
+                ),
+                Expanded(
+                  child: PrimaryButton(
+                    onTap: () => onAction.call(),
+                    text: actionButton ?? '',
+                  ),
+                ),
+              ],
             ],
           ),
           const SizedBox(height: 15),
@@ -608,7 +675,7 @@ class UIHelper {
               width: size,
               height: size,
               child:
-              Image.asset("assets/images/walletconnect-alternative.png"));
+                  Image.asset("assets/images/walletconnect-alternative.png"));
         } else {
           return CachedNetworkImage(
             imageUrl: appIcons.first,
@@ -661,9 +728,6 @@ class UIHelper {
           children: [
             Text('multichain_generate'.tr(),
                 style: theme.primaryTextTheme.headline5),
-            const SizedBox(height: 16),
-            Text("bitmark_address".tr(),
-                style: theme.primaryTextTheme.headline4),
             const SizedBox(height: 16),
             Text("ethereum_address".tr(),
                 style: theme.primaryTextTheme.headline4),
@@ -974,6 +1038,79 @@ class UIHelper {
       ),
     );
   }
+
+  static Future<void> showDrawerAction(BuildContext context,
+      {List<OptionItem>? options}) async {
+    final theme = Theme.of(context);
+    await showModalBottomSheet<dynamic>(
+        context: context,
+        isDismissible: true,
+        backgroundColor: Colors.transparent,
+        enableDrag: false,
+        constraints: BoxConstraints(
+            maxWidth: ResponsiveLayout.isMobile
+                ? double.infinity
+                : Constants.maxWidthModalTablet),
+        isScrollControlled: true,
+        builder: (context) {
+          return Container(
+            color: theme.auSuperTeal,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(
+                      AuIcon.close,
+                      size: 18,
+                    ),
+                  ),
+                ),
+                ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemBuilder: (BuildContext context, int index) =>
+                      GestureDetector(
+                    onTap: options?[index].onTap,
+                    child: Container(
+                      color: Colors.transparent,
+                      width: MediaQuery.of(context).size.width,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 16.0,
+                          horizontal: 13,
+                        ),
+                        child: Row(
+                          children: [
+                            if (options?[index].icon != null)
+                              options![index].icon!,
+                            if (options?[index].icon != null)
+                              const SizedBox(
+                                width: 40,
+                              ),
+                            Text(
+                              options?[index].title ?? '',
+                              style: theme.textTheme.ppMori400Black14,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  itemCount: options?.length ?? 0,
+                  separatorBuilder: (context, index) => Divider(
+                    height: 1,
+                    thickness: 1.0,
+                    color: theme.colorScheme.secondary,
+                  ),
+                ),
+              ],
+            ),
+          );
+        });
+  }
 }
 
 learnMoreAboutAutonomySecurityWidget(BuildContext context,
@@ -1045,8 +1182,10 @@ String getDateTimeRepresentation(DateTime dateTime) {
 class OptionItem {
   String? title;
   Function()? onTap;
+  Widget? icon;
   OptionItem({
     this.title,
     this.onTap,
+    this.icon,
   });
 }

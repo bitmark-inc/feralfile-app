@@ -146,19 +146,6 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
           style: theme.textTheme.headline1,
         ),
         const SizedBox(height: 24),
-        FutureBuilder<String>(
-            future: Persona.newPersona(uuid: uuid).wallet().getBitmarkAddress(),
-            builder: (context, snapshot) {
-              if (snapshot.hasData) {
-                return _addressRow(
-                  address: snapshot.data ?? "",
-                  type: CryptoType.BITMARK,
-                );
-              } else {
-                return const SizedBox();
-              }
-            }),
-        addDivider(),
         BlocBuilder<EthereumBloc, EthereumState>(builder: (context, state) {
           final ethAddress = state.personaAddresses?[uuid];
           final ethBalance = state.ethBalances[ethAddress];

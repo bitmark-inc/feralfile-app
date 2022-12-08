@@ -38,9 +38,13 @@ const DEEP_LINKS = [
 const FF_ARTIST_COLLECTOR =
     'https://feralfile.com/docs/artist-collector-rights';
 const WEB3_PRIMER_URL = 'https://autonomy.io/catalog/primer/';
+const COLLECTOR_RIGHTS_DEFAULT_DOCS = "/bitmark-inc/feral-file-docs/master/docs/collector-rights/standard/en.md";
+const COLLECTOR_RIGHTS_MEMENTO_DOCS = "/bitmark-inc/feral-file-docs/master/docs/collector-rights/MoMA-Memento/en.md";
+const COLLECTOR_RIGHTS_MOMA_009_UNSUPERVISED_DOCS = "/bitmark-inc/feral-file-docs/master/docs/collector-rights/009-unsupervised/en.md";
+const MOMA_MEMENTO_EXHIBITION_ID = "00370334-6151-4c04-b6be-dc09e325d57d";
+const MOMA_009_UNSUPERVISED_CONTRACT_ADDRESS = "0x7a15b36cB834AeA88553De69077D3777460d73Ac";
 const CHECK_WEB3_PRIMER_URL =
     'https://feralfile.com/artworks/memento-1-study-for-unsupervised';
-
 const int cellPerRowPhone = 3;
 const int cellPerRowTablet = 6;
 const double cellSpacing = 3.0;
@@ -184,7 +188,6 @@ class ContextedAddress {
 enum CryptoType {
   ETH,
   XTZ,
-  BITMARK,
   USDC,
   UNKNOWN,
 }
@@ -196,7 +199,6 @@ extension CryptoTypeHelpers on CryptoType {
         return "ETH";
       case CryptoType.XTZ:
         return "XTZ";
-      case CryptoType.BITMARK:
       case CryptoType.USDC:
         return "USDC";
       case CryptoType.UNKNOWN:
@@ -210,7 +212,6 @@ extension CryptoTypeHelpers on CryptoType {
         return "Ethereum (ETH)";
       case CryptoType.XTZ:
         return "Tezos (XTZ)";
-      case CryptoType.BITMARK:
       case CryptoType.USDC:
         return "USD Coin (USDC)";
       case CryptoType.UNKNOWN:
@@ -224,8 +225,6 @@ extension CryptoTypeHelpers on CryptoType {
         return "Ethereum";
       case CryptoType.XTZ:
         return "Tezos";
-      case CryptoType.BITMARK:
-        return "Bitmark";
       case CryptoType.USDC:
         return "USDC";
       case CryptoType.UNKNOWN:

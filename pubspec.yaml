@@ -78,7 +78,7 @@ dependencies:
   libauk_dart:
     git:
       url: https://github.com/autonomy-system/libauk-dart.git
-      ref: b944f87fd68bc1076646a584a6c460721cfa9445
+      ref: f136332307cff8f4b893598b986d25a8c3d87f3c
   local_auth: ^2.1.0
   logging: ^1.0.2
   measured_size: ^1.0.0
@@ -128,7 +128,7 @@ dependencies:
   autonomy_theme:
     git:
       url: https://github.com/bitmark-inc/autonomy-client-shared-theme.git
-      ref: 1.0.8
+      ref: 1.0.9
   easy_localization: ^3.0.1
   rxdart: ^0.26.0
   in_app_review: ^2.0.4

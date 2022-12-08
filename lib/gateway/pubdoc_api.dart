@@ -31,7 +31,7 @@ abstract class PubdocAPI {
   @GET("/demo/demo_account.json")
   Future<String> getDemoAccount();
 
-  @GET("/editorial.json")
+  @GET("/editorial/editorial.json")
   Future<String> getEditorial();
 }
 

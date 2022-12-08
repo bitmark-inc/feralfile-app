@@ -28,6 +28,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:nft_collection/models/asset_token.dart';
@@ -40,14 +41,6 @@ import 'package:share/share.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../common/injector.dart';
-
-const moMAContract = [
-  {
-    "address": "0x7a15b36cB834AeA88553De69077D3777460d73Ac",
-    "name": "Unsupervised",
-    "blockchainType": "FeralfileExhibitionV2"
-  },
-];
 
 String getEditionSubTitle(AssetToken token) {
   if (token.editionName != null && token.editionName != "") {
@@ -831,20 +824,22 @@ Widget artworkDetailsMetadataSection(
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      Text(
-        "metadata".tr(),
-        style: theme.textTheme.headline2,
+      HeaderData(
+        text: "metadata".tr(),
       ),
       const SizedBox(height: 23.0),
-      _rowItem(context, "title".tr(), asset.title),
+      MetaDataItem(
+        title: "title".tr(),
+        value: asset.title,
+      ),
       if (artistName != null) ...[
-        const Divider(height: 32.0),
-        _rowItem(
-          context,
-          "artist".tr(),
-          artistName,
-          // some FF's artist set multiple links
-          // Discussion thread: https://bitmark.slack.com/archives/C01EPPD07HU/p1648698027564299
+        Divider(
+          height: 32.0,
+          color: theme.auLightGrey,
+        ),
+        MetaDataItem(
+          title: "artist".tr(),
+          value: artistName,
           tapLink: asset.artistURL?.split(" & ").firstOrNull,
           forceSafariVC: true,
         ),
@@ -852,7 +847,10 @@ Widget artworkDetailsMetadataSection(
       (asset.fungible == false)
           ? Column(
               children: [
-                const Divider(height: 32.0),
+                Divider(
+                  height: 32.0,
+                  color: theme.auLightGrey,
+                ),
                 _getEditionNameRow(context, asset),
               ],
             )
@@ -860,44 +858,63 @@ Widget artworkDetailsMetadataSection(
       (asset.maxEdition ?? 0) > 0
           ? Column(
               children: [
-                const Divider(height: 32.0),
-                _rowItem(
-                    context, "edition_size".tr(), asset.maxEdition.toString()),
+                Divider(
+                  height: 32.0,
+                  color: theme.auLightGrey,
+                ),
+                MetaDataItem(
+                  title: "edition_size".tr(),
+                  value: asset.maxEdition.toString(),
+                ),
               ],
             )
           : const SizedBox(),
-      const Divider(height: 32.0),
-      _rowItem(
-        context,
-        "token".tr(),
-        polishSource(asset.source ?? ""),
+      Divider(
+        height: 32.0,
+        color: theme.auLightGrey,
+      ),
+      MetaDataItem(
+        title: "token".tr(),
+        value: polishSource(asset.source ?? ""),
         tapLink: asset.isAirdrop ? null : asset.assetURL,
         forceSafariVC: true,
       ),
-      const Divider(height: 32.0),
-      _rowItem(
-        context,
-        "contract".tr(),
-        asset.blockchain.capitalize(),
+      Divider(
+        height: 32.0,
+        color: theme.auLightGrey,
+      ),
+      MetaDataItem(
+        title: "contract".tr(),
+        value: asset.blockchain.capitalize(),
         tapLink: asset.getBlockchainUrl(),
         forceSafariVC: true,
       ),
-      const Divider(height: 32.0),
-      _rowItem(context, "medium".tr(), asset.medium?.capitalize()),
-      const Divider(height: 32.0),
-      _rowItem(
-        context,
-        "date_minted".tr(),
-        asset.mintedAt != null
+      Divider(
+        height: 32.0,
+        color: theme.auLightGrey,
+      ),
+      MetaDataItem(
+        title: "medium".tr(),
+        value: asset.medium?.capitalize() ?? '',
+      ),
+      Divider(
+        height: 32.0,
+        color: theme.auLightGrey,
+      ),
+      MetaDataItem(
+        title: "date_minted".tr(),
+        value: asset.mintedAt != null
             ? localTimeStringFromISO8601(asset.mintedAt!)
-            : null,
-        maxLines: 1,
+            : '',
       ),
       asset.assetData != null && asset.assetData!.isNotEmpty
           ? Column(
               children: [
                 const Divider(height: 32.0),
-                _rowItem(context, "artwork_data".tr(), asset.assetData)
+                MetaDataItem(
+                  title: "artwork_data".tr(),
+                  value: asset.assetData!,
+                )
               ],
             )
           : const SizedBox(),
@@ -907,9 +924,15 @@ Widget artworkDetailsMetadataSection(
 
 Widget _getEditionNameRow(BuildContext context, AssetToken asset) {
   if (asset.editionName != null && asset.editionName != "") {
-    return _rowItem(context, "edition_name".tr(), asset.editionName!);
+    return MetaDataItem(
+      title: "edition_name".tr(),
+      value: asset.editionName!,
+    );
   }
-  return _rowItem(context, "edition_number".tr(), asset.edition.toString());
+  return MetaDataItem(
+    title: "edition_number".tr(),
+    value: asset.edition.toString(),
+  );
 }
 
 Widget tokenOwnership(
@@ -929,19 +952,30 @@ Widget tokenOwnership(
     children: [
       Text(
         "token_ownership".tr(),
-        style: theme.textTheme.headline2,
+        style: theme.textTheme.ppMori400White12,
       ),
       const SizedBox(height: 23.0),
       Text(
         "how_many_editions_you_own".tr(),
-        style: theme.textTheme.bodyText1,
+        style: theme.textTheme.ppMori400White12,
       ),
       const SizedBox(height: 32.0),
-      _rowItem(context, "editions".tr(), "${asset.maxEdition}",
-          tapLink: asset.tokenURL, forceSafariVC: true),
-      const Divider(height: 32.0),
-      _rowItem(context, "owned".tr(), "$ownedTokens",
-          tapLink: asset.tokenURL, forceSafariVC: true),
+      MetaDataItem(
+        title: "editions".tr(),
+        value: "${asset.maxEdition}",
+        tapLink: asset.tokenURL,
+        forceSafariVC: true,
+      ),
+      Divider(
+        height: 32.0,
+        color: theme.auLightGrey,
+      ),
+      MetaDataItem(
+        title: "owned".tr(),
+        value: "$ownedTokens",
+        tapLink: asset.tokenURL,
+        forceSafariVC: true,
+      ),
     ],
   );
 }
@@ -995,7 +1029,7 @@ class MetaDataItem extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               maxLines: 1,
               style: onValueTap != null
-                  ? theme.textTheme.ppMori400Green12
+                  ? theme.textTheme.ppMori400SupperTeal12
                   : theme.textTheme.ppMori400White12,
             ),
           ),
@@ -1138,9 +1172,8 @@ Widget artworkDetailsProvenanceSectionNotEmpty(
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "provenance".tr(),
-            style: theme.textTheme.headline2,
+          HeaderData(
+            text: "provenance".tr(),
           ),
           const SizedBox(height: 23.0),
           ...provenances.map((el) {
@@ -1150,39 +1183,16 @@ Widget artworkDetailsProvenanceSectionNotEmpty(
             final provenanceTitle = "${identityTitle ?? ''}$youTitle";
             return Column(
               children: [
-                _rowItem(
-                  context,
-                  provenanceTitle,
-                  localTimeString(el.timestamp),
-                  subTitle: el.blockchain.toUpperCase(),
+                ProvenanceItem(
+                  title: (identityTitle ?? '') + youTitle,
+                  value: localTimeString(el.timestamp),
+                  // subTitle: el.blockchain.toUpperCase(),
                   tapLink: el.txURL,
                   onNameTap: () => identity != null
                       ? UIHelper.showIdentityDetailDialog(context,
                           name: identity, address: el.owner)
                       : null,
                   forceSafariVC: true,
-                  title: Row(
-                    children: [
-                      Flexible(
-                        child: FittedBox(
-                          child: Text(
-                            identityTitle ?? '',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.headline4,
-                          ),
-                        ),
-                      ),
-                      Visibility(
-                        visible: youAddresses.contains(el.owner),
-                        child: Text(
-                          "_you".tr(),
-                          style: theme.textTheme.headline4,
-                        ),
-                      ),
-                    ],
-                  ),
-                  maxLines: 1,
                 ),
                 const Divider(height: 32.0),
               ],
@@ -1216,45 +1226,10 @@ class _ArtworkRightsViewState extends State<ArtworkRightsView> {
   @override
   void initState() {
     super.initState();
-    if (widget.exhibitionID != null) {
-      context
-          .read<RoyaltyBloc>()
-          .add(GetRoyaltyInfoEvent(exhibitionID: widget.exhibitionID));
-    } else {
-      context
-          .read<RoyaltyBloc>()
-          .add(GetRoyaltyInfoEvent(editionID: widget.editionID));
-    }
-  }
-
-  bool _isMoMAShow(String? address) {
-    return moMAContract.any((contract) => contract["address"] == address);
-  }
-
-  String sellOrTransferText(RoyaltyState state) {
-    if (_isMoMAShow(widget.contract.address)) {
-      return "resell_or_transfer_moma_text".tr();
-    }
-    if (state.resaleInfo != null) {
-      final FeralFileResaleInfo resaleInfo = state.resaleInfo!;
-      if (state.partnerName != null) {
-        if (state.resaleInfo!.partner > 0) {
-          final partnerName = state.partnerName ?? "partner".tr();
-          return "resell_or_transfer_with_partner_text".tr(args: [
-            (resaleInfo.artist * 100).toString(),
-            (resaleInfo.platform * 100).toString(),
-            partnerName,
-            (resaleInfo.partner * 100).toString()
-          ]);
-        } else {
-          return "resell_or_transfer_no_partner_text".tr(args: [
-            (resaleInfo.artist * 100).toString(),
-            (resaleInfo.platform * 100).toString()
-          ]);
-        }
-      }
-    }
-    return "resell_or_transfer_text".tr();
+    context.read<RoyaltyBloc>().add(GetRoyaltyInfoEvent(
+        exhibitionID: widget.exhibitionID,
+        editionID: widget.editionID,
+        contractAddress: widget.contract.address));
   }
 
   String getUrl(RoyaltyState state) {
@@ -1272,14 +1247,13 @@ class _ArtworkRightsViewState extends State<ArtworkRightsView> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "rights".tr(),
-            style: theme.textTheme.headline2,
+          HeaderData(
+            text: "rights".tr(),
           ),
           const SizedBox(height: 23.0),
           Text(
             "ff_protect".tr(),
-            style: theme.textTheme.bodyText1,
+            style: theme.textTheme.ppMori400White12,
           ),
           const SizedBox(height: 18.0),
           TextButton(
@@ -1288,74 +1262,30 @@ class _ArtworkRightsViewState extends State<ArtworkRightsView> {
                 mode: LaunchMode.externalApplication),
             child: Text(
               "learn_artist".tr(),
-              style: theme.textTheme.ppMori400Green12,
+              style: theme.textTheme.ppMori400SupperTeal12,
             ),
           ),
           const SizedBox(height: 23.0),
-          _artworkRightItem(context, "download".tr(), "download_text".tr()),
-          const Divider(
-            height: 32.0,
-            color: AppColor.secondarySpanishGrey,
-          ),
-          _artworkRightItem(context, "display".tr(), "display_text".tr()),
-          const Divider(
-            height: 32.0,
-            color: AppColor.secondarySpanishGrey,
-          ),
-          _artworkRightItem(
-              context, "authenticate".tr(), "authenticate_text".tr()),
-          const Divider(
-            height: 32.0,
-            color: AppColor.secondarySpanishGrey,
-          ),
-          _artworkRightItem(
-              context, "loan_or_lease".tr(), "loan_or_lease_text".tr()),
-          const Divider(
-            height: 32.0,
-            color: AppColor.secondarySpanishGrey,
-          ),
-          _artworkRightItem(
-              context, "resell_or_transfer".tr(), sellOrTransferText(state)),
-          const Divider(
-            height: 32.0,
-            color: AppColor.secondarySpanishGrey,
-          ),
-          _artworkRightItem(
-              context, "remain_anonymous".tr(), "remain_anonymous_text".tr()),
-          const Divider(
-            height: 32.0,
-            color: AppColor.secondarySpanishGrey,
-          ),
-          _artworkRightItem(context, "respect_artist_right".tr(),
-              "respect_artist_right_text".tr()),
+          state.markdownData == null
+              ? const SizedBox()
+              : Markdown(
+                  key: const Key("rightsSection"),
+                  data: state.markdownData!.replaceAll(".**", "**"),
+                  softLineBreak: true,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(0),
+                  styleSheet: markDownRightStyle(context),
+                  onTapLink: (text, href, title) async {
+                    if (href == null) return;
+                    launchUrl(Uri.parse(href),
+                        mode: LaunchMode.externalApplication);
+                  }),
+          const SizedBox(height: 23.0),
         ],
       );
     });
   }
-}
-
-Widget _artworkRightItem(BuildContext context, String name, String body) {
-  final theme = Theme.of(context);
-
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Row(
-        children: [
-          Text(
-            name,
-            style: theme.textTheme.headline4,
-          ),
-        ],
-      ),
-      const SizedBox(height: 16.0),
-      Text(
-        body,
-        textAlign: TextAlign.start,
-        style: theme.textTheme.bodyText1,
-      ),
-    ],
-  );
 }
 
 Widget _rowItem(
@@ -1390,15 +1320,16 @@ Widget _rowItem(
           children: [
             GestureDetector(
               onTap: onNameTap,
-              child: title ?? Text(name, style: theme.textTheme.headline4),
+              child:
+                  title ?? Text(name, style: theme.textTheme.ppMori400White12),
             ),
             if (subTitle != null) ...[
               const SizedBox(height: 2),
               Text(
                 subTitle,
                 style: ResponsiveLayout.isMobile
-                    ? theme.textTheme.atlasBlackBold12
-                    : theme.textTheme.atlasBlackBold14,
+                    ? theme.textTheme.ppMori400White12
+                    : theme.textTheme.ppMori400White14,
               ),
             ]
           ],
@@ -1421,10 +1352,10 @@ Widget _rowItem(
                     softWrap: true,
                     overflow: TextOverflow.ellipsis,
                     style: onValueTap != null
-                        ? theme.textTheme.subtitle1
+                        ? theme.textTheme.ppMori400White12
                         : ResponsiveLayout.isMobile
-                            ? theme.textTheme.ibmGreyMediumNormal16
-                            : theme.textTheme.ibmGreyMediumNormal20,
+                            ? theme.textTheme.ppMori400White12
+                            : theme.textTheme.ppMori400White12,
                   ),
                 ),
               ),
@@ -1433,7 +1364,7 @@ Widget _rowItem(
               const SizedBox(width: 8.0),
               SvgPicture.asset(
                 'assets/images/iconForward.svg',
-                color: theme.textTheme.bodyText1?.color,
+                color: theme.textTheme.ppMori400White12.color,
               ),
             ]
           ],

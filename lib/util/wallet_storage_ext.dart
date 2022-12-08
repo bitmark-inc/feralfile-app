@@ -44,7 +44,6 @@ extension StringHelper on String {
 extension WalletStorageExtension on WalletStorage {
   Future getOwnedQuantity(AssetToken token) async {
     final addresses = [
-      await getBitmarkAddress(),
       await getETHEip55Address(),
       await getTezosAddress(),
     ];

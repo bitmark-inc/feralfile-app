@@ -100,7 +100,7 @@ class _PubdocAPI implements PubdocAPI {
     )
             .compose(
               _dio.options,
-              '/editorial.json',
+              '/editorial/editorial.json',
               queryParameters: queryParameters,
               data: _data,
             )
