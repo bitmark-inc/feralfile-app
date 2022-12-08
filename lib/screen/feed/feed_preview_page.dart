@@ -6,7 +6,6 @@
 //
 
 import 'dart:async';
-import 'dart:math';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
@@ -23,19 +22,14 @@ import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/mixPanel_client_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
-import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:get_it/get_it.dart';
 import 'package:measured_size/measured_size.dart';
@@ -43,131 +37,43 @@ import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/widgets/nft_collection_bloc.dart';
 import 'package:nft_rendering/nft_rendering.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
-import 'package:wakelock/wakelock.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
-import 'package:web3dart/crypto.dart';
 
 Map<String, double> heightMap = {};
 
 class FeedPreviewPage extends StatelessWidget {
-  FeedPreviewPage({Key? key}) : super(key: key);
+  final ScrollController? controller;
+  FeedPreviewPage({Key? key, this.controller}) : super(key: key);
 
   final nftCollectionBloc = injector<NftCollectionBloc>();
 
-  Widget get discoveryTab {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(
-          create: (_) => FeedBloc(
-            injector(),
-            injector(),
-            nftCollectionBloc.database.assetDao,
-          ),
-        ),
-        BlocProvider(
-            create: (_) => IdentityBloc(injector<AppDatabase>(), injector())),
-      ],
-      child: const FeedPreviewScreen(),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    final List<String> _tabs = <String>['Discovery', 'Editorial'];
     heightMap = {};
     double safeAreaTop = MediaQuery.of(context).padding.top;
-    return DefaultTabController(
-      length: _tabs.length,
-      child: Scaffold(
-        body: NestedScrollView(
-          headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
-            return <Widget>[
-              SliverOverlapAbsorber(
-                handle: NestedScrollView.sliverOverlapAbsorberHandleFor(context),
-                sliver:  SliverAppBar(
-                  expandedHeight: safeAreaTop + 120,
-                  flexibleSpace: FlexibleSpaceBar(
-                    titlePadding: EdgeInsets.only(top: 0, left: 0, bottom: 15),
-                    title: Padding(
-                      padding: EdgeInsets.only(top: safeAreaTop + 69, left: 15),
-                      child: SizedBox(
-                        width: 50,
-                          height: 50,
-                          child: Image.asset("assets/images/moma_logo.png", color: Colors.white,)
-                      ),
-                    ),
-                  ),
-                  floating: true,
-                  pinned: true,
-                  snap: false,
-                  forceElevated: innerBoxIsScrolled,
-                  bottom: PreferredSize(
-                    preferredSize: Size.fromHeight(102),
-                    child:
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          Container(width: 10, color: Colors.yellow),
-                          TabBar(
-                            labelPadding: EdgeInsets.zero,
-                            indicatorPadding: EdgeInsets.only(left: 5, right: 5,),
-                            indicatorColor: Colors.yellow,
-                            padding: EdgeInsets.only(right: 0, bottom: 0),
-                            tabs: _tabs.map((String name) =>
-                                Padding(
-                                  padding: const EdgeInsets.only(left: 5, right: 5),
-                                  child: Container(
-                                    padding: EdgeInsets.zero,
-                                      child: Tab(text: name, iconMargin: EdgeInsets.zero,
-                                      )
-                                  ),
-                                )
-                            ).toList(),
-                            indicator: const UnderlineTabIndicator(
-                                borderSide: BorderSide(
-                                  width: 2,
-                                  color: Colors.green,
-                                ),
-                                insets: EdgeInsets.only(
-                                    bottom: 45)
-                            ),
-                            isScrollable: true,
-                          ),
-                          Container(width: 10, color: Colors.yellow),
-                        ],
-                      ),
-                  ),
-                ),
-              ),
-            ];
-          },
-          body: TabBarView(
-            children: [
-              MultiBlocProvider(
-                providers: [
-                  BlocProvider(
-                    create: (_) => FeedBloc(
-                      injector(),
-                      injector(),
-                      nftCollectionBloc.database.assetDao,
-                    ),
-                  ),
-                BlocProvider(
-                  create: (_) => IdentityBloc(injector<AppDatabase>(), injector())),
-                ],
-                child: const FeedPreviewScreen(),
-              ),
-              Container(color: Colors.yellow, height: 500,),
-            ]
+    return Scaffold(
+      body:
+      MultiBlocProvider(
+        providers: [
+          BlocProvider(
+            create: (_) => FeedBloc(
+              injector(),
+              injector(),
+              nftCollectionBloc.database.assetDao,
+            ),
           ),
-        ),
+          BlocProvider(
+              create: (_) => IdentityBloc(injector<AppDatabase>(), injector())),
+        ],
+        child: FeedPreviewScreen(controller: controller,),
       ),
     );
   }
 }
 
 class FeedPreviewScreen extends StatefulWidget {
-  const FeedPreviewScreen({Key? key}) : super(key: key);
+  final ScrollController? controller;
+  const FeedPreviewScreen({Key? key, this.controller}) : super(key: key);
 
   @override
   State<FeedPreviewScreen> createState() => _FeedPreviewScreenState();
@@ -180,12 +86,8 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
         WidgetsBindingObserver,
         TickerProviderStateMixin{
   String? swipeDirection;
-  Timer? _timer;
-  Timer? _maxTimeTokenTimer;
 
   final _configurationService = GetIt.I.get<ConfigurationService>();
-
-  final _controller = PageController();
 
   late FeedBloc _bloc;
 
@@ -214,32 +116,25 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
   @override
   void didChangeDependencies() {
     routeObserver.subscribe(this, ModalRoute.of(context)!);
-    Wakelock.enable();
     super.didChangeDependencies();
   }
 
   @override
   void didPopNext() {
-    Wakelock.enable();
-
     super.didPopNext();
   }
 
   @override
   void didPushNext() {
-    _maxTimeTokenTimer?.cancel();
     super.didPopNext();
   }
 
   @override
   void dispose() {
-    Wakelock.disable();
     routeObserver.unsubscribe(this);
     WidgetsBinding.instance.removeObserver(this);
     Sentry.getSpan()?.finish(status: const SpanStatus.ok());
-    _timer?.cancel();
-    _maxTimeTokenTimer?.cancel();
-    _controller.dispose();
+    // _controller.dispose();
     super.dispose();
   }
 
@@ -259,25 +154,21 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
               return _emptyOrLoadingDiscoveryWidget(state.appFeedData);
             }
             //final feedTokens = state.feedTokens;
-            return Container(
-              //color: Colors.lightBlue,
-              //padding: EdgeInsets.only(top: 102),
-              child: Stack(
-                children: [
-                  ListView.builder(
-                    shrinkWrap: true,
-                    addAutomaticKeepAlives: true,
-                    itemCount: state.feedTokens?.length,
-                    padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
-                    cacheExtent: 500,
+            return Stack(
+              children: [
+                ListView.builder(
+                  controller: widget.controller,
+                  shrinkWrap: true,
+                  itemCount: state.feedTokens?.length,
+                  padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+                  //cacheExtent: 500,
 
-                    itemBuilder: (context, index) => _listItem(
-                        state.feedEvents![index],
-                        state.feedTokens![index]
-                    )
-                  ),
-                ]
-              ),
+                  itemBuilder: (context, index) => _listItem(
+                      state.feedEvents![index],
+                      state.feedTokens![index]
+                  )
+                ),
+              ]
             );
           }),
     );
@@ -300,7 +191,7 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
               ),
             ),
 
-            const SizedBox(height: 10,),
+            const SizedBox(height: 15,),
             Align(
               alignment: Alignment.topCenter,
               child: _controlView(event, asset,),
@@ -317,7 +208,7 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
     final theme = Theme.of(context);
     return Container(
       color: theme.colorScheme.primary,
-      padding: EdgeInsets.only(left: 15, right: 5,),
+      padding: const EdgeInsets.only(left: 15, right: 5,),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -377,7 +268,7 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
     final theme = Theme.of(context);
     return Container(
       color: theme.colorScheme.primary,
-      padding: EdgeInsets.only(left: 15, right: 5),
+      padding: const EdgeInsets.only(left: 15, right: 5),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -397,19 +288,19 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
                         Text(
                             asset.title.isEmpty
                                 ? 'nft'
-                                : '${asset.title} ',
+                                : '${asset.title}',
                           overflow: TextOverflow.ellipsis,
                             style: ResponsiveLayout.isMobile
                                 ? theme.textTheme.ppMori400White14
                                 : theme.textTheme.atlasWhiteItalic14,
                         ),
-                        const SizedBox(height: 6,),
+                        const SizedBox(height: 3,),
                         if (artistName != null) ...[
                           RichText(
                             overflow: TextOverflow.ellipsis,
                               text: TextSpan(
                                   text: 'by'.tr(args: [artistName]),
-                                  style: theme.textTheme.ppMori400White14),
+                                  style: theme.textTheme.ppMori400White12),
                           ),
                         ]
                       ],
@@ -425,9 +316,6 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
   }
 
   Future _moveToInfo(AssetToken asset, FeedEvent event) async {
-    _maxTimeTokenTimer?.cancel();
-    Wakelock.disable();
-
     Navigator.of(context).pushNamed(
       AppRouter.feedArtworkDetailsPage,
       arguments: FeedDetailPayload(asset, event),
@@ -575,7 +463,6 @@ class _FeedArtworkState extends State<FeedArtwork>
     return BlocBuilder<ArtworkPreviewDetailBloc, ArtworkPreviewDetailState>(
       bloc: _bloc,
       builder: (context, state) {
-        print(state.runtimeType);
         switch (state.runtimeType) {
           case ArtworkPreviewDetailLoadingState:
             final screenWidth = MediaQuery.of(context).size.width;
@@ -633,10 +520,9 @@ class _FeedArtworkState extends State<FeedArtwork>
                 ),
               );
             }
-            return SizedBox(
-            );
+            return const SizedBox();
           default:
-            return SizedBox();
+            return const SizedBox();
         }
       },
     );

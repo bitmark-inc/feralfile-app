@@ -110,9 +110,8 @@ class _EditorialPageState extends State<EditorialPage>
               Expanded(
                 child: TabBarView(
                   children: [
-                    FeedPreviewPage().discoveryTab,
+                    FeedPreviewPage(controller: _controller,),
                     //TODO: replace with new discovery here.
-                    const SizedBox(),
                     ListView.builder(
                       controller: _controller,
                       padding: ResponsiveLayout.pageEdgeInsets,
