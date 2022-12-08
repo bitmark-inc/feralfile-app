@@ -205,7 +205,9 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
                                               element?.id ==
                                               tokenIDs.firstOrDefault())
                                           .firstOrDefault()
-                                          ?.getThumbnailUrl(),
+                                          ?.getThumbnailUrl(
+                                            usingThumbnailID: false,
+                                          ),
                                     ),
                                   );
                                 },
@@ -243,7 +245,9 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
                                             element.id ==
                                             playList?.tokenIDs.firstOrDefault())
                                         .firstOrDefault()
-                                        ?.getThumbnailUrl();
+                                        ?.getThumbnailUrl(
+                                          usingThumbnailID: false,
+                                        );
                                     playList?.thumbnailURL = thubnailUrl;
                                     bloc.add(SavePlaylist());
                                   },
