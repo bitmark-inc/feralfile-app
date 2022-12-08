@@ -5,7 +5,9 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_bloc.dart';
@@ -60,7 +62,9 @@ class PreferenceView extends StatelessWidget {
               "receive_notification".tr(),
               //"Receive notifications when you get new NFTs, signing requests, or customer support messages.",
               state.isNotificationEnabled, (value) {
-            final newState = state.copyWith(isNotificationEnabled: value);
+            final newState = state.copyWith(isNotificationEnabled: value, hasPendingSettings: false);
+            final configService = injector<ConfigurationService>();
+            configService.setPendingSettings(false);
             context
                 .read<PreferencesBloc>()
                 .add(PreferenceUpdateEvent(newState));
