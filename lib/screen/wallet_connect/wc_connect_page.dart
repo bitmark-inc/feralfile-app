@@ -153,8 +153,6 @@ class _WCConnectPageState extends State<WCConnectPage>
       );
       payloadType = CryptoType.ETH;
       payloadAddress = await selectedPersona!.wallet().getETHEip55Address();
-      if (!mounted) return;
-      Navigator.of(context).pop();
     } else if (wcConnectArgs != null) {
       final address = await injector<EthereumService>()
           .getETHAddress(selectedPersona!.wallet());
@@ -174,6 +172,7 @@ class _WCConnectPageState extends State<WCConnectPage>
       payloadType = CryptoType.ETH;
       if (onBoarding) {
         _navigateHome();
+        return;
       } else {
         if (wcConnectArgs.peerMeta.url.contains("feralfile")) {
           _navigateWhenConnectFeralFile();
@@ -206,9 +205,7 @@ class _WCConnectPageState extends State<WCConnectPage>
           },
         );
       }
-    }
-
-    if (beaconRequest != null) {
+    } else if (beaconRequest != null) {
       final wallet = selectedPersona!.wallet();
       final publicKey = await wallet.getTezosPublicKey();
       final address = await wallet.getTezosAddress();
