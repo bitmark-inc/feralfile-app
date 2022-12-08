@@ -13,7 +13,6 @@ import 'package:autonomy_flutter/util/play_control.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
-import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -58,7 +57,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
           debugTokens: isDemo ? widget.playListModel?.tokenIDs ?? [] : []));
       nftBloc.add(RequestIndexEvent(value));
     });
-    bloc.add(GetPlayList());
+    bloc.add(GetPlayList(playListModel: widget.playListModel));
   }
 
   deletePlayList() {
@@ -129,7 +128,10 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
             title: isRename ?? false
                 ? TextNamePlaylist(
                     playList: playList,
-                    onEditPlaylistName: (value) => playList?.name = value,
+                    onEditPlaylistName: (value) {
+                      bloc.add(SavePlaylist(
+                          name: value.trim().isNotEmpty ? value.trim() : null));
+                    },
                   )
                 : Text(
                     (playList?.name?.isNotEmpty ?? false)
