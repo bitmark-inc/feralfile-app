@@ -73,7 +73,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   @override
   void afterFirstLayout(BuildContext context) {
     final artworkId =
-    jsonEncode(widget.payload.identities[widget.payload.currentIndex]);
+        jsonEncode(widget.payload.identities[widget.payload.currentIndex]);
     final metricClient = injector.get<MetricClientService>();
     metricClient.addEvent(
       "view_artwork_detail",
@@ -109,27 +109,24 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
               }),
           body: BlocConsumer<ArtworkDetailBloc, ArtworkDetailState>(
               listener: (context, state) {
-                final identitiesList =
+            final identitiesList =
                 state.provenances.map((e) => e.owner).toList();
-                if (state.asset?.artistName != null &&
-                    state.asset!.artistName!.length > 20) {
-                  identitiesList.add(state.asset!.artistName!);
-                }
-                setState(() {
-                  currentAsset = state.asset;
-                });
+            if (state.asset?.artistName != null &&
+                state.asset!.artistName!.length > 20) {
+              identitiesList.add(state.asset!.artistName!);
+            }
+            setState(() {
+              currentAsset = state.asset;
+            });
 
-                context.read<IdentityBloc>().add(
-                    GetIdentityEvent(identitiesList));
-              }, builder: (context, state) {
+            context.read<IdentityBloc>().add(GetIdentityEvent(identitiesList));
+          }, builder: (context, state) {
             if (state.asset != null) {
-              final identityState = context
-                  .watch<IdentityBloc>()
-                  .state;
+              final identityState = context.watch<IdentityBloc>().state;
               final asset = state.asset!;
 
               final artistName =
-              asset.artistName?.toIdentityOrMask(identityState.identityMap);
+                  asset.artistName?.toIdentityOrMask(identityState.identityMap);
 
               var subTitle = "";
               if (artistName != null && artistName.isNotEmpty) {
@@ -234,12 +231,11 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                                     context, asset, addresses);
                               },
                             ),
-                          ] else
-                            ...[
-                              state.provenances.isNotEmpty
-                                  ? _provenanceView(context, state.provenances)
-                                  : const SizedBox()
-                            ],
+                          ] else ...[
+                            state.provenances.isNotEmpty
+                                ? _provenanceView(context, state.provenances)
+                                : const SizedBox()
+                          ],
                           artworkDetailsRightSection(context, asset),
                           const SizedBox(height: 80.0),
                         ],
@@ -271,15 +267,14 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
       builder: (context, identityState) =>
           BlocBuilder<AccountsBloc, AccountsState>(
               builder: (context, accountsState) {
-                final event = accountsState.event;
-                if (event != null && event is FetchAllAddressesSuccessEvent) {
-                  _accountNumberHash = HashSet.of(event.addresses);
-                }
+        final event = accountsState.event;
+        if (event != null && event is FetchAllAddressesSuccessEvent) {
+          _accountNumberHash = HashSet.of(event.addresses);
+        }
 
-                return artworkDetailsProvenanceSectionNotEmpty(
-                    context, provenances,
-                    _accountNumberHash, identityState.identityMap);
-              }),
+        return artworkDetailsProvenanceSectionNotEmpty(context, provenances,
+            _accountNumberHash, identityState.identityMap);
+      }),
     );
   }
 
@@ -330,10 +325,10 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
               Navigator.of(context).pop();
               UIHelper.showHideArtworkResultDialog(context, !isHidden,
                   onOK: () {
-                    Navigator.of(context).popUntil((route) =>
+                Navigator.of(context).popUntil((route) =>
                     route.settings.name == AppRouter.homePage ||
-                        route.settings.name == AppRouter.homePageNoTransition);
-                  });
+                    route.settings.name == AppRouter.homePageNoTransition);
+              });
             },
           ),
           if (ownerWallet != null) ...[
@@ -368,12 +363,10 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
 
                 if (!payload["isTezos"]) {
                   if (isSentAll) {
-                    Navigator.of(context).popAndPushNamed(
-                      AppRouter.homePage);
+                    Navigator.of(context).popAndPushNamed(AppRouter.homePage);
                   }
                   return;
                 }
-
 
                 final tx = payload['tx'] as TZKTOperation;
 
@@ -395,11 +388,10 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                   },
                   actionButton: 'see_transaction_detail'.tr().toUpperCase(),
                   closeButton: "close".tr().toUpperCase(),
-                  onClose: () =>
-                  isSentAll
+                  onClose: () => isSentAll
                       ? Navigator.of(context).popAndPushNamed(
-                    AppRouter.homePage,
-                  )
+                          AppRouter.homePage,
+                        )
                       : null,
                 );
               },
@@ -456,14 +448,8 @@ class _ArtworkView extends StatelessWidget {
             Positioned.fill(
               child: GestureDetector(
                 onTap: () {
-                  if (injector<ConfigurationService>()
-                      .isImmediateInfoViewEnabled()) {
-                    Navigator.of(context).pushNamed(
-                        AppRouter.artworkPreviewPage,
-                        arguments: payload);
-                  } else {
-                    Navigator.of(context).pop();
-                  }
+                  Navigator.of(context).pushNamed(AppRouter.artworkPreviewPage,
+                      arguments: payload);
                 },
                 child: Container(
                   color: Colors.transparent,
@@ -486,14 +472,8 @@ class _ArtworkView extends StatelessWidget {
               ),
               GestureDetector(
                 onTap: () {
-                  if (injector<ConfigurationService>()
-                      .isImmediateInfoViewEnabled()) {
-                    Navigator.of(context).pushNamed(
-                        AppRouter.artworkPreviewPage,
-                        arguments: payload);
-                  } else {
-                    Navigator.of(context).pop();
-                  }
+                  Navigator.of(context).pushNamed(AppRouter.artworkPreviewPage,
+                      arguments: payload);
                 },
                 child: Container(
                   color: Colors.transparent,

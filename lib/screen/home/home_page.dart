@@ -386,14 +386,8 @@ class _HomePageState extends State<HomePage>
                     .indexOf(asset);
                 final payload = ArtworkDetailPayload(accountIdentities, index);
 
-                if (injector<ConfigurationService>()
-                    .isImmediateInfoViewEnabled()) {
-                  Navigator.of(context).pushNamed(AppRouter.artworkDetailsPage,
-                      arguments: payload);
-                } else {
-                  Navigator.of(context).pushNamed(AppRouter.artworkPreviewPage,
-                      arguments: payload);
-                }
+                Navigator.of(context).pushNamed(AppRouter.artworkDetailsPage,
+                    arguments: payload);
 
                 mixPanelClient
                     .trackEvent("view_artwork", data: {"id": asset.id});
