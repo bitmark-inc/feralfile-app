@@ -125,10 +125,9 @@ dependencies:
   json_annotation: ^4.6.0
   iso_duration_parser: ^1.1.1
   autonomy_theme:
-    path: ../autonomy-client-shared-theme
-    # git:
-    #   url: https://github.com/bitmark-inc/autonomy-client-shared-theme.git
-    #   ref: 1.0.8
+    git:
+      url: https://github.com/bitmark-inc/autonomy-client-shared-theme.git
+      ref: 1.0.9
 
   easy_localization: ^3.0.1
   rxdart: ^0.26.0

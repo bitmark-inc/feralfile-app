@@ -74,9 +74,11 @@ packages:
   autonomy_theme:
     dependency: "direct main"
     description:
-      path: "../autonomy-client-shared-theme"
-      relative: true
-    source: path
+      path: "."
+      ref: "1.0.9"
+      resolved-ref: eee0b353bbd7895b5b9be15be7083c9f830c5719
+      url: "https://github.com/bitmark-inc/autonomy-client-shared-theme.git"
+    source: git
     version: "0.0.1+20"
   bip39:
     dependency: transitive

@@ -33,6 +33,7 @@ class ViewPlaylistBloc extends Bloc<ViewPlaylistEvent, ViewPlaylistState> {
         config.setPlayList(playlists, override: true);
         injector.get<SettingsDataService>().backup();
       }
+      emit(state.copyWith(isRename: false));
     });
   }
 }

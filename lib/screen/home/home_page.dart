@@ -884,8 +884,9 @@ class _PlaylistItemState extends State<PlaylistItem> {
                             imageUrl: widget.thumbnailURL ?? '',
                             fit: BoxFit.cover,
                             cacheManager: injector.get<CacheManager>(),
-                            errorWidget: (context, url, error) =>
-                                const GalleryThumbnailErrorWidget(),
+                            errorWidget: (context, url, error) => Container(
+                              color: theme.disableColor,
+                            ),
                             memCacheHeight: 1000,
                             memCacheWidth: 1000,
                             maxWidthDiskCache: 1000,

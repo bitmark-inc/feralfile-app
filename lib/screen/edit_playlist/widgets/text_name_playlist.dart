@@ -6,10 +6,12 @@ import 'package:autonomy_theme/autonomy_theme.dart';
 
 class TextNamePlaylist extends StatefulWidget {
   final Function(String)? onEditPlaylistName;
+  final FocusNode? focusNode;
   const TextNamePlaylist({
     Key? key,
     required this.playList,
     this.onEditPlaylistName,
+    this.focusNode,
   }) : super(key: key);
 
   final PlayListModel? playList;
@@ -20,7 +22,6 @@ class TextNamePlaylist extends StatefulWidget {
 
 class _TextNamePlaylistState extends State<TextNamePlaylist> {
   final _playlistNameC = TextEditingController();
-  final _focusNode = FocusNode();
 
   @override
   void initState() {
@@ -38,7 +39,7 @@ class _TextNamePlaylistState extends State<TextNamePlaylist> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return TextFieldWidget(
-      focusNode: _focusNode,
+      focusNode: widget.focusNode,
       hintText: tr('untitled'),
       controller: _playlistNameC,
       cursorColor: theme.colorScheme.primary,
