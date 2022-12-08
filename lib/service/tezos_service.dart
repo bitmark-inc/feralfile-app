@@ -59,7 +59,7 @@ class TezosServiceImpl extends TezosService {
 
   @override
   Future<int> estimateOperationFee(
-      String publicKey, List<Operation> operations) async {
+      String publicKey, List<Operation> operations, {int? baseOperationCustomFee}) async {
     log.info("TezosService.estimateOperationFee");
 
     return _retryOnNodeError<int>((client) async {
@@ -77,7 +77,7 @@ class TezosServiceImpl extends TezosService {
         operationList.prependOperation(RevealOperation());
       }
 
-      await operationList.estimate();
+      await operationList.estimate(baseOperationCustomFee: baseOperationCustomFee);
 
       return operationList.operations
           .map((e) => e.totalFee)
@@ -113,7 +113,7 @@ class TezosServiceImpl extends TezosService {
   }
 
   @override
-  Future<int> estimateFee(String publicKey, String to, int amount) async {
+  Future<int> estimateFee(String publicKey, String to, int amount, {int? baseOperationCustomFee}) async {
     log.info("TezosService.estimateFee: $to, $amount");
 
     return _retryOnNodeError<int>((client) async {
@@ -122,7 +122,7 @@ class TezosServiceImpl extends TezosService {
         destination: to,
         amount: amount,
       );
-      await operation.estimate();
+      await operation.estimate(baseOperationCustomFee: baseOperationCustomFee);
 
       return operation.operations
           .map((e) => e.totalFee)
