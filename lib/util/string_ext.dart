@@ -43,6 +43,14 @@ extension StringExtension on String {
     return this;
   }
 
+  String toUrl() {
+    if (!startsWith("https://") && !startsWith("http://")) {
+      return "https://$this";
+    }
+
+    return this;
+  }
+
   String? get blockchainForAddress {
     switch (length) {
       case 42:

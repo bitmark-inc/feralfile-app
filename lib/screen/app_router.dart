@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/model/wc2_proposal.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
+import 'package:autonomy_flutter/model/editorial.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/account/access_method_page.dart';
@@ -64,6 +65,9 @@ import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_page.dart
 import 'package:autonomy_flutter/screen/detail/preview_primer.dart';
 import 'package:autonomy_flutter/screen/detail/royalty/royalty_bloc.dart';
 import 'package:autonomy_flutter/screen/edit_playlist/edit_playlist.dart';
+import 'package:autonomy_flutter/screen/editorial/article/article_detail.dart';
+import 'package:autonomy_flutter/screen/editorial/editorial_bloc.dart';
+import 'package:autonomy_flutter/screen/editorial/feralfile/exhibition_bloc.dart';
 import 'package:autonomy_flutter/screen/feed/feed_artwork_details_page.dart';
 import 'package:autonomy_flutter/screen/feed/feed_bloc.dart';
 import 'package:autonomy_flutter/screen/feed/feed_preview_page.dart';
@@ -187,6 +191,7 @@ class AppRouter {
   static const airdropTokenDetailPage = 'airdrop_token_detail_page';
   static const wc2ConnectPage = 'wc2_connect_page';
   static const wc2PermissionPage = 'wc2_permission_page';
+  static const articleDetailPage = 'article_detail_page';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final ethereumBloc = EthereumBloc(injector());
@@ -267,6 +272,8 @@ class AppRouter {
                               injector(),
                               injector(),
                             )),
+                    BlocProvider(create: (_) => EditorialBloc(injector())),
+                    BlocProvider(create: (_) => ExhibitionBloc(injector())),
                   ],
                   child: const HomePage(),
                 ),
@@ -290,6 +297,8 @@ class AppRouter {
                               injector(),
                               injector(),
                             )),
+                    BlocProvider(create: (_) => EditorialBloc(injector())),
+                    BlocProvider(create: (_) => ExhibitionBloc(injector())),
                   ],
                   child: const HomePage(),
                 ));
@@ -1009,6 +1018,13 @@ class AppRouter {
                     ],
                     child: Wc2RequestPage(
                         request: settings.arguments as Wc2Request)));
+      case articleDetailPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) {
+              return ArticleDetailPage(post: settings.arguments as EditorialPost);
+            });
+
       default:
         throw Exception('Invalid route: ${settings.name}');
     }
