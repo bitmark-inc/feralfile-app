@@ -46,9 +46,6 @@ class _TextNamePlaylistState extends State<TextNamePlaylist> {
       hintStyle: theme.textTheme.ppMori700Black14,
       textAlign: TextAlign.center,
       border: InputBorder.none,
-      onChanged: (value) {
-        widget.onEditPlaylistName?.call(value);
-      },
       onFieldSubmitted: (value) {
         widget.onEditPlaylistName?.call(value);
       },

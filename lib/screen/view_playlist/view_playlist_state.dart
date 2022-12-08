@@ -5,12 +5,18 @@ import 'package:autonomy_flutter/model/play_list_model.dart';
 abstract class ViewPlaylistEvent {}
 
 class GetPlayList extends ViewPlaylistEvent {
-  GetPlayList();
+  final PlayListModel? playListModel;
+  GetPlayList({this.playListModel});
 }
 
 class ChangeRename extends ViewPlaylistEvent {
   final bool value;
   ChangeRename({required this.value});
+}
+
+class SavePlaylist extends ViewPlaylistEvent {
+  final String? name;
+  SavePlaylist({this.name});
 }
 
 class ViewPlaylistState {
