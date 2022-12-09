@@ -92,7 +92,7 @@ class VersionService {
       final app = (await isAppCenterBuild()) ? 'dev' : 'production';
       releaseNotes = await _pubdocAPI.getReleaseNotesContent(app, version);
 
-      final textBegin = "## VERSION: $currentVersion\n";
+      final textBegin = "## VERSION: $currentVersion";
       const iOSTextBegin = "#### [iOS]\n";
       const androidTextBegin = "#### [Android]\n";
 
@@ -162,7 +162,7 @@ class VersionService {
         "what_new".tr(); // avoid showing multiple what's new screens
     if (UIHelper.currentDialogTitle == screenKey) return;
 
-    releaseNotes = "[$currentVersion]\n\n$releaseNotes";
+    releaseNotes = "[$currentVersion]$releaseNotes";
     UIHelper.currentDialogTitle = screenKey;
 
     await _configurationService.setReadReleaseNotesInVersion(currentVersion);

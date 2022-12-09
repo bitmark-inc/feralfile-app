@@ -7,12 +7,13 @@
 
 import 'dart:convert';
 
+import 'package:floor/floor.dart';
+
 import 'package:autonomy_flutter/model/connection_supports.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/tezos_connection.dart';
 import 'package:autonomy_flutter/model/wc2_pairing.dart';
 import 'package:autonomy_flutter/service/wallet_connect_dapp_service/wc_connected_session.dart';
-import 'package:floor/floor.dart';
 
 enum ConnectionType {
   walletConnect, // Autonomy connect to ETH Wallet
@@ -245,5 +246,27 @@ class Connection {
       default:
         return accountNumber;
     }
+  }
+
+  @override
+  bool operator ==(covariant Connection other) {
+    if (identical(this, other)) return true;
+
+    return other.key == key &&
+        other.name == name &&
+        other.data == data &&
+        other.connectionType == connectionType &&
+        other.accountNumber == accountNumber &&
+        other.createdAt == createdAt;
+  }
+
+  @override
+  int get hashCode {
+    return key.hashCode ^
+        name.hashCode ^
+        data.hashCode ^
+        connectionType.hashCode ^
+        accountNumber.hashCode ^
+        createdAt.hashCode;
   }
 }

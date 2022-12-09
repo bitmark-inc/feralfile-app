@@ -22,6 +22,7 @@ import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -55,6 +56,8 @@ class _AccountsViewState extends State<AccountsView> {
         Navigator.of(context).pushNamedAndRemoveUntil(
             AppRouter.newAccountPage, (route) => false);
       }
+    }, buildWhen: (previous, current) {
+      return !listEquals(previous.accounts, current.accounts);
     }, builder: (context, state) {
       final accounts = state.accounts;
       if (accounts == null) return const CupertinoActivityIndicator();
@@ -73,7 +76,6 @@ class _AccountsViewState extends State<AccountsView> {
                 return Column(
                   children: [
                     Slidable(
-                      key: UniqueKey(),
                       groupTag: 'accountsView',
                       endActionPane: ActionPane(
                         motion: const DrawerMotion(),
@@ -118,9 +120,8 @@ class _AccountsViewState extends State<AccountsView> {
         backgroundColor: AppColor.secondarySpanishGrey,
         foregroundColor: theme.colorScheme.secondary,
         child: Semantics(
-          label: "${account.name}_edit",
-          child: const Icon(CupertinoIcons.pencil)
-        ),
+            label: "${account.name}_edit",
+            child: const Icon(CupertinoIcons.pencil)),
         onPressed: (_) {
           setState(() {
             _nameController.text = account.name;
@@ -136,8 +137,7 @@ class _AccountsViewState extends State<AccountsView> {
         foregroundColor: theme.colorScheme.secondary,
         child: Semantics(
             label: "${account.name}_delete",
-            child: const Icon(CupertinoIcons.delete)
-        ),
+            child: const Icon(CupertinoIcons.delete)),
         onPressed: (_) {
           _showDeleteAccountConfirmation(context, account);
         },

@@ -172,6 +172,8 @@ import Starscream
                 WC2ChannelHandler.shared.activate(call: call, result: result)
             case "deletePairing":
                 WC2ChannelHandler.shared.deletePairing(call: call, result: result)
+            case "cleanup":
+                WC2ChannelHandler.shared.cleanupSessions(call: call, result: result)
             default:
                 result(FlutterMethodNotImplemented)
             }

@@ -202,6 +202,18 @@ class Wc2ConnectPlugin(private val application: Application) : FlutterPlugin,
         }
     }
 
+    private fun cleanupSessions(retainIds: List<String>, result: MethodChannel.Result) {
+        Timber.e("cleanupSessions. Topic: $retainIds")
+        val pairings = CoreClient.Pairing.getPairings().map { e -> e.toPairing() }
+
+        pairings.forEach {
+            if (!retainIds.contains(it.topic)) {
+                CoreClient.Pairing.disconnect(it.topic)
+            }
+        }
+        result.success()
+    }
+
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
             "pairClient" -> {
@@ -238,6 +250,10 @@ class Wc2ConnectPlugin(private val application: Application) : FlutterPlugin,
             "deletePairing" -> {
                 val topic = call.argument<String?>("topic").orEmpty()
                 deletePairing(topic = topic, result = result)
+            }
+            "cleanup" ->  {
+                val retainIds: List<String> = call.argument("retain_ids") ?: emptyList()
+                cleanupSessions(retainIds, result)
             }
             else -> {
                 result.notImplemented()

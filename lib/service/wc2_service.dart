@@ -74,6 +74,17 @@ class Wc2Service extends Wc2Handler {
     }
   }
 
+  Future cleanup() async {
+    final connections = await _cloudDB.connectionDao
+        .getConnectionsByType(ConnectionType.walletConnect2.rawValue);
+    final ids = connections
+        .map((e) => e.key.split(":").lastOrNull)
+        .whereNotNull()
+        .toList();
+
+    _wc2channel.cleanup(ids);
+  }
+
   Future approveSession(Wc2Proposal proposal,
       {required String accountDid, required String personalUUID}) async {
     await _wc2channel.approve(
