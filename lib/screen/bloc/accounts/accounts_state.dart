@@ -64,6 +64,30 @@ class Account {
     this.name = "",
     required this.createdAt,
   });
+
+  @override
+  bool operator ==(covariant Account other) {
+    if (identical(this, other)) return true;
+
+    return other.key == key &&
+        other.persona == persona &&
+        listEquals(other.connections, connections) &&
+        other.name == name &&
+        other.blockchain == blockchain &&
+        other.accountNumber == accountNumber &&
+        other.createdAt == createdAt;
+  }
+
+  @override
+  int get hashCode {
+    return key.hashCode ^
+        persona.hashCode ^
+        connections.hashCode ^
+        name.hashCode ^
+        blockchain.hashCode ^
+        accountNumber.hashCode ^
+        createdAt.hashCode;
+  }
 }
 
 class CategorizedAccounts {
@@ -129,5 +153,3 @@ class FetchAllAddressesSuccessEvent extends AccountBlocStateEvent {
 
   FetchAllAddressesSuccessEvent(this.addresses);
 }
-
-

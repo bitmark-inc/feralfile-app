@@ -28,14 +28,17 @@ class Persona {
   DateTime createdAt;
   int? defaultAccount;
 
-  Persona({
-    required this.uuid,
-    required this.name,
-    required this.createdAt,
-    this.defaultAccount
-  });
+  Persona(
+      {required this.uuid,
+      required this.name,
+      required this.createdAt,
+      this.defaultAccount});
 
-  Persona.newPersona({required this.uuid, this.name = "", this.defaultAccount, DateTime? createdAt})
+  Persona.newPersona(
+      {required this.uuid,
+      this.name = "",
+      this.defaultAccount,
+      DateTime? createdAt})
       : createdAt = createdAt ?? DateTime.now();
 
   Persona copyWith({
@@ -54,4 +57,22 @@ class Persona {
   }
 
   bool isDefault() => defaultAccount == 1;
+
+  @override
+  bool operator ==(covariant Persona other) {
+    if (identical(this, other)) return true;
+
+    return other.uuid == uuid &&
+        other.name == name &&
+        other.createdAt == createdAt &&
+        other.defaultAccount == defaultAccount;
+  }
+
+  @override
+  int get hashCode {
+    return uuid.hashCode ^
+        name.hashCode ^
+        createdAt.hashCode ^
+        defaultAccount.hashCode;
+  }
 }

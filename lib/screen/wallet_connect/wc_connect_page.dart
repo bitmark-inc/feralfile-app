@@ -526,13 +526,21 @@ class _WCConnectPageState extends State<WCConnectPage>
                                   ),
                                 ),
                                 const SizedBox(width: 16.0),
-                                Expanded(
-                                  child: Text(
-                                    persona.name,
-                                    style: theme.textTheme.headline4,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                )
+                                FutureBuilder<String>(
+                                  future: persona.wallet().getAccountDID(),
+                                  builder: (context, snapshot) {
+                                    final name = persona.name.isNotEmpty
+                                        ? persona.name
+                                        : snapshot.data ?? '';
+                                    return Expanded(
+                                      child: Text(
+                                        name.replaceFirst('did:key:z', ''),
+                                        style: theme.textTheme.headline4,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    );
+                                  },
+                                ),
                               ],
                             ),
                             contentPadding: EdgeInsets.zero,
