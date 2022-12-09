@@ -77,7 +77,8 @@ class BeaconChannelHandler: NSObject {
 
     }
     
-    func cleanupSessions(call: FlutterMethodCall, result: @escaping FlutterResult) {let args: NSDictionary = call.arguments as! NSDictionary
+    func cleanupSessions(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args: NSDictionary = call.arguments as! NSDictionary
         let retainIds: [String] = args["retain_ids"] as! [String]
 
         BeaconConnectService.shared.cleanupSession(retainIds)
