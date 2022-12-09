@@ -76,7 +76,6 @@ class _AccountsViewState extends State<AccountsView> {
                 return Column(
                   children: [
                     Slidable(
-                      key: UniqueKey(),
                       groupTag: 'accountsView',
                       endActionPane: ActionPane(
                         motion: const DrawerMotion(),
