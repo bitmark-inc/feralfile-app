@@ -132,11 +132,6 @@ class _NamePersonaPageState extends State<NamePersonaPage> {
                       ? TextButton(
                           onPressed: () async {
                             //_doneNaming();
-                            final defaultAccount =
-                                await injector<AccountService>()
-                                    .getDefaultAccount();
-                            final accountDID =
-                                await defaultAccount.getAccountDID();
 
                             if (!mounted) {
                               _doneNaming();
@@ -144,7 +139,7 @@ class _NamePersonaPageState extends State<NamePersonaPage> {
                             }
                             context
                                 .read<PersonaBloc>()
-                                .add(NamePersonaEvent(accountDID.trim()));
+                                .add(NamePersonaEvent(''));
                           },
                           child:
                               Text("skip".tr(), style: theme.textTheme.button))

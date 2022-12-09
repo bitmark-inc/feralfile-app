@@ -47,6 +47,8 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
     with RouteAware {
   bool isHideGalleryEnabled = false;
 
+  String? title;
+
   @override
   void initState() {
     super.initState();
@@ -73,6 +75,19 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
 
     isHideGalleryEnabled = injector<AccountService>()
         .isPersonaHiddenInGallery(widget.persona.uuid);
+
+    if (widget.persona.name.isNotEmpty) {
+      title = widget.persona.name;
+    } else {
+      _getDidKey();
+    }
+  }
+
+  _getDidKey() async {
+    final didKey = await widget.persona.wallet().getAccountDID();
+    setState(() {
+      title = didKey;
+    });
   }
 
   @override
@@ -104,7 +119,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
     return Scaffold(
       appBar: getBackAppBar(
         context,
-        title: widget.persona.name,
+        title: title?.replaceFirst('did:key:z', '') ?? '',
         onBack: () => Navigator.of(context).pop(),
         isDefaultAccount: isDefaultAccount,
       ),
@@ -115,13 +130,13 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               isDefaultAccount
-              ? Column(
-                children: [
-                  _defaultAccount(context),
-                  const SizedBox(height: 16),
-                ],
-              )
-              : const SizedBox(),
+                  ? Column(
+                      children: [
+                        _defaultAccount(context),
+                        const SizedBox(height: 16),
+                      ],
+                    )
+                  : const SizedBox(),
               _addressesSection(uuid),
               const SizedBox(height: 40),
               _preferencesSection(),
@@ -355,11 +370,12 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
           ),
           Expanded(
             child: AutoSizeText(
-                "this_is_base_account".tr(),
-                style: theme.textTheme.headline5?.copyWith(fontSize: 14),
-                maxFontSize: 14,
-                minFontSize: 1,
-                maxLines: 1,),
+              "this_is_base_account".tr(),
+              style: theme.textTheme.headline5?.copyWith(fontSize: 14),
+              maxFontSize: 14,
+              minFontSize: 1,
+              maxLines: 1,
+            ),
           ),
         ],
       ),
