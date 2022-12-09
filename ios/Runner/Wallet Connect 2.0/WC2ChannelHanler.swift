@@ -97,6 +97,20 @@ class WC2ChannelHandler: NSObject {
             result(ErrorHandler.flutterError(error: error, "deletePairing error"))
         }
     }
+    
+    @MainActor
+    func cleanupSessions(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args: NSDictionary = call.arguments as! NSDictionary
+        let retainIds: [String] = args["retain_ids"] as! [String]
+
+        let pairings = WalletConnectService.shared.getPairings()
+        
+        pairings.forEach {
+            if (!retainIds.contains($0.topic)) {
+                try? WalletConnectService.shared.deletePairing(topic: $0.topic)
+            }
+        }
+    }
 
     @MainActor
     func pairClient(call: FlutterMethodCall, result: @escaping FlutterResult) {

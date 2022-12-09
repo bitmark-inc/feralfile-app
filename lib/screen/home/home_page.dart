@@ -132,6 +132,7 @@ class _HomePageState extends State<HomePage>
     injector<IAPService>().setup();
     memoryValues.inGalleryView = true;
     injector<TezosBeaconService>().cleanup();
+    injector<Wc2Service>().cleanup();
   }
 
   @override
