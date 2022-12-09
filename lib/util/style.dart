@@ -77,7 +77,7 @@ MarkdownStyleSheet markDownStyle(BuildContext context, Color textColor) {
     checkbox: bodyText2.copyWith(color: theme.colorScheme.secondary),
     blockSpacing: 15.0,
     listIndent: 24.0,
-    listBullet: bodyText2.copyWith(color: Colors.black),
+    listBullet: bodyText2,
     listBulletPadding: const EdgeInsets.only(right: 4),
     tableHead: const TextStyle(fontWeight: FontWeight.w600),
     tableBody: bodyText2,
