@@ -255,7 +255,10 @@ class _AccountsViewState extends State<AccountsView> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('delete_account'.tr(),
+                    Text(
+                        (account.persona != null)
+                            ? 'delete_account'.tr()
+                            : 'remove_account'.tr(),
                         style: theme.primaryTextTheme.headline1),
                     const SizedBox(height: 40),
                     RichText(
@@ -263,7 +266,9 @@ class _AccountsViewState extends State<AccountsView> {
                         style: theme.primaryTextTheme.bodyText1,
                         children: <TextSpan>[
                           TextSpan(
-                            text: "sure_delete_account".tr(),
+                            text: (account.persona != null)
+                                ? "sure_delete_account".tr()
+                                : "sure_remove_account".tr(),
                             //'Are you sure you want to delete the account ',
                           ),
                           TextSpan(
@@ -285,7 +290,9 @@ class _AccountsViewState extends State<AccountsView> {
                       children: [
                         Expanded(
                           child: AuFilledButton(
-                            text: "delete".tr(),
+                            text: (account.persona != null)
+                                ? "delete".tr()
+                                : "remove".tr(),
                             onPress: () {
                               Navigator.of(context).pop();
                               _deleteAccount(pageContext, account);

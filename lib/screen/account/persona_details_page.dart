@@ -23,6 +23,7 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/usdc_amount_formatter.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:autonomy_theme/style/colors.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -32,7 +33,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:nft_collection/nft_collection.dart';
-import 'package:autonomy_flutter/view/responsive.dart';
 
 class PersonaDetailsPage extends StatefulWidget {
   final Persona persona;
@@ -351,7 +351,11 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          SvgPicture.asset("assets/images/icon_verified.svg"),
+          SvgPicture.asset(
+            "assets/images/iconInfo.svg",
+            color: Colors.black,
+            width: 16,
+          ),
           const SizedBox(
             width: 6.5,
           ),

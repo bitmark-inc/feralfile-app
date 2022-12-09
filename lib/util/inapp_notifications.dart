@@ -11,7 +11,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:overlay_support/overlay_support.dart';
-
 // ignore: implementation_imports
 import 'package:overlay_support/src/overlay_state_finder.dart';
 
@@ -56,23 +55,23 @@ class _SimpleNotificationToast extends StatelessWidget {
             color: theme.colorScheme.primary.withOpacity(0.8),
             padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
             child: Center(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  frontWidget ?? const SizedBox(),
-                  SizedBox(
-                    width: frontWidget != null ? 8 : 0,
+                child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                frontWidget ?? const SizedBox(),
+                SizedBox(
+                  width: frontWidget != null ? 8 : 0,
+                ),
+                Flexible(
+                  child: Text(
+                    notification,
+                    overflow: TextOverflow.visible,
+                    textAlign: TextAlign.center,
+                    style: theme.primaryTextTheme.button,
                   ),
-                  Expanded(
-                    child: Text(
-                      notification,
-                      textAlign: TextAlign.center,
-                      style: theme.primaryTextTheme.button,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+                ),
+              ],
+            )),
           ),
         ),
       ),

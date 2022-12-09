@@ -14,10 +14,10 @@ import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 
 Widget accountWithConnectionItem(
     BuildContext context, CategorizedAccounts categorizedAccounts) {
@@ -251,28 +251,6 @@ Widget accountLogo(BuildContext context, Account account) {
               padding: const EdgeInsets.fromLTRB(0, 4, 4, 0),
               alignment: Alignment.centerLeft,
               child: Image.asset("assets/images/moma_logo.png")),
-          Align(
-            alignment: Alignment.topRight,
-            child: account.persona?.defaultAccount == 1 &&
-                    context.widget is AccountsView
-                ? SizedBox(
-                    width: 19,
-                    height: 19,
-                    child: Stack(alignment: Alignment.center, children: [
-                      Transform.scale(
-                          scale: 1.45,
-                          child: SvgPicture.asset(
-                            "assets/images/icon_verified.svg",
-                            color: Colors.white,
-                          )),
-                      Align(
-                          child: SvgPicture.asset(
-                        "assets/images/icon_verified.svg",
-                      )),
-                    ]),
-                  )
-                : const SizedBox(),
-          ),
         ],
       ),
     );
