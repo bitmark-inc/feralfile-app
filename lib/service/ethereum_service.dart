@@ -32,14 +32,14 @@ abstract class EthereumService {
 
   Future<String> sendTransaction(
       WalletStorage wallet, EthereumAddress to, BigInt value, String? data,
-      {FeeOption feeOption = DEFAULT_FEE_OPTION});
+      {FeeOption? feeOption});
 
   Future<String?> getERC721TransferTransactionData(
       EthereumAddress contractAddress,
       EthereumAddress from,
       EthereumAddress to,
       String tokenId,
-      {FeeOption feeOption = DEFAULT_FEE_OPTION});
+      {FeeOption? feeOption});
 
   Future<String?> getERC1155TransferTransactionData(
       EthereumAddress contractAddress,
@@ -47,7 +47,7 @@ abstract class EthereumService {
       EthereumAddress to,
       String tokenId,
       int quantity,
-      {FeeOption feeOption = DEFAULT_FEE_OPTION});
+      {FeeOption? feeOption});
 
   Future<BigInt> getERC20TokenBalance(
       EthereumAddress contractAddress, EthereumAddress owner);
@@ -57,7 +57,7 @@ abstract class EthereumService {
       EthereumAddress from,
       EthereumAddress to,
       BigInt quantity,
-      {FeeOption feeOption = DEFAULT_FEE_OPTION});
+      {FeeOption? feeOption});
 
   Future<String> getFeralFileTokenMetadata(
       EthereumAddress contract, Uint8List data);
@@ -141,7 +141,7 @@ class EthereumServiceImpl extends EthereumService {
   @override
   Future<String> sendTransaction(
       WalletStorage wallet, EthereumAddress to, BigInt value, String? data,
-      {FeeOption feeOption = DEFAULT_FEE_OPTION}) async {
+      {FeeOption? feeOption}) async {
     log.info("[EthereumService] sendTransaction - to: $to - amount $value");
 
     final sender = EthereumAddress.fromHex(await wallet.getETHAddress());
@@ -149,20 +149,33 @@ class EthereumServiceImpl extends EthereumService {
     var gasLimit =
         (await _estimateGasLimit(sender, to, EtherAmount.inWei(value), data));
     final chainId = Environment.web3ChainId;
-    final maxPriorityFeePerGas = await getPriorityFeePerGas(feeOption);
-    final maxFeePerGas =
-        await getMaxPriorityFeePerGas(priorityFee: maxPriorityFeePerGas);
+    Uint8List signedTransaction;
+    if (feeOption != null) {
+      final maxPriorityFeePerGas = await getPriorityFeePerGas(feeOption);
+      final maxFeePerGas =
+      await getMaxPriorityFeePerGas(priorityFee: maxPriorityFeePerGas);
 
-    final signedTransaction = await wallet.ethSignTransaction1559(
-        nonce: nonce,
-        //gasPrice: gasPrice.getInWei,
-        gasLimit: gasLimit,
-        maxFeePerGas: maxFeePerGas.getInWei,
-        maxPriorityFeePerGas: maxPriorityFeePerGas.getInWei,
-        to: to.hexEip55,
-        value: value,
-        data: data ?? "",
-        chainId: chainId);
+      signedTransaction = await wallet.ethSignTransaction1559(
+          nonce: nonce,
+          gasLimit: gasLimit,
+          maxFeePerGas: maxFeePerGas.getInWei,
+          maxPriorityFeePerGas: maxPriorityFeePerGas.getInWei,
+          to: to.hexEip55,
+          value: value,
+          data: data ?? "",
+          chainId: chainId);
+    } else {
+      final gasPrice = await _getGasPrice();
+      signedTransaction = await wallet.ethSignTransaction(
+          nonce: nonce,
+          gasPrice: gasPrice.getInWei,
+          gasLimit: gasLimit,
+          to: to.hexEip55,
+          value: value,
+          data: data ?? "",
+          chainId: chainId);
+    }
+
 
     return _web3Client.sendRawTransaction(signedTransaction);
   }
@@ -173,26 +186,38 @@ class EthereumServiceImpl extends EthereumService {
       EthereumAddress from,
       EthereumAddress to,
       String tokenId,
-      {FeeOption feeOption = DEFAULT_FEE_OPTION}) async {
+      {FeeOption? feeOption}) async {
     final contractJson = await rootBundle.loadString('assets/erc721-abi.json');
     final contract = DeployedContract(
         ContractAbi.fromJson(contractJson, "ERC721"), contractAddress);
     ContractFunction transferFrom() => contract.function("safeTransferFrom");
 
     final nonce = await _web3Client.getTransactionCount(from);
-    final maxPriorityFeePerGas = await getPriorityFeePerGas(feeOption);
-    final maxFeePerGas =
-        await getMaxPriorityFeePerGas(priorityFee: maxPriorityFeePerGas);
-
-    final transaction = Transaction.callContract(
-      contract: contract,
-      function: transferFrom(),
-      parameters: [from, to, BigInt.parse(tokenId, radix: 10)],
-      from: from,
-      maxPriorityFeePerGas: maxPriorityFeePerGas,
-      maxFeePerGas: maxFeePerGas,
-      nonce: nonce,
-    );
+    Transaction transaction;
+    if(feeOption != null) {
+      final maxPriorityFeePerGas = await getPriorityFeePerGas(feeOption);
+      final maxFeePerGas =
+      await getMaxPriorityFeePerGas(priorityFee: maxPriorityFeePerGas);
+      transaction = Transaction.callContract(
+        contract: contract,
+        function: transferFrom(),
+        parameters: [from, to, BigInt.parse(tokenId, radix: 10)],
+        from: from,
+        maxPriorityFeePerGas: maxPriorityFeePerGas,
+        maxFeePerGas: maxFeePerGas,
+        nonce: nonce,
+      );
+    } else {
+      final gasPrice = await _getGasPrice();
+      transaction = Transaction.callContract(
+        contract: contract,
+        function: transferFrom(),
+        parameters: [from, to, BigInt.parse(tokenId, radix: 10)],
+        from: from,
+        gasPrice: gasPrice,
+        nonce: nonce,
+      );
+    }
 
     return transaction.data != null ? bytesToHex(transaction.data!) : null;
   }
@@ -204,7 +229,7 @@ class EthereumServiceImpl extends EthereumService {
       EthereumAddress to,
       String tokenId,
       int quantity,
-      {FeeOption feeOption = DEFAULT_FEE_OPTION}) async {
+      {FeeOption? feeOption}) async {
     final contractJson = await rootBundle.loadString('assets/erc1155-abi.json');
     final contract = DeployedContract(
         ContractAbi.fromJson(contractJson, "ERC1155"), contractAddress);
@@ -212,25 +237,44 @@ class EthereumServiceImpl extends EthereumService {
         contract.function("safeBatchTransferFrom");
 
     final nonce = await _web3Client.getTransactionCount(from);
-    final maxPriorityFeePerGas = await getPriorityFeePerGas(feeOption);
-    final maxFeePerGas =
-        await getMaxPriorityFeePerGas(priorityFee: maxPriorityFeePerGas);
 
-    final transaction = Transaction.callContract(
-      contract: contract,
-      function: transferFrom(),
-      parameters: [
-        from,
-        to,
-        [BigInt.parse(tokenId, radix: 10)],
-        [BigInt.from(quantity)],
-        Uint8List(0),
-      ],
-      from: from,
-      maxPriorityFeePerGas: maxPriorityFeePerGas,
-      maxFeePerGas: maxFeePerGas,
-      nonce: nonce,
-    );
+    Transaction transaction;
+    if(feeOption != null) {
+      final maxPriorityFeePerGas = await getPriorityFeePerGas(feeOption);
+      final maxFeePerGas =
+      await getMaxPriorityFeePerGas(priorityFee: maxPriorityFeePerGas);
+      transaction = Transaction.callContract(
+        contract: contract,
+        function: transferFrom(),
+        parameters: [
+          from,
+          to,
+          [BigInt.parse(tokenId, radix: 10)],
+          [BigInt.from(quantity)],
+          Uint8List(0),
+        ],
+        from: from,
+        maxPriorityFeePerGas: maxPriorityFeePerGas,
+        maxFeePerGas: maxFeePerGas,
+        nonce: nonce,
+      );
+    } else {
+      final gasPrice = await _getGasPrice();
+      transaction = Transaction.callContract(
+        contract: contract,
+        function: transferFrom(),
+        parameters: [
+          from,
+          to,
+          [BigInt.parse(tokenId, radix: 10)],
+          [BigInt.from(quantity)],
+          Uint8List(0),
+        ],
+        from: from,
+        gasPrice: gasPrice,
+        nonce: nonce,
+      );
+    }
 
     return transaction.data != null ? bytesToHex(transaction.data!) : null;
   }
@@ -258,26 +302,38 @@ class EthereumServiceImpl extends EthereumService {
       EthereumAddress from,
       EthereumAddress to,
       BigInt quantity,
-      {FeeOption feeOption = DEFAULT_FEE_OPTION}) async {
+      {FeeOption? feeOption}) async {
     final contractJson = await rootBundle.loadString('assets/erc20-abi.json');
     final contract = DeployedContract(
         ContractAbi.fromJson(contractJson, "ERC20"), contractAddress);
     ContractFunction transferFrom() => contract.function("transfer");
 
     final nonce = await _web3Client.getTransactionCount(from);
-    final maxPriorityFeePerGas = await getPriorityFeePerGas(feeOption);
-    final maxFeePerGas =
-        await getMaxPriorityFeePerGas(priorityFee: maxPriorityFeePerGas);
-
-    final transaction = Transaction.callContract(
-      contract: contract,
-      function: transferFrom(),
-      parameters: [to, quantity],
-      from: from,
-      maxFeePerGas: maxFeePerGas,
-      maxPriorityFeePerGas: maxPriorityFeePerGas,
-      nonce: nonce,
-    );
+    Transaction transaction;
+    if(feeOption != null) {
+      final maxPriorityFeePerGas = await getPriorityFeePerGas(feeOption);
+      final maxFeePerGas =
+      await getMaxPriorityFeePerGas(priorityFee: maxPriorityFeePerGas);
+      transaction = Transaction.callContract(
+        contract: contract,
+        function: transferFrom(),
+        parameters: [to, quantity],
+        from: from,
+        maxFeePerGas: maxFeePerGas,
+        maxPriorityFeePerGas: maxPriorityFeePerGas,
+        nonce: nonce,
+      );
+    } else {
+      final gasPrice = await _getGasPrice();
+      transaction = Transaction.callContract(
+        contract: contract,
+        function: transferFrom(),
+        parameters: [to, quantity],
+        from: from,
+        gasPrice: gasPrice,
+        nonce: nonce,
+      );
+    }
 
     return transaction.data != null ? bytesToHex(transaction.data!) : null;
   }

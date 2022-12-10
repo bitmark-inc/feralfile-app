@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
+import 'package:autonomy_flutter/util/fee_util.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
@@ -58,12 +59,15 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
 
         final data = widget.payload.asset.contractType == "erc1155"
             ? await ethereumService.getERC1155TransferTransactionData(
-                contractAddress, from, to, tokenId, widget.payload.quantity)
+                contractAddress, from, to, tokenId, widget.payload.quantity,
+                feeOption: widget.payload.feeOption)
             : await ethereumService.getERC721TransferTransactionData(
-                contractAddress, from, to, tokenId);
+                contractAddress, from, to, tokenId,
+                feeOption: widget.payload.feeOption);
 
         final txHash = await ethereumService.sendTransaction(
-            widget.payload.wallet, contractAddress, BigInt.zero, data);
+            widget.payload.wallet, contractAddress, BigInt.zero, data,
+            feeOption: widget.payload.feeOption);
         if (!mounted) return;
         final payload = {
           "isTezos": false,
@@ -84,6 +88,10 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
           tokenId,
           widget.payload.quantity,
         );
+        await tezosService.estimateOperationFee(
+            await wallet.getTezosPublicKey(), [operation],
+            baseOperationCustomFee:
+                widget.payload.feeOption.tezosBaseOperationCustomFee);
         final opHash =
             await tezosService.sendOperationTransaction(wallet, [operation]);
         final exchangeRateXTZ =
@@ -122,7 +130,9 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
           target: TZKTActor(
             address: widget.payload.address,
           ),
-          amount: widget.payload.fee.toInt(),
+          amount: widget.payload.feeOptionValue
+              .getFee(widget.payload.feeOption)
+              .toInt(),
         )..tokenTransfer = TZKTTokenTransfer(
             id: 0,
             level: 0,
@@ -164,6 +174,7 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
 
   @override
   Widget build(BuildContext context) {
+    final fee = widget.payload.feeOptionValue.getFee(widget.payload.feeOption);
     final theme = Theme.of(context);
     final asset = widget.payload.asset;
 
@@ -297,8 +308,8 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                               ),
                               Text(
                                 widget.payload.asset.blockchain == "ethereum"
-                                    ? "${EthAmountFormatter(widget.payload.fee).format()} ETH (${widget.payload.exchangeRate.ethToUsd(widget.payload.fee)} USD)"
-                                    : "${XtzAmountFormatter(widget.payload.fee.toInt()).format()} XTZ (${widget.payload.exchangeRate.xtzToUsd(widget.payload.fee.toInt())} USD)",
+                                    ? "${EthAmountFormatter(fee).format()} ETH (${widget.payload.exchangeRate.ethToUsd(fee)} USD)"
+                                    : "${XtzAmountFormatter(fee.toInt()).format()} XTZ (${widget.payload.exchangeRate.xtzToUsd(fee.toInt())} USD)",
                                 style: theme.textTheme.bodyText2,
                               ),
                             ],
@@ -339,7 +350,17 @@ class SendArtworkReviewPayload {
   final CurrencyExchangeRate exchangeRate;
   final int ownedTokens;
   final int quantity;
+  final FeeOption feeOption;
+  final FeeOptionValue feeOptionValue;
 
-  SendArtworkReviewPayload(this.asset, this.wallet, this.address, this.fee,
-      this.exchangeRate, this.ownedTokens, this.quantity);
+  SendArtworkReviewPayload(
+      this.asset,
+      this.wallet,
+      this.address,
+      this.fee,
+      this.exchangeRate,
+      this.ownedTokens,
+      this.quantity,
+      this.feeOption,
+      this.feeOptionValue);
 }

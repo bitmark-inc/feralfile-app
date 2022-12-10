@@ -50,7 +50,8 @@ class EstimateFeeEvent extends SendArtworkEvent {
   final SendArtworkState? newState;
 
   EstimateFeeEvent(
-      this.address, this.contractAddress, this.tokenId, this.quantity, {this.newState});
+      this.address, this.contractAddress, this.tokenId, this.quantity,
+      {this.newState});
 
   @override
   bool operator ==(Object other) =>
@@ -101,48 +102,50 @@ class SendArtworkState {
 
   SendArtworkState(
       {this.wallet,
-        this.isScanQR = true,
-        this.isAddressError = false,
-        this.isQuantityError = false,
-        this.isEstimating = false,
-        this.isValid = false,
-        this.fee,
-        this.address,
-        this.balance,
-        this.exchangeRate = const CurrencyExchangeRate(eth: "1.0", xtz: "1.0"),
-        this.quantity = 1,
-        this.feeOption = DEFAULT_FEE_OPTION,
-        this.feeOptionValue});
+      this.isScanQR = true,
+      this.isAddressError = false,
+      this.isQuantityError = false,
+      this.isEstimating = false,
+      this.isValid = false,
+      this.fee,
+      this.address,
+      this.balance,
+      this.exchangeRate = const CurrencyExchangeRate(eth: "1.0", xtz: "1.0"),
+      this.quantity = 1,
+      this.feeOption = DEFAULT_FEE_OPTION,
+      this.feeOptionValue});
 
   SendArtworkState clone() => SendArtworkState(
-    wallet: wallet,
-    isScanQR: isScanQR,
-    isAddressError: isAddressError,
-    isQuantityError: isQuantityError,
-    isEstimating: isEstimating,
-    isValid: isValid,
-    fee: fee,
-    address: address,
-    exchangeRate: exchangeRate,
-    balance: balance,
-    quantity: quantity,
-    feeOption: feeOption,
-    feeOptionValue: feeOptionValue,
-  );
-
-  SendArtworkState copyWith({int? quantity, bool? isEstimating, BigInt? fee}) {
-    return SendArtworkState(
         wallet: wallet,
         isScanQR: isScanQR,
         isAddressError: isAddressError,
         isQuantityError: isQuantityError,
-        isEstimating: isEstimating ?? this.isEstimating,
+        isEstimating: isEstimating,
         isValid: isValid,
-        fee: fee ?? this.fee,
+        fee: fee,
         address: address,
         exchangeRate: exchangeRate,
         balance: balance,
-        quantity: quantity ?? this.quantity
+        quantity: quantity,
+        feeOption: feeOption,
+        feeOptionValue: feeOptionValue,
+      );
+
+  SendArtworkState copyWith({int? quantity, bool? isEstimating, BigInt? fee}) {
+    return SendArtworkState(
+      wallet: wallet,
+      isScanQR: isScanQR,
+      isAddressError: isAddressError,
+      isQuantityError: isQuantityError,
+      isEstimating: isEstimating ?? this.isEstimating,
+      isValid: isValid,
+      fee: fee ?? this.fee,
+      address: address,
+      exchangeRate: exchangeRate,
+      balance: balance,
+      quantity: quantity ?? this.quantity,
+      feeOption: feeOption,
+      feeOptionValue: feeOptionValue,
     );
   }
 
@@ -160,7 +163,9 @@ class SendArtworkState {
           balance == other.balance &&
           exchangeRate == other.exchangeRate &&
           isEstimating == other.isEstimating &&
-          quantity == other.quantity;
+          quantity == other.quantity &&
+          feeOption == other.feeOption &&
+          feeOptionValue == other.feeOptionValue;
 
   @override
   int get hashCode =>
@@ -173,5 +178,7 @@ class SendArtworkState {
       balance.hashCode ^
       exchangeRate.hashCode ^
       isEstimating.hashCode ^
-      quantity.hashCode;
+      quantity.hashCode ^
+      feeOption.hashCode ^
+      feeOptionValue.hashCode;
 }

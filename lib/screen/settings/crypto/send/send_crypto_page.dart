@@ -28,7 +28,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:libauk_dart/libauk_dart.dart';
-import 'package:web3dart/credentials.dart';
 
 class SendCryptoPage extends StatefulWidget {
   static const String tag = 'send_crypto';
@@ -45,6 +44,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
   bool _showAllFeeOption = false;
+  bool _initialChangeAddress = false;
 
   @override
   void initState() {
@@ -99,6 +99,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                     onPressed: () async {
                       if (_addressController.text.isNotEmpty) {
                         _addressController.text = "";
+                        _initialChangeAddress = true;
                         context
                             .read<SendCryptoBloc>()
                             .add(AddressChangedEvent(""));
@@ -112,6 +113,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                           address = address.replacePrefix("ethereum:", "");
                           _addressController.text = address;
                           if (!mounted) return;
+                          _initialChangeAddress = true;
                           context
                               .read<SendCryptoBloc>()
                               .add(AddressChangedEvent(address));
@@ -120,6 +122,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                     },
                   ),
                   onChanged: (value) {
+                    _initialChangeAddress = true;
                     context
                         .read<SendCryptoBloc>()
                         .add(AddressChangedEvent(_addressController.text));
@@ -191,18 +194,9 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                   },
                 ),
                 const SizedBox(height: 16.0),
-                Text("gas_fee_estimated".tr(),
-                    style: theme.textTheme.headline5),
-                if (type == CryptoType.USDC &&
-                    state.fee != null &&
-                    state.ethBalance != null &&
-                    state.fee! > state.ethBalance!)
-                  Text("insufficient_eth_funds".tr(),
-                      style: theme.textTheme.headline5?.copyWith(
-                        color: AppColor.red,
-                      )),
+                gasFeeStatus(state, theme),
                 const SizedBox(height: 10.0),
-                feeTable(state, context),
+                if (state.feeOptionValue != null) feeTable(state, context),
                 const SizedBox(height: 24.0),
                 // Expanded(child: SizedBox()),
                 Row(
@@ -241,6 +235,31 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
         );
       }),
     );
+  }
+
+  Widget gasFeeStatus(SendCryptoState state, ThemeData theme) {
+    if (_initialChangeAddress && state.feeOptionValue == null) {
+      return Text("gas_fee_calculating".tr(), style: theme.textTheme.headline5);
+    }
+    if (state.feeOptionValue != null) {
+      if (!(state.amount != null && state.amount! > BigInt.zero)) {
+        return Text("gas_fee".tr(), style: theme.textTheme.headline5);
+      }
+      bool isValid = state.isValid &&
+          !(widget.data.type == CryptoType.USDC &&
+              state.fee != null &&
+              state.ethBalance != null &&
+              state.fee! > state.ethBalance!);
+      if (isValid) {
+        return Text("gas_fee".tr(), style: theme.textTheme.headline5);
+      } else {
+        return Text("gas_fee_insufficient".tr(),
+            style: theme.textTheme.headline5?.copyWith(
+              color: AppColor.red,
+            ));
+      }
+    }
+    return const SizedBox();
   }
 
   Widget feeTable(SendCryptoState state, BuildContext context) {

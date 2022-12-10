@@ -157,9 +157,11 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
 
           final data = _asset.contractType == "erc1155"
               ? await _ethereumService.getERC1155TransferTransactionData(
-                  contractAddress, from, to, event.tokenId, event.quantity)
+                  contractAddress, from, to, event.tokenId, event.quantity,
+                  feeOption: state.feeOption)
               : await _ethereumService.getERC721TransferTransactionData(
-                  contractAddress, from, to, event.tokenId);
+                  contractAddress, from, to, event.tokenId,
+                  feeOption: state.feeOption);
 
           feeOptionValue = await _ethereumService.estimateFee(
               wallet, contractAddress, EtherAmount.zero(), data);
@@ -231,16 +233,6 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
       return events
           .debounceTime(const Duration(milliseconds: 300))
           .switchMap(mapper);
-    });
-
-    on<FeeOptionChangedEvent>((event, emit) {
-      final newState = state.clone();
-      if (type == CryptoType.XTZ) {
-        add(EstimateFeeEvent(event.address, _asset.contractAddress!,
-            _asset.tokenId!, event.quantity));
-      }
-      newState.feeOption = event.feeOption;
-      emit(newState);
     });
 
     on<FeeOptionChangedEvent>((event, emit) async {

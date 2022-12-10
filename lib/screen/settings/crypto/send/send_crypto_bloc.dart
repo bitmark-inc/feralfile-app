@@ -56,7 +56,8 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
           newState.balance = balance.getInWei;
 
           if (state.feeOptionValue != null) {
-            final maxAllow = balance.getInWei - state.feeOptionValue!.high - _safeBuffer;
+            final maxAllow =
+                balance.getInWei - state.feeOptionValue!.high - _safeBuffer;
             newState.maxAllow = maxAllow;
             newState.isValid = _isValid(newState);
           }
@@ -67,7 +68,8 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
 
           newState.balance = BigInt.from(balance);
           if (state.feeOptionValue != null) {
-            final maxAllow = newState.balance! - state.feeOptionValue!.high - _safeBuffer;
+            final maxAllow =
+                newState.balance! - state.feeOptionValue!.high - _safeBuffer;
             newState.maxAllow = maxAllow;
             newState.isValid = _isValid(newState);
           }
@@ -132,6 +134,7 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
       }
 
       cachedAddress = newState.address;
+      newState.isValid = _isValid(newState);
       emit(newState);
     });
 
@@ -183,7 +186,8 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
 
       isEstimating = true;
 
-      final newState = event.newState == null ? state.clone() : event.newState!.clone();
+      final newState =
+          event.newState == null ? state.clone() : event.newState!.clone();
 
       BigInt fee;
       FeeOptionValue feeOptionValue;
@@ -209,9 +213,15 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
                     state.feeOption.tezosBaseOperationCustomFee);
             fee = BigInt.from(tezosFee);
             feeOptionValue = FeeOptionValue(
-                BigInt.from(tezosFee - state.feeOption.tezosBaseOperationCustomFee + baseOperationCustomFeeLow),
-                BigInt.from(tezosFee - state.feeOption.tezosBaseOperationCustomFee + baseOperationCustomFeeMedium),
-                BigInt.from(tezosFee - state.feeOption.tezosBaseOperationCustomFee + baseOperationCustomFeeHigh));
+                BigInt.from(tezosFee -
+                    state.feeOption.tezosBaseOperationCustomFee +
+                    baseOperationCustomFeeLow),
+                BigInt.from(tezosFee -
+                    state.feeOption.tezosBaseOperationCustomFee +
+                    baseOperationCustomFeeMedium),
+                BigInt.from(tezosFee -
+                    state.feeOption.tezosBaseOperationCustomFee +
+                    baseOperationCustomFeeHigh));
           } on TezartNodeError catch (err) {
             UIHelper.showInfoDialog(
               injector<NavigationService>().navigatorKey.currentContext!,
@@ -220,11 +230,13 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
               isDismissible: true,
             );
             fee = BigInt.zero;
-            feeOptionValue = FeeOptionValue(BigInt.zero, BigInt.zero, BigInt.zero);
+            feeOptionValue =
+                FeeOptionValue(BigInt.zero, BigInt.zero, BigInt.zero);
           } catch (err) {
             showErrorDialogFromException(err);
             fee = BigInt.zero;
-            feeOptionValue = FeeOptionValue(BigInt.zero, BigInt.zero, BigInt.zero);
+            feeOptionValue =
+                FeeOptionValue(BigInt.zero, BigInt.zero, BigInt.zero);
           }
           break;
         case CryptoType.USDC:
@@ -245,7 +257,8 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
           break;
         default:
           fee = BigInt.zero;
-          feeOptionValue = FeeOptionValue(BigInt.zero, BigInt.zero, BigInt.zero);
+          feeOptionValue =
+              FeeOptionValue(BigInt.zero, BigInt.zero, BigInt.zero);
       }
 
       newState.fee = fee;
