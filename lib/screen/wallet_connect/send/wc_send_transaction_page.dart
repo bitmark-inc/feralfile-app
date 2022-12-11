@@ -8,13 +8,16 @@
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_bloc.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_state.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
+import 'package:autonomy_flutter/util/fee_util.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:wallet_connect/models/ethereum/wc_ethereum_transaction.dart';
 import 'package:wallet_connect/models/wc_peer_meta.dart';
 import 'package:web3dart/web3dart.dart';
@@ -31,6 +34,8 @@ class WCSendTransactionPage extends StatefulWidget {
 }
 
 class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
+  bool _showAllFeeOption = false;
+
   @override
   void initState() {
     super.initState();
@@ -178,7 +183,7 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                                     style: theme.textTheme.headline4,
                                   ),
                                   Text(
-                                    "${state.fee != null ? EthAmountFormatter(state.fee!).format() : "-"} ETH",
+                                    "${state.fee != null ? EthAmountFormatter(state.fee!, digit: 8).format() : "-"} ETH",
                                     style: theme.textTheme.bodyText2,
                                   ),
                                 ],
@@ -198,10 +203,16 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                                   ),
                                 ],
                               ),
+                              const SizedBox(height: 16.0),
+                              gasFeeStatus(state, theme),
+                              const SizedBox(height: 10.0),
+                              if (state.feeOptionValue != null) feeTable(state, context),
+                              const SizedBox(height: 24.0),
                             ],
                           ),
                         ),
                       ),
+
                       Row(
                         children: [
                           Expanded(
@@ -245,6 +256,101 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
         ),
       ),
     );
+  }
+
+  Widget gasFeeStatus(WCSendTransactionState state, ThemeData theme) {
+    if (state.feeOptionValue == null) {
+      return Text("gas_fee_calculating".tr(), style: theme.textTheme.headline5);
+    }
+    if (state.feeOptionValue != null) {
+      if (state.balance == null) {
+        return Text("gas_fee".tr(), style: theme.textTheme.headline5);
+      }
+      bool isValid = state.balance! >
+          ((BigInt.parse(widget.args.transaction.value ?? "0")) +
+              (state.fee ?? BigInt.zero) +
+              BigInt.from(10));
+      if (isValid) {
+        return Text("gas_fee".tr(), style: theme.textTheme.headline5);
+      } else {
+        return Text("gas_fee_insufficient".tr(),
+            style: theme.textTheme.headline5?.copyWith(
+              color: AppColor.red,
+            ));
+      }
+    }
+    return const SizedBox();
+  }
+
+  Widget feeTable(WCSendTransactionState state, BuildContext context) {
+    final theme = Theme.of(context);
+    final feeOption = state.feeOption;
+    if (!_showAllFeeOption) {
+      return Row(
+        children: [
+          SvgPicture.asset(feeOption.icon),
+          const SizedBox(width: 15),
+          Text(feeOption.name, style: theme.textTheme.atlasBlackBold12),
+          const Spacer(),
+          Text(_gasFee(state), style: theme.textTheme.atlasBlackBold12),
+          const SizedBox(width: 56),
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                _showAllFeeOption = true;
+              });
+            },
+            child: Text("edit_priority".tr(),
+                style: theme.textTheme.linkStyle
+                    .copyWith(fontWeight: FontWeight.w400, fontSize: 12)),
+          ),
+        ],
+      );
+    } else {
+      return Column(
+        children: [
+          getFeeRow(FeeOption.LOW, state, theme),
+          const SizedBox(height: 8),
+          getFeeRow(FeeOption.MEDIUM, state, theme),
+          const SizedBox(height: 8),
+          getFeeRow(FeeOption.HIGH, state, theme),
+        ],
+      );
+    }
+  }
+
+  Widget getFeeRow(
+      FeeOption feeOption, WCSendTransactionState state, ThemeData theme) {
+    final isSelected = feeOption == state.feeOption;
+    final textStyle = isSelected
+        ? theme.textTheme.atlasBlackBold12
+        : theme.textTheme.atlasBlackNormal12;
+    return Row(
+      children: [
+        SvgPicture.asset(feeOption.icon),
+        const SizedBox(width: 15),
+        Text(feeOption.name, style: textStyle),
+        const Spacer(),
+        Text(_gasFee(state, feeOption: feeOption), style: textStyle),
+        const SizedBox(width: 56),
+        GestureDetector(
+          onTap: () {
+            context
+                .read<WCSendTransactionBloc>()
+                .add(FeeOptionChangedEvent(feeOption));
+          },
+          child: SvgPicture.asset(isSelected
+              ? "assets/images/radio_btn_selected.svg"
+              : "assets/images/radio_btn_not_selected.svg"),
+        ),
+      ],
+    );
+  }
+
+  String _gasFee(WCSendTransactionState state, {FeeOption? feeOption}) {
+    if (state.feeOptionValue == null) return "";
+    final fee = state.feeOptionValue!.getFee(feeOption ?? state.feeOption);
+    return "${EthAmountFormatter(fee, digit: 7).format()} ETH";
   }
 }
 

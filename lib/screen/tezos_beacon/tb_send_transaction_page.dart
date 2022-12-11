@@ -13,7 +13,9 @@ import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/biometrics_util.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
+import 'package:autonomy_flutter/util/fee_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -22,9 +24,11 @@ import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:nft_collection/nft_collection.dart';
@@ -47,12 +51,17 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
   WalletStorage? _currentWallet;
   bool _isSending = false;
   late Wc2Service _wc2Service;
+  late FeeOption feeOption;
+  bool _showAllFeeOption = false;
+  FeeOptionValue? feeOptionValue;
+  late int balance;
 
   @override
   void initState() {
     _wc2Service = injector<Wc2Service>();
     super.initState();
     fetchPersona();
+    feeOption = DEFAULT_FEE_OPTION;
   }
 
   Future fetchPersona() async {
@@ -91,7 +100,19 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
   Future _estimateFee(WalletStorage wallet) async {
     try {
       final fee = await injector<TezosService>().estimateOperationFee(
-          await wallet.getTezosPublicKey(), widget.request.operations!);
+          await wallet.getTezosPublicKey(), widget.request.operations!,
+          baseOperationCustomFee: feeOption.tezosBaseOperationCustomFee);
+      feeOptionValue = FeeOptionValue(
+          BigInt.from(fee -
+              feeOption.tezosBaseOperationCustomFee +
+              baseOperationCustomFeeLow),
+          BigInt.from(fee -
+              feeOption.tezosBaseOperationCustomFee +
+              baseOperationCustomFeeMedium),
+          BigInt.from(fee -
+              feeOption.tezosBaseOperationCustomFee +
+              baseOperationCustomFeeHigh));
+      balance = await injector<TezosService>().getBalance(await wallet.getTezosAddress());
       setState(() {
         _fee = fee;
       });
@@ -237,6 +258,11 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                               ),
                             ],
                           ),
+                          const SizedBox(height: 16.0),
+                          gasFeeStatus(theme),
+                          const SizedBox(height: 10.0),
+                          if (feeOptionValue != null) feeTable(context),
+                          const SizedBox(height: 24.0),
                         ],
                       ),
                     ),
@@ -288,7 +314,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                                     } else {
                                       injector<TezosBeaconService>()
                                           .operationResponse(
-                                          widget.request.id, txHash);
+                                              widget.request.id, txHash);
                                     }
 
                                     final address =
@@ -338,5 +364,90 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
         ),
       ),
     );
+  }
+
+  Widget gasFeeStatus(ThemeData theme) {
+    if (feeOptionValue == null) {
+      return Text("gas_fee_calculating".tr(), style: theme.textTheme.headline5);
+    }
+    bool isValid = balance > feeOptionValue!.getFee(feeOption).toInt() + 10;
+    if (isValid) {
+      return Text("gas_fee".tr(), style: theme.textTheme.headline5);
+    } else {
+      return Text("gas_fee_insufficient".tr(),
+          style: theme.textTheme.headline5?.copyWith(
+            color: AppColor.red,
+          ));
+    }
+  }
+
+  Widget feeTable(BuildContext context) {
+    final theme = Theme.of(context);
+    if (!_showAllFeeOption) {
+      return Row(
+        children: [
+          SvgPicture.asset(feeOption.icon),
+          const SizedBox(width: 15),
+          Text(feeOption.name, style: theme.textTheme.atlasBlackBold12),
+          const Spacer(),
+          Text(_gasFee(feeOption), style: theme.textTheme.atlasBlackBold12),
+          const SizedBox(width: 56),
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                _showAllFeeOption = true;
+              });
+            },
+            child: Text("edit_priority".tr(),
+                style: theme.textTheme.linkStyle
+                    .copyWith(fontWeight: FontWeight.w400, fontSize: 12)),
+          ),
+        ],
+      );
+    } else {
+      return Column(
+        children: [
+          getFeeRow(FeeOption.LOW, theme),
+          const SizedBox(height: 8),
+          getFeeRow(FeeOption.MEDIUM, theme),
+          const SizedBox(height: 8),
+          getFeeRow(FeeOption.HIGH, theme),
+        ],
+      );
+    }
+  }
+
+  Widget getFeeRow(
+      FeeOption feeOption, ThemeData theme) {
+    final isSelected = feeOption == this.feeOption;
+    final textStyle = isSelected
+        ? theme.textTheme.atlasBlackBold12
+        : theme.textTheme.atlasBlackNormal12;
+    return Row(
+      children: [
+        SvgPicture.asset(feeOption.icon),
+        const SizedBox(width: 15),
+        Text(feeOption.name, style: textStyle),
+        const Spacer(),
+        Text(_gasFee(feeOption), style: textStyle),
+        const SizedBox(width: 56),
+        GestureDetector(
+          onTap: () {
+            setState(() {
+              this.feeOption = feeOption;
+            });
+            _estimateFee(_currentWallet!);
+          },
+          child: SvgPicture.asset(isSelected
+              ? "assets/images/radio_btn_selected.svg"
+              : "assets/images/radio_btn_not_selected.svg"),
+        ),
+      ],
+    );
+  }
+
+  String _gasFee(FeeOption feeOption) {
+    if (feeOptionValue == null) return "";
+    return "${XtzAmountFormatter(feeOptionValue!.getFee(feeOption).toInt()).format()} XTZ";
   }
 }
