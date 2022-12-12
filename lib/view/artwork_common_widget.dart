@@ -898,9 +898,9 @@ Widget artworkDetailsMetadataSection(
 }
 
 Widget _getEditionNameRow(BuildContext context, AssetToken asset) {
-  final edition = (asset.maxEdition ?? 0) > 0
-      ? "${asset.editionName ?? asset.edition.toString()}/${asset.maxEdition}"
-      : asset.editionName ?? asset.edition.toString();
+  final edition = (asset.editionName != null && asset.editionName!.isNotEmpty)
+      ? asset.editionName
+      : asset.edition.toString();
   return _rowItem(context, "edition".tr(), edition);
 }
 

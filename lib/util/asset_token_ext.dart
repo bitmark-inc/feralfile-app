@@ -55,6 +55,15 @@ extension AssetTokenExtension on AssetToken {
     return url;
   }
 
+  String get editionSlashMax {
+    final editionStr = (editionName != null && editionName!.isNotEmpty)
+        ? editionName
+        : edition.toString();
+    final hasNumber = RegExp(r'[0-9]').hasMatch(editionStr!);
+    final maxEditionStr = (((maxEdition ?? 0) > 0) && hasNumber) ? "/$maxEdition" : "";
+    return "$editionStr$maxEditionStr";
+  }
+
   Future<WalletStorage?> getOwnerWallet() async {
     if (contractAddress == null || tokenId == null) return null;
     if (!(blockchain == "ethereum" &&

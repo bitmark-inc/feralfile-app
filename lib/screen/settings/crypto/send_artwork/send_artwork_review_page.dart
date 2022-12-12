@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/model/tzkt_operation.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -246,7 +247,6 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                                 ),
                               ],
                             ),
-                            const Divider(height: 32),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
@@ -269,15 +269,13 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                                   style: theme.textTheme.headline4,
                                 ),
                                 Text(
-                                  (asset.maxEdition ?? 0) > 0
-                                      ? "${asset.editionName ?? asset.edition.toString()}/${asset.maxEdition}"
-                                      : asset.editionName ?? asset.edition.toString(),
+                                  asset.editionSlashMax,
                                   style: theme.textTheme.bodyText2,
                                 ),
                               ],
                             ),
                           ],
-                          const SizedBox(height: 32.0),
+                          const Divider(height: 32),
                           Text(
                             "to".tr(),
                             style: theme.textTheme.headline4,
