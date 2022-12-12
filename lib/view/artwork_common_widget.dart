@@ -1077,19 +1077,6 @@ class _ArtworkRightsViewState extends State<ArtworkRightsView> {
                         mode: LaunchMode.externalApplication);
                   }),
           const SizedBox(height: 23.0),
-          TextButton(
-            style: theme.textButtonNoPadding,
-            onPressed: () => launchUrl(Uri.parse(getUrl(state)),
-                mode: LaunchMode.externalApplication),
-            child: Text(
-              "learn_artist".tr(),
-              style: widget.linkStyle ??
-                  theme.textTheme.linkStyle.copyWith(
-                    fontWeight: FontWeight.w500,
-                  ),
-            ),
-          ),
-          const SizedBox(height: 23.0),
         ],
       );
     });
