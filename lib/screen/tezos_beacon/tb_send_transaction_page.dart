@@ -112,7 +112,8 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
           BigInt.from(fee -
               feeOption.tezosBaseOperationCustomFee +
               baseOperationCustomFeeHigh));
-      balance = await injector<TezosService>().getBalance(await wallet.getTezosAddress());
+      balance = await injector<TezosService>()
+          .getBalance(await wallet.getTezosAddress());
       setState(() {
         _fee = fee;
       });
@@ -421,8 +422,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
     }
   }
 
-  Widget getFeeRow(
-      FeeOption feeOption, ThemeData theme) {
+  Widget getFeeRow(FeeOption feeOption, ThemeData theme) {
     final isSelected = feeOption == this.feeOption;
     final textStyle = isSelected
         ? theme.textTheme.atlasBlackBold12
