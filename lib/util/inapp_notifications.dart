@@ -56,20 +56,23 @@ class _SimpleNotificationToast extends StatelessWidget {
             color: theme.colorScheme.primary.withOpacity(0.8),
             padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
             child: Center(
-                child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                frontWidget ?? const SizedBox(),
-                SizedBox(
-                  width: frontWidget != null ? 8 : 0,
-                ),
-                Text(
-                  notification,
-                  textAlign: TextAlign.center,
-                  style: theme.primaryTextTheme.button,
-                ),
-              ],
-            )),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  frontWidget ?? const SizedBox(),
+                  SizedBox(
+                    width: frontWidget != null ? 8 : 0,
+                  ),
+                  Expanded(
+                    child: Text(
+                      notification,
+                      textAlign: TextAlign.center,
+                      style: theme.primaryTextTheme.button,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),
