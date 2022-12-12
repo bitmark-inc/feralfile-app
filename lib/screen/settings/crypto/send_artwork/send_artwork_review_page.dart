@@ -88,12 +88,10 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
           tokenId,
           widget.payload.quantity,
         );
-        await tezosService.estimateOperationFee(
-            await wallet.getTezosPublicKey(), [operation],
+        final opHash = await tezosService.sendOperationTransaction(
+            wallet, [operation],
             baseOperationCustomFee:
                 widget.payload.feeOption.tezosBaseOperationCustomFee);
-        final opHash =
-            await tezosService.sendOperationTransaction(wallet, [operation]);
         final exchangeRateXTZ =
             1 / (double.tryParse(widget.payload.exchangeRate.xtz) ?? 1);
 
@@ -282,7 +280,8 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                                 Text(
                                   (asset.maxEdition ?? 0) > 0
                                       ? "${asset.editionName ?? asset.edition.toString()}/${asset.maxEdition}"
-                                      : asset.editionName ?? asset.edition.toString(),
+                                      : asset.editionName ??
+                                          asset.edition.toString(),
                                   style: theme.textTheme.bodyText2,
                                 ),
                               ],

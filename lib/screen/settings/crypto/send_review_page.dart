@@ -78,17 +78,12 @@ class _SendReviewPageState extends State<SendReviewPage> {
           Navigator.of(context).pop(payload);
           break;
         case CryptoType.XTZ:
-          final tezosService = injector<TezosService>();
-          await tezosService.estimateFee(
-              await widget.payload.wallet.getTezosPublicKey(),
+          final opHash = await injector<TezosService>().sendTransaction(
+              widget.payload.wallet,
               widget.payload.address,
               widget.payload.amount.toInt(),
               baseOperationCustomFee:
                   widget.payload.feeOption.tezosBaseOperationCustomFee);
-          final opHash = await tezosService.sendTransaction(
-              widget.payload.wallet,
-              widget.payload.address,
-              widget.payload.amount.toInt());
           final exchangeRateXTZ =
               1 / (double.tryParse(widget.payload.exchangeRate.xtz) ?? 1);
           final tx = TZKTOperation(
@@ -246,9 +241,7 @@ class _SendReviewPageState extends State<SendReviewPage> {
                             ? "sending".tr().toUpperCase()
                             : "sendH".tr(),
                         isProcessing: _isSending,
-                        onPress: _isSending
-                            ? null
-                            : _send,
+                        onPress: _isSending ? null : _send,
                       ),
                     ),
                   ],
