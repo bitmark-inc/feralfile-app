@@ -36,11 +36,13 @@ class ArtworkPreviewDetailBloc
     });
 
     on<ArtworkFeedPreviewDetailGetAssetTokenEvent>((event, emit) async {
+      await Future.delayed(const Duration(milliseconds: 500)); // Delay 0.5s
       final asset = event.token;
       String? overriddenHtml;
       if (asset.isFeralfileFrame == true) {
         overriddenHtml = await _fetchFeralFileFramePreview(asset);
       }
+
       emit(ArtworkPreviewDetailLoadedState(
           asset: asset, overriddenHtml: overriddenHtml));
     });

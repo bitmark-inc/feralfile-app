@@ -6,6 +6,7 @@
 //
 
 import 'dart:async';
+import 'dart:math';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
@@ -29,9 +30,11 @@ import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:get_it/get_it.dart';
+import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:measured_size/measured_size.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/widgets/nft_collection_bloc.dart';
@@ -144,6 +147,7 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     double safeAreaTop = MediaQuery.of(context).padding.top;
+    final maxScrollSpeed = 500;
     return Scaffold(
       backgroundColor: theme.colorScheme.primary,
       body: BlocConsumer<FeedBloc, FeedState>(
@@ -153,21 +157,27 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
                     (state.feedEvents?.isEmpty ?? true)) {
               return _emptyOrLoadingDiscoveryWidget(state.appFeedData);
             }
-            //final feedTokens = state.feedTokens;
             return Stack(
               children: [
-                ListView.builder(
+                CustomScrollView(
                   controller: widget.controller,
                   shrinkWrap: true,
-                  itemCount: state.feedTokens?.length,
-                  padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
-                  //cacheExtent: 500,
-
-                  itemBuilder: (context, index) => _listItem(
-                      state.feedEvents![index],
-                      state.feedTokens![index]
-                  )
-                ),
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  cacheExtent: 1000,
+                  slivers: [
+                    SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) =>
+                            _listItem(
+                            state.feedEvents![index],
+                            state.feedTokens![index]
+                        ),
+                        childCount: state.feedTokens?.length ?? 0,
+                        addAutomaticKeepAlives: false,
+                      ),
+                    )
+                  ],
+                )
               ]
             );
           }),
@@ -175,31 +185,39 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
   }
 
   Widget _listItem(FeedEvent event, AssetToken? asset){
-    return GestureDetector(
-      behavior: HitTestBehavior.translucent,
-      onTap: (){
-        if (asset == null){
-          return;
-        }
-        _moveToInfo(asset, event);
-      },
-      child: Column(
-          children: [
-            Center(
-              child: FeedArtwork(
-                assetToken: asset,
+    return Stack(
+      children: [
+        Column(
+            children: [
+              Center(
+                child: FeedArtwork(
+                  assetToken: asset,
+                ),
               ),
-            ),
 
-            const SizedBox(height: 15,),
-            Align(
-              alignment: Alignment.topCenter,
-              child: _controlView(event, asset,),
+              const SizedBox(height: 15,),
+              Align(
+                alignment: Alignment.topCenter,
+                child: _controlView(event, asset,),
+              ),
+              const SizedBox(height: 60,),
+            ]
+        ),
+        Positioned.fill(
+          child: GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onTap: (){
+              if (asset == null){
+                return;
+              }
+              _moveToInfo(asset, event);
+            },
+            child: Container(
+              color: Colors.transparent,
             ),
-            const SizedBox(height: 60,),
-
-          ]
-      ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -239,9 +257,6 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
                     text: TextSpan(
                       style: theme.primaryTextTheme.headline5,
                       children: <TextSpan>[
-                        TextSpan(
-                          text: '${event.actionRepresentation} ',
-                        ),
                         TextSpan(
                           text: 'nft_indexing'.tr(),
                           style: ResponsiveLayout.isMobile
@@ -288,7 +303,7 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
                         Text(
                             asset.title.isEmpty
                                 ? 'nft'
-                                : '${asset.title}',
+                                : '${asset.title} ',
                           overflow: TextOverflow.ellipsis,
                             style: ResponsiveLayout.isMobile
                                 ? theme.textTheme.ppMori400White14
@@ -379,10 +394,9 @@ class FeedArtwork extends StatefulWidget {
 }
 
 class _FeedArtworkState extends State<FeedArtwork>
-    with RouteAware, WidgetsBindingObserver
-        //AutomaticKeepAliveClientMixin
+    with RouteAware, WidgetsBindingObserver,
+        AutomaticKeepAliveClientMixin
 {
-  bool _missingToken = false;
   INFTRenderingWidget? _renderingWidget;
 
   final _bloc = ArtworkPreviewDetailBloc(
@@ -393,7 +407,6 @@ class _FeedArtworkState extends State<FeedArtwork>
   @override
   void initState() {
     if (widget.assetToken == null) {
-      _missingToken = true;
     } else {
       _bloc.add(ArtworkFeedPreviewDetailGetAssetTokenEvent(widget.assetToken!));
     }
@@ -440,8 +453,8 @@ class _FeedArtworkState extends State<FeedArtwork>
     }
   }
 
-  // @override
-  // bool get wantKeepAlive => true;
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   Widget build(BuildContext context) {
@@ -455,11 +468,6 @@ class _FeedArtworkState extends State<FeedArtwork>
       );
     }
 
-    if (_missingToken) {
-      Vibrate.feedback(FeedbackType.light);
-      _missingToken = false;
-    }
-
     return BlocBuilder<ArtworkPreviewDetailBloc, ArtworkPreviewDetailState>(
       bloc: _bloc,
       builder: (context, state) {
@@ -469,14 +477,15 @@ class _FeedArtworkState extends State<FeedArtwork>
             return SizedBox(
               height: heightMap[widget.assetToken?.id] ?? screenWidth,
                 width: screenWidth,
-                child: const CircularProgressIndicator(color: Colors.white,));
+                );
           case ArtworkPreviewDetailLoadedState:
+
             final asset = (state as ArtworkPreviewDetailLoadedState).asset;
             if (asset != null) {
               return MeasuredSize(
                 onChange: (Size size){
                   final id = asset.id;
-                  if (id == null){
+                  if (id.isEmpty){
                     return;
                   }
                   heightMap[id] = size.height;
@@ -496,6 +505,7 @@ class _FeedArtworkState extends State<FeedArtwork>
                           asset,
                           attempt: attempt > 0 ? attempt : null,
                           overriddenHtml: state.overriddenHtml,
+                          loadingWidget: TokenThumbnailWidget(token: asset),
                         );
                       }
                       final mimeType = asset.getMimeType;
@@ -504,6 +514,9 @@ class _FeedArtworkState extends State<FeedArtwork>
                         case "svg":
                         case 'gif':
                         case "audio":
+                          return Container(
+                            child: _renderingWidget?.build(context),
+                          );
                         case "video":
                           return Container(
                             child: _renderingWidget?.build(context),
@@ -514,7 +527,6 @@ class _FeedArtworkState extends State<FeedArtwork>
                             child: _renderingWidget?.build(context),
                           );
                       }
-
                     },
                   ),
                 ),

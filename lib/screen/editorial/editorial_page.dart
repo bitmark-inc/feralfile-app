@@ -44,9 +44,12 @@ class _EditorialPageState extends State<EditorialPage>
       return;
     }
 
+    final isShowFullHeader = _controller.offset < 80;
+    if (isShowFullHeader != _showFullHeader){
     setState(() {
-      _showFullHeader = _controller.offset < 80;
+      _showFullHeader = isShowFullHeader;
     });
+    }
   }
 
   @override
