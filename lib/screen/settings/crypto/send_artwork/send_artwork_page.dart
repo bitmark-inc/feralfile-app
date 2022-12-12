@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_review_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_state.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -273,9 +274,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                                   style: theme.textTheme.headline4,
                                 ),
                                 Text(
-                                  (asset.maxEdition ?? 0) > 0
-                                      ? "${asset.editionName ?? asset.edition.toString()}/${asset.maxEdition}"
-                                      : asset.editionName ?? asset.edition.toString(),
+                                  asset.editionSlashMax,
                                   style: theme.textTheme.bodyText2,
                                 ),
                               ],
