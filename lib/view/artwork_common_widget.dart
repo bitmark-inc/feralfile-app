@@ -901,9 +901,7 @@ Widget _getEditionNameRow(BuildContext context, AssetToken asset) {
   final edition = (asset.editionName != null && asset.editionName!.isNotEmpty)
       ? asset.editionName
       : asset.edition.toString();
-  final hasNumber = RegExp(r'[0-9]').hasMatch(edition!);
-  final maxEdition = (((asset.maxEdition ?? 0) > 0) && hasNumber) ? "/${asset.maxEdition}" : "";
-  return _rowItem(context, "edition".tr(), "$edition$maxEdition");
+  return _rowItem(context, "edition".tr(), edition);
 }
 
 Widget tokenOwnership(
