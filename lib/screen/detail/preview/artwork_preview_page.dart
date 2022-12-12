@@ -660,7 +660,11 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                     child: Container(
                       color: theme.colorScheme.primary,
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 15),
+                        padding: const EdgeInsets.only(
+                          top: 15,
+                          bottom: 30,
+                          right: 20,
+                        ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.end,
                           crossAxisAlignment: CrossAxisAlignment.end,
@@ -689,9 +693,6 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                               child: SvgPicture.asset(
                                 'assets/images/fullscreen_icon.svg',
                               ),
-                            ),
-                            const SizedBox(
-                              width: 20,
                             ),
                           ],
                         ),
