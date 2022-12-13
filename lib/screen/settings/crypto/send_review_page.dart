@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/biometrics_util.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
+import 'package:autonomy_flutter/util/fee_util.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/usdc_amount_formatter.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
@@ -66,7 +67,8 @@ class _SendReviewPageState extends State<SendReviewPage> {
         case CryptoType.ETH:
           final address = EthereumAddress.fromHex(widget.payload.address);
           final txHash = await injector<EthereumService>().sendTransaction(
-              widget.payload.wallet, address, widget.payload.amount, null);
+              widget.payload.wallet, address, widget.payload.amount, null,
+              feeOption: widget.payload.feeOption);
 
           if (!mounted) return;
           final payload = {
@@ -79,7 +81,9 @@ class _SendReviewPageState extends State<SendReviewPage> {
           final opHash = await injector<TezosService>().sendTransaction(
               widget.payload.wallet,
               widget.payload.address,
-              widget.payload.amount.toInt());
+              widget.payload.amount.toInt(),
+              baseOperationCustomFee:
+                  widget.payload.feeOption.tezosBaseOperationCustomFee);
           final exchangeRateXTZ =
               1 / (double.tryParse(widget.payload.exchangeRate.xtz) ?? 1);
           final tx = TZKTOperation(
@@ -117,10 +121,12 @@ class _SendReviewPageState extends State<SendReviewPage> {
 
           final data = await injector<EthereumService>()
               .getERC20TransferTransactionData(contractAddress, ownerAddress,
-                  toAddress, widget.payload.amount);
+                  toAddress, widget.payload.amount,
+                  feeOption: widget.payload.feeOption);
 
           final txHash = await injector<EthereumService>().sendTransaction(
-              widget.payload.wallet, contractAddress, BigInt.zero, data);
+              widget.payload.wallet, contractAddress, BigInt.zero, data,
+              feeOption: widget.payload.feeOption);
 
           if (!mounted) return;
           final payload = {
@@ -231,11 +237,12 @@ class _SendReviewPageState extends State<SendReviewPage> {
                   children: [
                     Expanded(
                       child: AuFilledButton(
-                          text: _isSending
-                              ? "sending".tr().toUpperCase()
-                              : "sendH".tr(),
-                          isProcessing: _isSending,
-                          onPress: _isSending ? null : _send),
+                        text: _isSending
+                            ? "sending".tr().toUpperCase()
+                            : "sendH".tr(),
+                        isProcessing: _isSending,
+                        onPress: _isSending ? null : _send,
+                      ),
                     ),
                   ],
                 )

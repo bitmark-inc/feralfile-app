@@ -64,6 +64,8 @@ import Starscream
                 LibAukChannelHandler.shared.exportMnemonicWords(call: call, result: result)
             case "ethSignTransaction":
                 LibAukChannelHandler.shared.signTransaction(call: call, result: result)
+            case "ethSignTransaction1559":
+                LibAukChannelHandler.shared.signTransaction1559(call: call, result: result)
             case "encryptFile":
                 LibAukChannelHandler.shared.encryptFile(call: call, result: result)
             case "decryptFile":

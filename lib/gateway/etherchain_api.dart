@@ -17,4 +17,7 @@ abstract class EtherchainApi {
 
   @GET("/api/gasnow")
   Future<EtherGas> getGasPrice();
+
+  @GET("/api/gasPriceOracle")
+  Future<EtherGasDataOracle> getGasPriceOracle();
 }
