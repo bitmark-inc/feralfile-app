@@ -5,6 +5,9 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/currency_exchange.dart';
 import 'package:autonomy_flutter/model/tzkt_operation.dart';
@@ -65,6 +68,24 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
 
         final txHash = await ethereumService.sendTransaction(
             widget.payload.wallet, contractAddress, BigInt.zero, data);
+
+        //post pending token to indexer
+        if (txHash.isNotEmpty) {
+          final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+          final signature = await ethereumService.signPersonalMessage(widget.payload.wallet,
+              Uint8List.fromList(utf8.encode(timestamp)));
+          final pendingTxParams = PendingTxParams(
+            blockchain: asset.blockchain,
+            id: asset.tokenId ?? "",
+            contractAddress: asset.contractAddress ?? "",
+            ownerAccount: asset.ownerAddress,
+            pendingTx: txHash,
+            timestamp: timestamp,
+            signature: signature,
+          );
+          injector<TokensService>().postPendingToken(pendingTxParams);
+        }
+
         if (!mounted) return;
         final payload = {
           "isTezos": false,
@@ -92,13 +113,19 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
 
         //post pending token to indexer
         if (opHash != null) {
+          final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+          final publicKey = await widget.payload.wallet.getTezosPublicKey();
+          final signature = await tezosService.signMessage(widget.payload.wallet,
+              Uint8List.fromList(utf8.encode(timestamp)));
           final pendingTxParams = PendingTxParams(
-            asset.id,
-            asset.blockchain,
-            asset.tokenId ?? "",
-            asset.contractAddress ?? "",
-            asset.ownerAddress,
-            opHash,
+            blockchain: asset.blockchain,
+            id: asset.tokenId ?? "",
+            contractAddress: asset.contractAddress ?? "",
+            ownerAccount: asset.ownerAddress,
+            pendingTx: opHash,
+            timestamp: timestamp,
+            signature: signature,
+            publicKey: publicKey,
           );
           injector<TokensService>().postPendingToken(pendingTxParams);
         }
