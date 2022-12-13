@@ -372,18 +372,34 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     if (message.type == types.MessageType.image) {
       color = Colors.transparent;
     }
+    bool isError = false;
+    if (message is types.Message) {
+      print("------");
 
-    return Bubble(
-      color: color,
-      margin: nextMessageInGroup
-          ? const BubbleEdges.symmetric(horizontal: 6)
-          : null,
-      nip: nextMessageInGroup
-          ? BubbleNip.no
-          : _user.id != message.author.id
-              ? BubbleNip.leftBottom
-              : BubbleNip.rightBottom,
-      child: child,
+      print(message.metadata.toString());
+      print(message.status);
+      if (message.status == types.Status.sent) {
+        isError = true;
+      }
+    }
+
+    return Column(
+      children: [
+        Bubble(
+          color: color,
+          borderColor: isError ? Colors.red : Color(0xffA1200A),
+          margin: nextMessageInGroup
+              ? const BubbleEdges.symmetric(horizontal: 6)
+              : null,
+          nip: nextMessageInGroup
+              ? BubbleNip.no
+              : _user.id != message.author.id
+                  ? BubbleNip.leftBottom
+                  : BubbleNip.rightBottom,
+          child: child,
+        ),
+        Text("data"),
+      ],
     );
   }
 
@@ -476,7 +492,6 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
         (await Future.wait(drafts.map((e) => _convertChatMessage(e, null))))
             .expand((i) => i)
             .toList();
-
     if (mounted) {
       setState(() {
         _draftMessages = draftMessages;
@@ -688,9 +703,11 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       }
       //
     } else if (message is DraftCustomerSupport) {
+      final errorMessages = injector<CustomerSupportService>().errorMessages;
+
       id = message.uuid;
       author = _user;
-      status = types.Status.sending;
+      status = (errorMessages != null && errorMessages.contains(id)) ? types.Status.error : types.Status.sending;
       createdAt = message.createdAt;
       text = message.draftData.text;
       metadata = json.decode(message.data);

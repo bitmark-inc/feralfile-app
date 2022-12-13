@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
+import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
@@ -43,6 +44,7 @@ abstract class CustomerSupportService {
   ValueNotifier<int> get triggerReloadMessages;
   ValueNotifier<CustomerSupportUpdate?> get customerSupportUpdate;
   Map<String, String> get tempIssueIDMap;
+  List<String>? get errorMessages;
 
   Future<IssueDetails> getDetails(String issueID);
   Future<List<Issue>> getIssues();
@@ -71,6 +73,9 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
   final RenderingReportApi _renderingReportApi;
   final AccountService _accountService;
   final ConfigurationService _configurationService;
+  @override
+  List<String> errorMessages = [];
+  int retryTime = 0;
 
   @override
   ValueNotifier<List<int>?> numberOfIssuesInfo = ValueNotifier(null);
@@ -157,18 +162,31 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     processMessages();
   }
 
+  void removeErrorMessage(String uuid) {
+    retryTime = 0;
+    errorMessages.remove(uuid);
+    print("ok-----------$retryTime");
+  }
+
+  void sendMessageFail(String uuid) {
+    if (retryTime > 5) errorMessages.add(uuid);
+    print("fail-----------$retryTime");
+  }
+
   @override
   Future processMessages() async {
     log.info('[CS-Service][trigger] processMessages');
     if (_isProcessingDraftMessages) return;
 
+    final fetchLimit = errorMessages.length + 1;
     log.info('[CS-Service][start] processMessages');
-    final draftMsgs = await _draftCustomerSupportDao.fetchDrafts(1);
-
-    if (draftMsgs.isEmpty) return;
+    final draftMsgsRaw = await _draftCustomerSupportDao.fetchDrafts(fetchLimit);
+    if (draftMsgsRaw.isEmpty) return;
+    final draftMsg = draftMsgsRaw.firstWhereOrNull((element) => !errorMessages.contains(element.uuid));
+    if (draftMsg == null) return;
     log.info('[CS-Service][start] processMessages hasDraft');
     _isProcessingDraftMessages = true;
-    final draftMsg = draftMsgs.first;
+    retryTime++;
 
     // Edge Case when database has not updated the new issueID for new comments
     if (draftMsg.type != 'CreateIssue' && draftMsg.issueID.contains("TEMP")) {
@@ -181,6 +199,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
       }
 
       _isProcessingDraftMessages = false;
+      removeErrorMessage(draftMsg.uuid);
       processMessages();
       return;
     }
@@ -207,6 +226,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
 
       // just delete draft because we can not do anything more
       await _draftCustomerSupportDao.deleteDraft(draftMsg);
+      removeErrorMessage(draftMsg.uuid);
       _isProcessingDraftMessages = false;
       log.info(
           '[CS-Service][end] processMessages delete invalid draftMesssage');
@@ -251,11 +271,12 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
           file.delete();
         }));
       }
+      removeErrorMessage(draftMsg.uuid);
     } catch (exception) {
       log.info('[CS-Service] not notify to user if there is any error');
       Sentry.captureException(exception);
     }
-
+    sendMessageFail(draftMsg.uuid);
     _isProcessingDraftMessages = false;
     log.info('[CS-Service][end] processMessages hasDraft');
     processMessages();
