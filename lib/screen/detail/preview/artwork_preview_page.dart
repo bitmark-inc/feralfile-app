@@ -90,6 +90,8 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   Timer? _timer;
   late int initialPage;
 
+  final mixPanelClient = injector.get<MixPanelClientService>();
+
   @override
   void initState() {
     tokens = List.from(widget.payload.identities);
@@ -374,6 +376,9 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                 onTap: isSubscribed
                     ? () {
                         metricClient.addEvent("stream_chromecast");
+                        mixPanelClient.trackEvent(
+                          MixpanelEvent.streamChromecast,
+                        );
                         UIHelper.hideInfoDialog(context);
                         var copiedDevice = _castDevices[index];
                         if (copiedDevice.isActivated) {

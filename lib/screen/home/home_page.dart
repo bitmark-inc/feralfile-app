@@ -622,7 +622,7 @@ class _HomePageState extends State<HomePage>
   void _handleBackground() {
     metricClient.addEvent("device_background");
     metricClient.sendAndClearMetrics();
-    mixPanelClient.trackEvent("device_background");
+    mixPanelClient.trackEvent(MixpanelEvent.deviceBackground);
     mixPanelClient.sendData();
     _cloudBackup();
     FileLogger.shrinkLogFileIfNeeded();

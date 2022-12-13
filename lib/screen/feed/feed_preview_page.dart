@@ -22,6 +22,7 @@ import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/mixPanel_client_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -90,7 +91,7 @@ class _FeedPreviewPageState extends State<FeedPreviewPage>
     );
     final mixPanelClient = injector.get<MixPanelClientService>();
     mixPanelClient.trackEvent(
-      "view_discovery",
+      MixpanelEvent.viewDiscovery,
     );
   }
 

@@ -58,6 +58,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   late ScrollController _scrollController;
   HashSet<String> _accountNumberHash = HashSet.identity();
   AssetToken? currentAsset;
+  final mixPanelClient = injector.get<MixPanelClientService>();
 
   @override
   void initState() {
@@ -82,13 +83,28 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
       },
     );
 
-    final mixPanelClient = injector.get<MixPanelClientService>();
     mixPanelClient.trackEvent(
-      "view_artwork",
+      MixpanelEvent.viewArtwork,
       data: {
         "id": artworkId,
       },
     );
+    mixPanelClient.timerEvent(
+      MixpanelEvent.aliveInArtworkDetail,
+    );
+  }
+
+  @override
+  void dispose() {
+    final artworkId =
+        jsonEncode(widget.payload.identities[widget.payload.currentIndex]);
+    mixPanelClient.trackEvent(
+      MixpanelEvent.aliveInArtworkDetail,
+      data: {
+        "id": artworkId,
+      },
+    );
+    super.dispose();
   }
 
   @override
