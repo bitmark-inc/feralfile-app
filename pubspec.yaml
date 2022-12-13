@@ -30,7 +30,6 @@ dependencies:
   connectivity_plus: ^2.2.1
   crypto: ^3.0.1
   cupertino_icons: ^1.0.2
-  custom_refresh_indicator: ^2.0.1
   device_info_plus: ^3.2.1
   dio: ^4.0.6
   dio_smart_retry: ^1.2.0
