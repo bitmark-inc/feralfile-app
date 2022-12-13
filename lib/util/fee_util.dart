@@ -20,17 +20,6 @@ extension FeeOptionExtention on FeeOption {
     }
   }
 
-  String get icon {
-    switch (this) {
-      case FeeOption.LOW:
-        return "assets/images/low_priority.svg";
-      case FeeOption.MEDIUM:
-        return "assets/images/medium_priority.svg";
-      default:
-        return "assets/images/high_priority.svg";
-    }
-  }
-
   String get name {
     switch (this) {
       case FeeOption.LOW:
