@@ -238,12 +238,8 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
     on<FeeOptionChangedEvent>((event, emit) async {
       final newState = state.clone();
       newState.feeOption = event.feeOption;
+      newState.fee = newState.feeOptionValue?.getFee(event.feeOption);
       emit(newState);
-      if (type == CryptoType.XTZ) {
-        add(EstimateFeeEvent(event.address, _asset.contractAddress ?? "",
-            _asset.tokenId ?? "", event.quantity,
-            newState: newState));
-      }
     });
   }
 

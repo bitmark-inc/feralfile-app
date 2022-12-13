@@ -282,10 +282,8 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
     on<FeeOptionChangedEvent>((event, emit) async {
       final newState = state.clone();
       newState.feeOption = event.feeOption;
+      newState.fee = newState.feeOptionValue?.getFee(event.feeOption);
       emit(newState);
-      if (_type == CryptoType.XTZ) {
-        add(EstimateFeeEvent(event.address, BigInt.one, newState: newState));
-      }
     });
   }
 

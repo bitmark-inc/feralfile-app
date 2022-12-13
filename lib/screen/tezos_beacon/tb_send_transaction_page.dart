@@ -439,8 +439,8 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
           onTap: () {
             setState(() {
               this.feeOption = feeOption;
+              _fee = feeOptionValue?.getFee(feeOption).toInt();
             });
-            _estimateFee(_currentWallet!);
           },
           child: SvgPicture.asset(isSelected
               ? "assets/images/radio_btn_selected.svg"
