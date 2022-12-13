@@ -9,6 +9,8 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
+import 'fee_util.dart';
+
 const INDEXER_TOKENS_MAXIMUM = 50;
 const INDEXER_UNKNOWN_SOURCE = 'unknown';
 const CLOUDFLAREIMAGEURLPREFIX =
@@ -53,7 +55,7 @@ const Duration SENT_ARTWORK_HIDE_TIME = Duration(minutes: 20);
 const USDC_CONTRACT_ADDRESS_GOERLI =
     "0x07865c6E87B9F70255377e024ace6630C1Eaa37F";
 const USDC_CONTRACT_ADDRESS = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
-
+const DEFAULT_FEE_OPTION = FeeOption.LOW;
 String get usdcContractAddress => Environment.appTestnetConfig
     ? USDC_CONTRACT_ADDRESS_GOERLI
     : USDC_CONTRACT_ADDRESS;

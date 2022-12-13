@@ -11,14 +11,18 @@ import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_review_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_state.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
+import 'package:autonomy_flutter/util/fee_util.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:autonomy_theme/style/colors.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -46,6 +50,8 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
   final _reviewButtonVisible =
       ValueNotifier(!KeyboardVisibilityController().isVisible);
 
+  bool _showAllFeeOption = false;
+  bool _initialChangeAddress = false;
   final _focusNode = FocusNode();
 
   @override
@@ -161,7 +167,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
         children: [
           BlocConsumer<SendArtworkBloc, SendArtworkState>(
               listener: (context, state) {
-            if (state.fee != null) {
+            if (state.fee != null && feeWidgetKey.currentContext != null) {
               Scrollable.ensureVisible(feeWidgetKey.currentContext!);
             }
             if (state.fee != null &&
@@ -296,6 +302,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                                   context
                                       .read<SendArtworkBloc>()
                                       .add(AddressChangedEvent(""));
+                                  _initialChangeAddress = true;
                                 } else {
                                   dynamic address = await Navigator.of(context)
                                       .pushNamed(ScanQRPage.tag,
@@ -311,6 +318,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                                     context
                                         .read<SendArtworkBloc>()
                                         .add(AddressChangedEvent(address));
+                                    _initialChangeAddress = true;
                                   }
                                 }
                               },
@@ -322,25 +330,16 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                                         _addressController.text,
                                       ),
                                     );
+                                _initialChangeAddress = true;
                               }
                             },
                           ),
-                          const SizedBox(height: 8.0),
-                          Visibility(
-                            visible: state.isEstimating,
-                            child: Row(
-                              children: [
-                                Text("gas_fee".tr(),
-                                    style: theme.textTheme.headline5),
-                                Text("calculating...".tr(),
-                                    style: theme.textTheme.headline5),
-                              ],
-                            ),
-                          ),
-                          Text(_gasFee(state),
-                              key: feeWidgetKey,
-                              style: theme.textTheme.headline5),
                           const SizedBox(height: 16.0),
+                          gasFeeStatus(state, theme),
+                          const SizedBox(height: 10.0),
+                          if (state.feeOptionValue != null)
+                            feeTable(state, context),
+                          const SizedBox(height: 24.0),
                         ],
                       ),
                     ),
@@ -379,7 +378,9 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                             state.fee!,
                             state.exchangeRate,
                             widget.payload.ownedQuantity,
-                            state.quantity)) as Map?;
+                            state.quantity,
+                            state.feeOption,
+                            state.feeOptionValue!)) as Map?;
                     if (payload != null &&
                         payload["hash"] != null &&
                         payload["hash"] is String) {
@@ -394,25 +395,103 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
     );
   }
 
-  String _gasFee(SendArtworkState state) {
-    if (state.fee == null) return "";
-    final fee = state.fee!;
-
-    String text = "gas_fee".tr();
-
-    switch (widget.payload.asset.blockchain) {
-      case "ethereum":
-        text +=
-            "${EthAmountFormatter(fee).format()} ETH (${state.exchangeRate.ethToUsd(fee)} USD)";
-        break;
-      case "tezos":
-        text +=
-            "${XtzAmountFormatter(fee.toInt()).format()} XTZ (${state.exchangeRate.xtzToUsd(fee.toInt())} USD)";
-        break;
-      default:
-        break;
+  Widget gasFeeStatus(SendArtworkState state, ThemeData theme) {
+    if (_initialChangeAddress && state.feeOptionValue == null) {
+      return Text("gas_fee_calculating".tr(), style: theme.textTheme.headline5);
     }
-    return text;
+    if (state.feeOptionValue != null && state.balance != null) {
+      bool isValid = state.balance! >
+          state.feeOptionValue!.getFee(state.feeOption) + BigInt.from(10);
+      if (isValid) {
+        return Text("gas_fee".tr(), style: theme.textTheme.headline5);
+      } else {
+        return Text("gas_fee_insufficient".tr(),
+            style: theme.textTheme.headline5?.copyWith(
+              color: AppColor.red,
+            ));
+      }
+    }
+    return const SizedBox();
+  }
+
+  Widget feeTable(SendArtworkState state, BuildContext context) {
+    final theme = Theme.of(context);
+    final feeOption = state.feeOption;
+    if (!_showAllFeeOption) {
+      return Row(
+        children: [
+          SvgPicture.asset(feeOption.icon),
+          const SizedBox(width: 15),
+          Text(feeOption.name, style: theme.textTheme.atlasBlackBold12),
+          const Spacer(),
+          Text(_gasFee(state), style: theme.textTheme.atlasBlackBold12),
+          const SizedBox(width: 56),
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                _showAllFeeOption = true;
+              });
+            },
+            child: Text("edit_priority".tr(),
+                style: theme.textTheme.linkStyle
+                    .copyWith(fontWeight: FontWeight.w400, fontSize: 12)),
+          ),
+        ],
+      );
+    } else {
+      return Column(
+        children: [
+          getFeeRow(FeeOption.LOW, state, theme),
+          const SizedBox(height: 8),
+          getFeeRow(FeeOption.MEDIUM, state, theme),
+          const SizedBox(height: 8),
+          getFeeRow(FeeOption.HIGH, state, theme),
+        ],
+      );
+    }
+  }
+
+  Widget getFeeRow(
+      FeeOption feeOption, SendArtworkState state, ThemeData theme) {
+    final isSelected = feeOption == state.feeOption;
+    final textStyle = isSelected
+        ? theme.textTheme.atlasBlackBold12
+        : theme.textTheme.atlasBlackNormal12;
+    return Row(
+      children: [
+        SvgPicture.asset(feeOption.icon),
+        const SizedBox(width: 15),
+        Text(feeOption.name, style: textStyle),
+        const Spacer(),
+        Text(_gasFee(state, feeOption: feeOption), style: textStyle),
+        const SizedBox(width: 56),
+        GestureDetector(
+          onTap: () {
+            context.read<SendArtworkBloc>().add(FeeOptionChangedEvent(
+                feeOption, state.address ?? "", state.quantity));
+          },
+          child: SvgPicture.asset(isSelected
+              ? "assets/images/radio_btn_selected.svg"
+              : "assets/images/radio_btn_not_selected.svg"),
+        ),
+      ],
+    );
+  }
+
+  String _gasFee(SendArtworkState state, {FeeOption? feeOption}) {
+    final type = widget.payload.asset.blockchain == "ethereum"
+        ? CryptoType.ETH
+        : CryptoType.XTZ;
+    if (state.feeOptionValue == null) return type.code;
+    final fee = state.feeOptionValue!.getFee(feeOption ?? state.feeOption);
+    switch (type) {
+      case CryptoType.ETH:
+        return "${EthAmountFormatter(fee, digit: 7).format()} ETH (${state.exchangeRate.ethToUsd(fee)} USD)";
+      case CryptoType.XTZ:
+        return "${XtzAmountFormatter(fee.toInt()).format()} XTZ (${state.exchangeRate.xtzToUsd(fee.toInt())} USD)";
+      default:
+        return "";
+    }
   }
 }
 

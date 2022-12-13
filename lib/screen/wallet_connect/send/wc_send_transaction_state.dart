@@ -5,6 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/fee_util.dart';
 import 'package:wallet_connect/models/wc_peer_meta.dart';
 import 'package:web3dart/web3dart.dart';
 
@@ -44,6 +46,12 @@ class WCSendTransactionSendEvent extends WCSendTransactionEvent {
   });
 }
 
+class FeeOptionChangedEvent extends WCSendTransactionEvent {
+  final FeeOption feeOption;
+
+  FeeOptionChangedEvent(this.feeOption);
+}
+
 class WCSendTransactionRejectEvent extends WCSendTransactionEvent {
   final WCPeerMeta peerMeta;
   final int requestId;
@@ -63,4 +71,24 @@ class WCSendTransactionState {
   BigInt? balance;
   bool isSending = false;
   bool isError = false;
+  FeeOption feeOption;
+  FeeOptionValue? feeOptionValue;
+
+  WCSendTransactionState({
+    this.fee,
+    this.balance,
+    this.isSending = false,
+    this.isError = false,
+    this.feeOption = DEFAULT_FEE_OPTION,
+    this.feeOptionValue,
+  });
+
+  WCSendTransactionState clone() => WCSendTransactionState(
+        fee: fee,
+        balance: balance,
+        isSending: isSending,
+        isError: isError,
+        feeOption: feeOption,
+        feeOptionValue: feeOptionValue,
+      );
 }

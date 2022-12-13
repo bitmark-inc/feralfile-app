@@ -78,7 +78,7 @@ dependencies:
   libauk_dart:
     git:
       url: https://github.com/autonomy-system/libauk-dart.git
-      ref: f136332307cff8f4b893598b986d25a8c3d87f3c
+      ref: 17fac38d818eaced1e8e7d87dafeab4aa2cbaa9a
   local_auth: ^2.1.0
   logging: ^1.0.2
   mime: ^1.0.1
@@ -109,7 +109,7 @@ dependencies:
   tezart:
     git:
       url: https://github.com/autonomy-system/tezart.git
-      ref: bd4b8db6e3a352590a6e556d31df8aef60db3465
+      ref: eea7382c00a32622cb7e373559034f7556106ac7
   uni_links: ^0.5.1
   url_launcher: ^6.0.20
   uuid: ^3.0.5
