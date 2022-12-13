@@ -64,6 +64,8 @@ import Starscream
                 LibAukChannelHandler.shared.exportMnemonicWords(call: call, result: result)
             case "ethSignTransaction":
                 LibAukChannelHandler.shared.signTransaction(call: call, result: result)
+            case "ethSignTransaction1559":
+                LibAukChannelHandler.shared.signTransaction1559(call: call, result: result)
             case "encryptFile":
                 LibAukChannelHandler.shared.encryptFile(call: call, result: result)
             case "decryptFile":
@@ -172,6 +174,8 @@ import Starscream
                 WC2ChannelHandler.shared.activate(call: call, result: result)
             case "deletePairing":
                 WC2ChannelHandler.shared.deletePairing(call: call, result: result)
+            case "cleanup":
+                WC2ChannelHandler.shared.cleanupSessions(call: call, result: result)
             default:
                 result(FlutterMethodNotImplemented)
             }

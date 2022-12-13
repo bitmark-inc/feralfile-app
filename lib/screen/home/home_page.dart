@@ -18,7 +18,6 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/editorial/editorial_page.dart';
-import 'package:autonomy_flutter/screen/feed/feed_preview_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
@@ -53,8 +52,8 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
+import 'package:autonomy_flutter/view/penrose_top_bar_view.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
@@ -151,6 +150,8 @@ class _HomePageState extends State<HomePage> {
         showSelectedLabels: false,
         showUnselectedLabels: false,
         currentIndex: _selectedIndex,
+        unselectedItemColor: theme.disabledColor,
+        selectedItemColor: theme.primaryColor,
         backgroundColor: theme.backgroundColor.withOpacity(0.95),
         type: BottomNavigationBarType.fixed,
         onTap: _onItemTapped,
@@ -244,6 +245,7 @@ class _HomeScreenState extends State<HomeScreen>
     injector<IAPService>().setup();
     memoryValues.inGalleryView = true;
     injector<TezosBeaconService>().cleanup();
+    injector<Wc2Service>().cleanup();
   }
 
   @override
@@ -323,6 +325,7 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+
     final theme = Theme.of(context);
     final contentWidget =
         BlocConsumer<NftCollectionBloc, NftCollectionBlocState>(
@@ -508,14 +511,8 @@ class _HomeScreenState extends State<HomeScreen>
                     .indexOf(asset);
                 final payload = ArtworkDetailPayload(accountIdentities, index);
 
-                if (injector<ConfigurationService>()
-                    .isImmediateInfoViewEnabled()) {
-                  Navigator.of(context).pushNamed(AppRouter.artworkDetailsPage,
-                      arguments: payload);
-                } else {
-                  Navigator.of(context).pushNamed(AppRouter.artworkPreviewPage,
-                      arguments: payload);
-                }
+                Navigator.of(context).pushNamed(AppRouter.artworkDetailsPage,
+                    arguments: payload);
 
                 mixPanelClient
                     .trackEvent("view_artwork", data: {"id": asset.id});
@@ -955,7 +952,7 @@ class AddPlayListItem extends StatelessWidget {
               const Spacer(),
               Text(
                 'New Playlist',
-                style: theme.textTheme.ppMori400Black12,
+                style: theme.textTheme.ppMori400Grey12,
                 overflow: TextOverflow.ellipsis,
               ),
             ],

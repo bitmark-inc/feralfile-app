@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_state.d
 import 'package:autonomy_flutter/screen/settings/crypto/send_review_page.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
+import 'package:autonomy_flutter/util/fee_util.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/usdc_amount_formatter.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
@@ -42,6 +43,8 @@ class SendCryptoPage extends StatefulWidget {
 class _SendCryptoPageState extends State<SendCryptoPage> {
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
+  bool _showAllFeeOption = false;
+  bool _initialChangeAddress = false;
 
   @override
   void initState() {
@@ -96,6 +99,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                     onPressed: () async {
                       if (_addressController.text.isNotEmpty) {
                         _addressController.text = "";
+                        _initialChangeAddress = true;
                         context
                             .read<SendCryptoBloc>()
                             .add(AddressChangedEvent(""));
@@ -109,6 +113,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                           address = address.replacePrefix("ethereum:", "");
                           _addressController.text = address;
                           if (!mounted) return;
+                          _initialChangeAddress = true;
                           context
                               .read<SendCryptoBloc>()
                               .add(AddressChangedEvent(address));
@@ -117,6 +122,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                     },
                   ),
                   onChanged: (value) {
+                    _initialChangeAddress = true;
                     context
                         .read<SendCryptoBloc>()
                         .add(AddressChangedEvent(_addressController.text));
@@ -187,16 +193,10 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                         _amountController.text.replaceAll(",", ".")));
                   },
                 ),
-                const SizedBox(height: 8.0),
-                Text(_gasFee(state), style: theme.textTheme.headline5),
-                if (type == CryptoType.USDC &&
-                    state.fee != null &&
-                    state.ethBalance != null &&
-                    state.fee! > state.ethBalance!)
-                  Text("insufficient_eth_funds".tr(),
-                      style: theme.textTheme.headline5?.copyWith(
-                        color: AppColor.red,
-                      )),
+                const SizedBox(height: 16.0),
+                gasFeeStatus(state, theme),
+                const SizedBox(height: 10.0),
+                if (state.feeOptionValue != null) feeTable(state, context),
                 const SizedBox(height: 24.0),
                 // Expanded(child: SizedBox()),
                 Row(
@@ -212,7 +212,8 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                                     state.address!,
                                     state.amount!,
                                     state.fee!,
-                                    state.exchangeRate);
+                                    state.exchangeRate,
+                                    state.feeOption);
                                 final txPayload = await Navigator.of(context)
                                     .pushNamed(SendReviewPage.tag,
                                         arguments: payload) as Map?;
@@ -233,6 +234,96 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
           ),
         );
       }),
+    );
+  }
+
+  Widget gasFeeStatus(SendCryptoState state, ThemeData theme) {
+    if (_initialChangeAddress && state.feeOptionValue == null) {
+      return Text("gas_fee_calculating".tr(), style: theme.textTheme.headline5);
+    }
+    if (state.feeOptionValue != null) {
+      if (!(state.amount != null && state.amount! > BigInt.zero)) {
+        return Text("gas_fee".tr(), style: theme.textTheme.headline5);
+      }
+      bool isValid = state.isValid &&
+          !(widget.data.type == CryptoType.USDC &&
+              state.fee != null &&
+              state.ethBalance != null &&
+              state.fee! > state.ethBalance!);
+      if (isValid) {
+        return Text("gas_fee".tr(), style: theme.textTheme.headline5);
+      } else {
+        return Text("gas_fee_insufficient".tr(),
+            style: theme.textTheme.headline5?.copyWith(
+              color: AppColor.red,
+            ));
+      }
+    }
+    return const SizedBox();
+  }
+
+  Widget feeTable(SendCryptoState state, BuildContext context) {
+    final theme = Theme.of(context);
+    final feeOption = state.feeOption;
+    if (!_showAllFeeOption) {
+      return Row(
+        children: [
+          SvgPicture.asset(feeOption.icon),
+          const SizedBox(width: 15),
+          Text(feeOption.name, style: theme.textTheme.atlasBlackBold12),
+          const Spacer(),
+          Text(_gasFee(state), style: theme.textTheme.atlasBlackBold12),
+          const SizedBox(width: 56),
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                _showAllFeeOption = true;
+              });
+            },
+            child: Text("edit_priority".tr(),
+                style: theme.textTheme.linkStyle
+                    .copyWith(fontWeight: FontWeight.w400, fontSize: 12)),
+          ),
+        ],
+      );
+    } else {
+      return Column(
+        children: [
+          getFeeRow(FeeOption.LOW, state, theme),
+          const SizedBox(height: 8),
+          getFeeRow(FeeOption.MEDIUM, state, theme),
+          const SizedBox(height: 8),
+          getFeeRow(FeeOption.HIGH, state, theme),
+        ],
+      );
+    }
+  }
+
+  Widget getFeeRow(
+      FeeOption feeOption, SendCryptoState state, ThemeData theme) {
+    final isSelected = feeOption == state.feeOption;
+    final textStyle = isSelected
+        ? theme.textTheme.atlasBlackBold12
+        : theme.textTheme.atlasBlackNormal12;
+    return Row(
+      children: [
+        SvgPicture.asset(feeOption.icon),
+        const SizedBox(width: 15),
+        Text(feeOption.name, style: textStyle),
+        const Spacer(),
+        Text(_gasFee(state, feeOption: feeOption), style: textStyle),
+        const SizedBox(width: 56),
+        GestureDetector(
+          onTap: () {
+            context
+                .read<SendCryptoBloc>()
+                .add(FeeOptionChangedEvent(feeOption, state.address ?? ""));
+          },
+          child: SvgPicture.asset(isSelected
+              ? "assets/images/radio_btn_selected.svg"
+              : "assets/images/radio_btn_not_selected.svg"),
+        ),
+      ],
     );
   }
 
@@ -306,31 +397,23 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
     }
   }
 
-  String _gasFee(SendCryptoState state) {
-    if (state.fee == null) return "";
-    final fee = state.fee!;
-
-    String text = "gas_fee".tr();
-
+  String _gasFee(SendCryptoState state, {FeeOption? feeOption}) {
+    if (state.feeOptionValue == null) return widget.data.type.code;
+    final fee = state.feeOptionValue!.getFee(feeOption ?? state.feeOption);
     switch (widget.data.type) {
       case CryptoType.ETH:
-        text += state.isCrypto
-            ? "${EthAmountFormatter(fee).format()} ETH"
+        return state.isCrypto
+            ? "${EthAmountFormatter(fee, digit: 7).format()} ETH"
             : "${state.exchangeRate.ethToUsd(fee)} USD";
-        break;
       case CryptoType.XTZ:
-        text += state.isCrypto
+        return state.isCrypto
             ? "${XtzAmountFormatter(fee.toInt()).format()} XTZ"
             : "${state.exchangeRate.xtzToUsd(fee.toInt())} USD";
-        break;
       case CryptoType.USDC:
-        text +=
-            "${EthAmountFormatter(fee).format()} ETH (${state.exchangeRate.ethToUsd(fee)} USD)";
-        break;
+        return "${EthAmountFormatter(fee, digit: 7).format()} ETH (${state.exchangeRate.ethToUsd(fee)} USD)";
       default:
-        break;
+        return "";
     }
-    return text;
   }
 }
 
@@ -349,7 +432,8 @@ class SendCryptoPayload {
   final BigInt amount;
   final BigInt fee;
   final CurrencyExchangeRate exchangeRate;
+  final FeeOption feeOption;
 
   SendCryptoPayload(this.type, this.wallet, this.address, this.amount, this.fee,
-      this.exchangeRate);
+      this.exchangeRate, this.feeOption);
 }

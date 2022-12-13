@@ -167,7 +167,7 @@ class FeedServiceImpl extends FeedService {
   @override
   Future checkNewFeeds() async {
     final service = injector<FeedApi>();
-    final isTestnet = await isAppCenterBuild();
+    final isTestnet = Environment.appTestnetConfig;
     final feedData = await service.getFeeds(isTestnet, 10, null, null);
     final lastTimeOpenFeed = _configurationService.getLastTimeOpenFeed();
     final newEvents = feedData.events.where(
@@ -188,7 +188,7 @@ class FeedServiceImpl extends FeedService {
     _fetchFeedsCompleters[uuid] = completer;
 
     log.info("[FeedFollowService] start FETCH_FEEDS");
-    final isTestnet = await isAppCenterBuild();
+    final isTestnet = Environment.appTestnetConfig;
     _sendPort!.send([
       FETCH_FEEDS,
       uuid,

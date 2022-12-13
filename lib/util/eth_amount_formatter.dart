@@ -9,9 +9,10 @@ import 'package:flutter/material.dart';
 import 'package:web3dart/web3dart.dart';
 
 class EthAmountFormatter {
-  EthAmountFormatter(this.amount);
+  EthAmountFormatter(this.amount, {this.digit = 6});
 
   final BigInt amount;
+  final int digit;
   String format({
     fromUnit = EtherUnit.wei,
     toUnit = EtherUnit.ether,
@@ -20,9 +21,9 @@ class EthAmountFormatter {
 
     return EtherAmount.fromUnitAndValue(fromUnit, amount)
         .getValueInUnit(toUnit)
-        .toStringAsFixed(6)
+        .toStringAsFixed(digit)
         .characters
-        .take(7)
+        .take(digit + 1)
         .toString();
   }
 }

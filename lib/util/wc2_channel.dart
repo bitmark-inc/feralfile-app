@@ -84,6 +84,10 @@ class Wc2Channel {
     });
   }
 
+  Future cleanup(List<String> ids) async {
+    await _channel.invokeMethod('cleanup', {'retain_ids': ids});
+  }
+
   void listen() async {
     await for (Map event in _eventChannel.receiveBroadcastStream()) {
       var params = event["params"];

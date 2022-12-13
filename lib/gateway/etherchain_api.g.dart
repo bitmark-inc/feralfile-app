@@ -43,6 +43,29 @@ class _EtherchainApi implements EtherchainApi {
     return value;
   }
 
+  @override
+  Future<EtherGasDataOracle> getGasPriceOracle() async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    final _data = <String, dynamic>{};
+    final _result =
+    await _dio.fetch<Map<String, dynamic>>(_setStreamType<EtherGasDataOracle>(Options(
+      method: 'GET',
+      headers: _headers,
+      extra: _extra,
+    )
+        .compose(
+      _dio.options,
+      '/api/gasPriceOracle',
+      queryParameters: queryParameters,
+      data: _data,
+    )
+        .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+    final value = EtherGasDataOracle.fromJson(_result.data!);
+    return value;
+  }
+
   RequestOptions _setStreamType<T>(RequestOptions requestOptions) {
     if (T != dynamic &&
         !(requestOptions.responseType == ResponseType.bytes ||

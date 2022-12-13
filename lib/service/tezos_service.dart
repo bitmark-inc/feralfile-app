@@ -18,18 +18,25 @@ import 'package:tezart/src/crypto/crypto.dart' as crypto;
 import 'package:tezart/src/crypto/crypto.dart' show Prefixes;
 import 'package:tezart/tezart.dart';
 
+const baseOperationCustomFeeLow = 100;
+const baseOperationCustomFeeMedium = 150;
+const baseOperationCustomFeeHigh = 200;
+
 abstract class TezosService {
   Future<int> getBalance(String address);
 
-  Future<int> estimateOperationFee(
-      String publicKey, List<Operation> operations);
+  Future<int> estimateOperationFee(String publicKey, List<Operation> operations,
+      {int? baseOperationCustomFee});
 
-  Future<int> estimateFee(String publicKey, String to, int amount);
+  Future<int> estimateFee(String publicKey, String to, int amount,
+      {int? baseOperationCustomFee});
 
   Future<String?> sendOperationTransaction(
-      WalletStorage wallet, List<Operation> operations);
+      WalletStorage wallet, List<Operation> operations,
+      {int? baseOperationCustomFee});
 
-  Future<String?> sendTransaction(WalletStorage wallet, String to, int amount);
+  Future<String?> sendTransaction(WalletStorage wallet, String to, int amount,
+      {int? baseOperationCustomFee});
 
   Future<String> signMessage(WalletStorage wallet, Uint8List message);
 
@@ -58,14 +65,13 @@ class TezosServiceImpl extends TezosService {
   }
 
   @override
-  Future<int> estimateOperationFee(
-      String publicKey, List<Operation> operations) async {
+  Future<int> estimateOperationFee(String publicKey, List<Operation> operations,
+      {int? baseOperationCustomFee}) async {
     log.info("TezosService.estimateOperationFee");
 
     return _retryOnNodeError<int>((client) async {
       var operationList = OperationsList(
-          publicKey: publicKey,
-          rpcInterface: client.rpcInterface);
+          publicKey: publicKey, rpcInterface: client.rpcInterface);
 
       for (var element in operations) {
         operationList.appendOperation(element);
@@ -77,7 +83,8 @@ class TezosServiceImpl extends TezosService {
         operationList.prependOperation(RevealOperation());
       }
 
-      await operationList.estimate();
+      await operationList.estimate(
+          baseOperationCustomFee: baseOperationCustomFee);
 
       return operationList.operations
           .map((e) => e.totalFee)
@@ -87,7 +94,8 @@ class TezosServiceImpl extends TezosService {
 
   @override
   Future<String?> sendOperationTransaction(
-      WalletStorage wallet, List<Operation> operations) async {
+      WalletStorage wallet, List<Operation> operations,
+      {int? baseOperationCustomFee}) async {
     log.info("TezosService.sendOperationTransaction");
 
     return _retryOnNodeError<String?>((client) async {
@@ -105,15 +113,17 @@ class TezosServiceImpl extends TezosService {
         operationList.prependOperation(RevealOperation());
       }
 
-      await operationList
-          .execute((forgedHex) => wallet.tezosSignTransaction(forgedHex));
+      await operationList.execute(
+          (forgedHex) => wallet.tezosSignTransaction(forgedHex),
+          baseOperationCustomFee: baseOperationCustomFee);
 
       return operationList.result.id;
     });
   }
 
   @override
-  Future<int> estimateFee(String publicKey, String to, int amount) async {
+  Future<int> estimateFee(String publicKey, String to, int amount,
+      {int? baseOperationCustomFee}) async {
     log.info("TezosService.estimateFee: $to, $amount");
 
     return _retryOnNodeError<int>((client) async {
@@ -122,7 +132,7 @@ class TezosServiceImpl extends TezosService {
         destination: to,
         amount: amount,
       );
-      await operation.estimate();
+      await operation.estimate(baseOperationCustomFee: baseOperationCustomFee);
 
       return operation.operations
           .map((e) => e.totalFee)
@@ -131,8 +141,8 @@ class TezosServiceImpl extends TezosService {
   }
 
   @override
-  Future<String?> sendTransaction(
-      WalletStorage wallet, String to, int amount) async {
+  Future<String?> sendTransaction(WalletStorage wallet, String to, int amount,
+      {int? baseOperationCustomFee}) async {
     log.info("TezosService.sendTransaction: $to, $amount");
     return _retryOnNodeError<String?>((client) async {
       final operation = await client.transferOperation(
@@ -140,8 +150,9 @@ class TezosServiceImpl extends TezosService {
         destination: to,
         amount: amount,
       );
-      await operation
-          .execute((forgedHex) => wallet.tezosSignTransaction(forgedHex));
+      await operation.execute(
+          (forgedHex) => wallet.tezosSignTransaction(forgedHex),
+          baseOperationCustomFee: baseOperationCustomFee);
       return operation.result.id;
     });
   }

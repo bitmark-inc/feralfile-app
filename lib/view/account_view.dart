@@ -105,6 +105,7 @@ Widget accountItem(BuildContext context, Account account,
   final theme = Theme.of(context);
   final persona = account.persona;
   if (persona != null) {
+    final getDidKey = persona.wallet().getAccountDID();
     final isHideGalleryEnabled =
         injector<AccountService>().isPersonaHiddenInGallery(persona.uuid);
     return TappableForwardRow(
@@ -112,14 +113,19 @@ Widget accountItem(BuildContext context, Account account,
         children: [
           accountLogo(context, account),
           const SizedBox(width: 16),
-          Expanded(
-            child: Text(
-              account.name.isNotEmpty
-                  ? account.name
-                  : account.accountNumber.mask(4),
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.headline4,
-            ),
+          FutureBuilder<String>(
+            future: getDidKey,
+            builder: (context, snapshot) {
+              final name =
+                  account.name.isNotEmpty ? account.name : snapshot.data ?? '';
+              return Expanded(
+                child: Text(
+                  name.replaceFirst('did:key:z', ''),
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.headline4,
+                ),
+              );
+            },
           ),
         ],
       ),
@@ -242,34 +248,30 @@ Widget accountLogo(BuildContext context, Account account) {
       child: Stack(
         children: [
           Container(
-            padding: const EdgeInsets.fromLTRB(0, 4, 4, 0),
-            alignment: Alignment.centerLeft,
+              padding: const EdgeInsets.fromLTRB(0, 4, 4, 0),
+              alignment: Alignment.centerLeft,
               child: Image.asset("assets/images/moma_logo.png")),
           Align(
             alignment: Alignment.topRight,
-            child: account.persona?.defaultAccount == 1 && context.widget is AccountsView
-              ? SizedBox(
-                width: 19,
-                height: 19,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    Transform.scale(
-                      scale: 1.45,
-                      child: SvgPicture.asset(
+            child: account.persona?.defaultAccount == 1 &&
+                    context.widget is AccountsView
+                ? SizedBox(
+                    width: 19,
+                    height: 19,
+                    child: Stack(alignment: Alignment.center, children: [
+                      Transform.scale(
+                          scale: 1.45,
+                          child: SvgPicture.asset(
+                            "assets/images/icon_verified.svg",
+                            color: Colors.white,
+                          )),
+                      Align(
+                          child: SvgPicture.asset(
                         "assets/images/icon_verified.svg",
-                        color: Colors.white,
-                      )
-                    ),
-                    Align(
-                      child: SvgPicture.asset(
-                        "assets/images/icon_verified.svg",
-                      )
-                    ),
-                  ]
-                  ),
-              )
-              : const SizedBox(),
+                      )),
+                    ]),
+                  )
+                : const SizedBox(),
           ),
         ],
       ),

@@ -186,12 +186,10 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   Future _moveToInfo(AssetToken? asset) async {
     if (asset == null) return;
     keyboardManagerKey.currentState?.hideKeyboard();
-    final isImmediateInfoViewEnabled =
-        injector<ConfigurationService>().isImmediateInfoViewEnabled();
 
     final currentIndex = tokens.indexWhere((element) =>
         element.id == asset.id && element.owner == asset.ownerAddress);
-    if (isImmediateInfoViewEnabled && currentIndex == initialPage) {
+    if (currentIndex == initialPage) {
       Navigator.of(context).pop();
       return;
     }
@@ -662,7 +660,11 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                     child: Container(
                       color: theme.colorScheme.primary,
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 15),
+                        padding: const EdgeInsets.only(
+                          top: 15,
+                          bottom: 30,
+                          right: 20,
+                        ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.end,
                           crossAxisAlignment: CrossAxisAlignment.end,
@@ -691,9 +693,6 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                               child: SvgPicture.asset(
                                 'assets/images/fullscreen_icon.svg',
                               ),
-                            ),
-                            const SizedBox(
-                              width: 20,
                             ),
                           ],
                         ),

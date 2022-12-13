@@ -26,11 +26,8 @@ class PreferencesBloc extends AuBloc<PreferenceEvent, PreferenceState> {
   List<BiometricType> _availableBiometrics = List.empty();
 
   PreferencesBloc(this._configurationService)
-      : super(PreferenceState(false, false, false, false, "", false, false)) {
+      : super(PreferenceState(false, false, false, "", false, false)) {
     on<PreferenceInfoEvent>((event, emit) async {
-      final isImmediateInfoViewEnabled =
-          _configurationService.isImmediateInfoViewEnabled();
-
       _availableBiometrics = await _localAuth.getAvailableBiometrics();
       final canCheckBiometrics = await authenticateIsAvailable();
 
@@ -45,7 +42,6 @@ class PreferencesBloc extends AuBloc<PreferenceEvent, PreferenceState> {
       final hasPendingSettings = _configurationService.hasPendingSettings();
 
       emit(PreferenceState(
-          isImmediateInfoViewEnabled,
           passcodeEnabled && canCheckBiometrics,
           notificationEnabled,
           analyticsEnabled,
@@ -55,13 +51,6 @@ class PreferencesBloc extends AuBloc<PreferenceEvent, PreferenceState> {
     });
 
     on<PreferenceUpdateEvent>((event, emit) async {
-      if (event.newState.isImmediateInfoViewEnabled !=
-          state.isImmediateInfoViewEnabled) {
-        await _configurationService.setImmediateInfoViewEnabled(
-            event.newState.isImmediateInfoViewEnabled);
-        await _configurationService.setPendingSettings(false);
-      }
-
       if (event.newState.isDevicePasscodeEnabled !=
           state.isDevicePasscodeEnabled) {
         final canCheckBiometrics = await authenticateIsAvailable();

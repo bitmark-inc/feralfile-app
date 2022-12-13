@@ -356,14 +356,9 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                     .indexOf(asset);
                 final payload = ArtworkDetailPayload(accountIdentities, index,
                     isPlaylist: true);
-                if (injector<ConfigurationService>()
-                    .isImmediateInfoViewEnabled()) {
-                  Navigator.of(context).pushNamed(AppRouter.artworkDetailsPage,
-                      arguments: payload);
-                } else {
-                  Navigator.of(context).pushNamed(AppRouter.artworkPreviewPage,
-                      arguments: payload);
-                }
+
+                Navigator.of(context).pushNamed(AppRouter.artworkDetailsPage,
+                    arguments: payload);
               },
             );
           },

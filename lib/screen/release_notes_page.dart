@@ -44,7 +44,7 @@ class _ReleaseNotesPageState extends State<ReleaseNotesPage> {
           const SizedBox(height: 40),
           Expanded(
             child: Markdown(
-              data: widget.releaseNotes.replaceAll('\n', '\u3164\n'),
+              data: widget.releaseNotes,
               softLineBreak: true,
               padding: const EdgeInsets.only(bottom: 50),
               styleSheet: markDownBlackStyle(context),

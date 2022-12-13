@@ -567,9 +567,12 @@ class _ReportButtonState extends State<ReportButton> {
     if (widget.token == null) return const SizedBox();
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
-      height: isShowingArtwortReportProblemContainer ? 62 : 0,
-      child: AnyProblemNFTWidget(
-        asset: widget.token!,
+      height: isShowingArtwortReportProblemContainer ? 80 : 0,
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: AnyProblemNFTWidget(
+          asset: widget.token!,
+        ),
       ),
     );
   }
@@ -1250,21 +1253,6 @@ class _ArtworkRightsViewState extends State<ArtworkRightsView> {
         children: [
           HeaderData(
             text: "rights".tr(),
-          ),
-          const SizedBox(height: 23.0),
-          Text(
-            "ff_protect".tr(),
-            style: theme.textTheme.ppMori400White12,
-          ),
-          const SizedBox(height: 18.0),
-          TextButton(
-            style: theme.textButtonNoPadding,
-            onPressed: () => launchUrl(Uri.parse(getUrl(state)),
-                mode: LaunchMode.externalApplication),
-            child: Text(
-              "learn_artist".tr(),
-              style: theme.textTheme.ppMori400SupperTeal12,
-            ),
           ),
           const SizedBox(height: 23.0),
           state.markdownData == null

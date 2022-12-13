@@ -78,7 +78,7 @@ dependencies:
   libauk_dart:
     git:
       url: https://github.com/autonomy-system/libauk-dart.git
-      ref: f136332307cff8f4b893598b986d25a8c3d87f3c
+      ref: 17fac38d818eaced1e8e7d87dafeab4aa2cbaa9a
   local_auth: ^2.1.0
   logging: ^1.0.2
   measured_size: ^1.0.0
@@ -110,7 +110,7 @@ dependencies:
   tezart:
     git:
       url: https://github.com/autonomy-system/tezart.git
-      ref: bd4b8db6e3a352590a6e556d31df8aef60db3465
+      ref: eea7382c00a32622cb7e373559034f7556106ac7
   uni_links: ^0.5.1
   url_launcher: ^6.0.20
   uuid: ^3.0.5
@@ -129,13 +129,14 @@ dependencies:
     git:
       url: https://github.com/bitmark-inc/autonomy-client-shared-theme.git
       ref: 1.0.9
+
   easy_localization: ^3.0.1
   rxdart: ^0.26.0
   in_app_review: ^2.0.4
   nft_collection:
     git:
       url: https://github.com/autonomy-system/nft-collection
-      ref: fa162ff62bf421b1dd1ae4f232da086fd3526433
+      ref: b202465d4d871e075854b2629d638a7baeaa1749
   flutter_branch_sdk: ^6.1.0
   flutter_rating_bar: ^4.0.1
   metric_client:

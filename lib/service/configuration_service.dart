@@ -130,10 +130,6 @@ abstract class ConfigurationService {
 
   Future<void> setFinishedSurvey(List<String> surveyNames);
 
-  Future<void> setImmediateInfoViewEnabled(bool value);
-
-  bool isImmediateInfoViewEnabled();
-
   Future<String> getAccountHMACSecret();
 
   bool isFinishedFeedOnBoarding();
@@ -201,7 +197,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_READ_RELEASE_NOTES_VERSION =
       'read_release_notes_version';
   static const String KEY_FINISHED_SURVEYS = "finished_surveys";
-  static const String KEY_IMMEDIATE_INFOVIEW = 'immediate_infoview';
   static const String ACCOUNT_HMAC_SECRET = "account_hmac_secret";
   static const String KEY_FINISHED_FEED_ONBOARDING = "finished_feed_onboarding";
 
@@ -311,17 +306,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
     return List.from(sessions)
         .map((e) => WCSessionStore.fromJson(e))
         .toList(growable: false);
-  }
-
-  @override
-  Future<void> setImmediateInfoViewEnabled(bool value) async {
-    log.info("setImmediateInfoViewEnabled: $value");
-    await _preferences.setBool(KEY_IMMEDIATE_INFOVIEW, value);
-  }
-
-  @override
-  bool isImmediateInfoViewEnabled() {
-    return _preferences.getBool(KEY_IMMEDIATE_INFOVIEW) ?? true;
   }
 
   @override

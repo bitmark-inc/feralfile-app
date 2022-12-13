@@ -452,14 +452,8 @@ class _ArtworkView extends StatelessWidget {
             Positioned.fill(
               child: GestureDetector(
                 onTap: () {
-                  if (injector<ConfigurationService>()
-                      .isImmediateInfoViewEnabled()) {
-                    Navigator.of(context).pushNamed(
-                        AppRouter.artworkPreviewPage,
-                        arguments: payload);
-                  } else {
-                    Navigator.of(context).pop();
-                  }
+                  Navigator.of(context).pushNamed(AppRouter.artworkPreviewPage,
+                      arguments: payload);
                 },
                 child: Container(
                   color: Colors.transparent,
@@ -482,14 +476,8 @@ class _ArtworkView extends StatelessWidget {
               ),
               GestureDetector(
                 onTap: () {
-                  if (injector<ConfigurationService>()
-                      .isImmediateInfoViewEnabled()) {
-                    Navigator.of(context).pushNamed(
-                        AppRouter.artworkPreviewPage,
-                        arguments: payload);
-                  } else {
-                    Navigator.of(context).pop();
-                  }
+                  Navigator.of(context).pushNamed(AppRouter.artworkPreviewPage,
+                      arguments: payload);
                 },
                 child: Container(
                   color: Colors.transparent,

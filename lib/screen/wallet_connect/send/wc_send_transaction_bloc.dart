@@ -38,28 +38,26 @@ class WCSendTransactionBloc
   ) : super(WCSendTransactionState()) {
     on<WCSendTransactionEstimateEvent>((event, emit) async {
       final WalletStorage persona = LibAukDart.getWallet(event.uuid);
-
-      state.fee = await _ethereumService.estimateFee(
+      final newState = state.clone();
+      newState.feeOptionValue = await _ethereumService.estimateFee(
           persona, event.address, event.amount, event.data);
-      emit(state);
+      newState.fee = newState.feeOptionValue!.getFee(state.feeOption);
+      emit(newState);
     });
 
     on<WCSendTransactionSendEvent>((event, emit) async {
-      final sendingState = WCSendTransactionState();
-      sendingState.fee = state.fee;
+      final sendingState = state.clone();
       sendingState.isSending = true;
       emit(sendingState);
 
       if (_configurationService.isDevicePasscodeEnabled() &&
           await authenticateIsAvailable()) {
         final localAuth = LocalAuthentication();
-        final didAuthenticate =
-        await localAuth.authenticate(
-            localizedReason:
-            "authen_for_autonomy".tr());
+        final didAuthenticate = await localAuth.authenticate(
+            localizedReason: "authen_for_autonomy".tr());
+
         if (!didAuthenticate) {
-          final newState = WCSendTransactionState();
-          newState.fee = state.fee;
+          final newState = sendingState.clone();
           newState.isSending = false;
           emit(newState);
           return;
@@ -67,24 +65,34 @@ class WCSendTransactionBloc
       }
 
       final WalletStorage persona = LibAukDart.getWallet(event.uuid);
-
-      final txHash = await _ethereumService.sendTransaction(
-          persona, event.to, event.value, event.data);
-      if (event.isWalletConnect2) {
-        await _wc2Service.respondOnApprove(event.topic ?? "", txHash);
-      } else {
-        _walletConnectService.approveRequest(
-            event.peerMeta, event.requestId, txHash);
-      }
-      injector<PendingTokenService>()
-          .checkPendingEthereumTokens(
-              await persona.getETHEip55Address(), txHash)
-          .then((hasPendingTokens) {
-        if (hasPendingTokens) {
-          injector<NftCollectionBloc>().add(RefreshNftCollection());
+      final balance =
+          await _ethereumService.getBalance(await persona.getETHAddress());
+      try {
+        final txHash = await _ethereumService.sendTransaction(
+            persona, event.to, event.value, event.data, feeOption: state.feeOption);
+        if (event.isWalletConnect2) {
+          await _wc2Service.respondOnApprove(event.topic ?? "", txHash);
+        } else {
+          _walletConnectService.approveRequest(
+              event.peerMeta, event.requestId, txHash);
         }
-      });
-      _navigationService.goBack();
+        injector<PendingTokenService>()
+            .checkPendingEthereumTokens(
+                await persona.getETHEip55Address(), txHash)
+            .then((hasPendingTokens) {
+          if (hasPendingTokens) {
+            injector<NftCollectionBloc>().add(RefreshNftCollection());
+          }
+        });
+        _navigationService.goBack();
+      } catch (e) {
+        final newState = sendingState.clone();
+        newState.balance = balance.getInWei;
+        newState.isSending = false;
+        newState.isError = true;
+        emit(newState);
+        return;
+      }
     });
 
     on<WCSendTransactionRejectEvent>((event, emit) async {
@@ -94,6 +102,13 @@ class WCSendTransactionBloc
         _walletConnectService.rejectRequest(event.peerMeta, event.requestId);
       }
       _navigationService.goBack();
+    });
+
+    on<FeeOptionChangedEvent>((event, emit) async {
+      final newState = state.clone();
+      newState.feeOption = event.feeOption;
+      newState.fee = newState.feeOptionValue!.getFee(newState.feeOption);
+      emit(newState);
     });
   }
 }

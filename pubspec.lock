@@ -360,6 +360,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.5"
+  custom_refresh_indicator:
+    dependency: "direct main"
+    description:
+      name: custom_refresh_indicator
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.0.1"
   dart_style:
     dependency: transitive
     description:
@@ -1295,8 +1302,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: fa162ff62bf421b1dd1ae4f232da086fd3526433
-      resolved-ref: fa162ff62bf421b1dd1ae4f232da086fd3526433
+      ref: b202465d4d871e075854b2629d638a7baeaa1749
+      resolved-ref: b202465d4d871e075854b2629d638a7baeaa1749
       url: "https://github.com/autonomy-system/nft-collection"
     source: git
     version: "0.0.1"
