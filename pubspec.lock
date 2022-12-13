@@ -360,13 +360,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.5"
-  custom_refresh_indicator:
-    dependency: "direct main"
-    description:
-      name: custom_refresh_indicator
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.0.1"
   dart_style:
     dependency: transitive
     description:
@@ -1144,8 +1137,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: f136332307cff8f4b893598b986d25a8c3d87f3c
-      resolved-ref: f136332307cff8f4b893598b986d25a8c3d87f3c
+      ref: "17fac38d818eaced1e8e7d87dafeab4aa2cbaa9a"
+      resolved-ref: "17fac38d818eaced1e8e7d87dafeab4aa2cbaa9a"
       url: "https://github.com/autonomy-system/libauk-dart.git"
     source: git
     version: "0.0.1"
@@ -2055,8 +2048,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: bd4b8db6e3a352590a6e556d31df8aef60db3465
-      resolved-ref: bd4b8db6e3a352590a6e556d31df8aef60db3465
+      ref: eea7382c00a32622cb7e373559034f7556106ac7
+      resolved-ref: eea7382c00a32622cb7e373559034f7556106ac7
       url: "https://github.com/autonomy-system/tezart.git"
     source: git
     version: "2.0.4"
