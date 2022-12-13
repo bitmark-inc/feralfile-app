@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwor
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_review_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_state.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
 import 'package:autonomy_flutter/util/fee_util.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -279,9 +280,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                                   style: theme.textTheme.headline4,
                                 ),
                                 Text(
-                                  (asset.maxEdition ?? 0) > 0
-                                      ? "${asset.editionName ?? asset.edition.toString()}/${asset.maxEdition}"
-                                      : asset.editionName ?? asset.edition.toString(),
+                                  asset.editionSlashMax,
                                   style: theme.textTheme.bodyText2,
                                 ),
                               ],

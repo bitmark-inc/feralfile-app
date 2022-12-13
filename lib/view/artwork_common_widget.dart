@@ -898,9 +898,9 @@ Widget artworkDetailsMetadataSection(
 }
 
 Widget _getEditionNameRow(BuildContext context, AssetToken asset) {
-  final edition = (asset.maxEdition ?? 0) > 0
-      ? "${asset.editionName ?? asset.edition.toString()}/${asset.maxEdition}"
-      : asset.editionName ?? asset.edition.toString();
+  final edition = (asset.editionName != null && asset.editionName!.isNotEmpty)
+      ? asset.editionName
+      : asset.edition.toString();
   return _rowItem(context, "edition".tr(), edition);
 }
 
@@ -1076,19 +1076,6 @@ class _ArtworkRightsViewState extends State<ArtworkRightsView> {
                     launchUrl(Uri.parse(href),
                         mode: LaunchMode.externalApplication);
                   }),
-          const SizedBox(height: 23.0),
-          TextButton(
-            style: theme.textButtonNoPadding,
-            onPressed: () => launchUrl(Uri.parse(getUrl(state)),
-                mode: LaunchMode.externalApplication),
-            child: Text(
-              "learn_artist".tr(),
-              style: widget.linkStyle ??
-                  theme.textTheme.linkStyle.copyWith(
-                    fontWeight: FontWeight.w500,
-                  ),
-            ),
-          ),
           const SizedBox(height: 23.0),
         ],
       );

@@ -51,7 +51,6 @@ class _SettingsPageState extends State<SettingsPage>
   late final UpgradesBloc _upgradesBloc = UpgradesBloc(injector(), injector());
   int _lastTap = 0;
   int _consecutiveTaps = 0;
-  var _forceAccountsViewRedraw;
 
   final GlobalKey<State> _preferenceKey = GlobalKey();
   bool _pendingSettingsCleared = false;
@@ -64,7 +63,6 @@ class _SettingsPageState extends State<SettingsPage>
     context.read<AccountsBloc>().add(GetAccountsEvent());
     injector<SettingsDataService>().backup();
     _controller = ScrollController();
-    _forceAccountsViewRedraw = Object();
   }
 
   @override
@@ -85,9 +83,6 @@ class _SettingsPageState extends State<SettingsPage>
     super.didPopNext();
     context.read<AccountsBloc>().add(GetAccountsEvent());
     injector<SettingsDataService>().backup();
-    setState(() {
-      _forceAccountsViewRedraw = Object();
-    });
   }
 
   @override
@@ -123,8 +118,7 @@ class _SettingsPageState extends State<SettingsPage>
                           ],
                         ),
                         const SizedBox(height: 16),
-                        AccountsView(
-                          key: ValueKey(_forceAccountsViewRedraw),
+                        const AccountsView(
                           isInSettingsPage: true,
                         ),
                       ],
