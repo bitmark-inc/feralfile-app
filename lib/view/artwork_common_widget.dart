@@ -567,9 +567,12 @@ class _ReportButtonState extends State<ReportButton> {
     if (widget.token == null) return const SizedBox();
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
-      height: isShowingArtwortReportProblemContainer ? 62 : 0,
-      child: AnyProblemNFTWidget(
-        asset: widget.token!,
+      height: isShowingArtwortReportProblemContainer ? 80 : 0,
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: AnyProblemNFTWidget(
+          asset: widget.token!,
+        ),
       ),
     );
   }
