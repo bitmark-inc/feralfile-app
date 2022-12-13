@@ -4,9 +4,11 @@
 //  Use of this source code is governed by the BSD-2-Clause Plus Patent License
 //  that can be found in the LICENSE file.
 //
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/editorial.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/screen/editorial/common/publisher_view.dart';
+import 'package:autonomy_flutter/service/mixPanel_client_service.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -31,6 +33,12 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
   final _dio = Dio(BaseOptions(
     connectTimeout: 2000,
   ));
+
+  @override
+  void initState() {
+    super.initState();
+    _trackEvent();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -227,5 +235,15 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
         ),
       ],
     );
+  }
+
+  void _trackEvent() {
+    final mixpanelClient = injector.get<MixPanelClientService>();
+    mixpanelClient.trackEvent("editorial_view_article", data: {
+      "publisher": widget.post.publisher.name,
+      "title": widget.post.content["title"]
+    }, hashedData: {
+      "title": widget.post.content["title"]
+    });
   }
 }
