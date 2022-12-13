@@ -150,6 +150,8 @@ class _HomePageState extends State<HomePage> {
         showSelectedLabels: false,
         showUnselectedLabels: false,
         currentIndex: _selectedIndex,
+        unselectedItemColor: theme.disabledColor,
+        selectedItemColor: theme.primaryColor,
         backgroundColor: theme.backgroundColor.withOpacity(0.95),
         type: BottomNavigationBarType.fixed,
         onTap: _onItemTapped,
@@ -950,7 +952,7 @@ class AddPlayListItem extends StatelessWidget {
               const Spacer(),
               Text(
                 'New Playlist',
-                style: theme.textTheme.ppMori400Black12,
+                style: theme.textTheme.ppMori400Grey12,
                 overflow: TextOverflow.ellipsis,
               ),
             ],
