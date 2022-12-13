@@ -373,34 +373,83 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       color = Colors.transparent;
     }
     bool isError = false;
+    String uuid = "";
     if (message is types.Message) {
-      print("------");
-
-      print(message.metadata.toString());
-      print(message.status);
-      if (message.status == types.Status.sent) {
+      if (message.status == types.Status.error) {
         isError = true;
+        uuid = message.id;
       }
     }
+    Color orageRust = const Color(0xffA1200A);
 
-    return Column(
-      children: [
-        Bubble(
-          color: color,
-          borderColor: isError ? Colors.red : Color(0xffA1200A),
-          margin: nextMessageInGroup
-              ? const BubbleEdges.symmetric(horizontal: 6)
-              : null,
-          nip: nextMessageInGroup
-              ? BubbleNip.no
-              : _user.id != message.author.id
-                  ? BubbleNip.leftBottom
-                  : BubbleNip.rightBottom,
-          child: child,
-        ),
-        Text("data"),
-      ],
-    );
+    return isError
+        ? Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      GestureDetector(
+                          onTap: () async {
+                            await injector<CustomerSupportService>().removeErrorMessage(uuid);
+                            _loadDrafts();
+                            injector<CustomerSupportService>().processMessages();
+                          },
+                          child:
+                              SvgPicture.asset("assets/images/retry_icon.svg")),
+                      const SizedBox(height: 12),
+                      GestureDetector(
+                          onTap: () async {
+                            await injector<CustomerSupportService>().removeErrorMessage(uuid, isDelete: true);
+                            _loadDrafts();
+                          },
+                          child:
+                          SvgPicture.asset("assets/images/cancel_icon.svg")),
+
+                    ],
+                  ),
+                  const SizedBox(width: 16),
+                  Bubble(
+                    color: color,
+                    borderColor: isError ? orageRust : null,
+                    margin: nextMessageInGroup
+                        ? const BubbleEdges.symmetric(horizontal: 6)
+                        : null,
+                    nip: nextMessageInGroup
+                        ? BubbleNip.no
+                        : _user.id != message.author.id
+                            ? BubbleNip.leftBottom
+                            : BubbleNip.rightBottom,
+                    child: child,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Text(
+                "failed_to_send".tr(),
+                style: TextStyle(
+                    color: orageRust,
+                    fontFamily: "AtlasGrotesk",
+                    fontSize: 12,
+                    fontWeight: FontWeight.w300),
+              ),
+            ],
+          )
+        : Bubble(
+            color: color,
+            margin: nextMessageInGroup
+                ? const BubbleEdges.symmetric(horizontal: 6)
+                : null,
+            nip: nextMessageInGroup
+                ? BubbleNip.no
+                : _user.id != message.author.id
+                    ? BubbleNip.leftBottom
+                    : BubbleNip.rightBottom,
+            child: child,
+          );
   }
 
   Widget _customMessageBuilder(types.CustomMessage message,
@@ -703,11 +752,12 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       }
       //
     } else if (message is DraftCustomerSupport) {
-      final errorMessages = injector<CustomerSupportService>().errorMessages;
-
       id = message.uuid;
       author = _user;
-      status = (errorMessages != null && errorMessages.contains(id)) ? types.Status.error : types.Status.sending;
+      final errorMessages = injector<CustomerSupportService>().errorMessages;
+      status = (errorMessages != null && errorMessages.contains(id))
+          ? types.Status.error
+          : types.Status.sending;
       createdAt = message.createdAt;
       text = message.draftData.text;
       metadata = json.decode(message.data);
@@ -803,6 +853,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     return DefaultChatTheme(
       messageInsetsVertical: 14,
       messageInsetsHorizontal: 14,
+      errorIcon: const SizedBox(),
       inputPadding: const EdgeInsets.fromLTRB(0, 24, 0, 40),
       backgroundColor: Colors.transparent,
       inputBackgroundColor: theme.colorScheme.primary,

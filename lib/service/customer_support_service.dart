@@ -42,18 +42,29 @@ abstract class CustomerSupportService {
   ValueNotifier<List<int>?>
       get numberOfIssuesInfo; // [numberOfIssues, numberOfUnreadIssues]
   ValueNotifier<int> get triggerReloadMessages;
+
   ValueNotifier<CustomerSupportUpdate?> get customerSupportUpdate;
+
   Map<String, String> get tempIssueIDMap;
+
   List<String>? get errorMessages;
 
   Future<IssueDetails> getDetails(String issueID);
+
   Future<List<Issue>> getIssues();
+
   Future draftMessage(DraftCustomerSupport draft);
+
   Future processMessages();
+
   Future<List<DraftCustomerSupport>> getDrafts(String issueID);
+
   Future<String> getStoredDirectory();
+
   Future<String> storeFile(String filename, List<int> bytes);
+
   Future reopen(String issueID);
+
   Future rateIssue(String issueID, int rating);
 
   Future<String> createRenderingIssueReport(
@@ -62,10 +73,13 @@ abstract class CustomerSupportService {
   );
 
   Future reportIPFSLoadingError(AssetToken token);
+
+  Future<void> removeErrorMessage(String uuid, {bool isDelete = false});
+
+  void sendMessageFail(String uuid);
 }
 
 class CustomerSupportServiceImpl extends CustomerSupportService {
-
   static const int _ipfsReportThreshold = 24 * 60 * 60 * 1000; // 1 day.
 
   final DraftCustomerSupportDao _draftCustomerSupportDao;
@@ -162,12 +176,20 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     processMessages();
   }
 
-  void removeErrorMessage(String uuid) {
+  @override
+  Future<void> removeErrorMessage(String uuid, {bool isDelete = false}) async {
     retryTime = 0;
     errorMessages.remove(uuid);
     print("ok-----------$retryTime");
+    if (isDelete) {
+      final msg = await _draftCustomerSupportDao.getDraft(uuid);
+      if (msg != null) {
+        await _draftCustomerSupportDao.deleteDraft(msg);
+      }
+    }
   }
 
+  @override
   void sendMessageFail(String uuid) {
     if (retryTime > 5) errorMessages.add(uuid);
     print("fail-----------$retryTime");
@@ -182,7 +204,8 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     log.info('[CS-Service][start] processMessages');
     final draftMsgsRaw = await _draftCustomerSupportDao.fetchDrafts(fetchLimit);
     if (draftMsgsRaw.isEmpty) return;
-    final draftMsg = draftMsgsRaw.firstWhereOrNull((element) => !errorMessages.contains(element.uuid));
+    final draftMsg = draftMsgsRaw
+        .firstWhereOrNull((element) => !errorMessages.contains(element.uuid));
     if (draftMsg == null) return;
     log.info('[CS-Service][start] processMessages hasDraft');
     _isProcessingDraftMessages = true;
@@ -435,7 +458,6 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
   Future rateIssue(String issueID, int rating) async {
     return _customerSupportApi.rateIssue(issueID, rating);
   }
-
 
   @override
   Future reportIPFSLoadingError(AssetToken token) async {
