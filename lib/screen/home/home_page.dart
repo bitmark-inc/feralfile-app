@@ -52,6 +52,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
+import 'package:autonomy_flutter/view/badge_view.dart';
 import 'package:autonomy_flutter/view/penrose_top_bar_view.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -153,13 +154,35 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: theme.backgroundColor.withOpacity(0.95),
         type: BottomNavigationBarType.fixed,
         onTap: _onItemTapped,
-        items: const [
+        items: [
           BottomNavigationBarItem(
             icon: Icon(AuIcon.collection),
             label: '',
           ),
+
           BottomNavigationBarItem(
-            icon: Icon(AuIcon.discover),
+            icon: ValueListenableBuilder<int>(
+              valueListenable: injector<FeedService>().unviewedCount,
+              builder: (BuildContext context, int unreadCount, Widget? child) {
+                return Container(
+                  padding: const EdgeInsets.fromLTRB(0, 0, 12, 12),
+                  child: Stack(
+                    children: [
+                      Icon(AuIcon.discover),
+                      if (unreadCount > 0) ...[
+                        Positioned(
+                          top: 0,
+                          right: 0,
+                          child: Align(
+                            alignment: Alignment.topRight,
+                            child: BadgeView(number: unreadCount),
+                          )
+                        ),
+                      ]
+                    ],
+                  ),
+                );
+              }),
             label: '',
           ),
           BottomNavigationBarItem(

@@ -4,9 +4,13 @@
 //  Use of this source code is governed by the BSD-2-Clause Plus Patent License
 //  that can be found in the LICENSE file.
 //
+import 'dart:math';
+
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/editorial.dart';
 import 'package:autonomy_flutter/screen/editorial/editorial_bloc.dart';
 import 'package:autonomy_flutter/screen/editorial/editorial_state.dart';
+import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -51,6 +55,7 @@ class _EditorialPageState extends State<EditorialPage>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final unreadFeedCount = injector<FeedService>().unviewedCount.value;
 
     return BlocBuilder<EditorialBloc, EditorialState>(
         builder: (context, state) {
@@ -58,7 +63,7 @@ class _EditorialPageState extends State<EditorialPage>
         appBar: AppBar(toolbarHeight: 0),
         backgroundColor: theme.primaryColor,
         body: DefaultTabController(
-          length: 2,
+          length: (unreadFeedCount > 0) ? 2 : 1,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -96,9 +101,11 @@ class _EditorialPageState extends State<EditorialPage>
                             Text(
                               'discover'.tr(),
                             ),
-                            Text(
-                              'editorial'.tr(),
-                            ),
+                            if (unreadFeedCount > 0) ...[
+                              Text(
+                                'editorial'.tr(),
+                              ),
+                            ]
                           ],
                         ),
                       ),
@@ -110,7 +117,9 @@ class _EditorialPageState extends State<EditorialPage>
                 child: TabBarView(
                   children: [
                     //TODO: replace with new discovery here.
-                    const SizedBox(),
+                    if (unreadFeedCount > 0) ...[
+                      Container(color: Color((Random().nextDouble() * 0xFFFFFF).toInt()).withOpacity(1.0), height: 300 + Random().nextInt(300) * 1.0,),
+                  ],
                     ListView.builder(
                       controller: _controller,
                       padding: ResponsiveLayout.pageEdgeInsets,
