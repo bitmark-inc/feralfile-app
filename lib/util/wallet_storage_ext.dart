@@ -5,6 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
+// ignore_for_file: implementation_imports
+
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -18,7 +20,6 @@ import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:web3dart/credentials.dart';
 import 'package:tezart/src/crypto/crypto.dart' as crypto;
-import 'package:web3dart/crypto.dart';
 
 extension StringExtension on WalletStorage {
   Future<String> getETHEip55Address() async {

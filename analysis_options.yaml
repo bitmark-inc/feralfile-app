@@ -40,4 +40,5 @@ linter:
 analyzer:
   exclude:
     - '**/*.g.dart'
-    - 'integration_test/*'
+    - 'auto-test/*'
+    - 'test/*'

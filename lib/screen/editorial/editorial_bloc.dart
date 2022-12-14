@@ -7,16 +7,12 @@
 
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/gateway/pubdoc_api.dart';
-import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/screen/editorial/editorial_state.dart';
-import 'package:autonomy_flutter/service/feralfile_service.dart';
-import 'package:collection/collection.dart';
 
 class EditorialBloc extends AuBloc<EditorialEvent, EditorialState> {
   final PubdocAPI _pubdocAPI;
 
-  EditorialBloc(this._pubdocAPI)
-      : super(EditorialState(editorial: [])) {
+  EditorialBloc(this._pubdocAPI) : super(EditorialState(editorial: [])) {
     on<GetEditorialEvent>((event, emit) async {
       final editorial = await _pubdocAPI.getEditorialInfo();
       emit(

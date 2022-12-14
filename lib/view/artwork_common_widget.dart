@@ -8,7 +8,7 @@ import 'package:autonomy_flutter/screen/detail/report_rendering_issue/report_ren
 import 'package:autonomy_flutter/screen/detail/royalty/royalty_bloc.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
-import 'package:autonomy_flutter/service/mixPanel_client_service.dart';
+import 'package:autonomy_flutter/service/mixpanel_client_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -819,7 +819,7 @@ Widget debugInfoWidget(BuildContext context, AssetToken? token) {
       builder: (context, snapshot) {
         if (snapshot.data == false) return const SizedBox();
 
-        TextButton _buildInfo(String text, String value) {
+        TextButton buildInfo(String text, String value) {
           return TextButton(
             onPressed: () async {
               Vibrate.feedback(FeedbackType.light);
@@ -841,11 +841,11 @@ Widget debugInfoWidget(BuildContext context, AssetToken? token) {
               "debug_info".tr(),
               style: theme.textTheme.headline4,
             ),
-            _buildInfo('IndexerID', token.id),
-            _buildInfo(
+            buildInfo('IndexerID', token.id),
+            buildInfo(
                 'galleryThumbnailURL', token.getGalleryThumbnailUrl() ?? ''),
-            _buildInfo('thumbnailURL', token.getThumbnailUrl() ?? ''),
-            _buildInfo('previewURL', token.getPreviewUrl() ?? ''),
+            buildInfo('thumbnailURL', token.getThumbnailUrl() ?? ''),
+            buildInfo('previewURL', token.getPreviewUrl() ?? ''),
             addDivider(),
           ],
         );
@@ -1213,7 +1213,6 @@ Widget artworkDetailsProvenanceSectionNotEmpty(
     List<Provenance> provenances,
     HashSet<String> youAddresses,
     Map<String, String> identityMap) {
-  final theme = Theme.of(context);
 
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1230,7 +1229,6 @@ Widget artworkDetailsProvenanceSectionNotEmpty(
             final identity = identityMap[el.owner];
             final identityTitle = el.owner.toIdentityOrMask(identityMap);
             final youTitle = youAddresses.contains(el.owner) ? "_you".tr() : "";
-            final provenanceTitle = "${identityTitle ?? ''}$youTitle";
             return Column(
               children: [
                 ProvenanceItem(
@@ -1292,7 +1290,6 @@ class _ArtworkRightsViewState extends State<ArtworkRightsView> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return BlocBuilder<RoyaltyBloc, RoyaltyState>(builder: (context, state) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1484,8 +1481,7 @@ class FeralfileArtworkDetailsMetadataSection extends StatelessWidget {
           context,
           "token".tr(),
           "Feral File",
-          tapLink:
-              null, // "${Environment.feralFileAPIURL}/artworks/${artwork?.id}"
+          // tapLink: "${Environment.feralFileAPIURL}/artworks/${artwork?.id}"
         ),
         const Divider(
           height: 32.0,

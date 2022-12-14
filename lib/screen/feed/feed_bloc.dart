@@ -79,7 +79,7 @@ class FeedBloc extends AuBloc<FeedBlocEvent, FeedState> {
         _configurationService.setFinishedFeedOnBoarding(true);
         return;
       }
-      emit(state.copyWith(onBoardingStep: -1));
+      emit(state.copyWith());
       add(GetFeedsEvent());
       return;
     });

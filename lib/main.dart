@@ -17,7 +17,7 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
-import 'package:autonomy_flutter/service/mixPanel_client_service.dart';
+import 'package:autonomy_flutter/service/mixpanel_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/au_file_service.dart';
 import 'package:autonomy_flutter/util/device.dart';
@@ -26,20 +26,17 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/user_agent_utils.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:floor/floor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:overlay_support/overlay_support.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
-import 'package:easy_localization/easy_localization.dart';
-import 'package:mixpanel_flutter/mixpanel_flutter.dart';
 
 void main() async {
   await dotenv.load();
@@ -101,7 +98,6 @@ void main() async {
 
 _setupApp() async {
   await setup();
-  final root = await getTemporaryDirectory();
 
   await DeviceInfo.instance.init();
 
@@ -114,12 +110,11 @@ _setupApp() async {
   final countOpenApp = injector<ConfigurationService>().countOpenApp() ?? 0;
   injector<ConfigurationService>().setCountOpenApp(countOpenApp + 1);
 
-  BlocOverrides.runZoned(
-    () => runApp(EasyLocalization(
-        supportedLocales: const [Locale('en', 'US')],
-        path: 'assets/translations',
-        fallbackLocale: const Locale('en', 'US'),
-        child: const OverlaySupport.global(child: AutonomyApp()))),
+  runApp(EasyLocalization(
+      supportedLocales: const [Locale('en', 'US')],
+      path: 'assets/translations',
+      fallbackLocale: const Locale('en', 'US'),
+      child: const OverlaySupport.global(child: AutonomyApp()))
   );
 
   Sentry.configureScope((scope) async {

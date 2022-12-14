@@ -18,7 +18,6 @@ import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:jiffy/jiffy.dart';
@@ -1036,7 +1035,6 @@ class UIHelper {
     final theme = Theme.of(context);
     await showModalBottomSheet<dynamic>(
         context: context,
-        isDismissible: true,
         backgroundColor: Colors.transparent,
         enableDrag: false,
         constraints: BoxConstraints(

@@ -1,18 +1,5 @@
-import 'dart:convert';
-import 'dart:ffi';
 import 'dart:io';
 
-import 'package:autonomy_flutter/util/log.dart';
-import 'package:crypto/crypto.dart';
-import 'package:flutter/foundation.dart';
-import 'package:libauk_dart/libauk_dart.dart';
-import 'package:nft_collection/models/asset_token.dart';
-import 'package:nft_rendering/nft_rendering.dart';
-// ignore: depend_on_referenced_packages
-import 'package:path/path.dart' as p;
-import 'package:sentry_flutter/sentry_flutter.dart';
-import 'package:uri/uri.dart';
-import 'iterable_ext.dart';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
@@ -20,8 +7,15 @@ import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/util/feralfile_extension.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
+import 'package:crypto/crypto.dart';
+import 'package:libauk_dart/libauk_dart.dart';
+import 'package:nft_collection/models/asset_token.dart';
+import 'package:nft_rendering/nft_rendering.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:uri/uri.dart';
 import 'package:web3dart/crypto.dart';
 
 extension AssetTokenExtension on AssetToken {

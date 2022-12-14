@@ -39,8 +39,9 @@ class AuFilledButton extends StatelessWidget {
       clipper: AutonomyButtonClipper(),
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-            primary: enabled ? color : color.withOpacity(0.6),
-            onSurface: color,
+            backgroundColor: enabled ? color : color.withOpacity(0.6),
+            disabledForegroundColor: color.withOpacity(0.38),
+            disabledBackgroundColor: color.withOpacity(0.12),
             shape: const RoundedRectangleBorder(),
             splashFactory:
                 enabled ? InkRipple.splashFactory : NoSplash.splashFactory,

@@ -5,9 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'dart:typed_data';
+// ignore_for_file: implementation_imports
 
-// ignore: implementation_imports
 import 'package:crypto/crypto.dart';
 import 'package:fast_base58/fast_base58.dart';
 import 'package:flutter/foundation.dart';
@@ -15,6 +14,7 @@ import 'package:tezart/src/crypto/crypto.dart' as crypto;
 
 class XtzAmountFormatter {
   final int amount;
+
   XtzAmountFormatter(this.amount);
 
   String format() {

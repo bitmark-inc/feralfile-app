@@ -24,8 +24,6 @@ import 'package:autonomy_flutter/util/wc2_channel.dart';
 import 'package:autonomy_flutter/util/wc2_ext.dart';
 import 'package:autonomy_flutter/util/wc2_tezos_ext.dart';
 import 'package:collection/collection.dart';
-import 'package:wallet_connect/models/ethereum/wc_ethereum_transaction.dart';
-import 'package:wallet_connect/models/wc_peer_meta.dart';
 import 'package:wallet_connect/wallet_connect.dart';
 
 import '../database/cloud_database.dart';

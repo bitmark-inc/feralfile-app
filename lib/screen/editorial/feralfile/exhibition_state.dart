@@ -5,7 +5,6 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:autonomy_flutter/model/editorial.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 
 abstract class ExhibitionEvent {}

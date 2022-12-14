@@ -12,7 +12,6 @@ import 'package:floor/floor.dart';
 import 'package:autonomy_flutter/model/connection_supports.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/tezos_connection.dart';
-import 'package:autonomy_flutter/model/wc2_pairing.dart';
 import 'package:autonomy_flutter/service/wallet_connect_dapp_service/wc_connected_session.dart';
 
 enum ConnectionType {

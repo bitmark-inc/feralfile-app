@@ -19,7 +19,7 @@ import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
-import 'package:autonomy_flutter/service/mixPanel_client_service.dart';
+import 'package:autonomy_flutter/service/mixpanel_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
@@ -28,7 +28,6 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/eula_privacy.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -48,7 +47,7 @@ class OnboardingPage extends StatefulWidget {
 
 class _OnboardingPageState extends State<OnboardingPage>
     with TickerProviderStateMixin {
-  bool _processing = false;
+  final bool _processing = false;
   bool fromBranchLink = false;
   bool fromDeeplink = false;
 
@@ -136,7 +135,7 @@ class _OnboardingPageState extends State<OnboardingPage>
 
     String? currentId;
 
-    void _updateDeepLinkState() {
+    void updateDeepLinkState() {
       setState(() {
         fromBranchLink = false;
         currentId = null;
@@ -165,7 +164,7 @@ class _OnboardingPageState extends State<OnboardingPage>
 
           if (artwork.airdropInfo?.isAirdropStarted != true) {
             await injector.get<NavigationService>().showAirdropNotStarted();
-            _updateDeepLinkState();
+            updateDeepLinkState();
             return;
           }
 
@@ -174,7 +173,7 @@ class _OnboardingPageState extends State<OnboardingPage>
           if (artwork.airdropInfo == null ||
               (endTime != null && endTime.isBefore(DateTime.now()))) {
             await injector.get<NavigationService>().showAirdropExpired();
-            _updateDeepLinkState();
+            updateDeepLinkState();
             return;
           }
 
@@ -182,14 +181,14 @@ class _OnboardingPageState extends State<OnboardingPage>
             await injector.get<NavigationService>().showNoRemainingToken(
                   artwork: artwork,
                 );
-            _updateDeepLinkState();
+            updateDeepLinkState();
             return;
           }
 
           final otp = memoryValues.airdropFFExhibitionId.value?.otp;
           if (otp?.isExpired == true) {
             await injector.get<NavigationService>().showOtpExpired();
-            _updateDeepLinkState();
+            updateDeepLinkState();
             return;
           }
 

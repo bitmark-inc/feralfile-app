@@ -34,7 +34,7 @@ class AuOutlinedButton extends StatelessWidget {
               clipper: AutonomyButtonClipper(),
               child: TextButton(
                 style: TextButton.styleFrom(
-                    primary: theme.colorScheme.primary,
+                    foregroundColor: theme.colorScheme.primary,
                     shape: const RoundedRectangleBorder(),
                     padding: const EdgeInsets.symmetric(vertical: 14)),
                 onPressed: onPress,

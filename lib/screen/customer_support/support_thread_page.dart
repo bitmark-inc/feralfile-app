@@ -5,6 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
+// ignore_for_file: unused_field
+
 import 'dart:convert';
 
 import 'package:autonomy_flutter/common/injector.dart';
@@ -93,7 +95,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   String _status = '';
   bool _isRated = false;
 
-  late var _forceAccountsViewRedraw;
+  late Object _forceAccountsViewRedraw;
   var _sendIcon = "assets/images/sendMessage.svg";
   final _introMessengerID = const Uuid().v4();
   final _resolvedMessengerID = const Uuid().v4();
@@ -650,7 +652,6 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   void _handleImageSelection() async {
     log_util.log.info('[_handleImageSelection] begin');
     final result = await ImagePicker().pickMultiImage();
-    if (result == null) return;
 
     final attachments = await Future.wait(result.map((element) async {
       final bytes = await element.readAsBytes();
@@ -840,15 +841,16 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
 }
 
 class MyRatingBar extends StatefulWidget {
-  MyRatingBar({Key? key, required this.submit}) : super(key: key);
-  Future<dynamic> Function(String messageType, DraftCustomerSupportData data,
-      {bool isRating}) submit;
+  const MyRatingBar({Key? key, required this.submit}) : super(key: key);
+  final Future<dynamic> Function(
+          String messageType, DraftCustomerSupportData data, {bool isRating})
+      submit;
 
   @override
-  _MyRatingBar createState() => _MyRatingBar();
+  State<MyRatingBar> createState() => _MyRatingBarState();
 }
 
-class _MyRatingBar extends State<MyRatingBar> {
+class _MyRatingBarState extends State<MyRatingBar> {
   String customerRating = "";
   int ratingInt = 0;
   Widget sendButtonRating = SvgPicture.asset("assets/images/sendMessage.svg");
