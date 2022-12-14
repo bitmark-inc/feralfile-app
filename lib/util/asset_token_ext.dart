@@ -60,7 +60,8 @@ extension AssetTokenExtension on AssetToken {
         ? editionName
         : edition.toString();
     final hasNumber = RegExp(r'[0-9]').hasMatch(editionStr!);
-    final maxEditionStr = (((maxEdition ?? 0) > 0) && hasNumber) ? "/$maxEdition" : "";
+    final maxEditionStr =
+        (((maxEdition ?? 0) > 0) && hasNumber) ? "/$maxEdition" : "";
     return "$editionStr$maxEditionStr";
   }
 
@@ -191,6 +192,7 @@ extension AssetTokenExtension on AssetToken {
       case "video/x-flv":
       case "video/MP2T":
       case "video/webm":
+      case "application/octet-stream":
         return RenderingType.video;
 
       case "application/pdf":
