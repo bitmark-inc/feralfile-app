@@ -73,6 +73,12 @@ Future<String> getAppVariant() async {
   return await isAppCenterBuild() ? "inhouse" : "production";
 }
 
+String feralFileExhibitionUrl(String slug) =>
+    "${Environment.feralFileAPIURL}/exhibitions/$slug";
+
+String feralFileArtworkUrl(String slug) =>
+    "${Environment.feralFileAPIURL}/artworks/$slug";
+
 enum WalletApp {
   MetaMask,
   Kukai,

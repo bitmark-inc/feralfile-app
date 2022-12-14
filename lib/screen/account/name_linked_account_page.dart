@@ -53,6 +53,12 @@ class _NameLinkedAccountPageState extends State<NameLinkedAccountPage> {
   }
 
   @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(

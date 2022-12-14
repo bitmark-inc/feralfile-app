@@ -23,17 +23,19 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/au_outlined_button.dart';
-import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:nft_collection/models/asset_token.dart';
@@ -63,7 +65,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   void initState() {
     _scrollController = ScrollController();
     super.initState();
-
     context.read<ArtworkDetailBloc>().add(ArtworkDetailGetInfoEvent(
         widget.payload.identities[widget.payload.currentIndex]));
     context.read<AccountsBloc>().add(FetchAllAddressesEvent());
@@ -92,174 +93,184 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   }
 
   @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final hasKeyboard = currentAsset?.medium == "software" ||
         currentAsset?.medium == "other" ||
         currentAsset?.medium == null;
-    return Stack(
-      children: [
-        Scaffold(
-          resizeToAvoidBottomInset: !hasKeyboard,
-          appBar: getBackAppBar(context,
-              onBack: () => Navigator.of(context).pop(),
-              action: () {
-                if (currentAsset == null) return;
-                _showArtworkOptionsDialog(currentAsset!);
-              }),
-          body: BlocConsumer<ArtworkDetailBloc, ArtworkDetailState>(
-              listener: (context, state) {
-            final identitiesList =
-                state.provenances.map((e) => e.owner).toList();
-            if (state.asset?.artistName != null &&
-                state.asset!.artistName!.length > 20) {
-              identitiesList.add(state.asset!.artistName!);
-            }
-            setState(() {
-              currentAsset = state.asset;
-            });
+    return BlocConsumer<ArtworkDetailBloc, ArtworkDetailState>(
+        listener: (context, state) {
+      final identitiesList = state.provenances.map((e) => e.owner).toList();
+      if (state.asset?.artistName != null &&
+          state.asset!.artistName!.length > 20) {
+        identitiesList.add(state.asset!.artistName!);
+      }
+      setState(() {
+        currentAsset = state.asset;
+      });
 
-            context.read<IdentityBloc>().add(GetIdentityEvent(identitiesList));
-          }, builder: (context, state) {
-            if (state.asset != null) {
-              final identityState = context.watch<IdentityBloc>().state;
-              final asset = state.asset!;
+      context.read<IdentityBloc>().add(GetIdentityEvent(identitiesList));
+    }, builder: (context, state) {
+      if (state.asset != null) {
+        final identityState = context.watch<IdentityBloc>().state;
+        final asset = state.asset!;
 
-              final artistName =
-                  asset.artistName?.toIdentityOrMask(identityState.identityMap);
+        final artistName =
+            asset.artistName?.toIdentityOrMask(identityState.identityMap);
 
-              var subTitle = "";
-              if (artistName != null && artistName.isNotEmpty) {
-                subTitle = "by".tr(args: [artistName]);
-              }
+        var subTitle = "";
+        if (artistName != null && artistName.isNotEmpty) {
+          subTitle = "by".tr(args: [artistName]);
+        }
 
-              return SingleChildScrollView(
-                controller: _scrollController,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 16.0),
-                    Padding(
-                      padding: ResponsiveLayout.getPadding,
-                      child: Semantics(
-                        label: 'Title',
-                        child: Text(
-                          asset.title,
-                          style: theme.textTheme.headline1,
-                        ),
+        return Stack(
+          children: [
+            Scaffold(
+                backgroundColor: theme.colorScheme.primary,
+                resizeToAvoidBottomInset: !hasKeyboard,
+                appBar: AppBar(
+                  leadingWidth: 0,
+                  centerTitle: false,
+                  title: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        asset.title,
+                        style: theme.textTheme.ppMori400White12,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        subTitle,
+                        style: theme.textTheme.ppMori400White12,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                  actions: [
+                    IconButton(
+                      onPressed: () => _showArtworkOptionsDialog(asset),
+                      icon: SvgPicture.asset(
+                        'assets/images/more_circle.svg',
+                        width: 24,
                       ),
                     ),
-                    const SizedBox(height: 8.0),
-                    Padding(
-                      padding: ResponsiveLayout.getPadding,
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.baseline,
-                        textBaseline: TextBaseline.alphabetic,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              subTitle,
-                              style: theme.textTheme.headline3?.copyWith(
-                                fontSize: 18,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(
-                            width: 8,
-                          ),
-                          Text(
-                            getEditionSubTitle(asset),
-                            style: theme.textTheme.headline5?.copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16.0),
-                    Hero(
-                      tag: asset.id,
-                      child: _ArtworkView(
-                        payload: widget.payload,
-                        token: asset,
-                      ),
-                    ),
-                    Visibility(
-                      visible: asset.assetURL == CHECK_WEB3_PRIMER_URL,
-                      child: Align(
-                        alignment: Alignment.centerRight,
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: SizedBox(
-                            width: 165,
-                            height: 48,
-                            child: AuOutlinedButton(
-                              text: "web3_primer".tr(),
-                              onPress: () {
-                                Navigator.pushNamed(
-                                    context, AppRouter.previewPrimerPage,
-                                    arguments: asset);
-                              },
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    debugInfoWidget(context, currentAsset),
-                    const SizedBox(height: 16.0),
-                    Padding(
-                      padding: ResponsiveLayout.getPadding,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Semantics(
-                            label: 'Desc',
-                            child: HtmlWidget(
-                              asset.desc ?? "",
-                              textStyle: theme.textTheme.bodyText1,
-                            ),
-                          ),
-                          const SizedBox(height: 40.0),
-                          artworkDetailsMetadataSection(
-                              context, asset, artistName),
-                          if (asset.fungible == true) ...[
-                            const SizedBox(height: 40.0),
-                            BlocBuilder<AccountsBloc, AccountsState>(
-                              builder: (context, state) {
-                                final addresses = state.addresses;
-                                return tokenOwnership(
-                                    context, asset, addresses);
-                              },
-                            ),
-                          ] else ...[
-                            state.provenances.isNotEmpty
-                                ? _provenanceView(context, state.provenances)
-                                : const SizedBox()
-                          ],
-                          artworkDetailsRightSection(context, asset),
-                          const SizedBox(height: 80.0),
-                        ],
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: Icon(
+                        AuIcon.close,
+                        color: theme.colorScheme.secondary,
                       ),
                     )
                   ],
                 ),
-              );
-            } else {
-              return const SizedBox();
-            }
-          }),
-        ),
-        Positioned(
-          bottom: 0,
-          left: 0,
-          right: 0,
-          child: ReportButton(
-            token: currentAsset,
-            scrollController: _scrollController,
-          ),
-        ),
-      ],
-    );
+                body: SingleChildScrollView(
+                  controller: _scrollController,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(
+                        height: 40,
+                      ),
+                      Hero(
+                        tag: asset.id,
+                        child: _ArtworkView(
+                          payload: widget.payload,
+                          token: asset,
+                        ),
+                      ),
+                      Visibility(
+                        visible: asset.assetURL == CHECK_WEB3_PRIMER_URL,
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: SizedBox(
+                              width: 165,
+                              height: 48,
+                              child: AuOutlinedButton(
+                                text: "web3_primer".tr(),
+                                onPress: () {
+                                  Navigator.pushNamed(
+                                      context, AppRouter.previewPrimerPage,
+                                      arguments: asset);
+                                },
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 40,
+                      ),
+                      Padding(
+                        padding: ResponsiveLayout.getPadding,
+                        child: Text(
+                          getEditionSubTitle(asset),
+                          style: theme.textTheme.ppMori400Grey12,
+                        ),
+                      ),
+                      debugInfoWidget(context, currentAsset),
+                      const SizedBox(height: 16.0),
+                      Padding(
+                        padding: ResponsiveLayout.getPadding,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Semantics(
+                              label: 'Desc',
+                              child: HtmlWidget(
+                                asset.desc ?? "",
+                                textStyle: theme.textTheme.ppMori400White12,
+                              ),
+                            ),
+                            const SizedBox(height: 40.0),
+                            artworkDetailsMetadataSection(
+                                context, asset, artistName),
+                            if (asset.fungible == true) ...[
+                              const SizedBox(height: 40.0),
+                              BlocBuilder<AccountsBloc, AccountsState>(
+                                builder: (context, state) {
+                                  final addresses = state.addresses;
+                                  return tokenOwnership(
+                                      context, asset, addresses);
+                                },
+                              ),
+                            ] else ...[
+                              state.provenances.isNotEmpty
+                                  ? _provenanceView(context, state.provenances)
+                                  : const SizedBox()
+                            ],
+                            artworkDetailsRightSection(context, asset),
+                            const SizedBox(height: 80.0),
+                          ],
+                        ),
+                      )
+                    ],
+                  ),
+                )),
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: ReportButton(
+                token: currentAsset,
+                scrollController: _scrollController,
+              ),
+            ),
+          ],
+        );
+      } else {
+        return const SizedBox();
+      }
+    });
   }
 
   Widget _provenanceView(BuildContext context, List<Provenance> provenances) {
@@ -285,131 +296,95 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   }
 
   Future _showArtworkOptionsDialog(AssetToken asset) async {
-    final theme = Theme.of(context);
-
-    Widget optionRow({required String title, Function()? onTap}) {
-      return InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(title, style: theme.primaryTextTheme.headline4),
-              Icon(Icons.navigate_next, color: theme.colorScheme.secondary),
-            ],
-          ),
-        ),
-      );
-    }
-
     final ownerWallet = await asset.getOwnerWallet();
 
     if (!mounted) return;
     final isHidden = _isHidden(asset);
-    UIHelper.showDialog(
+    UIHelper.showDrawerAction(
       context,
-      "Options",
-      Column(
-        children: [
-          optionRow(
-            title: isHidden ? 'unhide_aw'.tr() : 'hide_aw'.tr(),
-            onTap: () async {
-              await injector<ConfigurationService>()
-                  .updateTempStorageHiddenTokenIDs([asset.id], !isHidden);
-              injector<SettingsDataService>().backup();
+      options: [
+        OptionItem(
+          title: isHidden ? 'unhide_aw'.tr() : 'hide_aw'.tr(),
+          icon: const Icon(AuIcon.hidden_artwork),
+          onTap: () async {
+            await injector<ConfigurationService>()
+                .updateTempStorageHiddenTokenIDs([asset.id], !isHidden);
+            injector<SettingsDataService>().backup();
 
+            if (!mounted) return;
+
+            context.read<NftCollectionBloc>().add(RefreshNftCollection());
+            Navigator.of(context).pop();
+            UIHelper.showHideArtworkResultDialog(context, !isHidden, onOK: () {
+              Navigator.of(context).popUntil((route) =>
+                  route.settings.name == AppRouter.homePage ||
+                  route.settings.name == AppRouter.homePageNoTransition);
+            });
+          },
+        ),
+        if (ownerWallet != null) ...[
+          OptionItem(
+            title: "send_artwork".tr(),
+            icon: const Icon(AuIcon.send),
+            onTap: () async {
+              final payload = await Navigator.of(context).popAndPushNamed(
+                  AppRouter.sendArtworkPage,
+                  arguments: SendArtworkPayload(asset, ownerWallet,
+                      await ownerWallet.getOwnedQuantity(asset))) as Map?;
+              if (payload == null) {
+                return;
+              }
+
+              final isSentAll = payload['isSentAll'] as bool;
+              if (isSentAll) {
+                injector<ConfigurationService>().updateRecentlySentToken([
+                  SentArtwork(asset.id, asset.ownerAddress, DateTime.now())
+                ]);
+                if (isHidden) {
+                  await injector<ConfigurationService>()
+                      .updateTempStorageHiddenTokenIDs([asset.id], false);
+                  injector<SettingsDataService>().backup();
+                }
+              }
               if (!mounted) return;
 
-              context.read<NftCollectionBloc>().add(RefreshNftCollection());
-              Navigator.of(context).pop();
-              UIHelper.showHideArtworkResultDialog(context, !isHidden,
-                  onOK: () {
-                Navigator.of(context).popUntil((route) =>
-                    route.settings.name == AppRouter.homePage ||
-                    route.settings.name == AppRouter.homePageNoTransition);
-              });
+              if (!payload["isTezos"]) {
+                if (isSentAll) {
+                  Navigator.of(context).popAndPushNamed(AppRouter.homePage);
+                }
+                return;
+              }
+
+              final tx = payload['tx'] as TZKTOperation;
+
+              if (!mounted) return;
+              UIHelper.showMessageAction(
+                context,
+                'success'.tr(),
+                'send_success_des'.tr(),
+                onAction: () {
+                  Navigator.of(context).pop();
+                  Navigator.of(context).pushNamed(
+                    AppRouter.tezosTXDetailPage,
+                    arguments: {
+                      "current_address": tx.sender?.address,
+                      "tx": tx,
+                      "isBackHome": isSentAll,
+                    },
+                  );
+                },
+                actionButton: 'see_transaction_detail'.tr().toUpperCase(),
+                closeButton: "close".tr().toUpperCase(),
+                onClose: () => isSentAll
+                    ? Navigator.of(context).popAndPushNamed(
+                        AppRouter.homePage,
+                      )
+                    : null,
+              );
             },
           ),
-          if (ownerWallet != null) ...[
-            Divider(
-              color: theme.colorScheme.secondary,
-              height: 1,
-              thickness: 1,
-            ),
-            optionRow(
-              title: "send_artwork".tr(),
-              onTap: () async {
-                final payload = await Navigator.of(context).popAndPushNamed(
-                    AppRouter.sendArtworkPage,
-                    arguments: SendArtworkPayload(asset, ownerWallet,
-                        await ownerWallet.getOwnedQuantity(asset))) as Map?;
-                if (payload == null) {
-                  return;
-                }
-
-                final isSentAll = payload['isSentAll'] as bool;
-                if (isSentAll) {
-                  injector<ConfigurationService>().updateRecentlySentToken([
-                    SentArtwork(asset.id, asset.ownerAddress, DateTime.now())
-                  ]);
-                  if (isHidden) {
-                    await injector<ConfigurationService>()
-                        .updateTempStorageHiddenTokenIDs([asset.id], false);
-                    injector<SettingsDataService>().backup();
-                  }
-                }
-                if (!mounted) return;
-
-                if (!payload["isTezos"]) {
-                  if (isSentAll) {
-                    Navigator.of(context).popAndPushNamed(AppRouter.homePage);
-                  }
-                  return;
-                }
-
-                final tx = payload['tx'] as TZKTOperation;
-
-                if (!mounted) return;
-                UIHelper.showMessageAction(
-                  context,
-                  'success'.tr(),
-                  'send_success_des'.tr(),
-                  onAction: () {
-                    Navigator.of(context).pop();
-                    Navigator.of(context).pushNamed(
-                      AppRouter.tezosTXDetailPage,
-                      arguments: {
-                        "current_address": tx.sender?.address,
-                        "tx": tx,
-                        "isBackHome": isSentAll,
-                      },
-                    );
-                  },
-                  actionButton: 'see_transaction_detail'.tr().toUpperCase(),
-                  closeButton: "close".tr().toUpperCase(),
-                  onClose: () => isSentAll
-                      ? Navigator.of(context).popAndPushNamed(
-                          AppRouter.homePage,
-                        )
-                      : null,
-                );
-              },
-            ),
-            const SizedBox(
-              height: 18,
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(
-                "cancel".tr(),
-                style: theme.primaryTextTheme.caption,
-              ),
-            ),
-          ],
         ],
-      ),
-      isDismissible: true,
+      ],
     );
   }
 }

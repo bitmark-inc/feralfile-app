@@ -55,6 +55,12 @@ class _LinkManuallyPageState extends State<LinkManuallyPage> {
   }
 
   @override
+  void dispose() {
+    _addressController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(

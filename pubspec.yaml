@@ -81,6 +81,7 @@ dependencies:
       ref: 17fac38d818eaced1e8e7d87dafeab4aa2cbaa9a
   local_auth: ^2.1.0
   logging: ^1.0.2
+  measured_size: ^1.0.0
   mime: ^1.0.1
   mixpanel_flutter: ^2.0.0
   modal_bottom_sheet: ^2.0.0
@@ -119,7 +120,7 @@ dependencies:
     git:
       url: https://github.com/autonomy-system/wallet-connect-dart.git
       ref: 763516f2013982c8723e1ab1478f52a5ba0699c8
-  web3dart: ^2.3.3
+  web3dart: ^2.5.1
   web_socket_channel: ^2.1.0
   webview_flutter: ^3.0.0
   json_annotation: ^4.6.0
@@ -127,7 +128,7 @@ dependencies:
   autonomy_theme:
     git:
       url: https://github.com/bitmark-inc/autonomy-client-shared-theme.git
-      ref: 1.0.5
+      ref: 1.0.9
 
   easy_localization: ^3.0.1
   rxdart: ^0.26.0
@@ -219,3 +220,13 @@ flutter:
         - asset: assets/fonts/IBMPlexMono/IBMPlexMono-Bold.ttf
           weight: 700
         - asset: assets/fonts/IBMPlexMono/IBMPlexMono-SemiBold.ttf
+
+    - family: PPMori
+      fonts:
+        - asset: assets/fonts/PPMori/PPMori-Regular.ttf
+        - asset: assets/fonts/PPMori/PPMori-Bold.ttf
+        - asset: assets/fonts/PPMori/PPMori-SemiBold.ttf
+
+    - family: AuIcon
+      fonts:
+        - asset: assets/fonts/AuIcon.ttf

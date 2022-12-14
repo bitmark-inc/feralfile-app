@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/screen/detail/royalty/royalty_bloc.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/util/feralfile_extension.dart';
@@ -566,9 +567,12 @@ class _ReportButtonState extends State<ReportButton> {
     if (widget.token == null) return const SizedBox();
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
-      height: isShowingArtwortReportProblemContainer ? 62 : 0,
-      child: AnyProblemNFTWidget(
-        asset: widget.token!,
+      height: isShowingArtwortReportProblemContainer ? 80 : 0,
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: AnyProblemNFTWidget(
+          asset: widget.token!,
+        ),
       ),
     );
   }
@@ -583,6 +587,7 @@ INFTRenderingWidget buildRenderingWidget(
   Function({int? time})? onLoaded,
   Function({int? time})? onDispose,
   FocusNode? focusNode,
+  Widget? loadingWidget,
 }) {
   String mimeType = token.getMimeType;
 
@@ -593,7 +598,7 @@ INFTRenderingWidget buildRenderingWidget(
         ? token.getPreviewUrl()
         : "${token.getPreviewUrl()}?t=$attempt",
     thumbnailURL: token.getThumbnailUrl(usingThumbnailID: false),
-    loadingWidget: previewPlaceholder(context),
+    loadingWidget: loadingWidget ?? previewPlaceholder(context),
     errorWidget: BrokenTokenWidget(token: token),
     cacheManager: injector<CacheManager>(),
     onLoaded: onLoaded,
@@ -823,20 +828,22 @@ Widget artworkDetailsMetadataSection(
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      Text(
-        "metadata".tr(),
-        style: theme.textTheme.headline2,
+      HeaderData(
+        text: "metadata".tr(),
       ),
       const SizedBox(height: 23.0),
-      _rowItem(context, "title".tr(), asset.title),
+      MetaDataItem(
+        title: "title".tr(),
+        value: asset.title,
+      ),
       if (artistName != null) ...[
-        const Divider(height: 32.0),
-        _rowItem(
-          context,
-          "artist".tr(),
-          artistName,
-          // some FF's artist set multiple links
-          // Discussion thread: https://bitmark.slack.com/archives/C01EPPD07HU/p1648698027564299
+        Divider(
+          height: 32.0,
+          color: theme.auLightGrey,
+        ),
+        MetaDataItem(
+          title: "artist".tr(),
+          value: artistName,
           tapLink: asset.artistURL?.split(" & ").firstOrNull,
           forceSafariVC: true,
         ),
@@ -844,7 +851,10 @@ Widget artworkDetailsMetadataSection(
       (asset.fungible == false)
           ? Column(
               children: [
-                const Divider(height: 32.0),
+                Divider(
+                  height: 32.0,
+                  color: theme.auLightGrey,
+                ),
                 _getEditionNameRow(context, asset),
               ],
             )
@@ -852,44 +862,63 @@ Widget artworkDetailsMetadataSection(
       (asset.maxEdition ?? 0) > 0
           ? Column(
               children: [
-                const Divider(height: 32.0),
-                _rowItem(
-                    context, "edition_size".tr(), asset.maxEdition.toString()),
+                Divider(
+                  height: 32.0,
+                  color: theme.auLightGrey,
+                ),
+                MetaDataItem(
+                  title: "edition_size".tr(),
+                  value: asset.maxEdition.toString(),
+                ),
               ],
             )
           : const SizedBox(),
-      const Divider(height: 32.0),
-      _rowItem(
-        context,
-        "token".tr(),
-        polishSource(asset.source ?? ""),
+      Divider(
+        height: 32.0,
+        color: theme.auLightGrey,
+      ),
+      MetaDataItem(
+        title: "token".tr(),
+        value: polishSource(asset.source ?? ""),
         tapLink: asset.isAirdrop ? null : asset.assetURL,
         forceSafariVC: true,
       ),
-      const Divider(height: 32.0),
-      _rowItem(
-        context,
-        "contract".tr(),
-        asset.blockchain.capitalize(),
+      Divider(
+        height: 32.0,
+        color: theme.auLightGrey,
+      ),
+      MetaDataItem(
+        title: "contract".tr(),
+        value: asset.blockchain.capitalize(),
         tapLink: asset.getBlockchainUrl(),
         forceSafariVC: true,
       ),
-      const Divider(height: 32.0),
-      _rowItem(context, "medium".tr(), asset.medium?.capitalize()),
-      const Divider(height: 32.0),
-      _rowItem(
-        context,
-        "date_minted".tr(),
-        asset.mintedAt != null
+      Divider(
+        height: 32.0,
+        color: theme.auLightGrey,
+      ),
+      MetaDataItem(
+        title: "medium".tr(),
+        value: asset.medium?.capitalize() ?? '',
+      ),
+      Divider(
+        height: 32.0,
+        color: theme.auLightGrey,
+      ),
+      MetaDataItem(
+        title: "date_minted".tr(),
+        value: asset.mintedAt != null
             ? localTimeStringFromISO8601(asset.mintedAt!)
-            : null,
-        maxLines: 1,
+            : '',
       ),
       asset.assetData != null && asset.assetData!.isNotEmpty
           ? Column(
               children: [
                 const Divider(height: 32.0),
-                _rowItem(context, "artwork_data".tr(), asset.assetData)
+                MetaDataItem(
+                  title: "artwork_data".tr(),
+                  value: asset.assetData!,
+                )
               ],
             )
           : const SizedBox(),
@@ -898,10 +927,16 @@ Widget artworkDetailsMetadataSection(
 }
 
 Widget _getEditionNameRow(BuildContext context, AssetToken asset) {
-  final edition = (asset.editionName != null && asset.editionName!.isNotEmpty)
-      ? asset.editionName
-      : asset.edition.toString();
-  return _rowItem(context, "edition".tr(), edition);
+  if (asset.editionName != null && asset.editionName != "") {
+    return MetaDataItem(
+      title: "edition_name".tr(),
+      value: asset.editionName!,
+    );
+  }
+  return MetaDataItem(
+    title: "edition_number".tr(),
+    value: asset.edition.toString(),
+  );
 }
 
 Widget tokenOwnership(
@@ -921,21 +956,210 @@ Widget tokenOwnership(
     children: [
       Text(
         "token_ownership".tr(),
-        style: theme.textTheme.headline2,
+        style: theme.textTheme.ppMori400White12,
       ),
       const SizedBox(height: 23.0),
       Text(
         "how_many_editions_you_own".tr(),
-        style: theme.textTheme.bodyText1,
+        style: theme.textTheme.ppMori400White12,
       ),
       const SizedBox(height: 32.0),
-      _rowItem(context, "editions".tr(), "${asset.maxEdition}",
-          tapLink: asset.tokenURL, forceSafariVC: true),
-      const Divider(height: 32.0),
-      _rowItem(context, "owned".tr(), "$ownedTokens",
-          tapLink: asset.tokenURL, forceSafariVC: true),
+      MetaDataItem(
+        title: "editions".tr(),
+        value: "${asset.maxEdition}",
+        tapLink: asset.tokenURL,
+        forceSafariVC: true,
+      ),
+      Divider(
+        height: 32.0,
+        color: theme.auLightGrey,
+      ),
+      MetaDataItem(
+        title: "owned".tr(),
+        value: "$ownedTokens",
+        tapLink: asset.tokenURL,
+        forceSafariVC: true,
+      ),
     ],
   );
+}
+
+class MetaDataItem extends StatelessWidget {
+  final String title;
+  final String value;
+  final Function()? onTap;
+  final String? tapLink;
+  final bool? forceSafariVC;
+
+  const MetaDataItem({
+    Key? key,
+    required this.title,
+    required this.value,
+    this.onTap,
+    this.tapLink,
+    this.forceSafariVC,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    Function()? onValueTap = onTap;
+
+    if (onValueTap == null && tapLink != null) {
+      final uri = Uri.parse(tapLink!);
+      onValueTap = () => launchUrl(uri,
+          mode: forceSafariVC == true
+              ? LaunchMode.externalApplication
+              : LaunchMode.platformDefault);
+    }
+    final theme = Theme.of(context);
+
+    return Row(
+      children: [
+        Expanded(
+          flex: 2,
+          child: Text(
+            title,
+            style: theme.textTheme.ppMori400Grey12,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+          ),
+        ),
+        Expanded(
+          flex: 3,
+          child: GestureDetector(
+            onTap: onValueTap,
+            child: Text(
+              value,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+              style: onValueTap != null
+                  ? theme.textTheme.ppMori400SupperTeal12
+                  : theme.textTheme.ppMori400White12,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class ProvenanceItem extends StatelessWidget {
+  final String title;
+  final String value;
+  final Function()? onTap;
+  final Function()? onNameTap;
+  final String? tapLink;
+  final bool? forceSafariVC;
+  const ProvenanceItem({
+    Key? key,
+    required this.title,
+    required this.value,
+    this.onTap,
+    this.tapLink,
+    this.forceSafariVC,
+    this.onNameTap,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    Function()? onValueTap = onTap;
+
+    if (onValueTap == null && tapLink != null) {
+      final uri = Uri.parse(tapLink!);
+      onValueTap = () => launchUrl(uri,
+          mode: forceSafariVC == true
+              ? LaunchMode.externalApplication
+              : LaunchMode.platformDefault);
+    }
+    final theme = Theme.of(context);
+
+    return Row(
+      children: [
+        Expanded(
+          flex: 2,
+          child: GestureDetector(
+            onTap: onNameTap,
+            child: Text(
+              title,
+              style: theme.textTheme.ppMori400White12,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+            ),
+          ),
+        ),
+        Expanded(
+          flex: 2,
+          child: Text(
+            value,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+            style: theme.textTheme.ppMori400White12,
+          ),
+        ),
+        Expanded(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              GestureDetector(
+                onTap: onValueTap,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: theme.auSuperTeal,
+                    ),
+                    borderRadius: BorderRadius.circular(64),
+                  ),
+                  child: Text(
+                    'view'.tr(),
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.ppMori400Green12,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class HeaderData extends StatelessWidget {
+  final String text;
+  const HeaderData({Key? key, required this.text}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Divider(
+          color: theme.colorScheme.secondary,
+          thickness: 1,
+        ),
+        Row(
+          children: [
+            Text(
+              text,
+              style: theme.textTheme.ppMori400White14,
+            ),
+            const Spacer(),
+            RotatedBox(
+              quarterTurns: 1,
+              child: Icon(
+                AuIcon.chevron_Sm,
+                size: 12,
+                color: theme.colorScheme.secondary,
+              ),
+            )
+          ],
+        ),
+      ],
+    );
+  }
 }
 
 Widget artworkDetailsProvenanceSectionNotEmpty(
@@ -952,9 +1176,8 @@ Widget artworkDetailsProvenanceSectionNotEmpty(
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "provenance".tr(),
-            style: theme.textTheme.headline2,
+          HeaderData(
+            text: "provenance".tr(),
           ),
           const SizedBox(height: 23.0),
           ...provenances.map((el) {
@@ -964,39 +1187,16 @@ Widget artworkDetailsProvenanceSectionNotEmpty(
             final provenanceTitle = "${identityTitle ?? ''}$youTitle";
             return Column(
               children: [
-                _rowItem(
-                  context,
-                  provenanceTitle,
-                  localTimeString(el.timestamp),
-                  subTitle: el.blockchain.toUpperCase(),
+                ProvenanceItem(
+                  title: (identityTitle ?? '') + youTitle,
+                  value: localTimeString(el.timestamp),
+                  // subTitle: el.blockchain.toUpperCase(),
                   tapLink: el.txURL,
                   onNameTap: () => identity != null
                       ? UIHelper.showIdentityDetailDialog(context,
                           name: identity, address: el.owner)
                       : null,
                   forceSafariVC: true,
-                  title: Row(
-                    children: [
-                      Flexible(
-                        child: FittedBox(
-                          child: Text(
-                            identityTitle ?? '',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.headline4,
-                          ),
-                        ),
-                      ),
-                      Visibility(
-                        visible: youAddresses.contains(el.owner),
-                        child: Text(
-                          "_you".tr(),
-                          style: theme.textTheme.headline4,
-                        ),
-                      ),
-                    ],
-                  ),
-                  maxLines: 1,
                 ),
                 const Divider(height: 32.0),
               ],
@@ -1051,14 +1251,8 @@ class _ArtworkRightsViewState extends State<ArtworkRightsView> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "rights".tr(),
-            style: theme.textTheme.headline2,
-          ),
-          const SizedBox(height: 23.0),
-          Text(
-            "ff_protect".tr(),
-            style: theme.textTheme.bodyText1,
+          HeaderData(
+            text: "rights".tr(),
           ),
           const SizedBox(height: 23.0),
           state.markdownData == null
@@ -1070,7 +1264,7 @@ class _ArtworkRightsViewState extends State<ArtworkRightsView> {
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   padding: const EdgeInsets.all(0),
-                  styleSheet: markDownLightStyle(context, isDetailPage: true),
+                  styleSheet: markDownRightStyle(context),
                   onTapLink: (text, href, title) async {
                     if (href == null) return;
                     launchUrl(Uri.parse(href),
@@ -1115,15 +1309,16 @@ Widget _rowItem(
           children: [
             GestureDetector(
               onTap: onNameTap,
-              child: title ?? Text(name, style: theme.textTheme.headline4),
+              child:
+                  title ?? Text(name, style: theme.textTheme.ppMori400White12),
             ),
             if (subTitle != null) ...[
               const SizedBox(height: 2),
               Text(
                 subTitle,
                 style: ResponsiveLayout.isMobile
-                    ? theme.textTheme.atlasBlackBold12
-                    : theme.textTheme.atlasBlackBold14,
+                    ? theme.textTheme.ppMori400White12
+                    : theme.textTheme.ppMori400White14,
               ),
             ]
           ],
@@ -1146,10 +1341,10 @@ Widget _rowItem(
                     softWrap: true,
                     overflow: TextOverflow.ellipsis,
                     style: onValueTap != null
-                        ? theme.textTheme.subtitle1
+                        ? theme.textTheme.ppMori400White12
                         : ResponsiveLayout.isMobile
-                            ? theme.textTheme.ibmGreyMediumNormal16
-                            : theme.textTheme.ibmGreyMediumNormal20,
+                            ? theme.textTheme.ppMori400White12
+                            : theme.textTheme.ppMori400White12,
                   ),
                 ),
               ),
@@ -1158,24 +1353,13 @@ Widget _rowItem(
               const SizedBox(width: 8.0),
               SvgPicture.asset(
                 'assets/images/iconForward.svg',
-                color: theme.textTheme.bodyText1?.color,
+                color: theme.textTheme.ppMori400White12.color,
               ),
             ]
           ],
         ),
       )
     ],
-  );
-}
-
-Widget previewCloseIcon(BuildContext context) {
-  final theme = Theme.of(context);
-  return Semantics(
-    label: "CloseArtwork",
-    child: GestureDetector(
-      onTap: () => Navigator.of(context).pop(),
-      child: closeIcon(color: theme.colorScheme.secondary),
-    ),
   );
 }
 

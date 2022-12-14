@@ -2,6 +2,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/play_control_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 
 class PlaylistControl extends StatefulWidget {
   final Function()? onPlayTap;
@@ -43,6 +44,7 @@ class _PlaylistControlState extends State<PlaylistControl> {
                   icon: SvgPicture.asset(
                     'assets/images/time_off_icon.svg',
                     width: 24,
+                    color: theme.disableColor,
                   ),
                   iconFocus: Stack(
                     children: [
@@ -52,21 +54,26 @@ class _PlaylistControlState extends State<PlaylistControl> {
                         color: theme.colorScheme.secondary,
                       ),
                       Positioned(
-                        bottom: 0,
-                        right: 0,
+                        bottom: -2,
+                        right: -1,
                         child: Visibility(
                           visible: playControl.timer != 0,
                           child: Container(
-                            padding: const EdgeInsets.all(1),
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 2,
+                              horizontal: 3,
+                            ),
                             decoration: BoxDecoration(
-                              color: theme.colorScheme.primary,
+                              color: theme.colorScheme.secondary,
                               shape: BoxShape.circle,
                             ),
                             child: Text(
                               playControl.timer.toString(),
                               style: TextStyle(
-                                color: theme.colorScheme.secondary,
-                                fontSize: 8,
+                                fontFamily: 'PPMori',
+                                color: theme.colorScheme.primary,
+                                fontSize: 9,
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
                           ),
@@ -86,6 +93,7 @@ class _PlaylistControlState extends State<PlaylistControl> {
                   icon: SvgPicture.asset(
                     'assets/images/shuffle_icon.svg',
                     width: 24,
+                    color: theme.disableColor,
                   ),
                   iconFocus: SvgPicture.asset(
                     'assets/images/shuffle_icon.svg',

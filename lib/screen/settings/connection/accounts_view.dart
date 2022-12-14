@@ -42,6 +42,12 @@ class _AccountsViewState extends State<AccountsView> {
   final TextEditingController _nameController = TextEditingController();
 
   @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return BlocConsumer<AccountsBloc, AccountsState>(

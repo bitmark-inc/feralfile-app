@@ -23,20 +23,16 @@ class AnyProblemNFTWidget extends StatelessWidget {
     return GestureDetector(
       onTap: () => showReportIssueDialog(context, asset),
       child: Container(
+        decoration: BoxDecoration(
+          color: theme.auSuperTeal.withOpacity(0.9),
+          borderRadius: BorderRadius.circular(76),
+        ),
         alignment: Alignment.bottomCenter,
-        padding: const EdgeInsets.fromLTRB(0, 18, 0, 24),
-        color: AppColor.secondaryDimGreyBackground,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text("problem_nft".tr(),
-                style: theme.textTheme.button),
-            const SizedBox(
-              width: 4,
-            ),
-            SvgPicture.asset("assets/images/iconSharpFeedback.svg",
-                color: theme.colorScheme.primary),
-          ],
+        child: Center(
+          child: Text(
+            "problem_nft".tr(),
+            style: theme.textTheme.button,
+          ),
         ),
       ),
     );

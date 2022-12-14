@@ -24,6 +24,7 @@ import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/play_control_service.dart';
 import 'package:autonomy_flutter/service/mixPanel_client_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/play_control.dart';
@@ -208,21 +209,28 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   }
 
   void onClickFullScreen() {
+    final theme = Theme.of(context);
     _bloc.add(ChangeFullScreen(isFullscreen: true));
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
 
-    if (injector<ConfigurationService>().isFullscreenIntroEnabled()) {
-      showModalBottomSheet<void>(
-        context: context,
-        constraints: BoxConstraints(
-            maxWidth: ResponsiveLayout.isMobile
-                ? double.infinity
-                : Constants.maxWidthModalTablet),
-        builder: (BuildContext context) {
-          return const FullscreenIntroPopup();
-        },
-      );
-    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Container(
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 10),
+          decoration: BoxDecoration(
+            color: theme.auSuperTeal.withOpacity(0.9),
+            borderRadius: BorderRadius.circular(64),
+          ),
+          child: Text(
+            'shake_exit'.tr(),
+            textAlign: TextAlign.center,
+            style: theme.textTheme.ppMori400Black12,
+          ),
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
+    );
   }
 
   Future<void> onCastTap(AssetToken? asset) async {
@@ -534,6 +542,8 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final identityBloc = context.read<IdentityBloc>();
+
     return BlocConsumer<ArtworkPreviewBloc, ArtworkPreviewState>(
       builder: (context, state) {
         AssetToken? assetToken;
@@ -545,8 +555,58 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
         final hasKeyboard = assetToken?.medium == "software" ||
             assetToken?.medium == "other" ||
             assetToken?.medium == null;
+
         return Scaffold(
-          appBar: isFullScreen ? null : AppBar(toolbarHeight: 0),
+          appBar: isFullScreen
+              ? null
+              : AppBar(
+                  backgroundColor: theme.colorScheme.primary,
+                  leadingWidth: 0,
+                  centerTitle: false,
+                  title: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        assetToken?.title ?? '',
+                        style: theme.textTheme.ppMori400White12,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      BlocBuilder<IdentityBloc, IdentityState>(
+                        bloc: identityBloc
+                          ..add(GetIdentityEvent([
+                            assetToken?.artistName ?? '',
+                          ])),
+                        builder: (context, state) {
+                          final artistName = assetToken?.artistName
+                              ?.toIdentityOrMask(state.identityMap);
+                          if (artistName != null) {
+                            return Row(
+                              children: [
+                                const SizedBox(height: 4.0),
+                                Text(
+                                  "by".tr(args: [artistName]),
+                                  overflow: TextOverflow.ellipsis,
+                                  style: theme.textTheme.ppMori400White12,
+                                )
+                              ],
+                            );
+                          }
+                          return const SizedBox();
+                        },
+                      ),
+                    ],
+                  ),
+                  actions: [
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: Icon(
+                        AuIcon.close,
+                        color: theme.colorScheme.secondary,
+                      ),
+                    )
+                  ],
+                ),
           backgroundColor: theme.colorScheme.primary,
           resizeToAvoidBottomInset: !hasKeyboard,
           body: SafeArea(
@@ -558,42 +618,33 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
               children: [
                 Column(
                   children: [
-                    Visibility(
-                      visible: !isFullScreen,
-                      child: ControlView(
-                        assetToken: assetToken,
-                        onClickInfo: () => _moveToInfo(assetToken),
-                        onClickFullScreen: onClickFullScreen,
-                        onClickCast: (assetToken) => onCastTap(assetToken),
-                        keyboardManagerKey: keyboardManagerKey,
-                        focusNode: _focusNode,
-                      ),
-                    ),
                     Expanded(
-                      child: PageView.builder(
-                        physics: const NeverScrollableScrollPhysics(),
-                        onPageChanged: (value) {
-                          _timer?.cancel();
-                          final currentId = tokens[value];
-                          _bloc
-                              .add(ArtworkPreviewGetAssetTokenEvent(currentId));
-                          _stopAllChromecastDevices();
-                          keyboardManagerKey.currentState?.hideKeyboard();
-                          final mixPanelClient =
-                              injector.get<MixPanelClientService>();
-                          mixPanelClient.trackEvent("Next Artwork",
-                              hashedData: {
-                                "tokenId": currentId.id,
-                                "identity": currentId.id
-                              });
-                        },
-                        controller: controller,
-                        itemCount: tokens.length,
-                        itemBuilder: (context, index) => Center(
-                          child: ArtworkPreviewWidget(
-                            identity: tokens[index],
-                            onLoaded: setTimer,
-                            focusNode: _focusNode,
+                      child: GestureDetector(
+                        child: PageView.builder(
+                          physics: const NeverScrollableScrollPhysics(),
+                          onPageChanged: (value) {
+                            _timer?.cancel();
+                            final currentId = tokens[value];
+                            _bloc.add(
+                                ArtworkPreviewGetAssetTokenEvent(currentId));
+                            _stopAllChromecastDevices();
+                            keyboardManagerKey.currentState?.hideKeyboard();
+                            final mixPanelClient =
+                                injector.get<MixPanelClientService>();
+                            mixPanelClient.trackEvent("Next Artwork",
+                                hashedData: {
+                                  "tokenId": currentId.id,
+                                  "identity": currentId.id
+                                });
+                          },
+                          controller: controller,
+                          itemCount: tokens.length,
+                          itemBuilder: (context, index) => Center(
+                            child: ArtworkPreviewWidget(
+                              identity: tokens[index],
+                              onLoaded: setTimer,
+                              focusNode: _focusNode,
+                            ),
                           ),
                         ),
                       ),
@@ -601,13 +652,51 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                   ],
                 ),
                 Visibility(
-                  visible: widget.payload.isPlaylist && !isFullScreen,
-                  child: const Positioned(
+                  visible: !isFullScreen,
+                  child: Positioned(
                     left: 0,
                     right: 0,
                     bottom: 0,
-                    child: PlaylistControl(
-                      showPlay: false,
+                    child: Container(
+                      color: theme.colorScheme.primary,
+                      child: Padding(
+                        padding: const EdgeInsets.only(
+                          top: 15,
+                          bottom: 30,
+                          right: 20,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Visibility(
+                              visible: (assetToken?.medium == 'software' ||
+                                  assetToken?.medium == 'other' ||
+                                  (assetToken?.medium?.isEmpty ?? true)),
+                              child: KeyboardManagerWidget(
+                                key: keyboardManagerKey,
+                                focusNode: _focusNode,
+                              ),
+                            ),
+                            const SizedBox(
+                              width: 20,
+                            ),
+                            CastButton(
+                              assetToken: assetToken,
+                              onCastTap: () => onCastTap(assetToken),
+                            ),
+                            const SizedBox(
+                              width: 20,
+                            ),
+                            GestureDetector(
+                              onTap: onClickFullScreen,
+                              child: SvgPicture.asset(
+                                'assets/images/fullscreen_icon.svg',
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -624,19 +713,13 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
 class ControlView extends StatelessWidget {
   final AssetToken? assetToken;
   final VoidCallback? onClickFullScreen;
-  final Function(AssetToken?)? onClickCast;
   final VoidCallback? onClickInfo;
-  final Key? keyboardManagerKey;
-  final FocusNode? focusNode;
 
   const ControlView({
     Key? key,
     this.assetToken,
     this.onClickFullScreen,
-    this.onClickCast,
     this.onClickInfo,
-    this.keyboardManagerKey,
-    this.focusNode,
   }) : super(key: key);
 
   @override
@@ -661,11 +744,6 @@ class ControlView extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  SvgPicture.asset(
-                    "assets/images/iconInfo.svg",
-                    color: theme.colorScheme.secondary,
-                  ),
-                  const SizedBox(width: 13),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -674,9 +752,7 @@ class ControlView extends StatelessWidget {
                         Text(
                           assetToken?.title ?? '',
                           overflow: TextOverflow.ellipsis,
-                          style: ResponsiveLayout.isMobile
-                              ? theme.textTheme.atlasWhiteBold12
-                              : theme.textTheme.atlasWhiteBold14,
+                          style: theme.textTheme.ppMori400White12,
                         ),
                         BlocBuilder<IdentityBloc, IdentityState>(
                           bloc: identityBloc
@@ -707,39 +783,27 @@ class ControlView extends StatelessWidget {
               ),
             ),
           ),
+          const SizedBox(
+            width: 20,
+          ),
           Visibility(
-            visible: (assetToken?.medium == 'software' ||
-                assetToken?.medium == 'other' ||
-                (assetToken?.medium?.isEmpty ?? true)),
-            child: Padding(
-              padding: const EdgeInsets.only(right: 8.0),
-              child: KeyboardManagerWidget(
-                key: keyboardManagerKey,
-                focusNode: focusNode,
+            visible: onClickFullScreen != null,
+            child: GestureDetector(
+              onTap: onClickFullScreen,
+              child: SvgPicture.asset(
+                'assets/images/fullscreen_icon.svg',
               ),
             ),
           ),
-          Visibility(
-            visible: onClickCast != null,
-            child: CastButton(
-              assetToken: assetToken,
-              onCastTap: () => onClickCast?.call(assetToken),
-            ),
+          const SizedBox(
+            width: 20,
           ),
-          const SizedBox(width: 8),
-          IconButton(
-            onPressed: onClickFullScreen,
-            icon: Icon(
-              Icons.fullscreen,
+          GestureDetector(
+            onTap: () => Navigator.of(context).pop(),
+            child: Icon(
+              AuIcon.close,
               color: theme.colorScheme.secondary,
-              size: 32,
             ),
-            tooltip: "fullScreen",
-          ),
-          IconButton(
-            onPressed: () => Navigator.of(context).pop(),
-            icon: closeIcon(color: theme.colorScheme.secondary),
-            tooltip: "CloseArtwork",
           )
         ],
       ),
@@ -761,10 +825,10 @@ class CastButton extends StatelessWidget {
         assetToken?.medium == "image" ||
         assetToken?.mimeType?.startsWith("audio/") == true;
 
-    return InkWell(
+    return GestureDetector(
       onTap: onCastTap,
       child: SvgPicture.asset(
-        'assets/images/chromecast.svg',
+        'assets/images/cast_icon.svg',
         color: canCast ? theme.colorScheme.secondary : theme.disableColor,
       ),
     );
@@ -795,6 +859,7 @@ class FullscreenIntroPopup extends StatelessWidget {
             Text(
               "shake_exit".tr(),
               //"Shake your phone to exit fullscreen mode.",
+              textAlign: TextAlign.center,
               style: theme.primaryTextTheme.bodyText1,
             ),
             const SizedBox(height: 40.0),
@@ -882,21 +947,9 @@ class KeyboardManagerWidgetState extends State<KeyboardManagerWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return _isShowKeyboard
-        ? IconButton(
-            icon: Icon(
-              Icons.keyboard_alt_outlined,
-              color: theme.colorScheme.secondary,
-            ),
-            onPressed: hideKeyboard,
-          )
-        : IconButton(
-            icon: Icon(
-              Icons.keyboard_alt_rounded,
-              color: theme.colorScheme.secondary,
-            ),
-            onPressed: showKeyboard,
-          );
+    return GestureDetector(
+      onTap: _isShowKeyboard ? hideKeyboard : showKeyboard,
+      child: SvgPicture.asset('assets/images/keyboard_icon.svg'),
+    );
   }
 }

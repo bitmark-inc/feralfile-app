@@ -5,18 +5,18 @@ import 'package:autonomy_flutter/screen/add_new_playlist/add_new_playlist_bloc.d
 import 'package:autonomy_flutter/screen/add_new_playlist/add_new_playlist_state.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:autonomy_flutter/view/text_field.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:roundcheckbox/roundcheckbox.dart';
 import '../../util/token_ext.dart';
 
@@ -41,6 +41,7 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen> {
   @override
   void initState() {
     super.initState();
+
     hiddenTokens =
         injector<ConfigurationService>().getTempStorageHiddenTokenIDs();
     sentArtworks = injector<ConfigurationService>().getRecentlySentToken();
@@ -50,6 +51,12 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen> {
     });
     _playlistNameC.text = widget.playListModel?.name ?? '';
     bloc.add(InitPlaylist(playListModel: widget.playListModel));
+  }
+
+  @override
+  void dispose() {
+    _playlistNameC.dispose();
+    super.dispose();
   }
 
   List<AssetToken> setupPlayList({
@@ -95,155 +102,187 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen> {
             .length;
         final isSeletedAll = selectedCount == tokensPlaylist.length;
         return Scaffold(
-          appBar: AppBar(
-            elevation: 0,
-            backgroundColor: theme.primaryColor,
-            automaticallyImplyLeading: false,
-            title: Row(
-              children: [
-                GestureDetector(
-                  onTap: () => Navigator.of(context).pop(),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.navigate_before_sharp,
-                        color: theme.colorScheme.secondary,
-                      ),
-                      Text(
-                        tr('back'),
-                        style: theme.primaryTextTheme.button,
-                      ),
-                    ],
-                  ),
-                ),
-                const Spacer(),
-                GestureDetector(
-                  onTap: () {
-                    if (selectedCount <= 0) {
-                      return;
-                    }
-                    bloc.add(
-                      CreatePlaylist(
-                        name: _playlistNameC.text.isNotEmpty
-                            ? _playlistNameC.text
-                            : null,
-                      ),
-                    );
-                  },
-                  child: Text(
-                    tr('save').toUpperCase(),
-                    style: selectedCount == 0
-                        ? theme.primaryTextTheme.button?.copyWith(
-                            color: AppColor.secondaryDimGrey,
-                          )
-                        : theme.primaryTextTheme.button,
-                  ),
-                ),
-              ],
-            ),
-          ),
           backgroundColor: theme.primaryColor,
-          body: SafeArea(
-            child: Form(
-              key: _formKey,
-              child: Column(
+          body: AnnotatedRegion<SystemUiOverlayStyle>(
+            value: SystemUiOverlayStyle.light,
+            child: SafeArea(
+              bottom: false,
+              child: Stack(
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                  Form(
+                    key: _formKey,
                     child: Column(
                       children: [
-                        Center(
-                          child: SvgPicture.asset(
-                            "assets/images/penrose_moma.svg",
-                            color: theme.colorScheme.secondary,
-                          ),
-                        ),
-                        const SizedBox(
-                          height: 10,
-                        ),
-                        TextFieldWidget(
-                          labelText: tr('playlist_name').toUpperCase(),
-                          hintText: tr('untitled'),
-                          controller: _playlistNameC,
-                          cursorColor: theme.colorScheme.secondary,
-                          style: theme.primaryTextTheme.headline1,
-                          hintStyle: theme.textTheme.atlasSpanishGreyBold36,
-                          border: UnderlineInputBorder(
-                            borderSide: BorderSide(
-                              width: 2,
-                              color: theme.colorScheme.secondary,
-                            ),
-                          ),
-                          focusedBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(
-                              width: 2,
-                              color: theme.colorScheme.secondary,
-                            ),
-                          ),
-                          enabledBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(
-                              width: 2,
-                              color: theme.colorScheme.secondary,
-                            ),
-                          ),
-                        ),
                         Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          child: Row(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          child: Column(
                             children: [
-                              Text(
-                                tr(
-                                  selectedCount != 1
-                                      ? 'artworks_selected'
-                                      : 'artwork_selected',
-                                  args: [selectedCount.toString()],
-                                ),
-                                style: theme.textTheme.atlasWhiteMedium12,
+                              const SizedBox(
+                                height: 40,
                               ),
-                              const Spacer(),
-                              GestureDetector(
-                                onTap: () => bloc.add(SelectItemPlaylist(
-                                    isSelectAll: !isSeletedAll)),
-                                child: Text(
-                                  isSeletedAll
-                                      ? tr('unselect_all')
-                                      : tr('select_all'),
-                                  style: theme.textTheme.whitelinkStyle
-                                      .copyWith(fontSize: 12),
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: SvgPicture.asset(
+                                  "assets/images/penrose_moma.svg",
+                                  color: theme.colorScheme.secondary,
+                                  width: 50,
+                                ),
+                              ),
+                              const SizedBox(
+                                height: 30,
+                              ),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    tr('playlist_name'),
+                                    style: theme.textTheme.ppMori400Grey12,
+                                  ),
+                                  TextFormField(
+                                    controller: _playlistNameC,
+                                    cursorColor: theme.colorScheme.secondary,
+                                    style:
+                                        theme.primaryTextTheme.ppMori700White24,
+                                    decoration: InputDecoration(
+                                      hintText: tr('untitled'),
+                                      hintStyle:
+                                          theme.textTheme.ppMori700Grey24,
+                                      border: UnderlineInputBorder(
+                                        borderSide: BorderSide(
+                                          width: 2,
+                                          color: theme.colorScheme.secondary,
+                                        ),
+                                      ),
+                                      focusedBorder: UnderlineInputBorder(
+                                        borderSide: BorderSide(
+                                          width: 2,
+                                          color: theme.colorScheme.secondary,
+                                        ),
+                                      ),
+                                      enabledBorder: UnderlineInputBorder(
+                                        borderSide: BorderSide(
+                                          width: 2,
+                                          color: theme.colorScheme.secondary,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 8),
+                                child: Row(
+                                  children: [
+                                    Text(
+                                      tr(
+                                        selectedCount != 1
+                                            ? 'artworks_selected'
+                                            : 'artwork_selected',
+                                        args: [selectedCount.toString()],
+                                      ),
+                                      style: theme.textTheme.ppMori400White12,
+                                    ),
+                                    const Spacer(),
+                                    GestureDetector(
+                                      onTap: () => bloc.add(SelectItemPlaylist(
+                                          isSelectAll: !isSeletedAll)),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 10,
+                                          vertical: 4,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                            color: theme.disableColor,
+                                          ),
+                                          borderRadius:
+                                              BorderRadius.circular(64),
+                                        ),
+                                        child: Text(
+                                          isSeletedAll
+                                              ? tr('unselect_all')
+                                              : tr('select_all'),
+                                          style:
+                                              theme.textTheme.ppMori400Grey12,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
                           ),
                         ),
+                        Expanded(
+                          child: BlocConsumer<NftCollectionBloc,
+                              NftCollectionBlocState>(
+                            bloc: nftBloc,
+                            builder: (context, nftState) {
+                              return NftCollectionGrid(
+                                state: nftState.state,
+                                tokens: nftState.tokens,
+                                loadingIndicatorBuilder: loadingView,
+                                customGalleryViewBuilder: (context, tokens) =>
+                                    _assetsWidget(
+                                  context,
+                                  setupPlayList(tokens: tokens),
+                                  onChanged: (tokenID, value) => bloc.add(
+                                    UpdateItemPlaylist(
+                                        tokenID: tokenID, value: value),
+                                  ),
+                                  selectedTokens: state.selectedIDs,
+                                ),
+                              );
+                            },
+                            listener: (context, nftState) {
+                              state.tokens = List.from(nftState.tokens);
+                            },
+                          ),
+                        )
                       ],
                     ),
                   ),
-                  Expanded(
-                    child:
-                        BlocConsumer<NftCollectionBloc, NftCollectionBlocState>(
-                      bloc: nftBloc,
-                      builder: (context, nftState) {
-                        return NftCollectionGrid(
-                          state: nftState.state,
-                          tokens: nftState.tokens,
-                          loadingIndicatorBuilder: loadingView,
-                          customGalleryViewBuilder: (context, tokens) =>
-                              _assetsWidget(
-                            context,
-                            setupPlayList(tokens: tokens),
-                            onChanged: (tokenID, value) => bloc.add(
-                              UpdateItemPlaylist(
-                                  tokenID: tokenID, value: value),
+                  Positioned(
+                    bottom: 30,
+                    child: SizedBox(
+                      width: MediaQuery.of(context).size.width,
+                      child: Center(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            PrimaryButton(
+                              onTap: () {
+                                Navigator.pop(context);
+                              },
+                              width: 170,
+                              text: tr('undo'),
+                              color: theme.auLightGrey,
                             ),
-                            selectedTokens: state.selectedIDs,
-                          ),
-                        );
-                      },
-                      listener: (context, nftState) {
-                        state.tokens = List.from(nftState.tokens);
-                      },
+                            PrimaryButton(
+                              onTap: () {
+                                if (selectedCount <= 0) {
+                                  return;
+                                }
+                                bloc.add(
+                                  CreatePlaylist(
+                                    name: _playlistNameC.text.isNotEmpty
+                                        ? _playlistNameC.text
+                                        : null,
+                                  ),
+                                );
+                              },
+                              width: 170,
+                              text: tr('save'),
+                              color: selectedCount <= 0
+                                  ? theme.auLightGrey
+                                  : theme.auSuperTeal,
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                  )
+                  ),
                 ],
               ),
             ),
@@ -355,12 +394,21 @@ class _ThubnailPlaylistItemState extends State<ThubnailPlaylistItem> {
             child: Visibility(
               visible: widget.showSelect,
               child: RoundCheckBox(
-                uncheckedColor: theme.colorScheme.secondary,
-                checkedColor: theme.colorScheme.primary,
-                checkedWidget: Icon(
-                  Icons.check,
+                border: Border.all(
                   color: theme.colorScheme.secondary,
-                  size: 20,
+                  width: 1.5,
+                ),
+                uncheckedColor: theme.colorScheme.primary,
+                uncheckedWidget: Container(
+                  padding: const EdgeInsets.all(4),
+                ),
+                checkedColor: theme.colorScheme.primary,
+                checkedWidget: Container(
+                  padding: const EdgeInsets.all(4),
+                  child: SvgPicture.asset(
+                    'assets/images/check-icon.svg',
+                    color: theme.colorScheme.secondary,
+                  ),
                 ),
                 animationDuration: const Duration(milliseconds: 100),
                 isChecked: isSelected,
@@ -376,13 +424,39 @@ class _ThubnailPlaylistItemState extends State<ThubnailPlaylistItem> {
               left: 0,
               right: 0,
               child: Align(
-                child: Container(
-                  width: 24,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(60),
-                    color: theme.colorScheme.secondary,
-                  ),
+                child: Column(
+                  children: [
+                    Container(
+                      width: 24,
+                      height: 2,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(60),
+                        color: theme.colorScheme.secondary,
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 2,
+                    ),
+                    Container(
+                      width: 24,
+                      height: 2,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(60),
+                        color: theme.colorScheme.secondary,
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 2,
+                    ),
+                    Container(
+                      width: 24,
+                      height: 2,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(60),
+                        color: theme.colorScheme.secondary,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),

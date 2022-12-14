@@ -16,12 +16,12 @@ import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:metric_client/metric_client.dart';
 
 class SurveyPage extends StatefulWidget {
   static const String tag = 'survey_step_1';
 
   const SurveyPage({Key? key}) : super(key: key);
+
   @override
   State<SurveyPage> createState() => _SurveyPageState();
 }
@@ -31,7 +31,12 @@ class _SurveyPageState extends State<SurveyPage> {
   int _currentPage = 0;
   String? _surveyAnswer;
 
-  _SurveyPageState();
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -171,6 +176,7 @@ class SurveyQuestionarePage extends StatefulWidget {
       this.onItemSelected,
       this.onOtherItemSelected})
       : super(key: key);
+
   @override
   State<SurveyQuestionarePage> createState() => _SurveyQuestionarePageState();
 }
@@ -182,6 +188,7 @@ class _SurveyQuestionarePageState extends State<SurveyQuestionarePage> {
   final focusNode = FocusNode();
 
   _SurveyQuestionarePageState();
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);

@@ -40,6 +40,12 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
   bool isError = false;
 
   @override
+  void dispose() {
+    _phraseTextController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final customLinkStyle =
