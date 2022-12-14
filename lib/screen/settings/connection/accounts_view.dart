@@ -62,8 +62,6 @@ class _AccountsViewState extends State<AccountsView> {
         Navigator.of(context).pushNamedAndRemoveUntil(
             AppRouter.newAccountPage, (route) => false);
       }
-    }, buildWhen: (previous, current) {
-      return !listEquals(previous.accounts, current.accounts);
     }, builder: (context, state) {
       final accounts = state.accounts;
       if (accounts == null) return const CupertinoActivityIndicator();
