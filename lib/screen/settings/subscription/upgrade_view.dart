@@ -12,7 +12,7 @@ import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart'
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
-import 'package:autonomy_flutter/service/mixpanel_client_service.dart';
+import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 
 import 'package:autonomy_flutter/util/ui_helper.dart';
