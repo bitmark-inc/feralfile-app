@@ -67,10 +67,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   void initState() {
     _scrollController = ScrollController();
     super.initState();
-    // SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    //   statusBarBrightness: Brightness.dark,
-    // ));
-
     context.read<ArtworkDetailBloc>().add(ArtworkDetailGetInfoEvent(
         widget.payload.identities[widget.payload.currentIndex]));
     context.read<AccountsBloc>().add(FetchAllAddressesEvent());
@@ -135,7 +131,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                 backgroundColor: theme.colorScheme.primary,
                 resizeToAvoidBottomInset: !hasKeyboard,
                 appBar: AppBar(
-                  backgroundColor: theme.colorScheme.primary,
                   leadingWidth: 0,
                   centerTitle: false,
                   title: Column(

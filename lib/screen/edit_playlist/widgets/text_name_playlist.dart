@@ -44,7 +44,7 @@ class _TextNamePlaylistState extends State<TextNamePlaylist> {
       controller: _playlistNameC,
       cursorColor: theme.colorScheme.primary,
       style: theme.textTheme.ppMori700Black14,
-      hintStyle: theme.textTheme.ppMori700Black14,
+      hintStyle: theme.textTheme.ppMori400Grey14,
       textAlign: TextAlign.center,
       border: InputBorder.none,
       onFieldSubmitted: (value) {

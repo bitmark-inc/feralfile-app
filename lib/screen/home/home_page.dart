@@ -274,10 +274,6 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   void didPopNext() async {
     super.didPopNext();
-    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-      statusBarBrightness:
-          Brightness.light, //or set color with: Color(0xFF0000FF)
-    ));
     final connectivityResult = await (Connectivity().checkConnectivity());
     _refreshTokens();
     if (connectivityResult == ConnectivityResult.mobile ||
@@ -379,8 +375,8 @@ class _HomeScreenState extends State<HomeScreen>
         controller: _controller,
         child: Scaffold(
           backgroundColor: theme.backgroundColor,
-          body: SafeArea(
-            bottom: false,
+          body: AnnotatedRegion<SystemUiOverlayStyle>(
+            value: SystemUiOverlayStyle.dark,
             child: contentWidget,
           ),
         ),
@@ -389,13 +385,15 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Widget _loadingView(BuildContext context) {
+    final paddingTop = MediaQuery.of(context).viewPadding.top;
+
     return Center(
         child: Column(
       children: [
         Align(
           alignment: Alignment.centerLeft,
           child: Container(
-            padding: const EdgeInsets.fromLTRB(15, 40, 0, 40),
+            padding: EdgeInsets.fromLTRB(15, paddingTop + 20, 0, 40),
             child: autonomyLogo,
           ),
         ),
@@ -406,6 +404,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   Widget _emptyGallery(BuildContext context) {
     final theme = Theme.of(context);
+    final paddingTop = MediaQuery.of(context).viewPadding.top;
 
     return ListView(
       padding: ResponsiveLayout.getPadding,
@@ -413,7 +412,7 @@ class _HomeScreenState extends State<HomeScreen>
         Align(
           alignment: Alignment.centerLeft,
           child: Container(
-            padding: const EdgeInsets.fromLTRB(15, 40, 0, 40),
+            padding: EdgeInsets.fromLTRB(15, paddingTop + 20, 0, 40),
             child: autonomyLogo,
           ),
         ),
@@ -446,6 +445,7 @@ class _HomeScreenState extends State<HomeScreen>
       _cachedImageSize = (estimatedCellWidth * 3).ceil();
     }
     List<Widget> sources;
+    final paddingTop = MediaQuery.of(context).viewPadding.top;
     sources = [
       SliverToBoxAdapter(
         child: Column(
@@ -453,7 +453,7 @@ class _HomeScreenState extends State<HomeScreen>
             Align(
               alignment: Alignment.centerLeft,
               child: Container(
-                padding: const EdgeInsets.fromLTRB(15, 40, 0, 40),
+                padding: EdgeInsets.fromLTRB(15, paddingTop + 20, 0, 40),
                 child: autonomyLogo,
               ),
             ),
