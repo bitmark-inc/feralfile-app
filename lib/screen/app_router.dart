@@ -69,7 +69,6 @@ import 'package:autonomy_flutter/screen/editorial/article/article_detail.dart';
 import 'package:autonomy_flutter/screen/editorial/editorial_bloc.dart';
 import 'package:autonomy_flutter/screen/editorial/feralfile/exhibition_bloc.dart';
 import 'package:autonomy_flutter/screen/feed/feed_artwork_details_page.dart';
-import 'package:autonomy_flutter/screen/feed/feed_bloc.dart';
 import 'package:autonomy_flutter/screen/feed/feed_preview_page.dart';
 import 'package:autonomy_flutter/screen/gallery/gallery_bloc.dart';
 import 'package:autonomy_flutter/screen/gallery/gallery_page.dart';
@@ -695,11 +694,10 @@ class AppRouter {
             child: MultiBlocProvider(providers: [
               BlocProvider.value(value: accountsBloc),
               BlocProvider(create: (_) => RoyaltyBloc(injector())),
-              BlocProvider.value(value: settings.arguments as FeedBloc),
               BlocProvider(
                   create: (_) =>
                       IdentityBloc(injector<AppDatabase>(), injector())),
-            ], child: const FeedArtworkDetailsPage()));
+            ], child: FeedArtworkDetailsPage(payload: settings.arguments as FeedDetailPayload,)));
 
       case galleryPage:
         return CupertinoPageRoute(

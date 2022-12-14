@@ -81,6 +81,7 @@ dependencies:
       ref: 17fac38d818eaced1e8e7d87dafeab4aa2cbaa9a
   local_auth: ^2.1.0
   logging: ^1.0.2
+  measured_size: ^1.0.0
   mime: ^1.0.1
   mixpanel_flutter: ^2.0.0
   modal_bottom_sheet: ^2.0.0

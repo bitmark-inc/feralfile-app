@@ -74,14 +74,71 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                     builder: (context, snapshot) {
                       if (snapshot.hasData &&
                           snapshot.data?.statusCode == 200) {
-                        return Markdown(
-                          key: const Key("githubMarkdown"),
-                          data: snapshot.data!.data!,
-                          softLineBreak: true,
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          padding: const EdgeInsets.only(bottom: 50),
-                          styleSheet: editorialMarkDownStyle(context),
+                        return Column(
+                          children: [
+                            Markdown(
+                              key: const Key("githubMarkdown"),
+                              data: snapshot.data!.data!,
+                              softLineBreak: true,
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              padding: const EdgeInsets.only(bottom: 50),
+                              styleSheet: editorialMarkDownStyle(context),
+                            ),
+                            if (widget.post.reference != null)
+                              Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(10.0),
+                                  border:
+                                      Border.all(color: AppColor.auSuperTeal),
+                                ),
+                                padding: const EdgeInsets.all(15.0),
+                                child: Column(
+                                  children: [
+                                    if (widget.post.tag == "Essay") ...[
+                                      PublisherView(
+                                          publisher: widget.post.publisher),
+                                      const SizedBox(height: 10.0),
+                                      Text(
+                                        widget.post.publisher.intro ?? "",
+                                        style: theme.textTheme.ppMori400White12,
+                                      ),
+                                      const SizedBox(height: 32.0),
+                                    ],
+                                    _referenceRow(
+                                      context,
+                                      name: "location".tr(),
+                                      value:
+                                          widget.post.reference?.location ?? "",
+                                    ),
+                                    const Divider(
+                                        height: 20, color: AppColor.greyMedium),
+                                    _referenceRowWithLinks(
+                                      context,
+                                      name: "web".tr(),
+                                      links: [
+                                        Pair(
+                                            widget.post.reference?.website ??
+                                                "",
+                                            widget.post.reference?.website
+                                                    .toUrl() ??
+                                                "")
+                                      ],
+                                    ),
+                                    const Divider(
+                                        height: 20, color: AppColor.greyMedium),
+                                    _referenceRowWithLinks(
+                                      context,
+                                      name: "social".tr(),
+                                      links: widget.post.reference?.socials
+                                              .map((e) => Pair(e.name, e.url))
+                                              .toList() ??
+                                          [],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                          ],
                         );
                       } else if (snapshot.hasError ||
                           (snapshot.data != null &&
@@ -98,50 +155,6 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                     },
                     future: _dio.get<String>(widget.post.content["data"]),
                   ),
-                  if (widget.post.reference != null)
-                    Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10.0),
-                        border: Border.all(color: AppColor.auSuperTeal),
-                      ),
-                      padding: const EdgeInsets.all(15.0),
-                      child: Column(
-                        children: [
-                          if (widget.post.tag == "Essay") ...[
-                            PublisherView(publisher: widget.post.publisher),
-                            const SizedBox(height: 10.0),
-                            Text(
-                              widget.post.publisher.intro ?? "",
-                              style: theme.textTheme.ppMori400White12,
-                            ),
-                            const SizedBox(height: 32.0),
-                          ],
-                          _referenceRow(
-                            context,
-                            name: "location".tr(),
-                            value: widget.post.reference?.location ?? "",
-                          ),
-                          const Divider(height: 20, color: AppColor.greyMedium),
-                          _referenceRowWithLinks(
-                            context,
-                            name: "web".tr(),
-                            links: [
-                              Pair(widget.post.reference?.website ?? "",
-                                  widget.post.reference?.website.toUrl() ?? "")
-                            ],
-                          ),
-                          const Divider(height: 20, color: AppColor.greyMedium),
-                          _referenceRowWithLinks(
-                            context,
-                            name: "social".tr(),
-                            links: widget.post.reference?.socials
-                                    .map((e) => Pair(e.name, e.url))
-                                    .toList() ??
-                                [],
-                          ),
-                        ],
-                      ),
-                    ),
                   const SizedBox(height: 64.0),
                 ],
               ),

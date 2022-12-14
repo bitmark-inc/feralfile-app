@@ -587,6 +587,7 @@ INFTRenderingWidget buildRenderingWidget(
   Function({int? time})? onLoaded,
   Function({int? time})? onDispose,
   FocusNode? focusNode,
+  Widget? loadingWidget,
 }) {
   String mimeType = token.getMimeType;
 
@@ -597,7 +598,7 @@ INFTRenderingWidget buildRenderingWidget(
         ? token.getPreviewUrl()
         : "${token.getPreviewUrl()}?t=$attempt",
     thumbnailURL: token.getThumbnailUrl(usingThumbnailID: false),
-    loadingWidget: previewPlaceholder(context),
+    loadingWidget: loadingWidget ?? previewPlaceholder(context),
     errorWidget: BrokenTokenWidget(token: token),
     cacheManager: injector<CacheManager>(),
     onLoaded: onLoaded,

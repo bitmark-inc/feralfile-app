@@ -7,6 +7,7 @@
 import 'package:autonomy_flutter/model/editorial.dart';
 import 'package:autonomy_flutter/screen/editorial/editorial_bloc.dart';
 import 'package:autonomy_flutter/screen/editorial/editorial_state.dart';
+import 'package:autonomy_flutter/screen/feed/feed_preview_page.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -27,25 +28,35 @@ class EditorialPage extends StatefulWidget {
 class _EditorialPageState extends State<EditorialPage>
     with SingleTickerProviderStateMixin {
   bool _showFullHeader = true;
-  late ScrollController _controller;
+  late ScrollController _feedController;
+  late ScrollController _editorialController;
+  late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
 
-    _controller = ScrollController();
-    _controller.addListener(_scrollListener);
+    _tabController = TabController(length: 2, vsync: this);
+    _feedController = ScrollController();
+    _editorialController = ScrollController();
+    _feedController.addListener(_scrollListener);
+    _editorialController.addListener(_scrollListener);
     context.read<EditorialBloc>().add(GetEditorialEvent());
   }
 
   void _scrollListener() {
-    if (_controller.positions.isEmpty) {
+    final controller =
+        _tabController.index == 0 ? _feedController : _editorialController;
+    if (controller.positions.isEmpty) {
       return;
     }
 
-    setState(() {
-      _showFullHeader = _controller.offset < 80;
-    });
+    final isShowFullHeader = controller.offset < 80;
+    if (isShowFullHeader != _showFullHeader) {
+      setState(() {
+        _showFullHeader = isShowFullHeader;
+      });
+    }
   }
 
   @override
@@ -57,76 +68,76 @@ class _EditorialPageState extends State<EditorialPage>
       return Scaffold(
         appBar: AppBar(toolbarHeight: 0),
         backgroundColor: theme.primaryColor,
-        body: DefaultTabController(
-          length: 2,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(15),
-                child: AnimatedSize(
-                  duration: const Duration(milliseconds: 300),
-                  child: Row(
-                    mainAxisAlignment: _showFullHeader
-                        ? MainAxisAlignment.spaceBetween
-                        : MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      if (_showFullHeader)
-                        SvgPicture.asset(
-                          "assets/images/autonomy_icon_white.svg",
-                          width: 50,
-                          height: 50,
-                        ),
-                      Hero(
-                        tag: "discover_tab",
-                        child: TabBar(
-                          indicatorSize: TabBarIndicatorSize.label,
-                          labelPadding: const EdgeInsets.symmetric(
-                              horizontal: 5.0, vertical: 6.0),
-                          labelStyle: theme.textTheme.ppMori400White14,
-                          unselectedLabelStyle: theme.textTheme.ppMori400Grey14,
-                          isScrollable: true,
-                          indicator: const BoxDecoration(
-                            border: Border(
-                              top: BorderSide(color: AppColor.auSuperTeal),
-                            ),
-                          ),
-                          tabs: [
-                            Text(
-                              'discover'.tr(),
-                            ),
-                            Text(
-                              'editorial'.tr(),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Expanded(
-                child: TabBarView(
+        body: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(15),
+              child: AnimatedSize(
+                duration: const Duration(milliseconds: 300),
+                child: Row(
+                  mainAxisAlignment: _showFullHeader
+                      ? MainAxisAlignment.spaceBetween
+                      : MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    //TODO: replace with new discovery here.
-                    const SizedBox(),
-                    ListView.builder(
-                      controller: _controller,
-                      padding: ResponsiveLayout.pageEdgeInsets,
-                      itemCount: state.editorial.length,
-                      itemBuilder: (BuildContext context, int index) {
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 64),
-                          child: _postSection(state.editorial[index]),
-                        );
-                      },
-                    )
+                    if (_showFullHeader)
+                      SvgPicture.asset(
+                        "assets/images/autonomy_icon_white.svg",
+                        width: 50,
+                        height: 50,
+                      ),
+                    Hero(
+                      tag: "discover_tab",
+                      child: TabBar(
+                        controller: _tabController,
+                        indicatorSize: TabBarIndicatorSize.label,
+                        labelPadding: const EdgeInsets.symmetric(
+                            horizontal: 5.0, vertical: 6.0),
+                        labelStyle: theme.textTheme.ppMori400White14,
+                        unselectedLabelStyle: theme.textTheme.ppMori400Grey14,
+                        isScrollable: true,
+                        indicator: const BoxDecoration(
+                          border: Border(
+                            top: BorderSide(color: AppColor.auSuperTeal),
+                          ),
+                        ),
+                        tabs: [
+                          Text(
+                            'discover'.tr(),
+                          ),
+                          Text(
+                            'editorial'.tr(),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
-            ],
-          ),
+            ),
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  FeedPreviewPage(
+                    controller: _feedController,
+                  ),
+                  ListView.builder(
+                    controller: _editorialController,
+                    padding: ResponsiveLayout.pageEdgeInsets,
+                    itemCount: state.editorial.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 64),
+                        child: _postSection(state.editorial[index]),
+                      );
+                    },
+                  )
+                ],
+              ),
+            ),
+          ],
         ),
       );
     });
