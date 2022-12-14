@@ -179,18 +179,41 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
   @override
   Future<void> removeErrorMessage(String uuid, {bool isDelete = false}) async {
     retryTime = 0;
-    errorMessages.remove(uuid);
+    final id = uuid.substring(0, 36);
+    errorMessages.remove(id);
     if (isDelete) {
-      final msg = await _draftCustomerSupportDao.getDraft(uuid);
+      var msg = await _draftCustomerSupportDao.getDraft(id);
+      print("--------1");
+      print(id);
       if (msg != null) {
+        print("--------2");
+        print(msg.data);
+        final data = DraftCustomerSupportData.fromJson(jsonDecode(msg.data));
         await _draftCustomerSupportDao.deleteDraft(msg);
+        if (msg.draftData.attachments != null) {
+          int index = int.parse(uuid.substring(36));
+          if (data.attachments!.length > 1) {
+            var draftData = msg.draftData;
+            draftData.attachments!.removeAt(index);
+            msg.data = jsonEncode(draftData);
+            await _draftCustomerSupportDao.insertDraft(msg);
+            errorMessages.add(id);
+          }
+          if (msg.type == CSMessageType.PostLogs.rawValue) {
+            File file = File(data.attachments![index].path);
+            file.delete();
+          }
+        }
       }
     }
   }
 
   @override
   void sendMessageFail(String uuid) {
+    print("--------retrytime");
+    print(retryTime);
     if (retryTime > 5) errorMessages.add(uuid);
+    print(errorMessages.length);
   }
 
   @override
@@ -201,6 +224,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     final fetchLimit = errorMessages.length + 1;
     log.info('[CS-Service][start] processMessages');
     final draftMsgsRaw = await _draftCustomerSupportDao.fetchDrafts(fetchLimit);
+    print(draftMsgsRaw.length);
     if (draftMsgsRaw.isEmpty) return;
     final draftMsg = draftMsgsRaw
         .firstWhereOrNull((element) => !errorMessages.contains(element.uuid));
@@ -208,6 +232,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     log.info('[CS-Service][start] processMessages hasDraft');
     _isProcessingDraftMessages = true;
     retryTime++;
+    print(retryTime);
 
     // Edge Case when database has not updated the new issueID for new comments
     if (draftMsg.type != 'CreateIssue' && draftMsg.issueID.contains("TEMP")) {
@@ -246,7 +271,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
       Sentry.captureException(exception);
 
       // just delete draft because we can not do anything more
-      await _draftCustomerSupportDao.deleteDraft(draftMsg);
+      //await _draftCustomerSupportDao.deleteDraft(draftMsg);
       removeErrorMessage(draftMsg.uuid);
       _isProcessingDraftMessages = false;
       log.info(

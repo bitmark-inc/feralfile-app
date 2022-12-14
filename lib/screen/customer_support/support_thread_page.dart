@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/customer_support.dart' as app;
 import 'package:autonomy_flutter/model/customer_support.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -383,73 +384,87 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     Color orangeRust = const Color(0xffA1200A);
 
     return isError
-        ? Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      GestureDetector(
-                          onTap: () async {
-                            await injector<CustomerSupportService>()
-                                .removeErrorMessage(uuid);
-                            _loadDrafts();
-                            injector<CustomerSupportService>()
-                                .processMessages();
-                            Future.delayed(const Duration(seconds: 5), () {
+        ? Padding(
+          padding: const EdgeInsets.only(right: 16),
+          child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        GestureDetector(
+                            onTap: () async {
+                              print("--------retry");
+                              print(uuid);
+                              await injector<CustomerSupportService>()
+                                  .removeErrorMessage(uuid);
                               _loadDrafts();
-                            });
-                          },
-                          child: Container(
+                              injector<CustomerSupportService>()
+                                  .processMessages();
+                              Future.delayed(const Duration(seconds: 5), () {
+                                _loadDrafts();
+                              });
+                            },
+                            child: Container(
+                                margin: const EdgeInsets.all(5),
+                                child: SvgPicture.asset(
+                                    "assets/images/retry_icon.svg"))),
+                        const SizedBox(height: 2),
+                        GestureDetector(
+                            onTap: () async {
+                              print("--------cancel");
+                              print(uuid);
+                              await injector<CustomerSupportService>()
+                                  .removeErrorMessage(uuid, isDelete: true);
+                              await _loadDrafts();
+                              if (_messages.isEmpty) {
+                                if (!mounted) return;
+                                Navigator.of(context).popAndPushNamed(
+                                    AppRouter.supportThreadPage,
+                                    arguments: widget.payload);
+                              }
+
+                            },
+                            child: Container(
                               margin: const EdgeInsets.all(5),
                               child: SvgPicture.asset(
-                                  "assets/images/retry_icon.svg"))),
-                      const SizedBox(height: 2),
-                      GestureDetector(
-                          onTap: () async {
-                            await injector<CustomerSupportService>()
-                                .removeErrorMessage(uuid, isDelete: true);
-                            _loadDrafts();
-                          },
-                          child: Container(
-                            margin: const EdgeInsets.all(5),
-                            child: SvgPicture.asset(
-                                "assets/images/cancel_icon.svg"),
-                          )),
-                    ],
-                  ),
-                  const SizedBox(width: 11),
-                  Flexible(
-                    child: Bubble(
-                      color: color,
-                      borderColor: isError ? orangeRust : null,
-                      margin: nextMessageInGroup
-                          ? const BubbleEdges.symmetric(horizontal: 6)
-                          : null,
-                      nip: nextMessageInGroup
-                          ? BubbleNip.no
-                          : _user.id != message.author.id
-                              ? BubbleNip.leftBottom
-                              : BubbleNip.rightBottom,
-                      child: child,
+                                  "assets/images/cancel_icon.svg"),
+                            )),
+                      ],
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Text(
-                "failed_to_send".tr(),
-                style: TextStyle(
-                    color: orangeRust,
-                    fontFamily: "AtlasGrotesk",
-                    fontSize: 12,
-                    fontWeight: FontWeight.w300),
-              ),
-            ],
-          )
+                    const SizedBox(width: 11),
+                    Flexible(
+                      child: Bubble(
+                        color: color,
+                        borderColor: isError ? orangeRust : null,
+                        margin: nextMessageInGroup
+                            ? const BubbleEdges.symmetric(horizontal: 6)
+                            : null,
+                        nip: nextMessageInGroup
+                            ? BubbleNip.no
+                            : _user.id != message.author.id
+                                ? BubbleNip.leftBottom
+                                : BubbleNip.rightBottom,
+                        child: child,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  "failed_to_send".tr(),
+                  style: TextStyle(
+                      color: orangeRust,
+                      fontFamily: "AtlasGrotesk",
+                      fontSize: 12,
+                      fontWeight: FontWeight.w300),
+                ),
+              ],
+            ),
+        )
         : Bubble(
             color: color,
             margin: nextMessageInGroup
@@ -770,6 +785,8 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     } else if (message is DraftCustomerSupport) {
       id = message.uuid;
       author = _user;
+      print("-------id");
+      print(id);
       final errorMessages = injector<CustomerSupportService>().errorMessages;
       status = (errorMessages != null && errorMessages.contains(id))
           ? types.Status.error
