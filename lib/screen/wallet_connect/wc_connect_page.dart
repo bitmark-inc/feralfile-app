@@ -534,7 +534,7 @@ class _WCConnectPageState extends State<WCConnectPage>
                                         : snapshot.data ?? '';
                                     return Expanded(
                                       child: Text(
-                                        name.replaceFirst('did:key:z', ''),
+                                        name.replaceFirst('did:key:', ''),
                                         style: theme.textTheme.headline4,
                                         overflow: TextOverflow.ellipsis,
                                       ),
