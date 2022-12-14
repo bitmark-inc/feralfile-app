@@ -147,6 +147,10 @@ abstract class ConfigurationService {
 
   int getLastTimeOpenFeed();
 
+  Future<void> setHasFeed(bool value);
+
+  bool hasFeed();
+
   // ----- App Setting -----
   bool isDemoArtworksMode();
 
@@ -217,6 +221,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String TV_CONNECT_ID = "tv_connect_id";
 
   static const String PLAYLISTS = "playlists";
+  static const String HAVE_FEED = "have_feed";
 
   // Do at once
   static const String KEY_SENT_TEZOS_ARTWORK_METRIC =
@@ -734,5 +739,15 @@ class ConfigurationServiceImpl implements ConfigurationService {
       await _preferences.setStringList(
           PLAYLISTS, playlistsSave.toSet().toList());
     }
+  }
+
+  @override
+  Future<void> setHasFeed(bool value) async {
+    await _preferences.setBool(HAVE_FEED, value);
+  }
+
+  @override
+  bool hasFeed() {
+    return _preferences.getBool(HAVE_FEED) ?? false;
   }
 }

@@ -17,7 +17,6 @@ import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_state.dart';
 import 'package:autonomy_flutter/screen/feed/feed_bloc.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -32,7 +31,6 @@ import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:get_it/get_it.dart';
 import 'package:measured_size/measured_size.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/widgets/nft_collection_bloc.dart';
@@ -89,17 +87,13 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
         TickerProviderStateMixin {
   String? swipeDirection;
 
-  final _configurationService = GetIt.I.get<ConfigurationService>();
-
   late FeedBloc _bloc;
 
   @override
   void initState() {
     super.initState();
     _bloc = context.read<FeedBloc>();
-    if (_configurationService.isFinishedFeedOnBoarding()) {
-      _bloc.add(GetFeedsEvent());
-    }
+    _bloc.add(GetFeedsEvent());
   }
 
   @override
@@ -490,6 +484,7 @@ class _FeedArtworkState extends State<FeedArtwork>
                           asset,
                           attempt: attempt > 0 ? attempt : null,
                           overriddenHtml: state.overriddenHtml,
+                          isMute: true,
                           loadingWidget: TokenThumbnailWidget(token: asset),
                         );
                       }
