@@ -105,11 +105,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
         "id": artworkId,
       },
     );
-    super.dispose();
-  }
-
-  @override
-  void dispose() {
     _scrollController.dispose();
     super.dispose();
   }
