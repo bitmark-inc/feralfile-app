@@ -61,6 +61,8 @@ class WalletDetailBloc extends AuBloc<WalletDetailEvent, WalletDetailState> {
           newState.balanceInUSD = balanceInUSD;
 
           break;
+        default:
+          break;
       }
 
       emit(newState);

@@ -6,10 +6,10 @@
 //
 
 import 'dart:async';
-import 'dart:math';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/feed.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -21,7 +21,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
-import 'package:autonomy_flutter/service/mixPanel_client_service.dart';
+import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -31,22 +31,19 @@ import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:get_it/get_it.dart';
-import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:measured_size/measured_size.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/widgets/nft_collection_bloc.dart';
 import 'package:nft_rendering/nft_rendering.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
-import 'package:autonomy_flutter/database/app_database.dart';
 
 Map<String, double> heightMap = {};
 
 class FeedPreviewPage extends StatelessWidget {
   final ScrollController? controller;
+
   FeedPreviewPage({Key? key, this.controller}) : super(key: key);
 
   final nftCollectionBloc = injector<NftCollectionBloc>();
@@ -54,10 +51,8 @@ class FeedPreviewPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     heightMap = {};
-    double safeAreaTop = MediaQuery.of(context).padding.top;
     return Scaffold(
-      body:
-      MultiBlocProvider(
+      body: MultiBlocProvider(
         providers: [
           BlocProvider(
             create: (_) => FeedBloc(
@@ -69,7 +64,9 @@ class FeedPreviewPage extends StatelessWidget {
           BlocProvider(
               create: (_) => IdentityBloc(injector<AppDatabase>(), injector())),
         ],
-        child: FeedPreviewScreen(controller: controller,),
+        child: FeedPreviewScreen(
+          controller: controller,
+        ),
       ),
     );
   }
@@ -77,6 +74,7 @@ class FeedPreviewPage extends StatelessWidget {
 
 class FeedPreviewScreen extends StatefulWidget {
   final ScrollController? controller;
+
   const FeedPreviewScreen({Key? key, this.controller}) : super(key: key);
 
   @override
@@ -88,7 +86,7 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
         RouteAware,
         AfterLayoutMixin<FeedPreviewScreen>,
         WidgetsBindingObserver,
-        TickerProviderStateMixin{
+        TickerProviderStateMixin {
   String? swipeDirection;
 
   final _configurationService = GetIt.I.get<ConfigurationService>();
@@ -102,7 +100,6 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
     if (_configurationService.isFinishedFeedOnBoarding()) {
       _bloc.add(GetFeedsEvent());
     }
-
   }
 
   @override
@@ -124,16 +121,6 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
   }
 
   @override
-  void didPopNext() {
-    super.didPopNext();
-  }
-
-  @override
-  void didPushNext() {
-    super.didPopNext();
-  }
-
-  @override
   void dispose() {
     routeObserver.unsubscribe(this);
     WidgetsBinding.instance.removeObserver(this);
@@ -147,68 +134,65 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    double safeAreaTop = MediaQuery.of(context).padding.top;
-    final maxScrollSpeed = 500;
     return Scaffold(
       backgroundColor: theme.colorScheme.primary,
       body: BlocConsumer<FeedBloc, FeedState>(
           listener: (context, state) {},
           builder: (context, state) {
             if ((state.feedTokens?.isEmpty ?? true) ||
-                    (state.feedEvents?.isEmpty ?? true)) {
+                (state.feedEvents?.isEmpty ?? true)) {
               return _emptyOrLoadingDiscoveryWidget(state.appFeedData);
             }
-            return Stack(
-              children: [
-                CustomScrollView(
-                  controller: widget.controller,
-                  shrinkWrap: true,
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  cacheExtent: 1000,
-                  slivers: [
-                    SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) =>
-                            _listItem(
-                            state.feedEvents![index],
-                            state.feedTokens![index]
-                        ),
-                        childCount: state.feedTokens?.length ?? 0,
-                        addAutomaticKeepAlives: false,
-                      ),
-                    )
-                  ],
-                )
-              ]
-            );
+            return Stack(children: [
+              CustomScrollView(
+                controller: widget.controller,
+                shrinkWrap: true,
+                physics: const AlwaysScrollableScrollPhysics(),
+                cacheExtent: 1000,
+                slivers: [
+                  SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) => _listItem(
+                          state.feedEvents![index], state.feedTokens![index]),
+                      childCount: state.feedTokens?.length ?? 0,
+                      addAutomaticKeepAlives: false,
+                    ),
+                  )
+                ],
+              )
+            ]);
           }),
     );
   }
 
-  Widget _listItem(FeedEvent event, AssetToken? asset){
+  Widget _listItem(FeedEvent event, AssetToken? asset) {
     return Stack(
       children: [
-        Column(
-            children: [
-              Center(
-                child: FeedArtwork(
-                  assetToken: asset,
-                ),
-              ),
-
-              const SizedBox(height: 15,),
-              Align(
-                alignment: Alignment.topCenter,
-                child: _controlView(event, asset,),
-              ),
-              const SizedBox(height: 60,),
-            ]
-        ),
+        Column(children: [
+          Center(
+            child: FeedArtwork(
+              assetToken: asset,
+            ),
+          ),
+          const SizedBox(
+            height: 15,
+          ),
+          Align(
+            alignment: Alignment.topCenter,
+            child: _controlView(
+              event,
+              asset,
+            ),
+          ),
+          const SizedBox(
+            height: 60,
+          ),
+        ]),
         Positioned.fill(
           child: GestureDetector(
             behavior: HitTestBehavior.translucent,
-            onTap: (){
-              if (asset == null){
+            onTap: () {
+              if (asset == null) {
                 return;
               }
               _moveToInfo(asset, event);
@@ -223,11 +207,13 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
   }
 
   Widget _controlViewWhenNoAsset(FeedEvent event) {
-    double safeAreaTop = MediaQuery.of(context).padding.top;
     final theme = Theme.of(context);
     return Container(
       color: theme.colorScheme.primary,
-      padding: const EdgeInsets.only(left: 15, right: 5,),
+      padding: const EdgeInsets.only(
+        left: 15,
+        right: 5,
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -291,8 +277,8 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
           Expanded(
             child: BlocBuilder<IdentityBloc, IdentityState>(
                 builder: (context, identityState) {
-              final artistName = asset.artistName
-                  ?.toIdentityOrMask(identityState.identityMap);
+              final artistName =
+                  asset.artistName?.toIdentityOrMask(identityState.identityMap);
 
               return Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -302,21 +288,21 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                            asset.title.isEmpty
-                                ? 'nft'
-                                : '${asset.title} ',
+                          asset.title.isEmpty ? 'nft' : '${asset.title} ',
                           overflow: TextOverflow.ellipsis,
-                            style: ResponsiveLayout.isMobile
-                                ? theme.textTheme.ppMori400White14
-                                : theme.textTheme.atlasWhiteItalic14,
+                          style: ResponsiveLayout.isMobile
+                              ? theme.textTheme.ppMori400White14
+                              : theme.textTheme.atlasWhiteItalic14,
                         ),
-                        const SizedBox(height: 3,),
+                        const SizedBox(
+                          height: 3,
+                        ),
                         if (artistName != null) ...[
                           RichText(
                             overflow: TextOverflow.ellipsis,
-                              text: TextSpan(
-                                  text: 'by'.tr(args: [artistName]),
-                                  style: theme.textTheme.ppMori400White12),
+                            text: TextSpan(
+                                text: 'by'.tr(args: [artistName]),
+                                style: theme.textTheme.ppMori400White12),
                           ),
                         ]
                       ],
@@ -395,9 +381,7 @@ class FeedArtwork extends StatefulWidget {
 }
 
 class _FeedArtworkState extends State<FeedArtwork>
-    with RouteAware, WidgetsBindingObserver,
-        AutomaticKeepAliveClientMixin
-{
+    with RouteAware, WidgetsBindingObserver, AutomaticKeepAliveClientMixin {
   INFTRenderingWidget? _renderingWidget;
 
   final _bloc = ArtworkPreviewDetailBloc(
@@ -438,7 +422,6 @@ class _FeedArtworkState extends State<FeedArtwork>
   void didPushNext() {
     _renderingWidget?.clearPrevious();
     super.didPushNext();
-
   }
 
   @override
@@ -459,6 +442,7 @@ class _FeedArtworkState extends State<FeedArtwork>
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     if (widget.assetToken == null) {
       final screenWidth = MediaQuery.of(context).size.width;
       final screenHeight = MediaQuery.of(context).size.height;
@@ -477,16 +461,15 @@ class _FeedArtworkState extends State<FeedArtwork>
             final screenWidth = MediaQuery.of(context).size.width;
             return SizedBox(
               height: heightMap[widget.assetToken?.id] ?? screenWidth,
-                width: screenWidth,
-                );
+              width: screenWidth,
+            );
           case ArtworkPreviewDetailLoadedState:
-
             final asset = (state as ArtworkPreviewDetailLoadedState).asset;
             if (asset != null) {
               return MeasuredSize(
-                onChange: (Size size){
+                onChange: (Size size) {
                   final id = asset.id;
-                  if (id.isEmpty){
+                  if (id.isEmpty) {
                     return;
                   }
                   heightMap[id] = size.height;
@@ -500,7 +483,8 @@ class _FeedArtworkState extends State<FeedArtwork>
                         _renderingWidget = null;
                       }
                       if (_renderingWidget == null ||
-                          _renderingWidget!.previewURL != asset.getPreviewUrl()) {
+                          _renderingWidget!.previewURL !=
+                              asset.getPreviewUrl()) {
                         _renderingWidget = buildRenderingWidget(
                           context,
                           asset,
@@ -546,10 +530,12 @@ class FeedDetailPayload {
   AssetToken? feedToken;
   FeedEvent? feedEvent;
 
-  FeedDetailPayload(this.feedToken, this.feedEvent,);
+  FeedDetailPayload(
+    this.feedToken,
+    this.feedEvent,
+  );
 
-  FeedDetailPayload copyWith(
-  AssetToken? feedToken,  FeedEvent? feedEvent) {
+  FeedDetailPayload copyWith(AssetToken? feedToken, FeedEvent? feedEvent) {
     return FeedDetailPayload(
       feedToken ?? this.feedToken,
       feedEvent ?? this.feedEvent,

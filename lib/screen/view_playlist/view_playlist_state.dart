@@ -1,5 +1,3 @@
-import 'package:nft_collection/models/asset_token.dart';
-
 import 'package:autonomy_flutter/model/play_list_model.dart';
 
 abstract class ViewPlaylistEvent {}

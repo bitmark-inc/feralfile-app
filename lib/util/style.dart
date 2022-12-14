@@ -119,10 +119,10 @@ MarkdownStyleSheet markDownRightStyle(BuildContext context) {
       fontSize: 12,
     ),
     p: theme.textTheme.ppMori400White12,
-    pPadding: const EdgeInsets.only(bottom: 0),
+    pPadding: EdgeInsets.zero,
     code: bodyText2.copyWith(backgroundColor: Colors.transparent),
     h1: theme.textTheme.ppMori400White14,
-    h1Padding: const EdgeInsets.only(bottom: 0),
+    h1Padding: EdgeInsets.zero,
     h2: theme.textTheme.ppMori400White14,
     h2Padding: EdgeInsets.zero,
     h3: theme.textTheme.ppMori400White14,
@@ -192,10 +192,10 @@ MarkdownStyleSheet markDownDetailPageStyle(
       decorationThickness: 1,
     ),
     p: theme.textTheme.bodyText1?.copyWith(color: textColor),
-    pPadding: const EdgeInsets.only(bottom: 0),
+    pPadding: EdgeInsets.zero,
     code: bodyText2.copyWith(backgroundColor: Colors.transparent),
     h1: theme.textTheme.headline1?.copyWith(color: textColor),
-    h1Padding: const EdgeInsets.only(bottom: 0),
+    h1Padding: EdgeInsets.zero,
     h2: theme.textTheme.headline4?.copyWith(color: textColor),
     h2Padding: EdgeInsets.zero,
     h3: theme.textTheme.headline3?.copyWith(color: textColor),
@@ -238,7 +238,6 @@ MarkdownStyleSheet markDownDetailPageStyle(
     horizontalRuleDecoration: BoxDecoration(
       border: Border(
         top: BorderSide(
-          width: 1.0,
           color: theme.dividerColor,
         ),
       ),

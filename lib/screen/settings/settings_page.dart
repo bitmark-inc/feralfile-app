@@ -348,8 +348,8 @@ class _SettingsPageState extends State<SettingsPage>
       "rebuild".tr(),
       () async {
         await injector<NftCollectionBloc>().tokensService.purgeCachedGallery();
-        context.read<IdentityBloc>().add(RemoveAllEvent());
         if (!mounted) return;
+        context.read<IdentityBloc>().add(RemoveAllEvent());
         Navigator.of(context).popUntil((route) =>
             route.settings.name == AppRouter.homePage ||
             route.settings.name == AppRouter.homePageNoTransition);

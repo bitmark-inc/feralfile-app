@@ -61,7 +61,6 @@ class ResponsiveLayout extends StatelessWidget {
         top: padding,
         left: padding,
         right: padding,
-        bottom: 0.0,
       );
   static EdgeInsets get pageEdgeInsetsWithSubmitButton => EdgeInsets.fromLTRB(
         padding,

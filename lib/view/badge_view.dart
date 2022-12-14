@@ -5,7 +5,6 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:flutter/material.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 

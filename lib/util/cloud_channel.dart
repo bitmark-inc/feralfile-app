@@ -9,7 +9,6 @@ import 'package:flutter/services.dart';
 import 'dart:io';
 
 class CloudChannel {
-  static const MethodChannel _channel = MethodChannel('cloud');
   static const EventChannel _eventChannel = EventChannel('cloud/event');
 
   final CloudHandler handler;

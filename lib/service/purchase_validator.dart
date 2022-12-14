@@ -25,7 +25,7 @@ class PurchaseValidatorFactory {
       return _PurchaseVerifierAndroidImpl(product, purchase);
     } else if (purchase is AppStorePurchaseDetails &&
         product is AppStoreProductDetails) {
-      return _PurchaseVerifierIOSImpl(product, purchase);
+      return _PurchaseVerifierIOSImpl(purchase);
     } else {
       throw UnimplementedError();
     }
@@ -67,10 +67,9 @@ class _PurchaseVerifierAndroidImpl extends PurchaseValidator {
 }
 
 class _PurchaseVerifierIOSImpl extends PurchaseValidator {
-  final AppStoreProductDetails _product;
   final AppStorePurchaseDetails _purchase;
 
-  _PurchaseVerifierIOSImpl(this._product, this._purchase);
+  _PurchaseVerifierIOSImpl(this._purchase);
 
   @override
   Future<bool> isValid() async {

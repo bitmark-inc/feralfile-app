@@ -6,23 +6,23 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/mixPanel_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/device.dart';
-import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:metric_client/metric_client.dart';
+import 'package:mixpanel_flutter/mixpanel_flutter.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:mixpanel_flutter/mixpanel_flutter.dart';
 
 class MetricClientService {
   final AccountService _accountService;
+
   MetricClientService(this._accountService);
 
   late DeviceConfig _deviceConfig;
   late Mixpanel mixpanel;
+
   Future<void> initService() async {
     final root = await getTemporaryDirectory();
     await MetricClient.init(
@@ -47,7 +47,7 @@ class MetricClientService {
       internalBuild: isAppcenterBuild,
     );
     final defaultDID = (await (await _accountService.getCurrentDefaultAccount())
-        ?.getAccountDID()) ??
+            ?.getAccountDID()) ??
         'unknown';
     final hashedUserID = sha224.convert(utf8.encode(defaultDID)).toString();
 
@@ -90,7 +90,6 @@ class MetricClientService {
         await MetricClient.sendMetrics();
       }
       await MetricClient.clear();
-
     } catch (e) {
       log(e.toString());
     }

@@ -42,7 +42,7 @@ import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/provenance.dart';
 import 'package:nft_collection/nft_collection.dart';
 
-import '../../service/mixPanel_client_service.dart';
+import '../../service/mix_panel_client_service.dart';
 
 part 'artwork_detail_page.g.dart';
 

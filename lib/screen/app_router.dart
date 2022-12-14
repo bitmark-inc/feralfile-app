@@ -77,7 +77,6 @@ import 'package:autonomy_flutter/screen/global_receive/receive_detail_page.dart'
 import 'package:autonomy_flutter/screen/global_receive/receive_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_navigation_page.dart';
-import 'package:autonomy_flutter/screen/home/home_page.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_bloc.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_page.dart';
 import 'package:autonomy_flutter/screen/more_autonomy_page.dart';
@@ -668,7 +667,7 @@ class AppRouter {
               providers: [
                 BlocProvider(
                     create: (_) => ArtworkPreviewBloc(
-                        nftCollectionBloc.database.assetDao, injector())),
+                        nftCollectionBloc.database.assetDao)),
                 BlocProvider(
                     create: (_) =>
                         IdentityBloc(injector<AppDatabase>(), injector())),

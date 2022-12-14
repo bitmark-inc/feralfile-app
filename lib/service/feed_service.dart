@@ -14,7 +14,6 @@ import 'package:autonomy_flutter/gateway/feed_api.dart';
 import 'package:autonomy_flutter/model/feed.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
 import 'package:autonomy_flutter/util/iterable_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';

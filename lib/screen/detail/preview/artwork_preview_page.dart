@@ -11,7 +11,6 @@ import 'dart:io';
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_bloc.dart';
@@ -22,12 +21,11 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/play_control_service.dart';
-import 'package:autonomy_flutter/service/mixPanel_client_service.dart';
+import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/play_control.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -183,31 +181,6 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     _detector?.startListening();
 
     WidgetsBinding.instance.addObserver(this);
-  }
-
-  Future _moveToInfo(AssetToken? asset) async {
-    if (asset == null) return;
-    keyboardManagerKey.currentState?.hideKeyboard();
-
-    final currentIndex = tokens.indexWhere((element) =>
-        element.id == asset.id && element.owner == asset.ownerAddress);
-    if (currentIndex == initialPage) {
-      Navigator.of(context).pop();
-      return;
-    }
-
-    disableLandscapeMode();
-
-    Wakelock.disable();
-    _timer?.cancel();
-
-    Navigator.of(context).pushNamed(
-      AppRouter.artworkDetailsPage,
-      arguments: widget.payload.copyWith(
-        currentIndex: currentIndex,
-        ids: tokens,
-      ),
-    );
   }
 
   void onClickFullScreen() {

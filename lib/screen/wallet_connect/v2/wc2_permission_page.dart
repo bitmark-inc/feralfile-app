@@ -160,15 +160,6 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    Wc2PermissionsRequestParams? permissionParams;
-    Wc2SignRequestParams? signParams;
-    if (widget.request.method == "au_permissions") {
-      permissionParams =
-          Wc2PermissionsRequestParams.fromJson(widget.request.params);
-    }
-    if (widget.request.method == "au_sign") {
-      signParams = Wc2SignRequestParams.fromJson(widget.request.params);
-    }
 
     return WillPopScope(
       onWillPop: () async {

@@ -8,7 +8,6 @@
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_state.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/helpers.dart';
 import 'package:nft_collection/database/dao/asset_token_dao.dart';
@@ -16,9 +15,8 @@ import 'package:nft_collection/database/dao/asset_token_dao.dart';
 class ArtworkPreviewBloc
     extends AuBloc<ArtworkPreviewEvent, ArtworkPreviewState> {
   final AssetTokenDao _assetTokenDao;
-  final ConfigurationService _configurationService;
 
-  ArtworkPreviewBloc(this._assetTokenDao, this._configurationService)
+  ArtworkPreviewBloc(this._assetTokenDao)
       : super(ArtworkPreviewLoadingState()) {
     on<ArtworkPreviewGetAssetTokenEvent>((event, emit) async {
       final asset = await _assetTokenDao.findAssetTokenByIdAndOwner(event.identity.id, event.identity.owner);

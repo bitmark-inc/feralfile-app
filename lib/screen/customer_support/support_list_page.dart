@@ -198,8 +198,9 @@ class _SupportListPageState extends State<SupportListPage>
   String getPreviewMessage(Issue issue) {
     final lastMessage = getLastMessage(issue);
     if (issue.status == "closed") {
-      if (lastMessage.contains(RATING_MESSAGE_START))
+      if (lastMessage.contains(RATING_MESSAGE_START)) {
         return lastMessage.substring(RATING_MESSAGE_START.length);
+      }
       if (lastMessage.contains(STAR_RATING)) return "care_to_share".tr();
       return "rate_issue".tr();
     }
