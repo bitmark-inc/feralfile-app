@@ -17,10 +17,8 @@ import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
-import 'package:autonomy_flutter/screen/editorial/editorial_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
-import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_view.dart';
@@ -50,10 +48,9 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
-import 'package:autonomy_flutter/view/penrose_top_bar_view.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
@@ -69,136 +66,29 @@ import 'package:nft_collection/nft_collection.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:wallet_connect/models/wc_peer_meta.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 
 import '../../util/token_ext.dart';
 
 class HomePage extends StatefulWidget {
-  static const tag = "home";
   const HomePage({Key? key}) : super(key: key);
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<HomePage> createState() => HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
-  int _selectedIndex = 0;
-  late PageController _pageController;
-
-  final List<Widget> _pages = <Widget>[
-    const HomeScreen(),
-    const EditorialPage(),
-  ];
-
-  void _onItemTapped(int index) {
-    if (index != 2) {
-      setState(() {
-        _selectedIndex = index;
-        _pageController.jumpToPage(_selectedIndex);
-      });
-    } else {
-      UIHelper.showDrawerAction(
-        context,
-        options: [
-          OptionItem(
-            title: 'Scan',
-            icon: const Icon(
-              AuIcon.scan,
-            ),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.of(context).pushNamed(
-                AppRouter.scanQRPage,
-                arguments: ScannerItem.GLOBAL,
-              );
-            },
-          ),
-          OptionItem(
-              title: 'Settings',
-              icon: const Icon(
-                AuIcon.settings,
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.of(context).pushNamed(AppRouter.settingsPage);
-              }),
-          OptionItem(
-              title: 'Help',
-              icon: const Icon(
-                AuIcon.help,
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.of(context).pushNamed(AppRouter.supportCustomerPage);
-              }),
-        ],
-      );
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _pageController = PageController(initialPage: _selectedIndex);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Scaffold(
-      bottomNavigationBar: BottomNavigationBar(
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-        currentIndex: _selectedIndex,
-        unselectedItemColor: theme.disabledColor,
-        selectedItemColor: theme.primaryColor,
-        backgroundColor: theme.backgroundColor.withOpacity(0.95),
-        type: BottomNavigationBarType.fixed,
-        onTap: _onItemTapped,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(AuIcon.collection),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(AuIcon.discover),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(AuIcon.drawer),
-            label: '',
-          ),
-        ],
-      ),
-      body: PageView(
-        controller: _pageController,
-        physics: const NeverScrollableScrollPhysics(),
-        children: _pages,
-      ),
-    );
-  }
-}
-
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
-
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen>
+class HomePageState extends State<HomePage>
     with
         RouteAware,
         WidgetsBindingObserver,
-        AfterLayoutMixin<HomeScreen>,
+        AfterLayoutMixin<HomePage>,
         AutomaticKeepAliveClientMixin {
   StreamSubscription<FGBGType>? _fgbgSubscription;
   late ScrollController _controller;
-  late MetricClientService metricClient;
-  late MixPanelClientService mixPanelClient;
+  late MetricClientService _metricClient;
+  late MixPanelClientService _mixPanelClient;
   int _cachedImageSize = 0;
 
-  ValueNotifier<List<PlayListModel>?> playlists = ValueNotifier([]);
+  final ValueNotifier<List<PlayListModel>?> _playlists = ValueNotifier([]);
 
   Future<List<String>> getAddresses() async {
     final accountService = injector<AccountService>();
@@ -225,13 +115,13 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   void initState() {
     super.initState();
-    metricClient = injector.get<MetricClientService>();
-    mixPanelClient = injector<MixPanelClientService>();
+    _metricClient = injector.get<MetricClientService>();
+    _mixPanelClient = injector<MixPanelClientService>();
     _checkForKeySync();
     WidgetsBinding.instance.addObserver(this);
     _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
     _controller = ScrollController();
-    _refreshTokens();
+    refreshTokens();
     context.read<HomeBloc>().add(CheckReviewAppEvent());
     OneSignal.shared
         .setNotificationWillShowInForegroundHandler(_shouldShowNotifications);
@@ -275,7 +165,7 @@ class _HomeScreenState extends State<HomeScreen>
   void didPopNext() async {
     super.didPopNext();
     final connectivityResult = await (Connectivity().checkConnectivity());
-    _refreshTokens();
+    refreshTokens();
     if (connectivityResult == ConnectivityResult.mobile ||
         connectivityResult == ConnectivityResult.wifi) {
       Future.delayed(const Duration(milliseconds: 1000), () async {
@@ -312,7 +202,7 @@ class _HomeScreenState extends State<HomeScreen>
             hashedAddresses &&
         tokens.any((asset) =>
             asset.blockchain == Blockchain.TEZOS.name.toLowerCase())) {
-      metricClient.addEvent("collection_has_tezos");
+      _metricClient.addEvent("collection_has_tezos");
       injector<ConfigurationService>()
           .setSentTezosArtworkMetric(hashedAddresses);
     }
@@ -462,16 +352,16 @@ class _HomeScreenState extends State<HomeScreen>
               child: SizedBox(
                 height: 103,
                 child: ValueListenableBuilder(
-                  valueListenable: playlists,
+                  valueListenable: _playlists,
                   builder: (context, value, child) => ListPlaylistWidget(
-                    playlists: playlists.value,
+                    playlists: _playlists.value,
                     onUpdateList: () async {
                       if (injector
                           .get<ConfigurationService>()
                           .isDemoArtworksMode()) return;
                       await injector
                           .get<ConfigurationService>()
-                          .setPlayList(playlists.value, override: true);
+                          .setPlayList(_playlists.value, override: true);
                       injector.get<SettingsDataService>().backup();
                     },
                   ),
@@ -514,7 +404,7 @@ class _HomeScreenState extends State<HomeScreen>
                 Navigator.of(context).pushNamed(AppRouter.artworkDetailsPage,
                     arguments: payload);
 
-                mixPanelClient
+                _mixPanelClient
                     .trackEvent("view_artwork", data: {"id": asset.id});
               },
             );
@@ -547,9 +437,9 @@ class _HomeScreenState extends State<HomeScreen>
     }
   }
 
-  void _refreshTokens({checkPendingToken = false}) async {
+  void refreshTokens({checkPendingToken = false}) async {
     final accountService = injector<AccountService>();
-    playlists.value = await getPlaylist();
+    _playlists.value = await getPlaylist();
 
     Future.wait([
       getAddresses(),
@@ -565,7 +455,7 @@ class _HomeScreenState extends State<HomeScreen>
       final nftBloc = context.read<NftCollectionBloc>();
       final isDemo = injector.get<ConfigurationService>().isDemoArtworksMode();
       if (isDemo) {
-        playlists.value?.forEach((element) {
+        _playlists.value?.forEach((element) {
           indexerIds.addAll(element.tokenIDs ?? []);
         });
       }
@@ -693,9 +583,9 @@ class _HomeScreenState extends State<HomeScreen>
     injector<WalletConnectService>().initSessions(forced: true);
     injector<Wc2Service>().activateParings();
 
-    _refreshTokens(checkPendingToken: true);
+    refreshTokens(checkPendingToken: true);
 
-    metricClient.addEvent("device_foreground");
+    _metricClient.addEvent("device_foreground");
     _subscriptionNotify();
     injector<VersionService>().checkForUpdate();
 
@@ -744,10 +634,10 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   void _handleBackground() {
-    metricClient.addEvent("device_background");
-    metricClient.sendAndClearMetrics();
-    mixPanelClient.trackEvent(MixpanelEvent.deviceBackground);
-    mixPanelClient.sendData();
+    _metricClient.addEvent("device_background");
+    _metricClient.sendAndClearMetrics();
+    _mixPanelClient.trackEvent(MixpanelEvent.deviceBackground);
+    _mixPanelClient.sendData();
     _cloudBackup();
     FileLogger.shrinkLogFileIfNeeded();
   }
