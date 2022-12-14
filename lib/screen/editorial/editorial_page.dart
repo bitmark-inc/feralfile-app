@@ -41,6 +41,7 @@ class _EditorialPageState extends State<EditorialPage>
     _editorialController = ScrollController();
     _feedController.addListener(_scrollListener);
     _editorialController.addListener(_scrollListener);
+    _tabController.addListener(_scrollListener);
     context.read<EditorialBloc>().add(GetEditorialEvent());
   }
 
@@ -60,6 +61,14 @@ class _EditorialPageState extends State<EditorialPage>
   }
 
   @override
+  void dispose() {
+    _editorialController.dispose();
+    _feedController.dispose();
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
@@ -75,44 +84,47 @@ class _EditorialPageState extends State<EditorialPage>
               padding: const EdgeInsets.all(15),
               child: AnimatedSize(
                 duration: const Duration(milliseconds: 300),
-                child: Row(
-                  mainAxisAlignment: _showFullHeader
-                      ? MainAxisAlignment.spaceBetween
-                      : MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    if (_showFullHeader)
-                      SvgPicture.asset(
-                        "assets/images/autonomy_icon_white.svg",
-                        width: 50,
-                        height: 50,
-                      ),
-                    Hero(
-                      tag: "discover_tab",
-                      child: TabBar(
-                        controller: _tabController,
-                        indicatorSize: TabBarIndicatorSize.label,
-                        labelPadding: const EdgeInsets.symmetric(
-                            horizontal: 5.0, vertical: 6.0),
-                        labelStyle: theme.textTheme.ppMori400White14,
-                        unselectedLabelStyle: theme.textTheme.ppMori400Grey14,
-                        isScrollable: true,
-                        indicator: const BoxDecoration(
-                          border: Border(
-                            top: BorderSide(color: AppColor.auSuperTeal),
-                          ),
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 10.0),
+                  child: Row(
+                    mainAxisAlignment: _showFullHeader
+                        ? MainAxisAlignment.spaceBetween
+                        : MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      if (_showFullHeader)
+                        SvgPicture.asset(
+                          "assets/images/autonomy_icon_white.svg",
+                          width: 50,
+                          height: 50,
                         ),
-                        tabs: [
-                          Text(
-                            'discover'.tr(),
+                      Hero(
+                        tag: "discover_tab",
+                        child: TabBar(
+                          controller: _tabController,
+                          indicatorSize: TabBarIndicatorSize.label,
+                          labelPadding: const EdgeInsets.symmetric(
+                              horizontal: 5.0, vertical: 6.0),
+                          labelStyle: theme.textTheme.ppMori400White14,
+                          unselectedLabelStyle: theme.textTheme.ppMori400Grey14,
+                          isScrollable: true,
+                          indicator: const BoxDecoration(
+                            border: Border(
+                              top: BorderSide(color: AppColor.auSuperTeal),
+                            ),
                           ),
-                          Text(
-                            'editorial'.tr(),
-                          ),
-                        ],
+                          tabs: [
+                            Text(
+                              'discover'.tr(),
+                            ),
+                            Text(
+                              'editorial'.tr(),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
