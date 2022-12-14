@@ -93,6 +93,7 @@ class _PlaylistControlState extends State<PlaylistControl> {
                   icon: SvgPicture.asset(
                     'assets/images/shuffle_icon.svg',
                     width: 24,
+                    color: theme.disableColor,
                   ),
                   iconFocus: SvgPicture.asset(
                     'assets/images/shuffle_icon.svg',

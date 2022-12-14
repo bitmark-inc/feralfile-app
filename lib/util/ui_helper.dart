@@ -803,15 +803,15 @@ class UIHelper {
                 ? RichText(
                     text: TextSpan(children: [
                       TextSpan(
-                        style: theme.primaryTextTheme.bodyText1,
+                        style: theme.textTheme.ppMori400White12,
                         text: "art_no_appear".tr(),
                       ),
                       TextSpan(
-                        style: theme.primaryTextTheme.headline4,
+                        style: theme.textTheme.ppMori700White12,
                         text: "hidden_art".tr(),
                       ),
                       TextSpan(
-                        style: theme.primaryTextTheme.bodyText1,
+                        style: theme.textTheme.ppMori400White12,
                         text: "section_setting".tr(),
                       ),
                     ]),
@@ -821,17 +821,9 @@ class UIHelper {
                     style: theme.primaryTextTheme.bodyText1,
                   ),
             const SizedBox(height: 40),
-            Row(
-              children: [
-                Expanded(
-                  child: AuFilledButton(
-                    text: "ok".tr(),
-                    onPress: onOK,
-                    color: theme.colorScheme.secondary,
-                    textStyle: theme.textTheme.button,
-                  ),
-                ),
-              ],
+            PrimaryButton(
+              onTap: onOK,
+              text: "ok".tr(),
             ),
             const SizedBox(height: 15),
           ],
