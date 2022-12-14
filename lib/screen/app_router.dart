@@ -76,6 +76,7 @@ import 'package:autonomy_flutter/screen/github_doc.dart';
 import 'package:autonomy_flutter/screen/global_receive/receive_detail_page.dart';
 import 'package:autonomy_flutter/screen/global_receive/receive_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
+import 'package:autonomy_flutter/screen/home/home_navigation_page.dart';
 import 'package:autonomy_flutter/screen/home/home_page.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_bloc.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_page.dart';
@@ -274,7 +275,7 @@ class AppRouter {
                     BlocProvider(create: (_) => EditorialBloc(injector())),
                     BlocProvider(create: (_) => ExhibitionBloc(injector())),
                   ],
-                  child: const HomePage(),
+                  child: const HomeNavigationPage(),
                 ),
             transitionDuration: const Duration());
 
@@ -299,7 +300,7 @@ class AppRouter {
                     BlocProvider(create: (_) => EditorialBloc(injector())),
                     BlocProvider(create: (_) => ExhibitionBloc(injector())),
                   ],
-                  child: const HomePage(),
+                  child: const HomeNavigationPage(),
                 ));
       case beOwnGalleryPage:
         return CupertinoPageRoute(
