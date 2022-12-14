@@ -8,6 +8,7 @@ import 'package:autonomy_flutter/screen/claim/select_account_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
+import 'package:autonomy_flutter/service/mixPanel_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -51,6 +52,8 @@ class ClaimTokenPage extends StatefulWidget {
 
 class _ClaimTokenPageState extends State<ClaimTokenPage> {
   bool _processing = false;
+
+  final mixPanelClient = injector.get<MixPanelClientService>();
 
   @override
   Widget build(BuildContext context) {
@@ -247,6 +250,12 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
               enabled: !_processing,
               isProcessing: _processing,
               onPress: () async {
+                mixPanelClient.trackEvent(
+                  MixpanelEvent.acceptOwnership,
+                  data: {
+                    "id": widget.artwork.id,
+                  },
+                );
                 setState(() {
                   _processing = true;
                 });
@@ -292,6 +301,12 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
               text: "decline".tr(),
               enabled: !_processing,
               onPress: () {
+                mixPanelClient.trackEvent(
+                  MixpanelEvent.declineOwnership,
+                  data: {
+                    "id": widget.artwork.id,
+                  },
+                );
                 memoryValues.airdropFFExhibitionId.value = null;
                 Navigator.of(context).pop(false);
               },

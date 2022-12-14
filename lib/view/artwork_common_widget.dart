@@ -8,6 +8,7 @@ import 'package:autonomy_flutter/screen/detail/report_rendering_issue/report_ren
 import 'package:autonomy_flutter/screen/detail/royalty/royalty_bloc.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
+import 'package:autonomy_flutter/service/mixPanel_client_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -633,9 +634,14 @@ class BrokenTokenWidget extends StatefulWidget {
 }
 
 class _BrokenTokenWidgetState extends State<BrokenTokenWidget> {
+  final mixPanelClient = injector.get<MixPanelClientService>();
+
   @override
   void initState() {
     injector<CustomerSupportService>().reportIPFSLoadingError(widget.token);
+    mixPanelClient.trackEvent(
+      MixpanelEvent.displayUnableLoadIPFS,
+    );
     super.initState();
   }
 
@@ -655,7 +661,12 @@ class _BrokenTokenWidgetState extends State<BrokenTokenWidget> {
             overflow: TextOverflow.ellipsis,
           ),
           TextButton(
-            onPressed: () => context.read<RetryCubit>().refresh(),
+            onPressed: () {
+              mixPanelClient.trackEvent(
+                MixpanelEvent.clickLoadIPFSAgain,
+              );
+              context.read<RetryCubit>().refresh();
+            },
             style: TextButton.styleFrom(
                 minimumSize: Size.zero,
                 padding: const EdgeInsets.all(8),
@@ -734,29 +745,64 @@ void _showReportRenderingDialogSuccess(BuildContext context, String githubURL) {
 }
 
 Widget previewPlaceholder(BuildContext context) {
-  final theme = Theme.of(context);
-  return Center(
-    child: AspectRatio(
-      aspectRatio: 1,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          loadingIndicator(
-              valueColor: theme.colorScheme.surface,
-              backgroundColor: theme.colorScheme.surface.withOpacity(0.5)),
-          const SizedBox(
-            height: 13,
-          ),
-          Text(
-            "loading...".tr(),
-            style: ResponsiveLayout.isMobile
-                ? theme.textTheme.atlasGreyNormal12
-                : theme.textTheme.atlasGreyNormal14,
-          ),
-        ],
+  return const PreviewPlaceholder();
+}
+
+class PreviewPlaceholder extends StatefulWidget {
+  const PreviewPlaceholder({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  State<PreviewPlaceholder> createState() => _PreviewPlaceholderState();
+}
+
+class _PreviewPlaceholderState extends State<PreviewPlaceholder> {
+  final mixPanelClient = injector.get<MixPanelClientService>();
+
+  @override
+  void initState() {
+    mixPanelClient.timerEvent(
+      MixpanelEvent.showLoadingArtwork,
+    );
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    mixPanelClient.trackEvent(
+      MixpanelEvent.showLoadingArtwork,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Center(
+      child: AspectRatio(
+        aspectRatio: 1,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            loadingIndicator(
+                valueColor: theme.colorScheme.surface,
+                backgroundColor: theme.colorScheme.surface.withOpacity(0.5)),
+            const SizedBox(
+              height: 13,
+            ),
+            Text(
+              "loading...".tr(),
+              style: ResponsiveLayout.isMobile
+                  ? theme.textTheme.atlasGreyNormal12
+                  : theme.textTheme.atlasGreyNormal14,
+            ),
+          ],
+        ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 Widget debugInfoWidget(BuildContext context, AssetToken? token) {

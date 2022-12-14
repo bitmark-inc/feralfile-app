@@ -10,6 +10,7 @@ import 'dart:convert';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/mixPanel_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -35,6 +36,15 @@ class LinkMetamaskPage extends StatefulWidget {
 class _LinkMetamaskPageState extends State<LinkMetamaskPage> {
   WebSocketChannel? _websocketChannel;
 
+  final mixPanelClient = injector.get<MixPanelClientService>();
+
+  @override
+  void initState() {
+    mixPanelClient.timerEvent(MixpanelEvent.backGenerateLink);
+    mixPanelClient.timerEvent(MixpanelEvent.generateLink);
+    super.initState();
+  }
+
   @override
   void dispose() {
     super.dispose();
@@ -48,7 +58,10 @@ class _LinkMetamaskPageState extends State<LinkMetamaskPage> {
     return Scaffold(
         appBar: getBackAppBar(
           context,
-          onBack: () => Navigator.of(context).pop(),
+          onBack: () {
+            mixPanelClient.trackEvent(MixpanelEvent.backGenerateLink);
+            Navigator.of(context).pop();
+          },
         ),
         body: Container(
           margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
@@ -92,8 +105,11 @@ class _LinkMetamaskPageState extends State<LinkMetamaskPage> {
                 Expanded(
                   child: AuFilledButton(
                     text: "generate_link".tr().toUpperCase(),
-                    onPress: () => withDebounce(() => _generateLinkAndListen(),
-                        debounceTime: 2000000),
+                    onPress: () {
+                      mixPanelClient.trackEvent(MixpanelEvent.generateLink);
+                      withDebounce(() => _generateLinkAndListen(),
+                          debounceTime: 2000000);
+                    },
                   ),
                 ),
               ],

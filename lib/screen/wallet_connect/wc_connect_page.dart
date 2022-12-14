@@ -83,6 +83,7 @@ class _WCConnectPageState extends State<WCConnectPage>
         .add(GetListPersonaEvent(useDidKeyForAlias: true));
     injector<NavigationService>().setIsWCConnectInShow(true);
     memoryValues.deepLink.value = null;
+    mixPanelClient.timerEvent(MixpanelEvent.backConnectMarket);
   }
 
   @override
@@ -263,7 +264,9 @@ class _WCConnectPageState extends State<WCConnectPage>
     final notificationEnable =
         injector<ConfigurationService>().isNotificationEnabled() ?? false;
     if (notificationEnable) {
+      final mixPanelClient = injector.get<MixPanelClientService>();
       if (widget.beaconRequest?.appName != null) {
+        mixPanelClient.trackEvent(MixpanelEvent.connectMarketSuccess);
         showInfoNotification(
           const Key("connected"),
           "connected_to"
@@ -271,6 +274,7 @@ class _WCConnectPageState extends State<WCConnectPage>
           frontWidget: SvgPicture.asset("assets/images/checkbox_icon.svg"),
         );
       } else if (widget.wcConnectArgs?.peerMeta.name != null) {
+        mixPanelClient.trackEvent(MixpanelEvent.connectMarketSuccess);
         showInfoNotification(
           const Key("connected"),
           "connected_to"
@@ -278,6 +282,7 @@ class _WCConnectPageState extends State<WCConnectPage>
           frontWidget: SvgPicture.asset("assets/images/checkbox_icon.svg"),
         );
       } else if (widget.wc2Proposal?.proposer.name != null) {
+        mixPanelClient.trackEvent(MixpanelEvent.connectMarketSuccess);
         showInfoNotification(
           const Key("connected"),
           "connected_to"
@@ -302,13 +307,17 @@ class _WCConnectPageState extends State<WCConnectPage>
 
     return WillPopScope(
       onWillPop: () async {
+        mixPanelClient.trackEvent(MixpanelEvent.backConnectMarket);
         _reject();
         return true;
       },
       child: Scaffold(
         appBar: getBackAppBar(
           context,
-          onBack: () => _reject(),
+          onBack: () {
+            mixPanelClient.trackEvent(MixpanelEvent.backConnectMarket);
+            _reject();
+          },
         ),
         body: Container(
           margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
@@ -574,7 +583,10 @@ class _WCConnectPageState extends State<WCConnectPage>
               child: AuFilledButton(
                 text: "connect".tr().toUpperCase(),
                 onPress: _isAccountSelected
-                    ? () => withDebounce(() => _approveThenNotify())
+                    ? () {
+                        mixPanelClient.trackEvent(MixpanelEvent.connectMarket);
+                        withDebounce(() => _approveThenNotify());
+                      }
                     : null,
               ),
             )
@@ -585,6 +597,7 @@ class _WCConnectPageState extends State<WCConnectPage>
   }
 
   Widget _createAccountAndConnect() {
+    final mixPanelClient = injector.get<MixPanelClientService>();
     return Column(
       children: [
         const Spacer(),
@@ -593,7 +606,10 @@ class _WCConnectPageState extends State<WCConnectPage>
             Expanded(
               child: AuFilledButton(
                 text: "connect".tr().toUpperCase(),
-                onPress: () => withDebounce(() => _createAccount()),
+                onPress: () {
+                  mixPanelClient.trackEvent(MixpanelEvent.connectMarket);
+                  withDebounce(() => _createAccount());
+                },
               ),
             )
           ],

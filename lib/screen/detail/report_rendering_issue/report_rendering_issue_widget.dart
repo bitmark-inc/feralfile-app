@@ -7,6 +7,8 @@
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
+import 'package:autonomy_flutter/service/mixPanel_client_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -33,6 +35,8 @@ class _ReportRenderingIssueWidgetState
   final List<String> _selectedTopices = [];
   bool _isSubmissionEnabled = false;
   bool _isProcessing = false;
+
+  final mixPanelClient = injector.get<MixPanelClientService>();
 
   @override
   Widget build(BuildContext context) {
@@ -145,7 +149,12 @@ class _ReportRenderingIssueWidgetState
 
   void _reportIssue() async {
     if (!_isSubmissionEnabled) return;
-
+    mixPanelClient.trackEvent(
+      MixpanelEvent.generateReport,
+      data: {
+        "id": widget.token.id,
+      },
+    );
     setState(() {
       _isSubmissionEnabled = false;
       _isProcessing = true;

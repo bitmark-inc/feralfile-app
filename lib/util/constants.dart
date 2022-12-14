@@ -40,11 +40,15 @@ const DEEP_LINKS = [
 const FF_ARTIST_COLLECTOR =
     'https://feralfile.com/docs/artist-collector-rights';
 const WEB3_PRIMER_URL = 'https://autonomy.io/catalog/primer/';
-const COLLECTOR_RIGHTS_DEFAULT_DOCS = "/bitmark-inc/feral-file-docs/master/docs/collector-rights/standard/en.md";
-const COLLECTOR_RIGHTS_MEMENTO_DOCS = "/bitmark-inc/feral-file-docs/master/docs/collector-rights/MoMA-Memento/en.md";
-const COLLECTOR_RIGHTS_MOMA_009_UNSUPERVISED_DOCS = "/bitmark-inc/feral-file-docs/master/docs/collector-rights/009-unsupervised/en.md";
+const COLLECTOR_RIGHTS_DEFAULT_DOCS =
+    "/bitmark-inc/feral-file-docs/master/docs/collector-rights/standard/en.md";
+const COLLECTOR_RIGHTS_MEMENTO_DOCS =
+    "/bitmark-inc/feral-file-docs/master/docs/collector-rights/MoMA-Memento/en.md";
+const COLLECTOR_RIGHTS_MOMA_009_UNSUPERVISED_DOCS =
+    "/bitmark-inc/feral-file-docs/master/docs/collector-rights/009-unsupervised/en.md";
 const MOMA_MEMENTO_EXHIBITION_ID = "00370334-6151-4c04-b6be-dc09e325d57d";
-const MOMA_009_UNSUPERVISED_CONTRACT_ADDRESS = "0x7a15b36cB834AeA88553De69077D3777460d73Ac";
+const MOMA_009_UNSUPERVISED_CONTRACT_ADDRESS =
+    "0x7a15b36cB834AeA88553De69077D3777460d73Ac";
 const CHECK_WEB3_PRIMER_URL =
     'https://feralfile.com/artworks/memento-1-study-for-unsupervised';
 const int cellPerRowPhone = 3;
@@ -251,4 +255,33 @@ class Constants {
     "https://autonomy-app-alternate.app.link",
     "https://link.autonomy.io",
   ];
+}
+
+class MixpanelEvent {
+  static const addExistAccount = 'add_exist_account';
+  static const createNewAccount = 'create_new_account';
+  static const generateLink = 'generate_link';
+  static const backGenerateLink = 'back_generate_link';
+  static const backImportAccount = 'back_import_account';
+  static const restoreAccount = 'restore_account';
+  static const cancelContact = 'cancel_contact';
+  static const connectContactSuccess = 'connect_contact_success';
+  static const backConnectMarket = 'back_connect_market';
+  static const connectMarket = 'connect_market';
+  static const connectMarketSuccess = 'connect_market_success';
+  static const backConfirmTransaction = 'back_confirm_transaction';
+  static const confirmTransaction = 'confirm_transaction';
+  static const clickArtist = 'click_artist';
+  static const aliveInArtworkDetail = 'alive_in_artwork_detail';
+  static const acceptOwnership = 'accept_ownership';
+  static const declineOwnership = 'delice_ownership';
+  static const generateReport = 'generate_report';
+  static const displayUnableLoadIPFS = 'display_unable_load_IPFS';
+  static const clickLoadIPFSAgain = 'click_load_IPFS_again';
+  static const showLoadingArtwork = 'show_loading_artwork';
+  static const streamChromecast = 'stream_chromecast';
+  static const linkLedger = 'link_ledger';
+  static const viewArtwork = 'view_artwork';
+  static const viewDiscovery = 'view_discovery';
+  static const deviceBackground = 'device_background';
 }

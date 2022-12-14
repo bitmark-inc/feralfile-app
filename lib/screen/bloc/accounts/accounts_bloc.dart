@@ -287,7 +287,7 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
 
       final mixPanelClient = injector.get<MixPanelClientService>();
       mixPanelClient.trackEvent(
-        "link_ledger",
+        MixpanelEvent.linkLedger,
         data: {"blockchain": event.blockchain},
         hashedData: {"address": event.address},
       );

@@ -5,8 +5,11 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
+import 'package:autonomy_flutter/service/mixPanel_client_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -16,7 +19,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class NewAccountPage extends StatelessWidget {
-  const NewAccountPage({Key? key}) : super(key: key);
+  NewAccountPage({Key? key}) : super(key: key);
+
+  final mixPanelClient = injector.get<MixPanelClientService>();
 
   @override
   Widget build(BuildContext context) {
@@ -55,6 +60,9 @@ class NewAccountPage extends StatelessWidget {
                             context, "yes".tr(), "ad_i_already_have".tr(),
                             //"I already have NFTs in other wallets that I want to view with Autonomy.",
                             onTap: () {
+                          mixPanelClient.trackEvent(
+                            MixpanelEvent.addExistAccount,
+                          );
                           Navigator.of(context)
                               .pushNamed(AppRouter.accessMethodPage);
                         }),
@@ -99,6 +107,7 @@ class NewAccountPage extends StatelessWidget {
         return _optionItem(context, "no".tr(), "ne_make_a_new_account".tr(),
             //"Make a new account with addresses you can use to collect or receive NFTs on Ethereum, Feral File, and Tezos.",
             onTap: () {
+          mixPanelClient.trackEvent(MixpanelEvent.createNewAccount);
           if (state.createAccountState == ActionState.loading) return;
           UIHelper.showInfoDialog(context, "generating".tr(), "",
               isDismissible: true);

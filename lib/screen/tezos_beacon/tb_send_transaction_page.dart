@@ -8,6 +8,7 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/mixPanel_client_service.dart';
 import 'package:autonomy_flutter/service/pending_token_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
@@ -55,6 +56,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
   bool _showAllFeeOption = false;
   FeeOptionValue? feeOptionValue;
   late int balance;
+  final mixPanelClient = injector.get<MixPanelClientService>();
 
   @override
   void initState() {
@@ -143,6 +145,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
 
     return WillPopScope(
       onWillPop: () async {
+        mixPanelClient.trackEvent(MixpanelEvent.backConfirmTransaction);
         if (wc2Topic != null) {
           _wc2Service.respondOnReject(
             wc2Topic,
@@ -158,6 +161,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
         appBar: getBackAppBar(
           context,
           onBack: () {
+            mixPanelClient.trackEvent(MixpanelEvent.backConfirmTransaction);
             if (wc2Topic != null) {
               _wc2Service.respondOnReject(
                 wc2Topic,
@@ -280,6 +284,8 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                                   setState(() {
                                     _isSending = true;
                                   });
+                                  mixPanelClient.trackEvent(
+                                      MixpanelEvent.confirmTransaction);
 
                                   final configurationService =
                                       injector<ConfigurationService>();

@@ -6,6 +6,7 @@
 //
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/service/mixPanel_client_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -18,8 +19,22 @@ import 'package:share/share.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/util/debouce_util.dart';
 
-class LinkTezosKukaiPage extends StatelessWidget {
+class LinkTezosKukaiPage extends StatefulWidget {
   const LinkTezosKukaiPage({Key? key}) : super(key: key);
+
+  @override
+  State<LinkTezosKukaiPage> createState() => _LinkTezosKukaiPageState();
+}
+
+class _LinkTezosKukaiPageState extends State<LinkTezosKukaiPage> {
+  final mixPanelClient = injector.get<MixPanelClientService>();
+
+  @override
+  void initState() {
+    mixPanelClient.timerEvent(MixpanelEvent.backGenerateLink);
+    mixPanelClient.timerEvent(MixpanelEvent.generateLink);
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +44,10 @@ class LinkTezosKukaiPage extends StatelessWidget {
     return Scaffold(
         appBar: getBackAppBar(
           context,
-          onBack: () => Navigator.of(context).pop(),
+          onBack: () {
+            mixPanelClient.trackEvent(MixpanelEvent.backGenerateLink);
+            Navigator.of(context).pop();
+          },
         ),
         body: Container(
           margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
@@ -72,12 +90,15 @@ class LinkTezosKukaiPage extends StatelessWidget {
               children: [
                 Expanded(
                   child: AuFilledButton(
-                      text: "generate_link".tr().toUpperCase(),
-                      onPress: () => withDebounce(() async {
-                            final uri =
-                                await tezosBeaconService.getConnectionURI();
-                            Share.share("https://wallet.kukai.app/tezos$uri");
-                          }, debounceTime: 2000000)),
+                    text: "generate_link".tr().toUpperCase(),
+                    onPress: () {
+                      mixPanelClient.trackEvent(MixpanelEvent.generateLink);
+                      withDebounce(() async {
+                        final uri = await tezosBeaconService.getConnectionURI();
+                        Share.share("https://wallet.kukai.app/tezos$uri");
+                      }, debounceTime: 2000000);
+                    },
+                  ),
                 ),
               ],
             ),
