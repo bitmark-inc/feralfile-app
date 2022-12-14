@@ -119,7 +119,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
     return Scaffold(
       appBar: getBackAppBar(
         context,
-        title: title?.replaceFirst('did:key:z', '') ?? '',
+        title: title?.replaceFirst('did:key:', '') ?? '',
         onBack: () => Navigator.of(context).pop(),
         isDefaultAccount: isDefaultAccount,
       ),
