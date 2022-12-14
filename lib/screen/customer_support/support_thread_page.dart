@@ -380,7 +380,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
         uuid = message.id;
       }
     }
-    Color orageRust = const Color(0xffA1200A);
+    Color orangeRust = const Color(0xffA1200A);
 
     return isError
         ? Column(
@@ -394,36 +394,48 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
                     children: [
                       GestureDetector(
                           onTap: () async {
-                            await injector<CustomerSupportService>().removeErrorMessage(uuid);
+                            await injector<CustomerSupportService>()
+                                .removeErrorMessage(uuid);
                             _loadDrafts();
-                            injector<CustomerSupportService>().processMessages();
+                            injector<CustomerSupportService>()
+                                .processMessages();
+                            Future.delayed(const Duration(seconds: 5), () {
+                              _loadDrafts();
+                            });
                           },
-                          child:
-                              SvgPicture.asset("assets/images/retry_icon.svg")),
-                      const SizedBox(height: 12),
+                          child: Container(
+                              margin: const EdgeInsets.all(5),
+                              child: SvgPicture.asset(
+                                  "assets/images/retry_icon.svg"))),
+                      const SizedBox(height: 2),
                       GestureDetector(
                           onTap: () async {
-                            await injector<CustomerSupportService>().removeErrorMessage(uuid, isDelete: true);
+                            await injector<CustomerSupportService>()
+                                .removeErrorMessage(uuid, isDelete: true);
                             _loadDrafts();
                           },
-                          child:
-                          SvgPicture.asset("assets/images/cancel_icon.svg")),
-
+                          child: Container(
+                            margin: const EdgeInsets.all(5),
+                            child: SvgPicture.asset(
+                                "assets/images/cancel_icon.svg"),
+                          )),
                     ],
                   ),
-                  const SizedBox(width: 16),
-                  Bubble(
-                    color: color,
-                    borderColor: isError ? orageRust : null,
-                    margin: nextMessageInGroup
-                        ? const BubbleEdges.symmetric(horizontal: 6)
-                        : null,
-                    nip: nextMessageInGroup
-                        ? BubbleNip.no
-                        : _user.id != message.author.id
-                            ? BubbleNip.leftBottom
-                            : BubbleNip.rightBottom,
-                    child: child,
+                  const SizedBox(width: 11),
+                  Flexible(
+                    child: Bubble(
+                      color: color,
+                      borderColor: isError ? orangeRust : null,
+                      margin: nextMessageInGroup
+                          ? const BubbleEdges.symmetric(horizontal: 6)
+                          : null,
+                      nip: nextMessageInGroup
+                          ? BubbleNip.no
+                          : _user.id != message.author.id
+                              ? BubbleNip.leftBottom
+                              : BubbleNip.rightBottom,
+                      child: child,
+                    ),
                   ),
                 ],
               ),
@@ -431,7 +443,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
               Text(
                 "failed_to_send".tr(),
                 style: TextStyle(
-                    color: orageRust,
+                    color: orangeRust,
                     fontFamily: "AtlasGrotesk",
                     fontSize: 12,
                     fontWeight: FontWeight.w300),
@@ -629,6 +641,10 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       _sendIcon = "assets/images/sendMessage.svg";
       _forceAccountsViewRedraw = Object();
       if (isRating) _isRated = true;
+    });
+
+    Future.delayed(const Duration(seconds: 5), () {
+      _loadDrafts();
     });
   }
 

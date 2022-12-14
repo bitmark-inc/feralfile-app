@@ -180,7 +180,6 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
   Future<void> removeErrorMessage(String uuid, {bool isDelete = false}) async {
     retryTime = 0;
     errorMessages.remove(uuid);
-    print("ok-----------$retryTime");
     if (isDelete) {
       final msg = await _draftCustomerSupportDao.getDraft(uuid);
       if (msg != null) {
@@ -192,7 +191,6 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
   @override
   void sendMessageFail(String uuid) {
     if (retryTime > 5) errorMessages.add(uuid);
-    print("fail-----------$retryTime");
   }
 
   @override
