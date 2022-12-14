@@ -30,6 +30,12 @@ class _TextNamePlaylistState extends State<TextNamePlaylist> {
   }
 
   @override
+  void dispose() {
+    _playlistNameC.dispose();
+    super.dispose();
+  }
+
+  @override
   void didUpdateWidget(covariant TextNamePlaylist oldWidget) {
     _playlistNameC.text = widget.playList?.name ?? '';
     super.didUpdateWidget(oldWidget);

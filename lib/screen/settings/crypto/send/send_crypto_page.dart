@@ -58,6 +58,13 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
   }
 
   @override
+  void dispose() {
+    _addressController.dispose();
+    _amountController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final type = widget.data.type;
     final theme = Theme.of(context);

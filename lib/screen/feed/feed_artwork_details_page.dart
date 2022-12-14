@@ -10,28 +10,25 @@ import 'dart:collection';
 import 'package:autonomy_flutter/model/feed.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
+import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/feed/feed_preview_page.dart';
 import 'package:autonomy_flutter/screen/gallery/gallery_page.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
-import 'package:autonomy_flutter/view/au_outlined_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
-import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
-import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/provenance.dart';
 
 class FeedArtworkDetailsPage extends StatefulWidget {
   final FeedDetailPayload payload;
+
   const FeedArtworkDetailsPage({Key? key, required this.payload})
       : super(key: key);
 
@@ -52,10 +49,15 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
     super.initState();
   }
 
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
   void fetchIdentities() {
-    // final state = context.read<FeedDetailBloc>().state;
-    final currentToken = widget.payload.feedToken; //state.feedToken;
-    final currentFeedEvent = widget.payload.feedEvent; //state.feedEvent;
+    final currentToken = widget.payload.feedToken;
+    final currentFeedEvent = widget.payload.feedEvent;
 
     final neededIdentities = [
       currentToken?.artistName ?? '',

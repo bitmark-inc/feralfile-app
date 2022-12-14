@@ -53,6 +53,12 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen> {
     bloc.add(InitPlaylist(playListModel: widget.playListModel));
   }
 
+  @override
+  void dispose() {
+    _playlistNameC.dispose();
+    super.dispose();
+  }
+
   List<AssetToken> setupPlayList({
     required List<AssetToken> tokens,
     List<String>? selectedTokens,

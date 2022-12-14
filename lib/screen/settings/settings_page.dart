@@ -79,6 +79,7 @@ class _SettingsPageState extends State<SettingsPage>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     routeObserver.unsubscribe(this);
+    _controller.dispose();
     super.dispose();
   }
 

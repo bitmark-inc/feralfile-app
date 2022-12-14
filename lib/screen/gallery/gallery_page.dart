@@ -61,6 +61,7 @@ class _GalleryPageState extends State<GalleryPage> {
   @override
   void dispose() {
     _timer?.cancel();
+    _scrollController.dispose();
     super.dispose();
   }
 
