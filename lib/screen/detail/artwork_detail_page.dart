@@ -37,6 +37,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:nft_collection/models/asset_token.dart';
@@ -155,6 +156,13 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                     ],
                   ),
                   actions: [
+                    IconButton(
+                      onPressed: () => _showArtworkOptionsDialog(asset),
+                      icon: SvgPicture.asset(
+                        'assets/images/more_circle.svg',
+                        width: 24,
+                      ),
+                    ),
                     IconButton(
                       onPressed: () => Navigator.pop(context),
                       icon: Icon(
@@ -289,131 +297,95 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   }
 
   Future _showArtworkOptionsDialog(AssetToken asset) async {
-    final theme = Theme.of(context);
-
-    Widget optionRow({required String title, Function()? onTap}) {
-      return InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(title, style: theme.primaryTextTheme.headline4),
-              Icon(Icons.navigate_next, color: theme.colorScheme.secondary),
-            ],
-          ),
-        ),
-      );
-    }
-
     final ownerWallet = await asset.getOwnerWallet();
 
     if (!mounted) return;
     final isHidden = _isHidden(asset);
-    UIHelper.showDialog(
+    UIHelper.showDrawerAction(
       context,
-      "Options",
-      Column(
-        children: [
-          optionRow(
-            title: isHidden ? 'unhide_aw'.tr() : 'hide_aw'.tr(),
-            onTap: () async {
-              await injector<ConfigurationService>()
-                  .updateTempStorageHiddenTokenIDs([asset.id], !isHidden);
-              injector<SettingsDataService>().backup();
+      options: [
+        OptionItem(
+          title: isHidden ? 'unhide_aw'.tr() : 'hide_aw'.tr(),
+          icon: const Icon(AuIcon.hidden_artwork),
+          onTap: () async {
+            await injector<ConfigurationService>()
+                .updateTempStorageHiddenTokenIDs([asset.id], !isHidden);
+            injector<SettingsDataService>().backup();
 
+            if (!mounted) return;
+
+            context.read<NftCollectionBloc>().add(RefreshNftCollection());
+            Navigator.of(context).pop();
+            UIHelper.showHideArtworkResultDialog(context, !isHidden, onOK: () {
+              Navigator.of(context).popUntil((route) =>
+                  route.settings.name == AppRouter.homePage ||
+                  route.settings.name == AppRouter.homePageNoTransition);
+            });
+          },
+        ),
+        if (ownerWallet != null) ...[
+          OptionItem(
+            title: "send_artwork".tr(),
+            icon: const Icon(AuIcon.send),
+            onTap: () async {
+              final payload = await Navigator.of(context).popAndPushNamed(
+                  AppRouter.sendArtworkPage,
+                  arguments: SendArtworkPayload(asset, ownerWallet,
+                      await ownerWallet.getOwnedQuantity(asset))) as Map?;
+              if (payload == null) {
+                return;
+              }
+
+              final isSentAll = payload['isSentAll'] as bool;
+              if (isSentAll) {
+                injector<ConfigurationService>().updateRecentlySentToken([
+                  SentArtwork(asset.id, asset.ownerAddress, DateTime.now())
+                ]);
+                if (isHidden) {
+                  await injector<ConfigurationService>()
+                      .updateTempStorageHiddenTokenIDs([asset.id], false);
+                  injector<SettingsDataService>().backup();
+                }
+              }
               if (!mounted) return;
 
-              context.read<NftCollectionBloc>().add(RefreshNftCollection());
-              Navigator.of(context).pop();
-              UIHelper.showHideArtworkResultDialog(context, !isHidden,
-                  onOK: () {
-                Navigator.of(context).popUntil((route) =>
-                    route.settings.name == AppRouter.homePage ||
-                    route.settings.name == AppRouter.homePageNoTransition);
-              });
+              if (!payload["isTezos"]) {
+                if (isSentAll) {
+                  Navigator.of(context).popAndPushNamed(AppRouter.homePage);
+                }
+                return;
+              }
+
+              final tx = payload['tx'] as TZKTOperation;
+
+              if (!mounted) return;
+              UIHelper.showMessageAction(
+                context,
+                'success'.tr(),
+                'send_success_des'.tr(),
+                onAction: () {
+                  Navigator.of(context).pop();
+                  Navigator.of(context).pushNamed(
+                    AppRouter.tezosTXDetailPage,
+                    arguments: {
+                      "current_address": tx.sender?.address,
+                      "tx": tx,
+                      "isBackHome": isSentAll,
+                    },
+                  );
+                },
+                actionButton: 'see_transaction_detail'.tr().toUpperCase(),
+                closeButton: "close".tr().toUpperCase(),
+                onClose: () => isSentAll
+                    ? Navigator.of(context).popAndPushNamed(
+                        AppRouter.homePage,
+                      )
+                    : null,
+              );
             },
           ),
-          if (ownerWallet != null) ...[
-            Divider(
-              color: theme.colorScheme.secondary,
-              height: 1,
-              thickness: 1,
-            ),
-            optionRow(
-              title: "send_artwork".tr(),
-              onTap: () async {
-                final payload = await Navigator.of(context).popAndPushNamed(
-                    AppRouter.sendArtworkPage,
-                    arguments: SendArtworkPayload(asset, ownerWallet,
-                        await ownerWallet.getOwnedQuantity(asset))) as Map?;
-                if (payload == null) {
-                  return;
-                }
-
-                final isSentAll = payload['isSentAll'] as bool;
-                if (isSentAll) {
-                  injector<ConfigurationService>().updateRecentlySentToken([
-                    SentArtwork(asset.id, asset.ownerAddress, DateTime.now())
-                  ]);
-                  if (isHidden) {
-                    await injector<ConfigurationService>()
-                        .updateTempStorageHiddenTokenIDs([asset.id], false);
-                    injector<SettingsDataService>().backup();
-                  }
-                }
-                if (!mounted) return;
-
-                if (!payload["isTezos"]) {
-                  if (isSentAll) {
-                    Navigator.of(context).popAndPushNamed(AppRouter.homePage);
-                  }
-                  return;
-                }
-
-                final tx = payload['tx'] as TZKTOperation;
-
-                if (!mounted) return;
-                UIHelper.showMessageAction(
-                  context,
-                  'success'.tr(),
-                  'send_success_des'.tr(),
-                  onAction: () {
-                    Navigator.of(context).pop();
-                    Navigator.of(context).pushNamed(
-                      AppRouter.tezosTXDetailPage,
-                      arguments: {
-                        "current_address": tx.sender?.address,
-                        "tx": tx,
-                        "isBackHome": isSentAll,
-                      },
-                    );
-                  },
-                  actionButton: 'see_transaction_detail'.tr().toUpperCase(),
-                  closeButton: "close".tr().toUpperCase(),
-                  onClose: () => isSentAll
-                      ? Navigator.of(context).popAndPushNamed(
-                          AppRouter.homePage,
-                        )
-                      : null,
-                );
-              },
-            ),
-            const SizedBox(
-              height: 18,
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(
-                "cancel".tr(),
-                style: theme.primaryTextTheme.caption,
-              ),
-            ),
-          ],
         ],
-      ),
-      isDismissible: true,
+      ],
     );
   }
 }
