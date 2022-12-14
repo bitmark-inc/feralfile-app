@@ -420,8 +420,6 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
     if (!_showAllFeeOption) {
       return Row(
         children: [
-          SvgPicture.asset(feeOption.icon),
-          const SizedBox(width: 15),
           Text(feeOption.name, style: theme.textTheme.atlasBlackBold12),
           const Spacer(),
           Text(_gasFee(state), style: theme.textTheme.atlasBlackBold12),
@@ -459,8 +457,6 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
         : theme.textTheme.atlasBlackNormal12;
     return Row(
       children: [
-        SvgPicture.asset(feeOption.icon),
-        const SizedBox(width: 15),
         Text(feeOption.name, style: textStyle),
         const Spacer(),
         Text(_gasFee(state, feeOption: feeOption), style: textStyle),
