@@ -72,7 +72,8 @@ class FileLogger {
 
     final current = await _logFile.readAsBytes();
     if (current.length > shrinkSize) {
-      _logFile.writeAsBytes(current.sublist(current.length - shrinkSize), flush: true);
+      _logFile.writeAsBytes(current.sublist(current.length - shrinkSize),
+          flush: true);
     }
 
     final text = '${DateTime.now()}: LOGGING STARTED\n';

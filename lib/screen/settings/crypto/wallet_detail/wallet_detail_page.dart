@@ -68,66 +68,67 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
       body: BlocConsumer<WalletDetailBloc, WalletDetailState>(
           listener: (context, state) async {},
           builder: (context, state) {
-        return Container(
-          margin: const EdgeInsets.only(
-            top: 16.0,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 16.0),
-              SizedBox(
-                width: double.infinity,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      state.balance.isNotEmpty
-                          ? state.balance
-                          : "-- ${widget.payload.type == CryptoType.ETH ? "ETH" : "XTZ"}",
-                      style: theme.textTheme.ibmBlackBold24,
-                    ),
-                    const SizedBox(height: 8.0),
-                    Text(
-                      state.balanceInUSD.isNotEmpty
-                          ? state.balanceInUSD
-                          : "-- USD",
-                      style: theme.textTheme.subtitle1,
-                    )
-                  ],
-                ),
+            return Container(
+              margin: const EdgeInsets.only(
+                top: 16.0,
               ),
-              const SizedBox(height: 10),
-              Expanded(
-                child: widget.payload.type == CryptoType.XTZ
-                    ? TezosTXListView(address: state.address)
-                    : Container(),
-              ),
-              widget.payload.type == CryptoType.XTZ
-                  ? GestureDetector(
-                      onTap: () => launchUrlString(_txURL(state.address)),
-                      child: Container(
-                        alignment: Alignment.bottomCenter,
-                        padding: const EdgeInsets.fromLTRB(0, 17, 0, 20),
-                        color: AppColor.secondaryDimGreyBackground,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text("powered_by_tzkt".tr().toUpperCase(),
-                                style: theme.textTheme.button),
-                            const SizedBox(
-                              width: 4,
-                            ),
-                            SvgPicture.asset("assets/images/external_link.svg"),
-                          ],
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: 16.0),
+                  SizedBox(
+                    width: double.infinity,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          state.balance.isNotEmpty
+                              ? state.balance
+                              : "-- ${widget.payload.type == CryptoType.ETH ? "ETH" : "XTZ"}",
+                          style: theme.textTheme.ibmBlackBold24,
                         ),
-                      ),
-                    )
-                  : Container(),
-            ],
-          ),
-        );
-      }),
+                        const SizedBox(height: 8.0),
+                        Text(
+                          state.balanceInUSD.isNotEmpty
+                              ? state.balanceInUSD
+                              : "-- USD",
+                          style: theme.textTheme.subtitle1,
+                        )
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Expanded(
+                    child: widget.payload.type == CryptoType.XTZ
+                        ? TezosTXListView(address: state.address)
+                        : Container(),
+                  ),
+                  widget.payload.type == CryptoType.XTZ
+                      ? GestureDetector(
+                          onTap: () => launchUrlString(_txURL(state.address)),
+                          child: Container(
+                            alignment: Alignment.bottomCenter,
+                            padding: const EdgeInsets.fromLTRB(0, 17, 0, 20),
+                            color: AppColor.secondaryDimGreyBackground,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text("powered_by_tzkt".tr().toUpperCase(),
+                                    style: theme.textTheme.button),
+                                const SizedBox(
+                                  width: 4,
+                                ),
+                                SvgPicture.asset(
+                                    "assets/images/external_link.svg"),
+                              ],
+                            ),
+                          ),
+                        )
+                      : Container(),
+                ],
+              ),
+            );
+          }),
     );
   }
 

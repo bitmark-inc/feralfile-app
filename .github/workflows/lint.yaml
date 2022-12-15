@@ -64,3 +64,5 @@ jobs:
       - run: flutter pub get
       - name: Analyze Dart
         uses: zgosalvez/github-actions-analyze-dart@v2
+        with:
+          fail-on-warnings: true

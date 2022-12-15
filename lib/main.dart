@@ -114,8 +114,7 @@ _setupApp() async {
       supportedLocales: const [Locale('en', 'US')],
       path: 'assets/translations',
       fallbackLocale: const Locale('en', 'US'),
-      child: const OverlaySupport.global(child: AutonomyApp()))
-  );
+      child: const OverlaySupport.global(child: AutonomyApp())));
 
   Sentry.configureScope((scope) async {
     final deviceID = await getDeviceID();
@@ -176,7 +175,8 @@ class AutonomyApp extends StatelessWidget {
 final RouteObserver<ModalRoute<void>> routeObserver =
     RouteObserver<ModalRoute<void>>();
 
-var memoryValues = MemoryValues(airdropFFExhibitionId: ValueNotifier(null), deepLink: ValueNotifier(null));
+var memoryValues = MemoryValues(
+    airdropFFExhibitionId: ValueNotifier(null), deepLink: ValueNotifier(null));
 
 class MemoryValues {
   String? scopedPersona;
@@ -216,4 +216,3 @@ void downloadCallback(String id, DownloadTaskStatus status, int progress) {
 }
 
 void imageError(Object exception, StackTrace? stackTrace) {}
-

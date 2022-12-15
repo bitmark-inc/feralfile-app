@@ -28,11 +28,11 @@ abstract class TZKTApi {
 
   @GET("/v1/tokens/transfers")
   Future<List<TZKTTokenTransfer>> getTokenTransfer({
-        @Query("anyof.from.to") String? anyOf,
-        @Query("to") String? to,
-        @Query("sort.desc") String sort = "id",
-        @Query("limit") int? limit,
-        @Query("lastId") int? lastId,
-        @Query("timestamp.gt") String? lastTime,
-      });
+    @Query("anyof.from.to") String? anyOf,
+    @Query("to") String? to,
+    @Query("sort.desc") String sort = "id",
+    @Query("limit") int? limit,
+    @Query("lastId") int? lastId,
+    @Query("timestamp.gt") String? lastTime,
+  });
 }

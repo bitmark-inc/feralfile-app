@@ -84,8 +84,8 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
                 reason: "User reject",
               );
             } else {
-            injector<WalletConnectService>()
-                .rejectRequest(widget.args.peerMeta, widget.args.id);
+              injector<WalletConnectService>()
+                  .rejectRequest(widget.args.peerMeta, widget.args.id);
             }
             if (!mounted) return;
             Navigator.of(context).pop();
@@ -282,12 +282,13 @@ class WCSignMessagePageArgs {
   final String uuid;
   final Wc2SignRequestParams? wc2Params;
 
-  WCSignMessagePageArgs(this.id,
-      this.topic,
-      this.peerMeta,
-      this.message,
-      this.type,
-      this.uuid, {
-        this.wc2Params,
-      });
+  WCSignMessagePageArgs(
+    this.id,
+    this.topic,
+    this.peerMeta,
+    this.message,
+    this.type,
+    this.uuid, {
+    this.wc2Params,
+  });
 }

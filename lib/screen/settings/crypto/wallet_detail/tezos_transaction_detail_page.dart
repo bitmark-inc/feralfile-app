@@ -36,7 +36,10 @@ class TezosTXDetailPage extends StatelessWidget {
     required Map<String, dynamic> payload,
   }) =>
       TezosTXDetailPage(
-          currentAddress: payload["current_address"], tx: payload["tx"], isBackHome: payload["isBackHome"] ?? false,);
+        currentAddress: payload["current_address"],
+        tx: payload["tx"],
+        isBackHome: payload["isBackHome"] ?? false,
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -45,9 +48,10 @@ class TezosTXDetailPage extends StatelessWidget {
     double safeAreaBottom = MediaQuery.of(context).padding.bottom;
 
     return Scaffold(
-      appBar: getBackAppBar(context, onBack: () => isBackHome
-          ? Navigator.of(context).pushNamed(AppRouter.homePage)
-          : Navigator.of(context).pop()),
+      appBar: getBackAppBar(context,
+          onBack: () => isBackHome
+              ? Navigator.of(context).pushNamed(AppRouter.homePage)
+              : Navigator.of(context).pop()),
       body: Container(
         margin: EdgeInsets.only(
             top: 16.0, left: 16.0, right: 16.0, bottom: safeAreaBottom + 6),

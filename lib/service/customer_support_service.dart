@@ -63,7 +63,6 @@ abstract class CustomerSupportService {
 }
 
 class CustomerSupportServiceImpl extends CustomerSupportService {
-
   static const int _ipfsReportThreshold = 24 * 60 * 60 * 1000; // 1 day.
 
   final DraftCustomerSupportDao _draftCustomerSupportDao;
@@ -414,7 +413,6 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
   Future rateIssue(String issueID, int rating) async {
     return _customerSupportApi.rateIssue(issueID, rating);
   }
-
 
   @override
   Future reportIPFSLoadingError(AssetToken token) async {

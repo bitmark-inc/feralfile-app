@@ -283,7 +283,8 @@ class FeedServiceImpl extends FeedService {
           break;
 
         case FETCH_FEEDS:
-          _fetchFeeds(message[1], message[2], message[3], message[4], message[5]);
+          _fetchFeeds(
+              message[1], message[2], message[3], message[4], message[5]);
           break;
 
         case FETCH_TOKENS_BY_INDEXIDS:

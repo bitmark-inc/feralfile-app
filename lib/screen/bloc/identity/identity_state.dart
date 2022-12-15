@@ -25,7 +25,6 @@ class FetchIdentityEvent extends IdentityEvent {
 
 /// Remove all identities from app data
 class RemoveAllEvent extends IdentityEvent {
-
   RemoveAllEvent();
 }
 

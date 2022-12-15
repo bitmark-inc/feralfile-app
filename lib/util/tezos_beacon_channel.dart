@@ -15,8 +15,7 @@ import 'package:tezart/tezart.dart';
 
 class TezosBeaconChannel {
   static const MethodChannel _channel = MethodChannel('tezos_beacon');
-  static const EventChannel _eventChannel =
-      EventChannel('tezos_beacon/event');
+  static const EventChannel _eventChannel = EventChannel('tezos_beacon/event');
 
   TezosBeaconChannel({required this.handler}) {
     listen();
@@ -146,8 +145,9 @@ class TezosBeaconChannel {
                   final String destination = element["destination"] ?? "";
                   final String amount = element["amount"] ?? "0";
                   final String? entrypoint = element["entrypoint"];
-                  final dynamic parameters = element["parameters"] != null ?
-                      json.decode(json.encode(element["parameters"])) : null;
+                  final dynamic parameters = element["parameters"] != null
+                      ? json.decode(json.encode(element["parameters"]))
+                      : null;
 
                   final operation = TransactionOperation(
                       amount: int.parse(amount),

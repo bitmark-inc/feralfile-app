@@ -81,14 +81,17 @@ class _AccountsPreviewPageState extends State<AccountsPreviewPage> {
                 TextButton(
                   onPressed: () async {
                     doneOnboarding(context);
-                    final account = await injector<AccountService>().getDefaultAccount();
+                    final account =
+                        await injector<AccountService>().getDefaultAccount();
                     final currentName = await account.getName();
-                    if (currentName == "" || currentName == "Default"){
+                    if (currentName == "" || currentName == "Default") {
                       final defaultName = await account.getAccountDID();
-                      var persona =
-                      await injector<CloudDatabase>().personaDao.findById(account.uuid);
+                      var persona = await injector<CloudDatabase>()
+                          .personaDao
+                          .findById(account.uuid);
                       account.updateName(defaultName);
-                      injector<AccountService>().namePersona(persona!, defaultName);
+                      injector<AccountService>()
+                          .namePersona(persona!, defaultName);
                     }
                   },
                   child: Text("done".tr(), style: theme.textTheme.button),

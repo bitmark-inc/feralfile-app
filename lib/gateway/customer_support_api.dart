@@ -42,7 +42,7 @@ abstract class CustomerSupportApi {
 
   @POST("/v1/issues/{issueID}/rate/{rating}")
   Future<void> rateIssue(
-      @Path("issueID") String issueID,
-      @Path("rating") int rating,
+    @Path("issueID") String issueID,
+    @Path("rating") int rating,
   );
 }

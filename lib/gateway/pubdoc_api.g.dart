@@ -98,13 +98,13 @@ class _PubdocAPI implements PubdocAPI {
       headers: _headers,
       extra: _extra,
     )
-            .compose(
-              _dio.options,
-              '/editorial/editorial.json',
-              queryParameters: queryParameters,
-              data: _data,
-            )
-            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+        .compose(
+          _dio.options,
+          '/editorial/editorial.json',
+          queryParameters: queryParameters,
+          data: _data,
+        )
+        .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
 
     final value = _result.data!;
     return value;

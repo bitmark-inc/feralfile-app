@@ -16,7 +16,8 @@ class Editorial {
     required this.editorial,
   });
 
-  factory Editorial.fromJson(Map<String, dynamic> json) => _$EditorialFromJson(json);
+  factory Editorial.fromJson(Map<String, dynamic> json) =>
+      _$EditorialFromJson(json);
 
   Map<String, dynamic> toJson() => _$EditorialToJson(this);
 }
@@ -37,7 +38,8 @@ class EditorialPost {
     this.tag,
   });
 
-  factory EditorialPost.fromJson(Map<String, dynamic> json) => _$EditorialPostFromJson(json);
+  factory EditorialPost.fromJson(Map<String, dynamic> json) =>
+      _$EditorialPostFromJson(json);
 
   Map<String, dynamic> toJson() => _$EditorialPostToJson(this);
 }
@@ -50,7 +52,8 @@ class Publisher {
 
   Publisher({required this.name, required this.icon, this.intro});
 
-  factory Publisher.fromJson(Map<String, dynamic> json) => _$PublisherFromJson(json);
+  factory Publisher.fromJson(Map<String, dynamic> json) =>
+      _$PublisherFromJson(json);
 
   Map<String, dynamic> toJson() => _$PublisherToJson(this);
 }
@@ -64,7 +67,8 @@ class Reference {
   Reference(
       {required this.location, required this.website, required this.socials});
 
-  factory Reference.fromJson(Map<String, dynamic> json) => _$ReferenceFromJson(json);
+  factory Reference.fromJson(Map<String, dynamic> json) =>
+      _$ReferenceFromJson(json);
 
   Map<String, dynamic> toJson() => _$ReferenceToJson(this);
 }

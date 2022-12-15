@@ -22,9 +22,7 @@ class RoyaltyState {
   final String? exhibitionID;
   final String? markdownData;
 
-  RoyaltyState(
-      {this.exhibitionID,
-      this.markdownData});
+  RoyaltyState({this.exhibitionID, this.markdownData});
 }
 
 class RoyaltyBloc extends AuBloc<RoyaltyEvent, RoyaltyState> {
@@ -44,8 +42,7 @@ class RoyaltyBloc extends AuBloc<RoyaltyEvent, RoyaltyState> {
           if (exhibitionID == MOMA_MEMENTO_EXHIBITION_ID) {
             final data = await dio.get<String>(COLLECTOR_RIGHTS_MEMENTO_DOCS);
             if (data.statusCode == 200) {
-              emit(RoyaltyState(
-                  markdownData: data.data));
+              emit(RoyaltyState(markdownData: data.data));
             }
             return;
           }
@@ -54,8 +51,7 @@ class RoyaltyBloc extends AuBloc<RoyaltyEvent, RoyaltyState> {
             final data = await dio
                 .get<String>(COLLECTOR_RIGHTS_MOMA_009_UNSUPERVISED_DOCS);
             if (data.statusCode == 200) {
-              emit(RoyaltyState(
-                  markdownData: data.data));
+              emit(RoyaltyState(markdownData: data.data));
             }
             return;
           }

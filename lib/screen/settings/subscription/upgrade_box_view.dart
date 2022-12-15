@@ -96,7 +96,7 @@ class _SubscribeViewState extends State<_SubscribeView> {
             }), onCancel: () {
               if (widget.peerMeta != null && widget.id != null) {
                 //injector<WalletConnectService>()
-                  //  .rejectRequest(widget.peerMeta!, widget.id!);
+                //  .rejectRequest(widget.peerMeta!, widget.id!);
                 injector<ConfigurationService>().deleteTVConnectData();
               }
               setState(
