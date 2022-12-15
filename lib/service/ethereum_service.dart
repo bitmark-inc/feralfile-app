@@ -7,6 +7,7 @@
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/gateway/etherchain_api.dart';
+import 'package:autonomy_flutter/model/ether_gas.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter/services.dart';
 import 'package:libauk_dart/libauk_dart.dart';
@@ -30,8 +31,8 @@ abstract class EthereumService {
   Future<FeeOptionValue> estimateFee(WalletStorage wallet, EthereumAddress to,
       EtherAmount amount, String? data);
 
-  Future<String> sendTransaction(
-      WalletStorage wallet, EthereumAddress to, BigInt value, String? data,
+  Future<String> sendTransaction(WalletStorage wallet, EthereumAddress to,
+      BigInt value, String? data,
       {FeeOption? feeOption});
 
   Future<String?> getERC721TransferTransactionData(
@@ -49,8 +50,8 @@ abstract class EthereumService {
       int quantity,
       {FeeOption? feeOption});
 
-  Future<BigInt> getERC20TokenBalance(
-      EthereumAddress contractAddress, EthereumAddress owner);
+  Future<BigInt> getERC20TokenBalance(EthereumAddress contractAddress,
+      EthereumAddress owner);
 
   Future<String?> getERC20TransferTransactionData(
       EthereumAddress contractAddress,
@@ -59,8 +60,8 @@ abstract class EthereumService {
       BigInt quantity,
       {FeeOption? feeOption});
 
-  Future<String> getFeralFileTokenMetadata(
-      EthereumAddress contract, Uint8List data);
+  Future<String> getFeralFileTokenMetadata(EthereumAddress contract,
+      Uint8List data);
 
   Future<EtherAmount> getPriorityFeePerGas(FeeOption feeOption);
 
@@ -86,7 +87,7 @@ class EthereumServiceImpl extends EthereumService {
     final sender = EthereumAddress.fromHex(await wallet.getETHAddress());
     final maxPriorityFeePerGas = await getPriorityFeePerGas(FeeOption.LOW);
     final maxFeePerGas =
-        await getMaxPriorityFeePerGas(priorityFee: maxPriorityFeePerGas);
+    await getMaxPriorityFeePerGas(priorityFee: maxPriorityFeePerGas);
 
     try {
       BigInt gas = await _web3Client.estimateGas(
@@ -115,7 +116,9 @@ class EthereumServiceImpl extends EthereumService {
       return "";
     } else {
       log.info(address);
-      return EthereumAddress.fromHex(address).hexEip55;
+      return EthereumAddress
+          .fromHex(address)
+          .hexEip55;
     }
   }
 
@@ -128,8 +131,8 @@ class EthereumServiceImpl extends EthereumService {
   }
 
   @override
-  Future<String> signPersonalMessage(
-      WalletStorage wallet, Uint8List message) async {
+  Future<String> signPersonalMessage(WalletStorage wallet,
+      Uint8List message) async {
     return await wallet.ethSignPersonalMessage(message);
   }
 
@@ -139,21 +142,21 @@ class EthereumServiceImpl extends EthereumService {
   }
 
   @override
-  Future<String> sendTransaction(
-      WalletStorage wallet, EthereumAddress to, BigInt value, String? data,
+  Future<String> sendTransaction(WalletStorage wallet, EthereumAddress to,
+      BigInt value, String? data,
       {FeeOption? feeOption}) async {
     log.info("[EthereumService] sendTransaction - to: $to - amount $value");
 
     final sender = EthereumAddress.fromHex(await wallet.getETHAddress());
     final nonce = await _web3Client.getTransactionCount(sender);
     var gasLimit =
-        (await _estimateGasLimit(sender, to, EtherAmount.inWei(value), data));
+    (await _estimateGasLimit(sender, to, EtherAmount.inWei(value), data));
     final chainId = Environment.web3ChainId;
     Uint8List signedTransaction;
     if (feeOption != null) {
       final maxPriorityFeePerGas = await getPriorityFeePerGas(feeOption);
       final maxFeePerGas =
-          await getMaxPriorityFeePerGas(priorityFee: maxPriorityFeePerGas);
+      await getMaxPriorityFeePerGas(priorityFee: maxPriorityFeePerGas);
 
       signedTransaction = await wallet.ethSignTransaction1559(
           nonce: nonce,
@@ -196,7 +199,7 @@ class EthereumServiceImpl extends EthereumService {
     if (feeOption != null) {
       final maxPriorityFeePerGas = await getPriorityFeePerGas(feeOption);
       final maxFeePerGas =
-          await getMaxPriorityFeePerGas(priorityFee: maxPriorityFeePerGas);
+      await getMaxPriorityFeePerGas(priorityFee: maxPriorityFeePerGas);
       transaction = Transaction.callContract(
         contract: contract,
         function: transferFrom(),
@@ -241,7 +244,7 @@ class EthereumServiceImpl extends EthereumService {
     if (feeOption != null) {
       final maxPriorityFeePerGas = await getPriorityFeePerGas(feeOption);
       final maxFeePerGas =
-          await getMaxPriorityFeePerGas(priorityFee: maxPriorityFeePerGas);
+      await getMaxPriorityFeePerGas(priorityFee: maxPriorityFeePerGas);
       transaction = Transaction.callContract(
         contract: contract,
         function: transferFrom(),
@@ -279,8 +282,8 @@ class EthereumServiceImpl extends EthereumService {
   }
 
   @override
-  Future<BigInt> getERC20TokenBalance(
-      EthereumAddress contractAddress, EthereumAddress owner) async {
+  Future<BigInt> getERC20TokenBalance(EthereumAddress contractAddress,
+      EthereumAddress owner) async {
     final contractJson = await rootBundle.loadString('assets/erc20-abi.json');
     final contract = DeployedContract(
         ContractAbi.fromJson(contractJson, "ERC20"), contractAddress);
@@ -312,7 +315,7 @@ class EthereumServiceImpl extends EthereumService {
     if (feeOption != null) {
       final maxPriorityFeePerGas = await getPriorityFeePerGas(feeOption);
       final maxFeePerGas =
-          await getMaxPriorityFeePerGas(priorityFee: maxPriorityFeePerGas);
+      await getMaxPriorityFeePerGas(priorityFee: maxPriorityFeePerGas);
       transaction = Transaction.callContract(
         contract: contract,
         function: transferFrom(),
@@ -338,8 +341,8 @@ class EthereumServiceImpl extends EthereumService {
   }
 
   @override
-  Future<String> getFeralFileTokenMetadata(
-      EthereumAddress contract, Uint8List data) async {
+  Future<String> getFeralFileTokenMetadata(EthereumAddress contract,
+      Uint8List data) async {
     final metadata = await _web3Client.callRaw(contract: contract, data: data);
 
     final List<FunctionParameter> outputs = [
@@ -395,9 +398,25 @@ class EthereumServiceImpl extends EthereumService {
 
   @override
   Future<EtherAmount> getPriorityFeePerGas(FeeOption feeOption) async {
-    final gasPrice = await _etherchainApi.getGasPriceOracle();
-    return EtherAmount.fromUnitAndValue(
-        EtherUnit.wei, gasPrice.getFee(feeOption));
+    EtherGasDataOracle gasPrice;
+    try {
+      gasPrice = await _etherchainApi.getGasPriceOracle();
+      return EtherAmount.fromUnitAndValue(
+          EtherUnit.wei, gasPrice.getFee(feeOption));
+    } catch (e) {
+      log.info(
+          "[Ethererum Service] Get gas price failed, error ${e.toString()}");
+      switch (feeOption) {
+        case FeeOption.LOW:
+          return EtherAmount.fromUnitAndValue(EtherUnit.wei, BigInt.from(100000000));
+        case FeeOption.HIGH:
+          return EtherAmount.fromUnitAndValue(EtherUnit.wei, BigInt.from(500000000));
+        default:
+          return EtherAmount.fromUnitAndValue(EtherUnit.wei, BigInt.from(2000000000));
+      }
+    }
+
+
   }
 
   @override
