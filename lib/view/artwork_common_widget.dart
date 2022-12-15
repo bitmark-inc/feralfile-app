@@ -641,6 +641,7 @@ class _BrokenTokenWidgetState extends State<BrokenTokenWidget> {
     injector<CustomerSupportService>().reportIPFSLoadingError(widget.token);
     mixPanelClient.trackEvent(
       MixpanelEvent.displayUnableLoadIPFS,
+      data: {'id': widget.token.id},
     );
     super.initState();
   }
@@ -664,6 +665,7 @@ class _BrokenTokenWidgetState extends State<BrokenTokenWidget> {
             onPressed: () {
               mixPanelClient.trackEvent(
                 MixpanelEvent.clickLoadIPFSAgain,
+                data: {'id': widget.token.id},
               );
               context.read<RetryCubit>().refresh();
             },
