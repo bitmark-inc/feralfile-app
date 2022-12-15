@@ -164,8 +164,10 @@ class IAPServiceImpl implements IAPService {
   @override
   Future<void> restore() async {
     log.info("[IAPService] restore purchases");
-    if (await _inAppPurchase.isAvailable() == false || await isAppCenterBuild())
+    if (await _inAppPurchase.isAvailable() == false ||
+        await isAppCenterBuild()) {
       return;
+    }
     await _inAppPurchase.restorePurchases();
   }
 
