@@ -183,17 +183,14 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     errorMessages.remove(id);
     if (isDelete) {
       var msg = await _draftCustomerSupportDao.getDraft(id);
-      print("--------1");
-      print(id);
       if (msg != null) {
-        print("--------2");
-        print(msg.data);
         final data = DraftCustomerSupportData.fromJson(jsonDecode(msg.data));
         await _draftCustomerSupportDao.deleteDraft(msg);
-        if (msg.draftData.attachments != null) {
-          int index = int.parse(uuid.substring(36));
+        if (msg.draftData.attachments != null && msg.draftData.attachments!.isNotEmpty) {
+          var draftData = msg.draftData;
+          String name = uuid.substring(36);
+          int index = draftData.attachments!.indexWhere((element) => element.fileName.contains(name));
           if (data.attachments!.length > 1) {
-            var draftData = msg.draftData;
             draftData.attachments!.removeAt(index);
             msg.data = jsonEncode(draftData);
             await _draftCustomerSupportDao.insertDraft(msg);
@@ -210,29 +207,27 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
 
   @override
   void sendMessageFail(String uuid) {
-    print("--------retrytime");
-    print(retryTime);
-    if (retryTime > 5) errorMessages.add(uuid);
-    print(errorMessages.length);
+    if (retryTime > 5) {
+      errorMessages.add(uuid);
+      retryTime = 0;
+    }
   }
 
   @override
   Future processMessages() async {
     log.info('[CS-Service][trigger] processMessages');
     if (_isProcessingDraftMessages) return;
-
     final fetchLimit = errorMessages.length + 1;
     log.info('[CS-Service][start] processMessages');
     final draftMsgsRaw = await _draftCustomerSupportDao.fetchDrafts(fetchLimit);
-    print(draftMsgsRaw.length);
     if (draftMsgsRaw.isEmpty) return;
     final draftMsg = draftMsgsRaw
         .firstWhereOrNull((element) => !errorMessages.contains(element.uuid));
     if (draftMsg == null) return;
     log.info('[CS-Service][start] processMessages hasDraft');
     _isProcessingDraftMessages = true;
+
     retryTime++;
-    print(retryTime);
 
     // Edge Case when database has not updated the new issueID for new comments
     if (draftMsg.type != 'CreateIssue' && draftMsg.issueID.contains("TEMP")) {
@@ -241,11 +236,14 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
         await _draftCustomerSupportDao.updateIssueID(
             draftMsg.issueID, newIssueID);
       } else {
-        await _draftCustomerSupportDao.deleteDraft(draftMsg);
+        if (!draftMsgsRaw.any((element) => ((element.issueID == draftMsg.issueID) && (element.uuid != draftMsg.uuid)))) {
+          await _draftCustomerSupportDao.deleteDraft(draftMsg);
+        } else {
+          sendMessageFail(draftMsg.uuid);
+        }
       }
 
       _isProcessingDraftMessages = false;
-      removeErrorMessage(draftMsg.uuid);
       processMessages();
       return;
     }
@@ -271,7 +269,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
       Sentry.captureException(exception);
 
       // just delete draft because we can not do anything more
-      //await _draftCustomerSupportDao.deleteDraft(draftMsg);
+      await _draftCustomerSupportDao.deleteDraft(draftMsg);
       removeErrorMessage(draftMsg.uuid);
       _isProcessingDraftMessages = false;
       log.info(

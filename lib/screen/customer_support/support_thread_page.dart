@@ -231,7 +231,6 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   @override
   Widget build(BuildContext context) {
     List<types.Message> messages = (_draftMessages + _messages);
-
     ////// this convert rating messages to customMessage type, then convert the string messages to rating bars
     for (int i = 0; i < messages.length; i++) {
       if (_isRating(messages[i])) {
@@ -397,8 +396,6 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
                       children: [
                         GestureDetector(
                             onTap: () async {
-                              print("--------retry");
-                              print(uuid);
                               await injector<CustomerSupportService>()
                                   .removeErrorMessage(uuid);
                               _loadDrafts();
@@ -415,16 +412,12 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
                         const SizedBox(height: 2),
                         GestureDetector(
                             onTap: () async {
-                              print("--------cancel");
-                              print(uuid);
                               await injector<CustomerSupportService>()
                                   .removeErrorMessage(uuid, isDelete: true);
                               await _loadDrafts();
-                              if (_messages.isEmpty) {
+                              if (_draftMessages.isEmpty && _messages.isEmpty) {
                                 if (!mounted) return;
-                                Navigator.of(context).popAndPushNamed(
-                                    AppRouter.supportThreadPage,
-                                    arguments: widget.payload);
+                                Navigator.of(context).pop();
                               }
 
                             },
@@ -785,8 +778,6 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     } else if (message is DraftCustomerSupport) {
       id = message.uuid;
       author = _user;
-      print("-------id");
-      print(id);
       final errorMessages = injector<CustomerSupportService>().errorMessages;
       status = (errorMessages != null && errorMessages.contains(id))
           ? types.Status.error
@@ -843,7 +834,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     for (var i = 0; i < titles.length; i += 1) {
       if (contentTypes[i].contains("image")) {
         result.add(types.ImageMessage(
-          id: '$id$i',
+          id: '$id${titles[i]}',
           author: author,
           createdAt: createdAt.millisecondsSinceEpoch,
           status: status,
@@ -856,7 +847,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
         final sizeAndRealTitle =
             ReceiveAttachment.extractSizeAndRealTitle(titles[i]);
         result.add(types.FileMessage(
-          id: '$id$i',
+          id: '$id${sizeAndRealTitle[1]}',
           author: author,
           createdAt: createdAt.millisecondsSinceEpoch,
           status: status,
