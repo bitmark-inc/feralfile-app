@@ -854,15 +854,9 @@ Widget debugInfoWidget(BuildContext context, AssetToken? token) {
 
 Widget artworkDetailsRightSection(BuildContext context, AssetToken token) {
   return token.source == "feralfile"
-      ? Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 40.0),
-            ArtworkRightsView(
-              contract: FFContract("", "", token.contractAddress ?? ""),
-              editionID: token.id.split("-").last,
-            ),
-          ],
+      ? ArtworkRightsView(
+          contract: FFContract("", "", token.contractAddress ?? ""),
+          editionID: token.id.split("-").last,
         )
       : const SizedBox();
 }
@@ -1096,6 +1090,7 @@ class ProvenanceItem extends StatelessWidget {
   final Function()? onNameTap;
   final String? tapLink;
   final bool? forceSafariVC;
+
   const ProvenanceItem({
     Key? key,
     required this.title,
@@ -1174,6 +1169,7 @@ class ProvenanceItem extends StatelessWidget {
 
 class HeaderData extends StatelessWidget {
   final String text;
+
   const HeaderData({Key? key, required this.text}) : super(key: key);
 
   @override
@@ -1213,7 +1209,6 @@ Widget artworkDetailsProvenanceSectionNotEmpty(
     List<Provenance> provenances,
     HashSet<String> youAddresses,
     Map<String, String> identityMap) {
-
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [

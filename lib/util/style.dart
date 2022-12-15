@@ -133,7 +133,7 @@ MarkdownStyleSheet markDownRightStyle(BuildContext context) {
     h5Padding: EdgeInsets.zero,
     h6: theme.textTheme.ppMori400White14,
     h6Padding: EdgeInsets.zero,
-    em: const TextStyle(fontStyle: FontStyle.italic, color: Colors.white),
+    em: const TextStyle(fontStyle: FontStyle.normal, color: Colors.white),
     strong: theme.textTheme.ppMori400White14,
     del: const TextStyle(
         decoration: TextDecoration.lineThrough, color: Colors.white),
