@@ -91,7 +91,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
       },
     );
     mixPanelClient.timerEvent(
-      MixpanelEvent.aliveInArtworkDetail,
+      MixpanelEvent.stayInArtworkDetail,
     );
   }
 
@@ -100,7 +100,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     final artworkId =
         jsonEncode(widget.payload.identities[widget.payload.currentIndex]);
     mixPanelClient.trackEvent(
-      MixpanelEvent.aliveInArtworkDetail,
+      MixpanelEvent.stayInArtworkDetail,
       data: {
         "id": artworkId,
       },

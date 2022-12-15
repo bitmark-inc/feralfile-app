@@ -886,7 +886,17 @@ Widget artworkDetailsMetadataSection(
         MetaDataItem(
           title: "artist".tr(),
           value: artistName,
-          tapLink: asset.artistURL?.split(" & ").firstOrNull,
+          onTap: () {
+            final mixPanelClient = injector.get<MixPanelClientService>();
+
+            mixPanelClient.trackEvent(MixpanelEvent.clickArtist, data: {
+              'id': asset.id,
+              'artistID': asset.artistID,
+            });
+            final uri =
+                Uri.parse(asset.artistURL?.split(" & ").firstOrNull ?? "");
+            launchUrl(uri, mode: LaunchMode.externalApplication);
+          },
           forceSafariVC: true,
         ),
       ],

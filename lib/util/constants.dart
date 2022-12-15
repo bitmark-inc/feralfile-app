@@ -272,7 +272,7 @@ class MixpanelEvent {
   static const backConfirmTransaction = 'back_confirm_transaction';
   static const confirmTransaction = 'confirm_transaction';
   static const clickArtist = 'click_artist';
-  static const aliveInArtworkDetail = 'alive_in_artwork_detail';
+  static const stayInArtworkDetail = 'stay_in_artwork_detail';
   static const acceptOwnership = 'accept_ownership';
   static const declineOwnership = 'delice_ownership';
   static const generateReport = 'generate_report';
