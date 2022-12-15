@@ -10,12 +10,8 @@ import 'dart:io';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/customer_support_service.dart';
-import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/view/badge_view.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -173,21 +169,9 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
   Widget _mainHeaderWidget({required bool isInSettingsPage}) {
     final theme = Theme.of(context);
     return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Container(
-          padding: const EdgeInsets.fromLTRB(0, 0, 9, 12),
-          child: IconButton(
-            constraints: const BoxConstraints(),
-            icon: SvgPicture.asset("assets/images/iconQr.svg"),
-            onPressed: () {
-              if (_opacity == 0) return;
-              Navigator.of(context).pushNamed(AppRouter.scanQRPage,
-                  arguments: ScannerItem.GLOBAL);
-            },
-          ),
-        ),
-        _discovery(),
-        const Spacer(),
+        const SizedBox(width: 47),
         Visibility(
           visible: isInSettingsPage,
           child: Padding(
@@ -198,10 +182,8 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
             ),
           ),
         ),
-        const Spacer(),
-        _customerSupportIconWidget(),
         Container(
-          padding: const EdgeInsets.fromLTRB(17, 0, 0, 10),
+          padding: const EdgeInsets.fromLTRB(0, 0, 0, 20),
           child: Semantics(
             label: "Settings",
             child: IconButton(
@@ -247,72 +229,5 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
         ]
       ],
     );
-  }
-
-  Widget _discovery() {
-    return ValueListenableBuilder<int>(
-        valueListenable: injector<FeedService>().unviewedCount,
-        builder: (BuildContext context, int unreadCount, Widget? child) {
-          return Container(
-            padding: const EdgeInsets.fromLTRB(0, 0, 12, 12),
-            child: Stack(
-              children: [
-                IconButton(
-                    onPressed: () {
-                      if (_opacity == 0) return;
-                      Navigator.of(context)
-                          .pushNamed(AppRouter.feedPreviewPage);
-                    },
-                    icon: SvgPicture.asset('assets/images/iconFeed.svg')),
-                if (unreadCount > 0) ...[
-                  Positioned(
-                      top: 8,
-                      right: 8,
-                      child: Align(
-                        alignment: Alignment.topRight,
-                        child: BadgeView(number: unreadCount),
-                      )),
-                ]
-              ],
-            ),
-          );
-        });
-  }
-
-  Widget _customerSupportIconWidget() {
-    return ValueListenableBuilder<List<int>?>(
-        valueListenable: injector<CustomerSupportService>().numberOfIssuesInfo,
-        builder: (BuildContext context, List<int>? numberOfIssuesInfo,
-            Widget? child) {
-          final unreadIssues = numberOfIssuesInfo?[1] ?? 0;
-          return GestureDetector(
-            behavior: HitTestBehavior.translucent,
-            key: const Key("customerSupport"),
-            child: Semantics(
-                label: "Customer Support",
-                child: Container(
-                  padding: const EdgeInsets.fromLTRB(20, 10, 0, 20),
-                  child: Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      SvgPicture.asset("assets/images/iconCustomerSupport.svg"),
-                      if (unreadIssues != 0) ...[
-                        Positioned(
-                            top: -3,
-                            left: 13,
-                            child: Align(
-                              alignment: Alignment.topRight,
-                              child: BadgeView(number: unreadIssues),
-                            )),
-                      ]
-                    ],
-                  ),
-                )),
-            onTap: () {
-              if (_opacity == 0) return;
-              Navigator.of(context).pushNamed(AppRouter.supportCustomerPage);
-            },
-          );
-        });
   }
 }

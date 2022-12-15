@@ -14,7 +14,6 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_theme/style/style.dart';
@@ -168,6 +167,26 @@ class UpgradesView extends StatelessWidget {
                             ),
                           ]))
                   .toList(),
+              const SizedBox(height: 16.0),
+              ...[
+                "organize_and_play".tr(),
+              ]
+                  .map((item) => Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              ' •  ',
+                              style: theme.textTheme.bodyText1,
+                              textAlign: TextAlign.start,
+                            ),
+                            Expanded(
+                              child: Text(
+                                item,
+                                style: theme.textTheme.bodyText1,
+                              ),
+                            ),
+                          ]))
+                  .toList(),
             ],
           ),
         );
@@ -178,7 +197,7 @@ class UpgradesView extends StatelessWidget {
     }
   }
 
-  static _benefit(BuildContext context) {
+  static _benefitItem(BuildContext context, String text) {
     final theme = Theme.of(context);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -192,8 +211,23 @@ class UpgradesView extends StatelessWidget {
         ),
         const SizedBox(width: 12.0),
         Expanded(
-          child:
-              Text("view_collection_tv".tr(), style: theme.textTheme.bodyText1),
+          child: Text(text, style: theme.textTheme.bodyText1),
+        ),
+      ],
+    );
+  }
+
+  static _benefit(BuildContext context) {
+    return Column(
+      children: [
+        _benefitItem(
+          context,
+          "view_collection_tv".tr(),
+        ),
+        const SizedBox(height: 15),
+        _benefitItem(
+          context,
+          "organize_and_play".tr(),
         ),
       ],
     );

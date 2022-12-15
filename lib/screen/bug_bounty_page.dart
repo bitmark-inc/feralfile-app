@@ -12,11 +12,11 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 
 class BugBountyPage extends StatelessWidget {
   const BugBountyPage({Key? key}) : super(key: key);
@@ -26,14 +26,14 @@ class BugBountyPage extends StatelessWidget {
     final theme = Theme.of(context);
 
     Map<String, String> guidelines = {
-      "critical".tr(): "guidelines_critical"
-          .tr(), //"Key leaks or invalid transactions resulting in asset loss: Up to \$5,000",
-      "high".tr():
-          "guidelines_high".tr(), // "Crashes or user data loss: \$100 - \$500",
+      "critical".tr(): "guidelines_critical".tr(),
+      //"Key leaks or invalid transactions resulting in asset loss: Up to \$5,000",
+      "high".tr(): "guidelines_high".tr(),
+      // "Crashes or user data loss: \$100 - \$500",
       "medium".tr(): "guidelines_medium".tr(),
       //"Incorrect flows or incompatibility with protocol or dapps: \$50 - \$100",
-      "low".tr():
-          "guidelines_low".tr(), // "UI typos, alignment errors: \$10 - \$50",
+      "low".tr(): "guidelines_low".tr(),
+      // "UI typos, alignment errors: \$10 - \$50",
     };
 
     return Scaffold(
@@ -86,6 +86,7 @@ class BugBountyPage extends StatelessWidget {
                   ])),
               const SizedBox(height: 32),
               Text('rewards'.tr(), style: theme.textTheme.headline4),
+              const SizedBox(height: 16),
               Text(
                 "reward_ranging".tr(),
                 //'We pay rewards ranging from \$10 to \$5,000, administered according to the following guidelines:',
@@ -147,7 +148,7 @@ class BugBountyPage extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               Text(
-                'rewards_in_usdc'.tr(),
+                'rewards_in_xtz_or_eth'.tr(),
                 style: theme.textTheme.bodyText1,
               ),
               const SizedBox(height: 32),
