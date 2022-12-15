@@ -91,7 +91,6 @@ class _LinkAccountPageState extends State<LinkAccountPage>
     );
   }
 
-
   Widget _tezosLinkView(BuildContext context) {
     final tezosBeaconService = injector<TezosBeaconService>();
     final theme = Theme.of(context);

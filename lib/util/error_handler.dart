@@ -5,8 +5,6 @@
 //  that can be found in the LICENSE file.
 //
 
-
-
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -307,10 +305,8 @@ void showErrorDialogFromException(Object exception,
       .addEvent("unhandled_error", data: {"message": exception.toString()});
 
   final mixPanelClient = injector.get<MixPanelClientService>();
-  mixPanelClient.trackEvent(
-      "unhandled_error",
-      data: {"message": exception.toString()}
-  );
+  mixPanelClient
+      .trackEvent("unhandled_error", data: {"message": exception.toString()});
 
   if (library != null || onlySentryException(exception)) {
     // Send error directly to Sentry if it comes from specific libraries

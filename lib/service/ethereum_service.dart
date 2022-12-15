@@ -86,7 +86,7 @@ class EthereumServiceImpl extends EthereumService {
     final sender = EthereumAddress.fromHex(await wallet.getETHAddress());
     final maxPriorityFeePerGas = await getPriorityFeePerGas(FeeOption.LOW);
     final maxFeePerGas =
-    await getMaxPriorityFeePerGas(priorityFee: maxPriorityFeePerGas);
+        await getMaxPriorityFeePerGas(priorityFee: maxPriorityFeePerGas);
 
     try {
       BigInt gas = await _web3Client.estimateGas(
@@ -153,7 +153,7 @@ class EthereumServiceImpl extends EthereumService {
     if (feeOption != null) {
       final maxPriorityFeePerGas = await getPriorityFeePerGas(feeOption);
       final maxFeePerGas =
-      await getMaxPriorityFeePerGas(priorityFee: maxPriorityFeePerGas);
+          await getMaxPriorityFeePerGas(priorityFee: maxPriorityFeePerGas);
 
       signedTransaction = await wallet.ethSignTransaction1559(
           nonce: nonce,
@@ -176,7 +176,6 @@ class EthereumServiceImpl extends EthereumService {
           chainId: chainId);
     }
 
-
     return _web3Client.sendRawTransaction(signedTransaction);
   }
 
@@ -194,10 +193,10 @@ class EthereumServiceImpl extends EthereumService {
 
     final nonce = await _web3Client.getTransactionCount(from);
     Transaction transaction;
-    if(feeOption != null) {
+    if (feeOption != null) {
       final maxPriorityFeePerGas = await getPriorityFeePerGas(feeOption);
       final maxFeePerGas =
-      await getMaxPriorityFeePerGas(priorityFee: maxPriorityFeePerGas);
+          await getMaxPriorityFeePerGas(priorityFee: maxPriorityFeePerGas);
       transaction = Transaction.callContract(
         contract: contract,
         function: transferFrom(),
@@ -239,10 +238,10 @@ class EthereumServiceImpl extends EthereumService {
     final nonce = await _web3Client.getTransactionCount(from);
 
     Transaction transaction;
-    if(feeOption != null) {
+    if (feeOption != null) {
       final maxPriorityFeePerGas = await getPriorityFeePerGas(feeOption);
       final maxFeePerGas =
-      await getMaxPriorityFeePerGas(priorityFee: maxPriorityFeePerGas);
+          await getMaxPriorityFeePerGas(priorityFee: maxPriorityFeePerGas);
       transaction = Transaction.callContract(
         contract: contract,
         function: transferFrom(),
@@ -310,10 +309,10 @@ class EthereumServiceImpl extends EthereumService {
 
     final nonce = await _web3Client.getTransactionCount(from);
     Transaction transaction;
-    if(feeOption != null) {
+    if (feeOption != null) {
       final maxPriorityFeePerGas = await getPriorityFeePerGas(feeOption);
       final maxFeePerGas =
-      await getMaxPriorityFeePerGas(priorityFee: maxPriorityFeePerGas);
+          await getMaxPriorityFeePerGas(priorityFee: maxPriorityFeePerGas);
       transaction = Transaction.callContract(
         contract: contract,
         function: transferFrom(),

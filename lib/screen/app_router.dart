@@ -691,13 +691,17 @@ class AppRouter {
             curve: Curves.easeIn,
             duration: const Duration(milliseconds: 250),
             settings: settings,
-            child: MultiBlocProvider(providers: [
-              BlocProvider.value(value: accountsBloc),
-              BlocProvider(create: (_) => RoyaltyBloc(injector())),
-              BlocProvider(
-                  create: (_) =>
-                      IdentityBloc(injector<AppDatabase>(), injector())),
-            ], child: FeedArtworkDetailsPage(payload: settings.arguments as FeedDetailPayload,)));
+            child: MultiBlocProvider(
+                providers: [
+                  BlocProvider.value(value: accountsBloc),
+                  BlocProvider(create: (_) => RoyaltyBloc(injector())),
+                  BlocProvider(
+                      create: (_) =>
+                          IdentityBloc(injector<AppDatabase>(), injector())),
+                ],
+                child: FeedArtworkDetailsPage(
+                  payload: settings.arguments as FeedDetailPayload,
+                )));
 
       case galleryPage:
         return CupertinoPageRoute(
@@ -1020,7 +1024,8 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) {
-              return ArticleDetailPage(post: settings.arguments as EditorialPost);
+              return ArticleDetailPage(
+                  post: settings.arguments as EditorialPost);
             });
 
       default:

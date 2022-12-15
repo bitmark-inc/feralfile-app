@@ -35,8 +35,7 @@ class SurveyThankyouPage extends StatelessWidget {
               style: theme.textTheme.headline1,
             ),
             const SizedBox(height: 40.0),
-            Text(
-                "entered_drawing".tr(),
+            Text("entered_drawing".tr(),
                 //"You’ve been automatically entered in this month’s drawing to win a Feral File artwork. If you win, we’ll transfer the NFT to your Autonomy account and notify you.",
                 style: theme.textTheme.bodyText1),
             const Spacer(),

@@ -39,8 +39,7 @@ final migrateCloudV1ToV2 = Migration(1, 2, (database) async {
 });
 
 final migrateCloudV2ToV3 = Migration(2, 3, (database) async {
-  await database
-      .execute("""
+  await database.execute("""
       ALTER TABLE Persona ADD COLUMN defaultAccount int DEFAULT(NULL);
       UPDATE Persona SET defaultAccount=1 ORDER BY id LIMIT 1;
       """);

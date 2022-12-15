@@ -17,7 +17,8 @@ main() async {
   late AccountService accountService;
   late ConfigurationService configService;
   late AuthService authService;
-  const jwt = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
+  const jwt =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
 
   group('auth service test', () {
     setup() {
@@ -31,8 +32,8 @@ main() async {
       setup();
 
       final message = DateTime.now().millisecondsSinceEpoch.toString();
-      when(accountService.getDefaultAccount())
-          .thenAnswer((_) async => MockWalletStorage(const Uuid().v4().toString()));
+      when(accountService.getDefaultAccount()).thenAnswer(
+          (_) async => MockWalletStorage(const Uuid().v4().toString()));
       when(configService.getIAPReceipt()).thenReturn(null);
       when(authApi.auth({
         "requester": "account_did",
@@ -49,8 +50,8 @@ main() async {
       setup();
 
       final message = DateTime.now().millisecondsSinceEpoch.toString();
-      when(accountService.getDefaultAccount())
-          .thenAnswer((_) async => MockWalletStorage(const Uuid().v4().toString()));
+      when(accountService.getDefaultAccount()).thenAnswer(
+          (_) async => MockWalletStorage(const Uuid().v4().toString()));
       when(configService.getIAPReceipt()).thenReturn(null);
       when(authApi.auth({
         "requester": "account_did",
@@ -59,8 +60,9 @@ main() async {
       })).thenAnswer((_) async => JWT(jwtToken: jwt));
 
       final token1 = await authService.getAuthToken(messageToSign: message);
-      final token2 = await authService.getAuthToken(messageToSign: message, forceRefresh: true);
-      
+      final token2 = await authService.getAuthToken(
+          messageToSign: message, forceRefresh: true);
+
       verify(accountService.getDefaultAccount()).called(2);
       verify(configService.getIAPReceipt()).called(2);
       verify(authApi.auth({

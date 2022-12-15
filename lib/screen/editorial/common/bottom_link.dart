@@ -13,7 +13,8 @@ class BottomLink extends StatelessWidget {
   final String tag;
   final Function()? onTap;
 
-  const BottomLink({Key? key, required this.name, required this.tag, this.onTap})
+  const BottomLink(
+      {Key? key, required this.name, required this.tag, this.onTap})
       : super(key: key);
 
   @override

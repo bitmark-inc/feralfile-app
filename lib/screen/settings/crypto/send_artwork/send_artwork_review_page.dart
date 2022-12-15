@@ -76,7 +76,8 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
         //post pending token to indexer
         if (txHash.isNotEmpty) {
           final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
-          final signature = await ethereumService.signPersonalMessage(widget.payload.wallet,
+          final signature = await ethereumService.signPersonalMessage(
+              widget.payload.wallet,
               Uint8List.fromList(utf8.encode(timestamp)));
           final pendingTxParams = PendingTxParams(
             blockchain: asset.blockchain,
@@ -121,7 +122,8 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
         if (opHash != null) {
           final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
           final publicKey = await widget.payload.wallet.getTezosPublicKey();
-          final signature = await tezosService.signMessage(widget.payload.wallet,
+          final signature = await tezosService.signMessage(
+              widget.payload.wallet,
               Uint8List.fromList(utf8.encode(timestamp)));
           final pendingTxParams = PendingTxParams(
             blockchain: asset.blockchain,

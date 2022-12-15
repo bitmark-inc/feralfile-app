@@ -28,9 +28,8 @@ class AutonomyServiceImpl extends AutonomyService {
     final personas = await _cloudDB.personaDao.getPersonas();
 
     if (personas.isEmpty) {
-      log.info(
-          '[AutonomyService] postLinkedAddresses;'
-              ' skip when there is no persona');
+      log.info('[AutonomyService] postLinkedAddresses;'
+          ' skip when there is no persona');
       return; // avoid re-create default account when forgot I existing
     }
 

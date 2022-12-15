@@ -17,8 +17,10 @@ import 'package:shake/shake.dart';
 class PreviewTokenClaim extends StatefulWidget {
   final FFArtwork artwork;
 
-  const PreviewTokenClaim({Key? key, required this.artwork,})
-      : super(key: key);
+  const PreviewTokenClaim({
+    Key? key,
+    required this.artwork,
+  }) : super(key: key);
 
   @override
   State<PreviewTokenClaim> createState() => _PreviewTokenClaimState();

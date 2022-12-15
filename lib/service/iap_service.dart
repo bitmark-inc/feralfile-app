@@ -60,7 +60,6 @@ abstract class IAPService {
 }
 
 class IAPServiceImpl implements IAPService {
-
   final ConfigurationService _configurationService;
   final AuthService _authService;
 
@@ -165,8 +164,8 @@ class IAPServiceImpl implements IAPService {
   @override
   Future<void> restore() async {
     log.info("[IAPService] restore purchases");
-    if (await _inAppPurchase.isAvailable() == false ||
-        await isAppCenterBuild()) return;
+    if (await _inAppPurchase.isAvailable() == false || await isAppCenterBuild())
+      return;
     await _inAppPurchase.restorePurchases();
   }
 
@@ -191,9 +190,8 @@ class IAPServiceImpl implements IAPService {
     }
 
     purchaseDetailsList.forEach((PurchaseDetails purchaseDetails) async {
-      log.info(
-          "[IAPService] purchase: ${purchaseDetails.productID},"
-              " status: ${purchaseDetails.status.name}");
+      log.info("[IAPService] purchase: ${purchaseDetails.productID},"
+          " status: ${purchaseDetails.status.name}");
 
       if (purchaseDetails.pendingCompletePurchase) {
         await _inAppPurchase.completePurchase(purchaseDetails);
@@ -202,7 +200,8 @@ class IAPServiceImpl implements IAPService {
       if (purchaseDetails.status == PurchaseStatus.pending) {
         purchases.value[purchaseDetails.productID] = IAPProductStatus.pending;
       } else if (purchaseDetails.status == PurchaseStatus.canceled) {
-        purchases.value[purchaseDetails.productID] = IAPProductStatus.notPurchased;
+        purchases.value[purchaseDetails.productID] =
+            IAPProductStatus.notPurchased;
       } else {
         if (purchaseDetails.status == PurchaseStatus.error) {
           purchases.value[purchaseDetails.productID] = IAPProductStatus.error;
@@ -229,14 +228,14 @@ class IAPServiceImpl implements IAPService {
               purchases.value[purchaseDetails.productID] =
                   IAPProductStatus.trial;
               injector<MixPanelClientService>().trackEvent(
-                  "Trial",
-                    data:{
-                      "productId": purchaseDetails.productID,
-                      "status": purchaseDetails.status.name,
-                    },
-                    hashedData: {
-                      "purchaseId": purchaseDetails.purchaseID,
-                    },
+                "Trial",
+                data: {
+                  "productId": purchaseDetails.productID,
+                  "status": purchaseDetails.status.name,
+                },
+                hashedData: {
+                  "purchaseId": purchaseDetails.purchaseID,
+                },
               );
               trialExpireDates.value[purchaseDetails.productID] =
                   status.expireDate;
@@ -245,7 +244,7 @@ class IAPServiceImpl implements IAPService {
                   IAPProductStatus.completed;
               injector<MixPanelClientService>().trackEvent(
                 "Purchased",
-                data:{
+                data: {
                   "productId": purchaseDetails.productID,
                   "status": purchaseDetails.status.name,
                 },

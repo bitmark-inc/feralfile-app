@@ -32,9 +32,7 @@ class AndroidBackupChannel {
         return [];
       }
       final backupData = json.decode(data);
-      return BackupData
-          .fromJson(backupData)
-          .accounts;
+      return BackupData.fromJson(backupData).accounts;
     } catch (e) {
       log.warning("Android cloud backup error", e);
       return [];
@@ -50,12 +48,13 @@ class BackupData {
   List<BackupAccount> accounts;
 
   factory BackupData.fromJson(Map<String, dynamic> json) => BackupData(
-    accounts: List<BackupAccount>.from(json["accounts"].map((x) => BackupAccount.fromJson(x))),
-  );
+        accounts: List<BackupAccount>.from(
+            json["accounts"].map((x) => BackupAccount.fromJson(x))),
+      );
 
   Map<String, dynamic> toJson() => {
-    "accounts": accounts,
-  };
+        "accounts": accounts,
+      };
 }
 
 class BackupAccount {
@@ -68,12 +67,12 @@ class BackupAccount {
   String name;
 
   factory BackupAccount.fromJson(Map<String, dynamic> json) => BackupAccount(
-    uuid: json["uuid"],
-    name: json["name"],
-  );
+        uuid: json["uuid"],
+        name: json["name"],
+      );
 
   Map<String, dynamic> toJson() => {
-    "uuid": uuid,
-    "name": name,
-  };
+        "uuid": uuid,
+        "name": name,
+      };
 }

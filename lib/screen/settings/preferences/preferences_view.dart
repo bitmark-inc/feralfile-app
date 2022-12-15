@@ -60,7 +60,8 @@ class PreferenceView extends StatelessWidget {
               "receive_notification".tr(),
               //"Receive notifications when you get new NFTs, signing requests, or customer support messages.",
               state.isNotificationEnabled, (value) {
-            final newState = state.copyWith(isNotificationEnabled: value, hasPendingSettings: false);
+            final newState = state.copyWith(
+                isNotificationEnabled: value, hasPendingSettings: false);
             final configService = injector<ConfigurationService>();
             configService.setPendingSettings(false);
             context

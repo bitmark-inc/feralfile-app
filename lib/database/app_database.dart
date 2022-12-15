@@ -19,9 +19,7 @@ import 'package:sqflite/sqflite.dart' as sqflite;
 part 'app_database.g.dart'; // the generated code will be there
 
 @TypeConverters([DateTimeConverter, TokenOwnersConverter])
-@Database(
-    version: 14,
-    entities: [Identity, DraftCustomerSupport])
+@Database(version: 14, entities: [Identity, DraftCustomerSupport])
 abstract class AppDatabase extends FloorDatabase {
   IdentityDao get identityDao;
   DraftCustomerSupportDao get draftCustomerSupportDao;

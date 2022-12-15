@@ -179,19 +179,23 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
                                 await _approveRequest(signature: signature);
                                 if (!mounted) return;
 
-                                final mixPanelClient = injector.get<MixPanelClientService>();
+                                final mixPanelClient =
+                                    injector.get<MixPanelClientService>();
                                 mixPanelClient.trackEvent(
                                   "Sign In",
                                   hashedData: {"uuid": widget.request.id},
                                 );
                                 Navigator.of(context).pop();
                                 final notificationEnable =
-                                    injector<ConfigurationService>().isNotificationEnabled() ?? false;
+                                    injector<ConfigurationService>()
+                                            .isNotificationEnabled() ??
+                                        false;
                                 if (notificationEnable) {
                                   showInfoNotification(
                                     const Key("signed"),
                                     "signed".tr().toUpperCase(),
-                                    frontWidget: SvgPicture.asset("assets/images/checkbox_icon.svg"),
+                                    frontWidget: SvgPicture.asset(
+                                        "assets/images/checkbox_icon.svg"),
                                   );
                                 }
                               })

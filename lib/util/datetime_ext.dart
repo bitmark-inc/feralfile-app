@@ -43,7 +43,5 @@ String getChatDateTimeRepresentation(DateTime dateTime) {
   if (dateTime.year == now.year) {
     return dateFormatterMDHM.format(dateTime.toLocal()).toUpperCase();
   }
-  return dateFormatterYMDHM
-      .format(dateTime.toLocal())
-      .toUpperCase();
+  return dateFormatterYMDHM.format(dateTime.toLocal()).toUpperCase();
 }

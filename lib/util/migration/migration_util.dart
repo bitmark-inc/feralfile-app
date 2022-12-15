@@ -33,13 +33,8 @@ class MigrationUtil {
   final BackupService _backupService;
   final int requiredAndroidMigrationVersion = 95;
 
-  MigrationUtil(
-      this._configurationService,
-      this._cloudDB,
-      this._accountService,
-      this._iapService,
-      this._auditService,
-      this._backupService);
+  MigrationUtil(this._configurationService, this._cloudDB, this._accountService,
+      this._iapService, this._auditService, this._backupService);
 
   Future<void> migrateIfNeeded() async {
     if (Platform.isIOS) {

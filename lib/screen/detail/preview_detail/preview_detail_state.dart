@@ -16,7 +16,8 @@ class ArtworkPreviewDetailGetAssetTokenEvent extends ArtworkPreviewDetailEvent {
   ArtworkPreviewDetailGetAssetTokenEvent(this.identity);
 }
 
-class ArtworkFeedPreviewDetailGetAssetTokenEvent extends ArtworkPreviewDetailEvent {
+class ArtworkFeedPreviewDetailGetAssetTokenEvent
+    extends ArtworkPreviewDetailEvent {
   final AssetToken token;
 
   ArtworkFeedPreviewDetailGetAssetTokenEvent(this.token);

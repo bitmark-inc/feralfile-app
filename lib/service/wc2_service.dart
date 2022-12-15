@@ -90,7 +90,10 @@ class Wc2Service extends Wc2Handler {
       accountDid,
     );
     final wc2Pairings = await injector<Wc2Service>().getPairings();
-    final topic = wc2Pairings.firstWhereOrNull((element) => pendingUri.contains(element.topic))?.topic ?? "";
+    final topic = wc2Pairings
+            .firstWhereOrNull((element) => pendingUri.contains(element.topic))
+            ?.topic ??
+        "";
     final connection = Connection(
       key: "$personalUUID:$topic",
       name: proposal.proposer.name,

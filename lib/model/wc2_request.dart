@@ -124,17 +124,18 @@ class Wc2SignRequestParams {
   String address;
   String message;
 
-  factory Wc2SignRequestParams.fromJson(Map<String, dynamic> json) => Wc2SignRequestParams(
-    chain: json["chain"],
-    address: json["address"],
-    message: json["message"],
-  );
+  factory Wc2SignRequestParams.fromJson(Map<String, dynamic> json) =>
+      Wc2SignRequestParams(
+        chain: json["chain"],
+        address: json["address"],
+        message: json["message"],
+      );
 
   Map<String, dynamic> toJson() => {
-    "chain": chain,
-    "address": address,
-    "message": message,
-  };
+        "chain": chain,
+        "address": address,
+        "message": message,
+      };
 }
 
 class Wc2SendRequestParams {
@@ -148,17 +149,18 @@ class Wc2SendRequestParams {
   String address;
   Map<String, dynamic> transactions;
 
-  factory Wc2SendRequestParams.fromJson(Map<String, dynamic> json) => Wc2SendRequestParams(
-    chain: json["chain"],
-    address: json["address"],
-    transactions: json["transactions"],
-  );
+  factory Wc2SendRequestParams.fromJson(Map<String, dynamic> json) =>
+      Wc2SendRequestParams(
+        chain: json["chain"],
+        address: json["address"],
+        transactions: json["transactions"],
+      );
 
   Map<String, dynamic> toJson() => {
-    "chain": chain,
-    "address": address,
-    "transactions": transactions,
-  };
+        "chain": chain,
+        "address": address,
+        "transactions": transactions,
+      };
 }
 
 @JsonSerializable()
@@ -218,11 +220,11 @@ class Wc2Chain {
   final String? publicKey;
   final String signature;
 
-  Wc2Chain({
-    required this.chain,
-    required this.address,
-    this.publicKey,
-    required this.signature});
+  Wc2Chain(
+      {required this.chain,
+      required this.address,
+      this.publicKey,
+      required this.signature});
 
   factory Wc2Chain.fromJson(Map<String, dynamic> json) =>
       _$Wc2ChainFromJson(json);

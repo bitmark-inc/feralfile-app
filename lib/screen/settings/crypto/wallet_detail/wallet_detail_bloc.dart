@@ -42,10 +42,8 @@ class WalletDetailBloc extends AuBloc<WalletDetailEvent, WalletDetailState> {
           newState.address = address;
           newState.balance =
               "${EthAmountFormatter(balance.getInWei).format().characters.take(7)} ETH";
-          final balanceInUSD = "${_currencyFormat.format(
-              (balance.getInWei.toDouble() /
-                  pow(10, 18) /
-                  double.parse(exchangeRate.eth)))} USD";
+          final balanceInUSD =
+              "${_currencyFormat.format((balance.getInWei.toDouble() / pow(10, 18) / double.parse(exchangeRate.eth)))} USD";
           newState.balanceInUSD = balanceInUSD;
           break;
         case CryptoType.XTZ:

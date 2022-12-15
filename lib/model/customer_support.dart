@@ -48,7 +48,8 @@ class Issue {
 
   String get reportIssueType {
     return ReportIssueType.getList
-        .firstWhereOrNull((element) => tags.contains(element)) ?? "";
+            .firstWhereOrNull((element) => tags.contains(element)) ??
+        "";
   }
 }
 

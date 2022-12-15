@@ -54,6 +54,7 @@ class _SelectLedgerPageState extends State<SelectLedgerPage> {
       ),
     );
   }
+
   Widget _linkLedger(String blockchain) {
     final theme = Theme.of(context);
     return Column(

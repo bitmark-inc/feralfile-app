@@ -30,7 +30,6 @@ class BackupService {
 
   BackupService(this._iapApi);
 
-
   Future backupCloudDatabase(WalletStorage account) async {
     log.info("[BackupService] start database backup");
     try {
@@ -46,7 +45,8 @@ class BackupService {
       String version = packageInfo.version;
       String? deviceId = await getBackupId();
 
-      await _iapApi.uploadProfile(deviceId, _dbEncryptedFileName, version, file);
+      await _iapApi.uploadProfile(
+          deviceId, _dbEncryptedFileName, version, file);
       await file.delete();
     } catch (err) {
       debugPrint("[BackupService] error database backup, $err");

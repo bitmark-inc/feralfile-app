@@ -65,8 +65,7 @@ class _TokenDetailPageState extends State<TokenDetailPage> {
               const SizedBox(height: 15.0),
               // Show artwork here.
               CachedNetworkImage(
-                imageUrl:
-                    artwork.getThumbnailURL(),
+                imageUrl: artwork.getThumbnailURL(),
                 fit: BoxFit.fitWidth,
               ),
               const SizedBox(height: 24.0),
@@ -92,8 +91,10 @@ class _TokenDetailPageState extends State<TokenDetailPage> {
                     const SizedBox(height: 40.0),
                     Theme(
                       data: theme.copyWith(textTheme: theme.primaryTextTheme),
-
-                      child: ArtworkRightWidget(contract: contract,exhibitionID: widget.artwork.exhibition?.id,),
+                      child: ArtworkRightWidget(
+                        contract: contract,
+                        exhibitionID: widget.artwork.exhibition?.id,
+                      ),
                     ),
                     const SizedBox(height: 40.0),
                   ],

@@ -106,7 +106,9 @@ class TezosBeaconService implements BeaconHandler {
       final mixPanelClient = injector.get<MixPanelClientService>();
       mixPanelClient.trackEvent(
         "Sign",
-        hashedData: {"uuid": id,},
+        hashedData: {
+          "uuid": id,
+        },
       );
     }
     return _beaconChannel.signResponse(id, signature);
@@ -119,7 +121,7 @@ class TezosBeaconService implements BeaconHandler {
   @override
   void onRequest(BeaconRequest request) {
     if (request.type == "permission") {
-       _navigationService.hideInfoDialog();
+      _navigationService.hideInfoDialog();
       _navigationService.navigateTo(WCConnectPage.tag, arguments: request);
     } else if (request.type == "signPayload") {
       _navigationService.navigateTo(TBSignMessagePage.tag, arguments: request);

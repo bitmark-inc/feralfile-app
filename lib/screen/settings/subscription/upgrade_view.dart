@@ -53,9 +53,10 @@ class UpgradesView extends StatelessWidget {
 
   static String get _subscriptionsManagementLocation {
     if (Platform.isIOS) {
-      return "set_apl_sub".tr();//"Settings > Apple ID > Subscriptions.";
+      return "set_apl_sub".tr(); //"Settings > Apple ID > Subscriptions.";
     } else if (Platform.isAndroid) {
-      return "pla_pay_sub".tr();//"Play Store -> Payments & subscriptions -> Subscriptions.";
+      return "pla_pay_sub"
+          .tr(); //"Play Store -> Payments & subscriptions -> Subscriptions.";
     } else {
       return "";
     }
@@ -66,34 +67,41 @@ class UpgradesView extends StatelessWidget {
 
     switch (state.status) {
       case IAPProductStatus.completed:
-        injector<MixPanelClientService>().mixpanel.getPeople().set("Subscription", "Subscried");
+        injector<MixPanelClientService>()
+            .mixpanel
+            .getPeople()
+            .set("Subscription", "Subscried");
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text("subscribed".tr(), style: theme.textTheme.headline4),
             const SizedBox(height: 16.0),
-            Text(
-                "thank_support".tr(args: [_subscriptionsManagementLocation]),
+            Text("thank_support".tr(args: [_subscriptionsManagementLocation]),
                 //"Thank you for your support. Manage your subscription in $_subscriptionsManagementLocation",
                 style: theme.textTheme.bodyText1),
             const SizedBox(height: 10.0),
             _benefit(context),
           ],
-
         );
       case IAPProductStatus.trial:
-        injector<MixPanelClientService>().mixpanel.getPeople().set("Subscription", "Trial");
+        injector<MixPanelClientService>()
+            .mixpanel
+            .getPeople()
+            .set("Subscription", "Trial");
         final df = DateFormat("yyyy-MMM-dd");
         final trialExpireDate = df.format(state.trialExpiredDate!);
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-                "sub_30_days".tr(),//"Subscribed (30-day free trial)",
+            Text("sub_30_days".tr(), //"Subscribed (30-day free trial)",
                 style: theme.textTheme.headline4),
             const SizedBox(height: 16.0),
             Text(
-                "you_will_be_charged".tr(namedArgs: {"price":state.productDetails?.price ?? "4.99usd".tr(),"date":trialExpireDate,"location":_subscriptionsManagementLocation}),
+                "you_will_be_charged".tr(namedArgs: {
+                  "price": state.productDetails?.price ?? "4.99usd".tr(),
+                  "date": trialExpireDate,
+                  "location": _subscriptionsManagementLocation
+                }),
                 //"You will be charged ${state.productDetails?.price ?? "US\$4.99"}/month starting $trialExpireDate. To cancel your subscription, go to $_subscriptionsManagementLocation",
                 style: theme.textTheme.bodyText1),
             const SizedBox(height: 10.0),
@@ -109,7 +117,10 @@ class UpgradesView extends StatelessWidget {
         );
       case IAPProductStatus.notPurchased:
       case IAPProductStatus.expired:
-        injector<MixPanelClientService>().mixpanel.getPeople().set("Subscription", "Free");
+        injector<MixPanelClientService>()
+            .mixpanel
+            .getPeople()
+            .set("Subscription", "Free");
         return GestureDetector(
           onTap: (() => showSubscriptionDialog(
                   context, state.productDetails?.price, null, (() {
@@ -119,7 +130,8 @@ class UpgradesView extends StatelessWidget {
             children: [
               Row(children: [
                 Text("h_subscribe".tr(), style: theme.textTheme.headline4),
-                if (injector<ConfigurationService>().shouldShowSubscriptionHint()) ...[
+                if (injector<ConfigurationService>()
+                    .shouldShowSubscriptionHint()) ...[
                   const SizedBox(
                     width: 7,
                   ),
@@ -160,14 +172,13 @@ class UpgradesView extends StatelessWidget {
           ),
         );
       case IAPProductStatus.error:
-        return Text(
-            "error_loading_sub".tr(),
+        return Text("error_loading_sub".tr(),
             //"Error when loading your subscription.",
             style: theme.textTheme.headline4);
     }
   }
 
-  static _benefit(BuildContext context){
+  static _benefit(BuildContext context) {
     final theme = Theme.of(context);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -181,9 +192,8 @@ class UpgradesView extends StatelessWidget {
         ),
         const SizedBox(width: 12.0),
         Expanded(
-          child: Text(
-              "view_collection_tv".tr(),
-              style: theme.textTheme.bodyText1),
+          child:
+              Text("view_collection_tv".tr(), style: theme.textTheme.bodyText1),
         ),
       ],
     );
@@ -206,21 +216,20 @@ class UpgradesView extends StatelessWidget {
                 style: theme.primaryTextTheme.bodyText1),
             const SizedBox(height: 16),
           ],
-          Text('upgrading_gives_you'.tr(), style: theme.primaryTextTheme.bodyText1),
+          Text('upgrading_gives_you'.tr(),
+              style: theme.primaryTextTheme.bodyText1),
           SvgPicture.asset(
             'assets/images/premium_comparation.svg',
             height: 320,
           ),
           const SizedBox(height: 16),
-          Text(
-            "gg_tv_app".tr(),
+          Text("gg_tv_app".tr(),
               //"*Google TV app plus AirPlay & Chromecast streaming",
               style: theme.primaryTextTheme.headline5),
           const SizedBox(height: 40),
           AuFilledButton(
-            text:
-                "sub_then_price".tr(args: [price ?? "4.99usd".tr()]),
-                //"SUBSCRIBE FOR A 30-DAY FREE TRIAL\n(THEN ${price ?? "4.99"}/MONTH)",
+            text: "sub_then_price".tr(args: [price ?? "4.99usd".tr()]),
+            //"SUBSCRIBE FOR A 30-DAY FREE TRIAL\n(THEN ${price ?? "4.99"}/MONTH)",
             textAlign: TextAlign.center,
             onPress: () {
               if (onPressSubscribe != null) onPressSubscribe();

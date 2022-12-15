@@ -20,11 +20,12 @@ class FFAccount {
   WyreWallet? wyreWallet;
   Map<String, String>? vaultAddresses;
 
-  FFAccount({required this.id,
-    required this.alias,
-    required this.location,
-    required this.wyreWallet,
-    required this.vaultAddresses});
+  FFAccount(
+      {required this.id,
+      required this.alias,
+      required this.location,
+      required this.wyreWallet,
+      required this.vaultAddresses});
 
   factory FFAccount.fromJson(Map<String, dynamic> json) =>
       _$FFAccountFromJson(json);
@@ -105,7 +106,6 @@ class Exhibition {
 }
 
 @JsonSerializable()
-
 @JsonSerializable()
 class ExhibitionResponse {
   final Exhibition result;
@@ -131,15 +131,17 @@ class FFArtist {
   final String accountNumber;
   final String type;
 
-  FFArtist(this.id,
-      this.alias,
-      this.slug,
-      this.verified,
-      this.isArtist,
-      this.fullName,
-      this.avatarURI,
-      this.accountNumber,
-      this.type,);
+  FFArtist(
+    this.id,
+    this.alias,
+    this.slug,
+    this.verified,
+    this.isArtist,
+    this.fullName,
+    this.avatarURI,
+    this.accountNumber,
+    this.type,
+  );
 
   factory FFArtist.fromJson(Map<String, dynamic> json) =>
       _$FFArtistFromJson(json);
@@ -190,8 +192,7 @@ class FFArtwork {
   }
 
   String getThumbnailURL() {
-    return "${Environment.feralFileAssetURL}/${galleryThumbnailFileURI ??
-        thumbnailFileURI}";
+    return "${Environment.feralFileAssetURL}/${galleryThumbnailFileURI ?? thumbnailFileURI}";
   }
 
   bool get isAirdropArtwork {
@@ -208,7 +209,9 @@ class FFArtwork {
 class FFArtworkResponse {
   final FFArtwork result;
 
-  FFArtworkResponse(this.result,);
+  FFArtworkResponse(
+    this.result,
+  );
 
   factory FFArtworkResponse.fromJson(Map<String, dynamic> json) =>
       _$FFArtworkResponseFromJson(json);
@@ -239,9 +242,11 @@ class FFContract {
   final String blockchainType;
   final String address;
 
-  FFContract(this.name,
-      this.blockchainType,
-      this.address,);
+  FFContract(
+    this.name,
+    this.blockchainType,
+    this.address,
+  );
 
   factory FFContract.fromJson(Map<String, dynamic> json) =>
       _$FFContractFromJson(json);
@@ -261,15 +266,17 @@ class AirdropInfo {
   final DateTime? startedAt;
   final DateTime? endedAt;
 
-  AirdropInfo(this.contractAddress,
-      this.blockchain,
-      this.remainAmount,
-      this.artworkId,
-      this.artworkTitle,
-      this.artist,
-      this.gifter,
-      this.startedAt,
-      this.endedAt,);
+  AirdropInfo(
+    this.contractAddress,
+    this.blockchain,
+    this.remainAmount,
+    this.artworkId,
+    this.artworkTitle,
+    this.artist,
+    this.gifter,
+    this.startedAt,
+    this.endedAt,
+  );
 
   factory AirdropInfo.fromJson(Map<String, dynamic> json) =>
       _$AirdropInfoFromJson(json);
@@ -306,11 +313,13 @@ class TokenClaimResult {
   final String editionID;
   final String txID;
 
-  TokenClaimResult(this.id,
-      this.claimerID,
-      this.exhibitionID,
-      this.editionID,
-      this.txID,);
+  TokenClaimResult(
+    this.id,
+    this.claimerID,
+    this.exhibitionID,
+    this.editionID,
+    this.txID,
+  );
 
   factory TokenClaimResult.fromJson(Map<String, dynamic> json) =>
       _$TokenClaimResultFromJson(json);
@@ -328,8 +337,10 @@ class FeralfileError {
   final int code;
   final String message;
 
-  FeralfileError(this.code,
-      this.message,);
+  FeralfileError(
+    this.code,
+    this.message,
+  );
 
   factory FeralfileError.fromJson(Map<String, dynamic> json) =>
       _$FeralfileErrorFromJson(json);
@@ -366,7 +377,8 @@ class FeralFileResaleInfo {
   final DateTime createdAt;
   final DateTime updatedAt;
 
-  FeralFileResaleInfo(this.exhibitionID,
+  FeralFileResaleInfo(
+      this.exhibitionID,
       this.saleType,
       this.platform,
       this.artist,
@@ -412,14 +424,25 @@ class ArtworkEdition {
   final bool isArchived;
   final FFArtwork artwork;
 
-  ArtworkEdition(this.id, this.artworkID, this.index, this.name, this.category,
-      this.ownerAccountID, this.virgin, this.burned, this.blockchainStatus,
-      this.isExternal, this.issuedAt, this.createdAt,
-      this.updatedAt, this.isArchived, this.artwork);
+  ArtworkEdition(
+      this.id,
+      this.artworkID,
+      this.index,
+      this.name,
+      this.category,
+      this.ownerAccountID,
+      this.virgin,
+      this.burned,
+      this.blockchainStatus,
+      this.isExternal,
+      this.issuedAt,
+      this.createdAt,
+      this.updatedAt,
+      this.isArchived,
+      this.artwork);
 
   factory ArtworkEdition.fromJson(Map<String, dynamic> json) =>
       _$ArtworkEditionFromJson(json);
 
   Map<String, dynamic> toJson() => _$ArtworkEditionToJson(this);
-
 }

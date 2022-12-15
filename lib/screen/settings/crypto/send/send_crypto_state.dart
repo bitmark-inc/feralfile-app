@@ -10,7 +10,6 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/fee_util.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 
-
 abstract class SendCryptoEvent {}
 
 class GetBalanceEvent extends SendCryptoEvent {

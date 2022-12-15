@@ -37,7 +37,7 @@ class LedgerHardwareService {
     if (!(await _isAvailable())) {
       log.info(
           "[LedgerHardwareService] BLE is not available on the first check."
-              " Do the second attempt.");
+          " Do the second attempt.");
       // Delay 300 milisecond and perform the second check
       await Future.delayed(const Duration(microseconds: 300));
       if (!(await _isAvailable())) {
@@ -46,7 +46,8 @@ class LedgerHardwareService {
     }
 
     await FlutterBlue.instance.startScan(
-        withServices: [Guid(serviceUuid)], timeout: const Duration(seconds: 10));
+        withServices: [Guid(serviceUuid)],
+        timeout: const Duration(seconds: 10));
     log.info("[LedgerHardwareService] Start scanning for ledgers");
 
     return true;

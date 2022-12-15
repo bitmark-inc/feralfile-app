@@ -47,7 +47,7 @@ class _NameLinkedAccountPageState extends State<NameLinkedAccountPage> {
     if (_nameController.text.isEmpty) {
       _nameController.text = widget.connection.name;
       setState(() {
-        isSavingAliasDisabled =  widget.connection.name.isEmpty;
+        isSavingAliasDisabled = widget.connection.name.isEmpty;
       });
     }
   }
@@ -122,9 +122,8 @@ class _NameLinkedAccountPageState extends State<NameLinkedAccountPage> {
                 ),
                 TextButton(
                     onPressed: () {
-                      context.read<AccountsBloc>().add(
-                          NameLinkedAccountEvent(widget.connection,
-                              widget.connection.accountNumber));
+                      context.read<AccountsBloc>().add(NameLinkedAccountEvent(
+                          widget.connection, widget.connection.accountNumber));
                       _doneNaming();
                     },
                     child: Text("skip".tr(), style: theme.textTheme.button)),

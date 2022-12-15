@@ -69,7 +69,8 @@ class WCSendTransactionBloc
           await _ethereumService.getBalance(await persona.getETHAddress());
       try {
         final txHash = await _ethereumService.sendTransaction(
-            persona, event.to, event.value, event.data, feeOption: state.feeOption);
+            persona, event.to, event.value, event.data,
+            feeOption: state.feeOption);
         if (event.isWalletConnect2) {
           await _wc2Service.respondOnApprove(event.topic ?? "", txHash);
         } else {

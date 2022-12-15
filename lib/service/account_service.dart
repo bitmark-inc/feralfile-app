@@ -333,8 +333,7 @@ class AccountServiceImpl extends AccountService {
     mixPanelClient
         .trackEvent("delete_full_account", hashedData: {"id": persona.uuid});
 
-    log.info(
-        "[AccountService] deletePersona finished - ${persona.uuid}");
+    log.info("[AccountService] deletePersona finished - ${persona.uuid}");
   }
 
   @override

@@ -23,7 +23,8 @@ import 'package:autonomy_flutter/view/responsive.dart';
 
 class LinkAppOptionsPage extends StatefulWidget {
   final WalletApp walletApp;
-  const LinkAppOptionsPage({Key? key, required this.walletApp}) : super(key: key);
+  const LinkAppOptionsPage({Key? key, required this.walletApp})
+      : super(key: key);
 
   @override
   State<LinkAppOptionsPage> createState() => _LinkAppOptionsPageState();
@@ -55,45 +56,48 @@ class _LinkAppOptionsPageState extends State<LinkAppOptionsPage> {
             child:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(
-                "where_are_you_using".tr(args: [widget.walletApp.toString().split(".").last]),
+                "where_are_you_using"
+                    .tr(args: [widget.walletApp.toString().split(".").last]),
                 style: theme.textTheme.headline1,
               ),
               addTitleSpace(),
               _mobileAppOnThisDeviceOptionWidget(context),
               addOnlyDivider(),
               _browserExtensionOptionWidget(context),
-              const SizedBox(height: 40,),
-                  if (widget.walletApp == WalletApp.MetaMask) ...[
-                    Container(
-                      color: AppColor.chatPrimaryColor,
-                      child: Padding(
-                        padding: const EdgeInsets.all(10.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'important'.tr(),
-                              style: theme.textTheme.atlasGreyBold14,
-                            ),
-                            const SizedBox(
-                              height: 5,
-                            ),
-                            RichText(
-                              text: TextSpan(
-                                  text: 'autonomy_currently'.tr(),
-                                  children: [
-                                    TextSpan(
-                                        text: '${'ethereum_mainnet'.tr()}. ',
-                                        style: theme.textTheme.atlasBlackBold14),
-                                    TextSpan(text: 'all_other_evm_networks'.tr()),
-                                  ],
-                                  style: theme.textTheme.atlasBlackNormal14),
-                            ),
-                          ],
+              const SizedBox(
+                height: 40,
+              ),
+              if (widget.walletApp == WalletApp.MetaMask) ...[
+                Container(
+                  color: AppColor.chatPrimaryColor,
+                  child: Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'important'.tr(),
+                          style: theme.textTheme.atlasGreyBold14,
                         ),
-                      ),
+                        const SizedBox(
+                          height: 5,
+                        ),
+                        RichText(
+                          text: TextSpan(
+                              text: 'autonomy_currently'.tr(),
+                              children: [
+                                TextSpan(
+                                    text: '${'ethereum_mainnet'.tr()}. ',
+                                    style: theme.textTheme.atlasBlackBold14),
+                                TextSpan(text: 'all_other_evm_networks'.tr()),
+                              ],
+                              style: theme.textTheme.atlasBlackNormal14),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
+                ),
+              ],
             ]),
           ))
         ]),

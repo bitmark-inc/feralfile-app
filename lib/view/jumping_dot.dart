@@ -113,8 +113,7 @@ class _JumpingDotsState extends State<JumpingDots>
                 padding: EdgeInsets.all(widget.innerPadding),
                 child: Transform.translate(
                   offset: Offset(0, _animations[index].value),
-                  child:
-                      DotWidget(color: widget.color, radius: widget.radius),
+                  child: DotWidget(color: widget.color, radius: widget.radius),
                 ),
               );
             },
