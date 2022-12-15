@@ -151,6 +151,7 @@ dependencies:
       url: https://github.com/autonomy-system/eth-sig-util.git
       ref: 15334dee6a5bbd3047ce3af2bdd061906a2094e2
   flutter_widget_from_html: ^0.9.0+1
+  readmore: ^2.2.0
 
 dependency_overrides:
   # Error using when import photo_view from dependencies:
