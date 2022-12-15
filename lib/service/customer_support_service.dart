@@ -192,8 +192,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
           String name = uuid.substring(36);
           final fileToRemove = draftData.attachments!
               .firstWhereOrNull((element) => element.fileName.contains(name));
-          if (data.attachments!.length > 1) {
-            draftData.attachments!.remove(fileToRemove);
+          if (draftData.attachments!.remove(fileToRemove)) {
             msg.data = jsonEncode(draftData);
             await _draftCustomerSupportDao.insertDraft(msg);
             errorMessages.add(id);
