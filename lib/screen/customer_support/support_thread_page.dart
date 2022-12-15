@@ -365,6 +365,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     required message,
     required nextMessageInGroup,
   }) {
+    final theme = Theme.of(context);
     var color = _user.id != message.author.id
         ? AppColor.chatSecondaryColor
         : AppColor.chatPrimaryColor;
@@ -384,8 +385,8 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
 
     return isError
         ? Padding(
-          padding: const EdgeInsets.only(right: 16),
-          child: Column(
+            padding: const EdgeInsets.only(right: 16),
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Row(
@@ -419,7 +420,6 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
                                 if (!mounted) return;
                                 Navigator.of(context).pop();
                               }
-
                             },
                             child: Container(
                               margin: const EdgeInsets.all(5),
@@ -449,15 +449,12 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
                 const SizedBox(height: 4),
                 Text(
                   "failed_to_send".tr(),
-                  style: TextStyle(
-                      color: orangeRust,
-                      fontFamily: "AtlasGrotesk",
-                      fontSize: 12,
-                      fontWeight: FontWeight.w300),
+                  style: theme.textTheme.atlasBlackNormal12
+                      .copyWith(color: orangeRust),
                 ),
               ],
             ),
-        )
+          )
         : Bubble(
             color: color,
             margin: nextMessageInGroup

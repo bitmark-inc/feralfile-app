@@ -186,18 +186,21 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
       if (msg != null) {
         final data = DraftCustomerSupportData.fromJson(jsonDecode(msg.data));
         await _draftCustomerSupportDao.deleteDraft(msg);
-        if (msg.draftData.attachments != null && msg.draftData.attachments!.isNotEmpty) {
+        if (msg.draftData.attachments != null &&
+            msg.draftData.attachments!.isNotEmpty) {
           var draftData = msg.draftData;
           String name = uuid.substring(36);
-          int index = draftData.attachments!.indexWhere((element) => element.fileName.contains(name));
+          final fileToRemove = draftData.attachments!
+              .firstWhereOrNull((element) => element.fileName.contains(name));
           if (data.attachments!.length > 1) {
-            draftData.attachments!.removeAt(index);
+            draftData.attachments!.remove(fileToRemove);
             msg.data = jsonEncode(draftData);
             await _draftCustomerSupportDao.insertDraft(msg);
             errorMessages.add(id);
           }
-          if (msg.type == CSMessageType.PostLogs.rawValue) {
-            File file = File(data.attachments![index].path);
+          if (msg.type == CSMessageType.PostLogs.rawValue &&
+              fileToRemove != null) {
+            File file = File(fileToRemove.path);
             file.delete();
           }
         }
@@ -236,7 +239,9 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
         await _draftCustomerSupportDao.updateIssueID(
             draftMsg.issueID, newIssueID);
       } else {
-        if (!draftMsgsRaw.any((element) => ((element.issueID == draftMsg.issueID) && (element.uuid != draftMsg.uuid)))) {
+        if (!draftMsgsRaw.any((element) =>
+            ((element.issueID == draftMsg.issueID) &&
+                (element.uuid != draftMsg.uuid)))) {
           await _draftCustomerSupportDao.deleteDraft(draftMsg);
         } else {
           sendMessageFail(draftMsg.uuid);
