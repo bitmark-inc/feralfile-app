@@ -43,7 +43,7 @@ class MixPanelClientService {
   }
 
   timerEvent(String name) {
-    mixpanel.timeEvent(name);
+    mixpanel.timeEvent(name.snakeToCapital());
   }
 
   Future<void> trackEvent(
