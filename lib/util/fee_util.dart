@@ -30,6 +30,7 @@ extension FeeOptionExtention on FeeOption {
         return "high".tr();
     }
   }
+
   BigInt get getEthereumPriorityFee {
     switch (this) {
       case FeeOption.LOW:
