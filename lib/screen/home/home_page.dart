@@ -121,6 +121,7 @@ class HomePageState extends State<HomePage>
     WidgetsBinding.instance.addObserver(this);
     _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
     _controller = ScrollController();
+    refreshFeeds();
     refreshTokens();
     context.read<HomeBloc>().add(CheckReviewAppEvent());
     OneSignal.shared
@@ -165,6 +166,7 @@ class HomePageState extends State<HomePage>
   void didPopNext() async {
     super.didPopNext();
     final connectivityResult = await (Connectivity().checkConnectivity());
+    refreshFeeds();
     refreshTokens();
     if (connectivityResult == ConnectivityResult.mobile ||
         connectivityResult == ConnectivityResult.wifi) {
@@ -437,10 +439,13 @@ class HomePageState extends State<HomePage>
     }
   }
 
+  void refreshFeeds() async {
+    await injector<FeedService>().checkNewFeeds();
+  }
+
   void refreshTokens({checkPendingToken = false}) async {
     final accountService = injector<AccountService>();
     _playlists.value = await getPlaylist();
-
     Future.wait([
       getAddresses(),
       getManualTokenIds(),
@@ -583,6 +588,7 @@ class HomePageState extends State<HomePage>
     injector<WalletConnectService>().initSessions(forced: true);
     injector<Wc2Service>().activateParings();
 
+    refreshFeeds();
     refreshTokens(checkPendingToken: true);
 
     _metricClient.addEvent("device_foreground");

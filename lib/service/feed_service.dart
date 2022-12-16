@@ -30,6 +30,8 @@ import 'package:uuid/uuid.dart';
 abstract class FeedService {
   ValueNotifier<int> get unviewedCount;
 
+  ValueNotifier<bool> get hasFeed;
+
   Future checkNewFeeds();
 
   Future refreshFollowings(List<String> artistIds);
@@ -104,6 +106,10 @@ class FeedServiceImpl extends FeedService {
   @override
   ValueNotifier<int> unviewedCount = ValueNotifier(0);
 
+  @override
+  ValueNotifier<bool> hasFeed =
+      ValueNotifier(injector<ConfigurationService>().hasFeed());
+
   final ConfigurationService _configurationService;
 
   SendPort? _sendPort;
@@ -168,6 +174,8 @@ class FeedServiceImpl extends FeedService {
     final service = injector<FeedApi>();
     final isTestnet = Environment.appTestnetConfig;
     final feedData = await service.getFeeds(isTestnet, 10, null, null);
+    hasFeed.value = feedData.events.isNotEmpty;
+    _configurationService.setHasFeed(hasFeed.value);
     final lastTimeOpenFeed = _configurationService.getLastTimeOpenFeed();
     final newEvents = feedData.events.where(
         (event) => event.timestamp.millisecondsSinceEpoch > lastTimeOpenFeed);

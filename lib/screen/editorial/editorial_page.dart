@@ -4,6 +4,7 @@
 //  Use of this source code is governed by the BSD-2-Clause Plus Patent License
 //  that can be found in the LICENSE file.
 //
+
 import 'package:autonomy_flutter/model/editorial.dart';
 import 'package:autonomy_flutter/screen/editorial/editorial_bloc.dart';
 import 'package:autonomy_flutter/screen/editorial/editorial_state.dart';
@@ -19,7 +20,9 @@ import 'article/article_view.dart';
 import 'feralfile/exhibition_view.dart';
 
 class EditorialPage extends StatefulWidget {
-  const EditorialPage({Key? key}) : super(key: key);
+  final bool isShowDiscover;
+  const EditorialPage({Key? key, this.isShowDiscover = false})
+      : super(key: key);
 
   @override
   State<StatefulWidget> createState() => _EditorialPageState();
@@ -35,8 +38,10 @@ class _EditorialPageState extends State<EditorialPage>
   @override
   void initState() {
     super.initState();
-
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(
+      length: widget.isShowDiscover ? 2 : 1,
+      vsync: this,
+    );
     _feedController = ScrollController();
     _editorialController = ScrollController();
     _feedController.addListener(_scrollListener);
@@ -71,71 +76,74 @@ class _EditorialPageState extends State<EditorialPage>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
-    return BlocBuilder<EditorialBloc, EditorialState>(
-        builder: (context, state) {
-      return Scaffold(
-        appBar: AppBar(toolbarHeight: 0),
-        backgroundColor: theme.primaryColor,
-        body: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(15),
-              child: AnimatedSize(
-                duration: const Duration(milliseconds: 300),
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 10.0),
-                  child: Row(
-                    mainAxisAlignment: _showFullHeader
-                        ? MainAxisAlignment.spaceBetween
-                        : MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      if (_showFullHeader)
-                        SvgPicture.asset(
-                          "assets/images/autonomy_icon_white.svg",
-                          width: 50,
-                          height: 50,
-                        ),
-                      Hero(
-                        tag: "discover_tab",
-                        child: TabBar(
-                          controller: _tabController,
-                          indicatorSize: TabBarIndicatorSize.label,
-                          labelPadding: const EdgeInsets.symmetric(
-                              horizontal: 5.0, vertical: 6.0),
-                          labelStyle: theme.textTheme.ppMori400White14,
-                          unselectedLabelStyle: theme.textTheme.ppMori400Grey14,
-                          isScrollable: true,
-                          indicator: const BoxDecoration(
-                            border: Border(
-                              top: BorderSide(color: AppColor.auSuperTeal),
-                            ),
+    return Scaffold(
+      appBar: AppBar(toolbarHeight: 0),
+      backgroundColor: theme.primaryColor,
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(15),
+            child: AnimatedSize(
+              duration: const Duration(milliseconds: 300),
+              child: Padding(
+                padding: const EdgeInsets.only(top: 10.0),
+                child: Row(
+                  mainAxisAlignment: _showFullHeader
+                      ? MainAxisAlignment.spaceBetween
+                      : MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    if (_showFullHeader)
+                      SvgPicture.asset(
+                        "assets/images/autonomy_icon_white.svg",
+                        width: 50,
+                        height: 50,
+                      ),
+                    Hero(
+                      tag: "discover_tab",
+                      child: TabBar(
+                        controller: _tabController,
+                        indicatorSize: TabBarIndicatorSize.label,
+                        labelPadding: const EdgeInsets.symmetric(
+                            horizontal: 5.0, vertical: 6.0),
+                        labelStyle: theme.textTheme.ppMori400White14,
+                        unselectedLabelStyle: theme.textTheme.ppMori400Grey14,
+                        isScrollable: true,
+                        indicator: const BoxDecoration(
+                          border: Border(
+                            top: BorderSide(color: AppColor.auSuperTeal),
                           ),
-                          tabs: [
+                        ),
+                        tabs: [
+                          if (widget.isShowDiscover) ...[
                             Text(
                               'discover'.tr(),
                             ),
-                            Text(
-                              'editorial'.tr(),
-                            ),
                           ],
-                        ),
+                          Text(
+                            'editorial'.tr(),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),
-            Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                children: [
+          ),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                if (widget.isShowDiscover) ...[
                   FeedPreviewPage(
                     controller: _feedController,
                   ),
-                  ListView.builder(
+                ],
+                BlocBuilder<EditorialBloc, EditorialState>(
+                    builder: (context, state) {
+                  return ListView.builder(
                     controller: _editorialController,
                     padding: ResponsiveLayout.pageEdgeInsets,
                     itemCount: state.editorial.length,
@@ -145,14 +153,14 @@ class _EditorialPageState extends State<EditorialPage>
                         child: _postSection(state.editorial[index]),
                       );
                     },
-                  )
-                ],
-              ),
+                  );
+                })
+              ],
             ),
-          ],
-        ),
-      );
-    });
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _postSection(EditorialPost post) {
