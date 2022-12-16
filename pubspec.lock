@@ -1304,8 +1304,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "v1.0.18"
-      resolved-ref: ad7765cedefcd7201047a5639bfd2021047ecb76
+      ref: "v1.0.19"
+      resolved-ref: e72b49950532791ebaca389ef28f66793bff50ad
       url: "https://github.com/autonomy-system/nft-rendering.git"
     source: git
     version: "1.0.9"
@@ -1647,6 +1647,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.1.0"
+  readmore:
+    dependency: "direct main"
+    description:
+      name: readmore
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.2.0"
   reorderable_grid_view:
     dependency: "direct main"
     description:

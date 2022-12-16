@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
+import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
@@ -41,17 +42,29 @@ abstract class CustomerSupportService {
   ValueNotifier<List<int>?>
       get numberOfIssuesInfo; // [numberOfIssues, numberOfUnreadIssues]
   ValueNotifier<int> get triggerReloadMessages;
+
   ValueNotifier<CustomerSupportUpdate?> get customerSupportUpdate;
+
   Map<String, String> get tempIssueIDMap;
 
+  List<String>? get errorMessages;
+
   Future<IssueDetails> getDetails(String issueID);
+
   Future<List<Issue>> getIssues();
+
   Future draftMessage(DraftCustomerSupport draft);
+
   Future processMessages();
+
   Future<List<DraftCustomerSupport>> getDrafts(String issueID);
+
   Future<String> getStoredDirectory();
+
   Future<String> storeFile(String filename, List<int> bytes);
+
   Future reopen(String issueID);
+
   Future rateIssue(String issueID, int rating);
 
   Future<String> createRenderingIssueReport(
@@ -60,6 +73,10 @@ abstract class CustomerSupportService {
   );
 
   Future reportIPFSLoadingError(AssetToken token);
+
+  Future<void> removeErrorMessage(String uuid, {bool isDelete = false});
+
+  void sendMessageFail(String uuid);
 }
 
 class CustomerSupportServiceImpl extends CustomerSupportService {
@@ -70,6 +87,9 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
   final RenderingReportApi _renderingReportApi;
   final AccountService _accountService;
   final ConfigurationService _configurationService;
+  @override
+  List<String> errorMessages = [];
+  int retryTime = 0;
 
   @override
   ValueNotifier<List<int>?> numberOfIssuesInfo = ValueNotifier(null);
@@ -157,17 +177,59 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
   }
 
   @override
+  Future<void> removeErrorMessage(String uuid, {bool isDelete = false}) async {
+    retryTime = 0;
+    final id = uuid.substring(0, 36);
+    errorMessages.remove(id);
+    if (isDelete) {
+      var msg = await _draftCustomerSupportDao.getDraft(id);
+      if (msg != null) {
+        final data = DraftCustomerSupportData.fromJson(jsonDecode(msg.data));
+        await _draftCustomerSupportDao.deleteDraft(msg);
+        if (msg.draftData.attachments != null &&
+            msg.draftData.attachments!.isNotEmpty) {
+          var draftData = msg.draftData;
+          String name = uuid.substring(36);
+          final fileToRemove = draftData.attachments!
+              .firstWhereOrNull((element) => element.fileName.contains(name));
+          if (draftData.attachments!.remove(fileToRemove)) {
+            msg.data = jsonEncode(draftData);
+            await _draftCustomerSupportDao.insertDraft(msg);
+            errorMessages.add(id);
+          }
+          if (msg.type == CSMessageType.PostLogs.rawValue &&
+              fileToRemove != null) {
+            File file = File(fileToRemove.path);
+            file.delete();
+          }
+        }
+      }
+    }
+  }
+
+  @override
+  void sendMessageFail(String uuid) {
+    if (retryTime > 5) {
+      errorMessages.add(uuid);
+      retryTime = 0;
+    }
+  }
+
+  @override
   Future processMessages() async {
     log.info('[CS-Service][trigger] processMessages');
     if (_isProcessingDraftMessages) return;
-
+    final fetchLimit = errorMessages.length + 1;
     log.info('[CS-Service][start] processMessages');
-    final draftMsgs = await _draftCustomerSupportDao.fetchDrafts(1);
-
-    if (draftMsgs.isEmpty) return;
+    final draftMsgsRaw = await _draftCustomerSupportDao.fetchDrafts(fetchLimit);
+    if (draftMsgsRaw.isEmpty) return;
+    final draftMsg = draftMsgsRaw
+        .firstWhereOrNull((element) => !errorMessages.contains(element.uuid));
+    if (draftMsg == null) return;
     log.info('[CS-Service][start] processMessages hasDraft');
     _isProcessingDraftMessages = true;
-    final draftMsg = draftMsgs.first;
+
+    retryTime++;
 
     // Edge Case when database has not updated the new issueID for new comments
     if (draftMsg.type != 'CreateIssue' && draftMsg.issueID.contains("TEMP")) {
@@ -176,7 +238,13 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
         await _draftCustomerSupportDao.updateIssueID(
             draftMsg.issueID, newIssueID);
       } else {
-        await _draftCustomerSupportDao.deleteDraft(draftMsg);
+        if (!draftMsgsRaw.any((element) =>
+            ((element.issueID == draftMsg.issueID) &&
+                (element.uuid != draftMsg.uuid)))) {
+          await _draftCustomerSupportDao.deleteDraft(draftMsg);
+        } else {
+          sendMessageFail(draftMsg.uuid);
+        }
       }
 
       _isProcessingDraftMessages = false;
@@ -206,6 +274,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
 
       // just delete draft because we can not do anything more
       await _draftCustomerSupportDao.deleteDraft(draftMsg);
+      removeErrorMessage(draftMsg.uuid);
       _isProcessingDraftMessages = false;
       log.info(
           '[CS-Service][end] processMessages delete invalid draftMesssage');
@@ -250,11 +319,12 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
           file.delete();
         }));
       }
+      removeErrorMessage(draftMsg.uuid);
     } catch (exception) {
       log.info('[CS-Service] not notify to user if there is any error');
       Sentry.captureException(exception);
     }
-
+    sendMessageFail(draftMsg.uuid);
     _isProcessingDraftMessages = false;
     log.info('[CS-Service][end] processMessages hasDraft');
     processMessages();

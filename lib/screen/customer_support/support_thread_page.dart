@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/customer_support.dart' as app;
 import 'package:autonomy_flutter/model/customer_support.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -232,7 +233,6 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   @override
   Widget build(BuildContext context) {
     List<types.Message> messages = (_draftMessages + _messages);
-
     ////// this convert rating messages to customMessage type, then convert the string messages to rating bars
     for (int i = 0; i < messages.length; i++) {
       if (_isRating(messages[i])) {
@@ -367,6 +367,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     required message,
     required nextMessageInGroup,
   }) {
+    final theme = Theme.of(context);
     var color = _user.id != message.author.id
         ? AppColor.chatSecondaryColor
         : AppColor.chatPrimaryColor;
@@ -374,19 +375,100 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     if (message.type == types.MessageType.image) {
       color = Colors.transparent;
     }
+    bool isError = false;
+    String uuid = "";
+    if (message is types.Message) {
+      if (message.status == types.Status.error) {
+        isError = true;
+        uuid = message.id;
+      }
+    }
+    Color orangeRust = const Color(0xffA1200A);
 
-    return Bubble(
-      color: color,
-      margin: nextMessageInGroup
-          ? const BubbleEdges.symmetric(horizontal: 6)
-          : null,
-      nip: nextMessageInGroup
-          ? BubbleNip.no
-          : _user.id != message.author.id
-              ? BubbleNip.leftBottom
-              : BubbleNip.rightBottom,
-      child: child,
-    );
+    return isError
+        ? Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        GestureDetector(
+                            onTap: () async {
+                              await injector<CustomerSupportService>()
+                                  .removeErrorMessage(uuid);
+                              _loadDrafts();
+                              injector<CustomerSupportService>()
+                                  .processMessages();
+                              Future.delayed(const Duration(seconds: 5), () {
+                                _loadDrafts();
+                              });
+                            },
+                            child: Container(
+                                margin: const EdgeInsets.all(5),
+                                child: SvgPicture.asset(
+                                    "assets/images/retry_icon.svg"))),
+                        const SizedBox(height: 2),
+                        GestureDetector(
+                            onTap: () async {
+                              await injector<CustomerSupportService>()
+                                  .removeErrorMessage(uuid, isDelete: true);
+                              await _loadDrafts();
+                              if (_draftMessages.isEmpty && _messages.isEmpty) {
+                                if (!mounted) return;
+                                Navigator.of(context).pop();
+                              }
+                            },
+                            child: Container(
+                              margin: const EdgeInsets.all(5),
+                              child: SvgPicture.asset(
+                                  "assets/images/cancel_icon.svg"),
+                            )),
+                      ],
+                    ),
+                    const SizedBox(width: 11),
+                    Flexible(
+                      child: Bubble(
+                        color: color,
+                        borderColor: isError ? orangeRust : null,
+                        margin: nextMessageInGroup
+                            ? const BubbleEdges.symmetric(horizontal: 6)
+                            : null,
+                        nip: nextMessageInGroup
+                            ? BubbleNip.no
+                            : _user.id != message.author.id
+                                ? BubbleNip.leftBottom
+                                : BubbleNip.rightBottom,
+                        child: child,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  "failed_to_send".tr(),
+                  style: theme.textTheme.atlasBlackNormal12
+                      .copyWith(color: orangeRust),
+                ),
+              ],
+            ),
+          )
+        : Bubble(
+            color: color,
+            margin: nextMessageInGroup
+                ? const BubbleEdges.symmetric(horizontal: 6)
+                : null,
+            nip: nextMessageInGroup
+                ? BubbleNip.no
+                : _user.id != message.author.id
+                    ? BubbleNip.leftBottom
+                    : BubbleNip.rightBottom,
+            child: child,
+          );
   }
 
   Widget _customMessageBuilder(types.CustomMessage message,
@@ -478,7 +560,6 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
         (await Future.wait(drafts.map((e) => _convertChatMessage(e, null))))
             .expand((i) => i)
             .toList();
-
     if (mounted) {
       setState(() {
         _draftMessages = draftMessages;
@@ -567,6 +648,10 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       _sendIcon = "assets/images/sendMessage.svg";
       _forceAccountsViewRedraw = Object();
       if (isRating) _isRated = true;
+    });
+
+    Future.delayed(const Duration(seconds: 5), () {
+      _loadDrafts();
     });
   }
 
@@ -691,7 +776,10 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     } else if (message is DraftCustomerSupport) {
       id = message.uuid;
       author = _user;
-      status = types.Status.sending;
+      final errorMessages = injector<CustomerSupportService>().errorMessages;
+      status = (errorMessages != null && errorMessages.contains(id))
+          ? types.Status.error
+          : types.Status.sending;
       createdAt = message.createdAt;
       text = message.draftData.text;
       metadata = json.decode(message.data);
@@ -744,7 +832,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     for (var i = 0; i < titles.length; i += 1) {
       if (contentTypes[i].contains("image")) {
         result.add(types.ImageMessage(
-          id: '$id$i',
+          id: '$id${titles[i]}',
           author: author,
           createdAt: createdAt.millisecondsSinceEpoch,
           status: status,
@@ -757,7 +845,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
         final sizeAndRealTitle =
             ReceiveAttachment.extractSizeAndRealTitle(titles[i]);
         result.add(types.FileMessage(
-          id: '$id$i',
+          id: '$id${sizeAndRealTitle[1]}',
           author: author,
           createdAt: createdAt.millisecondsSinceEpoch,
           status: status,
@@ -787,6 +875,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     return DefaultChatTheme(
       messageInsetsVertical: 14,
       messageInsetsHorizontal: 14,
+      errorIcon: const SizedBox(),
       inputPadding: const EdgeInsets.fromLTRB(0, 24, 0, 40),
       backgroundColor: Colors.transparent,
       inputBackgroundColor: theme.colorScheme.primary,

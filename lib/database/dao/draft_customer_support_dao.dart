@@ -17,6 +17,9 @@ abstract class DraftCustomerSupportDao {
       'SELECT * FROM DraftCustomerSupport WHERE issueID = :issueID ORDER BY createdAt DESC')
   Future<List<DraftCustomerSupport>> getDrafts(String issueID);
 
+  @Query('SELECT * FROM DraftCustomerSupport WHERE uuid = :uuid')
+  Future<DraftCustomerSupport?> getDraft(String uuid);
+
   @Query('SELECT * FROM DraftCustomerSupport ORDER BY createdAt DESC')
   Future<List<DraftCustomerSupport>> getAllDrafts();
 

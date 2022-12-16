@@ -32,13 +32,14 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:wallet_connect/models/wc_peer_meta.dart';
-import 'package:autonomy_flutter/view/responsive.dart';
 
 import '../../service/account_service.dart';
 
@@ -321,60 +322,90 @@ class _WCConnectPageState extends State<WCConnectPage>
         ),
         body: Container(
           margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(
-              "connect".tr(),
-              style: theme.textTheme.headline1,
-            ),
-            const SizedBox(height: 24.0),
-            _appInfo(),
-            const SizedBox(height: 24.0),
-            Padding(
-              padding: const EdgeInsets.only(left: 10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ...grantPermissions
-                      .map(
-                        (permission) => Text("• $permission",
-                            style: theme.textTheme.bodyText1),
-                      )
-                      .toList(),
-                ],
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "connect".tr(),
+                style: theme.textTheme.headline1,
               ),
-            ),
-            const SizedBox(height: 40),
-            BlocConsumer<PersonaBloc, PersonaState>(listener: (context, state) {
-              var statePersonas = state.personas;
-              if (statePersonas == null) return;
+              const SizedBox(height: 24.0),
+              _appInfo(),
+              const SizedBox(height: 24.0),
+              Padding(
+                padding: const EdgeInsets.only(left: 10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ...grantPermissions
+                        .map(
+                          (permission) => Text("• $permission",
+                              style: theme.textTheme.bodyText1),
+                        )
+                        .toList(),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 40),
+              BlocConsumer<PersonaBloc, PersonaState>(
+                  listener: (context, state) {
+                var statePersonas = state.personas;
+                if (statePersonas == null) return;
 
-              final scopedPersonaUUID = memoryValues.scopedPersona;
-              if (scopedPersonaUUID != null) {
-                final scopedPersona = statePersonas
-                    .firstWhere((element) => element.uuid == scopedPersonaUUID);
-                statePersonas = [scopedPersona];
-              }
+                final scopedPersonaUUID = memoryValues.scopedPersona;
+                if (scopedPersonaUUID != null) {
+                  final scopedPersona = statePersonas.firstWhere(
+                      (element) => element.uuid == scopedPersonaUUID);
+                  statePersonas = [scopedPersona];
+                }
 
-              if (statePersonas.length == 1) {
+                if (statePersonas.length == 1) {
+                  setState(() {
+                    selectedPersona = statePersonas?.first;
+                  });
+                }
+
+                if (widget.wc2Proposal != null) {
+                  setState(() {
+                    selectedPersona = statePersonas
+                        ?.firstWhereOrNull((e) => e.defaultAccount == 1);
+                  });
+                }
+
                 setState(() {
-                  selectedPersona = statePersonas?.first;
+                  personas = statePersonas;
                 });
-              }
+              }, builder: (context, state) {
+                final statePersonas = personas;
+                if (statePersonas == null) return const SizedBox();
 
-              setState(() {
-                personas = statePersonas;
-              });
-            }, builder: (context, state) {
-              final statePersonas = personas;
-              if (statePersonas == null) return const SizedBox();
-
-              if (statePersonas.isEmpty) {
-                return Expanded(child: _createAccountAndConnect());
-              } else {}
-              return Expanded(child: _selectPersonaWidget(statePersonas));
-            }),
-          ]),
+                if (statePersonas.isEmpty) {
+                  return Expanded(child: _createAccountAndConnect());
+                } else {}
+                if (widget.wc2Proposal != null) {
+                  return Expanded(
+                    child: Column(
+                      children: [
+                        const Expanded(child: SizedBox()),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: AuFilledButton(
+                                text: "connect".tr().toUpperCase(),
+                                onPress: () =>
+                                    withDebounce(() => _approveThenNotify()),
+                              ),
+                            )
+                          ],
+                        )
+                      ],
+                    ),
+                  );
+                }
+                return Expanded(child: _selectPersonaWidget(statePersonas));
+              }),
+            ],
+          ),
         ),
       ),
     );
@@ -543,7 +574,7 @@ class _WCConnectPageState extends State<WCConnectPage>
                                         : snapshot.data ?? '';
                                     return Expanded(
                                       child: Text(
-                                        name.replaceFirst('did:key:z', ''),
+                                        name.replaceFirst('did:key:', ''),
                                         style: theme.textTheme.headline4,
                                         overflow: TextOverflow.ellipsis,
                                       ),

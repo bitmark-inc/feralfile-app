@@ -120,7 +120,7 @@ Widget accountItem(BuildContext context, Account account,
                   account.name.isNotEmpty ? account.name : snapshot.data ?? '';
               return Expanded(
                 child: Text(
-                  name.replaceFirst('did:key:z', ''),
+                  name.replaceFirst('did:key:', ''),
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.headline4,
                 ),

@@ -258,6 +258,21 @@ class _$DraftCustomerSupportDao extends DraftCustomerSupportDao {
   }
 
   @override
+  Future<DraftCustomerSupport?> getDraft(String uuid) async {
+    return _queryAdapter.query(
+        'SELECT * FROM DraftCustomerSupport WHERE uuid = ?1',
+        mapper: (Map<String, Object?> row) => DraftCustomerSupport(
+            uuid: row['uuid'] as String,
+            issueID: row['issueID'] as String,
+            type: row['type'] as String,
+            data: row['data'] as String,
+            createdAt: _dateTimeConverter.decode(row['createdAt'] as int),
+            reportIssueType: row['reportIssueType'] as String,
+            mutedMessages: row['mutedMessages'] as String),
+        arguments: [uuid]);
+  }
+
+  @override
   Future<List<DraftCustomerSupport>> getAllDrafts() async {
     return _queryAdapter.queryList(
         'SELECT * FROM DraftCustomerSupport ORDER BY createdAt DESC',
