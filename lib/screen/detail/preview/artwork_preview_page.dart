@@ -11,6 +11,7 @@ import 'dart:io';
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_bloc.dart';
@@ -183,8 +184,45 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     WidgetsBinding.instance.addObserver(this);
   }
 
-  void onClickFullScreen() {
+  Future _moveToInfo(AssetToken? asset) async {
+    if (asset == null) return;
+    mixPanelClient.trackEvent(
+      MixpanelEvent.clickArtworkInfo,
+      data: {
+        "id": asset.id,
+      },
+    );
+    keyboardManagerKey.currentState?.hideKeyboard();
+
+    final currentIndex = tokens.indexWhere((element) =>
+        element.id == asset.id && element.owner == asset.ownerAddress);
+    if (currentIndex == initialPage) {
+      Navigator.of(context).pop();
+      return;
+    }
+
+    disableLandscapeMode();
+
+    Wakelock.disable();
+    _timer?.cancel();
+
+    Navigator.of(context).pushNamed(
+      AppRouter.artworkDetailsPage,
+      arguments: widget.payload.copyWith(
+        currentIndex: currentIndex,
+        ids: tokens,
+      ),
+    );
+  }
+
+  void onClickFullScreen(AssetToken? assetToken) {
     final theme = Theme.of(context);
+    mixPanelClient.trackEvent(
+      MixpanelEvent.seeArtworkFullScreen,
+      data: {
+        "id": assetToken?.id,
+      },
+    );
     _bloc.add(ChangeFullScreen(isFullscreen: true));
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
 
@@ -541,39 +579,42 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                   backgroundColor: theme.colorScheme.primary,
                   leadingWidth: 0,
                   centerTitle: false,
-                  title: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        assetToken?.title ?? '',
-                        style: theme.textTheme.ppMori400White12,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      BlocBuilder<IdentityBloc, IdentityState>(
-                        bloc: identityBloc
-                          ..add(GetIdentityEvent([
-                            assetToken?.artistName ?? '',
-                          ])),
-                        builder: (context, state) {
-                          final artistName = assetToken?.artistName
-                              ?.toIdentityOrMask(state.identityMap);
-                          if (artistName != null) {
-                            return Row(
-                              children: [
-                                const SizedBox(height: 4.0),
-                                Text(
-                                  "by".tr(args: [artistName]),
-                                  overflow: TextOverflow.ellipsis,
-                                  style: theme.textTheme.ppMori400White12,
-                                )
-                              ],
-                            );
-                          }
-                          return const SizedBox();
-                        },
-                      ),
-                    ],
+                  title: GestureDetector(
+                    onTap: () => _moveToInfo(assetToken),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          assetToken?.title ?? '',
+                          style: theme.textTheme.ppMori400White12,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        BlocBuilder<IdentityBloc, IdentityState>(
+                          bloc: identityBloc
+                            ..add(GetIdentityEvent([
+                              assetToken?.artistName ?? '',
+                            ])),
+                          builder: (context, state) {
+                            final artistName = assetToken?.artistName
+                                ?.toIdentityOrMask(state.identityMap);
+                            if (artistName != null) {
+                              return Row(
+                                children: [
+                                  const SizedBox(height: 4.0),
+                                  Text(
+                                    "by".tr(args: [artistName]),
+                                    overflow: TextOverflow.ellipsis,
+                                    style: theme.textTheme.ppMori400White12,
+                                  )
+                                ],
+                              );
+                            }
+                            return const SizedBox();
+                          },
+                        ),
+                      ],
+                    ),
                   ),
                   actions: [
                     IconButton(
@@ -667,7 +708,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                               width: 20,
                             ),
                             GestureDetector(
-                              onTap: onClickFullScreen,
+                              onTap: () => onClickFullScreen(assetToken),
                               child: SvgPicture.asset(
                                 'assets/images/fullscreen_icon.svg',
                               ),
