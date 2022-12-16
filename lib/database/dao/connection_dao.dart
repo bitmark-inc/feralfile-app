@@ -9,8 +9,8 @@ import 'dart:convert';
 
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/model/connection_supports.dart';
-import 'package:floor/floor.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
+import 'package:floor/floor.dart';
 
 @dao
 abstract class ConnectionDao {
@@ -51,7 +51,8 @@ abstract class ConnectionDao {
       'SELECT * FROM Connection WHERE connectionType IN ("dappConnect", "beaconP2PPeer")')
   Future<List<Connection>> getRelatedPersonaConnections();
 
-  @Query('SELECT * FROM Connection WHERE connectionType = :type')
+  @Query(
+      'SELECT * FROM Connection WHERE connectionType = :type ORDER BY createdAt DESC')
   Future<List<Connection>> getConnectionsByType(String type);
 
   @Query(

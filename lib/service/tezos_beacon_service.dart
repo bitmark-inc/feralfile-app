@@ -232,6 +232,13 @@ class TezosBeaconService implements BeaconHandler {
     final connections = await _cloudDB.connectionDao
         .getConnectionsByType(ConnectionType.beaconP2PPeer.rawValue);
 
+    // retains connections under 7 days old and limit to 5 connections.
+    while (connections.length > 5 &&
+        connections.last.createdAt
+            .isBefore(DateTime.now().subtract(const Duration(days: 7)))) {
+      connections.removeLast();
+    }
+
     final ids = connections
         .map((e) => e.beaconConnectConnection?.peer.id)
         .whereNotNull()
