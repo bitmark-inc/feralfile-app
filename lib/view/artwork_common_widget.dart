@@ -831,7 +831,10 @@ Widget debugInfoWidget(BuildContext context, AssetToken? token) {
                 Clipboard.setData(ClipboardData(text: value));
               }
             },
-            child: Text('$text:  $value'),
+            child: Text(
+              '$text:  $value',
+              style: theme.textTheme.ppMori400White12,
+            ),
           );
         }
 
