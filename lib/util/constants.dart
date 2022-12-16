@@ -273,12 +273,14 @@ class MixpanelEvent {
   static const confirmTransaction = 'confirm_transaction';
   static const clickArtist = 'click_artist';
   static const stayInArtworkDetail = 'stay_in_artwork_detail';
+  static const clickArtworkInfo = 'click_artwork_info';
   static const acceptOwnership = 'accept_ownership';
   static const declineOwnership = 'delice_ownership';
   static const generateReport = 'generate_report';
   static const displayUnableLoadIPFS = 'display_unable_load_IPFS';
   static const clickLoadIPFSAgain = 'click_load_IPFS_again';
   static const showLoadingArtwork = 'show_loading_artwork';
+  static const seeArtworkFullScreen = 'see_artwork_fullscreen';
   static const streamChromecast = 'stream_chromecast';
   static const linkLedger = 'link_ledger';
   static const viewArtwork = 'view_artwork';

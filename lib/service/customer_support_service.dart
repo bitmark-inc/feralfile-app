@@ -184,7 +184,6 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     if (isDelete) {
       var msg = await _draftCustomerSupportDao.getDraft(id);
       if (msg != null) {
-        final data = DraftCustomerSupportData.fromJson(jsonDecode(msg.data));
         await _draftCustomerSupportDao.deleteDraft(msg);
         if (msg.draftData.attachments != null &&
             msg.draftData.attachments!.isNotEmpty) {
