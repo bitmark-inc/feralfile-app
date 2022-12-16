@@ -30,6 +30,17 @@ extension FeeOptionExtention on FeeOption {
         return "high".tr();
     }
   }
+
+  BigInt get getEthereumPriorityFee {
+    switch (this) {
+      case FeeOption.LOW:
+        return BigInt.from(1000000000);
+      case FeeOption.MEDIUM:
+        return BigInt.from(1500000000);
+      default:
+        return BigInt.from(2000000000);
+    }
+  }
 }
 
 class FeeOptionValue {

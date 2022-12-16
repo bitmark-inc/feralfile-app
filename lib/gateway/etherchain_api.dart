@@ -11,13 +11,10 @@ import 'package:retrofit/http.dart';
 
 part 'etherchain_api.g.dart';
 
-@RestApi(baseUrl: "https://etherchain.org")
+@RestApi(baseUrl: "https://beaconcha.in")
 abstract class EtherchainApi {
   factory EtherchainApi(Dio dio, {String baseUrl}) = _EtherchainApi;
 
-  @GET("/api/gasnow")
+  @GET("/api/v1/execution/gasnow")
   Future<EtherGas> getGasPrice();
-
-  @GET("/api/gasPriceOracle")
-  Future<EtherGasDataOracle> getGasPriceOracle();
 }

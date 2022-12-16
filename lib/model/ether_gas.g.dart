@@ -34,13 +34,3 @@ Map<String, dynamic> _$EtherGasDataToJson(EtherGasData instance) =>
       'timestamp': instance.timestamp,
       'priceUSD': instance.priceUSD,
     };
-
-EtherGasDataOracle _$EtherGasDataOracleFromJson(Map<String, dynamic> json) =>
-    EtherGasDataOracle(
-      safeLow: double.parse(json['safeLow'].toString()),
-      standard: double.parse(json['standard'].toString()),
-      fast: double.parse(json['fast'].toString()),
-      fastest: double.parse(json['fastest'].toString()),
-      currentBaseFee: double.parse(json['currentBaseFee'].toString()),
-      recommendedBaseFee: double.parse(json['recommendedBaseFee'].toString()),
-    );
