@@ -50,35 +50,3 @@ class EtherGasData {
   Map<String, dynamic> toJson() => _$EtherGasDataToJson(this);
 }
 
-@JsonSerializable()
-class EtherGasDataOracle {
-  double safeLow;
-  double standard;
-  double fast;
-  double fastest;
-  double currentBaseFee;
-  double recommendedBaseFee;
-
-  EtherGasDataOracle({
-    required this.safeLow,
-    required this.standard,
-    required this.fast,
-    required this.fastest,
-    required this.currentBaseFee,
-    required this.recommendedBaseFee,
-  });
-
-  getFee(FeeOption feeOption) {
-    switch (feeOption) {
-      case FeeOption.LOW:
-        return BigInt.from(safeLow * gWeiFactor);
-      case FeeOption.MEDIUM:
-        return BigInt.from(fast * gWeiFactor);
-      case FeeOption.HIGH:
-        return BigInt.from(fastest * gWeiFactor);
-    }
-  }
-
-  factory EtherGasDataOracle.fromJson(Map<String, dynamic> json) =>
-      _$EtherGasDataOracleFromJson(json);
-}
