@@ -35,7 +35,6 @@ import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/provenance.dart';
 import 'package:nft_rendering/nft_rendering.dart';
-
 // ignore: depend_on_referenced_packages
 import 'package:path/path.dart' as p;
 import 'package:share/share.dart';
@@ -911,20 +910,6 @@ Widget artworkDetailsMetadataSection(
               ],
             )
           : const SizedBox(),
-      (asset.maxEdition ?? 0) > 0
-          ? Column(
-              children: [
-                Divider(
-                  height: 32.0,
-                  color: theme.auLightGrey,
-                ),
-                MetaDataItem(
-                  title: "edition_size".tr(),
-                  value: asset.maxEdition.toString(),
-                ),
-              ],
-            )
-          : const SizedBox(),
       Divider(
         height: 32.0,
         color: theme.auLightGrey,
@@ -981,12 +966,12 @@ Widget artworkDetailsMetadataSection(
 Widget _getEditionNameRow(BuildContext context, AssetToken asset) {
   if (asset.editionName != null && asset.editionName != "") {
     return MetaDataItem(
-      title: "edition_name".tr(),
+      title: "edition".tr(),
       value: asset.editionName!,
     );
   }
   return MetaDataItem(
-    title: "edition_number".tr(),
+    title: "edition".tr(),
     value: asset.edition.toString(),
   );
 }
@@ -1469,17 +1454,6 @@ class FeralfileArtworkDetailsMetadataSection extends StatelessWidget {
           artist.getDisplayName(),
           tapLink: "${Environment.feralFileAPIURL}/profiles/${artist.id}",
         ),
-        if (artwork.maxEdition > 0) ...[
-          const Divider(
-            height: 32.0,
-            color: AppColor.secondarySpanishGrey,
-          ),
-          _rowItem(
-            context,
-            "edition_size".tr(),
-            artwork.maxEdition.toString(),
-          ),
-        ],
         const Divider(
           height: 32.0,
           color: AppColor.secondarySpanishGrey,
