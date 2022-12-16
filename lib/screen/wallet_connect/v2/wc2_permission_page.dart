@@ -8,6 +8,7 @@
 import 'dart:convert';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
@@ -17,13 +18,17 @@ import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
+import 'package:autonomy_flutter/util/wc2_ext.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:libauk_dart/libauk_dart.dart';
+import 'package:readmore/readmore.dart';
 
 class Wc2RequestPage extends StatefulWidget {
   final Wc2Request request;
@@ -36,10 +41,16 @@ class Wc2RequestPage extends StatefulWidget {
 
 class _Wc2RequestPageState extends State<Wc2RequestPage>
     with RouteAware, WidgetsBindingObserver {
+  Persona? selectedPersona;
+  List<Persona>? personas;
+  bool _isAccountSelected = false;
+
   @override
   void initState() {
     super.initState();
-    context.read<PersonaBloc>().add(GetListPersonaEvent());
+    context
+        .read<PersonaBloc>()
+        .add(GetListPersonaEvent(useDidKeyForAlias: true));
     injector<NavigationService>().setIsWCConnectInShow(true);
   }
 
@@ -53,7 +64,9 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
   @override
   void didPopNext() {
     super.didPopNext();
-    context.read<PersonaBloc>().add(GetListPersonaEvent());
+    context
+        .read<PersonaBloc>()
+        .add(GetListPersonaEvent(useDidKeyForAlias: true));
   }
 
   @override
@@ -79,7 +92,10 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
     required Wc2PermissionsRequestParams params,
     required WalletStorage account,
   }) async {
-    final signature = await account.getAccountDIDSignature(params.message);
+    final accountService = injector<AccountService>();
+
+    final signature = await (await accountService.getDefaultAccount())
+        .getAccountDIDSignature(params.message);
     final permissionResults = params.permissions.map((permission) async {
       final chainFutures = permission.request.chains.map((chain) async {
         final chainResp = await account.signPermissionRequest(
@@ -117,10 +133,19 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
     );
     final wc2Service = injector<Wc2Service>();
     try {
-      final signature = await account.signMessage(
-        chain: chain,
-        message: params.message,
-      );
+      String signature;
+      if (chain.caip2Namespace == Wc2Chain.autonomy) {
+        signature =
+            await (await accountService.getDefaultAccount()).signMessage(
+          chain: chain,
+          message: params.message,
+        );
+      } else {
+        signature = await account.signMessage(
+          chain: chain,
+          message: params.message,
+        );
+      }
       wc2Service.respondOnApprove(request.topic, signature);
     } catch (e) {
       log.info("[Wc2RequestPage] _handleAuSignRequest $e");
@@ -128,17 +153,16 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
   }
 
   Future _approve() async {
+    if (selectedPersona == null) return;
     final wc2Service = injector<Wc2Service>();
     if (widget.request.method == "au_permissions") {
       final params =
           Wc2PermissionsRequestParams.fromJson(widget.request.params);
-      final accountService = injector<AccountService>();
-      final did = "did:key:${params.account.split(":")[2]}";
-      final account = await accountService.getAccount(did);
+      final account = selectedPersona;
       if (account != null) {
         final response = await _handleAuPermissionRequest(
           params: params,
-          account: account,
+          account: account.wallet(),
         );
         await wc2Service.respondOnApprove(widget.request.topic, response);
       } else {
@@ -212,14 +236,36 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
                         style: theme.textTheme.headline4,
                       ),
                       const SizedBox(height: 16.0),
-                      Text(
+                      ReadMoreText(
                         widget.request.params["message"],
                         style: theme.textTheme.bodyText2,
+                        trimMode: TrimMode.Line,
+                        colorClickableText: AppColor.primaryBlack,
                       ),
                       Divider(
-                        height: 64,
+                        height: 32,
                         color: theme.colorScheme.secondary,
                       ),
+                      BlocConsumer<PersonaBloc, PersonaState>(
+                          listener: (context, state) {
+                        var statePersonas = state.personas;
+                        if (statePersonas == null) return;
+
+                        if (statePersonas.length == 1) {
+                          setState(() {
+                            selectedPersona = statePersonas.first;
+                          });
+                        }
+
+                        setState(() {
+                          personas = statePersonas;
+                        });
+                      }, builder: (context, state) {
+                        final statePersonas = personas;
+                        if (statePersonas == null) return const SizedBox();
+
+                        return _selectPersonaWidget(statePersonas);
+                      })
                     ],
                   ),
                 ),
@@ -229,7 +275,9 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
                   Expanded(
                     child: AuFilledButton(
                       text: "sign".tr().toUpperCase(),
-                      onPress: () => withDebounce(() => _approve()),
+                      onPress: _isAccountSelected
+                          ? () => withDebounce(() => _approve())
+                          : null,
                     ),
                   )
                 ],
@@ -238,6 +286,94 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
           ),
         ),
       ),
+    );
+  }
+
+  Widget _selectPersonaWidget(List<Persona> personas) {
+    bool hasRadio = personas.length > 1;
+    final theme = Theme.of(context);
+    if (!hasRadio) _isAccountSelected = true;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "select_grand_access".tr(), //"Select an account to grant access:",
+          style: theme.textTheme.headline4,
+        ),
+        const SizedBox(height: 16.0),
+        ...personas
+            .map((persona) => Column(
+                  children: [
+                    ListTile(
+                      title: Row(
+                        children: [
+                          SizedBox(
+                            width: 30,
+                            height: 32,
+                            child: Stack(
+                              children: [
+                                Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: Image.asset(
+                                        "assets/images/moma_logo.png"),
+                                  ),
+                                ),
+                                if (persona.isDefault()) ...[
+                                  Align(
+                                    alignment: Alignment.topRight,
+                                    child: SvgPicture.asset(
+                                      "assets/images/icon_verified_bordered.svg",
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 16.0),
+                          FutureBuilder<String>(
+                            future: persona.wallet().getAccountDID(),
+                            builder: (context, snapshot) {
+                              final name = persona.name.isNotEmpty
+                                  ? persona.name
+                                  : snapshot.data ?? '';
+                              return Expanded(
+                                child: Text(
+                                  name.replaceFirst('did:key:', ''),
+                                  style: theme.textTheme.headline4,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                      contentPadding: EdgeInsets.zero,
+                      trailing: (hasRadio
+                          ? Transform.scale(
+                              scale: 1.2,
+                              child: Radio(
+                                activeColor: theme.colorScheme.primary,
+                                value: persona,
+                                groupValue: selectedPersona,
+                                onChanged: (Persona? value) {
+                                  setState(() {
+                                    selectedPersona = value;
+                                    _isAccountSelected = true;
+                                  });
+                                },
+                              ),
+                            )
+                          : null),
+                    ),
+                    const Divider(height: 16.0),
+                  ],
+                ))
+            .toList(),
+      ],
     );
   }
 }
