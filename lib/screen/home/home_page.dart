@@ -288,7 +288,7 @@ class HomePageState extends State<HomePage>
     final paddingTop = MediaQuery.of(context).viewPadding.top;
 
     return ListView(
-      padding: ResponsiveLayout.getPadding,
+      padding: ResponsiveLayout.getPadding.copyWith(left: 0),
       children: [
         Align(
           alignment: Alignment.centerLeft,
@@ -297,10 +297,13 @@ class HomePageState extends State<HomePage>
             child: autonomyLogo,
           ),
         ),
-        Text(
-          "collection_empty_now".tr(),
-          //"Your collection is empty for now.",
-          style: theme.textTheme.bodyText1,
+        Padding(
+          padding: const EdgeInsets.only(left: 15),
+          child: Text(
+            "collection_empty_now".tr(),
+            //"Your collection is empty for now.",
+            style: theme.textTheme.bodyText1,
+          ),
         ),
       ],
     );
