@@ -254,6 +254,7 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
                         if (statePersonas.length == 1) {
                           setState(() {
                             selectedPersona = statePersonas.first;
+                            _isAccountSelected = true;
                           });
                         }
 
@@ -292,7 +293,6 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
   Widget _selectPersonaWidget(List<Persona> personas) {
     bool hasRadio = personas.length > 1;
     final theme = Theme.of(context);
-    if (!hasRadio) _isAccountSelected = true;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
