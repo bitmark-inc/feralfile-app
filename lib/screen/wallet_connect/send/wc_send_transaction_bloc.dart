@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/currency_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/pending_token_service.dart';
@@ -28,6 +29,7 @@ class WCSendTransactionBloc
   final WalletConnectService _walletConnectService;
   final Wc2Service _wc2Service;
   final ConfigurationService _configurationService;
+  final CurrencyService _currencyService;
 
   WCSendTransactionBloc(
     this._navigationService,
@@ -35,10 +37,13 @@ class WCSendTransactionBloc
     this._wc2Service,
     this._walletConnectService,
     this._configurationService,
+    this._currencyService,
   ) : super(WCSendTransactionState()) {
     on<WCSendTransactionEstimateEvent>((event, emit) async {
       final WalletStorage persona = LibAukDart.getWallet(event.uuid);
       final newState = state.clone();
+      final exchangeRate = await _currencyService.getExchangeRates();
+      newState.exchangeRate = exchangeRate;
       newState.feeOptionValue = await _ethereumService.estimateFee(
           persona, event.address, event.amount, event.data);
       newState.fee = newState.feeOptionValue!.getFee(state.feeOption);

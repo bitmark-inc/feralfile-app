@@ -406,11 +406,11 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
     switch (widget.data.type) {
       case CryptoType.ETH:
         return state.isCrypto
-            ? "${EthAmountFormatter(fee, digit: 7).format()} ETH"
+            ? "${EthAmountFormatter(fee, digit: 7).format()} ETH (${state.exchangeRate.ethToUsd(fee)} USD)"
             : "${state.exchangeRate.ethToUsd(fee)} USD";
       case CryptoType.XTZ:
         return state.isCrypto
-            ? "${XtzAmountFormatter(fee.toInt()).format()} XTZ"
+            ? "${XtzAmountFormatter(fee.toInt()).format()} XTZ (${state.exchangeRate.xtzToUsd(fee.toInt())} USD)"
             : "${state.exchangeRate.xtzToUsd(fee.toInt())} USD";
       case CryptoType.USDC:
         return "${EthAmountFormatter(fee, digit: 7).format()} ETH (${state.exchangeRate.ethToUsd(fee)} USD)";

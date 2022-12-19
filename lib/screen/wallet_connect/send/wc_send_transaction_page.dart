@@ -356,7 +356,7 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
   String _gasFee(WCSendTransactionState state, {FeeOption? feeOption}) {
     if (state.feeOptionValue == null) return "";
     final fee = state.feeOptionValue!.getFee(feeOption ?? state.feeOption);
-    return "${EthAmountFormatter(fee, digit: 7).format()} ETH";
+    return "${EthAmountFormatter(fee, digit: 7).format()} ETH (${state.exchangeRate.ethToUsd(fee)} USD)";
   }
 }
 

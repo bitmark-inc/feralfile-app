@@ -552,6 +552,7 @@ class AppRouter {
               injector(),
               injector(),
               injector(),
+              injector(),
             ),
             child: WCSendTransactionPage(
                 args: settings.arguments as WCSendTransactionPageArgs),
