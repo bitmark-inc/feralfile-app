@@ -543,26 +543,14 @@ class _WCConnectPageState extends State<WCConnectPage>
                                 SizedBox(
                                   width: 30,
                                   height: 32,
-                                  child: Stack(
-                                    children: [
-                                      Align(
-                                        alignment: Alignment.centerLeft,
-                                        child: SizedBox(
-                                          width: 24,
-                                          height: 24,
-                                          child: Image.asset(
-                                              "assets/images/moma_logo.png"),
-                                        ),
-                                      ),
-                                      if (persona.isDefault()) ...[
-                                        Align(
-                                          alignment: Alignment.topRight,
-                                          child: SvgPicture.asset(
-                                            "assets/images/icon_verified_bordered.svg",
-                                          ),
-                                        ),
-                                      ],
-                                    ],
+                                  child: Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                      child: Image.asset(
+                                          "assets/images/moma_logo.png"),
+                                    ),
                                   ),
                                 ),
                                 const SizedBox(width: 16.0),
