@@ -26,7 +26,6 @@ import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:readmore/readmore.dart';
 
@@ -302,26 +301,14 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
                           SizedBox(
                             width: 30,
                             height: 32,
-                            child: Stack(
-                              children: [
-                                Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: SizedBox(
-                                    width: 24,
-                                    height: 24,
-                                    child: Image.asset(
-                                        "assets/images/moma_logo.png"),
-                                  ),
-                                ),
-                                if (persona.isDefault()) ...[
-                                  Align(
-                                    alignment: Alignment.topRight,
-                                    child: SvgPicture.asset(
-                                      "assets/images/icon_verified_bordered.svg",
-                                    ),
-                                  ),
-                                ],
-                              ],
+                            child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: SizedBox(
+                                width: 24,
+                                height: 24,
+                                child:
+                                    Image.asset("assets/images/moma_logo.png"),
+                              ),
                             ),
                           ),
                           const SizedBox(width: 16.0),
