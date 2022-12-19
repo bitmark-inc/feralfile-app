@@ -34,6 +34,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -348,6 +349,7 @@ class _SettingsPageState extends State<SettingsPage>
       "rebuild".tr(),
       () async {
         await injector<NftCollectionBloc>().tokensService.purgeCachedGallery();
+        await injector<CacheManager>().emptyCache();
         if (!mounted) return;
         context.read<IdentityBloc>().add(RemoveAllEvent());
         Navigator.of(context).popUntil((route) =>
