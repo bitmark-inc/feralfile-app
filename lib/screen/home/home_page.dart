@@ -15,7 +15,6 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/blockchain.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
@@ -24,7 +23,6 @@ import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_view.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
@@ -63,7 +61,6 @@ import 'package:flutter_fgbg/flutter_fgbg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/nft_collection.dart';
-import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:wallet_connect/models/wc_peer_meta.dart';
 
@@ -124,14 +121,6 @@ class HomePageState extends State<HomePage>
     refreshFeeds();
     refreshTokens();
     context.read<HomeBloc>().add(CheckReviewAppEvent());
-    OneSignal.shared
-        .setNotificationWillShowInForegroundHandler(_shouldShowNotifications);
-    injector<AuditService>().auditFirstLog();
-    OneSignal.shared.setNotificationOpenedHandler((openedResult) {
-      Future.delayed(const Duration(milliseconds: 500), () {
-        _handleNotificationClicked(openedResult.notification);
-      });
-    });
 
     injector<IAPService>().setup();
     memoryValues.inGalleryView = true;
@@ -486,87 +475,6 @@ class HomePageState extends State<HomePage>
         break;
       case FGBGType.background:
         _handleBackground();
-        break;
-    }
-  }
-
-  void _shouldShowNotifications(OSNotificationReceivedEvent event) {
-    log.info("Receive notification: ${event.notification}");
-    final data = event.notification.additionalData;
-    if (data == null) return;
-
-    switch (data['notification_type']) {
-      case "customer_support_new_message":
-      case "customer_support_close_issue":
-        final notificationIssueID =
-            '${event.notification.additionalData?['issue_id']}';
-        injector<CustomerSupportService>().triggerReloadMessages.value += 1;
-        injector<CustomerSupportService>().getIssues();
-        if (notificationIssueID == memoryValues.viewingSupportThreadIssueID) {
-          event.complete(null);
-          return;
-        }
-        break;
-
-      case 'gallery_new_nft':
-        Future.wait([getAddresses(), getManualTokenIds()]).then((value) {
-          final addresses = value[0];
-          final indexerIds = value[1];
-          context.read<NftCollectionBloc>().add(
-              RefreshTokenEvent(addresses: addresses, debugTokens: indexerIds));
-        });
-        break;
-      case "artwork_created":
-      case "artwork_received":
-        injector<FeedService>().checkNewFeeds();
-        break;
-    }
-
-    showNotifications(context, event.notification,
-        notificationOpenedHandler: _handleNotificationClicked);
-    event.complete(null);
-  }
-
-  void _handleNotificationClicked(OSNotification notification) {
-    if (notification.additionalData == null) {
-      // Skip handling the notification without data
-      return;
-    }
-
-    log.info(
-        "Tap to notification: ${notification.body ?? "empty"} \nAddtional data: ${notification.additionalData!}");
-
-    final notificationType = notification.additionalData!["notification_type"];
-    switch (notificationType) {
-      case "gallery_new_nft":
-        Navigator.of(context).popUntil((route) =>
-            route.settings.name == AppRouter.homePage ||
-            route.settings.name == AppRouter.homePageNoTransition);
-        break;
-
-      case "customer_support_new_message":
-      case "customer_support_close_issue":
-        final issueID = '${notification.additionalData!["issue_id"]}';
-        Navigator.of(context).pushNamedAndRemoveUntil(
-            AppRouter.supportThreadPage,
-            ((route) =>
-                route.settings.name == AppRouter.homePage ||
-                route.settings.name == AppRouter.homePageNoTransition),
-            arguments:
-                DetailIssuePayload(reportIssueType: "", issueID: issueID));
-        break;
-
-      case "artwork_created":
-      case "artwork_received":
-        Navigator.of(context).pushNamedAndRemoveUntil(
-          AppRouter.feedPreviewPage,
-          ((route) =>
-              route.settings.name == AppRouter.homePage ||
-              route.settings.name == AppRouter.homePageNoTransition),
-        );
-        break;
-      default:
-        log.warning("unhandled notification type: $notificationType");
         break;
     }
   }
