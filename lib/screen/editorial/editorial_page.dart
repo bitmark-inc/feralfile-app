@@ -102,27 +102,74 @@ class _EditorialPageState extends State<EditorialPage>
                       ),
                     Hero(
                       tag: "discover_tab",
-                      child: TabBar(
-                        controller: _tabController,
-                        indicatorSize: TabBarIndicatorSize.label,
-                        labelPadding: const EdgeInsets.symmetric(
-                            horizontal: 5.0, vertical: 6.0),
-                        labelStyle: theme.textTheme.ppMori400White14,
-                        unselectedLabelStyle: theme.textTheme.ppMori400Grey14,
-                        isScrollable: true,
-                        indicator: const BoxDecoration(
-                          border: Border(
-                            top: BorderSide(color: AppColor.auSuperTeal),
+                      child: Stack(
+                        alignment: Alignment.topRight,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              if (widget.isShowDiscover) ...[
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 5.0,
+                                  ),
+                                  child: Container(
+                                    width: 58,
+                                    height: 10,
+                                    decoration: const BoxDecoration(
+                                      border: Border(
+                                        top: BorderSide(
+                                            color: AppColor.greyMedium),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 5.0,
+                                ),
+                                child: Container(
+                                  width: 54,
+                                  height: 10,
+                                  decoration: const BoxDecoration(
+                                    border: Border(
+                                      top: BorderSide(
+                                          color: AppColor.greyMedium),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                        tabs: [
-                          if (widget.isShowDiscover) ...[
-                            Text(
-                              'discover'.tr(),
+                          TabBar(
+                            controller: _tabController,
+                            indicatorSize: TabBarIndicatorSize.label,
+                            labelPadding: const EdgeInsets.symmetric(
+                              horizontal: 5.0,
+                              vertical: 6.0,
+                            ).copyWith(bottom: 0),
+                            labelStyle: theme.textTheme.ppMori400White14,
+                            unselectedLabelStyle:
+                                theme.textTheme.ppMori400Grey14,
+                            isScrollable: true,
+                            indicator: const BoxDecoration(
+                              border: Border(
+                                top: BorderSide(color: AppColor.auSuperTeal),
+                              ),
                             ),
-                          ],
-                          Text(
-                            'editorial'.tr(),
+                            tabs: [
+                              if (widget.isShowDiscover) ...[
+                                Text(
+                                  'discover'.tr(),
+                                  style: const TextStyle(height: 0.8),
+                                ),
+                              ],
+                              Text(
+                                'editorial'.tr(),
+                                style: const TextStyle(height: 0.8),
+                              ),
+                            ],
                           ),
                         ],
                       ),
