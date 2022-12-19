@@ -6,17 +6,26 @@
 //
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
+import 'package:autonomy_flutter/screen/editorial/editorial_bloc.dart';
 import 'package:autonomy_flutter/screen/editorial/editorial_page.dart';
+import 'package:autonomy_flutter/screen/editorial/editorial_state.dart';
 import 'package:autonomy_flutter/screen/feed/feed_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
+import 'package:autonomy_flutter/service/audit_service.dart';
+import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
+import 'package:autonomy_flutter/util/inapp_notifications.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 
 class HomeNavigationPage extends StatefulWidget {
   const HomeNavigationPage({Key? key}) : super(key: key);
@@ -38,8 +47,11 @@ class _HomeNavigationPageState extends State<HomeNavigationPage> {
       });
       _pageController.jumpToPage(_selectedIndex);
       if (index == 0) {
-        _homePageKey.currentState?.refreshFeeds();
         _homePageKey.currentState?.refreshTokens();
+        injector<FeedService>().checkNewFeeds();
+      } else {
+        context.read<FeedBloc>().add(GetFeedsEvent());
+        context.read<EditorialBloc>().add(GetEditorialEvent());
       }
     } else {
       UIHelper.showDrawerAction(
@@ -93,6 +105,15 @@ class _HomeNavigationPageState extends State<HomeNavigationPage> {
             return EditorialPage(isShowDiscover: isShowDiscover);
           }),
     ];
+
+    OneSignal.shared
+        .setNotificationWillShowInForegroundHandler(_shouldShowNotifications);
+    injector<AuditService>().auditFirstLog();
+    OneSignal.shared.setNotificationOpenedHandler((openedResult) {
+      Future.delayed(const Duration(milliseconds: 500), () {
+        _handleNotificationClicked(openedResult.notification);
+      });
+    });
   }
 
   @override
@@ -182,5 +203,81 @@ class _HomeNavigationPageState extends State<HomeNavigationPage> {
         children: _pages,
       ),
     );
+  }
+
+  void _shouldShowNotifications(OSNotificationReceivedEvent event) {
+    log.info("Receive notification: ${event.notification}");
+    final data = event.notification.additionalData;
+    if (data == null) return;
+
+    switch (data['notification_type']) {
+      case "customer_support_new_message":
+      case "customer_support_close_issue":
+        final notificationIssueID =
+            '${event.notification.additionalData?['issue_id']}';
+        injector<CustomerSupportService>().triggerReloadMessages.value += 1;
+        injector<CustomerSupportService>().getIssues();
+        if (notificationIssueID == memoryValues.viewingSupportThreadIssueID) {
+          event.complete(null);
+          return;
+        }
+        break;
+
+      case 'gallery_new_nft':
+        _homePageKey.currentState?.refreshTokens();
+        break;
+      case "artwork_created":
+      case "artwork_received":
+        injector<FeedService>().checkNewFeeds();
+        context.read<FeedBloc>().add(GetFeedsEvent());
+        break;
+    }
+
+    showNotifications(context, event.notification,
+        notificationOpenedHandler: _handleNotificationClicked);
+    event.complete(null);
+  }
+
+  void _handleNotificationClicked(OSNotification notification) {
+    if (notification.additionalData == null) {
+      // Skip handling the notification without data
+      return;
+    }
+
+    log.info(
+        "Tap to notification: ${notification.body ?? "empty"} \nAddtional data: ${notification.additionalData!}");
+
+    final notificationType = notification.additionalData!["notification_type"];
+    switch (notificationType) {
+      case "gallery_new_nft":
+        Navigator.of(context).popUntil((route) =>
+            route.settings.name == AppRouter.homePage ||
+            route.settings.name == AppRouter.homePageNoTransition);
+        _pageController.jumpToPage(0);
+        break;
+
+      case "customer_support_new_message":
+      case "customer_support_close_issue":
+        final issueID = '${notification.additionalData!["issue_id"]}';
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          AppRouter.supportThreadPage,
+          ((route) =>
+              route.settings.name == AppRouter.homePage ||
+              route.settings.name == AppRouter.homePageNoTransition),
+          arguments: DetailIssuePayload(reportIssueType: "", issueID: issueID),
+        );
+        break;
+
+      case "artwork_created":
+      case "artwork_received":
+        Navigator.of(context).popUntil((route) =>
+            route.settings.name == AppRouter.homePage ||
+            route.settings.name == AppRouter.homePageNoTransition);
+        _pageController.jumpToPage(1);
+        break;
+      default:
+        log.warning("unhandled notification type: $notificationType");
+        break;
+    }
   }
 }
