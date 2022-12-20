@@ -145,11 +145,12 @@ dependencies:
   flutter_widget_from_html: ^0.9.0+1
   readmore: ^2.2.0
   elliptic: ^0.3.8
-  sentry: ^6.18.1
+  sentry: ^6.9.1
   path: ^1.8.2
   in_app_purchase_storekit: ^0.3.4
   in_app_purchase_android: ^0.2.3+7
   convert: ^3.1.1
+  sqflite: ^2.2.2
 
 dependency_overrides:
   # Error using when import photo_view from dependencies:
