@@ -208,21 +208,21 @@ class LibAukChannelHandler {
     func signTransaction(call: FlutterMethodCall, result: @escaping FlutterResult) {
         let args: NSDictionary = call.arguments as! NSDictionary
         let uuid: String = args["uuid"] as! String
-        let nonce: String = args["nonce"] as? String ?? ""
-        let gasPrice: String = args["gasPrice"] as? String ?? ""
-        let gasLimit: String = args["gasLimit"] as? String ?? ""
+        let nonce: String = args["nonce"] as? String ?? "0"
+        let gasPrice: String = args["gasPrice"] as? String ?? "0"
+        let gasLimit: String = args["gasLimit"] as? String ?? "0"
         let to: String = args["to"] as? String ?? ""
-        let value: String = args["value"] as? String ?? ""
+        let value: String = args["value"] as? String ?? "0"
         let data: String = args["data"] as? String ?? ""
         let chainId: Int = args["chainId"] as? Int ?? 0
         
         let transaction = EthereumTransaction(
-            nonce: EthereumQuantity(quantity: BigUInt(Double(nonce) ?? 0)),
-            gasPrice: EthereumQuantity(quantity: BigUInt(Double(gasPrice) ?? 0)),
-            gasLimit: EthereumQuantity(quantity: BigUInt(Double(gasLimit) ?? 0)),
+            nonce: EthereumQuantity(quantity: BigUInt(nonce, radix: 10) ?? BigUInt.zero),
+            gasPrice: EthereumQuantity(quantity: BigUInt(gasPrice, radix: 10) ?? BigUInt.zero),
+            gasLimit: EthereumQuantity(quantity: BigUInt(gasLimit, radix: 10) ?? BigUInt.zero),
             from: nil,
             to: try! EthereumAddress.init(hex: to, eip55: false),
-            value: EthereumQuantity(quantity: BigUInt(Double(value) ?? 0)),
+            value: EthereumQuantity(quantity: BigUInt(value, radix: 10) ?? BigUInt.zero),
             data: try! EthereumData.string(data))
         
 
@@ -245,23 +245,23 @@ class LibAukChannelHandler {
     func signTransaction1559(call: FlutterMethodCall, result: @escaping FlutterResult) {
         let args: NSDictionary = call.arguments as! NSDictionary
         let uuid: String = args["uuid"] as! String
-        let nonce: String = args["nonce"] as? String ?? ""
-        let gasLimit: String = args["gasLimit"] as? String ?? ""
-        let maxPriorityFeePerGas: String = args["maxPriorityFeePerGas"] as? String ?? ""
-        let maxFeePerGas: String = args["maxFeePerGas"] as? String ?? ""
+        let nonce: String = args["nonce"] as? String ?? "0"
+        let gasLimit: String = args["gasLimit"] as? String ?? "0"
+        let maxPriorityFeePerGas: String = args["maxPriorityFeePerGas"] as? String ?? "0"
+        let maxFeePerGas: String = args["maxFeePerGas"] as? String ?? "0"
         let to: String = args["to"] as? String ?? ""
-        let value: String = args["value"] as? String ?? ""
+        let value: String = args["value"] as? String ?? "0"
         let data: String = args["data"] as? String ?? ""
         let chainId: Int = args["chainId"] as? Int ?? 0
         
         let transaction = EthereumTransaction(
-            nonce: EthereumQuantity(quantity: BigUInt(Double(nonce) ?? 0)),
-            maxFeePerGas: EthereumQuantity(quantity: BigUInt(Double(maxFeePerGas) ?? 0)),
-            maxPriorityFeePerGas: EthereumQuantity(quantity: BigUInt(Double(maxPriorityFeePerGas) ?? 0)),
-            gasLimit: EthereumQuantity(quantity: BigUInt(Double(gasLimit) ?? 0)),
+            nonce: EthereumQuantity(quantity: BigUInt(nonce, radix: 10) ?? BigUInt.zero),
+            maxFeePerGas: EthereumQuantity(quantity: BigUInt(maxFeePerGas, radix: 10) ?? BigUInt.zero),
+            maxPriorityFeePerGas: EthereumQuantity(quantity: BigUInt(maxPriorityFeePerGas, radix: 10) ?? BigUInt.zero),
+            gasLimit: EthereumQuantity(quantity: BigUInt(gasLimit, radix: 10) ?? BigUInt.zero),
             from: nil,
             to: try! EthereumAddress.init(hex: to, eip55: false),
-            value: EthereumQuantity(quantity: BigUInt(Double(value) ?? 0)),
+            value: EthereumQuantity(quantity: BigUInt(value, radix: 10) ?? BigUInt.zero),
             data: try! EthereumData.string(data),
             transactionType: .eip1559
         )
@@ -375,7 +375,7 @@ class LibAukChannelHandler {
             }, receiveValue: { output in
                 result([
                     "error": 0,
-                    "data": output as! String,
+                    "data": output,
                 ])
             })
             .store(in: &cancelBag)
@@ -396,7 +396,7 @@ class LibAukChannelHandler {
             }, receiveValue: { output in
                 result([
                     "error": 0,
-                    "data": output as! String,
+                    "data": output ,
                 ])
             })
             .store(in: &cancelBag)
