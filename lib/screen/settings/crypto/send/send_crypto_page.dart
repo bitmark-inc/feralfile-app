@@ -202,7 +202,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                 ),
                 const SizedBox(height: 16.0),
                 gasFeeStatus(state, theme),
-                const SizedBox(height: 10.0),
+                const SizedBox(height: 8.0),
                 if (state.feeOptionValue != null) feeTable(state, context),
                 const SizedBox(height: 24.0),
                 // Expanded(child: SizedBox()),
@@ -278,7 +278,10 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
           Text(feeOption.name, style: theme.textTheme.atlasBlackBold12),
           const Spacer(),
           Text(_gasFee(state), style: theme.textTheme.atlasBlackBold12),
-          const SizedBox(width: 56),
+          const SizedBox(
+            width: 56,
+            height: 24,
+          ),
           GestureDetector(
             onTap: () {
               setState(() {
@@ -406,11 +409,11 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
     switch (widget.data.type) {
       case CryptoType.ETH:
         return state.isCrypto
-            ? "${EthAmountFormatter(fee, digit: 7).format()} ETH"
+            ? "${EthAmountFormatter(fee, digit: 7).format()} ETH (${state.exchangeRate.ethToUsd(fee)} USD)"
             : "${state.exchangeRate.ethToUsd(fee)} USD";
       case CryptoType.XTZ:
         return state.isCrypto
-            ? "${XtzAmountFormatter(fee.toInt()).format()} XTZ"
+            ? "${XtzAmountFormatter(fee.toInt()).format()} XTZ (${state.exchangeRate.xtzToUsd(fee.toInt())} USD)"
             : "${state.exchangeRate.xtzToUsd(fee.toInt())} USD";
       case CryptoType.USDC:
         return "${EthAmountFormatter(fee, digit: 7).format()} ETH (${state.exchangeRate.ethToUsd(fee)} USD)";

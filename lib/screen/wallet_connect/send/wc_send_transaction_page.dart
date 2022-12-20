@@ -212,7 +212,7 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                               ),
                               const SizedBox(height: 16.0),
                               gasFeeStatus(state, theme),
-                              const SizedBox(height: 10.0),
+                              const SizedBox(height: 8.0),
                               if (state.feeOptionValue != null)
                                 feeTable(state, context),
                               const SizedBox(height: 24.0),
@@ -301,7 +301,10 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
           Text(feeOption.name, style: theme.textTheme.atlasBlackBold12),
           const Spacer(),
           Text(_gasFee(state), style: theme.textTheme.atlasBlackBold12),
-          const SizedBox(width: 56),
+          const SizedBox(
+            width: 56,
+            height: 24,
+          ),
           GestureDetector(
             onTap: () {
               setState(() {
@@ -356,7 +359,7 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
   String _gasFee(WCSendTransactionState state, {FeeOption? feeOption}) {
     if (state.feeOptionValue == null) return "";
     final fee = state.feeOptionValue!.getFee(feeOption ?? state.feeOption);
-    return "${EthAmountFormatter(fee, digit: 7).format()} ETH";
+    return "${EthAmountFormatter(fee, digit: 7).format()} ETH (${state.exchangeRate.ethToUsd(fee)} USD)";
   }
 }
 

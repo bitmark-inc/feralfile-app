@@ -7,7 +7,9 @@
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
+import 'package:autonomy_flutter/model/currency_exchange.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/currency_service.dart';
 import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
 import 'package:autonomy_flutter/service/pending_token_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
@@ -57,6 +59,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
   FeeOptionValue? feeOptionValue;
   late int balance;
   final mixPanelClient = injector.get<MixPanelClientService>();
+  late CurrencyExchangeRate exchangeRate;
 
   @override
   void initState() {
@@ -101,6 +104,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
 
   Future _estimateFee(WalletStorage wallet) async {
     try {
+      exchangeRate = await injector<CurrencyService>().getExchangeRates();
       final fee = await injector<TezosService>().estimateOperationFee(
           await wallet.getTezosPublicKey(), widget.request.operations!,
           baseOperationCustomFee: feeOption.tezosBaseOperationCustomFee);
@@ -265,7 +269,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                           ),
                           const SizedBox(height: 16.0),
                           gasFeeStatus(theme),
-                          const SizedBox(height: 10.0),
+                          const SizedBox(height: 8.0),
                           if (feeOptionValue != null) feeTable(context),
                           const SizedBox(height: 24.0),
                         ],
@@ -400,7 +404,10 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
           Text(feeOption.name, style: theme.textTheme.atlasBlackBold12),
           const Spacer(),
           Text(_gasFee(feeOption), style: theme.textTheme.atlasBlackBold12),
-          const SizedBox(width: 56),
+          const SizedBox(
+            width: 56,
+            height: 24,
+          ),
           GestureDetector(
             onTap: () {
               setState(() {
@@ -454,6 +461,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
 
   String _gasFee(FeeOption feeOption) {
     if (feeOptionValue == null) return "";
-    return "${XtzAmountFormatter(feeOptionValue!.getFee(feeOption).toInt()).format()} XTZ";
+    final fee = feeOptionValue!.getFee(feeOption).toInt();
+    return "${XtzAmountFormatter(fee).format()} XTZ  (${exchangeRate.xtzToUsd(fee.toInt())} USD)";
   }
 }
