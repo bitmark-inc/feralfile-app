@@ -21,7 +21,12 @@
         android:name=".app.AutonomyApp"
         android:icon="${appIcon}"
         android:label="@string/app_name"
-        android:roundIcon="${appIconRound}">
+        android:roundIcon="${appIconRound}"
+        android:usesCleartextTraffic="true">
+        <!--
+         - Enable usesCleartextTraffic only to allow make connection to localhost
+         - It will be used to rendering model viewer for 3d artworks.
+         -->
 
         <meta-data
             android:name="com.onesignal.NotificationServiceExtension"

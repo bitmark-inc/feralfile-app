@@ -154,6 +154,7 @@ extension AssetTokenExtension on AssetToken {
       case "image/avif":
       case "image/bmp":
       case "image/jpeg":
+      case "image/jpg":
       case "image/png":
       case "image/tiff":
         return RenderingType.image;
@@ -173,6 +174,7 @@ extension AssetTokenExtension on AssetToken {
       case "audio/wav":
       case "audio/webm":
       case "audio/3gpp":
+      case "audio/vnd.wave":
         return RenderingType.audio;
 
       case "video/x-msvideo":
@@ -191,6 +193,9 @@ extension AssetTokenExtension on AssetToken {
 
       case "application/pdf":
         return RenderingType.pdf;
+
+      case "model/gltf-binary":
+        return RenderingType.modelViewer;
 
       default:
         if (mimeType?.isNotEmpty ?? false) {
