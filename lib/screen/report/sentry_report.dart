@@ -5,8 +5,6 @@
 //  that can be found in the LICENSE file.
 //
 
-// ignore_for_file: depend_on_referenced_packages
-
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:sentry/sentry_io.dart';
 import 'package:autonomy_flutter/util/device.dart';

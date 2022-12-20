@@ -35,7 +35,6 @@ import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/provenance.dart';
 import 'package:nft_rendering/nft_rendering.dart';
-// ignore: depend_on_referenced_packages
 import 'package:path/path.dart' as p;
 import 'package:share/share.dart';
 import 'package:url_launcher/url_launcher.dart';

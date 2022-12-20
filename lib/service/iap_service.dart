@@ -5,7 +5,6 @@
 //  that can be found in the LICENSE file.
 //
 
-// ignore_for_file: depend_on_referenced_packages
 // ignore_for_file: invalid_use_of_visible_for_testing_member
 // ignore_for_file: invalid_use_of_protected_member
 // ignore_for_file: avoid_function_literals_in_foreach_calls

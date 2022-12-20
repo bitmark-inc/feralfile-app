@@ -51,7 +51,7 @@ packages:
     source: hosted
     version: "2.3.1"
   async:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: async
       url: "https://pub.dartlang.org"
@@ -312,7 +312,7 @@ packages:
     source: hosted
     version: "1.2.2"
   convert:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: convert
       url: "https://pub.dartlang.org"
@@ -354,7 +354,7 @@ packages:
     source: hosted
     version: "0.17.2"
   cupertino_icons:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: cupertino_icons
       url: "https://pub.dartlang.org"
@@ -374,6 +374,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.7.4"
+  dependency_validator:
+    dependency: "direct dev"
+    description:
+      name: dependency_validator
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.2.2"
   device_info_plus:
     dependency: "direct main"
     description:
@@ -438,7 +445,7 @@ packages:
     source: hosted
     version: "1.3.2"
   dotenv:
-    dependency: "direct main"
+    dependency: "direct dev"
     description:
       name: dotenv
       url: "https://pub.dartlang.org"
@@ -465,13 +472,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.0.2"
-  ecdsa:
-    dependency: "direct main"
-    description:
-      name: ecdsa
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.0.4"
   eip55:
     dependency: transitive
     description:
@@ -480,7 +480,7 @@ packages:
     source: hosted
     version: "1.0.2"
   elliptic:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: elliptic
       url: "https://pub.dartlang.org"
@@ -635,13 +635,6 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-  flutter_email_sender:
-    dependency: "direct main"
-    description:
-      name: flutter_email_sender
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "5.1.0"
   flutter_fgbg:
     dependency: "direct main"
     description:
@@ -933,7 +926,7 @@ packages:
     source: hosted
     version: "0.15.1"
   html_unescape:
-    dependency: "direct main"
+    dependency: "direct dev"
     description:
       name: html_unescape
       url: "https://pub.dartlang.org"
@@ -1010,12 +1003,12 @@ packages:
     source: hosted
     version: "3.0.8"
   in_app_purchase_android:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: in_app_purchase_android
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.2.3+6"
+    version: "0.2.3+7"
   in_app_purchase_platform_interface:
     dependency: transitive
     description:
@@ -1024,12 +1017,12 @@ packages:
     source: hosted
     version: "1.3.2"
   in_app_purchase_storekit:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: in_app_purchase_storekit
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.3.3"
+    version: "0.3.4"
   in_app_review:
     dependency: "direct main"
     description:
@@ -1277,13 +1270,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "5.3.2"
-  modal_bottom_sheet:
-    dependency: "direct main"
-    description:
-      name: modal_bottom_sheet
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.1.2"
   nested:
     dependency: transitive
     description:
@@ -1309,13 +1295,6 @@ packages:
       url: "https://github.com/autonomy-system/nft-rendering.git"
     source: git
     version: "1.0.9"
-  ninja_asn1:
-    dependency: transitive
-    description:
-      name: ninja_asn1
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.0.0"
   nm:
     dependency: transitive
     description:
@@ -1415,7 +1394,7 @@ packages:
     source: hosted
     version: "2.0.9"
   path:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: path
       url: "https://pub.dartlang.org"
@@ -1732,12 +1711,12 @@ packages:
     source: hosted
     version: "1.1.2"
   sentry:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: sentry
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "6.9.1"
+    version: "6.18.1"
   sentry_dio:
     dependency: "direct main"
     description:
@@ -1903,7 +1882,7 @@ packages:
       name: sqflite
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.2.0+3"
+    version: "2.2.2"
   sqflite_common:
     dependency: transitive
     description:
@@ -1982,7 +1961,7 @@ packages:
     source: hosted
     version: "20.3.52"
   syncfusion_flutter_pdfviewer:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: syncfusion_flutter_pdfviewer
       url: "https://pub.dartlang.org"
@@ -2194,7 +2173,7 @@ packages:
     source: hosted
     version: "2.1.2"
   video_player:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: video_player
       url: "https://pub.dartlang.org"

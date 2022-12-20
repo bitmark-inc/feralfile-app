@@ -5,7 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
-// ignore_for_file: depend_on_referenced_packages, non_constant_identifier_names
+// ignore_for_file: non_constant_identifier_names
 
 import 'dart:convert';
 
