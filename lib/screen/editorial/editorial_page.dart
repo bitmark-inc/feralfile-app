@@ -21,6 +21,7 @@ import 'feralfile/exhibition_view.dart';
 
 class EditorialPage extends StatefulWidget {
   final bool isShowDiscover;
+
   const EditorialPage({Key? key, this.isShowDiscover = false})
       : super(key: key);
 
@@ -145,7 +146,6 @@ class _EditorialPageState extends State<EditorialPage>
                     builder: (context, state) {
                   return ListView.builder(
                     controller: _editorialController,
-                    padding: ResponsiveLayout.pageEdgeInsets,
                     itemCount: state.editorial.length,
                     itemBuilder: (BuildContext context, int index) {
                       return Padding(
@@ -176,7 +176,10 @@ class _EditorialPageState extends State<EditorialPage>
           return const SizedBox();
         }
       case "Article":
-        return ArticleView(post: post);
+        return Padding(
+          padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+          child: ArticleView(post: post),
+        );
       default:
         return const SizedBox();
     }

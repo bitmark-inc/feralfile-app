@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/screen/editorial/common/publisher_view.dart';
 import 'package:autonomy_flutter/screen/editorial/feralfile/exhibition_bloc.dart';
 import 'package:autonomy_flutter/screen/editorial/feralfile/exhibition_state.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -50,26 +51,35 @@ class _ExhibitionViewState extends State<ExhibitionView> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          PublisherView(publisher: widget.publisher),
+          Padding(
+            padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+            child: PublisherView(publisher: widget.publisher),
+          ),
           const SizedBox(height: 10.0),
-          Text(
-            exhibition?.title ?? "",
-            style: theme.textTheme.ppMori400White14,
+          Padding(
+            padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+            child: Text(
+              exhibition?.title ?? "",
+              style: theme.textTheme.ppMori400White14,
+            ),
           ),
           const SizedBox(height: 15.0),
           SizedBox(
             height: 350,
             child: _ffArtworks(context, exhibition),
           ),
-          BottomLink(
-            name: "visit".tr(),
-            tag: widget.tag,
-            onTap: () => exhibition != null
-                ? launchUrl(
-                    Uri.parse(feralFileExhibitionUrl(exhibition.slug)),
-                    mode: LaunchMode.externalApplication,
-                  )
-                : null,
+          Padding(
+            padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+            child: BottomLink(
+              name: "visit".tr(),
+              tag: widget.tag,
+              onTap: () => exhibition != null
+                  ? launchUrl(
+                      Uri.parse(feralFileExhibitionUrl(exhibition.slug)),
+                      mode: LaunchMode.externalApplication,
+                    )
+                  : null,
+            ),
           ),
         ],
       );
@@ -95,7 +105,9 @@ class _ExhibitionViewState extends State<ExhibitionView> {
           ),
           child: Container(
             margin: EdgeInsets.only(
-                right: index < artworks.length - 1 ? 15.0 : 0.0),
+              left: index == 0 ? 15.0 : 0.0,
+              right: ResponsiveLayout.padding,
+            ),
             width: 285,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
