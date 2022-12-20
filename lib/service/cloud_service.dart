@@ -11,7 +11,9 @@ import 'package:flutter/material.dart';
 class CloudService implements CloudHandler {
   ValueNotifier<bool> isAvailableNotifier = ValueNotifier(false);
 
-  CloudService();
+  CloudService() {
+    CloudChannel(handler: this);
+  }
 
   @override
   void observeCloudStatus(bool isAvailable) {

@@ -396,7 +396,7 @@ class LibAukChannelHandler {
             }, receiveValue: { output in
                 result([
                     "error": 0,
-                    "data": output ,
+                    "data": output,
                 ])
             })
             .store(in: &cancelBag)
