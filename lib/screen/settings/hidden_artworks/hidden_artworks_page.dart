@@ -18,10 +18,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_rendering/nft_rendering.dart';
-
-// ignore: depend_on_referenced_packages
 import 'package:path/path.dart' as p;
-
 import 'hidden_artworks_bloc.dart';
 
 class HiddenArtworksPage extends StatefulWidget {

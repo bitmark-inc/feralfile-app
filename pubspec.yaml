@@ -22,19 +22,16 @@ environment:
 
 dependencies:
   after_layout: ^1.2.0
-  async: ^2.8.2
   bubble: ^1.2.1
   cached_network_image: ^3.2.1
   cast: ^1.1.0
   collection: ^1.15.0
   connectivity_plus: ^2.2.1
   crypto: ^3.0.1
-  cupertino_icons: ^1.0.2
   device_info_plus: ^3.2.1
   dio: ^4.0.6
   dio_smart_retry: ^1.2.0
   easy_debounce: ^2.0.2+1
-  ecdsa: ^0.0.4
   fast_base58: ^0.2.1
   floor: ^1.2.0
   flutter:
@@ -52,7 +49,6 @@ dependencies:
     git:
       url: https://github.com/autonomy-system/flutter_downloader
       ref: d30d0379b9f6791d77a1b1d8afe5103ad37f4a98
-  flutter_email_sender: ^5.1.0
   flutter_fgbg: ^0.2.0
   flutter_image_compress: ^1.1.0
   flutter_markdown: ^0.6.9
@@ -67,7 +63,6 @@ dependencies:
   get_it: ^7.2.0
   hive: ^2.2.1
   hive_flutter: ^1.1.0
-  html_unescape: ^2.0.0
   http: ^0.13.2
   image_picker: ^0.8.4+9
   in_app_purchase: ^3.0.6
@@ -84,7 +79,6 @@ dependencies:
   measured_size: ^1.0.0
   mime: ^1.0.1
   mixpanel_flutter: ^2.0.0
-  modal_bottom_sheet: ^2.0.0
   nft_rendering:
     git:
       url: https://github.com/autonomy-system/nft-rendering.git
@@ -105,7 +99,6 @@ dependencies:
   shake: ^2.0.0
   share: ^2.0.4
   shared_preferences: ^2.0.0
-  syncfusion_flutter_pdfviewer: ^20.1.57-beta
   synchronized: ^3.0.0+2
   tezart:
     git:
@@ -114,7 +107,6 @@ dependencies:
   uni_links: ^0.5.1
   url_launcher: ^6.0.20
   uuid: ^3.0.5
-  video_player: ^2.4.2
   wakelock: ^0.6.1+2
   wallet_connect:
     git:
@@ -143,7 +135,6 @@ dependencies:
     git:
       url: https://github.com/autonomy-system/metric-client-dart
       ref: ec37709d6f7a3901e3bd4238ba178205a88f6261
-  dotenv: ^4.0.1
   auto_size_text: ^3.0.0
   uri: ^1.0.0
   reorderable_grid_view: ^2.2.5
@@ -153,6 +144,12 @@ dependencies:
       ref: 15334dee6a5bbd3047ce3af2bdd061906a2094e2
   flutter_widget_from_html: ^0.9.0+1
   readmore: ^2.2.0
+  elliptic: ^0.3.8
+  sentry: ^6.18.1
+  path: ^1.8.2
+  in_app_purchase_storekit: ^0.3.4
+  in_app_purchase_android: ^0.2.3+7
+  convert: ^3.1.1
 
 dependency_overrides:
   # Error using when import photo_view from dependencies:
@@ -176,6 +173,9 @@ dev_dependencies:
   mockito: null
   retrofit_generator: null
   test: null
+  dependency_validator: null
+  dotenv: ^4.0.1
+  html_unescape: ^2.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
