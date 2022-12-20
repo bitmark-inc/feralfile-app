@@ -202,7 +202,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                 ),
                 const SizedBox(height: 16.0),
                 gasFeeStatus(state, theme),
-                const SizedBox(height: 10.0),
+                const SizedBox(height: 8.0),
                 if (state.feeOptionValue != null) feeTable(state, context),
                 const SizedBox(height: 24.0),
                 // Expanded(child: SizedBox()),
@@ -278,7 +278,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
           Text(feeOption.name, style: theme.textTheme.atlasBlackBold12),
           const Spacer(),
           Text(_gasFee(state), style: theme.textTheme.atlasBlackBold12),
-          const SizedBox(width: 56),
+          const SizedBox(width: 56, height: 24,),
           GestureDetector(
             onTap: () {
               setState(() {

@@ -269,7 +269,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                           ),
                           const SizedBox(height: 16.0),
                           gasFeeStatus(theme),
-                          const SizedBox(height: 10.0),
+                          const SizedBox(height: 8.0),
                           if (feeOptionValue != null) feeTable(context),
                           const SizedBox(height: 24.0),
                         ],
@@ -404,7 +404,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
           Text(feeOption.name, style: theme.textTheme.atlasBlackBold12),
           const Spacer(),
           Text(_gasFee(feeOption), style: theme.textTheme.atlasBlackBold12),
-          const SizedBox(width: 56),
+          const SizedBox(width: 56, height: 24,),
           GestureDetector(
             onTap: () {
               setState(() {
