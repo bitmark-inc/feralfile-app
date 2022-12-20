@@ -137,7 +137,10 @@ class _HomeNavigationPageState extends State<HomeNavigationPage> {
         onTap: _onItemTapped,
         items: [
           const BottomNavigationBarItem(
-            icon: Icon(AuIcon.collection),
+            icon: Icon(
+              AuIcon.collection,
+              size: 25,
+            ),
             label: '',
           ),
           BottomNavigationBarItem(
@@ -151,7 +154,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage> {
                   return Stack(
                     children: [
                       const Padding(
-                        padding: EdgeInsets.all(15),
+                        padding: EdgeInsets.symmetric(horizontal: 15.0),
                         child: Icon(
                           AuIcon.discover,
                           size: 25,
@@ -159,8 +162,8 @@ class _HomeNavigationPageState extends State<HomeNavigationPage> {
                       ),
                       if (unreadCount > 0) ...[
                         Positioned(
-                          left: 15 + 13,
-                          top: 15 - 0.5,
+                          left: 28,
+                          top: 0,
                           child: Container(
                             padding: const EdgeInsets.only(
                               left: 3,
@@ -192,7 +195,10 @@ class _HomeNavigationPageState extends State<HomeNavigationPage> {
             label: '',
           ),
           const BottomNavigationBarItem(
-            icon: Icon(AuIcon.drawer),
+            icon: Icon(
+              AuIcon.drawer,
+              size: 25,
+            ),
             label: '',
           ),
         ],
