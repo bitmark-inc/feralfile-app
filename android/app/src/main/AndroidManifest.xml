@@ -22,7 +22,7 @@
         android:icon="${appIcon}"
         android:label="@string/app_name"
         android:roundIcon="${appIconRound}"
-        android:usesCleartextTraffic="true">
+        android:usesCleartextTraffic="true"> <!-- used for viewing modelviewer artwork -->
 
         <meta-data
             android:name="com.onesignal.NotificationServiceExtension"

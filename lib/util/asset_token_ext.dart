@@ -160,6 +160,7 @@ extension AssetTokenExtension on AssetToken {
       case "image/avif":
       case "image/bmp":
       case "image/jpeg":
+      case "image/jpg":
       case "image/png":
       case "image/tiff":
         return RenderingType.image;
