@@ -19,6 +19,7 @@ import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/gestures.dart';
@@ -26,7 +27,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:nft_collection/services/tokens_service.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
-import 'package:autonomy_flutter/view/responsive.dart';
 
 class ImportAccountPage extends StatefulWidget {
   const ImportAccountPage({Key? key}) : super(key: key);
@@ -146,10 +146,23 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
                               setState(() {
                                 _isSubmissionEnabled =
                                     numberOfWords == 12 || numberOfWords == 24;
+                                isError = false;
                               });
                             },
                           ),
                         ],
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 8,
+                    ),
+                    Visibility(
+                      visible: isError,
+                      child: Text(
+                        'invalid_recovery_phrase'.tr(),
+                        style: theme.textTheme.atlasBlackNormal12.copyWith(
+                          color: AppColor.red,
+                        ),
                       ),
                     ),
                     const SizedBox(),

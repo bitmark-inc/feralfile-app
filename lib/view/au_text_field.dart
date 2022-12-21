@@ -110,7 +110,8 @@ class AuTextField extends StatelessWidget {
               : theme.textTheme.atlasSpanishGreyNormal20,
         ),
         keyboardType: keyboardType,
-        style: theme.textTheme.subtitle1,
+        style: theme.textTheme.subtitle1
+            ?.copyWith(color: isError ? AppColor.red : null),
         controller: controller,
         onChanged: onChanged,
         onSubmitted: onSubmit ?? onChanged,
