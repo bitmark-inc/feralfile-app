@@ -116,7 +116,7 @@ class AuFileService extends FileService {
         if (fileSize <= 0) {
           log.info("File is empty ${info.url}");
           info.task.completeError(Exception("File is empty ${info.url}"));
-        } else if (info.url.startsWith(CLOUDFLAREIMAGEURLPREFIX)) {
+        } else if (info.url.startsWith(Environment.cloudFlareImageUrlPrefix)) {
           info.task.complete(AuFileServiceResponse(
             filePath: _saveDir + info.localFile,
             fileExt: info.fileExt,

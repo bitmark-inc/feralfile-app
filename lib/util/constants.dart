@@ -13,8 +13,6 @@ import 'fee_util.dart';
 
 const INDEXER_TOKENS_MAXIMUM = 50;
 const INDEXER_UNKNOWN_SOURCE = 'unknown';
-const CLOUDFLAREIMAGEURLPREFIX =
-    'https://imagedelivery.net/iCRs13uicXIPOWrnuHbaKA/';
 const AUTONOMY_TV_PEER_NAME = 'Autonomy TV';
 const DEFAULT_IPFS_PREFIX = 'https://ipfs.io';
 const IPFS_PREFIX = "ipfs://";
