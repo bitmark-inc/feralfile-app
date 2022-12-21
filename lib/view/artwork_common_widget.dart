@@ -1058,36 +1058,34 @@ Widget tokenOwnership(
     }
   }
 
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        "token_ownership".tr(),
-        style: theme.textTheme.ppMori400White12,
-      ),
-      const SizedBox(height: 23.0),
-      Text(
-        "how_many_editions_you_own".tr(),
-        style: theme.textTheme.ppMori400White12,
-      ),
-      const SizedBox(height: 32.0),
-      MetaDataItem(
-        title: "editions".tr(),
-        value: "${asset.maxEdition}",
-        tapLink: asset.tokenURL,
-        forceSafariVC: true,
-      ),
-      Divider(
-        height: 32.0,
-        color: theme.auLightGrey,
-      ),
-      MetaDataItem(
-        title: "owned".tr(),
-        value: "$ownedTokens",
-        tapLink: asset.tokenURL,
-        forceSafariVC: true,
-      ),
-    ],
+  return SectionExpandedWidget(
+    header: "token_ownership".tr(),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "how_many_editions_you_own".tr(),
+          style: theme.textTheme.ppMori400White12,
+        ),
+        const SizedBox(height: 32.0),
+        MetaDataItem(
+          title: "editions".tr(),
+          value: "${asset.maxEdition}",
+          tapLink: asset.tokenURL,
+          forceSafariVC: true,
+        ),
+        Divider(
+          height: 32.0,
+          color: theme.auLightGrey,
+        ),
+        MetaDataItem(
+          title: "owned".tr(),
+          value: "$ownedTokens",
+          tapLink: asset.tokenURL,
+          forceSafariVC: true,
+        ),
+      ],
+    ),
   );
 }
 
