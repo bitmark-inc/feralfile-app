@@ -140,143 +140,144 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
           subTitle = "by".tr(args: [artistName]);
         }
 
-        return Stack(
-          children: [
-            Scaffold(
-                backgroundColor: theme.colorScheme.primary,
-                resizeToAvoidBottomInset: !hasKeyboard,
-                appBar: AppBar(
-                  leadingWidth: 0,
-                  centerTitle: false,
-                  title: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        asset.title,
-                        style: theme.textTheme.ppMori400White12,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      Text(
-                        subTitle,
-                        style: theme.textTheme.ppMori400White12,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                  actions: [
-                    IconButton(
-                      onPressed: () => _showArtworkOptionsDialog(asset),
-                      icon: SvgPicture.asset(
-                        'assets/images/more_circle.svg',
-                        width: 24,
+        return Scaffold(
+          backgroundColor: theme.colorScheme.primary,
+          resizeToAvoidBottomInset: !hasKeyboard,
+          appBar: AppBar(
+            leadingWidth: 0,
+            centerTitle: false,
+            title: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  asset.title,
+                  style: theme.textTheme.ppMori400White14,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  subTitle,
+                  style: theme.textTheme.ppMori400White12,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+            actions: [
+              IconButton(
+                onPressed: () => _showArtworkOptionsDialog(asset),
+                icon: SvgPicture.asset(
+                  'assets/images/more_circle.svg',
+                  width: 24,
+                ),
+              ),
+              IconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: Icon(
+                  AuIcon.close,
+                  color: theme.colorScheme.secondary,
+                  size: 24,
+                ),
+              )
+            ],
+          ),
+          body: Stack(
+            children: [
+              SingleChildScrollView(
+                controller: _scrollController,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(
+                      height: 40,
+                    ),
+                    Hero(
+                      tag: asset.id,
+                      child: _ArtworkView(
+                        payload: widget.payload,
+                        token: asset,
                       ),
                     ),
-                    IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: Icon(
-                        AuIcon.close,
-                        color: theme.colorScheme.secondary,
-                      ),
-                    )
-                  ],
-                ),
-                body: SingleChildScrollView(
-                  controller: _scrollController,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(
-                        height: 40,
-                      ),
-                      Hero(
-                        tag: asset.id,
-                        child: _ArtworkView(
-                          payload: widget.payload,
-                          token: asset,
-                        ),
-                      ),
-                      Visibility(
-                        visible: asset.assetURL == CHECK_WEB3_PRIMER_URL,
-                        child: Align(
-                          alignment: Alignment.centerRight,
-                          child: Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: SizedBox(
-                              width: 165,
-                              height: 48,
-                              child: AuOutlinedButton(
-                                text: "web3_primer".tr(),
-                                onPress: () {
-                                  Navigator.pushNamed(
-                                      context, AppRouter.previewPrimerPage,
-                                      arguments: asset);
-                                },
-                              ),
+                    Visibility(
+                      visible: asset.assetURL == CHECK_WEB3_PRIMER_URL,
+                      child: Align(
+                        alignment: Alignment.centerRight,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: SizedBox(
+                            width: 165,
+                            height: 48,
+                            child: AuOutlinedButton(
+                              text: "web3_primer".tr(),
+                              onPress: () {
+                                Navigator.pushNamed(
+                                    context, AppRouter.previewPrimerPage,
+                                    arguments: asset);
+                              },
                             ),
                           ),
                         ),
                       ),
-                      const SizedBox(
-                        height: 40,
+                    ),
+                    const SizedBox(
+                      height: 40,
+                    ),
+                    Padding(
+                      padding: ResponsiveLayout.getPadding,
+                      child: Text(
+                        getEditionSubTitle(asset),
+                        style: theme.textTheme.ppMori400Grey12,
                       ),
-                      Padding(
-                        padding: ResponsiveLayout.getPadding,
-                        child: Text(
-                          getEditionSubTitle(asset),
-                          style: theme.textTheme.ppMori400Grey12,
-                        ),
-                      ),
-                      debugInfoWidget(context, currentAsset),
-                      const SizedBox(height: 16.0),
-                      Padding(
-                        padding: ResponsiveLayout.getPadding,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Semantics(
-                              label: 'Desc',
-                              child: HtmlWidget(
-                                asset.desc ?? "",
-                                textStyle: theme.textTheme.ppMori400White12,
-                              ),
+                    ),
+                    debugInfoWidget(context, currentAsset),
+                    const SizedBox(height: 16.0),
+                    Padding(
+                      padding: ResponsiveLayout.getPadding,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Semantics(
+                            label: 'Desc',
+                            child: HtmlWidget(
+                              asset.desc ?? "",
+                              textStyle: theme.textTheme.ppMori400White12,
                             ),
-                            const SizedBox(height: 40.0),
-                            artworkDetailsMetadataSection(
-                                context, asset, artistName),
-                            if (asset.fungible == true) ...[
-                              const SizedBox(height: 40.0),
-                              BlocBuilder<AccountsBloc, AccountsState>(
-                                builder: (context, state) {
-                                  final addresses = state.addresses;
-                                  return tokenOwnership(
-                                      context, asset, addresses);
-                                },
-                              ),
-                            ] else ...[
-                              state.provenances.isNotEmpty
-                                  ? _provenanceView(context, state.provenances)
-                                  : const SizedBox()
-                            ],
-                            artworkDetailsRightSection(context, asset),
-                            const SizedBox(height: 80.0),
+                          ),
+                          const SizedBox(height: 40.0),
+                          artworkDetailsMetadataSection(
+                              context, asset, artistName),
+                          if (asset.fungible == true) ...[
+                            BlocBuilder<AccountsBloc, AccountsState>(
+                              builder: (context, state) {
+                                final addresses = state.addresses;
+                                return tokenOwnership(
+                                    context, asset, addresses);
+                              },
+                            ),
+                          ] else ...[
+                            state.provenances.isNotEmpty
+                                ? _provenanceView(context, state.provenances)
+                                : const SizedBox()
                           ],
-                        ),
-                      )
-                    ],
-                  ),
-                )),
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: ReportButton(
-                token: currentAsset,
-                scrollController: _scrollController,
+                          artworkDetailsRightSection(context, asset),
+                          const SizedBox(height: 80.0),
+                        ],
+                      ),
+                    )
+                  ],
+                ),
               ),
-            ),
-          ],
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: ReportButton(
+                  token: currentAsset,
+                  scrollController: _scrollController,
+                ),
+              ),
+            ],
+          ),
         );
       } else {
         return const SizedBox();

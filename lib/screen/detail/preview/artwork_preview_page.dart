@@ -237,7 +237,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
           child: Text(
             'shake_exit'.tr(),
             textAlign: TextAlign.center,
-            style: theme.textTheme.ppMori400Black12,
+            style: theme.textTheme.ppMori600Black12,
           ),
         ),
         backgroundColor: Colors.transparent,
