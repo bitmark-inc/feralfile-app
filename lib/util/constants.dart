@@ -38,11 +38,18 @@ const DEEP_LINKS = [
 const FF_ARTIST_COLLECTOR =
     'https://feralfile.com/docs/artist-collector-rights';
 const WEB3_PRIMER_URL = 'https://autonomy.io/catalog/primer/';
-const COLLECTOR_RIGHTS_DEFAULT_DOCS = "/bitmark-inc/feral-file-docs/master/docs/collector-rights/standard/en.md";
-const COLLECTOR_RIGHTS_MEMENTO_DOCS = "/bitmark-inc/feral-file-docs/master/docs/collector-rights/MoMA-Memento/en.md";
-const COLLECTOR_RIGHTS_MOMA_009_UNSUPERVISED_DOCS = "/bitmark-inc/feral-file-docs/master/docs/collector-rights/009-unsupervised/en.md";
-const MOMA_MEMENTO_EXHIBITION_ID = "00370334-6151-4c04-b6be-dc09e325d57d";
-const MOMA_009_UNSUPERVISED_CONTRACT_ADDRESS = "0x7a15b36cB834AeA88553De69077D3777460d73Ac";
+const COLLECTOR_RIGHTS_DEFAULT_DOCS =
+    "/bitmark-inc/feral-file-docs/master/docs/collector-rights/standard/en.md";
+const COLLECTOR_RIGHTS_MEMENTO_DOCS =
+    "/bitmark-inc/feral-file-docs/master/docs/collector-rights/MoMA-Memento/en.md";
+const COLLECTOR_RIGHTS_MOMA_009_UNSUPERVISED_DOCS =
+    "/bitmark-inc/feral-file-docs/master/docs/collector-rights/009-unsupervised/en.md";
+const MOMA_MEMENTO_EXHIBITION_IDS = [
+  "00370334-6151-4c04-b6be-dc09e325d57d",
+  "64c7d3b-557a-4c4f-b6a6-b05350d63191"
+];
+const MOMA_009_UNSUPERVISED_CONTRACT_ADDRESS =
+    "0x7a15b36cB834AeA88553De69077D3777460d73Ac";
 const CHECK_WEB3_PRIMER_URL =
     'https://feralfile.com/artworks/memento-1-study-for-unsupervised';
 const int cellPerRowPhone = 3;
