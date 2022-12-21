@@ -232,7 +232,9 @@ class AccountServiceImpl extends AccountService {
           }
       }
     }
-    throw Exception("Wallet not found. Chain $chain, address: $address");
+    throw AccountException(
+      message: "Wallet not found. Chain $chain, address: $address",
+    );
   }
 
   Future<WalletStorage> _getDefaultAccount() async {
@@ -725,4 +727,10 @@ class AccountImportedException implements Exception {
   final Persona persona;
 
   AccountImportedException({required this.persona});
+}
+
+class AccountException implements Exception {
+  final String? message;
+
+  AccountException({this.message});
 }
