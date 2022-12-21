@@ -297,7 +297,6 @@ class _ListAccountConnectState extends State<ListAccountConnect> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -346,7 +345,6 @@ class _ListAccountConnectState extends State<ListAccountConnect> {
                           });
                         },
                       ),
-                    const Divider(height: 16.0),
                   ],
                 ))
             .toList(),
@@ -383,6 +381,8 @@ class LinkedAccountConnectItem extends StatefulWidget {
 
 class _LinkedAccountConnectItemState extends State<LinkedAccountConnectItem> {
   final List<ContextedAddress> listAddress = [];
+
+  bool _showAccount = false;
 
   @override
   void initState() {
@@ -448,6 +448,13 @@ class _LinkedAccountConnectItemState extends State<LinkedAccountConnectItem> {
       default:
         break;
     }
+    setState(() {
+      _showAccount = listAddress.any((element) => widget.showETH
+          ? element.cryptoType == CryptoType.ETH
+          : widget.showXTZ
+              ? element.cryptoType == CryptoType.XTZ
+              : false);
+    });
   }
 
   @override
@@ -456,77 +463,81 @@ class _LinkedAccountConnectItemState extends State<LinkedAccountConnectItem> {
     if (connection == null) return const SizedBox.shrink();
 
     final theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ListTile(
-          title: Row(
-            children: [
-              accountLogo(context, widget.account),
-              const SizedBox(width: 16.0),
-              Expanded(
-                child: Text(
-                  connection.name.isNotEmpty
-                      ? connection.name.maskIfNeeded()
-                      : connection.accountNumber.mask(4),
-                  style: theme.textTheme.headline4,
+    return Visibility(
+      visible: _showAccount,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ListTile(
+            title: Row(
+              children: [
+                accountLogo(context, widget.account),
+                const SizedBox(width: 16.0),
+                Expanded(
+                  child: Text(
+                    connection.name.isNotEmpty
+                        ? connection.name.maskIfNeeded()
+                        : connection.accountNumber.mask(4),
+                    style: theme.textTheme.headline4,
+                  ),
                 ),
-              ),
-              linkedBox(context),
-            ],
+                linkedBox(context),
+              ],
+            ),
+            contentPadding: EdgeInsets.zero,
           ),
-          contentPadding: EdgeInsets.zero,
-        ),
-        ...listAddress.map(
-          (e) => Visibility(
-            visible: e.cryptoType == CryptoType.ETH
-                ? widget.showETH
-                : e.cryptoType == CryptoType.XTZ
-                    ? widget.showXTZ
-                    : false,
-            child: GestureDetector(
-              onTap: () {
-                e.cryptoType == CryptoType.ETH
-                    ? widget.onSelectEth?.call(e.address)
-                    : e.cryptoType == CryptoType.XTZ
-                        ? widget.onSelectTez?.call(e.address)
-                        : '';
-              },
-              child: Padding(
-                padding: const EdgeInsets.only(left: 40),
-                child: Row(
-                  children: [
-                    LogoCrypto(
-                      cryptoType: e.cryptoType,
-                    ),
-                    Text(e.address.maskIfNeeded()),
-                    const Spacer(),
-                    Transform.scale(
-                      scale: 1.2,
-                      child: Radio(
-                        activeColor: theme.colorScheme.primary,
-                        value: e.address,
-                        groupValue: e.cryptoType == CryptoType.ETH
-                            ? widget.ethSelectedAddress
-                            : e.cryptoType == CryptoType.XTZ
-                                ? widget.tezSelectedAddress
-                                : '',
-                        onChanged: (value) {
-                          e.cryptoType == CryptoType.ETH
-                              ? widget.onSelectEth?.call(e.address)
-                              : e.cryptoType == CryptoType.XTZ
-                                  ? widget.onSelectTez?.call(e.address)
-                                  : '';
-                        },
+          ...listAddress.map(
+            (e) => Visibility(
+              visible: e.cryptoType == CryptoType.ETH
+                  ? widget.showETH
+                  : e.cryptoType == CryptoType.XTZ
+                      ? widget.showXTZ
+                      : false,
+              child: GestureDetector(
+                onTap: () {
+                  e.cryptoType == CryptoType.ETH
+                      ? widget.onSelectEth?.call(e.address)
+                      : e.cryptoType == CryptoType.XTZ
+                          ? widget.onSelectTez?.call(e.address)
+                          : '';
+                },
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 40),
+                  child: Row(
+                    children: [
+                      LogoCrypto(
+                        cryptoType: e.cryptoType,
                       ),
-                    )
-                  ],
+                      Text(e.address.maskIfNeeded()),
+                      const Spacer(),
+                      Transform.scale(
+                        scale: 1.2,
+                        child: Radio(
+                          activeColor: theme.colorScheme.primary,
+                          value: e.address,
+                          groupValue: e.cryptoType == CryptoType.ETH
+                              ? widget.ethSelectedAddress
+                              : e.cryptoType == CryptoType.XTZ
+                                  ? widget.tezSelectedAddress
+                                  : '',
+                          onChanged: (value) {
+                            e.cryptoType == CryptoType.ETH
+                                ? widget.onSelectEth?.call(e.address)
+                                : e.cryptoType == CryptoType.XTZ
+                                    ? widget.onSelectTez?.call(e.address)
+                                    : '';
+                          },
+                        ),
+                      )
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-      ],
+          const Divider(height: 16.0),
+        ],
+      ),
     );
   }
 }
@@ -574,112 +585,117 @@ class _PersionalConnectItemState extends State<PersionalConnectItem> {
     final uuid = widget.account.persona?.uuid;
     if (uuid == null) return const SizedBox();
     final theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ListTile(
-          title: Row(
-            children: [
-              accountLogo(context, widget.account),
-              const SizedBox(width: 16.0),
-              FutureBuilder<String>(
-                future: widget.account.persona?.wallet().getAccountDID(),
-                builder: (context, snapshot) {
-                  final name = widget.account.persona?.name.isNotEmpty ?? false
-                      ? widget.account.persona?.name
-                      : snapshot.data ?? '';
-                  return Expanded(
-                    child: Text(
-                      name?.replaceFirst('did:key:', '') ?? '',
-                      style: theme.textTheme.headline4,
-                      overflow: TextOverflow.ellipsis,
+    return Visibility(
+      visible: widget.showETH || widget.showXTZ,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ListTile(
+            title: Row(
+              children: [
+                accountLogo(context, widget.account),
+                const SizedBox(width: 16.0),
+                FutureBuilder<String>(
+                  future: widget.account.persona?.wallet().getAccountDID(),
+                  builder: (context, snapshot) {
+                    final name =
+                        widget.account.persona?.name.isNotEmpty ?? false
+                            ? widget.account.persona?.name
+                            : snapshot.data ?? '';
+                    return Expanded(
+                      child: Text(
+                        name?.replaceFirst('did:key:', '') ?? '',
+                        style: theme.textTheme.headline4,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+            contentPadding: EdgeInsets.zero,
+          ),
+          Visibility(
+            visible: widget.showETH,
+            child: BlocBuilder<EthereumBloc, EthereumState>(
+              bloc: ethereumBloc,
+              builder: (context, state) {
+                final ethAddress = state.personaAddresses?[uuid];
+
+                if (ethAddress == null) return const SizedBox();
+                return GestureDetector(
+                  onTap: () {
+                    widget.onSelectEth?.call(ethAddress);
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 40),
+                    child: Row(
+                      children: [
+                        const LogoCrypto(
+                          cryptoType: CryptoType.ETH,
+                        ),
+                        Text(ethAddress.maskIfNeeded()),
+                        const Spacer(),
+                        Transform.scale(
+                          scale: 1.2,
+                          child: Radio<String>(
+                            activeColor: theme.colorScheme.primary,
+                            value: ethAddress,
+                            groupValue: widget.ethSelectedAddress,
+                            onChanged: (value) {
+                              widget.onSelectEth?.call(ethAddress);
+                            },
+                          ),
+                        )
+                      ],
                     ),
-                  );
-                },
-              ),
-            ],
-          ),
-          contentPadding: EdgeInsets.zero,
-        ),
-        Visibility(
-          visible: widget.showETH,
-          child: BlocBuilder<EthereumBloc, EthereumState>(
-            bloc: ethereumBloc,
-            builder: (context, state) {
-              final ethAddress = state.personaAddresses?[uuid];
-
-              if (ethAddress == null) return const SizedBox();
-              return GestureDetector(
-                onTap: () {
-                  widget.onSelectEth?.call(ethAddress);
-                },
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 40),
-                  child: Row(
-                    children: [
-                      const LogoCrypto(
-                        cryptoType: CryptoType.ETH,
-                      ),
-                      Text(ethAddress.maskIfNeeded()),
-                      const Spacer(),
-                      Transform.scale(
-                        scale: 1.2,
-                        child: Radio<String>(
-                          activeColor: theme.colorScheme.primary,
-                          value: ethAddress,
-                          groupValue: widget.ethSelectedAddress,
-                          onChanged: (value) {
-                            widget.onSelectEth?.call(ethAddress);
-                          },
-                        ),
-                      )
-                    ],
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
-        ),
-        Visibility(
-          visible: widget.showXTZ,
-          child: BlocBuilder<TezosBloc, TezosState>(
-            bloc: tezosBloc,
-            builder: (context, state) {
-              final tezAddress = state.personaAddresses?[uuid];
+          Visibility(
+            visible: widget.showXTZ,
+            child: BlocBuilder<TezosBloc, TezosState>(
+              bloc: tezosBloc,
+              builder: (context, state) {
+                final tezAddress = state.personaAddresses?[uuid];
 
-              if (tezAddress == null) return const SizedBox();
-              return GestureDetector(
-                onTap: () {
-                  widget.onSelectTez?.call(tezAddress);
-                },
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 40),
-                  child: Row(
-                    children: [
-                      const LogoCrypto(
-                        cryptoType: CryptoType.XTZ,
-                      ),
-                      Text(tezAddress.maskIfNeeded()),
-                      const Spacer(),
-                      Transform.scale(
-                        scale: 1.2,
-                        child: Radio(
-                          activeColor: theme.colorScheme.primary,
-                          value: tezAddress,
-                          groupValue: widget.tezSelectedAddress,
-                          onChanged: (value) {
-                            widget.onSelectTez?.call(tezAddress);
-                          },
+                if (tezAddress == null) return const SizedBox();
+                return GestureDetector(
+                  onTap: () {
+                    widget.onSelectTez?.call(tezAddress);
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 40),
+                    child: Row(
+                      children: [
+                        const LogoCrypto(
+                          cryptoType: CryptoType.XTZ,
                         ),
-                      )
-                    ],
+                        Text(tezAddress.maskIfNeeded()),
+                        const Spacer(),
+                        Transform.scale(
+                          scale: 1.2,
+                          child: Radio(
+                            activeColor: theme.colorScheme.primary,
+                            value: tezAddress,
+                            groupValue: widget.tezSelectedAddress,
+                            onChanged: (value) {
+                              widget.onSelectTez?.call(tezAddress);
+                            },
+                          ),
+                        )
+                      ],
+                    ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
-        ),
-      ],
+          const Divider(height: 16.0),
+        ],
+      ),
     );
   }
 }
