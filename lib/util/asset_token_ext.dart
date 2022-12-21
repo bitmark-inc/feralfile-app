@@ -280,9 +280,10 @@ String _replaceIPFS(String url) {
 }
 
 String _refineToCloudflareURL(String url, String thumbnailID, String variant) {
+  final cloudFlareImageUrlPrefix = Environment.cloudFlareImageUrlPrefix;
   return thumbnailID.isEmpty
       ? _replaceIPFS(url)
-      : "$CLOUDFLAREIMAGEURLPREFIX$thumbnailID/$variant";
+      : "$cloudFlareImageUrlPrefix$thumbnailID/$variant";
 }
 
 AssetToken createPendingAssetToken({

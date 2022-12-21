@@ -139,6 +139,9 @@ class Environment {
   static String get branchKey => dotenv.env['BRANCH_KEY'] ?? '';
 
   static String get mixpanelKey => dotenv.env['MIXPANEL_KEY'] ?? '';
+
+  static String get cloudFlareImageUrlPrefix =>
+      dotenv.env['CLOUD_FLARE_IMAGE_URL_PREFIX'] ?? '';
 }
 
 class Secret {
