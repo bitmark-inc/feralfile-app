@@ -41,7 +41,7 @@ class RoyaltyBloc extends AuBloc<RoyaltyEvent, RoyaltyState> {
             await _feralFileService
                 .getExhibitionIdFromTokenID(event.editionID ?? "");
         if (exhibitionID != null) {
-          if (exhibitionID == MOMA_MEMENTO_EXHIBITION_ID) {
+          if (MOMA_MEMENTO_EXHIBITION_IDS.contains(exhibitionID)) {
             final data = await dio.get<String>(COLLECTOR_RIGHTS_MEMENTO_DOCS);
             if (data.statusCode == 200) {
               emit(RoyaltyState(
