@@ -46,7 +46,7 @@ const COLLECTOR_RIGHTS_MOMA_009_UNSUPERVISED_DOCS =
     "/bitmark-inc/feral-file-docs/master/docs/collector-rights/009-unsupervised/en.md";
 const MOMA_MEMENTO_EXHIBITION_IDS = [
   "00370334-6151-4c04-b6be-dc09e325d57d",
-  "64c7d3b-557a-4c4f-b6a6-b05350d63191"
+  "3ee3e8a4-90dd-4843-8ec3-858e6bea1965"
 ];
 const MOMA_009_UNSUPERVISED_CONTRACT_ADDRESS =
     "0x7a15b36cB834AeA88553De69077D3777460d73Ac";
