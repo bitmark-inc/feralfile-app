@@ -11,15 +11,7 @@ abstract class FeedBlocEvent {}
 
 class GetFeedsEvent extends FeedBlocEvent {}
 
-class ChangePageEvent extends FeedBlocEvent {
-  final int index;
-  ChangePageEvent({required this.index});
-}
-
-class ChangeOnBoardingEvent extends FeedBlocEvent {
-  final int index;
-  ChangeOnBoardingEvent({required this.index});
-}
+class OpenFeedEvent extends FeedBlocEvent {}
 
 class RetryMissingTokenInFeedsEvent extends FeedBlocEvent {}
 

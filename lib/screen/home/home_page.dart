@@ -155,8 +155,7 @@ class HomePageState extends State<HomePage>
   void didPopNext() async {
     super.didPopNext();
     final connectivityResult = await (Connectivity().checkConnectivity());
-    refreshFeeds();
-    refreshTokens();
+    refreshTokens().then((value) => refreshFeeds());
     if (connectivityResult == ConnectivityResult.mobile ||
         connectivityResult == ConnectivityResult.wifi) {
       Future.delayed(const Duration(milliseconds: 1000), () async {
@@ -435,7 +434,7 @@ class HomePageState extends State<HomePage>
     await injector<FeedService>().checkNewFeeds();
   }
 
-  void refreshTokens({checkPendingToken = false}) async {
+  Future refreshTokens({checkPendingToken = false}) async {
     final accountService = injector<AccountService>();
     _playlists.value = await getPlaylist();
     Future.wait([

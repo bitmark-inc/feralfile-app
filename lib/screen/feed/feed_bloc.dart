@@ -46,12 +46,6 @@ class FeedBloc extends AuBloc<FeedBlocEvent, FeedState> {
             .map((e) => appFeedData.findTokenRelatedTo(e))
             .toList();
 
-        if (state.appFeedData == null) {
-          _configurationService
-              .setLastTimeOpenFeed(DateTime.now().millisecondsSinceEpoch);
-          _feedService.unviewedCount.value = 0;
-        }
-
         emit(
           state.copyWith(
             appFeedData: appFeedData,
@@ -63,25 +57,10 @@ class FeedBloc extends AuBloc<FeedBlocEvent, FeedState> {
       },
     );
 
-    on<ChangePageEvent>((event, emit) async {
-      emit(state.copyWith(viewingIndex: event.index));
-      if (event.index + 2 == state.feedEvents?.length) {
-        add(GetFeedsEvent());
-      }
-    });
-
-    on<ChangeOnBoardingEvent>((event, emit) async {
-      if (event.index >= 0 && event.index < 2) {
-        emit(state.copyWith(onBoardingStep: event.index));
-        return;
-      }
-      if (event.index == 2) {
-        _configurationService.setFinishedFeedOnBoarding(true);
-        return;
-      }
-      emit(state.copyWith());
-      add(GetFeedsEvent());
-      return;
+    on<OpenFeedEvent>((event, emit) {
+      _configurationService
+          .setLastTimeOpenFeed(DateTime.now().millisecondsSinceEpoch);
+      _feedService.unviewedCount.value = 0;
     });
 
     on<RetryMissingTokenInFeedsEvent>((event, emit) async {

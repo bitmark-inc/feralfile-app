@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/screen/feed/feed_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
@@ -47,10 +48,16 @@ class _HomeNavigationPageState extends State<HomeNavigationPage> {
       });
       _pageController.jumpToPage(_selectedIndex);
       if (index == 0) {
-        _homePageKey.currentState?.refreshTokens();
-        injector<FeedService>().checkNewFeeds();
+        final feedService = injector<FeedService>();
+        _homePageKey.currentState
+            ?.refreshTokens()
+            .then((value) => feedService.checkNewFeeds());
       } else {
-        context.read<FeedBloc>().add(GetFeedsEvent());
+        if (injector<ConfigurationService>().hasFeed()) {
+          final feedBloc = context.read<FeedBloc>();
+          feedBloc.add(OpenFeedEvent());
+          feedBloc.add(GetFeedsEvent());
+        }
         context.read<EditorialBloc>().add(GetEditorialEvent());
       }
     } else {
