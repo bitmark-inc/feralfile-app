@@ -65,6 +65,13 @@ String get usdcContractAddress => Environment.appTestnetConfig
     ? USDC_CONTRACT_ADDRESS_GOERLI
     : USDC_CONTRACT_ADDRESS;
 
+const publicTezosNodes = [
+  "https://mainnet.api.tez.ie",
+  "https://mainnet.smartpy.io",
+  "https://rpc.tzbeta.net",
+  "https://mainnet.tezos.marigold.dev",
+];
+
 Future<bool> isAppCenterBuild() async {
   final PackageInfo info = await PackageInfo.fromPlatform();
   return info.packageName.contains("inhouse");
