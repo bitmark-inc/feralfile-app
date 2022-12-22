@@ -111,6 +111,7 @@ class UIHelper {
   static Future<void> showDialog(
       BuildContext context, String title, Widget content,
       {bool isDismissible = false,
+      isRoundCorner = false,
       int autoDismissAfter = 0,
       FeedbackType? feedback = FeedbackType.selection}) async {
     log.info("[UIHelper] showInfoDialog: $title");
@@ -140,9 +141,16 @@ class UIHelper {
         return Container(
           color: Colors.transparent,
           child: ClipPath(
-            clipper: AutonomyTopRightRectangleClipper(),
+            clipper: isRoundCorner ? null : AutonomyTopRightRectangleClipper(),
             child: Container(
-              color: theme.colorScheme.primary,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primary,
+                borderRadius: isRoundCorner
+                    ? const BorderRadius.only(
+                        topRight: Radius.circular(20),
+                      )
+                    : null,
+              ),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 32),
               child: SingleChildScrollView(
                 child: Column(
@@ -288,6 +296,7 @@ class UIHelper {
       ),
       isDismissible: isDismissible,
       feedback: feedback,
+      isRoundCorner: true,
     );
   }
 
