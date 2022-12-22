@@ -14,7 +14,6 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
-
 import 'package:autonomy_flutter/view/account_view.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
@@ -292,7 +291,7 @@ class _AccountsViewState extends State<AccountsView> {
                           child: AuFilledButton(
                             text: (account.persona != null)
                                 ? "delete".tr()
-                                : "remove".tr(),
+                                : "remove".tr().toUpperCase(),
                             onPress: () {
                               Navigator.of(context).pop();
                               _deleteAccount(pageContext, account);
