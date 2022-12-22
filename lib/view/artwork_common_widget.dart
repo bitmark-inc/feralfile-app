@@ -902,9 +902,7 @@ class _SectionExpandedWidgetState extends State<SectionExpandedWidget> {
                   children: [
                     Text(
                       widget.header ?? '',
-                      style: _isExpanded
-                          ? theme.textTheme.ppMori400White14
-                          : theme.textTheme.ppMori700White16,
+                      style: theme.textTheme.ppMori400White14,
                     ),
                     const Spacer(),
                     RotatedBox(

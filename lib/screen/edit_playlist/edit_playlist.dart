@@ -167,8 +167,7 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
                                 top: 24,
                               ),
                               child: Padding(
-                                padding:
-                                    const EdgeInsets.only(bottom: 15, top: 15),
+                                padding: const EdgeInsets.only(bottom: 15),
                                 child: listToken.isEmpty
                                     ? tokenEmptyAction(theme, playList)
                                     : tokenAction(

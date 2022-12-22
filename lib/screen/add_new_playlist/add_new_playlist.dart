@@ -274,9 +274,7 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen> {
                               },
                               width: 170,
                               text: tr('save'),
-                              color: selectedCount <= 0
-                                  ? theme.auLightGrey
-                                  : theme.auSuperTeal,
+                              color: theme.auSuperTeal,
                             ),
                           ],
                         ),
@@ -427,7 +425,7 @@ class _ThubnailPlaylistItemState extends State<ThubnailPlaylistItem> {
                 child: Column(
                   children: [
                     Container(
-                      width: 24,
+                      width: 20,
                       height: 2,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(60),
@@ -438,7 +436,7 @@ class _ThubnailPlaylistItemState extends State<ThubnailPlaylistItem> {
                       height: 2,
                     ),
                     Container(
-                      width: 24,
+                      width: 20,
                       height: 2,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(60),
@@ -449,7 +447,7 @@ class _ThubnailPlaylistItemState extends State<ThubnailPlaylistItem> {
                       height: 2,
                     ),
                     Container(
-                      width: 24,
+                      width: 20,
                       height: 2,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(60),
