@@ -5,6 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:math';
+
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
@@ -39,6 +41,7 @@ import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/ledger_hardware/ledger_hardware_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/service/mixPanel_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/pending_token_service.dart';
 import 'package:autonomy_flutter/service/play_control_service.dart';
@@ -48,9 +51,9 @@ import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_dapp_service/wallet_connect_dapp_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
-import 'package:autonomy_flutter/service/mixPanel_client_service.dart';
-import 'package:autonomy_flutter/util/au_file_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
+import 'package:autonomy_flutter/util/au_file_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
 import 'package:autonomy_flutter/util/isolated_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -229,8 +232,10 @@ Future<void> setup() async {
 
   injector.registerLazySingleton(
       () => Web3Client(Environment.web3RpcURL, injector()));
-  injector.registerLazySingleton(
-      () => TezartClient(Environment.tezosNodeClientURL));
+
+  final tezosNodeClientURL =
+      publicTezosNodes[Random().nextInt(publicTezosNodes.length)];
+  injector.registerLazySingleton(() => TezartClient(tezosNodeClientURL));
   injector.registerLazySingleton<FeralFileApi>(() =>
       FeralFileApi(_feralFileDio(), baseUrl: Environment.feralFileAPIURL));
   injector.registerLazySingleton<BitmarkApi>(
