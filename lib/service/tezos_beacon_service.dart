@@ -19,8 +19,8 @@ import 'package:autonomy_flutter/screen/tezos_beacon/tb_send_transaction_page.da
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_sign_message_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
-import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -103,9 +103,9 @@ class TezosBeaconService implements BeaconHandler {
 
   Future signResponse(String id, String? signature) {
     if (signature != null) {
-      final mixPanelClient = injector.get<MixPanelClientService>();
-      mixPanelClient.trackEvent(
-        "Sign",
+      final metricClient = injector.get<MetricClientService>();
+      metricClient.addEvent(
+        MixpanelEvent.sign,
         hashedData: {
           "uuid": id,
         },
@@ -166,13 +166,7 @@ class TezosBeaconService implements BeaconHandler {
     final metricClient = injector.get<MetricClientService>();
 
     metricClient.addEvent(
-      "link_tezos_beacon",
-      hashedData: {"address": tezosConnection.address},
-    );
-
-    final mixPanelClient = injector.get<MixPanelClientService>();
-    mixPanelClient.trackEvent(
-      "link_wallet",
+      MixpanelEvent.linkWallet,
       data: {
         "connectionType": "tezos_beacon",
       },

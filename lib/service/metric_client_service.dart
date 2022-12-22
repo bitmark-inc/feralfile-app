@@ -6,12 +6,13 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/device.dart';
+import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:metric_client/metric_client.dart';
-import 'package:mixpanel_flutter/mixpanel_flutter.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -21,7 +22,7 @@ class MetricClientService {
   MetricClientService(this._accountService);
 
   late DeviceConfig _deviceConfig;
-  late Mixpanel mixpanel;
+  final mixPanelClient = injector<MixPanelClientService>();
 
   Future<void> initService() async {
     final root = await getTemporaryDirectory();
@@ -46,17 +47,8 @@ class MetricClientService {
       version: packageInfo.version,
       internalBuild: isAppcenterBuild,
     );
-    final defaultDID = (await (await _accountService.getCurrentDefaultAccount())
-            ?.getAccountDID()) ??
-        'unknown';
-    final hashedUserID = sha224.convert(utf8.encode(defaultDID)).toString();
 
-    mixpanel = await Mixpanel.init(Environment.mixpanelKey,
-        trackAutomaticEvents: true);
-    mixpanel.setLoggingEnabled(true);
-    mixpanel.setUseIpAddressForGeolocation(true);
-
-    mixpanel.identify(hashedUserID);
+    mixPanelClient.initService();
   }
 
   Future<void> addEvent(
@@ -82,12 +74,24 @@ class MetricClientService {
       hashedData: hashedData,
       deviceConfig: _deviceConfig,
     );
+
+    mixPanelClient.trackEvent(
+      name,
+      message: message,
+      data: data,
+      hashedData: hashedData,
+    );
+  }
+
+  timerEvent(String name) {
+    mixPanelClient.timerEvent(name.snakeToCapital());
   }
 
   Future<void> sendAndClearMetrics() async {
     try {
       if (!kDebugMode) {
         await MetricClient.sendMetrics();
+        await mixPanelClient.sendData();
       }
       await MetricClient.clear();
     } catch (e) {

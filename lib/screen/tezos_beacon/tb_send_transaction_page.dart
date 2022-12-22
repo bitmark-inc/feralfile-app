@@ -10,7 +10,7 @@ import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/model/currency_exchange.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/currency_service.dart';
-import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/pending_token_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
@@ -58,7 +58,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
   bool _showAllFeeOption = false;
   FeeOptionValue? feeOptionValue;
   late int balance;
-  final mixPanelClient = injector.get<MixPanelClientService>();
+  final metricClient = injector.get<MetricClientService>();
   late CurrencyExchangeRate exchangeRate;
 
   @override
@@ -149,7 +149,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
 
     return WillPopScope(
       onWillPop: () async {
-        mixPanelClient.trackEvent(MixpanelEvent.backConfirmTransaction);
+        metricClient.addEvent(MixpanelEvent.backConfirmTransaction);
         if (wc2Topic != null) {
           _wc2Service.respondOnReject(
             wc2Topic,
@@ -165,7 +165,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
         appBar: getBackAppBar(
           context,
           onBack: () {
-            mixPanelClient.trackEvent(MixpanelEvent.backConfirmTransaction);
+            metricClient.addEvent(MixpanelEvent.backConfirmTransaction);
             if (wc2Topic != null) {
               _wc2Service.respondOnReject(
                 wc2Topic,
@@ -288,7 +288,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                                   setState(() {
                                     _isSending = true;
                                   });
-                                  mixPanelClient.trackEvent(
+                                  metricClient.addEvent(
                                       MixpanelEvent.confirmTransaction);
 
                                   final configurationService =

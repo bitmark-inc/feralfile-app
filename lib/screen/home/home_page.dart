@@ -32,7 +32,6 @@ import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
-import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/pending_token_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
@@ -82,7 +81,6 @@ class HomePageState extends State<HomePage>
   StreamSubscription<FGBGType>? _fgbgSubscription;
   late ScrollController _controller;
   late MetricClientService _metricClient;
-  late MixPanelClientService _mixPanelClient;
   int _cachedImageSize = 0;
 
   final ValueNotifier<List<PlayListModel>?> _playlists = ValueNotifier([]);
@@ -113,7 +111,6 @@ class HomePageState extends State<HomePage>
   void initState() {
     super.initState();
     _metricClient = injector.get<MetricClientService>();
-    _mixPanelClient = injector<MixPanelClientService>();
     _checkForKeySync();
     WidgetsBinding.instance.addObserver(this);
     _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
@@ -398,8 +395,8 @@ class HomePageState extends State<HomePage>
                 Navigator.of(context).pushNamed(AppRouter.artworkDetailsPage,
                     arguments: payload);
 
-                _mixPanelClient
-                    .trackEvent("view_artwork", data: {"id": asset.id});
+                _metricClient.addEvent(MixpanelEvent.viewArtwork,
+                    data: {"id": asset.id});
               },
             );
           },
@@ -551,10 +548,8 @@ class HomePageState extends State<HomePage>
   }
 
   void _handleBackground() {
-    _metricClient.addEvent("device_background");
+    _metricClient.addEvent(MixpanelEvent.deviceBackground);
     _metricClient.sendAndClearMetrics();
-    _mixPanelClient.trackEvent(MixpanelEvent.deviceBackground);
-    _mixPanelClient.sendData();
     _cloudBackup();
     FileLogger.shrinkLogFileIfNeeded();
   }

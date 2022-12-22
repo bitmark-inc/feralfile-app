@@ -12,7 +12,7 @@ import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/otp.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/claim/claim_token_page.dart';
-import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -189,8 +189,8 @@ class NavigationService {
   void showContactingDialog() async {
     if (navigatorKey.currentState?.mounted == true &&
         navigatorKey.currentContext != null) {
-      final mixPanelClient = injector.get<MixPanelClientService>();
-      mixPanelClient.timerEvent(MixpanelEvent.cancelContact);
+      final metricClient = injector.get<MetricClientService>();
+      metricClient.timerEvent(MixpanelEvent.cancelContact);
       await UIHelper.showInfoDialog(
         navigatorKey.currentContext!,
         'contacting'.tr(),
@@ -199,11 +199,11 @@ class NavigationService {
         isDismissible: true,
         autoDismissAfter: 20,
         onClose: () {
-          mixPanelClient.trackEvent(MixpanelEvent.cancelContact);
+          metricClient.addEvent(MixpanelEvent.cancelContact);
           hideInfoDialog();
         },
       );
-      mixPanelClient.trackEvent(MixpanelEvent.connectContactSuccess);
+      metricClient.addEvent(MixpanelEvent.connectContactSuccess);
     }
   }
 }

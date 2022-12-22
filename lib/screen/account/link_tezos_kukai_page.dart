@@ -6,18 +6,18 @@
 //
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:share/share.dart';
-import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:autonomy_flutter/util/debouce_util.dart';
 
 class LinkTezosKukaiPage extends StatefulWidget {
   const LinkTezosKukaiPage({Key? key}) : super(key: key);
@@ -27,12 +27,12 @@ class LinkTezosKukaiPage extends StatefulWidget {
 }
 
 class _LinkTezosKukaiPageState extends State<LinkTezosKukaiPage> {
-  final mixPanelClient = injector.get<MixPanelClientService>();
+  final metricClient = injector.get<MetricClientService>();
 
   @override
   void initState() {
-    mixPanelClient.timerEvent(MixpanelEvent.backGenerateLink);
-    mixPanelClient.timerEvent(MixpanelEvent.generateLink);
+    metricClient.timerEvent(MixpanelEvent.backGenerateLink);
+    metricClient.timerEvent(MixpanelEvent.generateLink);
     super.initState();
   }
 
@@ -45,7 +45,7 @@ class _LinkTezosKukaiPageState extends State<LinkTezosKukaiPage> {
         appBar: getBackAppBar(
           context,
           onBack: () {
-            mixPanelClient.trackEvent(MixpanelEvent.backGenerateLink);
+            metricClient.addEvent(MixpanelEvent.backGenerateLink);
             Navigator.of(context).pop();
           },
         ),
@@ -92,7 +92,7 @@ class _LinkTezosKukaiPageState extends State<LinkTezosKukaiPage> {
                   child: AuFilledButton(
                     text: "generate_link".tr().toUpperCase(),
                     onPress: () {
-                      mixPanelClient.trackEvent(MixpanelEvent.generateLink);
+                      metricClient.addEvent(MixpanelEvent.generateLink);
                       withDebounce(() async {
                         final uri = await tezosBeaconService.getConnectionURI();
                         Share.share("https://wallet.kukai.app/tezos$uri");

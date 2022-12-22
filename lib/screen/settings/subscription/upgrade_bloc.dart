@@ -10,7 +10,8 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
-import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 
@@ -77,8 +78,8 @@ class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
             _iapService.products.value[productId];
         if (subscriptionProductDetails != null) {
           await _iapService.purchase(subscriptionProductDetails);
-          injector<MixPanelClientService>()
-              .trackEvent("Subcription", data: {"productId": productId});
+          injector<MetricClientService>().addEvent(MixpanelEvent.subcription,
+              data: {"productId": productId});
           emit(UpgradeState(
               IAPProductStatus.pending, subscriptionProductDetails));
         } else {

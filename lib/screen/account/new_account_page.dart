@@ -8,7 +8,7 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
-import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -21,7 +21,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 class NewAccountPage extends StatelessWidget {
   NewAccountPage({Key? key}) : super(key: key);
 
-  final mixPanelClient = injector.get<MixPanelClientService>();
+  final metricClient = injector.get<MetricClientService>();
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +60,7 @@ class NewAccountPage extends StatelessWidget {
                             context, "yes".tr(), "ad_i_already_have".tr(),
                             //"I already have NFTs in other wallets that I want to view with Autonomy.",
                             onTap: () {
-                          mixPanelClient.trackEvent(
+                          metricClient.addEvent(
                             MixpanelEvent.addExistAccount,
                           );
                           Navigator.of(context)
@@ -107,7 +107,7 @@ class NewAccountPage extends StatelessWidget {
         return _optionItem(context, "no".tr(), "ne_make_a_new_account".tr(),
             //"Make a new account with addresses you can use to collect or receive NFTs on Ethereum, Feral File, and Tezos.",
             onTap: () {
-          mixPanelClient.trackEvent(MixpanelEvent.createNewAccount);
+          metricClient.addEvent(MixpanelEvent.createNewAccount);
           if (state.createAccountState == ActionState.loading) return;
           UIHelper.showInfoDialog(context, "generating".tr(), "",
               isDismissible: true);

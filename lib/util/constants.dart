@@ -285,4 +285,20 @@ class MixpanelEvent {
   static const viewArtwork = 'view_artwork';
   static const viewDiscovery = 'view_discovery';
   static const deviceBackground = 'device_background';
+  static const unhandledError = 'unhandled_error';
+  static const signIn = 'Sign In';
+  static const sign = 'Sign';
+  static const linkWallet = 'link_wallet';
+  static const purchased = 'Purchased';
+  static const trial = 'Trial';
+  static const linkFeralfile = 'link_feralfile';
+  static const hideLinkedAccount = 'hide_linked_account';
+  static const deleteFullAccount = 'delete_full_account';
+  static const deleteLinkedAccount = 'delete_linked_account';
+  static const importFullAccount = 'import_full_account';
+  static const createFullAccount = 'create_full_account';
+  static const connectExternal = 'connect_external';
+  static const connectAutonomyDisplay = 'connect_autonomy_display';
+  static const subcription = 'Subcription';
+  static const editorialViewArticle = 'editorial_view_article';
 }

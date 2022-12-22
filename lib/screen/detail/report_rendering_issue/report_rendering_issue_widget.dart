@@ -7,15 +7,14 @@
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
-import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-
 import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:roundcheckbox/roundcheckbox.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 
 class ReportRenderingIssueWidget extends StatefulWidget {
   final AssetToken token;
@@ -36,7 +35,7 @@ class _ReportRenderingIssueWidgetState
   bool _isSubmissionEnabled = false;
   bool _isProcessing = false;
 
-  final mixPanelClient = injector.get<MixPanelClientService>();
+  final metricClient = injector.get<MetricClientService>();
 
   @override
   Widget build(BuildContext context) {
@@ -149,7 +148,7 @@ class _ReportRenderingIssueWidgetState
 
   void _reportIssue() async {
     if (!_isSubmissionEnabled) return;
-    mixPanelClient.trackEvent(
+    metricClient.addEvent(
       MixpanelEvent.generateReport,
       data: {
         "id": widget.token.id,

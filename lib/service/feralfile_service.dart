@@ -21,7 +21,6 @@ import 'package:autonomy_flutter/model/otp.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
-import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
@@ -119,7 +118,6 @@ class FeralFileServiceImpl extends FeralFileService {
           .fetchTokensForAddresses(connection.accountNumbers);
     }
     final metricClient = injector.get<MetricClientService>();
-    final mixPanelClient = injector.get<MixPanelClientService>();
 
     // mark survey from FeralFile as referrer if user hasn't answerred
     final finishedSurveys = _configurationService.getFinishedSurveys();
@@ -128,20 +126,11 @@ class FeralFileServiceImpl extends FeralFileService {
         Survey.onboarding,
         message: 'Feral File Website',
       );
-      mixPanelClient.trackEvent(
-        Survey.onboarding,
-        message: 'Feral File Website',
-      );
       injector<ConfigurationService>().setFinishedSurvey([Survey.onboarding]);
     }
 
     metricClient.addEvent(
-      "link_feralfile",
-      hashedData: {"address": connection.accountNumber},
-    );
-
-    mixPanelClient.trackEvent(
-      "link_feralfile",
+      MixpanelEvent.linkFeralfile,
       hashedData: {"address": connection.accountNumber},
     );
 
