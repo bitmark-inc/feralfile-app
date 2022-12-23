@@ -218,13 +218,14 @@ class Wc2Chain {
   final String chain;
   final String address;
   final String? publicKey;
-  final String signature;
+  final String? signature;
 
-  Wc2Chain(
-      {required this.chain,
-      required this.address,
-      this.publicKey,
-      required this.signature});
+  Wc2Chain({
+    required this.chain,
+    required this.address,
+    this.publicKey,
+    this.signature,
+  });
 
   factory Wc2Chain.fromJson(Map<String, dynamic> json) =>
       _$Wc2ChainFromJson(json);

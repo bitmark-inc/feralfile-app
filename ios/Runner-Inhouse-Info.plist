@@ -136,5 +136,7 @@
 		<string>autonomy-app.test.app.link</string>
 		<string>autonomy-app-alternate.test.app.link</string>
 	</array>
+	<key>io.flutter.embedded_views_preview</key>
+	<true/>
 </dict>
 </plist>

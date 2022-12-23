@@ -11,6 +11,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:autonomy_flutter/common/environment.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:libauk_dart/libauk_dart.dart';
@@ -46,13 +47,6 @@ abstract class TezosService {
 
 class TezosServiceImpl extends TezosService {
   final TezartClient _tezartClient;
-
-  late final backupTezartClients = [
-    TezartClient("https://mainnet.api.tez.ie"),
-    TezartClient("https://mainnet.smartpy.io"),
-    TezartClient("https://rpc.tzbeta.net"),
-    TezartClient("https://mainnet.tezos.marigold.dev"),
-  ];
 
   TezosServiceImpl(this._tezartClient);
 
@@ -206,9 +200,9 @@ class TezosServiceImpl extends TezosService {
         rethrow;
       }
 
-      final random = Random();
-      final clientToRetry =
-          backupTezartClients[random.nextInt(backupTezartClients.length)];
+      final retryTezosNodeClientURL =
+          publicTezosNodes[Random().nextInt(publicTezosNodes.length)];
+      final clientToRetry = TezartClient(retryTezosNodeClientURL);
       return await func(clientToRetry);
     }
   }

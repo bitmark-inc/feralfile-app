@@ -79,7 +79,7 @@ Widget accountWithConnectionItem(
                             overflow: TextOverflow.ellipsis,
                             style: theme.textTheme.headline4),
                       ),
-                      _linkedBox(context),
+                      linkedBox(context),
                     ]),
                 const SizedBox(height: 8),
                 ...categorizedAccounts.accounts
@@ -172,7 +172,7 @@ Widget accountItem(BuildContext context, Account account,
           const SizedBox(
             width: 10,
           ),
-          _linkedBox(context),
+          linkedBox(context),
         ],
       ),
       onTap: onConnectionTap,
@@ -318,7 +318,7 @@ Widget _appLogo(Connection connection) {
   }
 }
 
-Widget _linkedBox(BuildContext context) {
+Widget linkedBox(BuildContext context) {
   final theme = Theme.of(context);
   return Container(
     padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),

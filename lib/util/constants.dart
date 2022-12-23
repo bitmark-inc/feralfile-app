@@ -44,7 +44,10 @@ const COLLECTOR_RIGHTS_MEMENTO_DOCS =
     "/bitmark-inc/feral-file-docs/master/docs/collector-rights/MoMA-Memento/en.md";
 const COLLECTOR_RIGHTS_MOMA_009_UNSUPERVISED_DOCS =
     "/bitmark-inc/feral-file-docs/master/docs/collector-rights/009-unsupervised/en.md";
-const MOMA_MEMENTO_EXHIBITION_ID = "00370334-6151-4c04-b6be-dc09e325d57d";
+const MOMA_MEMENTO_EXHIBITION_IDS = [
+  "00370334-6151-4c04-b6be-dc09e325d57d",
+  "3ee3e8a4-90dd-4843-8ec3-858e6bea1965"
+];
 const MOMA_009_UNSUPERVISED_CONTRACT_ADDRESS =
     "0x7a15b36cB834AeA88553De69077D3777460d73Ac";
 const CHECK_WEB3_PRIMER_URL =
@@ -62,6 +65,13 @@ const DEFAULT_FEE_OPTION = FeeOption.MEDIUM;
 String get usdcContractAddress => Environment.appTestnetConfig
     ? USDC_CONTRACT_ADDRESS_GOERLI
     : USDC_CONTRACT_ADDRESS;
+
+const publicTezosNodes = [
+  "https://mainnet.api.tez.ie",
+  "https://mainnet.smartpy.io",
+  "https://rpc.tzbeta.net",
+  "https://mainnet.tezos.marigold.dev",
+];
 
 Future<bool> isAppCenterBuild() async {
   final PackageInfo info = await PackageInfo.fromPlatform();

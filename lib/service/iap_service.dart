@@ -185,7 +185,6 @@ class IAPServiceImpl implements IAPService {
   void _listenToPurchaseUpdated(List<PurchaseDetails> purchaseDetailsList) {
     if (purchaseDetailsList.isEmpty) {
       // Remove purchase status
-      _configurationService.setIAPJWT(null);
       _configurationService.setIAPReceipt(null);
       return;
     }
@@ -259,7 +258,7 @@ class IAPServiceImpl implements IAPService {
             log.info("[IAPService] the receipt is invalid");
             purchases.value[purchaseDetails.productID] =
                 IAPProductStatus.expired;
-            _configurationService.setIAPJWT(null);
+            _configurationService.setIAPReceipt(null);
             _cleanupPendingTransactions();
             purchases.notifyListeners();
             return;

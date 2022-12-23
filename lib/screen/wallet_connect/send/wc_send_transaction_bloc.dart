@@ -103,7 +103,7 @@ class WCSendTransactionBloc
 
     on<WCSendTransactionRejectEvent>((event, emit) async {
       if (event.isWalletConnect2) {
-        _wc2Service.rejectSession(event.topic ?? "");
+        _wc2Service.respondOnReject(event.topic ?? "");
       } else {
         _walletConnectService.rejectRequest(event.peerMeta, event.requestId);
       }
