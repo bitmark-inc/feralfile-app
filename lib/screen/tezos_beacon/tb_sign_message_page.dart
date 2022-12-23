@@ -11,7 +11,7 @@ import 'dart:typed_data';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
@@ -179,9 +179,10 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
                                 await _approveRequest(signature: signature);
                                 if (!mounted) return;
 
-                                final mixPanelClient =
-                                    injector.get<MixPanelClientService>();
-                                mixPanelClient.trackEvent(
+                                final metricClient =
+                                    injector.get<MetricClientService>();
+
+                                metricClient.addEvent(
                                   "Sign In",
                                   hashedData: {"uuid": widget.request.id},
                                 );

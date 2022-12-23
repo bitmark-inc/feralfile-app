@@ -16,7 +16,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter/foundation.dart';
@@ -216,7 +216,7 @@ class IAPServiceImpl implements IAPService {
             // Prevent duplicated events.
             return;
           }
-
+          final metricClient = injector.get<MetricClientService>();
           _receiptData = receiptData;
           final jwt = await _verifyPurchase(receiptData);
           final subscriptionStatus = jwt?.getSubscriptionStatus();
@@ -228,8 +228,8 @@ class IAPServiceImpl implements IAPService {
             if (status.isTrial == true) {
               purchases.value[purchaseDetails.productID] =
                   IAPProductStatus.trial;
-              injector<MixPanelClientService>().trackEvent(
-                "Trial",
+              metricClient.addEvent(
+                MixpanelEvent.trial,
                 data: {
                   "productId": purchaseDetails.productID,
                   "status": purchaseDetails.status.name,
@@ -243,8 +243,8 @@ class IAPServiceImpl implements IAPService {
             } else {
               purchases.value[purchaseDetails.productID] =
                   IAPProductStatus.completed;
-              injector<MixPanelClientService>().trackEvent(
-                "Purchased",
+              metricClient.addEvent(
+                MixpanelEvent.purchased,
                 data: {
                   "productId": purchaseDetails.productID,
                   "status": purchaseDetails.status.name,

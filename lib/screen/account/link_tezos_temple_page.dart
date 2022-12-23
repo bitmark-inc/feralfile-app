@@ -12,10 +12,11 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/tezos_connection.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
+import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -23,14 +24,13 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:nft_collection/services/tokens_service.dart';
 import 'package:share/share.dart';
 import 'package:uuid/uuid.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
-import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:autonomy_flutter/util/debouce_util.dart';
 
 class LinkTezosTemplePage extends StatefulWidget {
   const LinkTezosTemplePage({Key? key}) : super(key: key);
@@ -43,12 +43,12 @@ class _LinkTezosTemplePageState extends State<LinkTezosTemplePage> {
   WebSocketChannel? _websocketChannel;
   Peer? _peer;
 
-  final mixPanelClient = injector.get<MixPanelClientService>();
+  final metricClient = injector.get<MetricClientService>();
 
   @override
   void initState() {
-    mixPanelClient.timerEvent(MixpanelEvent.backGenerateLink);
-    mixPanelClient.timerEvent(MixpanelEvent.generateLink);
+    metricClient.timerEvent(MixpanelEvent.backGenerateLink);
+    metricClient.timerEvent(MixpanelEvent.generateLink);
     super.initState();
   }
 
@@ -67,7 +67,7 @@ class _LinkTezosTemplePageState extends State<LinkTezosTemplePage> {
         appBar: getBackAppBar(
           context,
           onBack: () {
-            mixPanelClient.trackEvent(MixpanelEvent.backGenerateLink);
+            metricClient.addEvent(MixpanelEvent.backGenerateLink);
             Navigator.of(context).pop();
           },
         ),
@@ -114,7 +114,7 @@ class _LinkTezosTemplePageState extends State<LinkTezosTemplePage> {
                   child: AuFilledButton(
                     text: "generate_link".tr().toUpperCase(),
                     onPress: () {
-                      mixPanelClient.trackEvent(MixpanelEvent.generateLink);
+                      metricClient.addEvent(MixpanelEvent.generateLink);
                       withDebounce(() => _generateLinkAndListen(),
                           debounceTime: 2000000);
                     },

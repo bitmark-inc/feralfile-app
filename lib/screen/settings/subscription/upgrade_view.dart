@@ -63,13 +63,10 @@ class UpgradesView extends StatelessWidget {
 
   static Widget _subscribeView(BuildContext context, UpgradeState state) {
     final theme = Theme.of(context);
-
+    final mixpanel = injector<MixPanelClientService>().mixpanel;
     switch (state.status) {
       case IAPProductStatus.completed:
-        injector<MixPanelClientService>()
-            .mixpanel
-            .getPeople()
-            .set("Subscription", "Subscried");
+        mixpanel.getPeople().set("Subscription", "Subscried");
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -83,10 +80,7 @@ class UpgradesView extends StatelessWidget {
           ],
         );
       case IAPProductStatus.trial:
-        injector<MixPanelClientService>()
-            .mixpanel
-            .getPeople()
-            .set("Subscription", "Trial");
+        mixpanel.getPeople().set("Subscription", "Trial");
         final df = DateFormat("yyyy-MMM-dd");
         final trialExpireDate = df.format(state.trialExpiredDate!);
         return Column(
@@ -116,10 +110,7 @@ class UpgradesView extends StatelessWidget {
         );
       case IAPProductStatus.notPurchased:
       case IAPProductStatus.expired:
-        injector<MixPanelClientService>()
-            .mixpanel
-            .getPeople()
-            .set("Subscription", "Free");
+        mixpanel.getPeople().set("Subscription", "Free");
         return GestureDetector(
           onTap: (() => showSubscriptionDialog(
                   context, state.productDetails?.price, null, (() {

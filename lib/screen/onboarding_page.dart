@@ -19,7 +19,7 @@ import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
-import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
@@ -27,10 +27,10 @@ import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/eula_privacy.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:logging/logging.dart';
 
 import '../database/cloud_database.dart';
@@ -59,7 +59,7 @@ class _OnboardingPageState extends State<OnboardingPage>
 
   static const _durationAnimation = Duration(milliseconds: 300);
 
-  final mixPanelClient = injector.get<MixPanelClientService>();
+  final metricClient = injector.get<MetricClientService>();
 
   @override
   void initState() {
@@ -383,7 +383,7 @@ class _OnboardingPageState extends State<OnboardingPage>
                 key: const Key("restore_button"),
                 onPress: !state.isLoading
                     ? () {
-                        mixPanelClient.trackEvent(MixpanelEvent.restoreAccount);
+                        metricClient.addEvent(MixpanelEvent.restoreAccount);
                         context.read<RouterBloc>().add(
                             RestoreCloudDatabaseRoutingEvent(
                                 state.backupVersion));

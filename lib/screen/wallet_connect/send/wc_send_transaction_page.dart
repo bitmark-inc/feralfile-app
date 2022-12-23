@@ -8,7 +8,7 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_bloc.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_state.dart';
-import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
 import 'package:autonomy_flutter/util/fee_util.dart';
@@ -38,7 +38,7 @@ class WCSendTransactionPage extends StatefulWidget {
 
 class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
   bool _showAllFeeOption = false;
-  final mixPanelClient = injector.get<MixPanelClientService>();
+  final metricClient = injector.get<MetricClientService>();
 
   @override
   void initState() {
@@ -58,7 +58,7 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
 
     return WillPopScope(
       onWillPop: () async {
-        mixPanelClient.trackEvent(MixpanelEvent.backConfirmTransaction);
+        metricClient.addEvent(MixpanelEvent.backConfirmTransaction);
 
         context.read<WCSendTransactionBloc>().add(
               WCSendTransactionRejectEvent(
@@ -74,7 +74,7 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
         appBar: getBackAppBar(
           context,
           onBack: () {
-            mixPanelClient.trackEvent(MixpanelEvent.backConfirmTransaction);
+            metricClient.addEvent(MixpanelEvent.backConfirmTransaction);
             context.read<WCSendTransactionBloc>().add(
                   WCSendTransactionRejectEvent(
                     widget.args.peerMeta,
@@ -227,7 +227,7 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                               text: "send".tr().toUpperCase(),
                               onPress: (state.fee != null && !state.isSending)
                                   ? () async {
-                                      mixPanelClient.trackEvent(
+                                      metricClient.addEvent(
                                           MixpanelEvent.confirmTransaction);
 
                                       final to = EthereumAddress.fromHex(

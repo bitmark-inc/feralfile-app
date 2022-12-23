@@ -22,7 +22,6 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/play_control_service.dart';
-import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -90,7 +89,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   Timer? _timer;
   late int initialPage;
 
-  final mixPanelClient = injector.get<MixPanelClientService>();
+  final metricClient = injector.get<MetricClientService>();
 
   @override
   void initState() {
@@ -186,7 +185,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
 
   Future _moveToInfo(AssetToken? asset) async {
     if (asset == null) return;
-    mixPanelClient.trackEvent(
+    metricClient.addEvent(
       MixpanelEvent.clickArtworkInfo,
       data: {
         "id": asset.id,
@@ -217,7 +216,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
 
   void onClickFullScreen(AssetToken? assetToken) {
     final theme = Theme.of(context);
-    mixPanelClient.trackEvent(
+    metricClient.addEvent(
       MixpanelEvent.seeArtworkFullScreen,
       data: {
         "id": assetToken?.id,
@@ -394,8 +393,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
               return GestureDetector(
                 onTap: isSubscribed
                     ? () {
-                        metricClient.addEvent("stream_chromecast");
-                        mixPanelClient.trackEvent(
+                        metricClient.addEvent(
                           MixpanelEvent.streamChromecast,
                         );
                         UIHelper.hideInfoDialog(context);
@@ -648,13 +646,6 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                                 ArtworkPreviewGetAssetTokenEvent(currentId));
                             _stopAllChromecastDevices();
                             keyboardManagerKey.currentState?.hideKeyboard();
-                            final mixPanelClient =
-                                injector.get<MixPanelClientService>();
-                            mixPanelClient.trackEvent("Next Artwork",
-                                hashedData: {
-                                  "tokenId": currentId.id,
-                                  "identity": currentId.id
-                                });
                           },
                           controller: controller,
                           itemCount: tokens.length,

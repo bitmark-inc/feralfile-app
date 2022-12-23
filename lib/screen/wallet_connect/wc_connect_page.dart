@@ -17,7 +17,6 @@ import 'package:autonomy_flutter/screen/connection/persona_connections_page.dart
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
-import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
@@ -73,7 +72,6 @@ class _WCConnectPageState extends State<WCConnectPage>
   List<Persona>? personas;
   bool generatedPersona = false;
   final metricClient = injector.get<MetricClientService>();
-  final mixPanelClient = injector.get<MixPanelClientService>();
   bool _isAccountSelected = false;
 
   @override
@@ -84,7 +82,7 @@ class _WCConnectPageState extends State<WCConnectPage>
         .add(GetListPersonaEvent(useDidKeyForAlias: true));
     injector<NavigationService>().setIsWCConnectInShow(true);
     memoryValues.deepLink.value = null;
-    mixPanelClient.timerEvent(MixpanelEvent.backConnectMarket);
+    metricClient.timerEvent(MixpanelEvent.backConnectMarket);
   }
 
   @override
@@ -183,23 +181,10 @@ class _WCConnectPageState extends State<WCConnectPage>
       }
 
       if (wcConnectArgs.peerMeta.name == AUTONOMY_TV_PEER_NAME) {
-        metricClient.addEvent(
-          "connect_autonomy_display",
-        );
-        mixPanelClient.trackEvent(""
-            "connect_autonomy_display");
+        metricClient.addEvent(MixpanelEvent.connectAutonomyDisplay);
       } else {
         metricClient.addEvent(
-          "connect_external",
-          data: {
-            "method": "wallet_connect",
-            "name": wcConnectArgs.peerMeta.name,
-            "url": wcConnectArgs.peerMeta.url,
-          },
-        );
-
-        mixPanelClient.trackEvent(
-          "connect_external",
+          MixpanelEvent.connectExternal,
           data: {
             "method": "wallet_connect",
             "name": wcConnectArgs.peerMeta.name,
@@ -242,16 +227,7 @@ class _WCConnectPageState extends State<WCConnectPage>
     }
 
     metricClient.addEvent(
-      "connect_external",
-      data: {
-        "method": "tezos_beacon",
-        "name": beaconRequest?.appName ?? "unknown",
-        "url": beaconRequest?.sourceAddress ?? "unknown",
-      },
-    );
-
-    mixPanelClient.trackEvent(
-      "connect_external",
+      MixpanelEvent.connectExternal,
       data: {
         "method": "tezos_beacon",
         "name": beaconRequest?.appName ?? "unknown",
@@ -265,9 +241,8 @@ class _WCConnectPageState extends State<WCConnectPage>
     final notificationEnable =
         injector<ConfigurationService>().isNotificationEnabled() ?? false;
     if (notificationEnable) {
-      final mixPanelClient = injector.get<MixPanelClientService>();
       if (widget.beaconRequest?.appName != null) {
-        mixPanelClient.trackEvent(MixpanelEvent.connectMarketSuccess);
+        metricClient.addEvent(MixpanelEvent.connectMarketSuccess);
         showInfoNotification(
           const Key("connected"),
           "connected_to"
@@ -275,7 +250,7 @@ class _WCConnectPageState extends State<WCConnectPage>
           frontWidget: SvgPicture.asset("assets/images/checkbox_icon.svg"),
         );
       } else if (widget.wcConnectArgs?.peerMeta.name != null) {
-        mixPanelClient.trackEvent(MixpanelEvent.connectMarketSuccess);
+        metricClient.addEvent(MixpanelEvent.connectMarketSuccess);
         showInfoNotification(
           const Key("connected"),
           "connected_to"
@@ -283,7 +258,7 @@ class _WCConnectPageState extends State<WCConnectPage>
           frontWidget: SvgPicture.asset("assets/images/checkbox_icon.svg"),
         );
       } else if (widget.wc2Proposal?.proposer.name != null) {
-        mixPanelClient.trackEvent(MixpanelEvent.connectMarketSuccess);
+        metricClient.addEvent(MixpanelEvent.connectMarketSuccess);
         showInfoNotification(
           const Key("connected"),
           "connected_to"
@@ -308,7 +283,7 @@ class _WCConnectPageState extends State<WCConnectPage>
 
     return WillPopScope(
       onWillPop: () async {
-        mixPanelClient.trackEvent(MixpanelEvent.backConnectMarket);
+        metricClient.addEvent(MixpanelEvent.backConnectMarket);
         _reject();
         return true;
       },
@@ -316,7 +291,7 @@ class _WCConnectPageState extends State<WCConnectPage>
         appBar: getBackAppBar(
           context,
           onBack: () {
-            mixPanelClient.trackEvent(MixpanelEvent.backConnectMarket);
+            metricClient.addEvent(MixpanelEvent.backConnectMarket);
             _reject();
           },
         ),
@@ -603,7 +578,7 @@ class _WCConnectPageState extends State<WCConnectPage>
                 text: "connect".tr().toUpperCase(),
                 onPress: _isAccountSelected
                     ? () {
-                        mixPanelClient.trackEvent(MixpanelEvent.connectMarket);
+                        metricClient.addEvent(MixpanelEvent.connectMarket);
                         withDebounce(() => _approveThenNotify());
                       }
                     : null,
@@ -616,7 +591,6 @@ class _WCConnectPageState extends State<WCConnectPage>
   }
 
   Widget _createAccountAndConnect() {
-    final mixPanelClient = injector.get<MixPanelClientService>();
     return Column(
       children: [
         const Spacer(),
@@ -626,7 +600,7 @@ class _WCConnectPageState extends State<WCConnectPage>
               child: AuFilledButton(
                 text: "connect".tr().toUpperCase(),
                 onPress: () {
-                  mixPanelClient.trackEvent(MixpanelEvent.connectMarket);
+                  metricClient.addEvent(MixpanelEvent.connectMarket);
                   withDebounce(() => _createAccount());
                 },
               ),

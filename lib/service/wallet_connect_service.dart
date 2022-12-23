@@ -17,7 +17,7 @@ import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
-import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
@@ -228,8 +228,8 @@ class WalletConnectService {
             arguments: WCSignMessagePageArgs(id, topic, currentPeerMeta!,
                 message.data!, message.type, uuid));
 
-        final mixPanelClient = injector.get<MixPanelClientService>();
-        mixPanelClient.trackEvent("Sign In", data: {
+        final metricClient = injector.get<MetricClientService>();
+        metricClient.addEvent(MixpanelEvent.signIn, data: {
           "type": "Eth",
         }, hashedData: {
           "uuid": uuid

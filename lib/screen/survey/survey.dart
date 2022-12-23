@@ -9,7 +9,6 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/survey/survey_thankyou.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
-import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -41,7 +40,6 @@ class _SurveyPageState extends State<SurveyPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final metricClient = injector.get<MetricClientService>();
-    final mixPanelClient = injector.get<MixPanelClientService>();
 
     return Scaffold(
       appBar: getCloseAppBar(
@@ -83,8 +81,6 @@ class _SurveyPageState extends State<SurveyPage> {
                 onPress: () async {
                   const onboardingSurveyKey = "onboarding_survey";
                   metricClient.addEvent(onboardingSurveyKey,
-                      message: _surveyAnswer);
-                  mixPanelClient.trackEvent(onboardingSurveyKey,
                       message: _surveyAnswer);
                   injector<ConfigurationService>()
                       .setFinishedSurvey([onboardingSurveyKey]);

@@ -10,7 +10,7 @@ import 'dart:io';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -41,11 +41,11 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
 
   bool isError = false;
 
-  final mixPanelClient = injector.get<MixPanelClientService>();
+  final metricClient = injector.get<MetricClientService>();
 
   @override
   void initState() {
-    mixPanelClient.timerEvent(MixpanelEvent.backImportAccount);
+    metricClient.timerEvent(MixpanelEvent.backImportAccount);
     super.initState();
   }
 
@@ -64,7 +64,7 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
       appBar: getBackAppBar(
         context,
         onBack: () {
-          mixPanelClient.trackEvent(MixpanelEvent.backImportAccount);
+          metricClient.addEvent(MixpanelEvent.backImportAccount);
           Navigator.of(context).pop();
         },
       ),

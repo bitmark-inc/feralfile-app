@@ -8,7 +8,7 @@ import 'package:autonomy_flutter/screen/detail/report_rendering_issue/report_ren
 import 'package:autonomy_flutter/screen/detail/royalty/royalty_bloc.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
-import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -632,12 +632,12 @@ class BrokenTokenWidget extends StatefulWidget {
 }
 
 class _BrokenTokenWidgetState extends State<BrokenTokenWidget> {
-  final mixPanelClient = injector.get<MixPanelClientService>();
+  final metricClient = injector.get<MetricClientService>();
 
   @override
   void initState() {
     injector<CustomerSupportService>().reportIPFSLoadingError(widget.token);
-    mixPanelClient.trackEvent(
+    metricClient.addEvent(
       MixpanelEvent.displayUnableLoadIPFS,
       data: {'id': widget.token.id},
     );
@@ -661,7 +661,7 @@ class _BrokenTokenWidgetState extends State<BrokenTokenWidget> {
           ),
           TextButton(
             onPressed: () {
-              mixPanelClient.trackEvent(
+              metricClient.addEvent(
                 MixpanelEvent.clickLoadIPFSAgain,
                 data: {'id': widget.token.id},
               );
@@ -758,11 +758,11 @@ class PreviewPlaceholder extends StatefulWidget {
 }
 
 class _PreviewPlaceholderState extends State<PreviewPlaceholder> {
-  final mixPanelClient = injector.get<MixPanelClientService>();
+  final metricClient = injector.get<MetricClientService>();
 
   @override
   void initState() {
-    mixPanelClient.timerEvent(
+    metricClient.timerEvent(
       MixpanelEvent.showLoadingArtwork,
     );
     super.initState();
@@ -771,7 +771,7 @@ class _PreviewPlaceholderState extends State<PreviewPlaceholder> {
   @override
   void dispose() {
     super.dispose();
-    mixPanelClient.trackEvent(
+    metricClient.addEvent(
       MixpanelEvent.showLoadingArtwork,
     );
   }
@@ -951,9 +951,9 @@ Widget artworkDetailsMetadataSection(
             title: "artist".tr(),
             value: artistName,
             onTap: () {
-              final mixPanelClient = injector.get<MixPanelClientService>();
+              final metricClient = injector.get<MetricClientService>();
 
-              mixPanelClient.trackEvent(MixpanelEvent.clickArtist, data: {
+              metricClient.addEvent(MixpanelEvent.clickArtist, data: {
                 'id': asset.id,
                 'artistID': asset.artistID,
               });

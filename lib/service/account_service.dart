@@ -19,7 +19,6 @@ import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
-import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
@@ -143,10 +142,7 @@ class AccountServiceImpl extends AccountService {
     await androidBackupKeys();
     await _auditService.auditPersonaAction('create', persona);
     final metricClient = injector.get<MetricClientService>();
-    metricClient.addEvent("create_full_account", hashedData: {"id": uuid});
-
-    final mixPanelClient = injector.get<MixPanelClientService>();
-    mixPanelClient.trackEvent("create_full_account",
+    metricClient.addEvent(MixpanelEvent.createFullAccount,
         data: {"isDefault": isDefault}, hashedData: {"id": persona.uuid});
     _autonomyService.postLinkedAddresses();
 
@@ -173,11 +169,8 @@ class AccountServiceImpl extends AccountService {
     await androidBackupKeys();
     await _auditService.auditPersonaAction('import', persona);
     final metricClient = injector.get<MetricClientService>();
-    metricClient.addEvent("import_full_account", hashedData: {"id": uuid});
-
-    final mixPanelClient = injector.get<MixPanelClientService>();
-    mixPanelClient
-        .trackEvent("import_full_account", hashedData: {"id": persona.uuid});
+    metricClient
+        .addEvent(MixpanelEvent.importFullAccount, hashedData: {"id": uuid});
     _autonomyService.postLinkedAddresses();
 
     return persona;
@@ -324,12 +317,8 @@ class AccountServiceImpl extends AccountService {
       Sentry.captureException(exception);
     }
     final metricClient = injector.get<MetricClientService>();
-    metricClient
-        .addEvent("delete_full_account", hashedData: {"id": persona.uuid});
-
-    final mixPanelClient = injector.get<MixPanelClientService>();
-    mixPanelClient
-        .trackEvent("delete_full_account", hashedData: {"id": persona.uuid});
+    metricClient.addEvent(MixpanelEvent.deleteFullAccount,
+        hashedData: {"id": persona.uuid});
 
     log.info("[AccountService] deletePersona finished - ${persona.uuid}");
   }
@@ -340,11 +329,7 @@ class AccountServiceImpl extends AccountService {
     await setHideLinkedAccountInGallery(connection.hiddenGalleryKey, false);
 
     final metricClient = injector.get<MetricClientService>();
-    metricClient.addEvent("delete_linked_account",
-        hashedData: {"address": connection.accountNumber});
-
-    final mixPanelClient = injector.get<MixPanelClientService>();
-    mixPanelClient.trackEvent("delete_linked_account",
+    metricClient.addEvent(MixpanelEvent.deleteLinkedAccount,
         hashedData: {"address": connection.accountNumber});
   }
 
@@ -397,11 +382,8 @@ class AccountServiceImpl extends AccountService {
 
     await _cloudDB.connectionDao.insertConnection(connection);
     final metricClient = injector.get<MetricClientService>();
-    metricClient.addEvent("link_eth_wallet",
-        hashedData: {"address": connection.accountNumber});
 
-    final mixPanelClient = injector.get<MixPanelClientService>();
-    mixPanelClient.trackEvent("link_wallet", data: {
+    metricClient.addEvent(MixpanelEvent.linkWallet, data: {
       "wallet": connection.appName,
       "type": "app",
       "connectionType": connection.connectionType
@@ -431,11 +413,8 @@ class AccountServiceImpl extends AccountService {
 
     await _cloudDB.connectionDao.insertConnection(connection);
     final metricClient = injector.get<MetricClientService>();
-    metricClient.addEvent("link_eth_wallet_browser",
-        hashedData: {"address": connection.accountNumber});
 
-    final mixPanelClient = injector.get<MixPanelClientService>();
-    mixPanelClient.trackEvent("link_wallet", data: {
+    metricClient.addEvent(MixpanelEvent.linkWallet, data: {
       "wallet": walletApp.name,
       "type": "browser",
       "connectionType": connection.connectionType
@@ -469,12 +448,8 @@ class AccountServiceImpl extends AccountService {
         .setHideLinkedAccountInGallery([address], isEnabled);
     injector<SettingsDataService>().backup();
     final metricClient = injector.get<MetricClientService>();
-    metricClient
-        .addEvent("hide_linked_account", hashedData: {"address": address});
-
-    final mixPanelClient = injector.get<MixPanelClientService>();
-    mixPanelClient
-        .trackEvent("hide_linked_account", hashedData: {"address": address});
+    metricClient.addEvent(MixpanelEvent.hideLinkedAccount,
+        hashedData: {"address": address});
   }
 
   @override

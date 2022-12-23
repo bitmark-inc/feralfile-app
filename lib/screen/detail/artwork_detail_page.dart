@@ -42,8 +42,6 @@ import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/provenance.dart';
 import 'package:nft_collection/nft_collection.dart';
 
-import '../../service/mix_panel_client_service.dart';
-
 part 'artwork_detail_page.g.dart';
 
 class ArtworkDetailPage extends StatefulWidget {
@@ -60,7 +58,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   late ScrollController _scrollController;
   HashSet<String> _accountNumberHash = HashSet.identity();
   AssetToken? currentAsset;
-  final mixPanelClient = injector.get<MixPanelClientService>();
+  final metricClient = injector.get<MetricClientService>();
 
   @override
   void initState() {
@@ -77,20 +75,14 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     final artworkId =
         jsonEncode(widget.payload.identities[widget.payload.currentIndex]);
     final metricClient = injector.get<MetricClientService>();
-    metricClient.addEvent(
-      "view_artwork_detail",
-      data: {
-        "id": artworkId,
-      },
-    );
 
-    mixPanelClient.trackEvent(
+    metricClient.addEvent(
       MixpanelEvent.viewArtwork,
       data: {
         "id": artworkId,
       },
     );
-    mixPanelClient.timerEvent(
+    metricClient.timerEvent(
       MixpanelEvent.stayInArtworkDetail,
     );
   }
@@ -99,7 +91,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   void dispose() {
     final artworkId =
         jsonEncode(widget.payload.identities[widget.payload.currentIndex]);
-    mixPanelClient.trackEvent(
+    metricClient.addEvent(
       MixpanelEvent.stayInArtworkDetail,
       data: {
         "id": artworkId,
