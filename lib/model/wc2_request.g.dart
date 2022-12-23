@@ -51,7 +51,7 @@ Wc2Chain _$Wc2ChainFromJson(Map<String, dynamic> json) => Wc2Chain(
       chain: json['chain'] as String,
       address: json['address'] as String,
       publicKey: json['publicKey'] as String?,
-      signature: json['signature'] as String,
+      signature: json['signature'] as String?,
     );
 
 Map<String, dynamic> _$Wc2ChainToJson(Wc2Chain instance) => <String, dynamic>{
