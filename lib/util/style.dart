@@ -248,6 +248,8 @@ MarkdownStyleSheet markDownDetailPageStyle(
 MarkdownStyleSheet editorialMarkDownStyle(BuildContext context) {
   const textColor = AppColor.white;
   final theme = Theme.of(context);
+  final textStyleWhite = theme.textTheme.ppMori400White12.copyWith(fontSize: 17);
+  final textStyleGreen = theme.textTheme.ppMori400Green12.copyWith(fontSize: 17);
   return MarkdownStyleSheet(
     a: const TextStyle(
       fontFamily: AppTheme.ppMori,
@@ -259,36 +261,34 @@ MarkdownStyleSheet editorialMarkDownStyle(BuildContext context) {
       decorationColor: textColor,
       decorationThickness: 1,
     ),
-    p: theme.textTheme.ppMori400White12,
+    p: textStyleWhite,
     pPadding: const EdgeInsets.only(bottom: 16),
-    code: theme.textTheme.ppMori400White12
-        .copyWith(backgroundColor: Colors.transparent),
+    code: textStyleWhite.copyWith(backgroundColor: Colors.transparent),
     h1: theme.textTheme.ppMori700White24,
     h1Padding: const EdgeInsets.only(bottom: 24),
-    h2: theme.textTheme.ppMori700White24.copyWith(fontSize: 16),
+    h2: theme.textTheme.ppMori700White24.copyWith(fontSize: 20),
     h2Padding: EdgeInsets.zero,
-    h3: theme.textTheme.ppMori400Green12,
+    h3: textStyleGreen,
     h3Padding: EdgeInsets.zero,
-    h4: theme.textTheme.ppMori400Green12,
+    h4: textStyleGreen,
     h4Padding: EdgeInsets.zero,
-    h5: theme.textTheme.ppMori400Green12,
+    h5: textStyleGreen,
     h5Padding: EdgeInsets.zero,
-    h6: theme.textTheme.ppMori400Green12,
+    h6: textStyleGreen,
     h6Padding: EdgeInsets.zero,
     em: const TextStyle(fontStyle: FontStyle.italic, color: textColor),
     strong: const TextStyle(fontWeight: FontWeight.bold, color: textColor),
     del: const TextStyle(
         decoration: TextDecoration.lineThrough, color: textColor),
-    blockquote: theme.textTheme.ppMori400White12,
-    img: theme.textTheme.ppMori400White12,
-    checkbox: theme.textTheme.ppMori400White12
-        .copyWith(color: theme.colorScheme.secondary),
+    blockquote: textStyleWhite,
+    img: textStyleWhite,
+    checkbox: textStyleWhite.copyWith(color: theme.colorScheme.secondary),
     blockSpacing: 15.0,
     listIndent: 24.0,
-    listBullet: theme.textTheme.ppMori400White12.copyWith(color: textColor),
+    listBullet: textStyleWhite.copyWith(color: textColor),
     listBulletPadding: const EdgeInsets.only(right: 4),
     tableHead: const TextStyle(fontWeight: FontWeight.w600),
-    tableBody: theme.textTheme.ppMori400White12,
+    tableBody: textStyleWhite,
     tableHeadAlign: TextAlign.center,
     tableBorder: TableBorder.all(
       color: theme.dividerColor,
