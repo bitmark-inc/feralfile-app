@@ -555,7 +555,12 @@ class _WCConnectPageState extends State<WCConnectPage>
                                         activeColor: theme.colorScheme.primary,
                                         value: persona,
                                         groupValue: selectedPersona,
-                                        onChanged: (Persona? value) {},
+                                        onChanged: (Persona? value) {
+                                          setState(() {
+                                            selectedPersona = persona;
+                                            _isAccountSelected = true;
+                                          });
+                                        },
                                       ),
                                     )
                                   : null),
