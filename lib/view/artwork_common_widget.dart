@@ -856,10 +856,13 @@ Widget debugInfoWidget(BuildContext context, AssetToken? token) {
 }
 
 Widget artworkDetailsRightSection(BuildContext context, AssetToken token) {
+  final editionID = (token.swapped && token.originTokenInfoId != null)
+      ? token.originTokenInfoId
+      : token.id.split("-").last;
   return token.source == "feralfile"
       ? ArtworkRightsView(
           contract: FFContract("", "", token.contractAddress ?? ""),
-          editionID: token.id.split("-").last,
+          editionID: editionID,
         )
       : const SizedBox();
 }

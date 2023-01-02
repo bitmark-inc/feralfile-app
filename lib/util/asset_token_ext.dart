@@ -335,5 +335,7 @@ AssetToken createPendingAssetToken({
     lastActivityTime: DateTime.now(),
     pending: true,
     initialSaleModel: "airdrop",
+    originTokenInfoId: null,
+    swapped: false,
   );
 }
