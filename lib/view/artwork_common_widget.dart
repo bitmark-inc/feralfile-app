@@ -870,6 +870,7 @@ Widget artworkDetailsRightSection(BuildContext context, AssetToken token) {
 class SectionExpandedWidget extends StatefulWidget {
   final String? header;
   final Widget? child;
+
   const SectionExpandedWidget({Key? key, this.header, this.child})
       : super(key: key);
 
