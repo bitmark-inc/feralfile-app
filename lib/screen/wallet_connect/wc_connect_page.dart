@@ -512,57 +512,60 @@ class _WCConnectPageState extends State<WCConnectPage>
               ...personas
                   .map((persona) => Column(
                         children: [
-                          ListTile(
-                            title: Row(
-                              children: [
-                                SizedBox(
-                                  width: 30,
-                                  height: 32,
-                                  child: Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: SizedBox(
-                                      width: 24,
-                                      height: 24,
-                                      child: Image.asset(
-                                          "assets/images/moma_logo.png"),
+                          GestureDetector(
+                            child: ListTile(
+                              title: Row(
+                                children: [
+                                  SizedBox(
+                                    width: 30,
+                                    height: 32,
+                                    child: Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: SizedBox(
+                                        width: 24,
+                                        height: 24,
+                                        child: Image.asset(
+                                            "assets/images/moma_logo.png"),
+                                      ),
                                     ),
                                   ),
-                                ),
-                                const SizedBox(width: 16.0),
-                                FutureBuilder<String>(
-                                  future: persona.wallet().getAccountDID(),
-                                  builder: (context, snapshot) {
-                                    final name = persona.name.isNotEmpty
-                                        ? persona.name
-                                        : snapshot.data ?? '';
-                                    return Expanded(
-                                      child: Text(
-                                        name.replaceFirst('did:key:', ''),
-                                        style: theme.textTheme.headline4,
-                                        overflow: TextOverflow.ellipsis,
+                                  const SizedBox(width: 16.0),
+                                  FutureBuilder<String>(
+                                    future: persona.wallet().getAccountDID(),
+                                    builder: (context, snapshot) {
+                                      final name = persona.name.isNotEmpty
+                                          ? persona.name
+                                          : snapshot.data ?? '';
+                                      return Expanded(
+                                        child: Text(
+                                          name.replaceFirst('did:key:', ''),
+                                          style: theme.textTheme.headline4,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
+                              contentPadding: EdgeInsets.zero,
+                              trailing: (hasRadio
+                                  ? Transform.scale(
+                                      scale: 1.2,
+                                      child: Radio(
+                                        activeColor: theme.colorScheme.primary,
+                                        value: persona,
+                                        groupValue: selectedPersona,
+                                        onChanged: (Persona? value) {},
                                       ),
-                                    );
-                                  },
-                                ),
-                              ],
+                                    )
+                                  : null),
                             ),
-                            contentPadding: EdgeInsets.zero,
-                            trailing: (hasRadio
-                                ? Transform.scale(
-                                    scale: 1.2,
-                                    child: Radio(
-                                      activeColor: theme.colorScheme.primary,
-                                      value: persona,
-                                      groupValue: selectedPersona,
-                                      onChanged: (Persona? value) {
-                                        setState(() {
-                                          selectedPersona = value;
-                                          _isAccountSelected = true;
-                                        });
-                                      },
-                                    ),
-                                  )
-                                : null),
+                            onTap: () {
+                              setState(() {
+                                selectedPersona = persona;
+                                _isAccountSelected = true;
+                              });
+                            },
                           ),
                           const Divider(height: 16.0),
                         ],
