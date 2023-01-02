@@ -235,8 +235,9 @@ Future<void> setup() async {
   injector.registerLazySingleton(
       () => Web3Client(Environment.web3RpcURL, injector()));
 
-  final tezosNodeClientURL =
-      publicTezosNodes[Random().nextInt(publicTezosNodes.length)];
+  final tezosNodeClientURL = Environment.appTestnetConfig
+      ? Environment.tezosNodeClientTestnetURL
+      : publicTezosNodes[Random().nextInt(publicTezosNodes.length)];
   injector.registerLazySingleton(() => TezartClient(tezosNodeClientURL));
   injector.registerLazySingleton<FeralFileApi>(() =>
       FeralFileApi(_feralFileDio(), baseUrl: Environment.feralFileAPIURL));
