@@ -248,8 +248,10 @@ MarkdownStyleSheet markDownDetailPageStyle(
 MarkdownStyleSheet editorialMarkDownStyle(BuildContext context) {
   const textColor = AppColor.white;
   final theme = Theme.of(context);
-  final textStyleWhite = theme.textTheme.ppMori400White12.copyWith(fontSize: 17);
-  final textStyleGreen = theme.textTheme.ppMori400Green12.copyWith(fontSize: 17);
+  final textStyleWhite =
+      theme.textTheme.ppMori400White12.copyWith(fontSize: 17);
+  final textStyleGreen =
+      theme.textTheme.ppMori400Green12.copyWith(fontSize: 17);
   return MarkdownStyleSheet(
     a: const TextStyle(
       fontFamily: AppTheme.ppMori,
