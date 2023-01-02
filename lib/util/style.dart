@@ -252,6 +252,7 @@ MarkdownStyleSheet editorialMarkDownStyle(BuildContext context) {
       theme.textTheme.ppMori400White12.copyWith(fontSize: 17);
   final textStyleGreen =
       theme.textTheme.ppMori400Green12.copyWith(fontSize: 17);
+  final textStyleGrey = theme.textTheme.ppMori400Grey12..copyWith(fontSize: 17);
   return MarkdownStyleSheet(
     a: const TextStyle(
       fontFamily: AppTheme.ppMori,
@@ -278,7 +279,7 @@ MarkdownStyleSheet editorialMarkDownStyle(BuildContext context) {
     h5Padding: EdgeInsets.zero,
     h6: textStyleGreen,
     h6Padding: EdgeInsets.zero,
-    em: const TextStyle(fontStyle: FontStyle.italic, color: textColor),
+    em: textStyleGrey,
     strong: const TextStyle(fontWeight: FontWeight.bold, color: textColor),
     del: const TextStyle(
         decoration: TextDecoration.lineThrough, color: textColor),

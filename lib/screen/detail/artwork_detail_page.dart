@@ -132,6 +132,8 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
           subTitle = "by".tr(args: [artistName]);
         }
 
+        final editionSubTitle = getEditionSubTitle(asset);
+
         return Scaffold(
           backgroundColor: theme.colorScheme.primary,
           resizeToAvoidBottomInset: !hasKeyboard,
@@ -214,11 +216,14 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                     const SizedBox(
                       height: 40,
                     ),
-                    Padding(
-                      padding: ResponsiveLayout.getPadding,
-                      child: Text(
-                        getEditionSubTitle(asset),
-                        style: theme.textTheme.ppMori400Grey12,
+                    Visibility(
+                      visible: editionSubTitle.isNotEmpty,
+                      child: Padding(
+                        padding: ResponsiveLayout.getPadding,
+                        child: Text(
+                          editionSubTitle,
+                          style: theme.textTheme.ppMori400Grey12,
+                        ),
                       ),
                     ),
                     debugInfoWidget(context, currentAsset),
