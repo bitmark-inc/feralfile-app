@@ -57,7 +57,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
   late FeeOption feeOption;
   bool _showAllFeeOption = false;
   FeeOptionValue? feeOptionValue;
-  late int balance;
+  int? balance;
   final metricClient = injector.get<MetricClientService>();
   late CurrencyExchangeRate exchangeRate;
 
@@ -382,10 +382,10 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
   }
 
   Widget gasFeeStatus(ThemeData theme) {
-    if (feeOptionValue == null) {
+    if (feeOptionValue == null || balance == null) {
       return Text("gas_fee_calculating".tr(), style: theme.textTheme.headline5);
     }
-    bool isValid = balance > feeOptionValue!.getFee(feeOption).toInt() + 10;
+    bool isValid = balance! > feeOptionValue!.getFee(feeOption).toInt() + 10;
     if (isValid) {
       return Text("gas_fee".tr(), style: theme.textTheme.headline5);
     } else {
