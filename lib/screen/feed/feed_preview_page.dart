@@ -144,7 +144,6 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
                       (context, index) => _listItem(
                           state.feedEvents![index], state.feedTokens![index]),
                       childCount: state.feedTokens?.length ?? 0,
-                      addAutomaticKeepAlives: false,
                     ),
                   )
                 ],
@@ -370,7 +369,7 @@ class FeedArtwork extends StatefulWidget {
 }
 
 class _FeedArtworkState extends State<FeedArtwork>
-    with RouteAware, WidgetsBindingObserver, AutomaticKeepAliveClientMixin {
+    with RouteAware, WidgetsBindingObserver {
   INFTRenderingWidget? _renderingWidget;
 
   final _bloc = ArtworkPreviewDetailBloc(
@@ -427,11 +426,7 @@ class _FeedArtworkState extends State<FeedArtwork>
   }
 
   @override
-  bool get wantKeepAlive => true;
-
-  @override
   Widget build(BuildContext context) {
-    super.build(context);
     if (widget.assetToken == null) {
       final screenWidth = MediaQuery.of(context).size.width;
       final screenHeight = MediaQuery.of(context).size.height;

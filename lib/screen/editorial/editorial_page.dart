@@ -115,12 +115,19 @@ class _EditorialPageState extends State<EditorialPage>
                                     horizontal: 5.0,
                                   ),
                                   child: Container(
-                                    width: 58,
-                                    height: 10,
+                                    padding: const EdgeInsets.only(top: 5),
                                     decoration: const BoxDecoration(
                                       border: Border(
                                         top: BorderSide(
                                             color: AppColor.greyMedium),
+                                      ),
+                                    ),
+                                    child: Text(
+                                      'discover'.tr(),
+                                      style: theme.textTheme.ppMori400Grey14
+                                          .copyWith(
+                                        height: 0.8,
+                                        color: Colors.transparent,
                                       ),
                                     ),
                                   ),
@@ -131,13 +138,19 @@ class _EditorialPageState extends State<EditorialPage>
                                   horizontal: 5.0,
                                 ),
                                 child: Container(
-                                  width: 54,
-                                  height: 10,
+                                  padding: const EdgeInsets.only(top: 5),
                                   decoration: const BoxDecoration(
                                     border: Border(
                                       top: BorderSide(
                                           color: AppColor.greyMedium),
                                     ),
+                                  ),
+                                  child: Text(
+                                    'editorial'.tr(),
+                                    style: theme.textTheme.ppMori400Grey14
+                                        .copyWith(
+                                            height: 0.8,
+                                            color: Colors.transparent),
                                   ),
                                 ),
                               ),

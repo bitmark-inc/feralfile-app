@@ -30,7 +30,8 @@ class AnyProblemNFTWidget extends StatelessWidget {
         child: Center(
           child: Text(
             "problem_nft".tr(),
-            style: theme.textTheme.ppMori600Black12,
+            style: theme.textTheme.ppMori600Black12
+                .copyWith(decoration: TextDecoration.none),
           ),
         ),
       ),

@@ -159,11 +159,14 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
                 const SizedBox(
                   height: 40,
                 ),
-                Padding(
-                  padding: ResponsiveLayout.getPadding,
-                  child: Text(
-                    editionSubTitle,
-                    style: theme.textTheme.ppMori400Grey12,
+                Visibility(
+                  visible: editionSubTitle.isNotEmpty,
+                  child: Padding(
+                    padding: ResponsiveLayout.getPadding,
+                    child: Text(
+                      editionSubTitle,
+                      style: theme.textTheme.ppMori400Grey12,
+                    ),
                   ),
                 ),
                 Padding(
