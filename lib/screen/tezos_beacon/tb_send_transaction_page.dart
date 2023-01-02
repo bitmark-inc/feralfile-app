@@ -311,15 +311,13 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                                   }
 
                                   try {
-                                    final txHash =
-                                        await injector<TezosService>()
-                                            .sendOperationTransaction(
-                                                _currentWallet!,
-                                                widget.request.operations!,
-                                                baseOperationCustomFee:
-                                                    feeOptionValue!
-                                                        .getFee(feeOption)
-                                                        .toInt());
+                                    final txHash = await injector<
+                                            TezosService>()
+                                        .sendOperationTransaction(
+                                            _currentWallet!,
+                                            widget.request.operations!,
+                                            baseOperationCustomFee: feeOption
+                                                .tezosBaseOperationCustomFee);
 
                                     if (wc2Topic != null) {
                                       _wc2Service.respondOnApprove(
