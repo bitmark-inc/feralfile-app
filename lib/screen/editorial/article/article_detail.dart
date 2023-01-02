@@ -20,6 +20,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 class ArticleDetailPage extends StatefulWidget {
   final EditorialPost post;
@@ -85,6 +86,12 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                               physics: const NeverScrollableScrollPhysics(),
                               padding: const EdgeInsets.only(bottom: 50),
                               styleSheet: editorialMarkDownStyle(context),
+                              onTapLink: (text, href, title) async {
+                                if (href == null) return;
+                                if (await canLaunchUrlString(href)) {
+                                  launchUrlString(href);
+                                }
+                              },
                             ),
                             if (widget.post.reference != null)
                               Container(
