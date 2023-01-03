@@ -144,7 +144,7 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
     final theme = Theme.of(context);
 
     return GestureDetector(
-      behavior: HitTestBehavior.translucent,
+      behavior: HitTestBehavior.opaque,
       onTap: () => Navigator.of(context).pop(),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(0, 7, 18, 8),
