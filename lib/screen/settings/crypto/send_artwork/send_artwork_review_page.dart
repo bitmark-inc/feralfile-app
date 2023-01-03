@@ -285,6 +285,7 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                                 ),
                               ],
                             ),
+                            const Divider(height: 32),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
