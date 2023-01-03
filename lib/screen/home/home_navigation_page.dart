@@ -286,7 +286,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage> {
         Navigator.of(context).popUntil((route) =>
             route.settings.name == AppRouter.homePage ||
             route.settings.name == AppRouter.homePageNoTransition);
-        _pageController.jumpToPage(1);
+        _onItemTapped(1);
         break;
       default:
         log.warning("unhandled notification type: $notificationType");
