@@ -108,7 +108,6 @@ extension FilterEventExt on FilterEvent {
         pending: true,
         initialSaleModel: null,
         originTokenInfoId: null,
-        swapped: false,
       );
       return token;
     }
@@ -161,7 +160,6 @@ extension TZKTTokenExtension on TZKTToken {
       pending: true,
       initialSaleModel: null,
       originTokenInfoId: null,
-      swapped: false,
     );
   }
 }
