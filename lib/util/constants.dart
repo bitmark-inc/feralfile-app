@@ -311,6 +311,7 @@ class MixpanelEvent {
   static const connectAutonomyDisplay = 'connect_autonomy_display';
   static const subcription = 'Subcription';
   static const editorialViewArticle = 'editorial_view_article';
+  static const addNFT = 'add_NFT';
   static const enableNotification = 'enable_notification';
   static const tabNotification = 'tab_notification';
   static const viewEditorial = 'view_editorial';
