@@ -244,8 +244,9 @@ class FeedServiceImpl extends FeedService {
   void _handleMessageInMain(dynamic message) async {
     if (message is SendPort) {
       _sendPort = message;
-      _isolateReady.complete();
-
+      if (!_isolateReady.isCompleted) {
+        _isolateReady.complete();
+      }
       return;
     }
 
