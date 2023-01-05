@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
@@ -264,9 +262,9 @@ String _replaceIPFSPreviewURL(String url, String medium) {
   // Don't replace CloudflareIPFS in iOS
   // iOS can't render a cloudfare video issue
   // More information: https://stackoverflow.com/questions/33823411/avplayer-fails-to-play-video-sometimes
-  if (Platform.isIOS && medium == 'video') {
-    return url;
-  }
+  // if (Platform.isIOS && medium == 'video') {
+  //   return url;
+  // }
 
   url =
       url.replacePrefix(IPFS_PREFIX, "${Environment.autonomyIpfsPrefix}/ipfs/");

@@ -1304,8 +1304,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "v1.0.20"
-      resolved-ref: acf297cb0ab1e5d23b8c8574b3e570fb00f46c76
+      ref: "v1.0.21"
+      resolved-ref: e4e3d1e7843f26d1df202a5fe88da59f995768fd
       url: "https://github.com/autonomy-system/nft-rendering.git"
     source: git
     version: "1.0.9"
