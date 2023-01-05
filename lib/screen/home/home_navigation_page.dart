@@ -52,6 +52,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage> {
         _homePageKey.currentState
             ?.refreshTokens()
             .then((value) => feedService.checkNewFeeds());
+        _homePageKey.currentState?.scrollToTop();
       } else {
         if (injector<ConfigurationService>().hasFeed()) {
           final feedBloc = context.read<FeedBloc>();
