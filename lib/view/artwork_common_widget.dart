@@ -122,7 +122,7 @@ class TokenThumbnailWidget extends StatelessWidget {
     }
 
     return Hero(
-      tag: token.id,
+      tag: "thumbnail_${token.id}",
       child: ext == ".svg"
           ? Center(
               child: SvgImage(
@@ -199,7 +199,7 @@ Widget tokenGalleryThumbnailWidget(
   return Semantics(
     label: token.title,
     child: Hero(
-      tag: token.id,
+      tag: "gallery_thumbnail_${token.id}",
       key: const Key('Artwork_Thumbnail'),
       child: ext == ".svg"
           ? SvgImage(

@@ -186,7 +186,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                       height: 40,
                     ),
                     Hero(
-                      tag: asset.id,
+                      tag: "detail_${asset.id}",
                       child: _ArtworkView(
                         payload: widget.payload,
                         token: asset,
