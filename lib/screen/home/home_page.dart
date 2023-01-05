@@ -431,6 +431,12 @@ class HomePageState extends State<HomePage>
     await injector<FeedService>().checkNewFeeds();
   }
 
+  void scrollToTop() {
+    _controller.animateTo(0,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.fastOutSlowIn);
+  }
+
   Future refreshTokens({checkPendingToken = false}) async {
     final accountService = injector<AccountService>();
     _playlists.value = await getPlaylist();

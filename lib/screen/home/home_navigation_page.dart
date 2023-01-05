@@ -43,6 +43,9 @@ class _HomeNavigationPageState extends State<HomeNavigationPage> {
 
   void _onItemTapped(int index) {
     if (index != 2) {
+      if (_selectedIndex == index && index == 0) {
+        _homePageKey.currentState?.scrollToTop();
+      }
       setState(() {
         _selectedIndex = index;
       });
