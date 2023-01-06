@@ -62,7 +62,7 @@ class PendingTokenWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Semantics(
-      label: "pending: $tokenId",
+      label: "gallery_artwork_${tokenId}_pending",
       child: ClipPath(
         clipper: AutonomyTopRightRectangleClipper(),
         child: Container(
@@ -197,7 +197,7 @@ Widget tokenGalleryThumbnailWidget(
       });
 
   return Semantics(
-    label: token.title,
+    label: "gallery_artwork_${token.title}",
     child: Hero(
       tag: "gallery_thumbnail_${token.id}",
       key: const Key('Artwork_Thumbnail'),
@@ -462,21 +462,24 @@ class GalleryThumbnailPlaceholder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return AspectRatio(
-      aspectRatio: 1,
-      child: ClipPath(
-        clipper: loading ? AutonomyTopRightRectangleClipper() : null,
-        child: Container(
-          padding: const EdgeInsets.all(13),
-          color: const Color.fromRGBO(227, 227, 227, 1),
-          child: Visibility(
-            visible: loading,
-            child: Align(
-              alignment: AlignmentDirectional.bottomStart,
-              child: loadingIndicator(
-                size: 13,
-                valueColor: theme.colorScheme.primary,
-                backgroundColor: theme.colorScheme.primary.withOpacity(0.5),
+    return Semantics(
+      label: loading ? "loading" : "",
+      child: AspectRatio(
+        aspectRatio: 1,
+        child: ClipPath(
+          clipper: loading ? AutonomyTopRightRectangleClipper() : null,
+          child: Container(
+            padding: const EdgeInsets.all(13),
+            color: const Color.fromRGBO(227, 227, 227, 1),
+            child: Visibility(
+              visible: loading,
+              child: Align(
+                alignment: AlignmentDirectional.bottomStart,
+                child: loadingIndicator(
+                  size: 13,
+                  valueColor: theme.colorScheme.primary,
+                  backgroundColor: theme.colorScheme.primary.withOpacity(0.5),
+                ),
               ),
             ),
           ),
