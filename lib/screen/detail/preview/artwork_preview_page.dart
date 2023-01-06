@@ -621,6 +621,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                         AuIcon.close,
                         color: theme.colorScheme.secondary,
                       ),
+                      tooltip: 'close_icon',
                     )
                   ],
                 ),
@@ -700,8 +701,11 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                             ),
                             GestureDetector(
                               onTap: () => onClickFullScreen(assetToken),
-                              child: SvgPicture.asset(
-                                'assets/images/fullscreen_icon.svg',
+                              child: Semantics(
+                                label: "fullscreen_icon",
+                                child: SvgPicture.asset(
+                                  'assets/images/fullscreen_icon.svg',
+                                ),
                               ),
                             ),
                           ],
@@ -837,9 +841,12 @@ class CastButton extends StatelessWidget {
 
     return GestureDetector(
       onTap: onCastTap,
-      child: SvgPicture.asset(
-        'assets/images/cast_icon.svg',
-        color: canCast ? theme.colorScheme.secondary : theme.disableColor,
+      child: Semantics(
+        label: 'cast_icon',
+        child: SvgPicture.asset(
+          'assets/images/cast_icon.svg',
+          color: canCast ? theme.colorScheme.secondary : theme.disableColor,
+        ),
       ),
     );
   }

@@ -172,6 +172,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                   color: theme.colorScheme.secondary,
                   size: 24,
                 ),
+                tooltip: 'close_icon',
               )
             ],
           ),

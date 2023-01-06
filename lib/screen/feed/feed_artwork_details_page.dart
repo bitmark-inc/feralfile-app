@@ -136,6 +136,7 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
               AuIcon.close,
               color: theme.colorScheme.secondary,
             ),
+            tooltip: 'close_icon',
           )
         ],
       ),
