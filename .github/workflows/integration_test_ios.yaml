@@ -72,6 +72,8 @@ jobs:
           echo SEED_TO_RESTORE_KUKAI=${{ secrets.SEED_TO_RESTORE_KUKAI }} >> .env
           echo SEED_TO_RESTORE_TEMPLE=${{ secrets.SEED_TO_RESTORE_TEMPLE }} >> .env
           echo SEED_TO_RESTORE_ACCOUNT_BUY_NFT=${{ secrets.SEED_TO_RESTORE_ACCOUNT_BUY_NFT }} >> .env
+          echo SEED_TO_SEND_ETH=${{ secrets.SEED_TO_SEND_ETH }} >> .env
+          echo SEED_TO_RECEIVE_ETH=${{ secrets.SEED_TO_RECEIVE_ETH }} >> .env
           echo AUTO_TEST_PLATFORM=ios >> .env
           echo AUTO_TEST_PROFILE=iphone8 >> .env
 
