@@ -19,6 +19,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/view/user_agent_utils.dart';
 import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 import 'package:device_info_plus/device_info_plus.dart';
@@ -347,17 +348,12 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
       issueTitle = attachments?.first.title ?? 'Unnamed';
     }
 
-    String deviceName = "";
     // add tags
     var tags = [reportIssueType];
     if (Platform.isIOS) {
       tags.add("iOS");
-      final device = await DeviceInfoPlugin().iosInfo;
-      deviceName = device.name ?? "N/A";
     } else if (Platform.isAndroid) {
       tags.add("android");
-      final device = await DeviceInfoPlugin().androidInfo;
-      deviceName = device.model ?? "N/A";
     }
 
     // Muted Message
@@ -369,6 +365,10 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
 
     final version = (await PackageInfo.fromPlatform()).version;
     mutedMessage += "**Version**: $version\n";
+
+
+    final device = DeviceInfo.instance;
+    String deviceName = await device.getMachineName() ?? "N/A";
     mutedMessage += "**DeviceName**: $deviceName\n";
 
     for (var mutedMsg in (mutedText ?? [])) {
