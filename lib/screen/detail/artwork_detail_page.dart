@@ -200,7 +200,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                   ),
                 ),
                 Visibility(
-                  visible: true, //asset.assetURL == CHECK_WEB3_PRIMER_URL,
+                  visible: asset.assetURL == CHECK_WEB3_PRIMER_URL,
                   child: Align(
                     alignment: Alignment.centerRight,
                     child: Padding(
