@@ -10,14 +10,13 @@ import 'dart:io';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
-import 'package:autonomy_flutter/util/au_icons.dart';
-import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_buttons.dart';
-import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
@@ -25,31 +24,57 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-class UpgradesView extends StatelessWidget {
-  static const String tag = 'select_network';
+class SubscriptionPage extends StatefulWidget {
+  const SubscriptionPage({Key? key}) : super(key: key);
 
-  const UpgradesView({Key? key}) : super(key: key);
+  @override
+  State<SubscriptionPage> createState() => _SubscriptionPageState();
+}
+
+class _SubscriptionPageState extends State<SubscriptionPage> {
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
     context.read<UpgradesBloc>().add(UpgradeQueryInfoEvent());
 
-    return BlocBuilder<UpgradesBloc, UpgradeState>(builder: (context, state) {
-      return Container(
-          margin: const EdgeInsets.symmetric(vertical: 16.0),
-          child: Column(
+    return Scaffold(
+      appBar: getBackAppBar(
+        context,
+        title: "autonomy_pro".tr(),
+        onBack: () {
+          Navigator.of(context).pop();
+        },
+      ),
+      body: SafeArea(
+        child:
+            BlocBuilder<UpgradesBloc, UpgradeState>(builder: (context, state) {
+          return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Center(
-                child: Icon(
-                  AuIcon.subscription,
-                  size: 63,
+              addTitleSpace(),
+              Center(
+                child: SvgPicture.asset(
+                  'assets/images/subscription.svg',
+                  height: 80,
                 ),
               ),
-              _statusSection(context, state),
+              const SizedBox(
+                height: 18,
+              ),
+              Expanded(
+                  child: Padding(
+                padding: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
+                child: _statusSection(context, state),
+              )),
             ],
-          ));
-    });
+          );
+        }),
+      ),
+    );
   }
 
   static String get _subscriptionsManagementLocation {
@@ -63,94 +88,47 @@ class UpgradesView extends StatelessWidget {
     }
   }
 
-  static showSubscriptionDialog(BuildContext context, String? price,
-      PremiumFeature? feature, Function()? onPressSubscribe,
-      {Function? onCancel}) {
-    final theme = Theme.of(context);
-
-    UIHelper.showDialog(
-      context,
-      "more_autonomy".tr(),
-      Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (feature != null) ...[
-            Text(
-              feature.moreAutonomyDescription,
-              style: theme.textTheme.ppMori400White14,
-            ),
-            const SizedBox(height: 16),
-          ],
-          Text(
-            'upgrading_gives_you'.tr(),
-            style: theme.textTheme.ppMori400White14,
-          ),
-          const SizedBox(height: 16),
-          SvgPicture.asset(
-            'assets/images/premium_comparation.svg',
-            height: 320,
-          ),
-          const SizedBox(height: 16),
-          Text("gg_tv_app".tr(),
-              //"*Google TV app plus AirPlay & Chromecast streaming",
-              style: theme.primaryTextTheme.headline5),
-          const SizedBox(height: 40),
-          AuFilledButton(
-            text: "sub_then_price".tr(args: [price ?? "4.99usd".tr()]),
-            //"SUBSCRIBE FOR A 30-DAY FREE TRIAL\n(THEN ${price ?? "4.99"}/MONTH)",
-            textAlign: TextAlign.center,
-            onPress: () {
-              if (onPressSubscribe != null) onPressSubscribe();
-              Navigator.of(context).pop();
-            },
-            color: theme.colorScheme.secondary,
-            textStyle: theme.textTheme.button,
-          ),
-          TextButton(
-            onPressed: () {
-              onCancel?.call();
-              Navigator.of(context).pop();
-            },
-            child: Text(
-              "not_now".tr(),
-              style: theme.primaryTextTheme.button,
-            ),
-          ),
-        ],
-      ),
-    );
-    injector<ConfigurationService>().setShouldShowSubscriptionHint(false);
-  }
-
   Widget _statusSection(
     BuildContext context,
     UpgradeState state,
   ) {
     final mixpanel = injector<MixPanelClientService>().mixpanel;
     final theme = Theme.of(context);
-    IAPProductStatus status = IAPProductStatus.loading; //state.status;
+    IAPProductStatus status = state.status;
     switch (status) {
       case IAPProductStatus.completed:
         mixpanel.getPeople().set("Subscription", "Subscried");
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("subscribed".tr(), style: theme.textTheme.headline4),
+            Text("subscribed".tr(), style: theme.textTheme.ppMori400Black16),
             const SizedBox(height: 16.0),
             Text("thank_support".tr(args: [_subscriptionsManagementLocation]),
                 //"Thank you for your support. Manage your subscription in $_subscriptionsManagementLocation",
-                style: theme.textTheme.bodyText1),
+                style: theme.textTheme.ppMori400Black14),
             const SizedBox(height: 10.0),
             _benefitImage(context),
-            AuPrimaryButton(onPressed: () {}, text: 'subscribed'.tr()),
-            Text(
-              "you_will_be_charged".tr(namedArgs: {
-                "price": state.productDetails?.price ?? "4.99usd".tr(),
-                "date": "",
-                "location": _subscriptionsManagementLocation
-              }),
-            ),
+            const Spacer(),
+            Container(
+                alignment: Alignment.bottomCenter,
+                child: Column(
+                  children: [
+                    PrimaryButton(
+                        text: 'subscribed'.tr(), color: theme.disableColor),
+                    const SizedBox(height: 6),
+                    Text(
+                      "you_will_be_charged".tr(
+                        namedArgs: {
+                          "price":
+                              state.productDetails?.price ?? "4.99usd".tr(),
+                          "date": "",
+                          "location": _subscriptionsManagementLocation
+                        },
+                      ),
+                      style: theme.textTheme.ppMori400Black12,
+                    ),
+                  ],
+                ))
           ],
         );
       case IAPProductStatus.trial:
@@ -162,26 +140,31 @@ class UpgradesView extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text("sub_30_days".tr(), //"Subscribed (30-day free trial)",
-                style: theme.textTheme.headline4),
+                style: theme.textTheme.ppMori400Black16),
             const SizedBox(height: 16.0),
             Text(
                 "to_cancel_your_subscription".tr(
                     namedArgs: {"location": _subscriptionsManagementLocation}),
                 //"You will be charged ${state.productDetails?.price ?? "US\$4.99"}/month starting $trialExpireDate. To cancel your subscription, go to $_subscriptionsManagementLocation",
-                style: theme.textTheme.bodyText1),
+                style: theme.textTheme.ppMori400Black14),
             const SizedBox(height: 10.0),
             _benefitImage(context),
             const SizedBox(
               height: 10,
             ),
+            const Spacer(),
             Container(
               alignment: Alignment.bottomCenter,
               child: Column(
                 children: [
-                  AuPrimaryButton(
-                      onPressed: () {}, text: 'sub_then_price'.tr()),
+                  PrimaryButton(
+                      onTap: () {
+                        onPressSubscribe(context);
+                      },
+                      text: 'sub_then_price'.tr()),
+                  const SizedBox(height: 6),
                   Text(
-                    'you_will_be_charged'.tr(
+                    'you_will_be_charged_starting'.tr(
                       namedArgs: {
                         "price": state.productDetails?.price ?? "4.99usd".tr(),
                         "date": trialExpireDate,
@@ -199,7 +182,7 @@ class UpgradesView extends StatelessWidget {
       case IAPProductStatus.pending:
         return Container(
           height: 80,
-          alignment: Alignment.center,
+          alignment: Alignment.topCenter,
           child: const CupertinoActivityIndicator(),
         );
       case IAPProductStatus.expired:
@@ -208,50 +191,83 @@ class UpgradesView extends StatelessWidget {
           children: [
             Text(
               'your_subscription_has_expired'.tr(),
+              style: theme.textTheme.ppMori400Black14,
+            ),
+            _benefitImage(context),
+            const Spacer(),
+            Container(
+              alignment: Alignment.bottomCenter,
+              child: Column(
+                children: [
+                  AuPrimaryButton(
+                    onPressed: () {
+                      onPressSubscribe(context);
+                    },
+                    text: 'renew_for'.tr(
+                      namedArgs: {
+                        'price': state.productDetails?.price ?? "4.99usd".tr(),
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                ],
+              ),
             )
           ],
         );
       case IAPProductStatus.notPurchased:
         return Column(
           children: [
-            Text('upgrade_to_use'.tr()),
+            Text(
+              'upgrade_to_use'.tr(),
+              style: theme.textTheme.ppMori400Black14,
+            ),
             _benefitImage(context),
-            AuPrimaryButton(
-                onPressed: () {
-                  onPressSubscribe(context);
-                  Navigator.of(context).pop();
-                },
-                text: 'sub_then_price'.tr()),
-            Text('then_price'.tr(args: ["4.99usd".tr()])),
+            const Spacer(),
+            Container(
+              alignment: Alignment.bottomCenter,
+              child: Column(
+                children: [
+                  AuPrimaryButton(
+                      onPressed: () {
+                        onPressSubscribe(context);
+                      },
+                      text: 'sub_then_price'.tr()),
+                  const SizedBox(
+                    height: 6,
+                  ),
+                  Text(
+                    'then_price'.tr(
+                      args: [state.productDetails?.price ?? "4.99usd".tr()],
+                    ),
+                    style: theme.textTheme.ppMori400Black12,
+                  ),
+                ],
+              ),
+            )
           ],
         );
       case IAPProductStatus.error:
-      default:
         return Text("error_loading_sub".tr(),
             //"Error when loading your subscription.",
             style: theme.textTheme.headline4);
     }
   }
 
-  static Widget _benefitImage(BuildContext context) {
-    final theme = Theme.of(context);
+  Widget _benefitImage(BuildContext context) {
     return Column(
       children: [
         Center(
           child: SvgPicture.asset(
-            'assets/images/premium_comparation.svg',
+            'assets/images/premium_comparation_light.svg',
             height: 320,
           ),
-        ),
-        Text(
-          'gg_tv_app'.tr(),
-          style: theme.textTheme.ppMori400Black14,
         ),
       ],
     );
   }
 
-  static void onPressSubscribe(BuildContext context) {
+  void onPressSubscribe(BuildContext context) {
     context.read<UpgradesBloc>().add(UpgradePurchaseEvent());
   }
 }

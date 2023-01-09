@@ -12,12 +12,14 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:autonomy_flutter/view/tappable_forward_row.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_switch/flutter_switch.dart';
 
 import '../../common/injector.dart';
 import '../../database/cloud_database.dart';
@@ -34,48 +36,68 @@ class AccessMethodPage extends StatefulWidget {
 
 class _AccessMethodPageState extends State<AccessMethodPage> {
   var _redrawObject = Object();
+  final padding = ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Scaffold(
       appBar: getBackAppBar(
         context,
+        title: "add_wallet".tr(),
         onBack: () {
           Navigator.of(context).pop();
         },
       ),
-      body: Container(
-        margin: ResponsiveLayout.pageEdgeInsets,
-        child: Column(children: [
-          Expanded(
-              child: SingleChildScrollView(
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(
-                "add_account".tr(),
-                style: theme.textTheme.headline1,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            addTitleSpace(),
+            if (injector<ConfigurationService>().isDoneOnboarding()) ...[
+              Padding(
+                padding: padding,
+                child: _createAccountOption(context),
               ),
-              addTitleSpace(),
-              if (injector<ConfigurationService>().isDoneOnboarding()) ...[
-                _createAccountOption(context),
-                addDivider(),
-              ],
-              _linkAccount(context),
-              addDivider(),
-              _importAccount(context),
-              injector<ConfigurationService>().isDoneOnboarding()
-                  ? _linkDebugWidget(context)
-                  : const SizedBox(),
-            ]),
-          ))
-        ]),
+              addDivider(height: 48),
+            ],
+            Padding(
+              padding: padding,
+              child: _linkAccount(context),
+            ),
+            addDivider(height: 48),
+            injector<ConfigurationService>().isDoneOnboarding()
+                ? _linkDebugWidget(context)
+                : const SizedBox(),
+          ]),
+        ),
       ),
     );
   }
 
-  Widget _createAccountOption(BuildContext context) {
+  Widget _addWalletItem(
+      {required BuildContext context,
+      required String title,
+      String? content,
+      required dynamic Function()? onTap}) {
     final theme = Theme.of(context);
+    return Column(
+      children: [
+        if (title.isNotEmpty) ...[
+          Text(
+            content ?? "",
+            style: theme.textTheme.ppMori400Grey14,
+          ),
+          const SizedBox(height: 16),
+        ],
+        PrimaryButton(
+          text: title,
+          onTap: onTap,
+        )
+      ],
+    );
+  }
+
+  Widget _createAccountOption(BuildContext context) {
     return BlocConsumer<PersonaBloc, PersonaState>(
       listener: (context, state) {
         switch (state.createAccountState) {
@@ -96,11 +118,10 @@ class _AccessMethodPageState extends State<AccessMethodPage> {
         }
       },
       builder: (context, state) {
-        return TappableForwardRowWithContent(
-          leftWidget: Text('new'.tr(), style: theme.textTheme.headline4),
-          bottomWidget: Text("ne_make_a_new_account".tr(),
-              //'Make a new account with addresses you can use to collect or receive NFTs on Ethereum, Feral File, and Tezos. ',
-              style: theme.textTheme.bodyText1),
+        return _addWalletItem(
+          context: context,
+          title: "create_a_new_wallet".tr(),
+          content: "ne_make_a_new_account".tr(),
           onTap: () {
             if (state.createAccountState == ActionState.loading) return;
             UIHelper.showInfoDialog(context, "generating".tr(), "",
@@ -113,39 +134,13 @@ class _AccessMethodPageState extends State<AccessMethodPage> {
   }
 
   Widget _linkAccount(BuildContext context) {
-    final theme = Theme.of(context);
-    return TappableForwardRowWithContent(
-        leftWidget: Text('link'.tr(), style: theme.textTheme.headline4),
-        bottomWidget: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "li_view_your_nfts".tr(),
-              style: theme.textTheme.bodyText1,
-            ),
-          ],
-        ),
+    return _addWalletItem(
+        context: context,
+        title: "link_existing_wallet".tr(),
+        content: "ad_i_already_have".tr(),
         onTap: () {
           Navigator.of(context).pushNamed(AppRouter.linkAccountpage);
         });
-  }
-
-  Widget _importAccount(BuildContext context) {
-    final theme = Theme.of(context);
-    return TappableForwardRowWithContent(
-      leftWidget: Text('import'.tr(), style: theme.textTheme.headline4),
-      bottomWidget: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text("im_view_and_control".tr(),
-              //'View and control your NFTs, sign authorizations, and connect to other platforms with Autonomy.',
-              style: theme.textTheme.bodyText1),
-          const SizedBox(height: 16),
-          learnMoreAboutAutonomySecurityWidget(context),
-        ],
-      ),
-      onTap: () => Navigator.of(context).pushNamed(AppRouter.importAccountPage),
-    );
   }
 
   Widget _linkDebugWidget(BuildContext context) {
@@ -156,36 +151,50 @@ class _AccessMethodPageState extends State<AccessMethodPage> {
           if (snapshot.data == true) {
             return Column(
               children: [
-                addDivider(),
-                TappableForwardRowWithContent(
-                  leftWidget: Text('debug_address'.tr(),
-                      style: theme.textTheme.headline4),
-                  bottomWidget: Text("da_manually_input_an".tr(),
-                      //'Manually input an address for debugging purposes.',
-                      style: theme.textTheme.bodyText1),
-                  onTap: () => Navigator.of(context)
-                      .pushNamed(AppRouter.linkManually, arguments: 'address'),
+                Padding(
+                  padding: padding,
+                  child: _addWalletItem(
+                      context: context,
+                      title: 'debug_address'.tr(),
+                      content: "da_manually_input_an".tr(),
+                      onTap: () => Navigator.of(context).pushNamed(
+                          AppRouter.linkManually,
+                          arguments: 'address')),
                 ),
-                _linkTokenIndexerIDWidget(context),
-                addDivider(),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text("show_token_debug_log".tr(),
-                        style: theme.textTheme.headline4),
-                    CupertinoSwitch(
-                      value:
-                          injector<ConfigurationService>().showTokenDebugInfo(),
-                      onChanged: (isEnabled) async {
-                        await injector<ConfigurationService>()
-                            .setShowTokenDebugInfo(isEnabled);
-                        setState(() {
-                          _redrawObject = Object();
-                        });
-                      },
-                      activeColor: theme.colorScheme.primary,
-                    )
-                  ],
+                addDivider(height: 48),
+                Padding(
+                  padding: padding,
+                  child: _linkTokenIndexerIDWidget(context),
+                ),
+                addDivider(height: 48),
+                Padding(
+                  padding: padding,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text("show_token_debug_log".tr(),
+                          style: theme.textTheme.headline4),
+                      FlutterSwitch(
+                        height: 25,
+                        width: 48,
+                        toggleSize: 19.2,
+                        padding: 2,
+                        value: injector<ConfigurationService>()
+                            .showTokenDebugInfo(),
+                        onToggle: (isEnabled) async {
+                          await injector<ConfigurationService>()
+                              .setShowTokenDebugInfo(isEnabled);
+                          setState(() {
+                            _redrawObject = Object();
+                          });
+                        },
+                        activeColor: AppColor.auSuperTeal,
+                        inactiveColor: Colors.transparent,
+                        toggleColor: AppColor.primaryBlack,
+                        inactiveSwitchBorder: Border.all(),
+                      )
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 40),
               ],
@@ -197,16 +206,12 @@ class _AccessMethodPageState extends State<AccessMethodPage> {
   }
 
   Widget _linkTokenIndexerIDWidget(BuildContext context) {
-    final theme = Theme.of(context);
     return Column(
       children: [
-        addDivider(),
-        TappableForwardRowWithContent(
-          leftWidget: Text("debug_indexer_tokenId".tr(),
-              style: theme.textTheme.headline4),
-          bottomWidget: Text("dit_manually_input_an".tr(),
-              //'Manually input an indexer tokenID for debugging purposes',
-              style: theme.textTheme.bodyText1),
+        _addWalletItem(
+          context: context,
+          title: "debug_indexer_tokenId".tr(),
+          content: "dit_manually_input_an".tr(),
           onTap: () => Navigator.of(context)
               .pushNamed(AppRouter.linkManually, arguments: 'indexerTokenID'),
         ),

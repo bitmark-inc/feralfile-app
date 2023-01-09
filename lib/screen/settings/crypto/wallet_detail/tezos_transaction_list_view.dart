@@ -6,9 +6,9 @@
 //
 
 import 'package:autonomy_flutter/model/tzkt_operation.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/tezos_transaction_row_view.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -19,8 +19,10 @@ import '../../../bloc/tzkt_transaction/tzkt_transaction_state.dart';
 
 class TezosTXListView extends StatefulWidget {
   final String address;
+  final ScrollController? controller;
 
-  const TezosTXListView({Key? key, required this.address}) : super(key: key);
+  const TezosTXListView({Key? key, required this.address, this.controller})
+      : super(key: key);
 
   @override
   State<TezosTXListView> createState() => _TezosTXListViewState();
@@ -86,8 +88,9 @@ class _TezosTXListViewState extends State<TezosTXListView> {
             },
             builder: (context, state) {
               return Padding(
-                padding: const EdgeInsets.only(right: 16.0, left: 16.0),
+                padding: const EdgeInsets.only(),
                 child: CustomScrollView(
+                  controller: widget.controller ?? ScrollController(),
                   slivers: [
                     PagedSliverList.separated(
                       pagingController: _pagingController,
@@ -96,30 +99,23 @@ class _TezosTXListViewState extends State<TezosTXListView> {
                         animateTransitions: true,
                         newPageErrorIndicatorBuilder: (context) {
                           return Container(
-                            padding: const EdgeInsets.only(top: 30),
+                            padding: ResponsiveLayout.pageEdgeInsets,
                             child: Text("unable_load_tzkt".tr(),
                                 style: theme.textTheme.bodyText1),
                           );
                         },
                         noItemsFoundIndicatorBuilder: (context) {
                           return Container(
-                            padding: const EdgeInsets.only(top: 30),
+                            padding: ResponsiveLayout.pageEdgeInsets,
                             child: Text("transaction_appear_hear".tr(),
                                 style: theme.textTheme.bodyText1),
                           );
                         },
                         itemBuilder: (context, item, index) {
-                          return GestureDetector(
-                            behavior: HitTestBehavior.opaque,
+                          return Padding(
+                            padding: ResponsiveLayout.pageEdgeInsets,
                             child: TezosTXRowView(
                                 tx: item, currentAddress: widget.address),
-                            onTap: () => Navigator.of(context).pushNamed(
-                              AppRouter.tezosTXDetailPage,
-                              arguments: {
-                                "current_address": widget.address,
-                                "tx": item,
-                              },
-                            ),
                           );
                         },
                       ),

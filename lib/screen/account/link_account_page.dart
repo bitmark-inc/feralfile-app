@@ -21,6 +21,7 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:collection/collection.dart';
@@ -28,7 +29,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nft_collection/nft_collection.dart';
-import 'package:autonomy_flutter/view/responsive.dart';
 
 class LinkAccountPage extends StatefulWidget {
   const LinkAccountPage({Key? key}) : super(key: key);
@@ -258,8 +258,8 @@ class _LinkAccountPageState extends State<LinkAccountPage>
 
       await Future.delayed(SHORT_SHOW_DIALOG_DURATION, () {
         if (injector<ConfigurationService>().isDoneOnboarding()) {
-          Navigator.of(context).popUntil(
-              (route) => route.settings.name == AppRouter.settingsPage);
+          Navigator.of(context)
+              .popUntil((route) => route.settings.name == AppRouter.walletPage);
         } else {
           Navigator.of(context).pushNamedAndRemoveUntil(
               AppRouter.accountsPreviewPage, (route) => false);

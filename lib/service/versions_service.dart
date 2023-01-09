@@ -40,10 +40,12 @@ class VersionService {
     String currentVersion = packageInfo.version;
 
     if (compareVersion(versionInfo.requiredVersion, currentVersion) > 0) {
+      await _configurationService.setLastestVersion(false);
       await showForceUpdateDialog(versionInfo.link);
     } else {
       // check to show Release Notes
       await showReleaseNotes(currentVersion: currentVersion);
+      await _configurationService.setLastestVersion(true);
     }
   }
 
@@ -150,6 +152,14 @@ class VersionService {
 
     await _navigationService.navigateTo(AppRouter.releaseNotesPage,
         arguments: releaseNotes);
+  }
+
+  Future openLastestVersion() async {
+    final versionInfo = await getVersionInfo();
+    final uri = Uri.tryParse(versionInfo.link);
+    if (uri != null) {
+      launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
   }
 
   Future<List<PlayListModel>> getDemoAccountFromGithub() async {

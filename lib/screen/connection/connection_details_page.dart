@@ -8,15 +8,14 @@
 import 'package:autonomy_flutter/screen/bloc/connections/connections_bloc.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
-
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 
 class ConnectionDetailsPage extends StatelessWidget {
   final ConnectionItem connectionItem;
@@ -27,17 +26,19 @@ class ConnectionDetailsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final connection = connectionItem.representative;
     final theme = Theme.of(context);
+    final padding = ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
 
     return Scaffold(
       appBar: getBackAppBar(
         context,
-        title: connectionItem.representative.appName.toUpperCase(),
+        title: 'connections_with_dapps'.tr(),
         onBack: () {
           Navigator.of(context).pop();
         },
       ),
       body: Container(
-        margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
+        margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton
+            .copyWith(left: 0, right: 0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -46,43 +47,71 @@ class ConnectionDetailsPage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      "rights".tr(),
-                      style: theme.textTheme.headline1,
-                    ),
                     addTitleSpace(),
-                    Row(
-                      children: [
-                        UIHelper.buildConnectionAppWidget(connection, 64),
-                        const SizedBox(width: 16.0),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(connection.appName,
-                                  style: theme.textTheme.headline4),
-                              Text(
-                                "you_have_permission".tr(),
-                                style: theme.textTheme.bodyText1,
-                              ),
-                            ],
-                          ),
-                        )
-                      ],
-                    ),
-                    const SizedBox(height: 24),
                     Padding(
-                      padding: const EdgeInsets.only(left: 10),
+                      padding: padding,
+                      child: Row(
+                        children: [
+                          UIHelper.buildConnectionAppWidget(connection, 64),
+                          const SizedBox(width: 16.0),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(connection.appName,
+                                    style: theme.textTheme.headline2),
+                              ],
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    addDivider(height: 52),
+                    Padding(
+                      padding: padding,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          ...grantPermissions
-                              .map((permission) => Column(children: [
-                                    Text("• $permission",
-                                        style: theme.textTheme.bodyText1),
-                                    const SizedBox(height: 4),
-                                  ]))
-                              .toList(),
+                          Text(
+                            "you_have_permission".tr(),
+                            style: theme.textTheme.ppMori400Black16,
+                          ),
+                          const SizedBox(
+                            height: 12,
+                          ),
+                          Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: AppColor.auLightGrey,
+                                borderRadius: BorderRadius.circular(5),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  ...grantPermissions
+                                      .map(
+                                        (permission) => Row(
+                                          children: [
+                                            const SizedBox(
+                                              width: 12,
+                                            ),
+                                            Text("•",
+                                                style: theme.textTheme
+                                                    .ppMori400Black14),
+                                            const SizedBox(
+                                              width: 6,
+                                            ),
+                                            Text(permission,
+                                                style: theme.textTheme
+                                                    .ppMori400Black14),
+                                          ],
+                                        ),
+                                      )
+                                      .toList(),
+                                ],
+                              ))
                         ],
                       ),
                     ),
@@ -90,11 +119,20 @@ class ConnectionDetailsPage extends StatelessWidget {
                 ),
               ),
             ),
-            Center(
-              child: TextButton(
-                onPressed: () => _showDeleteConnectionConfiguration(context),
-                child: Text('disconnect_and_revoke'.tr(),
-                    style: theme.textTheme.button),
+            Padding(
+              padding: padding,
+              child: Center(
+                child: OutlineButton(
+                  color: AppColor.white,
+                  textColor: AppColor.primaryBlack,
+                  borderColor: AppColor.primaryBlack,
+                  text: 'disconnect_and_revoke'.tr(),
+                  // child: Text(
+                  //   'disconnect_and_revoke'.tr(),
+                  //   style: theme.textTheme.ppMori400Black14,
+                  // ),
+                  onTap: () => _showDeleteConnectionConfiguration(context),
+                ),
               ),
             ),
           ],
@@ -154,6 +192,9 @@ class ConnectionDetailsPage extends StatelessWidget {
                             text: connection.appName,
                             style:
                                 const TextStyle(fontWeight: FontWeight.bold)),
+                        TextSpan(
+                          text: '?'.tr(),
+                        ),
                       ],
                     ),
                   ),

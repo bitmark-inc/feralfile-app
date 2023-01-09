@@ -14,11 +14,11 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/external_app_info_view.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:autonomy_flutter/view/responsive.dart';
 
 class CloudPage extends StatelessWidget {
   final String section;
@@ -151,7 +151,7 @@ class CloudPage extends StatelessWidget {
     if (injector<ConfigurationService>().isDoneOnboarding()) {
       Navigator.of(context).popUntil((route) =>
           route.settings.name == AppRouter.claimSelectAccountPage ||
-          route.settings.name == AppRouter.settingsPage ||
+          route.settings.name == AppRouter.walletPage ||
           route.settings.name == AppRouter.wcConnectPage ||
           route.settings.name == AppRouter.homePage ||
           route.settings.name == AppRouter.homePageNoTransition);

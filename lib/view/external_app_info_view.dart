@@ -38,6 +38,7 @@ class ExternalAppInfoView extends StatelessWidget {
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColor.auLightGrey,
+              shadowColor: Colors.transparent,
               shape: RoundedRectangleBorder(
                 side: BorderSide(color: statusColor ?? AppColor.auQuickSilver),
                 borderRadius: BorderRadius.circular(32.0),

@@ -150,19 +150,10 @@ class TZKTOperation implements TZKTTransactionInterface {
 
   @override
   Widget transactionImage(String? currentAddress) {
-    if (isSendNFT(currentAddress)) {
-      return SvgPicture.asset("assets/images/tezos_tx_sent.svg");
-    }
-    if (isReceiveNFT(currentAddress)) {
-      return SvgPicture.asset("assets/images/tezos_tx_received.svg");
-    }
-    if (parameter != null || type == "reveal" || type == "origination") {
-      return SvgPicture.asset("assets/images/tezos_tx_smartcontract.svg");
-    } else {
-      return SvgPicture.asset(sender?.address == currentAddress
-          ? "assets/images/tezos_tx_sent.svg"
-          : "assets/images/tezos_tx_received.svg");
-    }
+    return SvgPicture.asset(
+      "assets/images/tez.svg",
+      width: 40,
+    );
   }
 
   @override
@@ -263,9 +254,7 @@ class TZKTTokenTransfer implements TZKTTransactionInterface {
 
   @override
   Widget transactionImage(String? currentAddress) {
-    return isSendNFT(currentAddress)
-        ? SvgPicture.asset("assets/images/tezos_tx_sent.svg")
-        : SvgPicture.asset("assets/images/tezos_tx_received.svg");
+    return SvgPicture.asset("assets/images/tez.svg", width: 40);
   }
 
   @override
