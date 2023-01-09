@@ -159,17 +159,25 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
             actions: [
               IconButton(
                 onPressed: () => _showArtworkOptionsDialog(asset),
+                constraints: const BoxConstraints(
+                  maxWidth: 44,
+                  maxHeight: 44,
+                ),
                 icon: SvgPicture.asset(
                   'assets/images/more_circle.svg',
-                  width: 24,
+                  width: 22,
                 ),
               ),
               IconButton(
                 onPressed: () => Navigator.pop(context),
+                constraints: const BoxConstraints(
+                  maxWidth: 44,
+                  maxHeight: 44,
+                ),
                 icon: Icon(
                   AuIcon.close,
                   color: theme.colorScheme.secondary,
-                  size: 24,
+                  size: 20,
                 ),
               )
             ],
