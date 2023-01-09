@@ -29,7 +29,6 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
-import 'package:autonomy_flutter/view/au_outlined_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -160,17 +159,25 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
             actions: [
               IconButton(
                 onPressed: () => _showArtworkOptionsDialog(asset),
+                constraints: const BoxConstraints(
+                  maxWidth: 44,
+                  maxHeight: 44,
+                ),
                 icon: SvgPicture.asset(
                   'assets/images/more_circle.svg',
-                  width: 24,
+                  width: 22,
                 ),
               ),
               IconButton(
                 onPressed: () => Navigator.pop(context),
+                constraints: const BoxConstraints(
+                  maxWidth: 44,
+                  maxHeight: 44,
+                ),
                 icon: Icon(
                   AuIcon.close,
                   color: theme.colorScheme.secondary,
-                  size: 24,
+                  size: 20,
                 ),
                 tooltip: 'close_icon',
               )
@@ -195,21 +202,29 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                     ),
                     Visibility(
                       visible: asset.assetURL == CHECK_WEB3_PRIMER_URL,
-                      child: Align(
-                        alignment: Alignment.centerRight,
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: SizedBox(
-                            width: 165,
-                            height: 48,
-                            child: AuOutlinedButton(
-                              text: "web3_primer".tr(),
-                              onPress: () {
-                                Navigator.pushNamed(
-                                    context, AppRouter.previewPrimerPage,
-                                    arguments: asset);
-                              },
+                      child: Padding(
+                        padding: const EdgeInsets.only(
+                            left: 16.0, right: 16.0, top: 40),
+                        child: SizedBox(
+                          width: double.infinity,
+                          height: 43.0,
+                          child: ElevatedButton(
+                            style: ButtonStyle(
+                              shape: MaterialStateProperty.all<
+                                  RoundedRectangleBorder>(
+                                RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(76),
+                                  side: const BorderSide(color: AppColor.white),
+                                ),
+                              ),
                             ),
+                            child: Text("web3_glossary".tr(),
+                                style: theme.textTheme.ppMori400White14),
+                            onPressed: () {
+                              Navigator.pushNamed(
+                                  context, AppRouter.previewPrimerPage,
+                                  arguments: asset);
+                            },
                           ),
                         ),
                       ),
