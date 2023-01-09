@@ -366,7 +366,6 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     final version = (await PackageInfo.fromPlatform()).version;
     mutedMessage += "**Version**: $version\n";
 
-
     final device = DeviceInfo.instance;
     String deviceName = await device.getMachineName() ?? "N/A";
     mutedMessage += "**DeviceName**: $deviceName\n";
