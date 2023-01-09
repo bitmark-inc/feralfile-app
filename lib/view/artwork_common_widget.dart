@@ -18,6 +18,7 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
+import 'package:autonomy_flutter/view/au_buttons.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/jumping_dot.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -693,6 +694,8 @@ void showReportIssueDialog(BuildContext context, AssetToken token) {
       onReported: (githubURL) =>
           _showReportRenderingDialogSuccess(context, githubURL),
     ),
+    backgroundColor: AppColor.auGreyBackground,
+    isRoundCorner: true,
   );
 }
 
@@ -707,34 +710,21 @@ void _showReportRenderingDialogSuccess(BuildContext context, String githubURL) {
       children: [
         Text(
           "thank_for_report".tr(),
-          style: theme.primaryTextTheme.bodyText1,
+          style: theme.textTheme.ppMori400White14,
         ),
         const SizedBox(height: 40),
-        Row(
-          children: [
-            Expanded(
-              child: AuFilledButton(
-                text: "share".tr(),
-                onPress: () {
-                  Share.share(githubURL).then((value) {
-                    Navigator.of(context).pop();
-                  });
-                },
-                color: theme.colorScheme.secondary,
-                textStyle: theme.textTheme.button,
-              ),
-            ),
-          ],
+        AuPrimaryButton(
+          onPressed: () {
+            Share.share(githubURL).then((value) {
+              Navigator.of(context).pop();
+            });
+          },
+          text: "share".tr(),
         ),
-        const SizedBox(height: 7),
-        Align(
-          child: TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'cancel'.tr(),
-              style: theme.primaryTextTheme.button,
-            ),
-          ),
+        const SizedBox(height: 10),
+        AuSecondaryButton(
+          onPressed: () => Navigator.pop(context),
+          text: "cancel_dialog".tr(),
         ),
         const SizedBox(height: 15),
       ],

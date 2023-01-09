@@ -175,105 +175,92 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
               )
             ],
           ),
-          body: Stack(
-            children: [
-              SingleChildScrollView(
-                controller: _scrollController,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(
-                      height: 40,
-                    ),
-                    Hero(
-                      tag: "detail_${asset.id}",
-                      child: _ArtworkView(
-                        payload: widget.payload,
-                        token: asset,
-                      ),
-                    ),
-                    Visibility(
-                      visible: asset.assetURL == CHECK_WEB3_PRIMER_URL,
-                      child: Align(
-                        alignment: Alignment.centerRight,
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: SizedBox(
-                            width: 165,
-                            height: 48,
-                            child: AuOutlinedButton(
-                              text: "web3_primer".tr(),
-                              onPress: () {
-                                Navigator.pushNamed(
-                                    context, AppRouter.previewPrimerPage,
-                                    arguments: asset);
-                              },
-                            ),
-                          ),
+          body: SingleChildScrollView(
+            controller: _scrollController,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(
+                  height: 40,
+                ),
+                Hero(
+                  tag: "detail_${asset.id}",
+                  child: _ArtworkView(
+                    payload: widget.payload,
+                    token: asset,
+                  ),
+                ),
+                Visibility(
+                  visible: asset.assetURL == CHECK_WEB3_PRIMER_URL,
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: SizedBox(
+                        width: 165,
+                        height: 48,
+                        child: AuOutlinedButton(
+                          text: "web3_primer".tr(),
+                          onPress: () {
+                            Navigator.pushNamed(
+                                context, AppRouter.previewPrimerPage,
+                                arguments: asset);
+                          },
                         ),
                       ),
                     ),
-                    const SizedBox(
-                      height: 40,
+                  ),
+                ),
+                const SizedBox(
+                  height: 40,
+                ),
+                Visibility(
+                  visible: editionSubTitle.isNotEmpty,
+                  child: Padding(
+                    padding: ResponsiveLayout.getPadding,
+                    child: Text(
+                      editionSubTitle,
+                      style: theme.textTheme.ppMori400Grey12,
                     ),
-                    Visibility(
-                      visible: editionSubTitle.isNotEmpty,
-                      child: Padding(
-                        padding: ResponsiveLayout.getPadding,
-                        child: Text(
-                          editionSubTitle,
-                          style: theme.textTheme.ppMori400Grey12,
+                  ),
+                ),
+                debugInfoWidget(context, currentAsset),
+                const SizedBox(height: 16.0),
+                Padding(
+                  padding: ResponsiveLayout.getPadding,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Semantics(
+                        label: 'Desc',
+                        child: HtmlWidget(
+                          asset.desc ?? "",
+                          textStyle: theme.textTheme.ppMori400White12,
                         ),
                       ),
-                    ),
-                    debugInfoWidget(context, currentAsset),
-                    const SizedBox(height: 16.0),
-                    Padding(
-                      padding: ResponsiveLayout.getPadding,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Semantics(
-                            label: 'Desc',
-                            child: HtmlWidget(
-                              asset.desc ?? "",
-                              textStyle: theme.textTheme.ppMori400White12,
-                            ),
-                          ),
-                          const SizedBox(height: 40.0),
-                          artworkDetailsMetadataSection(
-                              context, asset, artistName),
-                          if (asset.fungible == true) ...[
-                            BlocBuilder<AccountsBloc, AccountsState>(
-                              builder: (context, state) {
-                                final addresses = state.addresses;
-                                return tokenOwnership(
-                                    context, asset, addresses);
-                              },
-                            ),
-                          ] else ...[
-                            state.provenances.isNotEmpty
-                                ? _provenanceView(context, state.provenances)
-                                : const SizedBox()
-                          ],
-                          artworkDetailsRightSection(context, asset),
-                          const SizedBox(height: 80.0),
-                        ],
-                      ),
-                    )
-                  ],
-                ),
-              ),
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: ReportButton(
-                  token: currentAsset,
-                  scrollController: _scrollController,
-                ),
-              ),
-            ],
+                      const SizedBox(height: 40.0),
+                      artworkDetailsMetadataSection(
+                          context, asset, artistName),
+                      if (asset.fungible == true) ...[
+                        BlocBuilder<AccountsBloc, AccountsState>(
+                          builder: (context, state) {
+                            final addresses = state.addresses;
+                            return tokenOwnership(
+                                context, asset, addresses);
+                          },
+                        ),
+                      ] else ...[
+                        state.provenances.isNotEmpty
+                            ? _provenanceView(context, state.provenances)
+                            : const SizedBox()
+                      ],
+                      artworkDetailsRightSection(context, asset),
+                      const SizedBox(height: 80.0),
+                    ],
+                  ),
+                )
+              ],
+            ),
           ),
         );
       } else {
@@ -391,6 +378,11 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                     : null,
               );
             },
+          ),
+          OptionItem(
+            title: 'report_nft_rendering_issues'.tr(),
+            icon: const Icon(AuIcon.help_us),
+            onTap: () => showReportIssueDialog(context, asset),
           ),
         ],
       ],

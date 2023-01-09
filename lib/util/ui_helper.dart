@@ -112,6 +112,7 @@ class UIHelper {
       BuildContext context, String title, Widget content,
       {bool isDismissible = false,
       isRoundCorner = false,
+      Color? backgroundColor,
       int autoDismissAfter = 0,
       FeedbackType? feedback = FeedbackType.selection}) async {
     log.info("[UIHelper] showInfoDialog: $title");
@@ -144,7 +145,7 @@ class UIHelper {
             clipper: isRoundCorner ? null : AutonomyTopRightRectangleClipper(),
             child: Container(
               decoration: BoxDecoration(
-                color: theme.colorScheme.primary,
+                color: backgroundColor ?? theme.colorScheme.primary,
                 borderRadius: isRoundCorner
                     ? const BorderRadius.only(
                         topRight: Radius.circular(20),
